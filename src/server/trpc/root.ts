@@ -1,7 +1,12 @@
-import { createTRPCRouter, publicProcedure } from "@/server/trpc/trpc";
+import { createTRPCRouter } from "@/server/trpc/init";
+import { authRouter } from "@/server/trpc/routers/auth";
+import { healthRouter } from "@/server/trpc/routers/health";
+import { orgRouter } from "@/server/trpc/routers/org";
 
 export const appRouter = createTRPCRouter({
-  health: publicProcedure.query(() => "ok"),
+  auth: authRouter,
+  health: healthRouter,
+  org: orgRouter,
 });
 
 export type AppRouter = typeof appRouter;
