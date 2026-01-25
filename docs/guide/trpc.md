@@ -1,0 +1,17 @@
+# tRPC
+
+## Overview
+
+- Context includes `session`, `orgId`, and `prisma`.
+- Superjson is the default transformer.
+
+## Base procedures
+
+- `publicProcedure`: no auth
+- `protectedProcedure`: requires session
+- `orgProcedure`: requires session + orgId
+- `adminProcedure`: requires ADMIN or OWNER
+
+## App router
+
+The app router includes `auth`, `org`, and `health` routers and is exposed at `/api/trpc`.

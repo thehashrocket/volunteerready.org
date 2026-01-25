@@ -2,8 +2,8 @@
 
 ## Project Structure & Module Organization
 
-This repository is currently empty. Add code and assets under a clear top-level
-layout so contributors can find things quickly. Recommended baseline structure:
+This repository uses a Next.js + VitePress layout. Keep docs under `docs/`
+and application code under `src/`.
 
 - `src/`: application source code
 - `tests/`: automated tests (unit/integration)
@@ -15,12 +15,17 @@ conventions and document any deviations here.
 
 ## Build, Test, and Development Commands
 
-Add a short command list once a build system is introduced. Examples:
+Current commands:
 
-- `npm install`: install dependencies
-- `npm run dev`: start local development server
-- `npm test`: run the test suite
-- `npm run lint`: run lint/format checks
+- `pnpm install`: install dependencies
+- `pnpm dev`: start local development server
+- `pnpm build`: build for production
+- `pnpm start`: run production server
+- `pnpm lint`: run Biome checks
+- `pnpm format`: run Biome formatting
+- `pnpm docs:dev`: run VitePress docs locally
+- `pnpm docs:build`: build docs site
+- `pnpm docs:preview`: preview built docs site
 
 ## Coding Style & Naming Conventions
 
@@ -78,6 +83,7 @@ src/
   lib/
   styles/
 prisma/
+docs/
 ```
 
 ## Rules

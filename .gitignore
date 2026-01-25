@@ -40,6 +40,8 @@ coverage
 .bun
 .bun.lockb
 .pnpm-store
+docs/.vitepress/cache
+docs/.vitepress/dist
 
 # typescript
 *.tsbuildinfo
