@@ -5,6 +5,7 @@
 - Install dependencies: `pnpm install`
 - Start Next.js: `pnpm dev`
 - Health check: `http://localhost:3005/health`
+- Public application: `http://localhost:3005/apply/dev-organization`
 
 ## Docs site
 

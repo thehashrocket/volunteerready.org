@@ -14,16 +14,23 @@ const prisma = new PrismaClient({
 async function main() {
 	const existingOrg = await prisma.organization.findFirst({
 		where: { name: 'Dev Organization' },
-		select: { id: true },
+		select: { id: true, slug: true },
 	});
 	const org =
 		existingOrg ??
 		(await prisma.organization.create({
-			data: { name: 'Dev Organization' },
+			data: { name: 'Dev Organization', slug: 'dev-organization' },
 		}));
 
 	if (!org) {
 		throw new Error('Dev Organization not found. Create it first in seed.');
+	}
+
+	if (!org.slug) {
+		await prisma.organization.update({
+			where: { id: org.id },
+			data: { slug: 'dev-organization' },
+		});
 	}
 
 	// Default questions (rescue-first, disqualifiers baked in)

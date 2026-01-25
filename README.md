@@ -20,6 +20,7 @@ Next.js App Router scaffold with Tailwind, shadcn/ui, tRPC, Prisma, and NextAuth
 - Documentation lives in `docs/`.
 - Key docs: `docs/guide/auth-flows.md`, `docs/guide/org-model.md`, `docs/guide/deployment.md`.
 - App routes: `/login` and `/app`.
+- Public apply route: `/apply/[orgSlug]`.
 - Screening domain logic lives in `src/server/domain/volunteer-screening.ts`.
 - Prisma runtime uses `@prisma/adapter-pg` with `pg`.
 - Auth providers: Google OAuth and Resend-backed email links.

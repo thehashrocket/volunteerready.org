@@ -9,6 +9,7 @@ import {
 	getApplicationDetail,
 	listApplications,
 } from '@/server/repositories/volunteer-applications';
+import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import {
 	adminProcedure,
 	createTRPCRouter,
@@ -16,6 +17,11 @@ import {
 } from '@/server/trpc/init';
 
 export const screenerRouter = createTRPCRouter({
+	getPublicForm: publicProcedure
+		.input(z.object({ orgSlug: z.string().min(1) }))
+		.query(async ({ input }) => {
+			return getPublicFormByOrgSlug(input.orgSlug);
+		}),
 	submit: publicProcedure
 		.input(
 			z.object({

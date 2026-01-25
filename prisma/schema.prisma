@@ -70,6 +70,7 @@ model VerificationToken {
 model Organization {
   id                String                 @id @default(cuid())
   name              String
+  slug              String                 @unique
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
   members           OrganizationMember[]
