@@ -23,3 +23,4 @@ Next.js App Router scaffold with Tailwind, shadcn/ui, tRPC, Prisma, and NextAuth
 - Screening domain logic lives in `src/server/domain/volunteer-screening.ts`.
 - Prisma runtime uses `@prisma/adapter-pg` with `pg`.
 - Auth providers: Google OAuth and Resend-backed email links.
+- Prisma client is generated to `src/prisma/generated/client`; run `pnpm prisma generate` after schema changes.

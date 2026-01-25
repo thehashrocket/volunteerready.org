@@ -94,6 +94,7 @@ docs/
 - server/domain/** = types + invariants + pure functions
 - server/trpc/** = routers + procedures only (thin)
 - screening domain lives in `src/server/domain/volunteer-screening.ts`
+- Prisma client is generated into `src/prisma/generated/client`
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.

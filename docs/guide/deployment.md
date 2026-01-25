@@ -27,3 +27,4 @@
 - Prisma migrations must be applied before starting the app.
 - Run seed data with `pnpm prisma db seed` in non-prod environments.
 - Prisma uses the Postgres driver adapter (`@prisma/adapter-pg`) with `pg` for runtime connections.
+- Prisma client is generated into `src/prisma/generated/client`.
