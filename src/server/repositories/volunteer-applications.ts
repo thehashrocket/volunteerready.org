@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { ApplicationStatus, ScreeningStatus } from "@prisma/client";
 import { prisma } from "@/server/repositories/prisma";
 
@@ -38,7 +39,7 @@ export async function submitAnswers(
     data: answers.map((answer) => ({
       applicationId,
       questionId: answer.questionId,
-      answerJson: answer.answerJson,
+      answerJson: answer.answerJson as Prisma.InputJsonValue,
     })),
   });
 }

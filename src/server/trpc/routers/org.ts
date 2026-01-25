@@ -1,37 +1,55 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, orgProcedure, protectedProcedure } from "@/server/trpc/init";
+import { orgService } from "@/server/services/orgService";
+
 
 export const orgRouter = createTRPCRouter({
   getCurrentOrg: orgProcedure.query(async ({ ctx }) => {
+    const orgId = ctx.orgId;
+    if (!orgId) {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
     return ctx.prisma.organization.findUnique({
-      where: { id: ctx.orgId },
+      where: { id: orgId },
     });
   }),
   listOrgs: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session?.user?.id;
+    if (!userId) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
     const memberships = await ctx.prisma.organizationMember.findMany({
-      where: { userId: ctx.session?.user?.id },
+      where: { userId },
       include: { organization: true },
     });
 
     return memberships.map((membership) => membership.organization);
   }),
   switchOrg: protectedProcedure
-    .input(z.object({ orgId: z.string() }))
+    .input(z.object({ orgId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      const membership = await ctx.prisma.organizationMember.findUnique({
-        where: {
-          organizationId_userId: {
-            organizationId: input.orgId,
-            userId: ctx.session?.user?.id ?? "",
-          },
-        },
-        include: { organization: true },
-      });
-
-      if (!membership) {
-        return null;
+      const userId = ctx.session?.user?.id;
+      if (!userId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      return membership.organization;
+      // We need the session token to update the DB Session row.
+      const sessionToken = ctx.sessionToken;
+      if (!sessionToken) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Missing session token in tRPC context.",
+        });
+      }
+
+      const svc = orgService(ctx.prisma);
+      const result = await svc.switchOrgForSession({
+        userId,
+        sessionToken,
+        targetOrgId: input.orgId,
+      });
+
+      return result; // { orgId, role }
     }),
 });

@@ -41,6 +41,9 @@ export const screenerRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
+      if (!ctx.orgId) {
+        throw new Error("Missing org context");
+      }
       return listApplications(ctx.orgId, input.status, {
         page: input.page,
         pageSize: input.pageSize,
@@ -49,6 +52,9 @@ export const screenerRouter = createTRPCRouter({
   detail: adminProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
+      if (!ctx.orgId) {
+        throw new Error("Missing org context");
+      }
       return getApplicationDetail(ctx.orgId, input.id);
     }),
 });

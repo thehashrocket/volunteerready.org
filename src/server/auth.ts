@@ -1,16 +1,34 @@
 import type { NextAuthOptions } from "next-auth";
 import { getServerSession } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/server/repositories/prisma";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma as any),
   session: { strategy: "database" },
   providers: [],
   callbacks: {
-    session: ({ session, user }) => {
-      if (session.user) {
-        session.user.id = user.id;
+    session: async ({ session, user }) => {
+      // user.id is available with database sessions
+      if (session.user && user?.id) {
+        (session.user as any).id = user.id;
+      }
+      // With database strategy, NextAuth includes session.sessionToken
+      // on the server side in many cases, but it may not be present on the client.
+      // We'll *also* copy it into session so tRPC context can use it.
+      const rawSessionToken = (session as any).sessionToken ?? null;
+
+      if (rawSessionToken) {
+        (session as any).sessionToken = rawSessionToken;
+
+        const dbSession = await prisma.session.findUnique({
+          where: { sessionToken: rawSessionToken },
+          select: { currentOrgId: true },
+        });
+
+        (session as any).currentOrgId = dbSession?.currentOrgId ?? null;
+      } else {
+        (session as any).currentOrgId = null;
       }
       return session;
     },

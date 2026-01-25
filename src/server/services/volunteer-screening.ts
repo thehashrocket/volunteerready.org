@@ -1,4 +1,4 @@
-import { ApplicationStatus, ScreeningStatus } from "@prisma/client";
+import { ApplicationStatus, Prisma, ScreeningStatus } from "@/prisma/generated/client";
 import {
   evaluateScreening,
   validateResponses,
@@ -91,7 +91,7 @@ export async function submitVolunteerApplication(
         submittedByEmail: payload.submittedByEmail,
         screeningStatus,
         profile: payload.profile,
-      },
+      } as any as Prisma.InputJsonValue,
     },
   });
 

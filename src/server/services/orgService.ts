@@ -1,0 +1,64 @@
+import type { PrismaClient } from "@/prisma/generated/client";
+import { TRPCError } from "@trpc/server";
+import { orgRepo } from "../repositories/orgRepo";
+import { sessionRepo } from "../repositories/sessionRepo";
+import { auditRepo } from "../repositories/auditRepo";
+
+export function orgService(prisma: PrismaClient) {
+  const orgs = orgRepo(prisma);
+  const sessions = sessionRepo(prisma);
+  const audit = auditRepo(prisma);
+
+  return {
+    /**
+     * Switch org for the *current session*.
+     * Source of truth: Session.currentOrgId in DB.
+     */
+    async switchOrgForSession(opts: {
+      userId: string;
+      sessionToken: string;
+      targetOrgId: string;
+    }) {
+      // 1) Verify membership
+      const membership = await orgs.userIsMemberOfOrg(opts.userId, opts.targetOrgId);
+      if (!membership) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not a member of that organization." });
+      }
+
+      // 2) Update session
+      await sessions.setCurrentOrgBySessionToken(opts.sessionToken, opts.targetOrgId);
+
+      // 3) Audit
+      await audit.write({
+        orgId: opts.targetOrgId,
+        actorId: opts.userId,
+        action: "ORG_SWITCH",
+        entityType: "Organization",
+        entityId: opts.targetOrgId,
+      });
+
+      return { orgId: opts.targetOrgId, role: membership.role };
+    },
+
+    /**
+     * Ensure currentOrgId is valid; fallback to first org if missing/invalid.
+     * Handy to call during session callback or context init if you want auto-healing.
+     */
+    async ensureValidCurrentOrg(opts: { userId: string; sessionToken: string }) {
+      const session = await sessions.getBySessionToken(opts.sessionToken);
+      if (!session) return null;
+
+      if (session.currentOrgId) {
+        const membership = await orgs.userIsMemberOfOrg(opts.userId, session.currentOrgId);
+        if (membership) return { orgId: session.currentOrgId, role: membership.role };
+      }
+
+      const first = await orgs.getFirstOrgForUser(opts.userId);
+      const fallbackOrgId = first?.organizationId ?? null;
+
+      await sessions.setCurrentOrgBySessionToken(opts.sessionToken, fallbackOrgId);
+
+      return fallbackOrgId ? { orgId: fallbackOrgId, role: first!.role } : null;
+    },
+  };
+}

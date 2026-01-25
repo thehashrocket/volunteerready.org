@@ -1,11 +1,12 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { getServerSession } from "next-auth";
-import { Role } from "@prisma/client";
+import { Role } from "@/prisma/generated/client";
 import { authOptions } from "@/server/auth";
 import { prisma } from "@/server/repositories/prisma";
+import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 
-export async function createTRPCContext() {
+export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
 
@@ -23,7 +24,9 @@ export async function createTRPCContext() {
     role = membership?.role ?? null;
   }
 
-  return { session, orgId, role, prisma };
+  const sessionToken = (session as any)?.sessionToken ?? null;
+
+  return { session, orgId, role, prisma, sessionToken };
 }
 
 export const t = initTRPC
