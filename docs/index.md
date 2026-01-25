@@ -6,4 +6,7 @@ Short, living documentation for the product and engineering foundations.
 
 - [Getting Started](/guide/getting-started)
 - [Architecture](/guide/architecture)
+- [Auth Flows](/guide/auth-flows)
+- [Org Model](/guide/org-model)
+- [Deployment](/guide/deployment)
 - [tRPC](/guide/trpc)

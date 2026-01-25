@@ -18,3 +18,5 @@ Next.js App Router scaffold with Tailwind, shadcn/ui, tRPC, Prisma, and NextAuth
 - Env vars live in `.env` with a safe `.env.example` template.
 - Prisma schema is in `prisma/schema.prisma`.
 - Documentation lives in `docs/`.
+- Key docs: `docs/guide/auth-flows.md`, `docs/guide/org-model.md`, `docs/guide/deployment.md`.
+- App routes: `/login` and `/app`.

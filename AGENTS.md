@@ -93,3 +93,19 @@ docs/
 - server/repositories/** = Prisma access only
 - server/domain/** = types + invariants + pure functions
 - server/trpc/** = routers + procedures only (thin)
+
+## Docs Index
+
+- `docs/guide/getting-started.md`
+- `docs/guide/architecture.md`
+- `docs/guide/auth-flows.md`
+- `docs/guide/org-model.md`
+- `docs/guide/deployment.md`
+- `docs/guide/trpc.md`
+
+## LLMs documentation
+
+- Prisma 7.2.0: <https://www.prisma.io/llms.txt>
+- Next.js 16.1.3: <https://nextjs.org/docs/llms-full.txt>
+- React 19.2.3: <https://react.dev/reference/react>
+- Shadcn UI: <https://ui.shadcn.com/llms.txt>
