@@ -14,4 +14,4 @@
 
 ## App router
 
-The app router includes `auth`, `org`, and `health` routers and is exposed at `/api/trpc`.
+The app router includes `auth`, `org`, `health`, and `screener` routers and is exposed at `/api/trpc`.

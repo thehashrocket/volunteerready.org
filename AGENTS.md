@@ -93,6 +93,11 @@ docs/
 - server/repositories/** = Prisma access only
 - server/domain/** = types + invariants + pure functions
 - server/trpc/** = routers + procedures only (thin)
+- screening domain lives in `src/server/domain/volunteer-screening.ts`
+- No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
+- All DB writes go through services (so audit logging is automatic).
+- Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.
+- Zod schemas live next to domain models and get imported on both sides. No duplicating.
 
 ## Docs Index
 

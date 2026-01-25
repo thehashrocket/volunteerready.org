@@ -64,6 +64,8 @@ model Organization {
   members      OrganizationMember[]
   auditLogs    AuditLog[]
   featureFlags FeatureFlag[]
+  applications VolunteerApplication[]
+  screenerQuestions ScreenerQuestion[]
 }
 
 model OrganizationMember {
@@ -103,6 +105,70 @@ model FeatureFlag {
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, key])
+}
+
+model VolunteerApplication {
+  id              String                     @id @default(cuid())
+  orgId           String
+  submittedByEmail String
+  status          ApplicationStatus          @default(SUBMITTED)
+  screeningStatus ScreeningStatus
+  screeningReasons Json
+  submittedAt     DateTime                   @default(now())
+
+  organization Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  answers      VolunteerAnswer[]
+
+  @@index([orgId, status])
+}
+
+model VolunteerAnswer {
+  id            String               @id @default(cuid())
+  applicationId String
+  questionId    String
+  answerJson    Json
+
+  application VolunteerApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+model ScreenerQuestion {
+  id         String                @id @default(cuid())
+  orgId      String
+  key        String
+  prompt     String
+  type       ScreenerQuestionType
+  configJson Json
+  isActive   Boolean               @default(true)
+  order      Int
+  createdAt  DateTime              @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, key])
+  @@index([orgId, isActive, order])
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ScreeningStatus {
+  PASS
+  REVIEW
+  FAIL
+}
+
+enum ScreenerQuestionType {
+  TEXT
+  SINGLE_CHOICE
+  MULTI_CHOICE
+  BOOLEAN
+  NUMBER
 }
 
 enum Role {

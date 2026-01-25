@@ -18,3 +18,4 @@
 - `src/server/domain/**`: types + invariants + pure functions
 - `src/server/trpc/**`: routers + procedures only
 - `src/components/**`: reusable UI building blocks
+- `src/server/services/volunteer-screening.ts`: application submit flow

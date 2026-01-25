@@ -6,6 +6,9 @@
 - `OrganizationMember`: join table between `User` and `Organization` with role.
 - `FeatureFlag`: per-org feature flags.
 - `AuditLog`: append-only actions scoped to an org.
+- `VolunteerApplication`: volunteer submissions per org.
+- `VolunteerAnswer`: answers linked to an application.
+- `ScreenerQuestion`: configurable per-org screening questions.
 
 ## Roles
 
