@@ -5,6 +5,11 @@
 - `DATABASE_URL`: Postgres connection string
 - `NEXTAUTH_URL`: base URL for NextAuth
 - `NEXTAUTH_SECRET`: secret for signing sessions
+- `GOOGLE_CLIENT_ID`: Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
+- `RESEND_API_KEY`: Resend API key for email magic links
+- `EMAIL_FROM`: from address for transactional emails
+- `NEXTAUTH_URL` must match the deployed base URL for magic link callbacks
 
 ## Build
 

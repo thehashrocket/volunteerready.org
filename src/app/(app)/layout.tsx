@@ -1,9 +1,5 @@
-import { TRPCProvider } from "@/lib/trpc/provider";
+import { AppProviders } from '@/app/(app)/providers';
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <TRPCProvider>{children}</TRPCProvider>;
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+	return <AppProviders>{children}</AppProviders>;
 }

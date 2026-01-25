@@ -8,9 +8,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "*.ts"
-  ],
+  "include": ["*.ts"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"

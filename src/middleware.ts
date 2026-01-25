@@ -1,9 +1,29 @@
-import { withAuth } from "next-auth/middleware";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export default withAuth({
-  pages: { signIn: "/login" },
-});
+const sessionCookieNames = [
+	'__Secure-next-auth.session-token',
+	'next-auth.session-token',
+];
+
+export function middleware(req: NextRequest) {
+	if (!req.nextUrl.pathname.startsWith('/app')) {
+		return NextResponse.next();
+	}
+
+	const hasSessionCookie = sessionCookieNames.some((name) =>
+		req.cookies.has(name),
+	);
+
+	if (!hasSessionCookie) {
+		const signInUrl = new URL('/login', req.url);
+		signInUrl.searchParams.set('callbackUrl', req.nextUrl.pathname);
+		return NextResponse.redirect(signInUrl);
+	}
+
+	return NextResponse.next();
+}
 
 export const config = {
-  matcher: ["/app/:path*"],
+	matcher: ['/app/:path*'],
 };

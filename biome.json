@@ -1,17 +1,46 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.12/schema.json",
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2
-  },
-  "linter": {
-    "enabled": true
-  },
-  "organizeImports": {
-    "enabled": true
-  },
-  "files": {
-    "ignore": ["node_modules", ".next"]
-  }
+	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"src/**",
+			"scripts/**",
+			"prisma/**/*.ts",
+			"prisma/**/*.js",
+			"package.json",
+			"tsconfig.json",
+			"next.config.ts",
+			"postcss.config.mjs",
+			"eslint.config.mjs",
+			"biome.json"
+		]
+	},
+	"formatter": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"suspicious": {
+				"noArrayIndexKey": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "single"
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["src/prisma/generated/**"],
+			"formatter": { "enabled": false },
+			"linter": { "enabled": false }
+		},
+		{
+			"includes": ["**/*.css"],
+			"formatter": { "enabled": false },
+			"linter": { "enabled": false }
+		}
+	]
 }
