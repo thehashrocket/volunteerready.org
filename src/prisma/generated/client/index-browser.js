@@ -161,6 +161,15 @@ exports.Prisma.VerificationTokenScalarFieldEnum = {
   expires: 'expires'
 };
 
+exports.Prisma.ApplicationStatusTokenScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.OrganizationScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -289,6 +298,7 @@ exports.Prisma.ModelName = {
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken',
+  ApplicationStatusToken: 'ApplicationStatusToken',
   Organization: 'Organization',
   OrganizationMember: 'OrganizationMember',
   AuditLog: 'AuditLog',

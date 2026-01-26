@@ -34,6 +34,11 @@ export type Session = $Result.DefaultSelection<Prisma.$SessionPayload>
  */
 export type VerificationToken = $Result.DefaultSelection<Prisma.$VerificationTokenPayload>
 /**
+ * Model ApplicationStatusToken
+ * 
+ */
+export type ApplicationStatusToken = $Result.DefaultSelection<Prisma.$ApplicationStatusTokenPayload>
+/**
  * Model Organization
  * 
  */
@@ -286,6 +291,16 @@ export class PrismaClient<
     * ```
     */
   get verificationToken(): Prisma.VerificationTokenDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.applicationStatusToken`: Exposes CRUD operations for the **ApplicationStatusToken** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ApplicationStatusTokens
+    * const applicationStatusTokens = await prisma.applicationStatusToken.findMany()
+    * ```
+    */
+  get applicationStatusToken(): Prisma.ApplicationStatusTokenDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.organization`: Exposes CRUD operations for the **Organization** model.
@@ -794,6 +809,7 @@ export namespace Prisma {
     Account: 'Account',
     Session: 'Session',
     VerificationToken: 'VerificationToken',
+    ApplicationStatusToken: 'ApplicationStatusToken',
     Organization: 'Organization',
     OrganizationMember: 'OrganizationMember',
     AuditLog: 'AuditLog',
@@ -816,7 +832,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1113,6 +1129,80 @@ export namespace Prisma {
           count: {
             args: Prisma.VerificationTokenCountArgs<ExtArgs>
             result: $Utils.Optional<VerificationTokenCountAggregateOutputType> | number
+          }
+        }
+      }
+      ApplicationStatusToken: {
+        payload: Prisma.$ApplicationStatusTokenPayload<ExtArgs>
+        fields: Prisma.ApplicationStatusTokenFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ApplicationStatusTokenFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ApplicationStatusTokenFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload>
+          }
+          findFirst: {
+            args: Prisma.ApplicationStatusTokenFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ApplicationStatusTokenFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload>
+          }
+          findMany: {
+            args: Prisma.ApplicationStatusTokenFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload>[]
+          }
+          create: {
+            args: Prisma.ApplicationStatusTokenCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload>
+          }
+          createMany: {
+            args: Prisma.ApplicationStatusTokenCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ApplicationStatusTokenCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload>[]
+          }
+          delete: {
+            args: Prisma.ApplicationStatusTokenDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload>
+          }
+          update: {
+            args: Prisma.ApplicationStatusTokenUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload>
+          }
+          deleteMany: {
+            args: Prisma.ApplicationStatusTokenDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ApplicationStatusTokenUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ApplicationStatusTokenUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload>[]
+          }
+          upsert: {
+            args: Prisma.ApplicationStatusTokenUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApplicationStatusTokenPayload>
+          }
+          aggregate: {
+            args: Prisma.ApplicationStatusTokenAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateApplicationStatusToken>
+          }
+          groupBy: {
+            args: Prisma.ApplicationStatusTokenGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ApplicationStatusTokenGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ApplicationStatusTokenCountArgs<ExtArgs>
+            result: $Utils.Optional<ApplicationStatusTokenCountAggregateOutputType> | number
           }
         }
       }
@@ -1746,6 +1836,7 @@ export namespace Prisma {
     account?: AccountOmit
     session?: SessionOmit
     verificationToken?: VerificationTokenOmit
+    applicationStatusToken?: ApplicationStatusTokenOmit
     organization?: OrganizationOmit
     organizationMember?: OrganizationMemberOmit
     auditLog?: AuditLogOmit
@@ -6474,6 +6565,1014 @@ export namespace Prisma {
      * Omit specific fields from the VerificationToken
      */
     omit?: VerificationTokenOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ApplicationStatusToken
+   */
+
+  export type AggregateApplicationStatusToken = {
+    _count: ApplicationStatusTokenCountAggregateOutputType | null
+    _min: ApplicationStatusTokenMinAggregateOutputType | null
+    _max: ApplicationStatusTokenMaxAggregateOutputType | null
+  }
+
+  export type ApplicationStatusTokenMinAggregateOutputType = {
+    id: string | null
+    email: string | null
+    tokenHash: string | null
+    expiresAt: Date | null
+    usedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type ApplicationStatusTokenMaxAggregateOutputType = {
+    id: string | null
+    email: string | null
+    tokenHash: string | null
+    expiresAt: Date | null
+    usedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type ApplicationStatusTokenCountAggregateOutputType = {
+    id: number
+    email: number
+    tokenHash: number
+    expiresAt: number
+    usedAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ApplicationStatusTokenMinAggregateInputType = {
+    id?: true
+    email?: true
+    tokenHash?: true
+    expiresAt?: true
+    usedAt?: true
+    createdAt?: true
+  }
+
+  export type ApplicationStatusTokenMaxAggregateInputType = {
+    id?: true
+    email?: true
+    tokenHash?: true
+    expiresAt?: true
+    usedAt?: true
+    createdAt?: true
+  }
+
+  export type ApplicationStatusTokenCountAggregateInputType = {
+    id?: true
+    email?: true
+    tokenHash?: true
+    expiresAt?: true
+    usedAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ApplicationStatusTokenAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ApplicationStatusToken to aggregate.
+     */
+    where?: ApplicationStatusTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApplicationStatusTokens to fetch.
+     */
+    orderBy?: ApplicationStatusTokenOrderByWithRelationInput | ApplicationStatusTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ApplicationStatusTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApplicationStatusTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApplicationStatusTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ApplicationStatusTokens
+    **/
+    _count?: true | ApplicationStatusTokenCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ApplicationStatusTokenMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ApplicationStatusTokenMaxAggregateInputType
+  }
+
+  export type GetApplicationStatusTokenAggregateType<T extends ApplicationStatusTokenAggregateArgs> = {
+        [P in keyof T & keyof AggregateApplicationStatusToken]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateApplicationStatusToken[P]>
+      : GetScalarType<T[P], AggregateApplicationStatusToken[P]>
+  }
+
+
+
+
+  export type ApplicationStatusTokenGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ApplicationStatusTokenWhereInput
+    orderBy?: ApplicationStatusTokenOrderByWithAggregationInput | ApplicationStatusTokenOrderByWithAggregationInput[]
+    by: ApplicationStatusTokenScalarFieldEnum[] | ApplicationStatusTokenScalarFieldEnum
+    having?: ApplicationStatusTokenScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ApplicationStatusTokenCountAggregateInputType | true
+    _min?: ApplicationStatusTokenMinAggregateInputType
+    _max?: ApplicationStatusTokenMaxAggregateInputType
+  }
+
+  export type ApplicationStatusTokenGroupByOutputType = {
+    id: string
+    email: string
+    tokenHash: string
+    expiresAt: Date
+    usedAt: Date | null
+    createdAt: Date
+    _count: ApplicationStatusTokenCountAggregateOutputType | null
+    _min: ApplicationStatusTokenMinAggregateOutputType | null
+    _max: ApplicationStatusTokenMaxAggregateOutputType | null
+  }
+
+  type GetApplicationStatusTokenGroupByPayload<T extends ApplicationStatusTokenGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ApplicationStatusTokenGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ApplicationStatusTokenGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ApplicationStatusTokenGroupByOutputType[P]>
+            : GetScalarType<T[P], ApplicationStatusTokenGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ApplicationStatusTokenSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["applicationStatusToken"]>
+
+  export type ApplicationStatusTokenSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["applicationStatusToken"]>
+
+  export type ApplicationStatusTokenSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["applicationStatusToken"]>
+
+  export type ApplicationStatusTokenSelectScalar = {
+    id?: boolean
+    email?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type ApplicationStatusTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "tokenHash" | "expiresAt" | "usedAt" | "createdAt", ExtArgs["result"]["applicationStatusToken"]>
+
+  export type $ApplicationStatusTokenPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ApplicationStatusToken"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      email: string
+      tokenHash: string
+      expiresAt: Date
+      usedAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["applicationStatusToken"]>
+    composites: {}
+  }
+
+  type ApplicationStatusTokenGetPayload<S extends boolean | null | undefined | ApplicationStatusTokenDefaultArgs> = $Result.GetResult<Prisma.$ApplicationStatusTokenPayload, S>
+
+  type ApplicationStatusTokenCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ApplicationStatusTokenFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ApplicationStatusTokenCountAggregateInputType | true
+    }
+
+  export interface ApplicationStatusTokenDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ApplicationStatusToken'], meta: { name: 'ApplicationStatusToken' } }
+    /**
+     * Find zero or one ApplicationStatusToken that matches the filter.
+     * @param {ApplicationStatusTokenFindUniqueArgs} args - Arguments to find a ApplicationStatusToken
+     * @example
+     * // Get one ApplicationStatusToken
+     * const applicationStatusToken = await prisma.applicationStatusToken.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ApplicationStatusTokenFindUniqueArgs>(args: SelectSubset<T, ApplicationStatusTokenFindUniqueArgs<ExtArgs>>): Prisma__ApplicationStatusTokenClient<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ApplicationStatusToken that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ApplicationStatusTokenFindUniqueOrThrowArgs} args - Arguments to find a ApplicationStatusToken
+     * @example
+     * // Get one ApplicationStatusToken
+     * const applicationStatusToken = await prisma.applicationStatusToken.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ApplicationStatusTokenFindUniqueOrThrowArgs>(args: SelectSubset<T, ApplicationStatusTokenFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ApplicationStatusTokenClient<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ApplicationStatusToken that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApplicationStatusTokenFindFirstArgs} args - Arguments to find a ApplicationStatusToken
+     * @example
+     * // Get one ApplicationStatusToken
+     * const applicationStatusToken = await prisma.applicationStatusToken.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ApplicationStatusTokenFindFirstArgs>(args?: SelectSubset<T, ApplicationStatusTokenFindFirstArgs<ExtArgs>>): Prisma__ApplicationStatusTokenClient<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ApplicationStatusToken that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApplicationStatusTokenFindFirstOrThrowArgs} args - Arguments to find a ApplicationStatusToken
+     * @example
+     * // Get one ApplicationStatusToken
+     * const applicationStatusToken = await prisma.applicationStatusToken.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ApplicationStatusTokenFindFirstOrThrowArgs>(args?: SelectSubset<T, ApplicationStatusTokenFindFirstOrThrowArgs<ExtArgs>>): Prisma__ApplicationStatusTokenClient<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ApplicationStatusTokens that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApplicationStatusTokenFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ApplicationStatusTokens
+     * const applicationStatusTokens = await prisma.applicationStatusToken.findMany()
+     * 
+     * // Get first 10 ApplicationStatusTokens
+     * const applicationStatusTokens = await prisma.applicationStatusToken.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const applicationStatusTokenWithIdOnly = await prisma.applicationStatusToken.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ApplicationStatusTokenFindManyArgs>(args?: SelectSubset<T, ApplicationStatusTokenFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ApplicationStatusToken.
+     * @param {ApplicationStatusTokenCreateArgs} args - Arguments to create a ApplicationStatusToken.
+     * @example
+     * // Create one ApplicationStatusToken
+     * const ApplicationStatusToken = await prisma.applicationStatusToken.create({
+     *   data: {
+     *     // ... data to create a ApplicationStatusToken
+     *   }
+     * })
+     * 
+     */
+    create<T extends ApplicationStatusTokenCreateArgs>(args: SelectSubset<T, ApplicationStatusTokenCreateArgs<ExtArgs>>): Prisma__ApplicationStatusTokenClient<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ApplicationStatusTokens.
+     * @param {ApplicationStatusTokenCreateManyArgs} args - Arguments to create many ApplicationStatusTokens.
+     * @example
+     * // Create many ApplicationStatusTokens
+     * const applicationStatusToken = await prisma.applicationStatusToken.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ApplicationStatusTokenCreateManyArgs>(args?: SelectSubset<T, ApplicationStatusTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ApplicationStatusTokens and returns the data saved in the database.
+     * @param {ApplicationStatusTokenCreateManyAndReturnArgs} args - Arguments to create many ApplicationStatusTokens.
+     * @example
+     * // Create many ApplicationStatusTokens
+     * const applicationStatusToken = await prisma.applicationStatusToken.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ApplicationStatusTokens and only return the `id`
+     * const applicationStatusTokenWithIdOnly = await prisma.applicationStatusToken.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ApplicationStatusTokenCreateManyAndReturnArgs>(args?: SelectSubset<T, ApplicationStatusTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ApplicationStatusToken.
+     * @param {ApplicationStatusTokenDeleteArgs} args - Arguments to delete one ApplicationStatusToken.
+     * @example
+     * // Delete one ApplicationStatusToken
+     * const ApplicationStatusToken = await prisma.applicationStatusToken.delete({
+     *   where: {
+     *     // ... filter to delete one ApplicationStatusToken
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ApplicationStatusTokenDeleteArgs>(args: SelectSubset<T, ApplicationStatusTokenDeleteArgs<ExtArgs>>): Prisma__ApplicationStatusTokenClient<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ApplicationStatusToken.
+     * @param {ApplicationStatusTokenUpdateArgs} args - Arguments to update one ApplicationStatusToken.
+     * @example
+     * // Update one ApplicationStatusToken
+     * const applicationStatusToken = await prisma.applicationStatusToken.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ApplicationStatusTokenUpdateArgs>(args: SelectSubset<T, ApplicationStatusTokenUpdateArgs<ExtArgs>>): Prisma__ApplicationStatusTokenClient<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ApplicationStatusTokens.
+     * @param {ApplicationStatusTokenDeleteManyArgs} args - Arguments to filter ApplicationStatusTokens to delete.
+     * @example
+     * // Delete a few ApplicationStatusTokens
+     * const { count } = await prisma.applicationStatusToken.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ApplicationStatusTokenDeleteManyArgs>(args?: SelectSubset<T, ApplicationStatusTokenDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ApplicationStatusTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApplicationStatusTokenUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ApplicationStatusTokens
+     * const applicationStatusToken = await prisma.applicationStatusToken.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ApplicationStatusTokenUpdateManyArgs>(args: SelectSubset<T, ApplicationStatusTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ApplicationStatusTokens and returns the data updated in the database.
+     * @param {ApplicationStatusTokenUpdateManyAndReturnArgs} args - Arguments to update many ApplicationStatusTokens.
+     * @example
+     * // Update many ApplicationStatusTokens
+     * const applicationStatusToken = await prisma.applicationStatusToken.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ApplicationStatusTokens and only return the `id`
+     * const applicationStatusTokenWithIdOnly = await prisma.applicationStatusToken.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ApplicationStatusTokenUpdateManyAndReturnArgs>(args: SelectSubset<T, ApplicationStatusTokenUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ApplicationStatusToken.
+     * @param {ApplicationStatusTokenUpsertArgs} args - Arguments to update or create a ApplicationStatusToken.
+     * @example
+     * // Update or create a ApplicationStatusToken
+     * const applicationStatusToken = await prisma.applicationStatusToken.upsert({
+     *   create: {
+     *     // ... data to create a ApplicationStatusToken
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ApplicationStatusToken we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ApplicationStatusTokenUpsertArgs>(args: SelectSubset<T, ApplicationStatusTokenUpsertArgs<ExtArgs>>): Prisma__ApplicationStatusTokenClient<$Result.GetResult<Prisma.$ApplicationStatusTokenPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ApplicationStatusTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApplicationStatusTokenCountArgs} args - Arguments to filter ApplicationStatusTokens to count.
+     * @example
+     * // Count the number of ApplicationStatusTokens
+     * const count = await prisma.applicationStatusToken.count({
+     *   where: {
+     *     // ... the filter for the ApplicationStatusTokens we want to count
+     *   }
+     * })
+    **/
+    count<T extends ApplicationStatusTokenCountArgs>(
+      args?: Subset<T, ApplicationStatusTokenCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ApplicationStatusTokenCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ApplicationStatusToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApplicationStatusTokenAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ApplicationStatusTokenAggregateArgs>(args: Subset<T, ApplicationStatusTokenAggregateArgs>): Prisma.PrismaPromise<GetApplicationStatusTokenAggregateType<T>>
+
+    /**
+     * Group by ApplicationStatusToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApplicationStatusTokenGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ApplicationStatusTokenGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ApplicationStatusTokenGroupByArgs['orderBy'] }
+        : { orderBy?: ApplicationStatusTokenGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ApplicationStatusTokenGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetApplicationStatusTokenGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ApplicationStatusToken model
+   */
+  readonly fields: ApplicationStatusTokenFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ApplicationStatusToken.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ApplicationStatusTokenClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ApplicationStatusToken model
+   */
+  interface ApplicationStatusTokenFieldRefs {
+    readonly id: FieldRef<"ApplicationStatusToken", 'String'>
+    readonly email: FieldRef<"ApplicationStatusToken", 'String'>
+    readonly tokenHash: FieldRef<"ApplicationStatusToken", 'String'>
+    readonly expiresAt: FieldRef<"ApplicationStatusToken", 'DateTime'>
+    readonly usedAt: FieldRef<"ApplicationStatusToken", 'DateTime'>
+    readonly createdAt: FieldRef<"ApplicationStatusToken", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ApplicationStatusToken findUnique
+   */
+  export type ApplicationStatusTokenFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which ApplicationStatusToken to fetch.
+     */
+    where: ApplicationStatusTokenWhereUniqueInput
+  }
+
+  /**
+   * ApplicationStatusToken findUniqueOrThrow
+   */
+  export type ApplicationStatusTokenFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which ApplicationStatusToken to fetch.
+     */
+    where: ApplicationStatusTokenWhereUniqueInput
+  }
+
+  /**
+   * ApplicationStatusToken findFirst
+   */
+  export type ApplicationStatusTokenFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which ApplicationStatusToken to fetch.
+     */
+    where?: ApplicationStatusTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApplicationStatusTokens to fetch.
+     */
+    orderBy?: ApplicationStatusTokenOrderByWithRelationInput | ApplicationStatusTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ApplicationStatusTokens.
+     */
+    cursor?: ApplicationStatusTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApplicationStatusTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApplicationStatusTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ApplicationStatusTokens.
+     */
+    distinct?: ApplicationStatusTokenScalarFieldEnum | ApplicationStatusTokenScalarFieldEnum[]
+  }
+
+  /**
+   * ApplicationStatusToken findFirstOrThrow
+   */
+  export type ApplicationStatusTokenFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which ApplicationStatusToken to fetch.
+     */
+    where?: ApplicationStatusTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApplicationStatusTokens to fetch.
+     */
+    orderBy?: ApplicationStatusTokenOrderByWithRelationInput | ApplicationStatusTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ApplicationStatusTokens.
+     */
+    cursor?: ApplicationStatusTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApplicationStatusTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApplicationStatusTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ApplicationStatusTokens.
+     */
+    distinct?: ApplicationStatusTokenScalarFieldEnum | ApplicationStatusTokenScalarFieldEnum[]
+  }
+
+  /**
+   * ApplicationStatusToken findMany
+   */
+  export type ApplicationStatusTokenFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which ApplicationStatusTokens to fetch.
+     */
+    where?: ApplicationStatusTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApplicationStatusTokens to fetch.
+     */
+    orderBy?: ApplicationStatusTokenOrderByWithRelationInput | ApplicationStatusTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ApplicationStatusTokens.
+     */
+    cursor?: ApplicationStatusTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApplicationStatusTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApplicationStatusTokens.
+     */
+    skip?: number
+    distinct?: ApplicationStatusTokenScalarFieldEnum | ApplicationStatusTokenScalarFieldEnum[]
+  }
+
+  /**
+   * ApplicationStatusToken create
+   */
+  export type ApplicationStatusTokenCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * The data needed to create a ApplicationStatusToken.
+     */
+    data: XOR<ApplicationStatusTokenCreateInput, ApplicationStatusTokenUncheckedCreateInput>
+  }
+
+  /**
+   * ApplicationStatusToken createMany
+   */
+  export type ApplicationStatusTokenCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ApplicationStatusTokens.
+     */
+    data: ApplicationStatusTokenCreateManyInput | ApplicationStatusTokenCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ApplicationStatusToken createManyAndReturn
+   */
+  export type ApplicationStatusTokenCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * The data used to create many ApplicationStatusTokens.
+     */
+    data: ApplicationStatusTokenCreateManyInput | ApplicationStatusTokenCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ApplicationStatusToken update
+   */
+  export type ApplicationStatusTokenUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * The data needed to update a ApplicationStatusToken.
+     */
+    data: XOR<ApplicationStatusTokenUpdateInput, ApplicationStatusTokenUncheckedUpdateInput>
+    /**
+     * Choose, which ApplicationStatusToken to update.
+     */
+    where: ApplicationStatusTokenWhereUniqueInput
+  }
+
+  /**
+   * ApplicationStatusToken updateMany
+   */
+  export type ApplicationStatusTokenUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ApplicationStatusTokens.
+     */
+    data: XOR<ApplicationStatusTokenUpdateManyMutationInput, ApplicationStatusTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which ApplicationStatusTokens to update
+     */
+    where?: ApplicationStatusTokenWhereInput
+    /**
+     * Limit how many ApplicationStatusTokens to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ApplicationStatusToken updateManyAndReturn
+   */
+  export type ApplicationStatusTokenUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * The data used to update ApplicationStatusTokens.
+     */
+    data: XOR<ApplicationStatusTokenUpdateManyMutationInput, ApplicationStatusTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which ApplicationStatusTokens to update
+     */
+    where?: ApplicationStatusTokenWhereInput
+    /**
+     * Limit how many ApplicationStatusTokens to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ApplicationStatusToken upsert
+   */
+  export type ApplicationStatusTokenUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * The filter to search for the ApplicationStatusToken to update in case it exists.
+     */
+    where: ApplicationStatusTokenWhereUniqueInput
+    /**
+     * In case the ApplicationStatusToken found by the `where` argument doesn't exist, create a new ApplicationStatusToken with this data.
+     */
+    create: XOR<ApplicationStatusTokenCreateInput, ApplicationStatusTokenUncheckedCreateInput>
+    /**
+     * In case the ApplicationStatusToken was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ApplicationStatusTokenUpdateInput, ApplicationStatusTokenUncheckedUpdateInput>
+  }
+
+  /**
+   * ApplicationStatusToken delete
+   */
+  export type ApplicationStatusTokenDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
+    /**
+     * Filter which ApplicationStatusToken to delete.
+     */
+    where: ApplicationStatusTokenWhereUniqueInput
+  }
+
+  /**
+   * ApplicationStatusToken deleteMany
+   */
+  export type ApplicationStatusTokenDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ApplicationStatusTokens to delete
+     */
+    where?: ApplicationStatusTokenWhereInput
+    /**
+     * Limit how many ApplicationStatusTokens to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ApplicationStatusToken without action
+   */
+  export type ApplicationStatusTokenDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApplicationStatusToken
+     */
+    select?: ApplicationStatusTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApplicationStatusToken
+     */
+    omit?: ApplicationStatusTokenOmit<ExtArgs> | null
   }
 
 
@@ -14338,6 +15437,18 @@ export namespace Prisma {
   export type VerificationTokenScalarFieldEnum = (typeof VerificationTokenScalarFieldEnum)[keyof typeof VerificationTokenScalarFieldEnum]
 
 
+  export const ApplicationStatusTokenScalarFieldEnum: {
+    id: 'id',
+    email: 'email',
+    tokenHash: 'tokenHash',
+    expiresAt: 'expiresAt',
+    usedAt: 'usedAt',
+    createdAt: 'createdAt'
+  };
+
+  export type ApplicationStatusTokenScalarFieldEnum = (typeof ApplicationStatusTokenScalarFieldEnum)[keyof typeof ApplicationStatusTokenScalarFieldEnum]
+
+
   export const OrganizationScalarFieldEnum: {
     id: 'id',
     name: 'name',
@@ -14893,6 +16004,63 @@ export namespace Prisma {
     identifier?: StringWithAggregatesFilter<"VerificationToken"> | string
     token?: StringWithAggregatesFilter<"VerificationToken"> | string
     expires?: DateTimeWithAggregatesFilter<"VerificationToken"> | Date | string
+  }
+
+  export type ApplicationStatusTokenWhereInput = {
+    AND?: ApplicationStatusTokenWhereInput | ApplicationStatusTokenWhereInput[]
+    OR?: ApplicationStatusTokenWhereInput[]
+    NOT?: ApplicationStatusTokenWhereInput | ApplicationStatusTokenWhereInput[]
+    id?: StringFilter<"ApplicationStatusToken"> | string
+    email?: StringFilter<"ApplicationStatusToken"> | string
+    tokenHash?: StringFilter<"ApplicationStatusToken"> | string
+    expiresAt?: DateTimeFilter<"ApplicationStatusToken"> | Date | string
+    usedAt?: DateTimeNullableFilter<"ApplicationStatusToken"> | Date | string | null
+    createdAt?: DateTimeFilter<"ApplicationStatusToken"> | Date | string
+  }
+
+  export type ApplicationStatusTokenOrderByWithRelationInput = {
+    id?: SortOrder
+    email?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ApplicationStatusTokenWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tokenHash?: string
+    AND?: ApplicationStatusTokenWhereInput | ApplicationStatusTokenWhereInput[]
+    OR?: ApplicationStatusTokenWhereInput[]
+    NOT?: ApplicationStatusTokenWhereInput | ApplicationStatusTokenWhereInput[]
+    email?: StringFilter<"ApplicationStatusToken"> | string
+    expiresAt?: DateTimeFilter<"ApplicationStatusToken"> | Date | string
+    usedAt?: DateTimeNullableFilter<"ApplicationStatusToken"> | Date | string | null
+    createdAt?: DateTimeFilter<"ApplicationStatusToken"> | Date | string
+  }, "id" | "tokenHash">
+
+  export type ApplicationStatusTokenOrderByWithAggregationInput = {
+    id?: SortOrder
+    email?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: ApplicationStatusTokenCountOrderByAggregateInput
+    _max?: ApplicationStatusTokenMaxOrderByAggregateInput
+    _min?: ApplicationStatusTokenMinOrderByAggregateInput
+  }
+
+  export type ApplicationStatusTokenScalarWhereWithAggregatesInput = {
+    AND?: ApplicationStatusTokenScalarWhereWithAggregatesInput | ApplicationStatusTokenScalarWhereWithAggregatesInput[]
+    OR?: ApplicationStatusTokenScalarWhereWithAggregatesInput[]
+    NOT?: ApplicationStatusTokenScalarWhereWithAggregatesInput | ApplicationStatusTokenScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ApplicationStatusToken"> | string
+    email?: StringWithAggregatesFilter<"ApplicationStatusToken"> | string
+    tokenHash?: StringWithAggregatesFilter<"ApplicationStatusToken"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"ApplicationStatusToken"> | Date | string
+    usedAt?: DateTimeNullableWithAggregatesFilter<"ApplicationStatusToken"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ApplicationStatusToken"> | Date | string
   }
 
   export type OrganizationWhereInput = {
@@ -15664,6 +16832,69 @@ export namespace Prisma {
     identifier?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApplicationStatusTokenCreateInput = {
+    id?: string
+    email: string
+    tokenHash: string
+    expiresAt: Date | string
+    usedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ApplicationStatusTokenUncheckedCreateInput = {
+    id?: string
+    email: string
+    tokenHash: string
+    expiresAt: Date | string
+    usedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ApplicationStatusTokenUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApplicationStatusTokenUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApplicationStatusTokenCreateManyInput = {
+    id?: string
+    email: string
+    tokenHash: string
+    expiresAt: Date | string
+    usedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ApplicationStatusTokenUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApplicationStatusTokenUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrganizationCreateInput = {
@@ -16494,6 +17725,33 @@ export namespace Prisma {
     identifier?: SortOrder
     token?: SortOrder
     expires?: SortOrder
+  }
+
+  export type ApplicationStatusTokenCountOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ApplicationStatusTokenMaxOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ApplicationStatusTokenMinOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type FeatureFlagListRelationFilter = {
