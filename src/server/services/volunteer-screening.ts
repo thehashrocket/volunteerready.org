@@ -6,6 +6,7 @@ import {
 import {
 	evaluateScreening,
 	validateResponses,
+	type DisqualifierRule,
 	type ScreenerQuestion,
 	type ScreenerResponse,
 	type VolunteerProfile,
@@ -19,6 +20,7 @@ import { prisma } from '@/server/repositories/prisma';
 
 interface SubmitVolunteerApplicationPayload {
 	submittedByEmail: string;
+	submittedByUserId?: string | null;
 	profile: VolunteerProfile;
 	responses: ScreenerResponse[];
 }
@@ -34,6 +36,38 @@ function mapQuestion(question: {
 			? (question.configJson as Record<string, unknown>)
 			: {};
 
+	const rules =
+		config.rules && typeof config.rules === 'object'
+			? (config.rules as Record<string, unknown>)
+			: null;
+	const disqualifier =
+		rules &&
+		typeof rules.disqualifierRule === 'object' &&
+		rules.disqualifierRule !== null
+			? (rules.disqualifierRule as Record<string, unknown>)
+			: null;
+	const reviewIf =
+		rules && typeof rules.reviewIf === 'object' && rules.reviewIf !== null
+			? (rules.reviewIf as Record<string, unknown>)
+			: null;
+	const ruleReason =
+		typeof rules?.reason === 'string' ? rules.reason : undefined;
+
+	const disqualifierRule =
+		disqualifier && isRule(disqualifier)
+			? {
+					...disqualifier,
+					reason: ruleReason,
+				}
+			: undefined;
+	const reviewRule =
+		reviewIf && isRule(reviewIf)
+			? {
+					...reviewIf,
+					reason: ruleReason,
+				}
+			: undefined;
+
 	return {
 		id: question.id,
 		prompt: question.prompt,
@@ -41,37 +75,30 @@ function mapQuestion(question: {
 		options: Array.isArray(config.options)
 			? (config.options as string[])
 			: undefined,
-		disqualifierRule:
-			config.rules &&
-			typeof config.rules === 'object' &&
-			(config.rules as Record<string, unknown>).disqualifierRule &&
-			typeof (config.rules as Record<string, unknown>).disqualifierRule ===
-				'object'
-				? {
-						...(config.rules as Record<string, unknown>)
-							.disqualifierRule,
-						reason:
-							typeof (config.rules as Record<string, unknown>).reason ===
-							'string'
-								? (config.rules as Record<string, unknown>).reason
-								: undefined,
-					}
-				: undefined,
-		reviewRule:
-			config.rules &&
-			typeof config.rules === 'object' &&
-			(config.rules as Record<string, unknown>).reviewIf &&
-			typeof (config.rules as Record<string, unknown>).reviewIf === 'object'
-				? {
-						...(config.rules as Record<string, unknown>).reviewIf,
-						reason:
-							typeof (config.rules as Record<string, unknown>).reason ===
-							'string'
-								? (config.rules as Record<string, unknown>).reason
-								: undefined,
-					}
-				: undefined,
+		required:
+			typeof config.required === 'boolean' ? config.required : undefined,
+		disqualifierRule,
+		reviewRule,
 	};
+}
+
+const allowedOperators = new Set<DisqualifierRule['operator']>([
+	'equals',
+	'includes',
+	'lt',
+	'lte',
+	'gt',
+	'gte',
+]);
+
+function isRule(
+	rule: Record<string, unknown>,
+): rule is { operator: DisqualifierRule['operator']; value: unknown } {
+	return (
+		typeof rule.operator === 'string' &&
+		allowedOperators.has(rule.operator as DisqualifierRule['operator']) &&
+		'value' in rule
+	);
 }
 
 export async function submitVolunteerApplication(
@@ -97,6 +124,7 @@ export async function submitVolunteerApplication(
 	const application = await createApplication({
 		orgId,
 		submittedByEmail: payload.submittedByEmail,
+		submittedByUserId: payload.submittedByUserId ?? null,
 		status: ApplicationStatus.SUBMITTED,
 		screeningStatus,
 		screeningReasons,

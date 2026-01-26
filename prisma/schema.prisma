@@ -17,6 +17,7 @@ model User {
   sessions      Session[]
   memberships   OrganizationMember[]
   auditLogs     AuditLog[]           @relation("AuditActor")
+  submittedApplications VolunteerApplication[] @relation("SubmittedApplications")
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
 }
@@ -125,6 +126,7 @@ model FeatureFlag {
 model VolunteerApplication {
   id               String            @id @default(cuid())
   orgId            String
+  submittedByUserId String?
   submittedByEmail String
   status           ApplicationStatus @default(SUBMITTED)
   screeningStatus  ScreeningStatus   @default(REVIEW)
@@ -132,9 +134,11 @@ model VolunteerApplication {
   submittedAt      DateTime          @default(now())
 
   organization Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  submittedByUser User?           @relation("SubmittedApplications", fields: [submittedByUserId], references: [id], onDelete: SetNull)
   answers      VolunteerAnswer[]
 
   @@index([orgId, status])
+  @@index([submittedByUserId])
 }
 
 model VolunteerAnswer {

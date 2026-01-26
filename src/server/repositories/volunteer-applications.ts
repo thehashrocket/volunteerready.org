@@ -8,6 +8,7 @@ import { prisma } from '@/server/repositories/prisma';
 interface CreateApplicationInput {
 	orgId: string;
 	submittedByEmail: string;
+	submittedByUserId?: string | null;
 	status: ApplicationStatus;
 	screeningStatus: ScreeningStatus;
 	screeningReasons: string[];
@@ -22,6 +23,7 @@ export async function createApplication(input: CreateApplicationInput) {
 	return prisma.volunteerApplication.create({
 		data: {
 			orgId: input.orgId,
+			submittedByUserId: input.submittedByUserId ?? null,
 			submittedByEmail: input.submittedByEmail,
 			status: input.status,
 			screeningStatus: input.screeningStatus,
@@ -81,6 +83,16 @@ export async function getApplicationDetail(
 	return prisma.volunteerApplication.findFirst({
 		where: { id: applicationId, orgId },
 		include: { answers: true },
+	});
+}
+
+export async function listUserApplications(userId: string) {
+	return prisma.volunteerApplication.findMany({
+		where: { submittedByUserId: userId },
+		orderBy: { submittedAt: 'desc' },
+		include: {
+			organization: { select: { id: true, name: true, slug: true } },
+		},
 	});
 }
 

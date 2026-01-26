@@ -26,6 +26,7 @@ import {
 import {
 	buildDefaultValues,
 	buildZodSchema,
+	buildResponsesFromAnswers,
 	type PublicQuestion,
 } from '@/server/domain/screener/publicForm';
 
@@ -106,10 +107,10 @@ export default function ApplyFormClient({ org, questions }: Props) {
 	}
 
 	function onSubmit(values: FormValues) {
-		const responses = questions.map((q) => ({
-			questionId: q.id,
-			value: values.answers[q.key as keyof typeof values.answers],
-		}));
+		const responses = buildResponsesFromAnswers(
+			questions,
+			values.answers as Record<string, unknown>,
+		);
 
 		submitMutation.mutate({
 			orgId: org.id,
@@ -278,9 +279,7 @@ function QuestionField({
 											? 'no'
 											: ''
 								}
-								onValueChange={(value) =>
-									field.onChange(value === 'yes')
-								}
+								onValueChange={(value) => field.onChange(value === 'yes')}
 								className="flex gap-6"
 							>
 								<label className="flex items-center gap-2 text-sm">

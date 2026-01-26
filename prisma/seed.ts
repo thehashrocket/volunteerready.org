@@ -102,6 +102,20 @@ async function ensureDevAdmin(orgId: string) {
 	return user;
 }
 
+async function ensureDevVolunteer() {
+	const email = 'volunteer@volunteermatch.local';
+
+	return prisma.user.upsert({
+		where: { email },
+		update: { name: 'Dev Volunteer' },
+		create: {
+			name: 'Dev Volunteer',
+			email,
+		},
+		select: { id: true, email: true },
+	});
+}
+
 async function ensureFeatureFlags(orgId: string) {
 	await prisma.featureFlag.upsert({
 		where: { orgId_key: { orgId, key: 'volunteer_screener_v1' } },
@@ -130,6 +144,7 @@ async function getQuestionsByKey(orgId: string, keys: string[]) {
 type SeedAppInput = {
 	orgId: string;
 	submittedByEmail: string;
+	submittedByUserId?: string | null;
 	status: ApplicationStatus;
 	screeningStatus: ScreeningStatus;
 	screeningReasons: unknown; // Json column
@@ -144,6 +159,7 @@ async function createSeedApplication(input: SeedAppInput) {
 		data: {
 			orgId: input.orgId,
 			submittedByEmail: input.submittedByEmail,
+			submittedByUserId: input.submittedByUserId ?? null,
 			status: input.status as any,
 			screeningStatus: input.screeningStatus as any,
 			screeningReasons: input.screeningReasons as any,
@@ -162,6 +178,7 @@ async function createSeedApplication(input: SeedAppInput) {
 async function main() {
 	const org = await ensureDevOrg();
 	const orgId = org.id;
+	const devVolunteer = await ensureDevVolunteer();
 
 	// ✅ Better questions (no profile duplicates)
 	// IMPORTANT: make sure these type values match your Prisma enum.
@@ -315,6 +332,7 @@ async function main() {
 		await createSeedApplication({
 			orgId,
 			submittedByEmail: 'sample-pass@volunteermatch.local',
+			submittedByUserId: devVolunteer.id,
 			status: 'SUBMITTED',
 			screeningStatus: 'PASS',
 			screeningReasons: [],

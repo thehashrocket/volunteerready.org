@@ -8,11 +8,13 @@ import { submitVolunteerApplication } from '@/server/services/volunteer-screenin
 import {
 	getApplicationDetail,
 	listApplications,
+	listUserApplications,
 } from '@/server/repositories/volunteer-applications';
 
 import {
 	adminProcedure,
 	createTRPCRouter,
+	protectedProcedure,
 	publicProcedure,
 } from '@/server/trpc/init';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
@@ -27,9 +29,10 @@ export const screenerRouter = createTRPCRouter({
 				responses: z.array(screenerResponseSchema),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx }) => {
 			return submitVolunteerApplication(input.orgId, {
 				submittedByEmail: input.submittedByEmail,
+				submittedByUserId: ctx.session?.user?.id ?? null,
 				profile: input.profile,
 				responses: input.responses,
 			});
@@ -65,4 +68,11 @@ export const screenerRouter = createTRPCRouter({
 		.query(async ({ input }) => {
 			return getPublicFormByOrgSlug(input.orgSlug);
 		}),
+	myApplications: protectedProcedure.query(async ({ ctx }) => {
+		const userId = ctx.session?.user?.id;
+		if (!userId) {
+			throw new Error('Missing session user');
+		}
+		return listUserApplications(userId);
+	}),
 });

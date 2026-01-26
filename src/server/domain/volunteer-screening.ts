@@ -44,6 +44,7 @@ export interface ScreenerQuestion {
 	prompt: string;
 	type: ScreenerQuestionType;
 	options?: string[];
+	required?: boolean;
 	disqualifierRule?: DisqualifierRule;
 	reviewRule?: ReviewRule;
 }
@@ -89,6 +90,7 @@ export function validateResponses(
 	const questionMap = new Map(
 		questions.map((question) => [question.id, question]),
 	);
+	const responseIds = new Set(responses.map((response) => response.questionId));
 
 	return z
 		.array(screenerResponseSchema)
@@ -139,6 +141,19 @@ export function validateResponses(
 							});
 						}
 					}
+				}
+			}
+
+			for (const question of questions) {
+				if (question.required === false) {
+					continue;
+				}
+				if (!responseIds.has(question.id)) {
+					ctx.addIssue({
+						code: z.ZodIssueCode.custom,
+						message: `Missing response for ${question.prompt}`,
+						path: ['missing', question.id],
+					});
 				}
 			}
 		})
@@ -192,6 +207,9 @@ export function evaluateScreening(
 	for (const question of questions) {
 		const value = responseMap.get(question.id);
 		if (value === undefined) {
+			if (question.required === false) {
+				continue;
+			}
 			if (status === 'PASS') {
 				status = 'REVIEW';
 			}

@@ -69,7 +69,9 @@ export function buildZodSchema(questions: PublicQuestion[]) {
 			case 'TEXT': {
 				const max = typeof cfg.maxLength === 'number' ? cfg.maxLength : 500;
 				const base = z.string().trim().max(max, `Max ${max} characters`);
-				shape[q.key] = required ? base.min(1, 'Required') : base.optional();
+				shape[q.key] = required
+					? base.min(1, 'Required')
+					: z.preprocess(normalizeOptionalString, base.optional());
 				break;
 			}
 			case 'SINGLE_SELECT': {
@@ -79,13 +81,17 @@ export function buildZodSchema(questions: PublicQuestion[]) {
 						? z.string().refine((v) => options.includes(v), 'Invalid selection')
 						: z.string();
 
-				shape[q.key] = required ? base.min(1, 'Required') : base.optional();
+				shape[q.key] = required
+					? base.min(1, 'Required')
+					: z.preprocess(normalizeOptionalString, base.optional());
 				break;
 			}
 			default: {
 				// fallback: accept string
 				const base = z.string();
-				shape[q.key] = required ? base.min(1, 'Required') : base.optional();
+				shape[q.key] = required
+					? base.min(1, 'Required')
+					: z.preprocess(normalizeOptionalString, base.optional());
 			}
 		}
 	}
@@ -110,4 +116,37 @@ export function mapFormValuesToAnswers(values: Record<string, unknown>) {
 		questionKey,
 		value,
 	}));
+}
+
+export function buildResponsesFromAnswers(
+	questions: PublicQuestion[],
+	answers: Record<string, unknown>,
+) {
+	return questions
+		.map((question) => ({
+			questionId: question.id,
+			value: answers[question.key],
+		}))
+		.filter((response) => !isEmptyAnswer(response.value));
+}
+
+function normalizeOptionalString(value: unknown) {
+	if (typeof value !== 'string') {
+		return value;
+	}
+	const trimmed = value.trim();
+	return trimmed === '' ? undefined : trimmed;
+}
+
+function isEmptyAnswer(value: unknown) {
+	if (value === null || value === undefined) {
+		return true;
+	}
+	if (typeof value === 'string') {
+		return value.trim() === '';
+	}
+	if (Array.isArray(value)) {
+		return value.length === 0;
+	}
+	return false;
 }
