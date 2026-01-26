@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-export type PublicQuestionType = 'YES_NO' | 'TEXT' | 'SINGLE_SELECT';
+export type PublicQuestionType =
+	| 'YES_NO'
+	| 'TEXT'
+	| 'SINGLE_SELECT'
+	| 'BOOLEAN'
+	| 'SINGLE_CHOICE';
 
 export type PublicOrgSummary = {
 	id: string;
@@ -27,7 +32,7 @@ export type PublicForm = {
 export function buildDefaultValues(questions: PublicQuestion[]) {
 	const defaults: Record<string, unknown> = {};
 	for (const q of questions) {
-		switch (q.type) {
+		switch (normalizeQuestionType(q.type)) {
 			case 'YES_NO':
 				defaults[q.key] = undefined; // force user selection
 				break;
@@ -55,7 +60,7 @@ export function buildZodSchema(questions: PublicQuestion[]) {
 		const cfg = (q.configJson ?? {}) as any;
 		const required = cfg.required !== false; // default required
 
-		switch (q.type) {
+		switch (normalizeQuestionType(q.type)) {
 			case 'YES_NO': {
 				const base = z.boolean({ message: 'Required' });
 				shape[q.key] = required ? base : base.optional();
@@ -86,6 +91,17 @@ export function buildZodSchema(questions: PublicQuestion[]) {
 	}
 
 	return z.object(shape);
+}
+
+function normalizeQuestionType(type: PublicQuestionType) {
+	switch (type) {
+		case 'BOOLEAN':
+			return 'YES_NO';
+		case 'SINGLE_CHOICE':
+			return 'SINGLE_SELECT';
+		default:
+			return type;
+	}
 }
 
 export function mapFormValuesToAnswers(values: Record<string, unknown>) {

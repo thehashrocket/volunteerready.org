@@ -176,7 +176,7 @@ async function main() {
 			configJson: {
 				required: true,
 				rules: {
-					failIf: { operator: 'equals', value: false },
+					disqualifierRule: { operator: 'equals', value: false },
 					reason: 'Must be 18+.',
 				},
 			},
@@ -191,7 +191,7 @@ async function main() {
 			configJson: {
 				required: true,
 				rules: {
-					failIf: { operator: 'equals', value: false },
+					disqualifierRule: { operator: 'equals', value: false },
 					reason: 'Reliable transportation is required.',
 				},
 			},
@@ -206,7 +206,7 @@ async function main() {
 			configJson: {
 				required: true,
 				rules: {
-					failIf: { operator: 'equals', value: false },
+					disqualifierRule: { operator: 'equals', value: false },
 					reason: 'Safety requires strict instruction-following.',
 				},
 			},
@@ -221,7 +221,7 @@ async function main() {
 				required: true,
 				weightLbs: 30,
 				rules: {
-					failIf: { operator: 'equals', value: false },
+					disqualifierRule: { operator: 'equals', value: false },
 					reason: 'This role requires lifting up to 30 lbs.',
 				},
 			},
@@ -284,7 +284,7 @@ async function main() {
 			configJson: {
 				required: true,
 				rules: {
-					failIf: { operator: 'equals', value: false },
+					disqualifierRule: { operator: 'equals', value: false },
 					reason: 'Cannot proceed without this attestation.',
 				},
 			},

@@ -10,6 +10,7 @@
 - `VolunteerApplication`: volunteer submissions per org.
 - `VolunteerAnswer`: answers linked to an application.
 - `ScreenerQuestion`: configurable per-org screening questions.
+- Screener config stores decision logic under `configJson.rules` (e.g. `disqualifierRule`, `reviewIf`, and `reason`), and screening results include the reason plus the question prompt when present.
 
 ## Roles
 

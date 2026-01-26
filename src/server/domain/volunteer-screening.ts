@@ -30,6 +30,13 @@ export type ScreenerQuestionType =
 export interface DisqualifierRule {
 	operator: 'equals' | 'includes' | 'lt' | 'lte' | 'gt' | 'gte';
 	value: unknown;
+	reason?: string;
+}
+
+export interface ReviewRule {
+	operator: 'equals' | 'includes' | 'lt' | 'lte' | 'gt' | 'gte';
+	value: unknown;
+	reason?: string;
 }
 
 export interface ScreenerQuestion {
@@ -38,6 +45,7 @@ export interface ScreenerQuestion {
 	type: ScreenerQuestionType;
 	options?: string[];
 	disqualifierRule?: DisqualifierRule;
+	reviewRule?: ReviewRule;
 }
 
 export interface ScreenerResponse {
@@ -137,7 +145,7 @@ export function validateResponses(
 		.safeParse(responses);
 }
 
-function ruleMatches(rule: DisqualifierRule, value: unknown) {
+function ruleMatches(rule: DisqualifierRule | ReviewRule, value: unknown) {
 	switch (rule.operator) {
 		case 'equals':
 			return value === rule.value;
@@ -196,7 +204,24 @@ export function evaluateScreening(
 			ruleMatches(question.disqualifierRule, value)
 		) {
 			status = 'FAIL';
-			reasons.push(`Disqualifier matched for ${question.prompt}`);
+			if (question.disqualifierRule.reason) {
+				reasons.push(
+					`${question.disqualifierRule.reason} (${question.prompt})`,
+				);
+			} else {
+				reasons.push(`Disqualifier matched for ${question.prompt}`);
+			}
+		}
+
+		if (question.reviewRule && ruleMatches(question.reviewRule, value)) {
+			if (status === 'PASS') {
+				status = 'REVIEW';
+			}
+			if (question.reviewRule.reason) {
+				reasons.push(`${question.reviewRule.reason} (${question.prompt})`);
+			} else {
+				reasons.push(`Review flag matched for ${question.prompt}`);
+			}
 		}
 	}
 

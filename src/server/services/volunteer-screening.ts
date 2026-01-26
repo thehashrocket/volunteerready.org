@@ -42,8 +42,34 @@ function mapQuestion(question: {
 			? (config.options as string[])
 			: undefined,
 		disqualifierRule:
-			config.disqualifierRule && typeof config.disqualifierRule === 'object'
-				? (config.disqualifierRule as ScreenerQuestion['disqualifierRule'])
+			config.rules &&
+			typeof config.rules === 'object' &&
+			(config.rules as Record<string, unknown>).disqualifierRule &&
+			typeof (config.rules as Record<string, unknown>).disqualifierRule ===
+				'object'
+				? {
+						...(config.rules as Record<string, unknown>)
+							.disqualifierRule,
+						reason:
+							typeof (config.rules as Record<string, unknown>).reason ===
+							'string'
+								? (config.rules as Record<string, unknown>).reason
+								: undefined,
+					}
+				: undefined,
+		reviewRule:
+			config.rules &&
+			typeof config.rules === 'object' &&
+			(config.rules as Record<string, unknown>).reviewIf &&
+			typeof (config.rules as Record<string, unknown>).reviewIf === 'object'
+				? {
+						...(config.rules as Record<string, unknown>).reviewIf,
+						reason:
+							typeof (config.rules as Record<string, unknown>).reason ===
+							'string'
+								? (config.rules as Record<string, unknown>).reason
+								: undefined,
+					}
 				: undefined,
 	};
 }
