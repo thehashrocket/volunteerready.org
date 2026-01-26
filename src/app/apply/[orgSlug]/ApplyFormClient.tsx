@@ -1,301 +1,356 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { trpc } from "@/lib/trpc/client";
-import {
-  buildDefaultResponses,
-  buildResponseSchema,
-  toResponseArray,
-  yesNoOptions,
-  type PublicOrgSummary,
-  type PublicScreenerQuestion,
-} from "@/server/domain/screener/publicForm";
-import { volunteerProfileSchema } from "@/server/domain/volunteer-screening";
+import { useMemo, useState } from 'react';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-interface ApplyFormClientProps {
-  org: PublicOrgSummary;
-  questions: PublicScreenerQuestion[];
+import { trpc } from '@/lib/trpc/client';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+// If you have shadcn textarea installed, prefer it:
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+
+import {
+	buildDefaultValues,
+	buildZodSchema,
+	type PublicQuestion,
+} from '@/server/domain/screener/publicForm';
+
+import { volunteerProfileSchema } from '@/server/domain/volunteer-screening';
+
+type Props = {
+	org: { id: string; name: string; slug: string };
+	questions: PublicQuestion[];
+};
+
+export default function ApplyFormClient({ org, questions }: Props) {
+	const [submitted, setSubmitted] = useState(false);
+
+	const answersSchema = useMemo(() => buildZodSchema(questions), [questions]);
+
+	const schema = useMemo(
+		() =>
+			z.object({
+				profile: volunteerProfileSchema,
+				answers: answersSchema,
+			}),
+		[answersSchema],
+	);
+
+	type FormValues = z.infer<typeof schema>;
+
+	const defaults = useMemo(
+		() =>
+			({
+				profile: {
+					name: '',
+					email: '',
+					phone: '',
+					county: '',
+					availability: '',
+					experienceLevel: '',
+					notes: '',
+				},
+				answers: buildDefaultValues(questions),
+			}) as FormValues,
+		[questions],
+	);
+
+	const form = useForm<FormValues>({
+		resolver: zodResolver(schema),
+		defaultValues: defaults,
+		mode: 'onSubmit',
+	});
+
+	const submitMutation = trpc.screener.submit.useMutation({
+		onSuccess: () => {
+			setSubmitted(true);
+			toast.success('Application submitted. Thank you!');
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Submission failed');
+		},
+	});
+
+	if (submitted) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Thanks — we got it.</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-3">
+					<p className="text-muted-foreground">
+						Your application to{' '}
+						<span className="font-medium text-foreground">{org.name}</span> has
+						been submitted.
+					</p>
+					<p className="text-muted-foreground">
+						If they’re a match, they’ll follow up with next steps.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	function onSubmit(values: FormValues) {
+		const responses = questions.map((q) => ({
+			questionId: q.id,
+			value: values.answers[q.key as keyof typeof values.answers],
+		}));
+
+		submitMutation.mutate({
+			orgId: org.id,
+			submittedByEmail: values.profile.email, // ✅ don’t ask twice
+			profile: values.profile,
+			responses,
+		});
+	}
+
+	const profileErrors = form.formState.errors.profile;
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Volunteer application</CardTitle>
+			</CardHeader>
+
+			<CardContent>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+					{/* Profile */}
+					<div className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="profile.name">Name</Label>
+							<Input id="profile.name" {...form.register('profile.name')} />
+							{profileErrors?.name?.message ? (
+								<p className="text-sm text-destructive">
+									{String(profileErrors.name.message)}
+								</p>
+							) : null}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="profile.email">Email</Label>
+							<Input
+								id="profile.email"
+								type="email"
+								autoComplete="email"
+								{...form.register('profile.email')}
+							/>
+							{profileErrors?.email?.message ? (
+								<p className="text-sm text-destructive">
+									{String(profileErrors.email.message)}
+								</p>
+							) : null}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="profile.phone">Phone</Label>
+							<Input
+								id="profile.phone"
+								autoComplete="tel"
+								{...form.register('profile.phone')}
+							/>
+							{profileErrors?.phone?.message ? (
+								<p className="text-sm text-destructive">
+									{String(profileErrors.phone.message)}
+								</p>
+							) : null}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="profile.county">County</Label>
+							<Input id="profile.county" {...form.register('profile.county')} />
+							{profileErrors?.county?.message ? (
+								<p className="text-sm text-destructive">
+									{String(profileErrors.county.message)}
+								</p>
+							) : null}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="profile.availability">Availability</Label>
+							<Input
+								id="profile.availability"
+								placeholder="e.g. Weekends, Tue/Thu evenings"
+								{...form.register('profile.availability')}
+							/>
+							{profileErrors?.availability?.message ? (
+								<p className="text-sm text-destructive">
+									{String(profileErrors.availability.message)}
+								</p>
+							) : null}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="profile.experienceLevel">Experience level</Label>
+							<Input
+								id="profile.experienceLevel"
+								placeholder="e.g. None, Some, Volunteer, Professional"
+								{...form.register('profile.experienceLevel')}
+							/>
+							{profileErrors?.experienceLevel?.message ? (
+								<p className="text-sm text-destructive">
+									{String(profileErrors.experienceLevel.message)}
+								</p>
+							) : null}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="profile.notes">Notes (optional)</Label>
+							<Textarea
+								id="profile.notes"
+								rows={4}
+								{...form.register('profile.notes')}
+							/>
+							{profileErrors?.notes?.message ? (
+								<p className="text-sm text-destructive">
+									{String(profileErrors.notes.message)}
+								</p>
+							) : null}
+						</div>
+					</div>
+
+					{/* Screener questions */}
+					<div className="space-y-6">
+						{questions.map((q) => (
+							<QuestionField key={q.id} question={q} form={form} />
+						))}
+					</div>
+
+					<div className="pt-2">
+						<Button type="submit" disabled={submitMutation.isPending}>
+							{submitMutation.isPending
+								? 'Submitting...'
+								: 'Submit application'}
+						</Button>
+					</div>
+				</form>
+			</CardContent>
+		</Card>
+	);
 }
 
-export function ApplyFormClient({ org, questions }: ApplyFormClientProps) {
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    county: "",
-    availability: "",
-    experienceLevel: "",
-    notes: "",
-  });
-  const [responses, setResponses] = useState(() =>
-    buildDefaultResponses(questions),
-  );
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+function QuestionField({
+	question,
+	form,
+}: {
+	question: PublicQuestion;
+	form: ReturnType<typeof useForm<any>>;
+}) {
+	const { register, formState } = form;
+	const cfg = (question.configJson ?? {}) as any;
 
-  const submitMutation = trpc.screener.submit.useMutation();
-  const responseSchema = useMemo(() => buildResponseSchema(questions), [questions]);
+	// ✅ answers are nested
+	const path = `answers.${question.key}` as const;
+	const errors = (formState.errors?.answers ?? {}) as Record<
+		string,
+		{ message?: string }
+	>;
+	const error = errors[question.key]?.message;
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setSubmitError(null);
-    setFieldErrors({});
+	switch (question.type) {
+		case 'YES_NO': {
+			return (
+				<div className="space-y-2">
+					<Label>{question.prompt}</Label>
+					<Controller
+						control={form.control}
+						name={path}
+						render={({ field }) => (
+							<RadioGroup
+								value={
+									field.value === true
+										? 'yes'
+										: field.value === false
+											? 'no'
+											: ''
+								}
+								onValueChange={(value) =>
+									field.onChange(value === 'yes')
+								}
+								className="flex gap-6"
+							>
+								<label className="flex items-center gap-2 text-sm">
+									<RadioGroupItem value="yes" />
+									Yes
+								</label>
+								<label className="flex items-center gap-2 text-sm">
+									<RadioGroupItem value="no" />
+									No
+								</label>
+							</RadioGroup>
+						)}
+					/>
+					{error ? <p className="text-sm text-destructive">{error}</p> : null}
+				</div>
+			);
+		}
 
-    const profileResult = volunteerProfileSchema.safeParse(profile);
-    const responseResult = responseSchema.safeParse(responses);
+		case 'TEXT': {
+			const maxLength =
+				typeof cfg.maxLength === 'number' ? cfg.maxLength : undefined;
 
-    if (!profileResult.success || !responseResult.success) {
-      const nextErrors: Record<string, string> = {};
+			return (
+				<div className="space-y-2">
+					<Label htmlFor={question.key}>{question.prompt}</Label>
+					<Input id={question.key} maxLength={maxLength} {...register(path)} />
+					{error ? <p className="text-sm text-destructive">{error}</p> : null}
+				</div>
+			);
+		}
 
-      if (!profileResult.success) {
-        for (const issue of profileResult.error.issues) {
-          const key = String(issue.path[0] ?? "profile");
-          nextErrors[key] = issue.message;
-        }
-      }
+		case 'SINGLE_SELECT': {
+			const options: string[] = Array.isArray(cfg.options) ? cfg.options : [];
+			return (
+				<div className="space-y-2">
+					<Label htmlFor={question.key}>{question.prompt}</Label>
+					<Controller
+						control={form.control}
+						name={path}
+						render={({ field }) => (
+							<Select
+								value={field.value ?? ''}
+								onValueChange={(value) => field.onChange(value)}
+							>
+								<SelectTrigger className="w-full">
+									<SelectValue placeholder="Select one…" />
+								</SelectTrigger>
+								<SelectContent>
+									{options.map((opt) => (
+										<SelectItem key={opt} value={opt}>
+											{opt}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
+					/>
+					{error ? <p className="text-sm text-destructive">{error}</p> : null}
+				</div>
+			);
+		}
 
-      if (!responseResult.success) {
-        for (const issue of responseResult.error.issues) {
-          const key = String(issue.path[0] ?? "responses");
-          nextErrors[key] = issue.message;
-        }
-      }
-
-      setFieldErrors(nextErrors);
-      setSubmitError("Please correct the highlighted fields.");
-      toast.error("Please fix the form errors and try again.");
-      return;
-    }
-
-    try {
-      await submitMutation.mutateAsync({
-        orgId: org.id,
-        submittedByEmail: profile.email,
-        profile: profileResult.data,
-        responses: toResponseArray(questions, responseResult.data),
-      });
-      setSubmitted(true);
-    } catch (error) {
-      setSubmitError("Something went wrong while submitting. Please try again.");
-      toast.error("Unable to submit your application.");
-    }
-  };
-
-  if (submitted) {
-    return (
-      <Card>
-        <CardHeader>
-          <h2 className="text-2xl font-semibold">Thank you!</h2>
-          <p className="text-sm text-muted-foreground">
-            Your application has been received. {org.name} will be in touch.
-          </p>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
-      <Card>
-        <CardHeader>
-          <h2 className="text-lg font-semibold">Your details</h2>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="name">
-              Full name
-            </label>
-            <Input
-              id="name"
-              value={profile.name}
-              onChange={(event) =>
-                setProfile((prev) => ({ ...prev, name: event.target.value }))
-              }
-            />
-            {fieldErrors.name ? (
-              <p className="text-xs text-destructive">{fieldErrors.name}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="email">
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={profile.email}
-              onChange={(event) =>
-                setProfile((prev) => ({ ...prev, email: event.target.value }))
-              }
-            />
-            {fieldErrors.email ? (
-              <p className="text-xs text-destructive">{fieldErrors.email}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="phone">
-              Phone
-            </label>
-            <Input
-              id="phone"
-              value={profile.phone}
-              onChange={(event) =>
-                setProfile((prev) => ({ ...prev, phone: event.target.value }))
-              }
-            />
-            {fieldErrors.phone ? (
-              <p className="text-xs text-destructive">{fieldErrors.phone}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="county">
-              County
-            </label>
-            <Input
-              id="county"
-              value={profile.county}
-              onChange={(event) =>
-                setProfile((prev) => ({ ...prev, county: event.target.value }))
-              }
-            />
-            {fieldErrors.county ? (
-              <p className="text-xs text-destructive">{fieldErrors.county}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="availability">
-              Availability
-            </label>
-            <Input
-              id="availability"
-              value={profile.availability}
-              onChange={(event) =>
-                setProfile((prev) => ({
-                  ...prev,
-                  availability: event.target.value,
-                }))
-              }
-            />
-            {fieldErrors.availability ? (
-              <p className="text-xs text-destructive">{fieldErrors.availability}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="experienceLevel">
-              Experience level
-            </label>
-            <Input
-              id="experienceLevel"
-              value={profile.experienceLevel}
-              onChange={(event) =>
-                setProfile((prev) => ({
-                  ...prev,
-                  experienceLevel: event.target.value,
-                }))
-              }
-            />
-            {fieldErrors.experienceLevel ? (
-              <p className="text-xs text-destructive">
-                {fieldErrors.experienceLevel}
-              </p>
-            ) : null}
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="notes">
-              Notes (optional)
-            </label>
-            <Input
-              id="notes"
-              value={profile.notes}
-              onChange={(event) =>
-                setProfile((prev) => ({ ...prev, notes: event.target.value }))
-              }
-            />
-            {fieldErrors.notes ? (
-              <p className="text-xs text-destructive">{fieldErrors.notes}</p>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <h2 className="text-lg font-semibold">Screening questions</h2>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {questions.map((question) => {
-            const error = fieldErrors[question.id];
-            const value = responses[question.id] ?? "";
-
-            return (
-              <div key={question.id} className="space-y-2">
-                <label className="text-sm font-medium">
-                  {question.prompt}
-                </label>
-                {question.type === "TEXT" ? (
-                  <Input
-                    value={value}
-                    onChange={(event) =>
-                      setResponses((prev) => ({
-                        ...prev,
-                        [question.id]: event.target.value,
-                      }))
-                    }
-                  />
-                ) : (
-                  <Select
-                    value={value}
-                    onValueChange={(nextValue) =>
-                      setResponses((prev) => ({
-                        ...prev,
-                        [question.id]: nextValue,
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select an option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(question.type === "YES_NO"
-                        ? yesNoOptions
-                        : question.options ?? [])
-                        .filter(Boolean)
-                        .map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                {error ? (
-                  <p className="text-xs text-destructive">{error}</p>
-                ) : null}
-              </div>
-            );
-          })}
-
-          {submitError ? (
-            <p className="text-sm text-destructive">{submitError}</p>
-          ) : null}
-
-          <Button type="submit" disabled={submitMutation.isLoading}>
-            {submitMutation.isLoading ? "Submitting..." : "Submit application"}
-          </Button>
-        </CardContent>
-      </Card>
-    </form>
-  );
+		default: {
+			return (
+				<div className="space-y-2">
+					<Label htmlFor={question.key}>{question.prompt}</Label>
+					<Input id={question.key} {...register(path)} />
+					{error ? <p className="text-sm text-destructive">{error}</p> : null}
+				</div>
+			);
+		}
+	}
 }

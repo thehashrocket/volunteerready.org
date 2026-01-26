@@ -9,19 +9,15 @@ import {
 	getApplicationDetail,
 	listApplications,
 } from '@/server/repositories/volunteer-applications';
-import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
+
 import {
 	adminProcedure,
 	createTRPCRouter,
 	publicProcedure,
 } from '@/server/trpc/init';
+import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 
 export const screenerRouter = createTRPCRouter({
-	getPublicForm: publicProcedure
-		.input(z.object({ orgSlug: z.string().min(1) }))
-		.query(async ({ input }) => {
-			return getPublicFormByOrgSlug(input.orgSlug);
-		}),
 	submit: publicProcedure
 		.input(
 			z.object({
@@ -38,6 +34,7 @@ export const screenerRouter = createTRPCRouter({
 				responses: input.responses,
 			});
 		}),
+
 	list: adminProcedure
 		.input(
 			z.object({
@@ -62,5 +59,10 @@ export const screenerRouter = createTRPCRouter({
 				throw new Error('Missing org context');
 			}
 			return getApplicationDetail(ctx.orgId, input.id);
+		}),
+	getPublicForm: publicProcedure
+		.input(z.object({ orgSlug: z.string().min(1) }))
+		.query(async ({ input }) => {
+			return getPublicFormByOrgSlug(input.orgSlug);
 		}),
 });

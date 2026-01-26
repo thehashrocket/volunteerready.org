@@ -15,3 +15,8 @@
 ## App router
 
 The app router includes `auth`, `org`, `health`, and `screener` routers and is exposed at `/api/trpc`.
+
+## Public screener
+
+- `screener.getPublicForm`: returns org + active questions by `orgSlug`.
+- `screener.submit`: accepts public submissions (orgId + answers).

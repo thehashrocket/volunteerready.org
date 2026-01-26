@@ -1,85 +1,97 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export type PublicQuestionType = "YES_NO" | "TEXT" | "SINGLE_SELECT";
+export type PublicQuestionType = 'YES_NO' | 'TEXT' | 'SINGLE_SELECT';
 
-export interface PublicOrgSummary {
-  id: string;
-  name: string;
-  slug: string;
+export type PublicOrgSummary = {
+	id: string;
+	name: string;
+	slug: string;
+};
+
+export type PublicScreenerQuestion = {
+	id: string;
+	key: string;
+	prompt: string;
+	type: PublicQuestionType;
+	order: number;
+	configJson: unknown;
+};
+
+export type PublicQuestion = PublicScreenerQuestion;
+
+export type PublicForm = {
+	org: PublicOrgSummary;
+	questions: PublicQuestion[];
+};
+
+export function buildDefaultValues(questions: PublicQuestion[]) {
+	const defaults: Record<string, unknown> = {};
+	for (const q of questions) {
+		switch (q.type) {
+			case 'YES_NO':
+				defaults[q.key] = undefined; // force user selection
+				break;
+			case 'TEXT':
+				defaults[q.key] = '';
+				break;
+			case 'SINGLE_SELECT':
+				defaults[q.key] = '';
+				break;
+			default:
+				defaults[q.key] = '';
+		}
+	}
+	return defaults;
 }
 
-export interface PublicScreenerQuestion {
-  id: string;
-  prompt: string;
-  type: PublicQuestionType;
-  options?: string[];
-  required: boolean;
+/**
+ * Keep this conservative: required by default unless configJson says optional.
+ * (Or switch to explicit isRequired column later.)
+ */
+export function buildZodSchema(questions: PublicQuestion[]) {
+	const shape: Record<string, z.ZodTypeAny> = {};
+
+	for (const q of questions) {
+		const cfg = (q.configJson ?? {}) as any;
+		const required = cfg.required !== false; // default required
+
+		switch (q.type) {
+			case 'YES_NO': {
+				const base = z.boolean({ message: 'Required' });
+				shape[q.key] = required ? base : base.optional();
+				break;
+			}
+			case 'TEXT': {
+				const max = typeof cfg.maxLength === 'number' ? cfg.maxLength : 500;
+				const base = z.string().trim().max(max, `Max ${max} characters`);
+				shape[q.key] = required ? base.min(1, 'Required') : base.optional();
+				break;
+			}
+			case 'SINGLE_SELECT': {
+				const options: string[] = Array.isArray(cfg.options) ? cfg.options : [];
+				const base =
+					options.length > 0
+						? z.string().refine((v) => options.includes(v), 'Invalid selection')
+						: z.string();
+
+				shape[q.key] = required ? base.min(1, 'Required') : base.optional();
+				break;
+			}
+			default: {
+				// fallback: accept string
+				const base = z.string();
+				shape[q.key] = required ? base.min(1, 'Required') : base.optional();
+			}
+		}
+	}
+
+	return z.object(shape);
 }
 
-export const yesNoOptions = ["Yes", "No"] as const;
-
-export function buildResponseSchema(questions: PublicScreenerQuestion[]) {
-  const shape: Record<string, z.ZodTypeAny> = {};
-
-  for (const question of questions) {
-    let schema: z.ZodTypeAny;
-
-    switch (question.type) {
-      case "YES_NO":
-        schema = z.enum(yesNoOptions);
-        break;
-      case "SINGLE_SELECT":
-        schema = z.string().min(1);
-        break;
-      case "TEXT":
-      default:
-        schema = z.string();
-        break;
-    }
-
-    if (question.type === "SINGLE_SELECT" && question.options?.length) {
-      schema = schema.refine(
-        (value) => question.options?.includes(value as string) ?? false,
-        { message: "Please select one of the available options." },
-      );
-    }
-
-    if (question.type === "TEXT") {
-      schema = schema.min(1, { message: "This field is required." });
-    }
-
-    if (!question.required) {
-      schema = schema.optional().or(z.literal(""));
-    }
-
-    shape[question.id] = schema;
-  }
-
-  return z.object(shape);
-}
-
-export function buildDefaultResponses(questions: PublicScreenerQuestion[]) {
-  return questions.reduce<Record<string, string>>((acc, question) => {
-    acc[question.id] = "";
-    return acc;
-  }, {});
-}
-
-export function toResponseArray(
-  questions: PublicScreenerQuestion[],
-  values: Record<string, string>,
-) {
-  return questions
-    .map((question) => {
-      const raw = values[question.id];
-      if (!raw) return null;
-
-      let value: unknown = raw;
-      if (question.type === "YES_NO") {
-        value = raw === "Yes";
-      }
-
-      return { questionId: question.id, value };
-    })
-    .filter((entry): entry is { questionId: string; value: unknown } => !!entry);
+export function mapFormValuesToAnswers(values: Record<string, unknown>) {
+	// Convert the keyed object to an array shape if your submit expects that.
+	return Object.entries(values).map(([questionKey, value]) => ({
+		questionKey,
+		value,
+	}));
 }

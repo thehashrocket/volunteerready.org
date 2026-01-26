@@ -3,7 +3,7 @@
 ## Entities
 
 - `Organization`: top-level tenant.
-- `Organization.slug`: public slug used for volunteer applications.
+- `Organization.slug`: public slug used for volunteer applications (`/apply/[orgSlug]`).
 - `OrganizationMember`: join table between `User` and `Organization` with role.
 - `FeatureFlag`: per-org feature flags.
 - `AuditLog`: append-only actions scoped to an org.

@@ -127,8 +127,8 @@ model VolunteerApplication {
   orgId            String
   submittedByEmail String
   status           ApplicationStatus @default(SUBMITTED)
-  screeningStatus  ScreeningStatus
-  screeningReasons Json
+  screeningStatus  ScreeningStatus   @default(REVIEW)
+  screeningReasons Json              @default("[]")
   submittedAt      DateTime          @default(now())
 
   organization Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -149,15 +149,16 @@ model VolunteerAnswer {
 }
 
 model ScreenerQuestion {
-  id         String               @id @default(cuid())
-  orgId      String
-  key        String
-  prompt     String
-  type       ScreenerQuestionType
-  configJson Json
-  isActive   Boolean              @default(true)
-  order      Int
-  createdAt  DateTime             @default(now())
+  id               String               @id @default(cuid())
+  orgId            String
+  key              String
+  prompt           String
+  type             ScreenerQuestionType
+  disqualifierJson Json?
+  configJson       Json
+  isActive         Boolean              @default(true)
+  order            Int
+  createdAt        DateTime             @default(now())
 
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
