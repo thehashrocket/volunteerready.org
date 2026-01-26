@@ -4,7 +4,7 @@ import {
 	Role,
 	ApplicationStatus,
 	ScreeningStatus,
-} from '../src/prisma/generated/client';
+} from '../src/prisma/generated/client/index.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
