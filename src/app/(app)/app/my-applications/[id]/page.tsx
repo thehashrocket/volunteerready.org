@@ -108,9 +108,7 @@ export default function MyApplicationDetailPage() {
 						<ScreeningStatusBadge status={application.screeningStatus} />
 					</div>
 					<div className="space-y-2 text-sm text-muted-foreground">
-						<p>
-							Screening flags: {application.screeningReasons.length || 0}
-						</p>
+						<p>Screening flags: {application.screeningReasons.length || 0}</p>
 						{application.screeningReasons.length === 0 ? (
 							<p>No screening flags were triggered.</p>
 						) : (
@@ -142,9 +140,7 @@ export default function MyApplicationDetailPage() {
 						<TableBody>
 							{application.answers.map((answer) => (
 								<TableRow key={answer.id}>
-									<TableCell className="font-medium">
-										{answer.prompt}
-									</TableCell>
+									<TableCell className="font-medium">{answer.prompt}</TableCell>
 									<TableCell>{answer.displayValue}</TableCell>
 								</TableRow>
 							))}

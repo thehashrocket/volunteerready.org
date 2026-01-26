@@ -7,7 +7,10 @@ import {
 	listUserApplications,
 } from '@/server/repositories/volunteer-applications';
 
-export async function listMyApplications(userId: string, email?: string | null) {
+export async function listMyApplications(
+	userId: string,
+	email?: string | null,
+) {
 	await linkApplicationsToUser(userId, email);
 	const applications = await listUserApplications(userId);
 
@@ -46,7 +49,9 @@ export async function getMyApplicationDetail(
 		application.orgId,
 		questionIds,
 	);
-	const questionMap = new Map(questions.map((question) => [question.id, question]));
+	const questionMap = new Map(
+		questions.map((question) => [question.id, question]),
+	);
 
 	const answers = application.answers.map((answer) => ({
 		id: answer.id,
@@ -67,10 +72,7 @@ export async function getMyApplicationDetail(
 	};
 }
 
-async function linkApplicationsToUser(
-	userId: string,
-	email?: string | null,
-) {
+async function linkApplicationsToUser(userId: string, email?: string | null) {
 	if (!email) {
 		return;
 	}
@@ -84,7 +86,9 @@ async function linkApplicationsToUser(
 	});
 }
 
-function normalizeReasons(value: Prisma.JsonValue | null | undefined): string[] {
+function normalizeReasons(
+	value: Prisma.JsonValue | null | undefined,
+): string[] {
 	if (!Array.isArray(value)) {
 		return [];
 	}

@@ -12,12 +12,12 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 	const sessionToken =
 		(session as any)?.sessionToken ?? getSessionTokenFromHeaders(_opts.req);
 	const sessionOrgId = sessionToken
-		? (
+		? ((
 				await prisma.session.findUnique({
 					where: { sessionToken },
 					select: { currentOrgId: true },
 				})
-			)?.currentOrgId ?? null
+			)?.currentOrgId ?? null)
 		: null;
 	const sessionOrgIdFromSession = (session as any)?.currentOrgId ?? null;
 

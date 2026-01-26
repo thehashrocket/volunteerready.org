@@ -98,9 +98,7 @@ export default function MyApplicationsPage() {
 							<TableBody>
 								{applications.map((application) => (
 									<TableRow key={application.id}>
-										<TableCell>
-											{formatDate(application.submittedAt)}
-										</TableCell>
+										<TableCell>{formatDate(application.submittedAt)}</TableCell>
 										<TableCell>
 											<ApplicationStatusBadge status={application.status} />
 										</TableCell>
@@ -112,9 +110,7 @@ export default function MyApplicationsPage() {
 										<TableCell>
 											{application.organization?.name ?? '—'}
 										</TableCell>
-										<TableCell>
-											{application.screeningReasonsCount}
-										</TableCell>
+										<TableCell>{application.screeningReasonsCount}</TableCell>
 										<TableCell className="text-right">
 											<Button variant="link" asChild>
 												<Link href={`/app/my-applications/${application.id}`}>

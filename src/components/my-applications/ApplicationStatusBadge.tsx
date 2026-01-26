@@ -1,9 +1,4 @@
-import {
-	AlertCircle,
-	CheckCircle2,
-	Clock,
-	XCircle,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ApplicationStatus } from '@/prisma/generated/client';
