@@ -90,9 +90,53 @@ export async function listUserApplications(userId: string) {
 	return prisma.volunteerApplication.findMany({
 		where: { submittedByUserId: userId },
 		orderBy: { submittedAt: 'desc' },
-		include: {
+		select: {
+			id: true,
+			submittedAt: true,
+			status: true,
+			screeningStatus: true,
+			screeningReasons: true,
 			organization: { select: { id: true, name: true, slug: true } },
 		},
+	});
+}
+
+export async function getUserApplicationDetail(
+	userId: string,
+	applicationId: string,
+) {
+	return prisma.volunteerApplication.findFirst({
+		where: { id: applicationId, submittedByUserId: userId },
+		select: {
+			id: true,
+			submittedAt: true,
+			status: true,
+			screeningStatus: true,
+			screeningReasons: true,
+			orgId: true,
+			organization: { select: { id: true, name: true, slug: true } },
+			answers: {
+				select: {
+					id: true,
+					questionId: true,
+					answerJson: true,
+				},
+			},
+		},
+	});
+}
+
+export async function getScreenerQuestionsByIds(
+	orgId: string,
+	questionIds: string[],
+) {
+	if (questionIds.length === 0) {
+		return [];
+	}
+
+	return prisma.screenerQuestion.findMany({
+		where: { orgId, id: { in: questionIds } },
+		select: { id: true, prompt: true },
 	});
 }
 

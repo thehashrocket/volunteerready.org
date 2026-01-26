@@ -9,22 +9,43 @@ import type { FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
 export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 	const session = await getServerSession(authOptions);
 	const userId = session?.user?.id;
+	const sessionToken =
+		(session as any)?.sessionToken ?? getSessionTokenFromHeaders(_opts.req);
+	const sessionOrgId = sessionToken
+		? (
+				await prisma.session.findUnique({
+					where: { sessionToken },
+					select: { currentOrgId: true },
+				})
+			)?.currentOrgId ?? null
+		: null;
+	const sessionOrgIdFromSession = (session as any)?.currentOrgId ?? null;
 
 	let orgId: string | null = null;
 	let role: Role | null = null;
 
 	if (userId) {
-		const membership = await prisma.organizationMember.findFirst({
-			where: { userId },
-			orderBy: { createdAt: 'asc' },
-			select: { organizationId: true, role: true },
-		});
+		const scopedOrgId = sessionOrgIdFromSession ?? sessionOrgId ?? null;
 
-		orgId = membership?.organizationId ?? null;
-		role = membership?.role ?? null;
+		if (scopedOrgId) {
+			const membership = await prisma.organizationMember.findFirst({
+				where: { userId, organizationId: scopedOrgId },
+				select: { organizationId: true, role: true },
+			});
+
+			orgId = scopedOrgId;
+			role = membership?.role ?? null;
+		} else {
+			const membership = await prisma.organizationMember.findFirst({
+				where: { userId },
+				orderBy: { createdAt: 'asc' },
+				select: { organizationId: true, role: true },
+			});
+
+			orgId = membership?.organizationId ?? null;
+			role = membership?.role ?? null;
+		}
 	}
-
-	const sessionToken = (session as any)?.sessionToken ?? null;
 
 	return { session, orgId, role, prisma, sessionToken };
 }
@@ -68,3 +89,22 @@ export const adminProcedure = orgProcedure.use(({ ctx, next }) => {
 
 	return next();
 });
+
+function getSessionTokenFromHeaders(req: Request) {
+	const cookie = req.headers.get('cookie');
+	if (!cookie) {
+		return null;
+	}
+
+	const pairs = cookie.split(';').map((part) => part.trim());
+	const entry = pairs.find(
+		(pair) =>
+			pair.startsWith('next-auth.session-token=') ||
+			pair.startsWith('__Secure-next-auth.session-token='),
+	);
+	if (!entry) {
+		return null;
+	}
+
+	return decodeURIComponent(entry.split('=').slice(1).join('='));
+}

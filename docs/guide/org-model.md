@@ -8,6 +8,7 @@
 - `FeatureFlag`: per-org feature flags.
 - `AuditLog`: append-only actions scoped to an org.
 - `VolunteerApplication`: volunteer submissions per org.
+- `VolunteerApplication.submittedByUserId`: optional link to an authenticated user for user-facing status.
 - `VolunteerAnswer`: answers linked to an application.
 - `ScreenerQuestion`: configurable per-org screening questions.
 - Screener config stores decision logic under `configJson.rules` (e.g. `disqualifierRule`, `reviewIf`, and `reason`), and screening results include the reason plus the question prompt when present.

@@ -25,3 +25,4 @@ Next.js App Router scaffold with Tailwind, shadcn/ui, tRPC, Prisma, and NextAuth
 - Prisma runtime uses `@prisma/adapter-pg` with `pg`.
 - Auth providers: Google OAuth and Resend-backed email links.
 - Prisma client is generated to `src/prisma/generated/client`; run `pnpm prisma generate` after schema changes.
+- Volunteer applications can link to authenticated users via `submittedByUserId`; use `screener.myApplications` for user-facing status.

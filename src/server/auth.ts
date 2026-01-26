@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
 	adapter: PrismaAdapter(prisma as any),
 	session: { strategy: 'database' },
 	pages: { signIn: '/login' },
-	debug: true,
+	debug: false,
 	logger: {
 		error(code, metadata) {
 			console.error('next-auth error', code, metadata);

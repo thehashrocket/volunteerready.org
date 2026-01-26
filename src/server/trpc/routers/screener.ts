@@ -6,18 +6,20 @@ import {
 } from '@/server/domain/volunteer-screening';
 import { submitVolunteerApplication } from '@/server/services/volunteer-screening';
 import {
-	getApplicationDetail,
-	listApplications,
-	listUserApplications,
-} from '@/server/repositories/volunteer-applications';
-
-import {
 	adminProcedure,
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
 } from '@/server/trpc/init';
-import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
+import {
+	getMyApplicationDetail,
+	listMyApplications,
+} from '@/server/services/my-applications';
+import {
+	getOrgApplicationDetail,
+	getPublicScreenerForm,
+	listOrgApplications,
+} from '@/server/services/screener-queries';
 
 export const screenerRouter = createTRPCRouter({
 	submit: publicProcedure
@@ -30,6 +32,13 @@ export const screenerRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			if (ctx.sessionToken && !ctx.orgId) {
+				await ctx.prisma.session.update({
+					where: { sessionToken: ctx.sessionToken },
+					data: { currentOrgId: input.orgId },
+				});
+			}
+
 			return submitVolunteerApplication(input.orgId, {
 				submittedByEmail: input.submittedByEmail,
 				submittedByUserId: ctx.session?.user?.id ?? null,
@@ -50,10 +59,7 @@ export const screenerRouter = createTRPCRouter({
 			if (!ctx.orgId) {
 				throw new Error('Missing org context');
 			}
-			return listApplications(ctx.orgId, input.status, {
-				page: input.page,
-				pageSize: input.pageSize,
-			});
+			return listOrgApplications(ctx.orgId, input);
 		}),
 	detail: adminProcedure
 		.input(z.object({ id: z.string() }))
@@ -61,18 +67,31 @@ export const screenerRouter = createTRPCRouter({
 			if (!ctx.orgId) {
 				throw new Error('Missing org context');
 			}
-			return getApplicationDetail(ctx.orgId, input.id);
+			return getOrgApplicationDetail(ctx.orgId, input.id);
 		}),
 	getPublicForm: publicProcedure
 		.input(z.object({ orgSlug: z.string().min(1) }))
 		.query(async ({ input }) => {
-			return getPublicFormByOrgSlug(input.orgSlug);
+			return getPublicScreenerForm(input.orgSlug);
 		}),
 	myApplications: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.session?.user?.id;
 		if (!userId) {
 			throw new Error('Missing session user');
 		}
-		return listUserApplications(userId);
+		return listMyApplications(userId, ctx.session?.user?.email ?? null);
 	}),
+	myApplicationDetail: protectedProcedure
+		.input(z.object({ id: z.string().min(1) }))
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.session?.user?.id;
+			if (!userId) {
+				throw new Error('Missing session user');
+			}
+			return getMyApplicationDetail(
+				userId,
+				input.id,
+				ctx.session?.user?.email ?? null,
+			);
+		}),
 });

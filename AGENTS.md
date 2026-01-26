@@ -96,6 +96,7 @@ docs/
 - screening domain lives in `src/server/domain/volunteer-screening.ts`
 - Prisma client is generated into `src/prisma/generated/client`
 - public apply flow lives under `src/app/apply/[orgSlug]`
+- Volunteer applications may be linked to users via `submittedByUserId` (see `screener.myApplications`).
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.
