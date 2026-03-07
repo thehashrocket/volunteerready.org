@@ -7,6 +7,7 @@ import { prisma } from '@/server/repositories/prisma';
 
 interface CreateApplicationInput {
 	orgId: string;
+	opportunityId?: string | null;
 	submittedByEmail: string;
 	submittedByUserId?: string | null;
 	status: ApplicationStatus;
@@ -23,6 +24,7 @@ export async function createApplication(input: CreateApplicationInput) {
 	return prisma.volunteerApplication.create({
 		data: {
 			orgId: input.orgId,
+			opportunityId: input.opportunityId ?? null,
 			submittedByUserId: input.submittedByUserId ?? null,
 			submittedByEmail: input.submittedByEmail,
 			status: input.status,
@@ -69,6 +71,7 @@ export async function listApplications(
 			orderBy: { submittedAt: 'desc' },
 			skip,
 			take: pageSize,
+			include: { opportunity: { select: { id: true, title: true } } },
 		}),
 		prisma.volunteerApplication.count({ where }),
 	]);
@@ -82,7 +85,12 @@ export async function getApplicationDetail(
 ) {
 	return prisma.volunteerApplication.findFirst({
 		where: { id: applicationId, orgId },
-		include: { answers: true },
+		include: {
+			answers: true,
+			opportunity: {
+				select: { id: true, title: true, location: true, isRemote: true, startDate: true, endDate: true, commitmentHours: true },
+			},
+		},
 	});
 }
 

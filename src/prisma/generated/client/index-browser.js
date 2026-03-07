@@ -208,6 +208,7 @@ exports.Prisma.FeatureFlagScalarFieldEnum = {
 exports.Prisma.VolunteerApplicationScalarFieldEnum = {
   id: 'id',
   orgId: 'orgId',
+  opportunityId: 'opportunityId',
   submittedByUserId: 'submittedByUserId',
   submittedByEmail: 'submittedByEmail',
   status: 'status',

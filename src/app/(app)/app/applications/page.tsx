@@ -66,7 +66,7 @@ function TableSkeleton() {
 				<Table>
 					<TableHeader>
 						<TableRow>
-							{['Submitted', 'Email', 'Status', 'Screening', 'Flags', ''].map((h) => (
+							{['Submitted', 'Email', 'Opportunity', 'Status', 'Screening', 'Flags', ''].map((h) => (
 								<TableHead key={h}>{h}</TableHead>
 							))}
 						</TableRow>
@@ -74,7 +74,7 @@ function TableSkeleton() {
 					<TableBody>
 						{Array.from({ length: 5 }).map((_, i) => (
 							<TableRow key={i}>
-								{[112, 160, 64, 64, 48, 24].map((w, j) => (
+								{[112, 160, 120, 64, 64, 48, 24].map((w, j) => (
 									<TableCell key={j}>
 										<div
 											className="h-4 rounded bg-muted animate-pulse"
@@ -183,6 +183,7 @@ export default function ApplicationsPage() {
 								<TableRow>
 									<TableHead>Submitted</TableHead>
 									<TableHead>Email</TableHead>
+									<TableHead>Opportunity</TableHead>
 									<TableHead>Status</TableHead>
 									<TableHead>Screening</TableHead>
 									<TableHead>Flags</TableHead>
@@ -206,6 +207,9 @@ export default function ApplicationsPage() {
 											</TableCell>
 											<TableCell className="font-medium">
 												{app.submittedByEmail}
+											</TableCell>
+											<TableCell className="text-sm text-muted-foreground">
+												{app.opportunity?.title ?? <span className="text-muted-foreground">—</span>}
 											</TableCell>
 											<TableCell>
 												<ApplicationStatusBadge status={app.status} />

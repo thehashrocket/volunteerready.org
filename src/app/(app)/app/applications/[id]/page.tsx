@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { AlertCircle, ChevronLeft, RefreshCw } from 'lucide-react';
+import { AlertCircle, Calendar, ChevronLeft, Clock, MapPin, RefreshCw, Wifi } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { trpc } from '@/lib/trpc/client';
@@ -25,6 +25,17 @@ function formatDate(value: Date | string) {
 		hour: 'numeric',
 		minute: '2-digit',
 	}).format(date);
+}
+
+function formatDateRange(start: Date | string | null, end: Date | string | null): string | null {
+	const fmt = (d: Date | string) =>
+		new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
+			d instanceof Date ? d : new Date(d),
+		);
+	if (start && end) return `${fmt(start)} – ${fmt(end)}`;
+	if (start) return `From ${fmt(start)}`;
+	if (end) return `Until ${fmt(end)}`;
+	return null;
 }
 
 function formatRelative(value: Date | string): string {
@@ -184,6 +195,58 @@ export default function ApplicationDetailPage() {
 					</div>
 				</CardContent>
 			</Card>
+
+			{/* Linked opportunity card */}
+			{app.opportunity && (
+				<Card>
+					<CardHeader>
+						<CardTitle>Linked opportunity</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<dl className="divide-y">
+							<div className="py-3 first:pt-0">
+								<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Position</dt>
+								<dd className="mt-1 text-sm font-medium">{app.opportunity.title}</dd>
+							</div>
+							{(app.opportunity.location || app.opportunity.isRemote) && (
+								<div className="py-3">
+									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Location</dt>
+									<dd className="mt-1 flex flex-wrap items-center gap-3 text-sm">
+										{app.opportunity.isRemote && (
+											<span className="flex items-center gap-1 text-muted-foreground">
+												<Wifi className="h-3 w-3" /> Remote
+											</span>
+										)}
+										{app.opportunity.location && (
+											<span className="flex items-center gap-1 text-muted-foreground">
+												<MapPin className="h-3 w-3" /> {app.opportunity.location}
+											</span>
+										)}
+									</dd>
+								</div>
+							)}
+							{formatDateRange(app.opportunity.startDate, app.opportunity.endDate) && (
+								<div className="py-3">
+									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Dates</dt>
+									<dd className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+										<Calendar className="h-3 w-3" />
+										{formatDateRange(app.opportunity.startDate, app.opportunity.endDate)}
+									</dd>
+								</div>
+							)}
+							{app.opportunity.commitmentHours != null && (
+								<div className="py-3 last:pb-0">
+									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Commitment</dt>
+									<dd className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+										<Clock className="h-3 w-3" />
+										{app.opportunity.commitmentHours}h/week
+									</dd>
+								</div>
+							)}
+						</dl>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Answers card */}
 			<Card>

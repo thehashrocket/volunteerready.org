@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { Calendar, Clock, MapPin, Wifi } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
 
@@ -32,12 +33,34 @@ import {
 
 import { volunteerProfileSchema } from '@/server/domain/volunteer-screening';
 
+type LinkedOpportunity = {
+	id: string;
+	title: string;
+	location: string | null;
+	isRemote: boolean;
+	startDate: Date | string | null;
+	endDate: Date | string | null;
+	commitmentHours: number | null;
+};
+
 type Props = {
 	org: { id: string; name: string; slug: string };
 	questions: PublicQuestion[];
+	opportunity: LinkedOpportunity | null;
 };
 
-export default function ApplyFormClient({ org, questions }: Props) {
+function formatDateRange(start: Date | string | null, end: Date | string | null): string | null {
+	const fmt = (d: Date | string) =>
+		new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
+			d instanceof Date ? d : new Date(d),
+		);
+	if (start && end) return `${fmt(start)} – ${fmt(end)}`;
+	if (start) return `From ${fmt(start)}`;
+	if (end) return `Until ${fmt(end)}`;
+	return null;
+}
+
+export default function ApplyFormClient({ org, questions, opportunity }: Props) {
 	const [submitted, setSubmitted] = useState(false);
 
 	const answersSchema = useMemo(() => buildZodSchema(questions), [questions]);
@@ -95,11 +118,17 @@ export default function ApplyFormClient({ org, questions }: Props) {
 				<CardContent className="space-y-3">
 					<p className="text-muted-foreground">
 						Your application to{' '}
-						<span className="font-medium text-foreground">{org.name}</span> has
-						been submitted.
+						<span className="font-medium text-foreground">{org.name}</span>
+						{opportunity && (
+							<>
+								{' '}for{' '}
+								<span className="font-medium text-foreground">{opportunity.title}</span>
+							</>
+						)}{' '}
+						has been submitted.
 					</p>
 					<p className="text-muted-foreground">
-						If they’re a match, they’ll follow up with next steps.
+						If they're a match, they'll follow up with next steps.
 					</p>
 				</CardContent>
 			</Card>
@@ -114,7 +143,8 @@ export default function ApplyFormClient({ org, questions }: Props) {
 
 		submitMutation.mutate({
 			orgId: org.id,
-			submittedByEmail: values.profile.email, // ✅ don’t ask twice
+			opportunityId: opportunity?.id,
+			submittedByEmail: values.profile.email, // ✅ don't ask twice
 			profile: values.profile,
 			responses,
 		});
@@ -122,11 +152,50 @@ export default function ApplyFormClient({ org, questions }: Props) {
 
 	const profileErrors = form.formState.errors.profile;
 
+	const dateRange = opportunity
+		? formatDateRange(opportunity.startDate, opportunity.endDate)
+		: null;
+
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>Volunteer application</CardTitle>
-			</CardHeader>
+		<>
+			{opportunity && (
+				<div className="mb-6 rounded-xl border border-stone-200 bg-stone-50 p-4">
+					<p className="mb-1 text-xs font-semibold uppercase tracking-widest text-green-700">
+						Applying for
+					</p>
+					<p className="font-semibold text-stone-900">{opportunity.title}</p>
+					<div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-500">
+						{opportunity.isRemote && (
+							<span className="flex items-center gap-1">
+								<Wifi className="h-3 w-3" />
+								Remote
+							</span>
+						)}
+						{opportunity.location && (
+							<span className="flex items-center gap-1">
+								<MapPin className="h-3 w-3" />
+								{opportunity.location}
+							</span>
+						)}
+						{dateRange && (
+							<span className="flex items-center gap-1">
+								<Calendar className="h-3 w-3" />
+								{dateRange}
+							</span>
+						)}
+						{opportunity.commitmentHours != null && (
+							<span className="flex items-center gap-1">
+								<Clock className="h-3 w-3" />
+								{opportunity.commitmentHours}h/week
+							</span>
+						)}
+					</div>
+				</div>
+			)}
+			<Card>
+				<CardHeader>
+					<CardTitle>Volunteer application</CardTitle>
+				</CardHeader>
 
 			<CardContent>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -241,6 +310,7 @@ export default function ApplyFormClient({ org, questions }: Props) {
 				</form>
 			</CardContent>
 		</Card>
+		</>
 	);
 }
 

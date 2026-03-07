@@ -44,6 +44,7 @@ export async function getOrgApplicationDetailEnriched(
 		status: application.status,
 		screeningStatus: application.screeningStatus,
 		screeningReasons: normalizeReasons(application.screeningReasons),
+		opportunity: application.opportunity ?? null,
 		answers: application.answers.map((a) => ({
 			id: a.id,
 			questionId: a.questionId,

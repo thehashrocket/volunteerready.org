@@ -128,10 +128,8 @@ function OpportunityCard({ opp, orgSlug }: { opp: Opportunity; orgSlug: string }
 				</div>
 			)}
 
-			{/* CTA — links to the org-level screener form, not opportunity-specific.
-			    Update this when application-to-opportunity linking is implemented. */}
 			<Link
-				href={`/apply/${orgSlug}`}
+				href={`/apply/${orgSlug}?opportunityId=${opp.id}`}
 				className="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-green-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2"
 			>
 				Apply now

@@ -88,6 +88,7 @@ export const screenerRouter = createTRPCRouter({
 		.input(
 			z.object({
 				orgId: z.string(),
+				opportunityId: z.string().optional(),
 				submittedByEmail: z.string().email(),
 				profile: volunteerProfileSchema,
 				responses: z.array(screenerResponseSchema),
@@ -104,6 +105,7 @@ export const screenerRouter = createTRPCRouter({
 			return submitVolunteerApplication(input.orgId, {
 				submittedByEmail: input.submittedByEmail,
 				submittedByUserId: ctx.session?.user?.id ?? null,
+				opportunityId: input.opportunityId ?? null,
 				profile: input.profile,
 				responses: input.responses,
 			});

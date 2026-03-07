@@ -21,6 +21,7 @@ import { prisma } from '@/server/repositories/prisma';
 interface SubmitVolunteerApplicationPayload {
 	submittedByEmail: string;
 	submittedByUserId?: string | null;
+	opportunityId?: string | null;
 	profile: VolunteerProfile;
 	responses: ScreenerResponse[];
 }
@@ -121,8 +122,18 @@ export async function submitVolunteerApplication(
 		screeningReasons = result.reasons;
 	}
 
+	let validatedOpportunityId: string | null = null;
+	if (payload.opportunityId) {
+		const opp = await prisma.volunteerOpportunity.findFirst({
+			where: { id: payload.opportunityId, orgId, status: 'PUBLISHED' },
+			select: { id: true },
+		});
+		validatedOpportunityId = opp?.id ?? null;
+	}
+
 	const application = await createApplication({
 		orgId,
+		opportunityId: validatedOpportunityId,
 		submittedByEmail: payload.submittedByEmail,
 		submittedByUserId: payload.submittedByUserId ?? null,
 		status: ApplicationStatus.SUBMITTED,
@@ -146,6 +157,7 @@ export async function submitVolunteerApplication(
 			entityId: application.id,
 			metadata: {
 				submittedByEmail: payload.submittedByEmail,
+				opportunityId: validatedOpportunityId,
 				screeningStatus,
 				profile: payload.profile,
 			} as any as Prisma.InputJsonValue,

@@ -141,6 +141,7 @@ model FeatureFlag {
 model VolunteerApplication {
   id                String            @id @default(cuid())
   orgId             String
+  opportunityId     String?
   submittedByUserId String?
   submittedByEmail  String
   status            ApplicationStatus @default(SUBMITTED)
@@ -148,12 +149,14 @@ model VolunteerApplication {
   screeningReasons  Json              @default("[]")
   submittedAt       DateTime          @default(now())
 
-  organization    Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  submittedByUser User?             @relation("SubmittedApplications", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+  organization    Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  opportunity     VolunteerOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  submittedByUser User?                 @relation("SubmittedApplications", fields: [submittedByUserId], references: [id], onDelete: SetNull)
   answers         VolunteerAnswer[]
 
   @@index([orgId, status])
   @@index([submittedByUserId])
+  @@index([opportunityId])
 }
 
 model VolunteerAnswer {
@@ -251,8 +254,9 @@ model VolunteerOpportunity {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  organization Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  organization Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
   tags         OpportunityTag[]
+  applications VolunteerApplication[]
 
   @@index([orgId])
   @@index([status])

@@ -2403,10 +2403,12 @@ export namespace Prisma {
 
   export type VolunteerOpportunityCountOutputType = {
     tags: number
+    applications: number
   }
 
   export type VolunteerOpportunityCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tags?: boolean | VolunteerOpportunityCountOutputTypeCountTagsArgs
+    applications?: boolean | VolunteerOpportunityCountOutputTypeCountApplicationsArgs
   }
 
   // Custom InputTypes
@@ -2425,6 +2427,13 @@ export namespace Prisma {
    */
   export type VolunteerOpportunityCountOutputTypeCountTagsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OpportunityTagWhereInput
+  }
+
+  /**
+   * VolunteerOpportunityCountOutputType without action
+   */
+  export type VolunteerOpportunityCountOutputTypeCountApplicationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerApplicationWhereInput
   }
 
 
@@ -12434,6 +12443,7 @@ export namespace Prisma {
   export type VolunteerApplicationMinAggregateOutputType = {
     id: string | null
     orgId: string | null
+    opportunityId: string | null
     submittedByUserId: string | null
     submittedByEmail: string | null
     status: $Enums.ApplicationStatus | null
@@ -12444,6 +12454,7 @@ export namespace Prisma {
   export type VolunteerApplicationMaxAggregateOutputType = {
     id: string | null
     orgId: string | null
+    opportunityId: string | null
     submittedByUserId: string | null
     submittedByEmail: string | null
     status: $Enums.ApplicationStatus | null
@@ -12454,6 +12465,7 @@ export namespace Prisma {
   export type VolunteerApplicationCountAggregateOutputType = {
     id: number
     orgId: number
+    opportunityId: number
     submittedByUserId: number
     submittedByEmail: number
     status: number
@@ -12467,6 +12479,7 @@ export namespace Prisma {
   export type VolunteerApplicationMinAggregateInputType = {
     id?: true
     orgId?: true
+    opportunityId?: true
     submittedByUserId?: true
     submittedByEmail?: true
     status?: true
@@ -12477,6 +12490,7 @@ export namespace Prisma {
   export type VolunteerApplicationMaxAggregateInputType = {
     id?: true
     orgId?: true
+    opportunityId?: true
     submittedByUserId?: true
     submittedByEmail?: true
     status?: true
@@ -12487,6 +12501,7 @@ export namespace Prisma {
   export type VolunteerApplicationCountAggregateInputType = {
     id?: true
     orgId?: true
+    opportunityId?: true
     submittedByUserId?: true
     submittedByEmail?: true
     status?: true
@@ -12571,6 +12586,7 @@ export namespace Prisma {
   export type VolunteerApplicationGroupByOutputType = {
     id: string
     orgId: string
+    opportunityId: string | null
     submittedByUserId: string | null
     submittedByEmail: string
     status: $Enums.ApplicationStatus
@@ -12599,6 +12615,7 @@ export namespace Prisma {
   export type VolunteerApplicationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     orgId?: boolean
+    opportunityId?: boolean
     submittedByUserId?: boolean
     submittedByEmail?: boolean
     status?: boolean
@@ -12606,6 +12623,7 @@ export namespace Prisma {
     screeningReasons?: boolean
     submittedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerApplication$opportunityArgs<ExtArgs>
     submittedByUser?: boolean | VolunteerApplication$submittedByUserArgs<ExtArgs>
     answers?: boolean | VolunteerApplication$answersArgs<ExtArgs>
     _count?: boolean | VolunteerApplicationCountOutputTypeDefaultArgs<ExtArgs>
@@ -12614,6 +12632,7 @@ export namespace Prisma {
   export type VolunteerApplicationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     orgId?: boolean
+    opportunityId?: boolean
     submittedByUserId?: boolean
     submittedByEmail?: boolean
     status?: boolean
@@ -12621,12 +12640,14 @@ export namespace Prisma {
     screeningReasons?: boolean
     submittedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerApplication$opportunityArgs<ExtArgs>
     submittedByUser?: boolean | VolunteerApplication$submittedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerApplication"]>
 
   export type VolunteerApplicationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     orgId?: boolean
+    opportunityId?: boolean
     submittedByUserId?: boolean
     submittedByEmail?: boolean
     status?: boolean
@@ -12634,12 +12655,14 @@ export namespace Prisma {
     screeningReasons?: boolean
     submittedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerApplication$opportunityArgs<ExtArgs>
     submittedByUser?: boolean | VolunteerApplication$submittedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerApplication"]>
 
   export type VolunteerApplicationSelectScalar = {
     id?: boolean
     orgId?: boolean
+    opportunityId?: boolean
     submittedByUserId?: boolean
     submittedByEmail?: boolean
     status?: boolean
@@ -12648,19 +12671,22 @@ export namespace Prisma {
     submittedAt?: boolean
   }
 
-  export type VolunteerApplicationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "submittedByUserId" | "submittedByEmail" | "status" | "screeningStatus" | "screeningReasons" | "submittedAt", ExtArgs["result"]["volunteerApplication"]>
+  export type VolunteerApplicationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "opportunityId" | "submittedByUserId" | "submittedByEmail" | "status" | "screeningStatus" | "screeningReasons" | "submittedAt", ExtArgs["result"]["volunteerApplication"]>
   export type VolunteerApplicationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerApplication$opportunityArgs<ExtArgs>
     submittedByUser?: boolean | VolunteerApplication$submittedByUserArgs<ExtArgs>
     answers?: boolean | VolunteerApplication$answersArgs<ExtArgs>
     _count?: boolean | VolunteerApplicationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type VolunteerApplicationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerApplication$opportunityArgs<ExtArgs>
     submittedByUser?: boolean | VolunteerApplication$submittedByUserArgs<ExtArgs>
   }
   export type VolunteerApplicationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerApplication$opportunityArgs<ExtArgs>
     submittedByUser?: boolean | VolunteerApplication$submittedByUserArgs<ExtArgs>
   }
 
@@ -12668,12 +12694,14 @@ export namespace Prisma {
     name: "VolunteerApplication"
     objects: {
       organization: Prisma.$OrganizationPayload<ExtArgs>
+      opportunity: Prisma.$VolunteerOpportunityPayload<ExtArgs> | null
       submittedByUser: Prisma.$UserPayload<ExtArgs> | null
       answers: Prisma.$VolunteerAnswerPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       orgId: string
+      opportunityId: string | null
       submittedByUserId: string | null
       submittedByEmail: string
       status: $Enums.ApplicationStatus
@@ -13075,6 +13103,7 @@ export namespace Prisma {
   export interface Prisma__VolunteerApplicationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    opportunity<T extends VolunteerApplication$opportunityArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerApplication$opportunityArgs<ExtArgs>>): Prisma__VolunteerOpportunityClient<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     submittedByUser<T extends VolunteerApplication$submittedByUserArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerApplication$submittedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     answers<T extends VolunteerApplication$answersArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerApplication$answersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerAnswerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
@@ -13108,6 +13137,7 @@ export namespace Prisma {
   interface VolunteerApplicationFieldRefs {
     readonly id: FieldRef<"VolunteerApplication", 'String'>
     readonly orgId: FieldRef<"VolunteerApplication", 'String'>
+    readonly opportunityId: FieldRef<"VolunteerApplication", 'String'>
     readonly submittedByUserId: FieldRef<"VolunteerApplication", 'String'>
     readonly submittedByEmail: FieldRef<"VolunteerApplication", 'String'>
     readonly status: FieldRef<"VolunteerApplication", 'ApplicationStatus'>
@@ -13507,6 +13537,25 @@ export namespace Prisma {
      * Limit how many VolunteerApplications to delete.
      */
     limit?: number
+  }
+
+  /**
+   * VolunteerApplication.opportunity
+   */
+  export type VolunteerApplication$opportunityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerOpportunity
+     */
+    select?: VolunteerOpportunitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerOpportunity
+     */
+    omit?: VolunteerOpportunityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerOpportunityInclude<ExtArgs> | null
+    where?: VolunteerOpportunityWhereInput
   }
 
   /**
@@ -17126,6 +17175,7 @@ export namespace Prisma {
     updatedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     tags?: boolean | VolunteerOpportunity$tagsArgs<ExtArgs>
+    applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerOpportunity"]>
 
@@ -17183,6 +17233,7 @@ export namespace Prisma {
   export type VolunteerOpportunityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     tags?: boolean | VolunteerOpportunity$tagsArgs<ExtArgs>
+    applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type VolunteerOpportunityIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17197,6 +17248,7 @@ export namespace Prisma {
     objects: {
       organization: Prisma.$OrganizationPayload<ExtArgs>
       tags: Prisma.$OpportunityTagPayload<ExtArgs>[]
+      applications: Prisma.$VolunteerApplicationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -17608,6 +17660,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     tags<T extends VolunteerOpportunity$tagsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    applications<T extends VolunteerOpportunity$applicationsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$applicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -18067,6 +18120,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: OpportunityTagScalarFieldEnum | OpportunityTagScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerOpportunity.applications
+   */
+  export type VolunteerOpportunity$applicationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerApplication
+     */
+    select?: VolunteerApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerApplication
+     */
+    omit?: VolunteerApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerApplicationInclude<ExtArgs> | null
+    where?: VolunteerApplicationWhereInput
+    orderBy?: VolunteerApplicationOrderByWithRelationInput | VolunteerApplicationOrderByWithRelationInput[]
+    cursor?: VolunteerApplicationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VolunteerApplicationScalarFieldEnum | VolunteerApplicationScalarFieldEnum[]
   }
 
   /**
@@ -19249,6 +19326,7 @@ export namespace Prisma {
   export const VolunteerApplicationScalarFieldEnum: {
     id: 'id',
     orgId: 'orgId',
+    opportunityId: 'opportunityId',
     submittedByUserId: 'submittedByUserId',
     submittedByEmail: 'submittedByEmail',
     status: 'status',
@@ -20139,6 +20217,7 @@ export namespace Prisma {
     NOT?: VolunteerApplicationWhereInput | VolunteerApplicationWhereInput[]
     id?: StringFilter<"VolunteerApplication"> | string
     orgId?: StringFilter<"VolunteerApplication"> | string
+    opportunityId?: StringNullableFilter<"VolunteerApplication"> | string | null
     submittedByUserId?: StringNullableFilter<"VolunteerApplication"> | string | null
     submittedByEmail?: StringFilter<"VolunteerApplication"> | string
     status?: EnumApplicationStatusFilter<"VolunteerApplication"> | $Enums.ApplicationStatus
@@ -20146,6 +20225,7 @@ export namespace Prisma {
     screeningReasons?: JsonFilter<"VolunteerApplication">
     submittedAt?: DateTimeFilter<"VolunteerApplication"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    opportunity?: XOR<VolunteerOpportunityNullableScalarRelationFilter, VolunteerOpportunityWhereInput> | null
     submittedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     answers?: VolunteerAnswerListRelationFilter
   }
@@ -20153,6 +20233,7 @@ export namespace Prisma {
   export type VolunteerApplicationOrderByWithRelationInput = {
     id?: SortOrder
     orgId?: SortOrder
+    opportunityId?: SortOrderInput | SortOrder
     submittedByUserId?: SortOrderInput | SortOrder
     submittedByEmail?: SortOrder
     status?: SortOrder
@@ -20160,6 +20241,7 @@ export namespace Prisma {
     screeningReasons?: SortOrder
     submittedAt?: SortOrder
     organization?: OrganizationOrderByWithRelationInput
+    opportunity?: VolunteerOpportunityOrderByWithRelationInput
     submittedByUser?: UserOrderByWithRelationInput
     answers?: VolunteerAnswerOrderByRelationAggregateInput
   }
@@ -20170,6 +20252,7 @@ export namespace Prisma {
     OR?: VolunteerApplicationWhereInput[]
     NOT?: VolunteerApplicationWhereInput | VolunteerApplicationWhereInput[]
     orgId?: StringFilter<"VolunteerApplication"> | string
+    opportunityId?: StringNullableFilter<"VolunteerApplication"> | string | null
     submittedByUserId?: StringNullableFilter<"VolunteerApplication"> | string | null
     submittedByEmail?: StringFilter<"VolunteerApplication"> | string
     status?: EnumApplicationStatusFilter<"VolunteerApplication"> | $Enums.ApplicationStatus
@@ -20177,6 +20260,7 @@ export namespace Prisma {
     screeningReasons?: JsonFilter<"VolunteerApplication">
     submittedAt?: DateTimeFilter<"VolunteerApplication"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    opportunity?: XOR<VolunteerOpportunityNullableScalarRelationFilter, VolunteerOpportunityWhereInput> | null
     submittedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     answers?: VolunteerAnswerListRelationFilter
   }, "id">
@@ -20184,6 +20268,7 @@ export namespace Prisma {
   export type VolunteerApplicationOrderByWithAggregationInput = {
     id?: SortOrder
     orgId?: SortOrder
+    opportunityId?: SortOrderInput | SortOrder
     submittedByUserId?: SortOrderInput | SortOrder
     submittedByEmail?: SortOrder
     status?: SortOrder
@@ -20201,6 +20286,7 @@ export namespace Prisma {
     NOT?: VolunteerApplicationScalarWhereWithAggregatesInput | VolunteerApplicationScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"VolunteerApplication"> | string
     orgId?: StringWithAggregatesFilter<"VolunteerApplication"> | string
+    opportunityId?: StringNullableWithAggregatesFilter<"VolunteerApplication"> | string | null
     submittedByUserId?: StringNullableWithAggregatesFilter<"VolunteerApplication"> | string | null
     submittedByEmail?: StringWithAggregatesFilter<"VolunteerApplication"> | string
     status?: EnumApplicationStatusWithAggregatesFilter<"VolunteerApplication"> | $Enums.ApplicationStatus
@@ -20431,6 +20517,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VolunteerOpportunity"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     tags?: OpportunityTagListRelationFilter
+    applications?: VolunteerApplicationListRelationFilter
   }
 
   export type VolunteerOpportunityOrderByWithRelationInput = {
@@ -20449,6 +20536,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     organization?: OrganizationOrderByWithRelationInput
     tags?: OpportunityTagOrderByRelationAggregateInput
+    applications?: VolunteerApplicationOrderByRelationAggregateInput
   }
 
   export type VolunteerOpportunityWhereUniqueInput = Prisma.AtLeast<{
@@ -20470,6 +20558,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VolunteerOpportunity"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     tags?: OpportunityTagListRelationFilter
+    applications?: VolunteerApplicationListRelationFilter
   }, "id">
 
   export type VolunteerOpportunityOrderByWithAggregationInput = {
@@ -21205,6 +21294,7 @@ export namespace Prisma {
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutApplicationsInput
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutApplicationsInput
     submittedByUser?: UserCreateNestedOneWithoutSubmittedApplicationsInput
     answers?: VolunteerAnswerCreateNestedManyWithoutApplicationInput
   }
@@ -21212,6 +21302,7 @@ export namespace Prisma {
   export type VolunteerApplicationUncheckedCreateInput = {
     id?: string
     orgId: string
+    opportunityId?: string | null
     submittedByUserId?: string | null
     submittedByEmail: string
     status?: $Enums.ApplicationStatus
@@ -21229,6 +21320,7 @@ export namespace Prisma {
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutApplicationsNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneWithoutApplicationsNestedInput
     submittedByUser?: UserUpdateOneWithoutSubmittedApplicationsNestedInput
     answers?: VolunteerAnswerUpdateManyWithoutApplicationNestedInput
   }
@@ -21236,6 +21328,7 @@ export namespace Prisma {
   export type VolunteerApplicationUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByEmail?: StringFieldUpdateOperationsInput | string
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
@@ -21248,6 +21341,7 @@ export namespace Prisma {
   export type VolunteerApplicationCreateManyInput = {
     id?: string
     orgId: string
+    opportunityId?: string | null
     submittedByUserId?: string | null
     submittedByEmail: string
     status?: $Enums.ApplicationStatus
@@ -21268,6 +21362,7 @@ export namespace Prisma {
   export type VolunteerApplicationUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByEmail?: StringFieldUpdateOperationsInput | string
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
@@ -21505,6 +21600,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateInput = {
@@ -21522,6 +21618,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUpdateInput = {
@@ -21539,6 +21636,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateInput = {
@@ -21556,6 +21654,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityCreateManyInput = {
@@ -22301,6 +22400,11 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type VolunteerOpportunityNullableScalarRelationFilter = {
+    is?: VolunteerOpportunityWhereInput | null
+    isNot?: VolunteerOpportunityWhereInput | null
+  }
+
   export type VolunteerAnswerListRelationFilter = {
     every?: VolunteerAnswerWhereInput
     some?: VolunteerAnswerWhereInput
@@ -22314,6 +22418,7 @@ export namespace Prisma {
   export type VolunteerApplicationCountOrderByAggregateInput = {
     id?: SortOrder
     orgId?: SortOrder
+    opportunityId?: SortOrder
     submittedByUserId?: SortOrder
     submittedByEmail?: SortOrder
     status?: SortOrder
@@ -22325,6 +22430,7 @@ export namespace Prisma {
   export type VolunteerApplicationMaxOrderByAggregateInput = {
     id?: SortOrder
     orgId?: SortOrder
+    opportunityId?: SortOrder
     submittedByUserId?: SortOrder
     submittedByEmail?: SortOrder
     status?: SortOrder
@@ -22335,6 +22441,7 @@ export namespace Prisma {
   export type VolunteerApplicationMinOrderByAggregateInput = {
     id?: SortOrder
     orgId?: SortOrder
+    opportunityId?: SortOrder
     submittedByUserId?: SortOrder
     submittedByEmail?: SortOrder
     status?: SortOrder
@@ -23377,6 +23484,12 @@ export namespace Prisma {
     connect?: OrganizationWhereUniqueInput
   }
 
+  export type VolunteerOpportunityCreateNestedOneWithoutApplicationsInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutApplicationsInput, VolunteerOpportunityUncheckedCreateWithoutApplicationsInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutApplicationsInput
+    connect?: VolunteerOpportunityWhereUniqueInput
+  }
+
   export type UserCreateNestedOneWithoutSubmittedApplicationsInput = {
     create?: XOR<UserCreateWithoutSubmittedApplicationsInput, UserUncheckedCreateWithoutSubmittedApplicationsInput>
     connectOrCreate?: UserCreateOrConnectWithoutSubmittedApplicationsInput
@@ -23411,6 +23524,16 @@ export namespace Prisma {
     upsert?: OrganizationUpsertWithoutApplicationsInput
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutApplicationsInput, OrganizationUpdateWithoutApplicationsInput>, OrganizationUncheckedUpdateWithoutApplicationsInput>
+  }
+
+  export type VolunteerOpportunityUpdateOneWithoutApplicationsNestedInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutApplicationsInput, VolunteerOpportunityUncheckedCreateWithoutApplicationsInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutApplicationsInput
+    upsert?: VolunteerOpportunityUpsertWithoutApplicationsInput
+    disconnect?: VolunteerOpportunityWhereInput | boolean
+    delete?: VolunteerOpportunityWhereInput | boolean
+    connect?: VolunteerOpportunityWhereUniqueInput
+    update?: XOR<XOR<VolunteerOpportunityUpdateToOneWithWhereWithoutApplicationsInput, VolunteerOpportunityUpdateWithoutApplicationsInput>, VolunteerOpportunityUncheckedUpdateWithoutApplicationsInput>
   }
 
   export type UserUpdateOneWithoutSubmittedApplicationsNestedInput = {
@@ -23518,11 +23641,25 @@ export namespace Prisma {
     connect?: OpportunityTagWhereUniqueInput | OpportunityTagWhereUniqueInput[]
   }
 
+  export type VolunteerApplicationCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<VolunteerApplicationCreateWithoutOpportunityInput, VolunteerApplicationUncheckedCreateWithoutOpportunityInput> | VolunteerApplicationCreateWithoutOpportunityInput[] | VolunteerApplicationUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: VolunteerApplicationCreateOrConnectWithoutOpportunityInput | VolunteerApplicationCreateOrConnectWithoutOpportunityInput[]
+    createMany?: VolunteerApplicationCreateManyOpportunityInputEnvelope
+    connect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+  }
+
   export type OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput = {
     create?: XOR<OpportunityTagCreateWithoutOpportunityInput, OpportunityTagUncheckedCreateWithoutOpportunityInput> | OpportunityTagCreateWithoutOpportunityInput[] | OpportunityTagUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: OpportunityTagCreateOrConnectWithoutOpportunityInput | OpportunityTagCreateOrConnectWithoutOpportunityInput[]
     createMany?: OpportunityTagCreateManyOpportunityInputEnvelope
     connect?: OpportunityTagWhereUniqueInput | OpportunityTagWhereUniqueInput[]
+  }
+
+  export type VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<VolunteerApplicationCreateWithoutOpportunityInput, VolunteerApplicationUncheckedCreateWithoutOpportunityInput> | VolunteerApplicationCreateWithoutOpportunityInput[] | VolunteerApplicationUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: VolunteerApplicationCreateOrConnectWithoutOpportunityInput | VolunteerApplicationCreateOrConnectWithoutOpportunityInput[]
+    createMany?: VolunteerApplicationCreateManyOpportunityInputEnvelope
+    connect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
   }
 
   export type EnumOpportunityStatusFieldUpdateOperationsInput = {
@@ -23559,6 +23696,20 @@ export namespace Prisma {
     deleteMany?: OpportunityTagScalarWhereInput | OpportunityTagScalarWhereInput[]
   }
 
+  export type VolunteerApplicationUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<VolunteerApplicationCreateWithoutOpportunityInput, VolunteerApplicationUncheckedCreateWithoutOpportunityInput> | VolunteerApplicationCreateWithoutOpportunityInput[] | VolunteerApplicationUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: VolunteerApplicationCreateOrConnectWithoutOpportunityInput | VolunteerApplicationCreateOrConnectWithoutOpportunityInput[]
+    upsert?: VolunteerApplicationUpsertWithWhereUniqueWithoutOpportunityInput | VolunteerApplicationUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: VolunteerApplicationCreateManyOpportunityInputEnvelope
+    set?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+    disconnect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+    delete?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+    connect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+    update?: VolunteerApplicationUpdateWithWhereUniqueWithoutOpportunityInput | VolunteerApplicationUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: VolunteerApplicationUpdateManyWithWhereWithoutOpportunityInput | VolunteerApplicationUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: VolunteerApplicationScalarWhereInput | VolunteerApplicationScalarWhereInput[]
+  }
+
   export type OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput = {
     create?: XOR<OpportunityTagCreateWithoutOpportunityInput, OpportunityTagUncheckedCreateWithoutOpportunityInput> | OpportunityTagCreateWithoutOpportunityInput[] | OpportunityTagUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: OpportunityTagCreateOrConnectWithoutOpportunityInput | OpportunityTagCreateOrConnectWithoutOpportunityInput[]
@@ -23571,6 +23722,20 @@ export namespace Prisma {
     update?: OpportunityTagUpdateWithWhereUniqueWithoutOpportunityInput | OpportunityTagUpdateWithWhereUniqueWithoutOpportunityInput[]
     updateMany?: OpportunityTagUpdateManyWithWhereWithoutOpportunityInput | OpportunityTagUpdateManyWithWhereWithoutOpportunityInput[]
     deleteMany?: OpportunityTagScalarWhereInput | OpportunityTagScalarWhereInput[]
+  }
+
+  export type VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<VolunteerApplicationCreateWithoutOpportunityInput, VolunteerApplicationUncheckedCreateWithoutOpportunityInput> | VolunteerApplicationCreateWithoutOpportunityInput[] | VolunteerApplicationUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: VolunteerApplicationCreateOrConnectWithoutOpportunityInput | VolunteerApplicationCreateOrConnectWithoutOpportunityInput[]
+    upsert?: VolunteerApplicationUpsertWithWhereUniqueWithoutOpportunityInput | VolunteerApplicationUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: VolunteerApplicationCreateManyOpportunityInputEnvelope
+    set?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+    disconnect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+    delete?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+    connect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+    update?: VolunteerApplicationUpdateWithWhereUniqueWithoutOpportunityInput | VolunteerApplicationUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: VolunteerApplicationUpdateManyWithWhereWithoutOpportunityInput | VolunteerApplicationUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: VolunteerApplicationScalarWhereInput | VolunteerApplicationScalarWhereInput[]
   }
 
   export type VolunteerOpportunityCreateNestedOneWithoutTagsInput = {
@@ -24063,12 +24228,14 @@ export namespace Prisma {
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutApplicationsInput
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutApplicationsInput
     answers?: VolunteerAnswerCreateNestedManyWithoutApplicationInput
   }
 
   export type VolunteerApplicationUncheckedCreateWithoutSubmittedByUserInput = {
     id?: string
     orgId: string
+    opportunityId?: string | null
     submittedByEmail: string
     status?: $Enums.ApplicationStatus
     screeningStatus?: $Enums.ScreeningStatus
@@ -24229,6 +24396,7 @@ export namespace Prisma {
     NOT?: VolunteerApplicationScalarWhereInput | VolunteerApplicationScalarWhereInput[]
     id?: StringFilter<"VolunteerApplication"> | string
     orgId?: StringFilter<"VolunteerApplication"> | string
+    opportunityId?: StringNullableFilter<"VolunteerApplication"> | string | null
     submittedByUserId?: StringNullableFilter<"VolunteerApplication"> | string | null
     submittedByEmail?: StringFilter<"VolunteerApplication"> | string
     status?: EnumApplicationStatusFilter<"VolunteerApplication"> | $Enums.ApplicationStatus
@@ -24542,12 +24710,14 @@ export namespace Prisma {
     screeningStatus?: $Enums.ScreeningStatus
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: Date | string
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutApplicationsInput
     submittedByUser?: UserCreateNestedOneWithoutSubmittedApplicationsInput
     answers?: VolunteerAnswerCreateNestedManyWithoutApplicationInput
   }
 
   export type VolunteerApplicationUncheckedCreateWithoutOrganizationInput = {
     id?: string
+    opportunityId?: string | null
     submittedByUserId?: string | null
     submittedByEmail: string
     status?: $Enums.ApplicationStatus
@@ -24673,6 +24843,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutOrganizationInput = {
@@ -24689,6 +24860,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutOrganizationInput = {
@@ -25296,6 +25468,45 @@ export namespace Prisma {
     create: XOR<OrganizationCreateWithoutApplicationsInput, OrganizationUncheckedCreateWithoutApplicationsInput>
   }
 
+  export type VolunteerOpportunityCreateWithoutApplicationsInput = {
+    id?: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
+    tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityUncheckedCreateWithoutApplicationsInput = {
+    id?: string
+    orgId: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityCreateOrConnectWithoutApplicationsInput = {
+    where: VolunteerOpportunityWhereUniqueInput
+    create: XOR<VolunteerOpportunityCreateWithoutApplicationsInput, VolunteerOpportunityUncheckedCreateWithoutApplicationsInput>
+  }
+
   export type UserCreateWithoutSubmittedApplicationsInput = {
     id?: string
     name?: string | null
@@ -25392,6 +25603,51 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
+  export type VolunteerOpportunityUpsertWithoutApplicationsInput = {
+    update: XOR<VolunteerOpportunityUpdateWithoutApplicationsInput, VolunteerOpportunityUncheckedUpdateWithoutApplicationsInput>
+    create: XOR<VolunteerOpportunityCreateWithoutApplicationsInput, VolunteerOpportunityUncheckedCreateWithoutApplicationsInput>
+    where?: VolunteerOpportunityWhereInput
+  }
+
+  export type VolunteerOpportunityUpdateToOneWithWhereWithoutApplicationsInput = {
+    where?: VolunteerOpportunityWhereInput
+    data: XOR<VolunteerOpportunityUpdateWithoutApplicationsInput, VolunteerOpportunityUncheckedUpdateWithoutApplicationsInput>
+  }
+
+  export type VolunteerOpportunityUpdateWithoutApplicationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
+    tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+  }
+
+  export type VolunteerOpportunityUncheckedUpdateWithoutApplicationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
+  }
+
   export type UserUpsertWithoutSubmittedApplicationsInput = {
     update: XOR<UserUpdateWithoutSubmittedApplicationsInput, UserUncheckedUpdateWithoutSubmittedApplicationsInput>
     create: XOR<UserCreateWithoutSubmittedApplicationsInput, UserUncheckedCreateWithoutSubmittedApplicationsInput>
@@ -25465,12 +25721,14 @@ export namespace Prisma {
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutApplicationsInput
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutApplicationsInput
     submittedByUser?: UserCreateNestedOneWithoutSubmittedApplicationsInput
   }
 
   export type VolunteerApplicationUncheckedCreateWithoutAnswersInput = {
     id?: string
     orgId: string
+    opportunityId?: string | null
     submittedByUserId?: string | null
     submittedByEmail: string
     status?: $Enums.ApplicationStatus
@@ -25503,12 +25761,14 @@ export namespace Prisma {
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutApplicationsNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneWithoutApplicationsNestedInput
     submittedByUser?: UserUpdateOneWithoutSubmittedApplicationsNestedInput
   }
 
   export type VolunteerApplicationUncheckedUpdateWithoutAnswersInput = {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByEmail?: StringFieldUpdateOperationsInput | string
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
@@ -25724,6 +25984,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type VolunteerApplicationCreateWithoutOpportunityInput = {
+    id?: string
+    submittedByEmail: string
+    status?: $Enums.ApplicationStatus
+    screeningStatus?: $Enums.ScreeningStatus
+    screeningReasons?: JsonNullValueInput | InputJsonValue
+    submittedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutApplicationsInput
+    submittedByUser?: UserCreateNestedOneWithoutSubmittedApplicationsInput
+    answers?: VolunteerAnswerCreateNestedManyWithoutApplicationInput
+  }
+
+  export type VolunteerApplicationUncheckedCreateWithoutOpportunityInput = {
+    id?: string
+    orgId: string
+    submittedByUserId?: string | null
+    submittedByEmail: string
+    status?: $Enums.ApplicationStatus
+    screeningStatus?: $Enums.ScreeningStatus
+    screeningReasons?: JsonNullValueInput | InputJsonValue
+    submittedAt?: Date | string
+    answers?: VolunteerAnswerUncheckedCreateNestedManyWithoutApplicationInput
+  }
+
+  export type VolunteerApplicationCreateOrConnectWithoutOpportunityInput = {
+    where: VolunteerApplicationWhereUniqueInput
+    create: XOR<VolunteerApplicationCreateWithoutOpportunityInput, VolunteerApplicationUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type VolunteerApplicationCreateManyOpportunityInputEnvelope = {
+    data: VolunteerApplicationCreateManyOpportunityInput | VolunteerApplicationCreateManyOpportunityInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrganizationUpsertWithoutOpportunitiesInput = {
     update: XOR<OrganizationUpdateWithoutOpportunitiesInput, OrganizationUncheckedUpdateWithoutOpportunitiesInput>
     create: XOR<OrganizationCreateWithoutOpportunitiesInput, OrganizationUncheckedCreateWithoutOpportunitiesInput>
@@ -25790,6 +26084,22 @@ export namespace Prisma {
     name?: StringFilter<"OpportunityTag"> | string
   }
 
+  export type VolunteerApplicationUpsertWithWhereUniqueWithoutOpportunityInput = {
+    where: VolunteerApplicationWhereUniqueInput
+    update: XOR<VolunteerApplicationUpdateWithoutOpportunityInput, VolunteerApplicationUncheckedUpdateWithoutOpportunityInput>
+    create: XOR<VolunteerApplicationCreateWithoutOpportunityInput, VolunteerApplicationUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type VolunteerApplicationUpdateWithWhereUniqueWithoutOpportunityInput = {
+    where: VolunteerApplicationWhereUniqueInput
+    data: XOR<VolunteerApplicationUpdateWithoutOpportunityInput, VolunteerApplicationUncheckedUpdateWithoutOpportunityInput>
+  }
+
+  export type VolunteerApplicationUpdateManyWithWhereWithoutOpportunityInput = {
+    where: VolunteerApplicationScalarWhereInput
+    data: XOR<VolunteerApplicationUpdateManyMutationInput, VolunteerApplicationUncheckedUpdateManyWithoutOpportunityInput>
+  }
+
   export type VolunteerOpportunityCreateWithoutTagsInput = {
     id?: string
     title: string
@@ -25804,6 +26114,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutTagsInput = {
@@ -25820,6 +26131,7 @@ export namespace Prisma {
     capacity?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutTagsInput = {
@@ -25852,6 +26164,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutTagsInput = {
@@ -25868,6 +26181,7 @@ export namespace Prisma {
     capacity?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -25913,6 +26227,7 @@ export namespace Prisma {
   export type VolunteerApplicationCreateManySubmittedByUserInput = {
     id?: string
     orgId: string
+    opportunityId?: string | null
     submittedByEmail: string
     status?: $Enums.ApplicationStatus
     screeningStatus?: $Enums.ScreeningStatus
@@ -26048,12 +26363,14 @@ export namespace Prisma {
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutApplicationsNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneWithoutApplicationsNestedInput
     answers?: VolunteerAnswerUpdateManyWithoutApplicationNestedInput
   }
 
   export type VolunteerApplicationUncheckedUpdateWithoutSubmittedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByEmail?: StringFieldUpdateOperationsInput | string
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
     screeningStatus?: EnumScreeningStatusFieldUpdateOperationsInput | $Enums.ScreeningStatus
@@ -26065,6 +26382,7 @@ export namespace Prisma {
   export type VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByEmail?: StringFieldUpdateOperationsInput | string
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
     screeningStatus?: EnumScreeningStatusFieldUpdateOperationsInput | $Enums.ScreeningStatus
@@ -26098,6 +26416,7 @@ export namespace Prisma {
 
   export type VolunteerApplicationCreateManyOrganizationInput = {
     id?: string
+    opportunityId?: string | null
     submittedByUserId?: string | null
     submittedByEmail: string
     status?: $Enums.ApplicationStatus
@@ -26231,12 +26550,14 @@ export namespace Prisma {
     screeningStatus?: EnumScreeningStatusFieldUpdateOperationsInput | $Enums.ScreeningStatus
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    opportunity?: VolunteerOpportunityUpdateOneWithoutApplicationsNestedInput
     submittedByUser?: UserUpdateOneWithoutSubmittedApplicationsNestedInput
     answers?: VolunteerAnswerUpdateManyWithoutApplicationNestedInput
   }
 
   export type VolunteerApplicationUncheckedUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByEmail?: StringFieldUpdateOperationsInput | string
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
@@ -26248,6 +26569,7 @@ export namespace Prisma {
 
   export type VolunteerApplicationUncheckedUpdateManyWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     submittedByEmail?: StringFieldUpdateOperationsInput | string
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
@@ -26363,6 +26685,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutOrganizationInput = {
@@ -26379,6 +26702,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationInput = {
@@ -26425,6 +26749,17 @@ export namespace Prisma {
     name: string
   }
 
+  export type VolunteerApplicationCreateManyOpportunityInput = {
+    id?: string
+    orgId: string
+    submittedByUserId?: string | null
+    submittedByEmail: string
+    status?: $Enums.ApplicationStatus
+    screeningStatus?: $Enums.ScreeningStatus
+    screeningReasons?: JsonNullValueInput | InputJsonValue
+    submittedAt?: Date | string
+  }
+
   export type OpportunityTagUpdateWithoutOpportunityInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -26438,6 +26773,41 @@ export namespace Prisma {
   export type OpportunityTagUncheckedUpdateManyWithoutOpportunityInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type VolunteerApplicationUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    submittedByEmail?: StringFieldUpdateOperationsInput | string
+    status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+    screeningStatus?: EnumScreeningStatusFieldUpdateOperationsInput | $Enums.ScreeningStatus
+    screeningReasons?: JsonNullValueInput | InputJsonValue
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutApplicationsNestedInput
+    submittedByUser?: UserUpdateOneWithoutSubmittedApplicationsNestedInput
+    answers?: VolunteerAnswerUpdateManyWithoutApplicationNestedInput
+  }
+
+  export type VolunteerApplicationUncheckedUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedByEmail?: StringFieldUpdateOperationsInput | string
+    status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+    screeningStatus?: EnumScreeningStatusFieldUpdateOperationsInput | $Enums.ScreeningStatus
+    screeningReasons?: JsonNullValueInput | InputJsonValue
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    answers?: VolunteerAnswerUncheckedUpdateManyWithoutApplicationNestedInput
+  }
+
+  export type VolunteerApplicationUncheckedUpdateManyWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedByEmail?: StringFieldUpdateOperationsInput | string
+    status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+    screeningStatus?: EnumScreeningStatusFieldUpdateOperationsInput | $Enums.ScreeningStatus
+    screeningReasons?: JsonNullValueInput | InputJsonValue
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

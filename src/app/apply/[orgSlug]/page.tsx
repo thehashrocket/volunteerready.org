@@ -1,16 +1,24 @@
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
+import { getPublishedOpportunityById } from '@/server/repositories/publicOpportunityRepo';
 import ApplyFormClient from './ApplyFormClient';
 import { ApplyProviders } from '../providers';
 
 export default async function ApplyPage({
 	params,
+	searchParams,
 }: {
 	params: Promise<{ orgSlug: string }>;
+	searchParams: Promise<{ opportunityId?: string }>;
 }) {
 	const { orgSlug } = await params;
+	const { opportunityId } = await searchParams;
 	const { org, questions } = await getPublicFormByOrgSlug(orgSlug);
+
+	const opportunity = opportunityId
+		? await getPublishedOpportunityById(orgSlug, opportunityId)
+		: null;
 
 	if (!org) {
 		notFound();
@@ -47,7 +55,7 @@ export default async function ApplyPage({
 
 			<div className="mt-8">
 				<ApplyProviders>
-					<ApplyFormClient org={org} questions={questions} />
+					<ApplyFormClient org={org} questions={questions} opportunity={opportunity ?? null} />
 				</ApplyProviders>
 			</div>
 		</main>
