@@ -82,17 +82,18 @@ model ApplicationStatusToken {
 }
 
 model Organization {
-  id                String                 @id @default(cuid())
+  id                String                   @id @default(cuid())
   name              String
-  slug              String                 @unique
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
+  slug              String                   @unique
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
   members           OrganizationMember[]
   auditLogs         AuditLog[]
   featureFlags      FeatureFlag[]
   applications      VolunteerApplication[]
   screenerQuestions ScreenerQuestion[]
   sessions          Session[] // optional backrelation
+  invitations       OrganizationInvitation[]
 }
 
 model OrganizationMember {
@@ -202,6 +203,23 @@ enum ScreenerQuestionType {
   MULTI_CHOICE
   BOOLEAN
   NUMBER
+}
+
+model OrganizationInvitation {
+  id        String    @id @default(cuid())
+  orgId     String
+  email     String
+  role      Role      @default(STAFF)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([orgId])
+  @@index([expiresAt])
 }
 
 enum Role {

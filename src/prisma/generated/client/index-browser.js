@@ -236,6 +236,17 @@ exports.Prisma.ScreenerQuestionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.OrganizationInvitationScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  email: 'email',
+  role: 'role',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -305,7 +316,8 @@ exports.Prisma.ModelName = {
   FeatureFlag: 'FeatureFlag',
   VolunteerApplication: 'VolunteerApplication',
   VolunteerAnswer: 'VolunteerAnswer',
-  ScreenerQuestion: 'ScreenerQuestion'
+  ScreenerQuestion: 'ScreenerQuestion',
+  OrganizationInvitation: 'OrganizationInvitation'
 };
 
 /**

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ClipboardList, FileText, Plus, Rocket } from 'lucide-react';
+import { ClipboardList, FileText, Plus, Rocket, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/empty-state';
@@ -19,7 +19,7 @@ export default function DashboardPage() {
 				}
 			/>
 
-			<div className="grid gap-4 sm:grid-cols-2">
+			<div className="grid gap-4 sm:grid-cols-3">
 				<Card>
 					<CardContent className="flex items-start gap-4 pt-6">
 						<ClipboardList className="mt-1 h-5 w-5 text-muted-foreground" />
@@ -50,6 +50,22 @@ export default function DashboardPage() {
 						</Button>
 					</CardContent>
 				</Card>
+
+				<Card>
+					<CardContent className="flex items-start gap-4 pt-6">
+						<Users className="mt-1 h-5 w-5 text-muted-foreground" />
+						<div className="flex-1 space-y-1">
+							<p className="font-medium">Team members</p>
+							<p className="text-sm text-muted-foreground">
+								Manage your organization's members and invite new
+								ones.
+							</p>
+						</div>
+						<Button asChild variant="outline" size="sm">
+							<Link href="/app/settings/team">Manage</Link>
+						</Button>
+					</CardContent>
+				</Card>
 			</div>
 
 			<EmptyState
@@ -57,8 +73,8 @@ export default function DashboardPage() {
 				description="Once volunteers start applying, you will see updates here."
 				icon={Rocket}
 				action={
-					<Button variant="outline" disabled>
-						Invite teammates
+					<Button asChild variant="outline">
+						<Link href="/app/settings/team">Invite teammates</Link>
 					</Button>
 				}
 			/>
