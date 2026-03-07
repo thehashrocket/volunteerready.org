@@ -6,6 +6,8 @@
 - Start Next.js: `pnpm dev`
 - Health check: `http://localhost:3005/health`
 - Public application: `http://localhost:3005/apply/dev-organization`
+- Public status link request: `http://localhost:3005/apply/status`
+- Authenticated status: `http://localhost:3005/app/my-applications`
 - Public form pulls `ScreenerQuestion` records that are `isActive`.
 
 ## Docs site

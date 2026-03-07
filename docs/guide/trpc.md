@@ -20,3 +20,8 @@ The app router includes `auth`, `org`, `health`, and `screener` routers and is e
 
 - `screener.getPublicForm`: returns org + active questions by `orgSlug`.
 - `screener.submit`: accepts public submissions (orgId + answers).
+
+## Volunteer status
+
+- `screener.myApplications`: list applications for the signed-in user.
+- `screener.myApplicationDetail`: detail for a specific user application.
