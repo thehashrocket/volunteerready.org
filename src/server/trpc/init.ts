@@ -82,6 +82,14 @@ export const orgProcedure = protectedProcedure.use(({ ctx, next }) => {
 	return next();
 });
 
+export const staffProcedure = orgProcedure.use(({ ctx, next }) => {
+	if (!ctx.role || roleRank[ctx.role] < roleRank.STAFF) {
+		throw new TRPCError({ code: 'FORBIDDEN', message: 'Staff or higher role required.' });
+	}
+
+	return next();
+});
+
 export const adminProcedure = orgProcedure.use(({ ctx, next }) => {
 	if (!ctx.role || roleRank[ctx.role] < roleRank.ADMIN) {
 		throw new TRPCError({ code: 'FORBIDDEN' });

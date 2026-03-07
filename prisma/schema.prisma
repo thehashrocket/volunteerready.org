@@ -94,6 +94,7 @@ model Organization {
   screenerQuestions ScreenerQuestion[]
   sessions          Session[] // optional backrelation
   invitations       OrganizationInvitation[]
+  opportunities     VolunteerOpportunity[]
 }
 
 model OrganizationMember {
@@ -227,4 +228,43 @@ enum Role {
   ADMIN
   STAFF
   READONLY
+}
+
+enum OpportunityStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+model VolunteerOpportunity {
+  id              String            @id @default(cuid())
+  orgId           String
+  title           String
+  description     String
+  status          OpportunityStatus @default(DRAFT)
+  location        String?
+  isRemote        Boolean           @default(false)
+  startDate       DateTime?
+  endDate         DateTime?
+  commitmentHours Float?
+  capacity        Int?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  organization Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  tags         OpportunityTag[]
+
+  @@index([orgId])
+  @@index([status])
+}
+
+model OpportunityTag {
+  id            String               @id @default(cuid())
+  opportunityId String
+  name          String
+
+  opportunity VolunteerOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, name])
+  @@index([opportunityId])
 }

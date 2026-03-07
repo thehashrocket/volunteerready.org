@@ -247,6 +247,28 @@ exports.Prisma.OrganizationInvitationScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.VolunteerOpportunityScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  location: 'location',
+  isRemote: 'isRemote',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  commitmentHours: 'commitmentHours',
+  capacity: 'capacity',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OpportunityTagScalarFieldEnum = {
+  id: 'id',
+  opportunityId: 'opportunityId',
+  name: 'name'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -304,6 +326,12 @@ exports.ScreenerQuestionType = exports.$Enums.ScreenerQuestionType = {
   NUMBER: 'NUMBER'
 };
 
+exports.OpportunityStatus = exports.$Enums.OpportunityStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  CLOSED: 'CLOSED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -317,7 +345,9 @@ exports.Prisma.ModelName = {
   VolunteerApplication: 'VolunteerApplication',
   VolunteerAnswer: 'VolunteerAnswer',
   ScreenerQuestion: 'ScreenerQuestion',
-  OrganizationInvitation: 'OrganizationInvitation'
+  OrganizationInvitation: 'OrganizationInvitation',
+  VolunteerOpportunity: 'VolunteerOpportunity',
+  OpportunityTag: 'OpportunityTag'
 };
 
 /**
