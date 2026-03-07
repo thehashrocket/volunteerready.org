@@ -10,10 +10,12 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { EmptyState } from '@/components/empty-state';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
 	TableBody,
@@ -22,30 +24,16 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { formatDate } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatDate(value: Date | string) {
-	const date = value instanceof Date ? value : new Date(value);
-	return new Intl.DateTimeFormat('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric',
-	}).format(date);
-}
-
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
-
-function PulseBox({ className }: { className?: string }) {
-	return (
-		<div className={`animate-pulse rounded bg-muted ${className ?? ''}`} />
-	);
-}
 
 interface StatCardProps {
 	label: string;
@@ -92,7 +80,7 @@ export default function DashboardPage() {
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{isLoading ? (
 					Array.from({ length: 4 }).map((_, i) => (
-						<PulseBox key={i} className="h-24 rounded-xl" />
+						<Skeleton key={i} className="h-24 rounded-xl" />
 					))
 				) : (
 					<>
@@ -194,16 +182,15 @@ export default function DashboardPage() {
 					{isLoading ? (
 						<div className="space-y-2">
 							{Array.from({ length: 4 }).map((_, i) => (
-								<PulseBox key={i} className="h-12 w-full" />
+								<Skeleton key={i} className="h-12 w-full" />
 							))}
 						</div>
 					) : !data || data.recentApplications.length === 0 ? (
-						<div className="py-12 text-center">
-							<p className="text-sm text-muted-foreground">
-								No applications yet. Once volunteers start applying, you will
-								see them here.
-							</p>
-						</div>
+						<EmptyState
+							icon={FileText}
+							title="No applications yet"
+							description="Once volunteers start applying, you'll see them here."
+						/>
 					) : (
 						<Table>
 							<TableHeader>

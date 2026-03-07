@@ -17,6 +17,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
 	TableBody,
@@ -25,31 +26,8 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { formatDate, formatRelative } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function formatDate(value: Date | string) {
-	const date = value instanceof Date ? value : new Date(value);
-	return new Intl.DateTimeFormat('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric',
-	}).format(date);
-}
-
-function formatRelative(value: Date | string): string {
-	const date = value instanceof Date ? value : new Date(value);
-	const diff = Math.round((date.getTime() - Date.now()) / 1000);
-	const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-	const abs = Math.abs(diff);
-	if (abs < 3600) return rtf.format(Math.round(diff / 60), 'minute');
-	if (abs < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
-	if (abs < 2592000) return rtf.format(Math.round(diff / 86400), 'day');
-	return rtf.format(Math.round(diff / 2592000), 'month');
-}
 
 function flagCount(screeningReasons: unknown): number {
 	return Array.isArray(screeningReasons) ? screeningReasons.length : 0;
@@ -84,10 +62,7 @@ function TableSkeleton() {
 							<TableRow key={i}>
 								{[112, 160, 120, 64, 64, 48, 24].map((w, j) => (
 									<TableCell key={j}>
-										<div
-											className="h-4 rounded bg-muted animate-pulse"
-											style={{ width: w }}
-										/>
+										<Skeleton className="h-4" style={{ width: w }} />
 									</TableCell>
 								))}
 							</TableRow>

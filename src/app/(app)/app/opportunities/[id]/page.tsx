@@ -15,9 +15,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { OpportunityStatusBadge } from '@/components/opportunities/OpportunityStatusBadge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
 	TableBody,
@@ -26,7 +28,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { formatDateRange } from '@/lib/format-date';
+import { formatDate, formatDateRange, formatRelative } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 import { OpportunityDialog } from '../OpportunityDialog';
 
@@ -34,52 +36,11 @@ import { OpportunityDialog } from '../OpportunityDialog';
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatDate(value: Date | string) {
-	const date = value instanceof Date ? value : new Date(value);
-	return new Intl.DateTimeFormat('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric',
-	}).format(date);
-}
-
-function formatRelative(value: Date | string): string {
-	const date = value instanceof Date ? value : new Date(value);
-	const diff = Math.round((date.getTime() - Date.now()) / 1000);
-	const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-	const abs = Math.abs(diff);
-	if (abs < 3600) return rtf.format(Math.round(diff / 60), 'minute');
-	if (abs < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
-	if (abs < 2592000) return rtf.format(Math.round(diff / 86400), 'day');
-	return rtf.format(Math.round(diff / 2592000), 'month');
-}
-
-function StatusBadge({ status }: { status: 'DRAFT' | 'PUBLISHED' | 'CLOSED' }) {
-	if (status === 'PUBLISHED')
-		return (
-			<Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-				Published
-			</Badge>
-		);
-	if (status === 'CLOSED') return <Badge variant="secondary">Closed</Badge>;
-	return <Badge variant="outline">Draft</Badge>;
-}
-
 const STATUS_LEFT_BORDER: Record<'DRAFT' | 'PUBLISHED' | 'CLOSED', string> = {
 	PUBLISHED: 'border-l-green-500',
 	DRAFT: 'border-l-stone-300',
 	CLOSED: 'border-l-slate-400',
 };
-
-// ---------------------------------------------------------------------------
-// Pulse skeleton helpers
-// ---------------------------------------------------------------------------
-
-function PulseBox({ className }: { className?: string }) {
-	return (
-		<div className={`animate-pulse rounded bg-muted ${className ?? ''}`} />
-	);
-}
 
 // ---------------------------------------------------------------------------
 // Pipeline stat card
@@ -149,37 +110,37 @@ export default function OpportunityDashboardPage() {
 					<CardContent className="pt-6 pb-5">
 						<div className="flex items-start justify-between">
 							<div className="space-y-3 flex-1 mr-8">
-								<PulseBox className="h-7 w-3/5" />
+								<Skeleton className="h-7 w-3/5" />
 								<div className="flex gap-2">
-									<PulseBox className="h-5 w-20 rounded-full" />
-									<PulseBox className="h-5 w-32 rounded-full" />
-									<PulseBox className="h-5 w-24 rounded-full" />
+									<Skeleton className="h-5 w-20 rounded-full" />
+									<Skeleton className="h-5 w-32 rounded-full" />
+									<Skeleton className="h-5 w-24 rounded-full" />
 								</div>
 							</div>
 							<div className="flex gap-2">
-								<PulseBox className="h-6 w-20 rounded-full" />
-								<PulseBox className="h-8 w-14" />
+								<Skeleton className="h-6 w-20 rounded-full" />
+								<Skeleton className="h-8 w-14" />
 							</div>
 						</div>
 					</CardContent>
 				</Card>
 				{/* stats skeleton */}
 				<div className="grid gap-4 sm:grid-cols-[160px_1fr]">
-					<PulseBox className="h-32 rounded-lg" />
+					<Skeleton className="h-32 rounded-lg" />
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
 						{Array.from({ length: 4 }).map((_, i) => (
-							<PulseBox key={i} className="h-24 rounded-lg" />
+							<Skeleton key={i} className="h-24 rounded-lg" />
 						))}
 					</div>
 				</div>
 				{/* table skeleton */}
 				<Card>
 					<CardHeader>
-						<PulseBox className="h-5 w-32" />
+						<Skeleton className="h-5 w-32" />
 					</CardHeader>
 					<CardContent className="space-y-2">
 						{Array.from({ length: 4 }).map((_, i) => (
-							<PulseBox key={i} className="h-12 w-full" />
+							<Skeleton key={i} className="h-12 w-full" />
 						))}
 					</CardContent>
 				</Card>
@@ -297,7 +258,7 @@ export default function OpportunityDashboardPage() {
 							</div>
 
 							<div className="flex shrink-0 items-center gap-2">
-								<StatusBadge status={opp.status} />
+								<OpportunityStatusBadge status={opp.status} />
 								<Button
 									size="sm"
 									variant="outline"
@@ -387,7 +348,7 @@ export default function OpportunityDashboardPage() {
 						{appsQuery.isLoading ? (
 							<div className="space-y-2">
 								{Array.from({ length: 3 }).map((_, i) => (
-									<PulseBox key={i} className="h-12 w-full" />
+									<Skeleton key={i} className="h-12 w-full" />
 								))}
 							</div>
 						) : items.length === 0 ? (

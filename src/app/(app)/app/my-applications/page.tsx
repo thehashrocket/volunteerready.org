@@ -8,6 +8,7 @@ import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStat
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
 	TableBody,
@@ -16,6 +17,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { formatDate } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 
 export default function MyApplicationsPage() {
@@ -29,11 +31,10 @@ export default function MyApplicationsPage() {
 					description="Track the status of your volunteer applications."
 				/>
 				<Card>
-					<CardHeader>
-						<CardTitle>Loading applications…</CardTitle>
-					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground">
-						Fetching your latest submissions.
+					<CardContent className="space-y-2 pt-6">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Skeleton key={i} className="h-10 w-full" />
+						))}
 					</CardContent>
 				</Card>
 			</div>
@@ -157,13 +158,4 @@ export default function MyApplicationsPage() {
 			</Card>
 		</div>
 	);
-}
-
-function formatDate(value: Date | string) {
-	const date = value instanceof Date ? value : new Date(value);
-	return new Intl.DateTimeFormat('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric',
-	}).format(date);
 }

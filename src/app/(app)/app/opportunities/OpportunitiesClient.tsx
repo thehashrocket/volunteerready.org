@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { EmptyState } from '@/components/empty-state';
+import { OpportunityStatusBadge } from '@/components/opportunities/OpportunityStatusBadge';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { formatDateRange } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 import { OpportunityDialog } from './OpportunityDialog';
 
@@ -51,33 +53,6 @@ type Opportunity = {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function StatusBadge({ status }: { status: Opportunity['status'] }) {
-	if (status === 'PUBLISHED') {
-		return (
-			<Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-				Published
-			</Badge>
-		);
-	}
-	if (status === 'CLOSED') {
-		return <Badge variant="secondary">Closed</Badge>;
-	}
-	return <Badge variant="outline">Draft</Badge>;
-}
-
-function formatDateRange(start: Date | null, end: Date | null): string {
-	const fmt = (d: Date) =>
-		new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-		}).format(d instanceof Date ? d : new Date(d));
-	if (start && end) return `${fmt(start)} – ${fmt(end)}`;
-	if (start) return `From ${fmt(start)}`;
-	if (end) return `Until ${fmt(end)}`;
-	return '—';
-}
 
 function locationLabel(opp: Opportunity): string {
 	if (opp.isRemote && opp.location) return `${opp.location} · Remote`;
@@ -221,13 +196,13 @@ export function OpportunitiesClient() {
 										>
 											<TableCell className="font-medium">{opp.title}</TableCell>
 											<TableCell>
-												<StatusBadge status={opp.status} />
+												<OpportunityStatusBadge status={opp.status} />
 											</TableCell>
 											<TableCell className="text-sm text-muted-foreground">
 												{locationLabel(opp)}
 											</TableCell>
 											<TableCell className="text-sm text-muted-foreground">
-												{formatDateRange(opp.startDate, opp.endDate)}
+												{formatDateRange(opp.startDate, opp.endDate) ?? '—'}
 											</TableCell>
 											<TableCell className="text-sm text-muted-foreground">
 												{opp.capacity ?? '—'}
