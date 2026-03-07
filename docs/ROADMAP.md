@@ -44,7 +44,7 @@ This phase establishes the **multi-tenant architecture** and core data model.
 
 ---
 
-# Phase 2 — Volunteer Opportunities (In Progress)
+# Phase 2 — Volunteer Opportunities ✅ Complete
 
 Goal: Allow organizations to publish volunteer opportunities and allow volunteers to discover them.
 
@@ -60,7 +60,7 @@ Completed capabilities:
 Planned capabilities:
 
 - ✅ Application-to-opportunity linking
-- Organization opportunity dashboards
+- ✅ Organization opportunity dashboards
 
 Key entities added:
 

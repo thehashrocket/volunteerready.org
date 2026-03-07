@@ -1,11 +1,14 @@
 import { ApplicationStatus } from '@/prisma/generated/client';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import {
+	countApplicationsByStatus,
 	getApplicationDetail,
+	getRecentApplications,
 	getScreenerQuestionsByIds,
 	listApplications,
 	updateApplicationStatus as repoUpdateApplicationStatus,
 } from '@/server/repositories/volunteer-applications';
+import { countOpportunitiesByStatus } from '@/server/repositories/opportunityRepo';
 import {
 	formatAnswerValue,
 	normalizeAnswerValue,
@@ -67,4 +70,29 @@ export async function updateOrgApplicationStatus(
 
 export async function getPublicScreenerForm(orgSlug: string) {
 	return getPublicFormByOrgSlug(orgSlug);
+}
+
+export async function getOrgDashboardStats(orgId: string) {
+	const [appCounts, oppCounts, recentApplications] = await Promise.all([
+		countApplicationsByStatus(orgId),
+		countOpportunitiesByStatus(orgId),
+		getRecentApplications(orgId, 8),
+	]);
+
+	return {
+		opportunities: {
+			draft: oppCounts.draft,
+			published: oppCounts.published,
+			closed: oppCounts.closed,
+			total: oppCounts.draft + oppCounts.published + oppCounts.closed,
+		},
+		applications: {
+			submitted: appCounts.submitted,
+			review: appCounts.review,
+			approved: appCounts.approved,
+			rejected: appCounts.rejected,
+			total: appCounts.submitted + appCounts.review + appCounts.approved + appCounts.rejected,
+		},
+		recentApplications,
+	};
 }

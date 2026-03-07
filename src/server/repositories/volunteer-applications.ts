@@ -167,3 +167,28 @@ export async function getActiveQuestions(orgId: string) {
 		orderBy: { order: 'asc' },
 	});
 }
+
+export async function countApplicationsByStatus(orgId: string) {
+	const [submitted, review, approved, rejected] = await Promise.all([
+		prisma.volunteerApplication.count({ where: { orgId, status: 'SUBMITTED' } }),
+		prisma.volunteerApplication.count({ where: { orgId, status: 'REVIEW' } }),
+		prisma.volunteerApplication.count({ where: { orgId, status: 'APPROVED' } }),
+		prisma.volunteerApplication.count({ where: { orgId, status: 'REJECTED' } }),
+	]);
+	return { submitted, review, approved, rejected };
+}
+
+export async function getRecentApplications(orgId: string, limit: number) {
+	return prisma.volunteerApplication.findMany({
+		where: { orgId },
+		orderBy: { submittedAt: 'desc' },
+		take: limit,
+		select: {
+			id: true,
+			submittedAt: true,
+			submittedByEmail: true,
+			status: true,
+			opportunity: { select: { id: true, title: true } },
+		},
+	});
+}

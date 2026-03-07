@@ -101,3 +101,12 @@ export async function deleteOpportunity(id: string, orgId: string) {
 	await prisma.volunteerOpportunity.delete({ where: { id, orgId } });
 	return { deleted: true };
 }
+
+export async function countOpportunitiesByStatus(orgId: string) {
+	const [draft, published, closed] = await Promise.all([
+		prisma.volunteerOpportunity.count({ where: { orgId, status: 'DRAFT' } }),
+		prisma.volunteerOpportunity.count({ where: { orgId, status: 'PUBLISHED' } }),
+		prisma.volunteerOpportunity.count({ where: { orgId, status: 'CLOSED' } }),
+	]);
+	return { draft, published, closed };
+}
