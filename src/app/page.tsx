@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export default function Home() {
 	return (
-		<section className="mx-auto max-w-2xl space-y-10">
+		<section className="mx-auto max-w-2xl space-y-10 px-4 py-10">
 			<div className="space-y-3">
 				<p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
 					VolunteerReady

@@ -39,7 +39,7 @@ export default function RootLayout({
 						</nav>
 					</div>
 				</header>
-				<main className="container mx-auto px-4 py-10">{children}</main>
+				{children}
 				<AppToaster />
 			</body>
 		</html>

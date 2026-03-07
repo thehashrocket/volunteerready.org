@@ -55,9 +55,10 @@ Completed capabilities:
 - ✅ Status workflow: DRAFT → PUBLISHED → CLOSED
 - ✅ `staffProcedure` — STAFF+ role enforcement (OWNER/ADMIN/STAFF can manage; READONLY cannot)
 
+- ✅ Public opportunity listings (volunteer-facing at `/opportunities/[orgSlug]`)
+
 Planned capabilities:
 
-- Public opportunity listings
 - Application-to-opportunity linking
 - Organization opportunity dashboards
 
