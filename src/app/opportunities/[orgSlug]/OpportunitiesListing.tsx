@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, Clock, MapPin, Users, Wifi } from 'lucide-react';
+import { Calendar, Clock, MapPin, Search, Users, Wifi } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { formatDateRange } from '@/lib/format-date';
@@ -141,6 +141,15 @@ function OpportunityCard({
 // Main component
 // ---------------------------------------------------------------------------
 
+type RemoteFilter = 'all' | 'remote' | 'in-person';
+type SortBy = 'newest' | 'soonest' | 'commitment';
+
+const REMOTE_OPTIONS: [RemoteFilter, string][] = [
+	['all', 'All'],
+	['remote', 'Remote'],
+	['in-person', 'In-person'],
+];
+
 export function OpportunitiesListing({
 	org,
 	opportunities,
@@ -149,10 +158,13 @@ export function OpportunitiesListing({
 	opportunities: Opportunity[];
 }) {
 	const [activeTag, setActiveTag] = useState<string | null>(null);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [remoteFilter, setRemoteFilter] = useState<RemoteFilter>('all');
+	const [sortBy, setSortBy] = useState<SortBy>('newest');
 
 	// Collect unique tag names across all opportunities. Tag name is the filter
 	// identity, so use it as the React key rather than borrowing a per-opportunity
-	// tag ID (which varies depending on which opportunity happened to appear first).
+	// tag ID (which varies depending on which opportunity appeared first).
 	const allTags = useMemo(() => {
 		const seen = new Set<string>();
 		for (const opp of opportunities) {
@@ -163,13 +175,56 @@ export function OpportunitiesListing({
 		return Array.from(seen);
 	}, [opportunities]);
 
-	const filtered = useMemo(
-		() =>
-			activeTag
-				? opportunities.filter((o) => o.tags.some((t) => t.name === activeTag))
-				: opportunities,
-		[opportunities, activeTag],
-	);
+	const filtered = useMemo(() => {
+		let results = opportunities;
+
+		if (searchQuery.trim()) {
+			const q = searchQuery.toLowerCase();
+			results = results.filter(
+				(o) =>
+					o.title.toLowerCase().includes(q) ||
+					o.description.toLowerCase().includes(q),
+			);
+		}
+
+		if (remoteFilter === 'remote') results = results.filter((o) => o.isRemote);
+		if (remoteFilter === 'in-person')
+			results = results.filter((o) => !o.isRemote);
+
+		if (activeTag)
+			results = results.filter((o) => o.tags.some((t) => t.name === activeTag));
+
+		const sorted = [...results];
+		if (sortBy === 'soonest') {
+			sorted.sort((a, b) => {
+				if (a.startDate == null) return 1;
+				if (b.startDate == null) return -1;
+				return (
+					new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+				);
+			});
+		} else if (sortBy === 'commitment') {
+			sorted.sort((a, b) => {
+				if (a.commitmentHours == null) return 1;
+				if (b.commitmentHours == null) return -1;
+				return a.commitmentHours - b.commitmentHours;
+			});
+		}
+
+		return sorted;
+	}, [opportunities, searchQuery, remoteFilter, activeTag, sortBy]);
+
+	// Sorting alone does not narrow results, so it does not count as an active
+	// filter. Only changes that actually reduce the result set trigger the
+	// results bar and "Clear filters" affordance.
+	const hasActiveFilters =
+		searchQuery.trim() !== '' || remoteFilter !== 'all' || activeTag !== null;
+
+	function clearFilters() {
+		setSearchQuery('');
+		setRemoteFilter('all');
+		setActiveTag(null);
+	}
 
 	return (
 		<main className="min-h-[calc(100vh-3.5rem)] bg-stone-50">
@@ -191,56 +246,126 @@ export function OpportunitiesListing({
 				</p>
 			</div>
 
-			{/* Body */}
-			<div className="mx-auto max-w-5xl px-4 py-10">
-				{/* Tag filters */}
-				{allTags.length > 0 && (
-					<div className="mb-8 flex flex-wrap gap-2">
-						<button
-							type="button"
-							aria-pressed={activeTag === null}
-							onClick={() => setActiveTag(null)}
-							className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-								activeTag === null
-									? 'bg-green-700 text-white'
-									: 'bg-white text-stone-600 ring-1 ring-stone-200 hover:bg-stone-100'
-							}`}
+			{/* Body — only rendered when there are opportunities to show */}
+			{opportunities.length > 0 && (
+				<div className="mx-auto max-w-5xl px-4 py-10">
+					{/* Search */}
+					<div className="relative mb-4">
+						<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+						<input
+							type="search"
+							placeholder="Search opportunities…"
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="w-full rounded-xl border-0 bg-white py-2.5 pl-9 pr-4 text-sm text-stone-900 ring-1 ring-stone-200 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-green-700"
+						/>
+					</div>
+
+					{/* Filter row */}
+					<div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+						{/* Work mode toggle */}
+						<div className="flex overflow-hidden rounded-xl bg-white ring-1 ring-stone-200">
+							{REMOTE_OPTIONS.map(([value, label]) => (
+								<button
+									key={value}
+									type="button"
+									aria-pressed={remoteFilter === value}
+									onClick={() => setRemoteFilter(value)}
+									className={`px-3 py-2 text-sm font-medium transition-colors ${
+										remoteFilter === value
+											? 'bg-green-700 text-white'
+											: 'text-stone-600 hover:bg-stone-50'
+									}`}
+								>
+									{label}
+								</button>
+							))}
+						</div>
+
+						{/* Sort */}
+						<select
+							value={sortBy}
+							onChange={(e) => setSortBy(e.target.value as SortBy)}
+							className="rounded-xl bg-white px-3 py-2 text-sm text-stone-700 ring-1 ring-stone-200 focus:outline-none focus:ring-2 focus:ring-green-700"
 						>
-							All
-						</button>
-						{allTags.map((tagName) => (
+							<option value="newest">Newest</option>
+							<option value="soonest">Starting soonest</option>
+							<option value="commitment">Shortest commitment</option>
+						</select>
+					</div>
+
+					{/* Tag filters */}
+					{allTags.length > 0 && (
+						<div className="mb-6 flex flex-wrap gap-2">
 							<button
 								type="button"
-								key={tagName}
-								aria-pressed={activeTag === tagName}
-								onClick={() =>
-									setActiveTag(activeTag === tagName ? null : tagName)
-								}
+								aria-pressed={activeTag === null}
+								onClick={() => setActiveTag(null)}
 								className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-									activeTag === tagName
+									activeTag === null
 										? 'bg-green-700 text-white'
 										: 'bg-white text-stone-600 ring-1 ring-stone-200 hover:bg-stone-100'
 								}`}
 							>
-								{tagName}
+								All
 							</button>
-						))}
-					</div>
-				)}
+							{allTags.map((tagName) => (
+								<button
+									type="button"
+									key={tagName}
+									aria-pressed={activeTag === tagName}
+									onClick={() =>
+										setActiveTag(activeTag === tagName ? null : tagName)
+									}
+									className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+										activeTag === tagName
+											? 'bg-green-700 text-white'
+											: 'bg-white text-stone-600 ring-1 ring-stone-200 hover:bg-stone-100'
+									}`}
+								>
+									{tagName}
+								</button>
+							))}
+						</div>
+					)}
 
-				{/* Grid */}
-				{filtered.length === 0 ? (
-					<p className="text-center text-sm text-stone-400">
-						No opportunities match that filter.
-					</p>
-				) : (
-					<div className="grid gap-6 sm:grid-cols-2">
-						{filtered.map((opp) => (
-							<OpportunityCard key={opp.id} opp={opp} orgSlug={org.slug} />
-						))}
-					</div>
-				)}
-			</div>
+					{/* Results bar */}
+					{hasActiveFilters && (
+						<div className="mb-6 flex items-center justify-between text-sm">
+							<span className="text-stone-500">
+								{`${filtered.length} ${filtered.length === 1 ? 'result' : 'results'}`}
+							</span>
+							<button
+								type="button"
+								onClick={clearFilters}
+								className="text-green-700 hover:underline"
+							>
+								Clear filters
+							</button>
+						</div>
+					)}
+
+					{/* Grid */}
+					{filtered.length === 0 ? (
+						<div className="text-center text-sm text-stone-400">
+							<p>No opportunities match your filters.</p>
+							<button
+								type="button"
+								onClick={clearFilters}
+								className="mt-2 text-green-700 hover:underline"
+							>
+								Clear filters
+							</button>
+						</div>
+					) : (
+						<div className="grid gap-6 sm:grid-cols-2">
+							{filtered.map((opp) => (
+								<OpportunityCard key={opp.id} opp={opp} orgSlug={org.slug} />
+							))}
+						</div>
+					)}
+				</div>
+			)}
 		</main>
 	);
 }
