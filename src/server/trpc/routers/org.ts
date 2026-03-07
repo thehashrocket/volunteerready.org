@@ -1,11 +1,11 @@
-import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
+import { orgService } from '@/server/services/orgService';
 import {
 	createTRPCRouter,
 	orgProcedure,
 	protectedProcedure,
 } from '@/server/trpc/init';
-import { orgService } from '@/server/services/orgService';
 
 export const orgRouter = createTRPCRouter({
 	getCurrentOrg: orgProcedure.query(async ({ ctx }) => {

@@ -1,4 +1,5 @@
-import { ApplicationStatus } from '@/prisma/generated/client';
+import type { ApplicationStatus } from '@/prisma/generated/client';
+import { countOpportunitiesByStatus } from '@/server/repositories/opportunityRepo';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import {
 	countApplicationsByStatus,
@@ -8,7 +9,6 @@ import {
 	listApplications,
 	updateApplicationStatus as repoUpdateApplicationStatus,
 } from '@/server/repositories/volunteer-applications';
-import { countOpportunitiesByStatus } from '@/server/repositories/opportunityRepo';
 import {
 	formatAnswerValue,
 	normalizeAnswerValue,
@@ -17,7 +17,12 @@ import {
 
 export async function listOrgApplications(
 	orgId: string,
-	input: { status?: string; page?: number; pageSize?: number; opportunityId?: string },
+	input: {
+		status?: string;
+		page?: number;
+		pageSize?: number;
+		opportunityId?: string;
+	},
 ) {
 	return listApplications(
 		orgId,
@@ -91,7 +96,11 @@ export async function getOrgDashboardStats(orgId: string) {
 			review: appCounts.review,
 			approved: appCounts.approved,
 			rejected: appCounts.rejected,
-			total: appCounts.submitted + appCounts.review + appCounts.approved + appCounts.rejected,
+			total:
+				appCounts.submitted +
+				appCounts.review +
+				appCounts.approved +
+				appCounts.rejected,
 		},
 		recentApplications,
 	};

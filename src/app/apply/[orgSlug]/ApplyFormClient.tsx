@@ -1,21 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Calendar, Clock, MapPin, Wifi } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Calendar, Clock, MapPin, Wifi } from 'lucide-react';
-
-import { trpc } from '@/lib/trpc/client';
-import { formatDateRange } from '@/lib/format-date';
-
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-// If you have shadcn textarea installed, prefer it:
-import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
 	Select,
@@ -24,11 +18,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+// If you have shadcn textarea installed, prefer it:
+import { Textarea } from '@/components/ui/textarea';
+import { formatDateRange } from '@/lib/format-date';
+import { trpc } from '@/lib/trpc/client';
 
 import {
 	buildDefaultValues,
-	buildZodSchema,
 	buildResponsesFromAnswers,
+	buildZodSchema,
 	type PublicQuestion,
 } from '@/server/domain/screener/publicForm';
 
@@ -50,7 +48,11 @@ type Props = {
 	opportunity: LinkedOpportunity | null;
 };
 
-export default function ApplyFormClient({ org, questions, opportunity }: Props) {
+export default function ApplyFormClient({
+	org,
+	questions,
+	opportunity,
+}: Props) {
 	const [submitted, setSubmitted] = useState(false);
 
 	const answersSchema = useMemo(() => buildZodSchema(questions), [questions]);
@@ -111,8 +113,11 @@ export default function ApplyFormClient({ org, questions, opportunity }: Props) 
 						<span className="font-medium text-foreground">{org.name}</span>
 						{opportunity && (
 							<>
-								{' '}for{' '}
-								<span className="font-medium text-foreground">{opportunity.title}</span>
+								{' '}
+								for{' '}
+								<span className="font-medium text-foreground">
+									{opportunity.title}
+								</span>
 							</>
 						)}{' '}
 						has been submitted.
@@ -187,119 +192,124 @@ export default function ApplyFormClient({ org, questions, opportunity }: Props) 
 					<CardTitle>Volunteer application</CardTitle>
 				</CardHeader>
 
-			<CardContent>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-					{/* Profile */}
-					<div className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="profile.name">Name</Label>
-							<Input id="profile.name" {...form.register('profile.name')} />
-							{profileErrors?.name?.message ? (
-								<p className="text-sm text-destructive">
-									{String(profileErrors.name.message)}
-								</p>
-							) : null}
+				<CardContent>
+					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+						{/* Profile */}
+						<div className="space-y-4">
+							<div className="space-y-2">
+								<Label htmlFor="profile.name">Name</Label>
+								<Input id="profile.name" {...form.register('profile.name')} />
+								{profileErrors?.name?.message ? (
+									<p className="text-sm text-destructive">
+										{String(profileErrors.name.message)}
+									</p>
+								) : null}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="profile.email">Email</Label>
+								<Input
+									id="profile.email"
+									type="email"
+									autoComplete="email"
+									{...form.register('profile.email')}
+								/>
+								{profileErrors?.email?.message ? (
+									<p className="text-sm text-destructive">
+										{String(profileErrors.email.message)}
+									</p>
+								) : null}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="profile.phone">Phone</Label>
+								<Input
+									id="profile.phone"
+									autoComplete="tel"
+									{...form.register('profile.phone')}
+								/>
+								{profileErrors?.phone?.message ? (
+									<p className="text-sm text-destructive">
+										{String(profileErrors.phone.message)}
+									</p>
+								) : null}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="profile.county">County</Label>
+								<Input
+									id="profile.county"
+									{...form.register('profile.county')}
+								/>
+								{profileErrors?.county?.message ? (
+									<p className="text-sm text-destructive">
+										{String(profileErrors.county.message)}
+									</p>
+								) : null}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="profile.availability">Availability</Label>
+								<Input
+									id="profile.availability"
+									placeholder="e.g. Weekends, Tue/Thu evenings"
+									{...form.register('profile.availability')}
+								/>
+								{profileErrors?.availability?.message ? (
+									<p className="text-sm text-destructive">
+										{String(profileErrors.availability.message)}
+									</p>
+								) : null}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="profile.experienceLevel">
+									Experience level
+								</Label>
+								<Input
+									id="profile.experienceLevel"
+									placeholder="e.g. None, Some, Volunteer, Professional"
+									{...form.register('profile.experienceLevel')}
+								/>
+								{profileErrors?.experienceLevel?.message ? (
+									<p className="text-sm text-destructive">
+										{String(profileErrors.experienceLevel.message)}
+									</p>
+								) : null}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="profile.notes">Notes (optional)</Label>
+								<Textarea
+									id="profile.notes"
+									rows={4}
+									{...form.register('profile.notes')}
+								/>
+								{profileErrors?.notes?.message ? (
+									<p className="text-sm text-destructive">
+										{String(profileErrors.notes.message)}
+									</p>
+								) : null}
+							</div>
 						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="profile.email">Email</Label>
-							<Input
-								id="profile.email"
-								type="email"
-								autoComplete="email"
-								{...form.register('profile.email')}
-							/>
-							{profileErrors?.email?.message ? (
-								<p className="text-sm text-destructive">
-									{String(profileErrors.email.message)}
-								</p>
-							) : null}
+						{/* Screener questions */}
+						<div className="space-y-6">
+							{questions.map((q) => (
+								<QuestionField key={q.id} question={q} form={form} />
+							))}
 						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="profile.phone">Phone</Label>
-							<Input
-								id="profile.phone"
-								autoComplete="tel"
-								{...form.register('profile.phone')}
-							/>
-							{profileErrors?.phone?.message ? (
-								<p className="text-sm text-destructive">
-									{String(profileErrors.phone.message)}
-								</p>
-							) : null}
+						<div className="pt-2">
+							<Button type="submit" disabled={submitMutation.isPending}>
+								{submitMutation.isPending
+									? 'Submitting...'
+									: 'Submit application'}
+							</Button>
 						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="profile.county">County</Label>
-							<Input id="profile.county" {...form.register('profile.county')} />
-							{profileErrors?.county?.message ? (
-								<p className="text-sm text-destructive">
-									{String(profileErrors.county.message)}
-								</p>
-							) : null}
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="profile.availability">Availability</Label>
-							<Input
-								id="profile.availability"
-								placeholder="e.g. Weekends, Tue/Thu evenings"
-								{...form.register('profile.availability')}
-							/>
-							{profileErrors?.availability?.message ? (
-								<p className="text-sm text-destructive">
-									{String(profileErrors.availability.message)}
-								</p>
-							) : null}
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="profile.experienceLevel">Experience level</Label>
-							<Input
-								id="profile.experienceLevel"
-								placeholder="e.g. None, Some, Volunteer, Professional"
-								{...form.register('profile.experienceLevel')}
-							/>
-							{profileErrors?.experienceLevel?.message ? (
-								<p className="text-sm text-destructive">
-									{String(profileErrors.experienceLevel.message)}
-								</p>
-							) : null}
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="profile.notes">Notes (optional)</Label>
-							<Textarea
-								id="profile.notes"
-								rows={4}
-								{...form.register('profile.notes')}
-							/>
-							{profileErrors?.notes?.message ? (
-								<p className="text-sm text-destructive">
-									{String(profileErrors.notes.message)}
-								</p>
-							) : null}
-						</div>
-					</div>
-
-					{/* Screener questions */}
-					<div className="space-y-6">
-						{questions.map((q) => (
-							<QuestionField key={q.id} question={q} form={form} />
-						))}
-					</div>
-
-					<div className="pt-2">
-						<Button type="submit" disabled={submitMutation.isPending}>
-							{submitMutation.isPending
-								? 'Submitting...'
-								: 'Submit application'}
-						</Button>
-					</div>
-				</form>
-			</CardContent>
-		</Card>
+					</form>
+				</CardContent>
+			</Card>
 		</>
 	);
 }
@@ -342,14 +352,14 @@ function QuestionField({
 								onValueChange={(value) => field.onChange(value === 'yes')}
 								className="flex gap-6"
 							>
-								<label className="flex items-center gap-2 text-sm">
+								<span className="flex items-center gap-2 text-sm">
 									<RadioGroupItem value="yes" />
 									Yes
-								</label>
-								<label className="flex items-center gap-2 text-sm">
+								</span>
+								<span className="flex items-center gap-2 text-sm">
 									<RadioGroupItem value="no" />
 									No
-								</label>
+								</span>
 							</RadioGroup>
 						)}
 					/>

@@ -1,10 +1,10 @@
+import { TRPCError } from '@trpc/server';
+import { findUniqueSlug, generateSlug } from '@/lib/slug';
 import type { PrismaClient } from '@/prisma/generated/client';
 import { Prisma } from '@/prisma/generated/client';
-import { TRPCError } from '@trpc/server';
+import { auditRepo } from '../repositories/auditRepo';
 import { orgRepo } from '../repositories/orgRepo';
 import { sessionRepo } from '../repositories/sessionRepo';
-import { auditRepo } from '../repositories/auditRepo';
-import { generateSlug, findUniqueSlug } from '@/lib/slug';
 
 export function orgService(prisma: PrismaClient) {
 	const orgs = orgRepo(prisma);
@@ -93,10 +93,7 @@ export function orgService(prisma: PrismaClient) {
 				throw e;
 			}
 
-			await sessions.setCurrentOrgBySessionToken(
-				opts.sessionToken,
-				org.id,
-			);
+			await sessions.setCurrentOrgBySessionToken(opts.sessionToken, org.id);
 
 			await audit.write({
 				orgId: org.id,

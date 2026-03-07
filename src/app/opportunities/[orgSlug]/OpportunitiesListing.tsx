@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { Calendar, Clock, MapPin, Users, Wifi } from 'lucide-react';
 import Link from 'next/link';
-import { MapPin, Wifi, Clock, Users, Calendar } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { formatDateRange } from '@/lib/format-date';
 
 // ---------------------------------------------------------------------------
@@ -41,7 +41,8 @@ const TAG_PALETTES = [
 
 function tagColor(name: string): string {
 	let hash = 0;
-	for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
+	for (let i = 0; i < name.length; i++)
+		hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
 	return TAG_PALETTES[Math.abs(hash) % TAG_PALETTES.length];
 }
 
@@ -49,7 +50,13 @@ function tagColor(name: string): string {
 // OpportunityCard
 // ---------------------------------------------------------------------------
 
-function OpportunityCard({ opp, orgSlug }: { opp: Opportunity; orgSlug: string }) {
+function OpportunityCard({
+	opp,
+	orgSlug,
+}: {
+	opp: Opportunity;
+	orgSlug: string;
+}) {
 	const dateRange = formatDateRange(opp.startDate, opp.endDate);
 
 	return (
@@ -107,14 +114,16 @@ function OpportunityCard({ opp, orgSlug }: { opp: Opportunity; orgSlug: string }
 			{/* Tags */}
 			{opp.tags.some((t) => t.name) && (
 				<div className="mb-5 flex flex-wrap gap-1.5">
-					{opp.tags.filter((tag) => tag.name).map((tag) => (
-						<span
-							key={tag.id}
-							className={`rounded-full px-2 py-0.5 text-xs font-medium ${tagColor(tag.name)}`}
-						>
-							{tag.name}
-						</span>
-					))}
+					{opp.tags
+						.filter((tag) => tag.name)
+						.map((tag) => (
+							<span
+								key={tag.id}
+								className={`rounded-full px-2 py-0.5 text-xs font-medium ${tagColor(tag.name)}`}
+							>
+								{tag.name}
+							</span>
+						))}
 				</div>
 			)}
 
@@ -188,6 +197,7 @@ export function OpportunitiesListing({
 				{allTags.length > 0 && (
 					<div className="mb-8 flex flex-wrap gap-2">
 						<button
+							type="button"
 							aria-pressed={activeTag === null}
 							onClick={() => setActiveTag(null)}
 							className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
@@ -200,9 +210,12 @@ export function OpportunitiesListing({
 						</button>
 						{allTags.map((tagName) => (
 							<button
+								type="button"
 								key={tagName}
 								aria-pressed={activeTag === tagName}
-								onClick={() => setActiveTag(activeTag === tagName ? null : tagName)}
+								onClick={() =>
+									setActiveTag(activeTag === tagName ? null : tagName)
+								}
 								className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
 									activeTag === tagName
 										? 'bg-green-700 text-white'

@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Plus, X } from 'lucide-react';
-import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import { trpc } from '@/lib/trpc/client';
+import { Plus, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -18,8 +17,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import {
 	Select,
 	SelectContent,
@@ -27,6 +24,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -144,6 +144,7 @@ export function QuestionDialog({
 	});
 
 	// Reset form when dialog opens
+	// biome-ignore lint/correctness/useExhaustiveDependencies: parsed is derived from question; including it would re-run on every render
 	useEffect(() => {
 		if (open) {
 			if (question && parsed) {
@@ -171,7 +172,7 @@ export function QuestionDialog({
 				});
 			}
 		}
-	}, [open, question]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [open, question, reset]);
 
 	const selectedType = isEdit ? questionType : (watch('type') ?? 'BOOLEAN');
 	const disqualifyIfFalse = watch('disqualifyIfFalse') ?? false;
@@ -255,15 +256,10 @@ export function QuestionDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
 				<DialogHeader>
-					<DialogTitle>
-						{isEdit ? 'Edit question' : 'Add question'}
-					</DialogTitle>
+					<DialogTitle>{isEdit ? 'Edit question' : 'Add question'}</DialogTitle>
 				</DialogHeader>
 
-				<form
-					onSubmit={handleSubmit(onSubmit)}
-					className="space-y-5 pt-2"
-				>
+				<form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pt-2">
 					{/* Prompt */}
 					<div className="space-y-2">
 						<Label htmlFor="prompt">Question text</Label>
@@ -296,15 +292,9 @@ export function QuestionDialog({
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="BOOLEAN">
-										Yes / No
-									</SelectItem>
-									<SelectItem value="TEXT">
-										Text answer
-									</SelectItem>
-									<SelectItem value="SINGLE_CHOICE">
-										Single choice
-									</SelectItem>
+									<SelectItem value="BOOLEAN">Yes / No</SelectItem>
+									<SelectItem value="TEXT">Text answer</SelectItem>
+									<SelectItem value="SINGLE_CHOICE">Single choice</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
@@ -329,9 +319,7 @@ export function QuestionDialog({
 						<div className="space-y-2">
 							<Label htmlFor="maxLength">
 								Max length{' '}
-								<span className="text-muted-foreground">
-									(optional)
-								</span>
+								<span className="text-muted-foreground">(optional)</span>
 							</Label>
 							<Input
 								id="maxLength"
@@ -357,15 +345,10 @@ export function QuestionDialog({
 							<Label>Answer options</Label>
 							<div className="space-y-2">
 								{fields.map((field, idx) => (
-									<div
-										key={field.id}
-										className="flex items-center gap-2"
-									>
+									<div key={field.id} className="flex items-center gap-2">
 										<Input
 											placeholder={`Option ${idx + 1}`}
-											{...register(
-												`options.${idx}.value`,
-											)}
+											{...register(`options.${idx}.value`)}
 											className="flex-1"
 										/>
 										{fields.length > 2 && (
@@ -406,14 +389,9 @@ export function QuestionDialog({
 								<Switch
 									id="disqualifyIfFalse"
 									checked={disqualifyIfFalse}
-									onCheckedChange={(v) =>
-										setValue('disqualifyIfFalse', v)
-									}
+									onCheckedChange={(v) => setValue('disqualifyIfFalse', v)}
 								/>
-								<Label
-									htmlFor="disqualifyIfFalse"
-									className="cursor-pointer"
-								>
+								<Label htmlFor="disqualifyIfFalse" className="cursor-pointer">
 									Disqualify volunteers who answer{' '}
 									<span className="font-medium">No</span>
 								</Label>
@@ -446,11 +424,7 @@ export function QuestionDialog({
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isPending}>
-							{isPending
-								? 'Saving…'
-								: isEdit
-									? 'Save changes'
-									: 'Add question'}
+							{isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Add question'}
 						</Button>
 					</DialogFooter>
 				</form>

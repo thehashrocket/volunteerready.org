@@ -1,6 +1,6 @@
-import { Prisma } from '@/prisma/generated/client';
 import type {
 	ApplicationStatus,
+	Prisma,
 	ScreeningStatus,
 } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
@@ -90,7 +90,15 @@ export async function getApplicationDetail(
 		include: {
 			answers: true,
 			opportunity: {
-				select: { id: true, title: true, location: true, isRemote: true, startDate: true, endDate: true, commitmentHours: true },
+				select: {
+					id: true,
+					title: true,
+					location: true,
+					isRemote: true,
+					startDate: true,
+					endDate: true,
+					commitmentHours: true,
+				},
 			},
 		},
 	});
@@ -170,7 +178,9 @@ export async function getActiveQuestions(orgId: string) {
 
 export async function countApplicationsByStatus(orgId: string) {
 	const [submitted, review, approved, rejected] = await Promise.all([
-		prisma.volunteerApplication.count({ where: { orgId, status: 'SUBMITTED' } }),
+		prisma.volunteerApplication.count({
+			where: { orgId, status: 'SUBMITTED' },
+		}),
 		prisma.volunteerApplication.count({ where: { orgId, status: 'REVIEW' } }),
 		prisma.volunteerApplication.count({ where: { orgId, status: 'APPROVED' } }),
 		prisma.volunteerApplication.count({ where: { orgId, status: 'REJECTED' } }),

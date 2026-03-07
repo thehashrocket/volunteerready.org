@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { Mail, ShieldCheck } from 'lucide-react';
 import { signIn } from 'next-auth/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { AuthFeedback } from '@/components/auth-feedback';
-import { LogIn, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
 	Card,

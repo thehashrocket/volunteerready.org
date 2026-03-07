@@ -1,12 +1,14 @@
 import 'dotenv/config';
-import {
-	PrismaClient,
-	Role,
-	ApplicationStatus,
-	ScreeningStatus,
-} from '../src/prisma/generated/client/index.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
+import {
+	type ApplicationStatus,
+	type Prisma,
+	PrismaClient,
+	Role,
+	type ScreenerQuestionType,
+	type ScreeningStatus,
+} from '../src/prisma/generated/client/index.js';
 
 const datasourceUrl = process.env.DATABASE_URL;
 if (!datasourceUrl) throw new Error('DATABASE_URL is not set');
@@ -18,7 +20,7 @@ const prisma = new PrismaClient({
 type SeedQuestion = {
 	key: string;
 	prompt: string;
-	type: string; // keep aligned with your Prisma enum values
+	type: ScreenerQuestionType;
 	order: number;
 	isActive: boolean;
 	configJson: Record<string, unknown>;
@@ -53,19 +55,19 @@ async function upsertQuestions(orgId: string, questions: SeedQuestion[]) {
 			where: { orgId_key: { orgId, key: q.key } },
 			update: {
 				prompt: q.prompt,
-				type: q.type as any,
+				type: q.type,
 				order: q.order,
 				isActive: q.isActive,
-				configJson: q.configJson as any,
+				configJson: q.configJson as Prisma.InputJsonValue,
 			},
 			create: {
 				orgId,
 				key: q.key,
 				prompt: q.prompt,
-				type: q.type as any,
+				type: q.type,
 				order: q.order,
 				isActive: q.isActive,
-				configJson: q.configJson as any,
+				configJson: q.configJson as Prisma.InputJsonValue,
 			},
 		});
 	}
@@ -160,14 +162,15 @@ async function createSeedApplication(input: SeedAppInput) {
 			orgId: input.orgId,
 			submittedByEmail: input.submittedByEmail,
 			submittedByUserId: input.submittedByUserId ?? null,
-			status: input.status as any,
-			screeningStatus: input.screeningStatus as any,
-			screeningReasons: input.screeningReasons as any,
+			status: input.status,
+			screeningStatus: input.screeningStatus,
+			screeningReasons: input.screeningReasons as Prisma.InputJsonValue,
 			submittedAt: new Date(),
 			answers: {
 				create: input.answers.map((a) => ({
+					// biome-ignore lint/style/noNonNullAssertion: validated by getQuestionsByKey
 					questionId: qMap.get(a.questionKey)!,
-					answerJson: a.value as any,
+					answerJson: a.value as Prisma.InputJsonValue,
 				})),
 			},
 		},

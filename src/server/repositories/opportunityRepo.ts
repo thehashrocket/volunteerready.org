@@ -1,4 +1,4 @@
-import { OpportunityStatus } from '@/prisma/generated/client';
+import type { OpportunityStatus } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
 const opportunitySelect = {
@@ -105,7 +105,9 @@ export async function deleteOpportunity(id: string, orgId: string) {
 export async function countOpportunitiesByStatus(orgId: string) {
 	const [draft, published, closed] = await Promise.all([
 		prisma.volunteerOpportunity.count({ where: { orgId, status: 'DRAFT' } }),
-		prisma.volunteerOpportunity.count({ where: { orgId, status: 'PUBLISHED' } }),
+		prisma.volunteerOpportunity.count({
+			where: { orgId, status: 'PUBLISHED' },
+		}),
 		prisma.volunteerOpportunity.count({ where: { orgId, status: 'CLOSED' } }),
 	]);
 	return { draft, published, closed };

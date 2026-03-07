@@ -1,20 +1,20 @@
-import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 import { Role } from '@/prisma/generated/client';
+import {
+	acceptInvitation,
+	getInvitationDetails,
+	inviteMember,
+	listOrgMembers,
+	removeOrgMember,
+	updateOrgMemberRole,
+} from '@/server/services/memberService';
 import {
 	adminProcedure,
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
 } from '@/server/trpc/init';
-import {
-	inviteMember,
-	getInvitationDetails,
-	acceptInvitation,
-	listOrgMembers,
-	removeOrgMember,
-	updateOrgMemberRole,
-} from '@/server/services/memberService';
 
 export const membersRouter = createTRPCRouter({
 	// List members in the current org
@@ -35,20 +35,14 @@ export const membersRouter = createTRPCRouter({
 			if (ctx.role === Role.ADMIN && input.role === 'ADMIN') {
 				throw new TRPCError({
 					code: 'FORBIDDEN',
-					message:
-						'Admins can only invite Staff or Read-only members.',
+					message: 'Admins can only invite Staff or Read-only members.',
 				});
 			}
 			const baseUrl =
 				process.env.NEXT_PUBLIC_APP_URL ??
 				process.env.NEXTAUTH_URL ??
 				'http://localhost:3000';
-			return inviteMember(
-				ctx.orgId!,
-				input.email,
-				input.role as Role,
-				baseUrl,
-			);
+			return inviteMember(ctx.orgId!, input.email, input.role as Role, baseUrl);
 		}),
 
 	// Public: get invitation display info (org name, masked email, role)
@@ -65,8 +59,7 @@ export const membersRouter = createTRPCRouter({
 			const maskedEmail = `${maskedLocal}@${domain}`;
 
 			const isExpired =
-				details.usedAt !== null ||
-				details.expiresAt < new Date();
+				details.usedAt !== null || details.expiresAt < new Date();
 
 			return {
 				orgName: details.organization.name,
@@ -96,11 +89,7 @@ export const membersRouter = createTRPCRouter({
 		.input(z.object({ memberId: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
 			const actingUserId = ctx.session!.user!.id;
-			return removeOrgMember(
-				ctx.orgId!,
-				actingUserId,
-				input.memberId,
-			);
+			return removeOrgMember(ctx.orgId!, actingUserId, input.memberId);
 		}),
 
 	// Change a member's role

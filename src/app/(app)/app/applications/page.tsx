@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { ChevronRight, FileText, RefreshCw } from 'lucide-react';
-import { trpc } from '@/lib/trpc/client';
-import { PageHeader } from '@/components/page-header';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { EmptyState } from '@/components/empty-state';
-import { Button } from '@/components/ui/button';
+import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
+import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
 	Select,
@@ -24,8 +25,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
-import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -66,7 +66,15 @@ function TableSkeleton() {
 				<Table>
 					<TableHeader>
 						<TableRow>
-							{['Submitted', 'Email', 'Opportunity', 'Status', 'Screening', 'Flags', ''].map((h) => (
+							{[
+								'Submitted',
+								'Email',
+								'Opportunity',
+								'Status',
+								'Screening',
+								'Flags',
+								'',
+							].map((h) => (
 								<TableHead key={h}>{h}</TableHead>
 							))}
 						</TableRow>
@@ -209,7 +217,9 @@ export default function ApplicationsPage() {
 												{app.submittedByEmail}
 											</TableCell>
 											<TableCell className="text-sm text-muted-foreground">
-												{app.opportunity?.title ?? <span className="text-muted-foreground">—</span>}
+												{app.opportunity?.title ?? (
+													<span className="text-muted-foreground">—</span>
+												)}
 											</TableCell>
 											<TableCell>
 												<ApplicationStatusBadge status={app.status} />

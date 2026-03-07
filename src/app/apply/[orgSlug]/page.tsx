@@ -2,8 +2,8 @@ import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import { getPublishedOpportunityById } from '@/server/repositories/publicOpportunityRepo';
-import ApplyFormClient from './ApplyFormClient';
 import { ApplyProviders } from '../providers';
+import ApplyFormClient from './ApplyFormClient';
 
 export default async function ApplyPage({
 	params,
@@ -55,7 +55,11 @@ export default async function ApplyPage({
 
 			<div className="mt-8">
 				<ApplyProviders>
-					<ApplyFormClient org={org} questions={questions} opportunity={opportunity ?? null} />
+					<ApplyFormClient
+						org={org}
+						questions={questions}
+						opportunity={opportunity ?? null}
+					/>
 				</ApplyProviders>
 			</div>
 		</main>

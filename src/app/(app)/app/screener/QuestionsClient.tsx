@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
 import { ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { trpc } from '@/lib/trpc/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { trpc } from '@/lib/trpc/client';
 import { QuestionDialog } from './QuestionDialog';
 
 type Question = {
@@ -40,9 +40,7 @@ export function QuestionsClient() {
 	const questions: Question[] = questionsQ.data ?? [];
 
 	const [dialogOpen, setDialogOpen] = useState(false);
-	const [editingQuestion, setEditingQuestion] = useState<Question | null>(
-		null,
-	);
+	const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
 
 	const activeMutation = trpc.screener.setQuestionActive.useMutation({
 		onSuccess: () => {
@@ -96,10 +94,7 @@ export function QuestionsClient() {
 		return (
 			<div className="space-y-2">
 				{Array.from({ length: 4 }).map((_, i) => (
-					<div
-						key={i}
-						className="h-16 animate-pulse rounded-lg bg-muted"
-					/>
+					<div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
 				))}
 			</div>
 		);
@@ -122,10 +117,7 @@ export function QuestionsClient() {
 			{questions.length > 0 && (
 				<div className="space-y-2">
 					{questions.map((q, index) => (
-						<Card
-							key={q.id}
-							className={q.isActive ? '' : 'opacity-60'}
-						>
+						<Card key={q.id} className={q.isActive ? '' : 'opacity-60'}>
 							<CardContent className="flex items-center gap-3 py-3 px-4">
 								{/* Order number */}
 								<span className="w-6 shrink-0 text-center text-xs font-medium text-muted-foreground">
@@ -141,9 +133,7 @@ export function QuestionsClient() {
 								</Badge>
 
 								{/* Prompt */}
-								<p className="min-w-0 flex-1 truncate text-sm">
-									{q.prompt}
-								</p>
+								<p className="min-w-0 flex-1 truncate text-sm">{q.prompt}</p>
 
 								{/* Active toggle */}
 								<Switch
@@ -156,9 +146,7 @@ export function QuestionsClient() {
 										})
 									}
 									aria-label={
-										q.isActive
-											? 'Deactivate question'
-											: 'Activate question'
+										q.isActive ? 'Deactivate question' : 'Activate question'
 									}
 								/>
 
@@ -183,10 +171,7 @@ export function QuestionsClient() {
 										variant="ghost"
 										size="icon"
 										className="h-5 w-5"
-										disabled={
-											index === questions.length - 1 ||
-											isPending
-										}
+										disabled={index === questions.length - 1 || isPending}
 										onClick={() =>
 											moveMutation.mutate({
 												id: q.id,

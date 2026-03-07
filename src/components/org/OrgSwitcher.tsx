@@ -1,13 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
-import { trpc } from '@/lib/trpc/client';
 import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
@@ -16,6 +15,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { trpc } from '@/lib/trpc/client';
 
 export function OrgSwitcher() {
 	const router = useRouter();
@@ -97,10 +97,7 @@ export function OrgSwitcher() {
 				})}
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
-					<Link
-						href="/app/onboarding"
-						className="flex items-center gap-2"
-					>
+					<Link href="/app/onboarding" className="flex items-center gap-2">
 						<Plus className="h-4 w-4" />
 						Create organization
 					</Link>

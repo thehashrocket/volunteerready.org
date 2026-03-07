@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { t } from '../init';
 import { publicStatusService } from '@/server/repositories/publicStatusService';
+import { t } from '../init';
 
 export const statusRouter = t.router({
 	requestLink: t.procedure

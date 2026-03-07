@@ -1,7 +1,7 @@
-import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { createTRPCRouter, protectedProcedure } from '@/server/trpc/init';
+import { z } from 'zod';
 import { orgService } from '@/server/services/orgService';
+import { createTRPCRouter, protectedProcedure } from '@/server/trpc/init';
 
 export const onboardingRouter = createTRPCRouter({
 	createOrg: protectedProcedure

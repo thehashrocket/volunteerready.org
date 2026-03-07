@@ -1,16 +1,11 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useSession, signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { toast } from 'sonner';
-import { trpc } from '@/lib/trpc/client';
 import { Button } from '@/components/ui/button';
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -78,14 +73,8 @@ export default function InvitePage() {
 						<CardTitle>Invitation not valid</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<p>
-							This invitation is invalid or has already
-							expired.
-						</p>
-						<p>
-							Please ask your organization admin to send a new
-							invitation.
-						</p>
+						<p>This invitation is invalid or has already expired.</p>
+						<p>Please ask your organization admin to send a new invitation.</p>
 					</CardContent>
 				</Card>
 			</CenteredPage>
@@ -105,19 +94,14 @@ export default function InvitePage() {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<p className="text-sm">
-							You've been invited to join{' '}
-							<strong>{inv.orgName}</strong> as{' '}
+							You've been invited to join <strong>{inv.orgName}</strong> as{' '}
 							<strong>{roleLabel}</strong>.
 						</p>
 						<p className="text-sm text-muted-foreground">
-							This invite was sent to{' '}
-							<strong>{inv.maskedEmail}</strong>. Sign in
-							with that email to accept.
+							This invite was sent to <strong>{inv.maskedEmail}</strong>. Sign
+							in with that email to accept.
 						</p>
-						<Button
-							onClick={() => signIn()}
-							className="w-full"
-						>
+						<Button onClick={() => signIn()} className="w-full">
 							Sign in to accept
 						</Button>
 					</CardContent>
@@ -135,26 +119,21 @@ export default function InvitePage() {
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<p className="text-sm">
-						Accept your invitation to join{' '}
-						<strong>{inv.orgName}</strong> as{' '}
+						Accept your invitation to join <strong>{inv.orgName}</strong> as{' '}
 						<strong>{roleLabel}</strong>.
 					</p>
 					<p className="text-sm text-muted-foreground">
 						Invite sent to <strong>{inv.maskedEmail}</strong>.
 					</p>
 					{accept.isError && (
-						<p className="text-sm text-destructive">
-							{accept.error.message}
-						</p>
+						<p className="text-sm text-destructive">{accept.error.message}</p>
 					)}
 					<Button
 						onClick={() => accept.mutate({ token })}
 						disabled={accept.isPending}
 						className="w-full"
 					>
-						{accept.isPending
-							? 'Accepting…'
-							: 'Accept invitation'}
+						{accept.isPending ? 'Accepting…' : 'Accept invitation'}
 					</Button>
 				</CardContent>
 			</Card>

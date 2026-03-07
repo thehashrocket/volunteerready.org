@@ -1,7 +1,10 @@
 import { OpportunityStatus } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
-export async function getPublishedOpportunityById(orgSlug: string, opportunityId: string) {
+export async function getPublishedOpportunityById(
+	orgSlug: string,
+	opportunityId: string,
+) {
 	const org = await prisma.organization.findUnique({
 		where: { slug: orgSlug },
 		select: { id: true },
@@ -9,7 +12,11 @@ export async function getPublishedOpportunityById(orgSlug: string, opportunityId
 	if (!org) return null;
 
 	return prisma.volunteerOpportunity.findFirst({
-		where: { id: opportunityId, orgId: org.id, status: OpportunityStatus.PUBLISHED },
+		where: {
+			id: opportunityId,
+			orgId: org.id,
+			status: OpportunityStatus.PUBLISHED,
+		},
 		select: {
 			id: true,
 			title: true,

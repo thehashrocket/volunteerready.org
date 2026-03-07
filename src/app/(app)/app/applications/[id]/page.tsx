@@ -1,17 +1,25 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
+import {
+	AlertCircle,
+	Calendar,
+	ChevronLeft,
+	Clock,
+	MapPin,
+	RefreshCw,
+	Wifi,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { AlertCircle, Calendar, ChevronLeft, Clock, MapPin, RefreshCw, Wifi } from 'lucide-react';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
-import { trpc } from '@/lib/trpc/client';
-import { formatDateRange } from '@/lib/format-date';
+import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
+import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
-import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { formatDateRange } from '@/lib/format-date';
+import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -72,7 +80,10 @@ export default function ApplicationDetailPage() {
 		return (
 			<div className="space-y-6">
 				{backButton}
-				<PageHeader title="Loading…" description="Fetching application details." />
+				<PageHeader
+					title="Loading…"
+					description="Fetching application details."
+				/>
 				<Card>
 					<CardContent className="pt-6 text-sm text-muted-foreground">
 						Please wait…
@@ -103,8 +114,10 @@ export default function ApplicationDetailPage() {
 	}
 
 	const app = query.data!;
-	const mutate = (args: { id: string; status: 'SUBMITTED' | 'REVIEW' | 'APPROVED' | 'REJECTED' }) =>
-		updateMutation.mutate(args);
+	const mutate = (args: {
+		id: string;
+		status: 'SUBMITTED' | 'REVIEW' | 'APPROVED' | 'REJECTED';
+	}) => updateMutation.mutate(args);
 
 	return (
 		<div className="space-y-6">
@@ -195,12 +208,18 @@ export default function ApplicationDetailPage() {
 					<CardContent>
 						<dl className="divide-y">
 							<div className="py-3 first:pt-0">
-								<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Position</dt>
-								<dd className="mt-1 text-sm font-medium">{app.opportunity.title}</dd>
+								<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+									Position
+								</dt>
+								<dd className="mt-1 text-sm font-medium">
+									{app.opportunity.title}
+								</dd>
 							</div>
 							{(app.opportunity.location || app.opportunity.isRemote) && (
 								<div className="py-3">
-									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Location</dt>
+									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+										Location
+									</dt>
 									<dd className="mt-1 flex flex-wrap items-center gap-3 text-sm">
 										{app.opportunity.isRemote && (
 											<span className="flex items-center gap-1 text-muted-foreground">
@@ -209,24 +228,35 @@ export default function ApplicationDetailPage() {
 										)}
 										{app.opportunity.location && (
 											<span className="flex items-center gap-1 text-muted-foreground">
-												<MapPin className="h-3 w-3" /> {app.opportunity.location}
+												<MapPin className="h-3 w-3" />{' '}
+												{app.opportunity.location}
 											</span>
 										)}
 									</dd>
 								</div>
 							)}
-							{formatDateRange(app.opportunity.startDate, app.opportunity.endDate) && (
+							{formatDateRange(
+								app.opportunity.startDate,
+								app.opportunity.endDate,
+							) && (
 								<div className="py-3">
-									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Dates</dt>
+									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+										Dates
+									</dt>
 									<dd className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
 										<Calendar className="h-3 w-3" />
-										{formatDateRange(app.opportunity.startDate, app.opportunity.endDate)}
+										{formatDateRange(
+											app.opportunity.startDate,
+											app.opportunity.endDate,
+										)}
 									</dd>
 								</div>
 							)}
 							{app.opportunity.commitmentHours != null && (
 								<div className="py-3 last:pb-0">
-									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Commitment</dt>
+									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+										Commitment
+									</dt>
 									<dd className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
 										<Clock className="h-3 w-3" />
 										{app.opportunity.commitmentHours}h/week

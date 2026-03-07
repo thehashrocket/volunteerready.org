@@ -1,9 +1,9 @@
 import crypto from 'node:crypto';
 import { TRPCError } from '@trpc/server';
 import type { PrismaClient } from '@/prisma/generated/client';
+import { sendStatusLinkEmail } from '@/server/repositories/sendStatusLinkEmail';
 import { statusTokenRepo } from '@/server/repositories/statusTokenRepo';
 import { volunteerStatusRepo } from '@/server/repositories/volunteerStatusRepo';
-import { sendStatusLinkEmail } from '@/server/repositories/sendStatusLinkEmail';
 
 function sha256(input: string) {
 	return crypto.createHash('sha256').update(input).digest('hex');

@@ -1,10 +1,10 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { ChevronDown, LogOut, User } from 'lucide-react';
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
-import { ChevronDown, LogOut, User } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useMemo } from 'react';
 import { OrgSwitcher } from '@/components/org/OrgSwitcher';
 import { Button } from '@/components/ui/button';
 import {

@@ -1,7 +1,7 @@
-import { cache } from 'react';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { Playfair_Display } from 'next/font/google';
+import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { listPublishedOpportunities } from '@/server/repositories/publicOpportunityRepo';
 import { OpportunitiesListing } from './OpportunitiesListing';
 
@@ -36,7 +36,10 @@ export default async function OpportunitiesPage({ params }: Props) {
 	// The outer div injects --font-playfair CSS variable into the subtree for use via style prop.
 	return (
 		<div className={playfair.variable}>
-			<OpportunitiesListing org={result.org} opportunities={result.opportunities} />
+			<OpportunitiesListing
+				org={result.org}
+				opportunities={result.opportunities}
+			/>
 		</div>
 	);
 }

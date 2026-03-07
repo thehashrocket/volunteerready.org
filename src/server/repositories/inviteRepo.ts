@@ -1,4 +1,4 @@
-import { Role } from '@/prisma/generated/client';
+import type { Role } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
 export async function createInvitation(input: {

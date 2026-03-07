@@ -1,19 +1,22 @@
-import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { Prisma, OpportunityStatus } from '@/prisma/generated/client';
+import { z } from 'zod';
+import { OpportunityStatus, Prisma } from '@/prisma/generated/client';
 
 function isPrismaNotFound(err: unknown): boolean {
-	return err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025';
+	return (
+		err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025'
+	);
 }
-import { createTRPCRouter, staffProcedure } from '@/server/trpc/init';
+
 import {
-	listOpportunities,
-	getOpportunity,
 	createOpportunity,
+	deleteOpportunity,
+	getOpportunity,
+	listOpportunities,
 	updateOpportunity,
 	updateOpportunityStatus,
-	deleteOpportunity,
 } from '@/server/repositories/opportunityRepo';
+import { createTRPCRouter, staffProcedure } from '@/server/trpc/init';
 
 const opportunityInput = z.object({
 	title: z.string().min(1).max(200),
@@ -38,20 +41,20 @@ export const opportunitiesRouter = createTRPCRouter({
 			return opp;
 		}),
 
-	create: staffProcedure
-		.input(opportunityInput)
-		.mutation(({ ctx, input }) =>
-			createOpportunity({
-				orgId: ctx.orgId!,
-				...input,
-				startDate: input.startDate ? new Date(input.startDate) : null,
-				endDate: input.endDate ? new Date(input.endDate) : null,
-				tags: input.tags,
-			}),
-		),
+	create: staffProcedure.input(opportunityInput).mutation(({ ctx, input }) =>
+		createOpportunity({
+			orgId: ctx.orgId!,
+			...input,
+			startDate: input.startDate ? new Date(input.startDate) : null,
+			endDate: input.endDate ? new Date(input.endDate) : null,
+			tags: input.tags,
+		}),
+	),
 
 	update: staffProcedure
-		.input(z.object({ id: z.string().min(1) }).merge(opportunityInput.partial()))
+		.input(
+			z.object({ id: z.string().min(1) }).merge(opportunityInput.partial()),
+		)
 		.mutation(async ({ ctx, input }) => {
 			const { id, ...data } = input;
 			const existing = await getOpportunity(id, ctx.orgId!);
@@ -82,7 +85,11 @@ export const opportunitiesRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			try {
-				return await updateOpportunityStatus(input.id, ctx.orgId!, input.status);
+				return await updateOpportunityStatus(
+					input.id,
+					ctx.orgId!,
+					input.status,
+				);
 			} catch (err: unknown) {
 				if (isPrismaNotFound(err)) throw new TRPCError({ code: 'NOT_FOUND' });
 				throw err;

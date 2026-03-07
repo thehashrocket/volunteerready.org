@@ -1,21 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { RefreshCw, Users } from 'lucide-react';
-import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import { trpc } from '@/lib/trpc/client';
-import { PageHeader } from '@/components/page-header';
+import { RefreshCw, Users } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { EmptyState } from '@/components/empty-state';
-import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -33,6 +27,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -47,14 +42,8 @@ const ROLE_LABELS: Record<string, string> = {
 
 function RoleBadge({ role }: { role: string }) {
 	const variant =
-		role === 'OWNER'
-			? 'default'
-			: role === 'ADMIN'
-				? 'secondary'
-				: 'outline';
-	return (
-		<Badge variant={variant}>{ROLE_LABELS[role] ?? role}</Badge>
-	);
+		role === 'OWNER' ? 'default' : role === 'ADMIN' ? 'secondary' : 'outline';
+	return <Badge variant={variant}>{ROLE_LABELS[role] ?? role}</Badge>;
 }
 
 // ---------------------------------------------------------------------------
@@ -105,19 +94,14 @@ export default function TeamPage() {
 
 	// Determine current user's role from the members list
 	const members = query.data ?? [];
-	const currentMember = members.find(
-		(m) => m.user.email === currentUserEmail,
-	);
+	const currentMember = members.find((m) => m.user.email === currentUserEmail);
 	const currentUserRole = currentMember?.role ?? null;
 	const isOwner = currentUserRole === 'OWNER';
 
 	if (query.isLoading) {
 		return (
 			<div className="space-y-6">
-				<PageHeader
-					title="Team members"
-					description="Loading…"
-				/>
+				<PageHeader title="Team members" description="Loading…" />
 				<Card>
 					<CardContent className="pt-6 text-sm text-muted-foreground">
 						Fetching team members…
@@ -137,10 +121,7 @@ export default function TeamPage() {
 				<Card>
 					<CardContent className="space-y-4 pt-6 text-sm text-muted-foreground">
 						<p>{query.error.message}</p>
-						<Button
-							onClick={() => query.refetch()}
-							variant="outline"
-						>
+						<Button onClick={() => query.refetch()} variant="outline">
 							<RefreshCw className="h-4 w-4" />
 							Try again
 						</Button>
@@ -175,27 +156,21 @@ export default function TeamPage() {
 								<TableRow>
 									<TableHead>Member</TableHead>
 									<TableHead>Role</TableHead>
-									<TableHead className="text-right">
-										Actions
-									</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{members.map((member) => {
-									const isCurrentUser =
-										member.user.email === currentUserEmail;
-									const isOwnerRow =
-										member.role === 'OWNER';
+									const isCurrentUser = member.user.email === currentUserEmail;
+									const isOwnerRow = member.role === 'OWNER';
 									const isPending =
-										removeMutation.isPending ||
-										updateRoleMutation.isPending;
+										removeMutation.isPending || updateRoleMutation.isPending;
 
 									return (
 										<TableRow key={member.id}>
 											<TableCell>
 												<p className="font-medium">
-													{member.user.name ??
-														member.user.email}
+													{member.user.name ?? member.user.email}
 												</p>
 												{member.user.name && (
 													<p className="text-xs text-muted-foreground">
@@ -213,19 +188,14 @@ export default function TeamPage() {
 														<Select
 															value={member.role}
 															disabled={isPending}
-															onValueChange={(
-																newRole,
-															) =>
-																updateRoleMutation.mutate(
-																	{
-																		memberId:
-																			member.id,
-																		role: newRole as
-																			| 'ADMIN'
-																			| 'STAFF'
-																			| 'READONLY',
-																	},
-																)
+															onValueChange={(newRole) =>
+																updateRoleMutation.mutate({
+																	memberId: member.id,
+																	role: newRole as
+																		| 'ADMIN'
+																		| 'STAFF'
+																		| 'READONLY',
+																})
 															}
 														>
 															<SelectTrigger className="h-8 w-32 text-xs">
@@ -233,13 +203,9 @@ export default function TeamPage() {
 															</SelectTrigger>
 															<SelectContent>
 																{isOwner && (
-																	<SelectItem value="ADMIN">
-																		Admin
-																	</SelectItem>
+																	<SelectItem value="ADMIN">Admin</SelectItem>
 																)}
-																<SelectItem value="STAFF">
-																	Staff
-																</SelectItem>
+																<SelectItem value="STAFF">Staff</SelectItem>
 																<SelectItem value="READONLY">
 																	Read-only
 																</SelectItem>
@@ -252,12 +218,9 @@ export default function TeamPage() {
 															size="sm"
 															disabled={isPending}
 															onClick={() =>
-																removeMutation.mutate(
-																	{
-																		memberId:
-																			member.id,
-																	},
-																)
+																removeMutation.mutate({
+																	memberId: member.id,
+																})
 															}
 														>
 															Remove
@@ -265,9 +228,7 @@ export default function TeamPage() {
 													</div>
 												) : (
 													<span className="text-xs text-muted-foreground">
-														{isCurrentUser
-															? 'You'
-															: '—'}
+														{isCurrentUser ? 'You' : '—'}
 													</span>
 												)}
 											</TableCell>
@@ -298,58 +259,36 @@ export default function TeamPage() {
 						}}
 					>
 						<div className="flex-1 space-y-1.5">
-							<Label htmlFor="invite-email">
-								Email address
-							</Label>
+							<Label htmlFor="invite-email">Email address</Label>
 							<Input
 								id="invite-email"
 								type="email"
 								placeholder="volunteer@example.com"
 								value={inviteEmail}
-								onChange={(e) =>
-									setInviteEmail(e.target.value)
-								}
+								onChange={(e) => setInviteEmail(e.target.value)}
 								required
 							/>
 						</div>
 
 						<div className="space-y-1.5">
 							<Label htmlFor="invite-role">Role</Label>
-							<Select
-								value={inviteRole}
-								onValueChange={setInviteRole}
-							>
-								<SelectTrigger
-									id="invite-role"
-									className="w-36"
-								>
+							<Select value={inviteRole} onValueChange={setInviteRole}>
+								<SelectTrigger id="invite-role" className="w-36">
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									{isOwner && (
-										<SelectItem value="ADMIN">
-											Admin
-										</SelectItem>
-									)}
-									<SelectItem value="STAFF">
-										Staff
-									</SelectItem>
-									<SelectItem value="READONLY">
-										Read-only
-									</SelectItem>
+									{isOwner && <SelectItem value="ADMIN">Admin</SelectItem>}
+									<SelectItem value="STAFF">Staff</SelectItem>
+									<SelectItem value="READONLY">Read-only</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
 
 						<Button
 							type="submit"
-							disabled={
-								inviteMutation.isPending || !inviteEmail
-							}
+							disabled={inviteMutation.isPending || !inviteEmail}
 						>
-							{inviteMutation.isPending
-								? 'Sending…'
-								: 'Send invite'}
+							{inviteMutation.isPending ? 'Sending…' : 'Send invite'}
 						</Button>
 					</form>
 				</CardContent>

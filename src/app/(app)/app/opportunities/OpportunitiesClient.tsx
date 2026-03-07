@@ -1,15 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Briefcase, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import { trpc } from '@/lib/trpc/client';
-import { PageHeader } from '@/components/page-header';
+import { Briefcase, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { EmptyState } from '@/components/empty-state';
-import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
 	Select,
@@ -26,6 +25,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { trpc } from '@/lib/trpc/client';
 import { OpportunityDialog } from './OpportunityDialog';
 
 // ---------------------------------------------------------------------------
@@ -54,7 +54,11 @@ type Opportunity = {
 
 function StatusBadge({ status }: { status: Opportunity['status'] }) {
 	if (status === 'PUBLISHED') {
-		return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Published</Badge>;
+		return (
+			<Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+				Published
+			</Badge>
+		);
 	}
 	if (status === 'CLOSED') {
 		return <Badge variant="secondary">Closed</Badge>;
@@ -64,9 +68,11 @@ function StatusBadge({ status }: { status: Opportunity['status'] }) {
 
 function formatDateRange(start: Date | null, end: Date | null): string {
 	const fmt = (d: Date) =>
-		new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
-			d instanceof Date ? d : new Date(d),
-		);
+		new Intl.DateTimeFormat('en-US', {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric',
+		}).format(d instanceof Date ? d : new Date(d));
 	if (start && end) return `${fmt(start)} – ${fmt(end)}`;
 	if (start) return `From ${fmt(start)}`;
 	if (end) return `Until ${fmt(end)}`;
@@ -209,7 +215,9 @@ export function OpportunitiesClient() {
 										<TableRow
 											key={opp.id}
 											className="cursor-pointer"
-											onClick={() => router.push(`/app/opportunities/${opp.id}`)}
+											onClick={() =>
+												router.push(`/app/opportunities/${opp.id}`)
+											}
 										>
 											<TableCell className="font-medium">{opp.title}</TableCell>
 											<TableCell>
@@ -226,13 +234,21 @@ export function OpportunitiesClient() {
 											</TableCell>
 											<TableCell>
 												<div className="flex flex-wrap gap-1">
-													{opp.tags.length > 0
-														? opp.tags.map((t) => (
-																<Badge key={t.id} variant="outline" className="text-xs">
-																	{t.name}
-																</Badge>
-															))
-														: <span className="text-sm text-muted-foreground">—</span>}
+													{opp.tags.length > 0 ? (
+														opp.tags.map((t) => (
+															<Badge
+																key={t.id}
+																variant="outline"
+																className="text-xs"
+															>
+																{t.name}
+															</Badge>
+														))
+													) : (
+														<span className="text-sm text-muted-foreground">
+															—
+														</span>
+													)}
 												</div>
 											</TableCell>
 											<TableCell className="text-right">
@@ -244,7 +260,10 @@ export function OpportunitiesClient() {
 															disabled={updateStatus.isPending}
 															onClick={(e) => {
 																e.stopPropagation();
-																updateStatus.mutate({ id: opp.id, status: 'PUBLISHED' });
+																updateStatus.mutate({
+																	id: opp.id,
+																	status: 'PUBLISHED',
+																});
 															}}
 														>
 															Publish
@@ -257,7 +276,10 @@ export function OpportunitiesClient() {
 															disabled={updateStatus.isPending}
 															onClick={(e) => {
 																e.stopPropagation();
-																updateStatus.mutate({ id: opp.id, status: 'CLOSED' });
+																updateStatus.mutate({
+																	id: opp.id,
+																	status: 'CLOSED',
+																});
 															}}
 														>
 															Close

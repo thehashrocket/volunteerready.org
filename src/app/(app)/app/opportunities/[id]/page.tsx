@@ -1,8 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
 import {
 	Calendar,
 	ChevronLeft,
@@ -13,10 +10,13 @@ import {
 	Users,
 	Wifi,
 } from 'lucide-react';
-import { trpc } from '@/lib/trpc/client';
-import { formatDateRange } from '@/lib/format-date';
-import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
+import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
 	Table,
@@ -26,8 +26,8 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
-import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { formatDateRange } from '@/lib/format-date';
+import { trpc } from '@/lib/trpc/client';
 import { OpportunityDialog } from '../OpportunityDialog';
 
 // ---------------------------------------------------------------------------
@@ -56,7 +56,11 @@ function formatRelative(value: Date | string): string {
 
 function StatusBadge({ status }: { status: 'DRAFT' | 'PUBLISHED' | 'CLOSED' }) {
 	if (status === 'PUBLISHED')
-		return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Published</Badge>;
+		return (
+			<Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+				Published
+			</Badge>
+		);
 	if (status === 'CLOSED') return <Badge variant="secondary">Closed</Badge>;
 	return <Badge variant="outline">Draft</Badge>;
 }
@@ -72,7 +76,9 @@ const STATUS_LEFT_BORDER: Record<'DRAFT' | 'PUBLISHED' | 'CLOSED', string> = {
 // ---------------------------------------------------------------------------
 
 function PulseBox({ className }: { className?: string }) {
-	return <div className={`animate-pulse rounded bg-muted ${className ?? ''}`} />;
+	return (
+		<div className={`animate-pulse rounded bg-muted ${className ?? ''}`} />
+	);
 }
 
 // ---------------------------------------------------------------------------
@@ -168,7 +174,9 @@ export default function OpportunityDashboardPage() {
 				</div>
 				{/* table skeleton */}
 				<Card>
-					<CardHeader><PulseBox className="h-5 w-32" /></CardHeader>
+					<CardHeader>
+						<PulseBox className="h-5 w-32" />
+					</CardHeader>
 					<CardContent className="space-y-2">
 						{Array.from({ length: 4 }).map((_, i) => (
 							<PulseBox key={i} className="h-12 w-full" />
@@ -186,8 +194,14 @@ export default function OpportunityDashboardPage() {
 				{backButton}
 				<Card>
 					<CardContent className="pt-6">
-						<p className="mb-4 text-sm text-muted-foreground">{oppQuery.error.message}</p>
-						<Button onClick={() => oppQuery.refetch()} variant="outline" size="sm">
+						<p className="mb-4 text-sm text-muted-foreground">
+							{oppQuery.error.message}
+						</p>
+						<Button
+							onClick={() => oppQuery.refetch()}
+							variant="outline"
+							size="sm"
+						>
 							<RefreshCw className="mr-2 h-4 w-4" />
 							Try again
 						</Button>
@@ -212,13 +226,28 @@ export default function OpportunityDashboardPage() {
 
 	// Meta chips for the header
 	const metaChips: { icon: React.ReactNode; label: string }[] = [];
-	if (opp.isRemote) metaChips.push({ icon: <Wifi className="h-3 w-3" />, label: 'Remote' });
-	if (opp.location) metaChips.push({ icon: <MapPin className="h-3 w-3" />, label: opp.location });
-	if (dateRange) metaChips.push({ icon: <Calendar className="h-3 w-3" />, label: dateRange });
+	if (opp.isRemote)
+		metaChips.push({ icon: <Wifi className="h-3 w-3" />, label: 'Remote' });
+	if (opp.location)
+		metaChips.push({
+			icon: <MapPin className="h-3 w-3" />,
+			label: opp.location,
+		});
+	if (dateRange)
+		metaChips.push({
+			icon: <Calendar className="h-3 w-3" />,
+			label: dateRange,
+		});
 	if (opp.commitmentHours != null)
-		metaChips.push({ icon: <Clock className="h-3 w-3" />, label: `${opp.commitmentHours}h/week` });
+		metaChips.push({
+			icon: <Clock className="h-3 w-3" />,
+			label: `${opp.commitmentHours}h/week`,
+		});
 	if (opp.capacity != null)
-		metaChips.push({ icon: <Users className="h-3 w-3" />, label: `${opp.capacity} spots` });
+		metaChips.push({
+			icon: <Users className="h-3 w-3" />,
+			label: `${opp.capacity} spots`,
+		});
 
 	// Capacity fill bar (approved / capacity)
 	const fillPct =
@@ -236,7 +265,9 @@ export default function OpportunityDashboardPage() {
 					<CardContent className="pt-6 pb-5">
 						<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 							<div className="min-w-0">
-								<h1 className="text-2xl font-semibold tracking-tight">{opp.title}</h1>
+								<h1 className="text-2xl font-semibold tracking-tight">
+									{opp.title}
+								</h1>
 
 								{/* Meta chips */}
 								{metaChips.length > 0 && (
@@ -267,7 +298,11 @@ export default function OpportunityDashboardPage() {
 
 							<div className="flex shrink-0 items-center gap-2">
 								<StatusBadge status={opp.status} />
-								<Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
+								<Button
+									size="sm"
+									variant="outline"
+									onClick={() => setEditOpen(true)}
+								>
 									Edit
 								</Button>
 							</div>
@@ -298,7 +333,9 @@ export default function OpportunityDashboardPage() {
 					{/* Hero: total applications */}
 					<Card className="flex flex-col items-center justify-center border-dashed">
 						<CardContent className="py-6 text-center">
-							<div className="text-5xl font-bold tabular-nums leading-none">{total}</div>
+							<div className="text-5xl font-bold tabular-nums leading-none">
+								{total}
+							</div>
 							<div className="mt-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
 								Applications
 							</div>
@@ -340,7 +377,9 @@ export default function OpportunityDashboardPage() {
 						<CardTitle className="flex items-center gap-2">
 							Applications
 							{!appsQuery.isLoading && (
-								<span className="text-sm font-normal text-muted-foreground">({total})</span>
+								<span className="text-sm font-normal text-muted-foreground">
+									({total})
+								</span>
 							)}
 						</CardTitle>
 					</CardHeader>
@@ -356,7 +395,9 @@ export default function OpportunityDashboardPage() {
 								<div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
 									<Users className="h-5 w-5 text-muted-foreground" />
 								</div>
-								<p className="text-sm font-medium text-muted-foreground">No applications yet</p>
+								<p className="text-sm font-medium text-muted-foreground">
+									No applications yet
+								</p>
 								<p className="mt-1 text-xs text-muted-foreground">
 									Applications will appear here once volunteers apply.
 								</p>
@@ -382,7 +423,9 @@ export default function OpportunityDashboardPage() {
 											<TableRow
 												key={app.id}
 												className="cursor-pointer"
-												onClick={() => router.push(`/app/applications/${app.id}`)}
+												onClick={() =>
+													router.push(`/app/applications/${app.id}`)
+												}
 											>
 												<TableCell>
 													<div>{formatDate(app.submittedAt)}</div>
@@ -421,7 +464,11 @@ export default function OpportunityDashboardPage() {
 				</Card>
 			</div>
 
-			<OpportunityDialog open={editOpen} onOpenChange={setEditOpen} opportunity={opp} />
+			<OpportunityDialog
+				open={editOpen}
+				onOpenChange={setEditOpen}
+				opportunity={opp}
+			/>
 		</>
 	);
 }

@@ -1,10 +1,10 @@
-import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth';
-import { prisma } from '@/server/repositories/prisma';
 import { AppShell } from '@/components/app/app-shell';
 import { AuthFeedback } from '@/components/auth-feedback';
+import { authOptions } from '@/server/auth';
+import { prisma } from '@/server/repositories/prisma';
 
 // Routes that are exempt from the no-org redirect guard.
 // These pages must be reachable by logged-in users who have no org yet.

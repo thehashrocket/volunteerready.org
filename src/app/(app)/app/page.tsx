@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
 	Briefcase,
 	ChevronRight,
@@ -10,7 +8,10 @@ import {
 	Plus,
 	Users,
 } from 'lucide-react';
-import { trpc } from '@/lib/trpc/client';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -21,8 +22,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
-import { PageHeader } from '@/components/page-header';
+import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
 // Helpers

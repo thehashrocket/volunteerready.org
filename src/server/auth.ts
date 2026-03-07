@@ -1,11 +1,11 @@
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import type { NextAuthOptions } from 'next-auth';
 import { getServerSession } from 'next-auth';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import GoogleProvider from 'next-auth/providers/google';
 import EmailProvider from 'next-auth/providers/email';
+import GoogleProvider from 'next-auth/providers/google';
 import { Resend } from 'resend';
-import { prisma } from '@/server/repositories/prisma';
 import { buildMagicLinkEmail } from '@/lib/email/auth';
+import { prisma } from '@/server/repositories/prisma';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const emailFrom =

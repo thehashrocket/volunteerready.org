@@ -1,17 +1,16 @@
-import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { ApplicationStatus, Prisma, ScreenerQuestionType } from '@/prisma/generated/client';
+import { z } from 'zod';
+import { generateSlug } from '@/lib/slug';
+import {
+	ApplicationStatus,
+	type Prisma,
+	ScreenerQuestionType,
+} from '@/prisma/generated/client';
 import {
 	screenerResponseSchema,
 	volunteerProfileSchema,
 } from '@/server/domain/volunteer-screening';
-import { submitVolunteerApplication } from '@/server/services/volunteer-screening';
-import {
-	adminProcedure,
-	createTRPCRouter,
-	protectedProcedure,
-	publicProcedure,
-} from '@/server/trpc/init';
+import * as qRepo from '@/server/repositories/screenerQuestionsRepo';
 import {
 	getMyApplicationDetail,
 	listMyApplications,
@@ -23,8 +22,13 @@ import {
 	listOrgApplications,
 	updateOrgApplicationStatus,
 } from '@/server/services/screener-queries';
-import { generateSlug } from '@/lib/slug';
-import * as qRepo from '@/server/repositories/screenerQuestionsRepo';
+import { submitVolunteerApplication } from '@/server/services/volunteer-screening';
+import {
+	adminProcedure,
+	createTRPCRouter,
+	protectedProcedure,
+	publicProcedure,
+} from '@/server/trpc/init';
 
 // ---------------------------------------------------------------------------
 // configJson helpers
@@ -134,10 +138,7 @@ export const screenerRouter = createTRPCRouter({
 			if (!ctx.orgId) {
 				throw new Error('Missing org context');
 			}
-			const result = await getOrgApplicationDetailEnriched(
-				ctx.orgId,
-				input.id,
-			);
+			const result = await getOrgApplicationDetailEnriched(ctx.orgId, input.id);
 			if (!result) throw new TRPCError({ code: 'NOT_FOUND' });
 			return result;
 		}),
@@ -200,11 +201,7 @@ export const screenerRouter = createTRPCRouter({
 	createQuestion: adminProcedure
 		.input(
 			z.object({
-				prompt: z
-					.string()
-					.min(5, 'At least 5 characters')
-					.max(500)
-					.trim(),
+				prompt: z.string().min(5, 'At least 5 characters').max(500).trim(),
 				type: z.nativeEnum(ScreenerQuestionType),
 				required: z.boolean().default(true),
 				maxLength: z.number().int().positive().optional(),
@@ -217,8 +214,7 @@ export const screenerRouter = createTRPCRouter({
 			const orgId = ctx.orgId!;
 			const maxOrder = await qRepo.getMaxOrder(orgId);
 			const key =
-				generateSlug(input.prompt).slice(0, 50) ||
-				`question-${Date.now()}`;
+				generateSlug(input.prompt).slice(0, 50) || `question-${Date.now()}`;
 			return qRepo.createQuestion(orgId, {
 				key,
 				prompt: input.prompt,
@@ -244,10 +240,7 @@ export const screenerRouter = createTRPCRouter({
 			const orgId = ctx.orgId!;
 			const question = await qRepo.getQuestion(orgId, input.id);
 			if (!question) throw new TRPCError({ code: 'NOT_FOUND' });
-			const existing = (question.configJson ?? {}) as Record<
-				string,
-				unknown
-			>;
+			const existing = (question.configJson ?? {}) as Record<string, unknown>;
 			const patch = buildConfigJsonPatch(input, question.type);
 			return qRepo.updateQuestion(orgId, input.id, {
 				...(input.prompt ? { prompt: input.prompt } : {}),

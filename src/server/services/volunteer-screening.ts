@@ -1,23 +1,23 @@
 import {
 	ApplicationStatus,
 	OpportunityStatus,
-	Prisma,
-	ScreeningStatus,
+	type Prisma,
+	type ScreeningStatus,
 } from '@/prisma/generated/client';
 import {
-	evaluateScreening,
-	validateResponses,
 	type DisqualifierRule,
+	evaluateScreening,
 	type ScreenerQuestion,
 	type ScreenerResponse,
 	type VolunteerProfile,
+	validateResponses,
 } from '@/server/domain/volunteer-screening';
+import { prisma } from '@/server/repositories/prisma';
 import {
 	createApplication,
 	getActiveQuestions,
 	submitAnswers,
 } from '@/server/repositories/volunteer-applications';
-import { prisma } from '@/server/repositories/prisma';
 
 interface SubmitVolunteerApplicationPayload {
 	submittedByEmail: string;
@@ -126,7 +126,11 @@ export async function submitVolunteerApplication(
 	let validatedOpportunityId: string | null = null;
 	if (payload.opportunityId) {
 		const opp = await prisma.volunteerOpportunity.findFirst({
-			where: { id: payload.opportunityId, orgId, status: OpportunityStatus.PUBLISHED },
+			where: {
+				id: payload.opportunityId,
+				orgId,
+				status: OpportunityStatus.PUBLISHED,
+			},
 			select: { id: true },
 		});
 		validatedOpportunityId = opp?.id ?? null;

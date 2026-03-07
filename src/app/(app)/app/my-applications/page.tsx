@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { AlertTriangle, FileText, RefreshCw } from 'lucide-react';
-import { trpc } from '@/lib/trpc/client';
-import { PageHeader } from '@/components/page-header';
+import Link from 'next/link';
 import { EmptyState } from '@/components/empty-state';
+import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
+import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -15,8 +16,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
-import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { trpc } from '@/lib/trpc/client';
 
 export default function MyApplicationsPage() {
 	const query = trpc.screener.myApplications.useQuery();

@@ -1,5 +1,4 @@
-import type { PrismaClient } from '@/prisma/generated/client';
-import { Prisma } from '@/prisma/generated/client';
+import type { Prisma, PrismaClient } from '@/prisma/generated/client';
 
 export function auditRepo(prisma: PrismaClient) {
 	return {

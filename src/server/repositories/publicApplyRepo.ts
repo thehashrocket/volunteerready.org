@@ -1,9 +1,9 @@
-import { prisma } from '@/server/repositories/prisma';
 import type {
 	PublicOrgSummary,
-	PublicScreenerQuestion,
 	PublicQuestionType,
+	PublicScreenerQuestion,
 } from '@/server/domain/screener/publicForm';
+import { prisma } from '@/server/repositories/prisma';
 
 const mapQuestionType = (type: string): PublicQuestionType => {
 	switch (type) {

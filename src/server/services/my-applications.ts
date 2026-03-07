@@ -107,7 +107,9 @@ export function normalizeReasons(
 	});
 }
 
-export function normalizeAnswerValue(value: Prisma.JsonValue | null | undefined) {
+export function normalizeAnswerValue(
+	value: Prisma.JsonValue | null | undefined,
+) {
 	if (!value || typeof value !== 'object') {
 		return value;
 	}

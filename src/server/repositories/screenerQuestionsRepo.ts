@@ -1,4 +1,4 @@
-import { Prisma, ScreenerQuestionType } from '@/prisma/generated/client';
+import type { Prisma, ScreenerQuestionType } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
 export async function listQuestions(orgId: string) {

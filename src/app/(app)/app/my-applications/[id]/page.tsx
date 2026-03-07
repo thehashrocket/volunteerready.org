@@ -1,11 +1,12 @@
 'use client';
 
+import { AlertCircle, ChevronLeft, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { AlertCircle, ChevronLeft, FileText } from 'lucide-react';
-import { trpc } from '@/lib/trpc/client';
-import { PageHeader } from '@/components/page-header';
 import { EmptyState } from '@/components/empty-state';
+import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
+import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -16,8 +17,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
-import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { trpc } from '@/lib/trpc/client';
 
 export default function MyApplicationDetailPage() {
 	const params = useParams<{ id: string }>();

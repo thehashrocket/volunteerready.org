@@ -1,13 +1,12 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
+import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { X } from 'lucide-react';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
-import { trpc } from '@/lib/trpc/client';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -20,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -119,10 +119,7 @@ function TagInput({
 	}
 
 	return (
-		<div
-			className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm cursor-text"
-			onClick={() => inputRef.current?.focus()}
-		>
+		<label className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm cursor-text">
 			{tags.map((tag) => (
 				<span
 					key={tag}
@@ -157,7 +154,7 @@ function TagInput({
 				placeholder={tags.length === 0 ? 'Add tags…' : ''}
 				className="flex-1 min-w-20 bg-transparent outline-none placeholder:text-muted-foreground"
 			/>
-		</div>
+		</label>
 	);
 }
 
@@ -165,7 +162,11 @@ function TagInput({
 // Component
 // ---------------------------------------------------------------------------
 
-export function OpportunityDialog({ open, onOpenChange, opportunity }: OpportunityDialogProps) {
+export function OpportunityDialog({
+	open,
+	onOpenChange,
+	opportunity,
+}: OpportunityDialogProps) {
 	const qc = useQueryClient();
 	const isEdit = Boolean(opportunity);
 	const [tags, setTags] = useState<string[]>([]);
@@ -218,7 +219,7 @@ export function OpportunityDialog({ open, onOpenChange, opportunity }: Opportuni
 				setTags([]);
 			}
 		}
-	}, [open, opportunity]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [open, opportunity, reset]);
 
 	const isRemote = watch('isRemote') ?? false;
 
@@ -228,7 +229,8 @@ export function OpportunityDialog({ open, onOpenChange, opportunity }: Opportuni
 			await qc.invalidateQueries();
 			onOpenChange(false);
 		},
-		onError: (err) => toast.error(err.message ?? 'Failed to create opportunity.'),
+		onError: (err) =>
+			toast.error(err.message ?? 'Failed to create opportunity.'),
 	});
 
 	const updateMutation = trpc.opportunities.update.useMutation({
@@ -237,7 +239,8 @@ export function OpportunityDialog({ open, onOpenChange, opportunity }: Opportuni
 			await qc.invalidateQueries();
 			onOpenChange(false);
 		},
-		onError: (err) => toast.error(err.message ?? 'Failed to update opportunity.'),
+		onError: (err) =>
+			toast.error(err.message ?? 'Failed to update opportunity.'),
 	});
 
 	const isPending = createMutation.isPending || updateMutation.isPending;
@@ -275,7 +278,11 @@ export function OpportunityDialog({ open, onOpenChange, opportunity }: Opportuni
 					{/* Title */}
 					<div className="space-y-2">
 						<Label htmlFor="title">Title</Label>
-						<Input id="title" placeholder="e.g. Food Pantry Volunteer" {...register('title')} />
+						<Input
+							id="title"
+							placeholder="e.g. Food Pantry Volunteer"
+							{...register('title')}
+						/>
 						{errors.title?.message && (
 							<p className="text-sm text-destructive">{errors.title.message}</p>
 						)}
@@ -291,7 +298,9 @@ export function OpportunityDialog({ open, onOpenChange, opportunity }: Opportuni
 							{...register('description')}
 						/>
 						{errors.description?.message && (
-							<p className="text-sm text-destructive">{errors.description.message}</p>
+							<p className="text-sm text-destructive">
+								{errors.description.message}
+							</p>
 						)}
 					</div>
 
@@ -372,7 +381,9 @@ export function OpportunityDialog({ open, onOpenChange, opportunity }: Opportuni
 								{...register('capacity', { valueAsNumber: true })}
 							/>
 							{errors.capacity?.message && (
-								<p className="text-sm text-destructive">{errors.capacity.message}</p>
+								<p className="text-sm text-destructive">
+									{errors.capacity.message}
+								</p>
 							)}
 						</div>
 					</div>
@@ -381,7 +392,9 @@ export function OpportunityDialog({ open, onOpenChange, opportunity }: Opportuni
 					<div className="space-y-2">
 						<Label>
 							Tags{' '}
-							<span className="text-muted-foreground">(optional, up to 10)</span>
+							<span className="text-muted-foreground">
+								(optional, up to 10)
+							</span>
 						</Label>
 						<TagInput tags={tags} onChange={setTags} />
 						<p className="text-xs text-muted-foreground">
