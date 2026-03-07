@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
-	AlertCircle,
 	Calendar,
 	ChevronLeft,
 	ChevronRight,
@@ -16,7 +15,6 @@ import {
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { formatDateRange } from '@/lib/format-date';
-import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -63,6 +61,53 @@ function StatusBadge({ status }: { status: 'DRAFT' | 'PUBLISHED' | 'CLOSED' }) {
 	return <Badge variant="outline">Draft</Badge>;
 }
 
+const STATUS_LEFT_BORDER: Record<'DRAFT' | 'PUBLISHED' | 'CLOSED', string> = {
+	PUBLISHED: 'border-l-green-500',
+	DRAFT: 'border-l-stone-300',
+	CLOSED: 'border-l-slate-400',
+};
+
+// ---------------------------------------------------------------------------
+// Pulse skeleton helpers
+// ---------------------------------------------------------------------------
+
+function PulseBox({ className }: { className?: string }) {
+	return <div className={`animate-pulse rounded bg-muted ${className ?? ''}`} />;
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline stat card
+// ---------------------------------------------------------------------------
+
+interface PipelineStatProps {
+	label: string;
+	value: number;
+	total: number;
+	barClass: string;
+}
+
+function PipelineStat({ label, value, total, barClass }: PipelineStatProps) {
+	const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+	return (
+		<Card className="overflow-hidden">
+			{/* thin colored top bar indicating share of total */}
+			<div className="h-1 bg-muted">
+				<div
+					className={`h-full transition-all duration-700 ${barClass}`}
+					style={{ width: `${pct}%` }}
+				/>
+			</div>
+			<CardContent className="pb-4 pt-4">
+				<div className="text-2xl font-bold tabular-nums">{value}</div>
+				<div className="mt-0.5 text-xs text-muted-foreground">{label}</div>
+				<div className="mt-1 text-[10px] font-medium text-muted-foreground/50">
+					{total > 0 ? `${pct}%` : '—'}
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -88,24 +133,62 @@ export default function OpportunityDashboardPage() {
 		</Button>
 	);
 
+	// ---- Loading state ----
 	if (oppQuery.isLoading) {
 		return (
 			<div className="space-y-6">
 				{backButton}
-				<PageHeader title="Loading…" description="Fetching opportunity details." />
+				{/* header skeleton */}
+				<Card className="border-l-4 border-l-stone-200">
+					<CardContent className="pt-6 pb-5">
+						<div className="flex items-start justify-between">
+							<div className="space-y-3 flex-1 mr-8">
+								<PulseBox className="h-7 w-3/5" />
+								<div className="flex gap-2">
+									<PulseBox className="h-5 w-20 rounded-full" />
+									<PulseBox className="h-5 w-32 rounded-full" />
+									<PulseBox className="h-5 w-24 rounded-full" />
+								</div>
+							</div>
+							<div className="flex gap-2">
+								<PulseBox className="h-6 w-20 rounded-full" />
+								<PulseBox className="h-8 w-14" />
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+				{/* stats skeleton */}
+				<div className="grid gap-4 sm:grid-cols-[160px_1fr]">
+					<PulseBox className="h-32 rounded-lg" />
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<PulseBox key={i} className="h-24 rounded-lg" />
+						))}
+					</div>
+				</div>
+				{/* table skeleton */}
+				<Card>
+					<CardHeader><PulseBox className="h-5 w-32" /></CardHeader>
+					<CardContent className="space-y-2">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<PulseBox key={i} className="h-12 w-full" />
+						))}
+					</CardContent>
+				</Card>
 			</div>
 		);
 	}
 
+	// ---- Error state ----
 	if (oppQuery.isError) {
 		return (
 			<div className="space-y-6">
 				{backButton}
-				<PageHeader title="Could not load opportunity" description={oppQuery.error.message} />
 				<Card>
 					<CardContent className="pt-6">
-						<Button onClick={() => oppQuery.refetch()} variant="outline">
-							<RefreshCw className="h-4 w-4" />
+						<p className="mb-4 text-sm text-muted-foreground">{oppQuery.error.message}</p>
+						<Button onClick={() => oppQuery.refetch()} variant="outline" size="sm">
+							<RefreshCw className="mr-2 h-4 w-4" />
 							Try again
 						</Button>
 					</CardContent>
@@ -127,101 +210,157 @@ export default function OpportunityDashboardPage() {
 
 	const dateRange = formatDateRange(opp.startDate, opp.endDate);
 
-	const metaParts: string[] = [];
-	if (opp.isRemote) metaParts.push('Remote');
-	if (opp.location) metaParts.push(opp.location);
-	if (dateRange) metaParts.push(dateRange);
-	if (opp.commitmentHours != null) metaParts.push(`${opp.commitmentHours}h/week`);
-	if (opp.capacity != null) metaParts.push(`${opp.capacity} spots`);
+	// Meta chips for the header
+	const metaChips: { icon: React.ReactNode; label: string }[] = [];
+	if (opp.isRemote) metaChips.push({ icon: <Wifi className="h-3 w-3" />, label: 'Remote' });
+	if (opp.location) metaChips.push({ icon: <MapPin className="h-3 w-3" />, label: opp.location });
+	if (dateRange) metaChips.push({ icon: <Calendar className="h-3 w-3" />, label: dateRange });
+	if (opp.commitmentHours != null)
+		metaChips.push({ icon: <Clock className="h-3 w-3" />, label: `${opp.commitmentHours}h/week` });
+	if (opp.capacity != null)
+		metaChips.push({ icon: <Users className="h-3 w-3" />, label: `${opp.capacity} spots` });
 
-	const statItems = [
-		{ label: 'Total', value: total },
-		{ label: 'Submitted', value: counts.SUBMITTED },
-		{ label: 'Review', value: counts.REVIEW },
-		{ label: 'Approved', value: counts.APPROVED },
-		{ label: 'Rejected', value: counts.REJECTED },
-	];
+	// Capacity fill bar (approved / capacity)
+	const fillPct =
+		opp.capacity != null && opp.capacity > 0
+			? Math.min(Math.round((counts.APPROVED / opp.capacity) * 100), 100)
+			: null;
 
 	return (
 		<>
 			<div className="space-y-6">
 				{backButton}
 
-				<PageHeader
-					title={opp.title}
-					description={metaParts.join(' · ') || 'No location or date details'}
-					actions={
-						<div className="flex items-center gap-2">
-							<StatusBadge status={opp.status} />
-							<Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
-								Edit
-							</Button>
-						</div>
-					}
-				/>
+				{/* ── Opportunity header card ── */}
+				<Card className={`border-l-4 ${STATUS_LEFT_BORDER[opp.status]}`}>
+					<CardContent className="pt-6 pb-5">
+						<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+							<div className="min-w-0">
+								<h1 className="text-2xl font-semibold tracking-tight">{opp.title}</h1>
 
-				{/* Meta details */}
-				<div className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
-					{opp.isRemote && (
-						<span className="flex items-center gap-1.5">
-							<Wifi className="h-4 w-4" /> Remote
-						</span>
-					)}
-					{opp.location && (
-						<span className="flex items-center gap-1.5">
-							<MapPin className="h-4 w-4" /> {opp.location}
-						</span>
-					)}
-					{dateRange && (
-						<span className="flex items-center gap-1.5">
-							<Calendar className="h-4 w-4" /> {dateRange}
-						</span>
-					)}
-					{opp.commitmentHours != null && (
-						<span className="flex items-center gap-1.5">
-							<Clock className="h-4 w-4" /> {opp.commitmentHours}h/week
-						</span>
-					)}
-					{opp.capacity != null && (
-						<span className="flex items-center gap-1.5">
-							<Users className="h-4 w-4" /> {opp.capacity} spots
-						</span>
-					)}
-					{opp.tags.length > 0 && (
-						<div className="flex flex-wrap gap-1">
-							{opp.tags.map((t) => (
-								<Badge key={t.id} variant="outline" className="text-xs">
-									{t.name}
-								</Badge>
-							))}
+								{/* Meta chips */}
+								{metaChips.length > 0 && (
+									<div className="mt-3 flex flex-wrap gap-1.5">
+										{metaChips.map(({ icon, label }) => (
+											<span
+												key={label}
+												className="inline-flex items-center gap-1 rounded-full border bg-muted/40 px-2.5 py-0.5 text-xs text-muted-foreground"
+											>
+												{icon}
+												{label}
+											</span>
+										))}
+									</div>
+								)}
+
+								{/* Tags */}
+								{opp.tags.length > 0 && (
+									<div className="mt-2 flex flex-wrap gap-1">
+										{opp.tags.map((t) => (
+											<Badge key={t.id} variant="outline" className="text-xs">
+												{t.name}
+											</Badge>
+										))}
+									</div>
+								)}
+							</div>
+
+							<div className="flex shrink-0 items-center gap-2">
+								<StatusBadge status={opp.status} />
+								<Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
+									Edit
+								</Button>
+							</div>
 						</div>
-					)}
+
+						{/* Capacity fill bar – only when capacity is set */}
+						{fillPct !== null && (
+							<div className="mt-5 border-t pt-4">
+								<div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
+									<span>Approved volunteers</span>
+									<span className="font-medium tabular-nums">
+										{counts.APPROVED} / {opp.capacity}
+									</span>
+								</div>
+								<div className="h-1.5 overflow-hidden rounded-full bg-muted">
+									<div
+										className="h-full rounded-full bg-emerald-500 transition-all duration-700"
+										style={{ width: `${fillPct}%` }}
+									/>
+								</div>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+
+				{/* ── Stats pipeline ── */}
+				<div className="grid gap-4 sm:grid-cols-[160px_1fr]">
+					{/* Hero: total applications */}
+					<Card className="flex flex-col items-center justify-center border-dashed">
+						<CardContent className="py-6 text-center">
+							<div className="text-5xl font-bold tabular-nums leading-none">{total}</div>
+							<div className="mt-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+								Applications
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Pipeline stages */}
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+						<PipelineStat
+							label="Submitted"
+							value={counts.SUBMITTED}
+							total={total}
+							barClass="bg-blue-400"
+						/>
+						<PipelineStat
+							label="In review"
+							value={counts.REVIEW}
+							total={total}
+							barClass="bg-amber-400"
+						/>
+						<PipelineStat
+							label="Approved"
+							value={counts.APPROVED}
+							total={total}
+							barClass="bg-emerald-500"
+						/>
+						<PipelineStat
+							label="Rejected"
+							value={counts.REJECTED}
+							total={total}
+							barClass="bg-rose-400"
+						/>
+					</div>
 				</div>
 
-				{/* Stats */}
-				<div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-					{statItems.map(({ label, value }) => (
-						<Card key={label}>
-							<CardContent className="pb-3 pt-4 text-center">
-								<div className="text-2xl font-bold tabular-nums">{value}</div>
-								<div className="mt-0.5 text-xs text-muted-foreground">{label}</div>
-							</CardContent>
-						</Card>
-					))}
-				</div>
-
-				{/* Applications */}
+				{/* ── Applications table ── */}
 				<Card>
-					<CardHeader>
-						<CardTitle>Applications</CardTitle>
+					<CardHeader className="pb-4">
+						<CardTitle className="flex items-center gap-2">
+							Applications
+							{!appsQuery.isLoading && (
+								<span className="text-sm font-normal text-muted-foreground">({total})</span>
+							)}
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						{appsQuery.isLoading ? (
-							<p className="text-sm text-muted-foreground">Loading applications…</p>
+							<div className="space-y-2">
+								{Array.from({ length: 3 }).map((_, i) => (
+									<PulseBox key={i} className="h-12 w-full" />
+								))}
+							</div>
 						) : items.length === 0 ? (
-							<p className="text-sm text-muted-foreground">
-								No applications for this opportunity yet.
-							</p>
+							<div className="py-12 text-center">
+								<div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+									<Users className="h-5 w-5 text-muted-foreground" />
+								</div>
+								<p className="text-sm font-medium text-muted-foreground">No applications yet</p>
+								<p className="mt-1 text-xs text-muted-foreground">
+									Applications will appear here once volunteers apply.
+								</p>
+							</div>
 						) : (
 							<Table>
 								<TableHeader>
