@@ -14,12 +14,14 @@ import {
 
 export async function listOrgApplications(
 	orgId: string,
-	input: { status?: string; page?: number; pageSize?: number },
+	input: { status?: string; page?: number; pageSize?: number; opportunityId?: string },
 ) {
-	return listApplications(orgId, input.status as ApplicationStatus | undefined, {
-		page: input.page,
-		pageSize: input.pageSize,
-	});
+	return listApplications(
+		orgId,
+		input.status as ApplicationStatus | undefined,
+		{ page: input.page, pageSize: input.pageSize },
+		input.opportunityId,
+	);
 }
 
 export async function getOrgApplicationDetail(orgId: string, id: string) {

@@ -55,6 +55,7 @@ export async function listApplications(
 	orgId: string,
 	status: ApplicationStatus | undefined,
 	paging: PaginationInput = {},
+	opportunityId?: string,
 ) {
 	const pageSize = paging.pageSize ?? 20;
 	const page = paging.page ?? 1;
@@ -63,6 +64,7 @@ export async function listApplications(
 	const where = {
 		orgId,
 		...(status ? { status } : {}),
+		...(opportunityId ? { opportunityId } : {}),
 	};
 
 	const [items, total] = await Promise.all([

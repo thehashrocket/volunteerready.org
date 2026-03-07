@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Briefcase, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -84,6 +85,7 @@ function locationLabel(opp: Opportunity): string {
 
 export function OpportunitiesClient() {
 	const qc = useQueryClient();
+	const router = useRouter();
 	const [statusFilter, setStatusFilter] = useState<string>('ALL');
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingOpp, setEditingOpp] = useState<Opportunity | null>(null);
@@ -204,7 +206,11 @@ export function OpportunitiesClient() {
 								</TableHeader>
 								<TableBody>
 									{opportunities.map((opp) => (
-										<TableRow key={opp.id}>
+										<TableRow
+											key={opp.id}
+											className="cursor-pointer"
+											onClick={() => router.push(`/app/opportunities/${opp.id}`)}
+										>
 											<TableCell className="font-medium">{opp.title}</TableCell>
 											<TableCell>
 												<StatusBadge status={opp.status} />
@@ -236,9 +242,10 @@ export function OpportunitiesClient() {
 															size="sm"
 															variant="outline"
 															disabled={updateStatus.isPending}
-															onClick={() =>
-																updateStatus.mutate({ id: opp.id, status: 'PUBLISHED' })
-															}
+															onClick={(e) => {
+																e.stopPropagation();
+																updateStatus.mutate({ id: opp.id, status: 'PUBLISHED' });
+															}}
 														>
 															Publish
 														</Button>
@@ -248,9 +255,10 @@ export function OpportunitiesClient() {
 															size="sm"
 															variant="outline"
 															disabled={updateStatus.isPending}
-															onClick={() =>
-																updateStatus.mutate({ id: opp.id, status: 'CLOSED' })
-															}
+															onClick={(e) => {
+																e.stopPropagation();
+																updateStatus.mutate({ id: opp.id, status: 'CLOSED' });
+															}}
 														>
 															Close
 														</Button>
@@ -258,7 +266,10 @@ export function OpportunitiesClient() {
 													<Button
 														size="sm"
 														variant="ghost"
-														onClick={() => openEdit(opp)}
+														onClick={(e) => {
+															e.stopPropagation();
+															openEdit(opp);
+														}}
 													>
 														Edit
 													</Button>

@@ -59,7 +59,7 @@ Completed capabilities:
 
 Planned capabilities:
 
-- Application-to-opportunity linking
+- ✅ Application-to-opportunity linking
 - Organization opportunity dashboards
 
 Key entities added:

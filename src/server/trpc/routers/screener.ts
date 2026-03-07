@@ -115,8 +115,9 @@ export const screenerRouter = createTRPCRouter({
 		.input(
 			z.object({
 				status: z.nativeEnum(ApplicationStatus).optional(),
+				opportunityId: z.string().optional(),
 				page: z.number().int().positive().optional(),
-				pageSize: z.number().int().positive().max(100).optional(),
+				pageSize: z.number().int().positive().max(200).optional(),
 			}),
 		)
 		.query(async ({ ctx, input }) => {
