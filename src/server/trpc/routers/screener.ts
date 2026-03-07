@@ -17,9 +17,10 @@ import {
 	listMyApplications,
 } from '@/server/services/my-applications';
 import {
-	getOrgApplicationDetail,
+	getOrgApplicationDetailEnriched,
 	getPublicScreenerForm,
 	listOrgApplications,
+	updateOrgApplicationStatus,
 } from '@/server/services/screener-queries';
 import { generateSlug } from '@/lib/slug';
 import * as qRepo from '@/server/repositories/screenerQuestionsRepo';
@@ -129,7 +130,26 @@ export const screenerRouter = createTRPCRouter({
 			if (!ctx.orgId) {
 				throw new Error('Missing org context');
 			}
-			return getOrgApplicationDetail(ctx.orgId, input.id);
+			const result = await getOrgApplicationDetailEnriched(
+				ctx.orgId,
+				input.id,
+			);
+			if (!result) throw new TRPCError({ code: 'NOT_FOUND' });
+			return result;
+		}),
+
+	updateApplicationStatus: adminProcedure
+		.input(
+			z.object({
+				id: z.string().min(1),
+				status: z.nativeEnum(ApplicationStatus),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			if (!ctx.orgId) {
+				throw new Error('Missing org context');
+			}
+			return updateOrgApplicationStatus(ctx.orgId, input.id, input.status);
 		}),
 
 	getPublicForm: publicProcedure

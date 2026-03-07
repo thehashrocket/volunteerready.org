@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ClipboardList, Plus, Rocket } from 'lucide-react';
+import { ClipboardList, FileText, Plus, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/empty-state';
@@ -32,6 +32,21 @@ export default function DashboardPage() {
 						</div>
 						<Button asChild variant="outline" size="sm">
 							<Link href="/app/screener">Manage</Link>
+						</Button>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardContent className="flex items-start gap-4 pt-6">
+						<FileText className="mt-1 h-5 w-5 text-muted-foreground" />
+						<div className="flex-1 space-y-1">
+							<p className="font-medium">Volunteer applications</p>
+							<p className="text-sm text-muted-foreground">
+								Review and act on incoming volunteer applications.
+							</p>
+						</div>
+						<Button asChild variant="outline" size="sm">
+							<Link href="/app/applications">Review</Link>
 						</Button>
 					</CardContent>
 				</Card>

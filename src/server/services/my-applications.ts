@@ -86,7 +86,7 @@ async function linkApplicationsToUser(userId: string, email?: string | null) {
 	});
 }
 
-function normalizeReasons(
+export function normalizeReasons(
 	value: Prisma.JsonValue | null | undefined,
 ): string[] {
 	if (!Array.isArray(value)) {
@@ -107,7 +107,7 @@ function normalizeReasons(
 	});
 }
 
-function normalizeAnswerValue(value: Prisma.JsonValue | null | undefined) {
+export function normalizeAnswerValue(value: Prisma.JsonValue | null | undefined) {
 	if (!value || typeof value !== 'object') {
 		return value;
 	}
@@ -117,7 +117,7 @@ function normalizeAnswerValue(value: Prisma.JsonValue | null | undefined) {
 	return value;
 }
 
-function formatAnswerValue(value: unknown) {
+export function formatAnswerValue(value: unknown) {
 	if (value === null || value === undefined) {
 		return '—';
 	}

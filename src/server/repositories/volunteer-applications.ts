@@ -86,6 +86,17 @@ export async function getApplicationDetail(
 	});
 }
 
+export async function updateApplicationStatus(
+	orgId: string,
+	applicationId: string,
+	status: ApplicationStatus,
+) {
+	return prisma.volunteerApplication.update({
+		where: { id: applicationId, orgId },
+		data: { status },
+	});
+}
+
 export async function listUserApplications(userId: string) {
 	return prisma.volunteerApplication.findMany({
 		where: { submittedByUserId: userId },
