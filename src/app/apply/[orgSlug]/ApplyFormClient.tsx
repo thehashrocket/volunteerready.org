@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Calendar, Clock, MapPin, Wifi } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
+import { formatDateRange } from '@/lib/format-date';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,17 +49,6 @@ type Props = {
 	questions: PublicQuestion[];
 	opportunity: LinkedOpportunity | null;
 };
-
-function formatDateRange(start: Date | string | null, end: Date | string | null): string | null {
-	const fmt = (d: Date | string) =>
-		new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
-			d instanceof Date ? d : new Date(d),
-		);
-	if (start && end) return `${fmt(start)} – ${fmt(end)}`;
-	if (start) return `From ${fmt(start)}`;
-	if (end) return `Until ${fmt(end)}`;
-	return null;
-}
 
 export default function ApplyFormClient({ org, questions, opportunity }: Props) {
 	const [submitted, setSubmitted] = useState(false);

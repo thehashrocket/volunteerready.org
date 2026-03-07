@@ -1,5 +1,6 @@
 import {
 	ApplicationStatus,
+	OpportunityStatus,
 	Prisma,
 	ScreeningStatus,
 } from '@/prisma/generated/client';
@@ -125,7 +126,7 @@ export async function submitVolunteerApplication(
 	let validatedOpportunityId: string | null = null;
 	if (payload.opportunityId) {
 		const opp = await prisma.volunteerOpportunity.findFirst({
-			where: { id: payload.opportunityId, orgId, status: 'PUBLISHED' },
+			where: { id: payload.opportunityId, orgId, status: OpportunityStatus.PUBLISHED },
 			select: { id: true },
 		});
 		validatedOpportunityId = opp?.id ?? null;

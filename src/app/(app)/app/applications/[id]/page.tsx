@@ -6,6 +6,7 @@ import { AlertCircle, Calendar, ChevronLeft, Clock, MapPin, RefreshCw, Wifi } fr
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { trpc } from '@/lib/trpc/client';
+import { formatDateRange } from '@/lib/format-date';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,17 +26,6 @@ function formatDate(value: Date | string) {
 		hour: 'numeric',
 		minute: '2-digit',
 	}).format(date);
-}
-
-function formatDateRange(start: Date | string | null, end: Date | string | null): string | null {
-	const fmt = (d: Date | string) =>
-		new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
-			d instanceof Date ? d : new Date(d),
-		);
-	if (start && end) return `${fmt(start)} – ${fmt(end)}`;
-	if (start) return `From ${fmt(start)}`;
-	if (end) return `Until ${fmt(end)}`;
-	return null;
 }
 
 function formatRelative(value: Date | string): string {

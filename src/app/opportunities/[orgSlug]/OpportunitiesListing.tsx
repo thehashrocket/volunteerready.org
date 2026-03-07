@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { MapPin, Wifi, Clock, Users, Calendar } from 'lucide-react';
+import { formatDateRange } from '@/lib/format-date';
 
 // ---------------------------------------------------------------------------
 // Types (inferred from repo return shape)
@@ -42,17 +43,6 @@ function tagColor(name: string): string {
 	let hash = 0;
 	for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
 	return TAG_PALETTES[Math.abs(hash) % TAG_PALETTES.length];
-}
-
-function formatDateRange(start: Date | string | null, end: Date | string | null): string | null {
-	const fmt = (d: Date | string) =>
-		new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
-			d instanceof Date ? d : new Date(d),
-		);
-	if (start && end) return `${fmt(start)} – ${fmt(end)}`;
-	if (start) return `From ${fmt(start)}`;
-	if (end) return `Until ${fmt(end)}`;
-	return null;
 }
 
 // ---------------------------------------------------------------------------

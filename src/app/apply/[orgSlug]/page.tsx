@@ -16,13 +16,13 @@ export default async function ApplyPage({
 	const { opportunityId } = await searchParams;
 	const { org, questions } = await getPublicFormByOrgSlug(orgSlug);
 
-	const opportunity = opportunityId
-		? await getPublishedOpportunityById(orgSlug, opportunityId)
-		: null;
-
 	if (!org) {
 		notFound();
 	}
+
+	const opportunity = opportunityId
+		? await getPublishedOpportunityById(orgSlug, opportunityId)
+		: null;
 
 	if (questions.length === 0) {
 		return (
