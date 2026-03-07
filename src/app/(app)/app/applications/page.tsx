@@ -1,12 +1,13 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
-import { FileText, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ChevronRight, FileText, RefreshCw } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { PageHeader } from '@/components/page-header';
 import { EmptyState } from '@/components/empty-state';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
 	Select,
@@ -39,8 +40,55 @@ function formatDate(value: Date | string) {
 	}).format(date);
 }
 
+function formatRelative(value: Date | string): string {
+	const date = value instanceof Date ? value : new Date(value);
+	const diff = Math.round((date.getTime() - Date.now()) / 1000);
+	const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+	const abs = Math.abs(diff);
+	if (abs < 3600) return rtf.format(Math.round(diff / 60), 'minute');
+	if (abs < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
+	if (abs < 2592000) return rtf.format(Math.round(diff / 86400), 'day');
+	return rtf.format(Math.round(diff / 2592000), 'month');
+}
+
 function flagCount(screeningReasons: unknown): number {
 	return Array.isArray(screeningReasons) ? screeningReasons.length : 0;
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function TableSkeleton() {
+	return (
+		<Card>
+			<CardContent className="pt-6">
+				<Table>
+					<TableHeader>
+						<TableRow>
+							{['Submitted', 'Email', 'Status', 'Screening', 'Flags', ''].map((h) => (
+								<TableHead key={h}>{h}</TableHead>
+							))}
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{Array.from({ length: 5 }).map((_, i) => (
+							<TableRow key={i}>
+								{[112, 160, 64, 64, 48, 24].map((w, j) => (
+									<TableCell key={j}>
+										<div
+											className="h-4 rounded bg-muted animate-pulse"
+											style={{ width: w }}
+										/>
+									</TableCell>
+								))}
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</CardContent>
+		</Card>
+	);
 }
 
 // ---------------------------------------------------------------------------
@@ -48,10 +96,11 @@ function flagCount(screeningReasons: unknown): number {
 // ---------------------------------------------------------------------------
 
 export default function ApplicationsPage() {
-	const [status, setStatus] = useState<string>('');
+	const router = useRouter();
+	const [status, setStatus] = useState<string>('ALL');
 
 	const query = trpc.screener.list.useQuery({
-		status: (status || undefined) as
+		status: (status === 'ALL' ? undefined : status) as
 			| 'SUBMITTED'
 			| 'REVIEW'
 			| 'APPROVED'
@@ -71,14 +120,7 @@ export default function ApplicationsPage() {
 					title="Applications"
 					description="Review and act on incoming volunteer applications."
 				/>
-				<Card>
-					<CardHeader>
-						<CardTitle>Loading applications…</CardTitle>
-					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground">
-						Fetching your latest applications.
-					</CardContent>
-				</Card>
+				<TableSkeleton />
 			</div>
 		);
 	}
@@ -117,7 +159,7 @@ export default function ApplicationsPage() {
 							<SelectValue placeholder="All statuses" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="">All statuses</SelectItem>
+							<SelectItem value="ALL">All statuses</SelectItem>
 							<SelectItem value="SUBMITTED">Submitted</SelectItem>
 							<SelectItem value="REVIEW">Review</SelectItem>
 							<SelectItem value="APPROVED">Approved</SelectItem>
@@ -144,40 +186,48 @@ export default function ApplicationsPage() {
 									<TableHead>Status</TableHead>
 									<TableHead>Screening</TableHead>
 									<TableHead>Flags</TableHead>
-									<TableHead className="text-right">Details</TableHead>
+									<TableHead />
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{applications.map((app) => (
-									<TableRow key={app.id}>
-										<TableCell>
-											{formatDate(app.submittedAt)}
-										</TableCell>
-										<TableCell className="font-medium">
-											{app.submittedByEmail}
-										</TableCell>
-										<TableCell>
-											<ApplicationStatusBadge status={app.status} />
-										</TableCell>
-										<TableCell>
-											<ScreeningStatusBadge
-												status={app.screeningStatus}
-											/>
-										</TableCell>
-										<TableCell>
-											{flagCount(app.screeningReasons)}
-										</TableCell>
-										<TableCell className="text-right">
-											<Button variant="link" asChild>
-												<Link
-													href={`/app/applications/${app.id}`}
-												>
-													View
-												</Link>
-											</Button>
-										</TableCell>
-									</TableRow>
-								))}
+								{applications.map((app) => {
+									const flags = flagCount(app.screeningReasons);
+									return (
+										<TableRow
+											key={app.id}
+											className="cursor-pointer"
+											onClick={() => router.push(`/app/applications/${app.id}`)}
+										>
+											<TableCell>
+												<div>{formatDate(app.submittedAt)}</div>
+												<div className="text-xs text-muted-foreground">
+													{formatRelative(app.submittedAt)}
+												</div>
+											</TableCell>
+											<TableCell className="font-medium">
+												{app.submittedByEmail}
+											</TableCell>
+											<TableCell>
+												<ApplicationStatusBadge status={app.status} />
+											</TableCell>
+											<TableCell>
+												<ScreeningStatusBadge status={app.screeningStatus} />
+											</TableCell>
+											<TableCell>
+												{flags === 0 ? (
+													<span className="text-muted-foreground">—</span>
+												) : (
+													<Badge variant="destructive">
+														{flags} flag{flags > 1 ? 's' : ''}
+													</Badge>
+												)}
+											</TableCell>
+											<TableCell>
+												<ChevronRight className="h-4 w-4 text-muted-foreground" />
+											</TableCell>
+										</TableRow>
+									);
+								})}
 							</TableBody>
 						</Table>
 					</CardContent>

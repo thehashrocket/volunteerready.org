@@ -9,14 +9,6 @@ import { trpc } from '@/lib/trpc/client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
 
@@ -35,12 +27,16 @@ function formatDate(value: Date | string) {
 	}).format(date);
 }
 
-const STATUS_LABELS: Record<string, string> = {
-	SUBMITTED: 'Submitted',
-	REVIEW: 'Review',
-	APPROVED: 'Approved',
-	REJECTED: 'Rejected',
-};
+function formatRelative(value: Date | string): string {
+	const date = value instanceof Date ? value : new Date(value);
+	const diff = Math.round((date.getTime() - Date.now()) / 1000);
+	const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+	const abs = Math.abs(diff);
+	if (abs < 3600) return rtf.format(Math.round(diff / 60), 'minute');
+	if (abs < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
+	if (abs < 2592000) return rtf.format(Math.round(diff / 86400), 'day');
+	return rtf.format(Math.round(diff / 2592000), 'month');
+}
 
 // ---------------------------------------------------------------------------
 // Page
@@ -63,10 +59,10 @@ export default function ApplicationDetailPage() {
 	});
 
 	const backButton = (
-		<Button variant="ghost" size="sm" asChild>
+		<Button variant="ghost" size="sm" asChild className="-ml-2 mb-2">
 			<Link href="/app/applications">
 				<ChevronLeft className="mr-1 h-4 w-4" />
-				Back
+				All applications
 			</Link>
 		</Button>
 	);
@@ -74,14 +70,11 @@ export default function ApplicationDetailPage() {
 	if (query.isLoading) {
 		return (
 			<div className="space-y-6">
-				<PageHeader
-					title="Application detail"
-					description="Loading…"
-					actions={backButton}
-				/>
+				{backButton}
+				<PageHeader title="Loading…" description="Fetching application details." />
 				<Card>
 					<CardContent className="pt-6 text-sm text-muted-foreground">
-						Fetching application details…
+						Please wait…
 					</CardContent>
 				</Card>
 			</div>
@@ -91,14 +84,13 @@ export default function ApplicationDetailPage() {
 	if (query.isError) {
 		return (
 			<div className="space-y-6">
+				{backButton}
 				<PageHeader
-					title="Application detail"
-					description="Could not load application."
-					actions={backButton}
+					title="Could not load application"
+					description={query.error.message}
 				/>
 				<Card>
 					<CardContent className="space-y-4 pt-6 text-sm text-muted-foreground">
-						<p>{query.error.message}</p>
 						<Button onClick={() => query.refetch()} variant="outline">
 							<RefreshCw className="h-4 w-4" />
 							Try again
@@ -110,13 +102,15 @@ export default function ApplicationDetailPage() {
 	}
 
 	const app = query.data!;
+	const mutate = (args: { id: string; status: 'SUBMITTED' | 'REVIEW' | 'APPROVED' | 'REJECTED' }) =>
+		updateMutation.mutate(args);
 
 	return (
 		<div className="space-y-6">
+			{backButton}
 			<PageHeader
-				title="Application detail"
-				description={app.submittedByEmail}
-				actions={backButton}
+				title={app.submittedByEmail}
+				description={`Submitted ${formatDate(app.submittedAt)} · ${formatRelative(app.submittedAt)}`}
 			/>
 
 			{/* Status card */}
@@ -125,56 +119,68 @@ export default function ApplicationDetailPage() {
 					<CardTitle>Status</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<p className="text-sm text-muted-foreground">
-						Submitted {formatDate(app.submittedAt)}
-					</p>
-
 					<div className="flex flex-wrap gap-3">
 						<ApplicationStatusBadge status={app.status} />
 						<ScreeningStatusBadge status={app.screeningStatus} />
 					</div>
 
 					{app.screeningReasons.length > 0 && (
-						<ul className="space-y-1">
-							{app.screeningReasons.map((reason, i) => (
-								<li
-									key={i}
-									className="flex items-start gap-2 text-sm text-destructive"
-								>
-									<AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-									{reason}
-								</li>
-							))}
-						</ul>
+						<div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+							<div className="flex items-center gap-2 text-sm font-medium text-destructive">
+								<AlertCircle className="h-4 w-4 shrink-0" />
+								{app.screeningReasons.length} screening flag
+								{app.screeningReasons.length > 1 ? 's' : ''} detected
+							</div>
+							<ul className="mt-2 list-disc space-y-1 pl-6 text-sm text-muted-foreground">
+								{app.screeningReasons.map((reason, i) => (
+									<li key={i}>{reason}</li>
+								))}
+							</ul>
+						</div>
 					)}
 
-					{/* Status update controls */}
+					{/* Contextual status actions */}
 					<div className="flex flex-wrap items-center gap-2 border-t pt-4">
-						<span className="text-sm font-medium text-muted-foreground">
-							Update status:
-						</span>
-						{(
-							[
-								'SUBMITTED',
-								'REVIEW',
-								'APPROVED',
-								'REJECTED',
-							] as const
-						).map((s) => (
+						{app.status === 'SUBMITTED' && (
 							<Button
-								key={s}
 								size="sm"
-								variant={app.status === s ? 'default' : 'outline'}
-								disabled={
-									app.status === s || updateMutation.isPending
-								}
-								onClick={() =>
-									updateMutation.mutate({ id: app.id, status: s })
-								}
+								variant="outline"
+								disabled={updateMutation.isPending}
+								onClick={() => mutate({ id: app.id, status: 'REVIEW' })}
 							>
-								{STATUS_LABELS[s]}
+								Move to Review
 							</Button>
-						))}
+						)}
+						{app.status === 'REVIEW' && (
+							<>
+								<Button
+									size="sm"
+									disabled={updateMutation.isPending}
+									onClick={() => mutate({ id: app.id, status: 'APPROVED' })}
+								>
+									Approve
+								</Button>
+								<Button
+									size="sm"
+									variant="destructive"
+									disabled={updateMutation.isPending}
+									onClick={() => mutate({ id: app.id, status: 'REJECTED' })}
+								>
+									Reject
+								</Button>
+							</>
+						)}
+						{(app.status === 'APPROVED' || app.status === 'REJECTED') && (
+							<Button
+								size="sm"
+								variant="ghost"
+								className="text-muted-foreground"
+								disabled={updateMutation.isPending}
+								onClick={() => mutate({ id: app.id, status: 'SUBMITTED' })}
+							>
+								Reset to Submitted
+							</Button>
+						)}
 					</div>
 				</CardContent>
 			</Card>
@@ -190,26 +196,22 @@ export default function ApplicationDetailPage() {
 							No answers recorded for this application.
 						</p>
 					) : (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead className="w-1/2">
-										Question
-									</TableHead>
-									<TableHead>Answer</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{app.answers.map((answer) => (
-									<TableRow key={answer.id}>
-										<TableCell className="font-medium">
-											{answer.prompt}
-										</TableCell>
-										<TableCell>{answer.displayValue}</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
+						<dl className="divide-y">
+							{app.answers.map((answer) => (
+								<div key={answer.id} className="py-4 first:pt-0 last:pb-0">
+									<dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+										{answer.prompt}
+									</dt>
+									<dd className="mt-1 text-sm">
+										{answer.displayValue || (
+											<span className="italic text-muted-foreground">
+												No answer provided
+											</span>
+										)}
+									</dd>
+								</div>
+							))}
+						</dl>
 					)}
 				</CardContent>
 			</Card>

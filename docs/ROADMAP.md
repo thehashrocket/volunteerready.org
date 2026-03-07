@@ -44,23 +44,27 @@ This phase establishes the **multi-tenant architecture** and core data model.
 
 ---
 
-# Phase 2 — Volunteer Opportunities
+# Phase 2 — Volunteer Opportunities (In Progress)
 
 Goal: Allow organizations to publish volunteer opportunities and allow volunteers to discover them.
 
+Completed capabilities:
+
+- ✅ Opportunity creation and management (org admin UI at `/app/opportunities`)
+- ✅ Opportunity tags (free-text, per-opportunity, up to 10)
+- ✅ Status workflow: DRAFT → PUBLISHED → CLOSED
+- ✅ `staffProcedure` — STAFF+ role enforcement (OWNER/ADMIN/STAFF can manage; READONLY cannot)
+
 Planned capabilities:
 
-- Opportunity creation and management
 - Public opportunity listings
-- Opportunity categories and tags
 - Application-to-opportunity linking
 - Organization opportunity dashboards
 
-Potential entities:
+Key entities added:
 
 - VolunteerOpportunity
-- OpportunityCategory
-- OpportunityApplication
+- OpportunityTag
 
 This phase enables the **first public-facing discovery layer**.
 
