@@ -10,19 +10,25 @@ may develop in parallel.
 
 ---
 
-# Phase 1 — Volunteer Screening (Current Foundation)
+# Phase 1 — Volunteer Screening ✅ Complete
 
 Goal: Build the core infrastructure for organizations to accept and evaluate volunteer applications.
 
 Core capabilities:
 
-- Organization creation and management
-- Organization member roles and permissions
-- Volunteer application submission
-- Configurable screener questions
-- Volunteer answers storage
-- Audit logging
-- Feature flag support
+- ✅ Organization creation and management
+- ✅ Organization member roles and permissions
+- ✅ Volunteer application submission (public apply form at `/apply/[orgSlug]`)
+- ✅ Configurable screener questions (admin UI at `/app/screener`)
+- ✅ Volunteer answers storage
+- ✅ Audit logging
+- ✅ Feature flag support
+
+Admin capabilities built during this phase:
+
+- ✅ Screener question management — create, edit, toggle active/inactive, reorder, delete
+- ✅ Applications review — paginated list with status filter, enriched detail view, status update (Submitted → Review → Approved → Rejected)
+- ✅ Volunteer "my applications" view — status tracking and answer history for applicants
 
 Key entities:
 
