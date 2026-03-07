@@ -54,11 +54,8 @@ Completed capabilities:
 - ✅ Opportunity tags (free-text, per-opportunity, up to 10)
 - ✅ Status workflow: DRAFT → PUBLISHED → CLOSED
 - ✅ `staffProcedure` — STAFF+ role enforcement (OWNER/ADMIN/STAFF can manage; READONLY cannot)
-
 - ✅ Public opportunity listings (volunteer-facing at `/opportunities/[orgSlug]`)
-
-Planned capabilities:
-
+- ✅ Search, remote/in-person filter, and sort on public listings
 - ✅ Application-to-opportunity linking
 - ✅ Organization opportunity dashboards
 
@@ -75,19 +72,26 @@ This phase enables the **first public-facing discovery layer**.
 
 Goal: Match volunteers with opportunities using structured profile and preference data.
 
+Completed capabilities:
+
+- ✅ Opportunity skill requirements with REQUIRED/PREFERRED levels (demand side)
+- ✅ Requirements displayed on public opportunity listing cards
+
 Planned capabilities:
 
-- Volunteer interests and skills
-- Opportunity requirement matching
-- Search and filtering
-- Matching score algorithms
+- Volunteer interests and skills (supply side)
+- Match scoring algorithms
 - Personalized opportunity recommendations
+
+Key entities added:
+
+- OpportunityRequirement
+- RequirementLevel (enum: REQUIRED / PREFERRED)
 
 Potential entities:
 
 - VolunteerProfile
 - VolunteerSkill
-- OpportunityRequirement
 - MatchScore
 
 This phase introduces **intelligent discovery and matching**.
