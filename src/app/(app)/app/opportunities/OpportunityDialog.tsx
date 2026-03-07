@@ -25,6 +25,8 @@ import { trpc } from '@/lib/trpc/client';
 // Types
 // ---------------------------------------------------------------------------
 
+type Requirement = { skill: string; level: 'REQUIRED' | 'PREFERRED' };
+
 type Opportunity = {
 	id: string;
 	title: string;
@@ -37,6 +39,7 @@ type Opportunity = {
 	commitmentHours: number | null;
 	capacity: number | null;
 	tags: { id: string; name: string }[];
+	requirements: { id: string; skill: string; level: 'REQUIRED' | 'PREFERRED' }[];
 };
 
 interface OpportunityDialogProps {
@@ -159,6 +162,109 @@ function TagInput({
 }
 
 // ---------------------------------------------------------------------------
+// Requirement input
+// ---------------------------------------------------------------------------
+
+function RequirementInput({
+	requirements,
+	onChange,
+}: {
+	requirements: Requirement[];
+	onChange: (requirements: Requirement[]) => void;
+}) {
+	const [input, setInput] = useState('');
+	const inputRef = useRef<HTMLInputElement>(null);
+
+	function addRequirement(value: string) {
+		const skill = value.trim().replace(/,+$/, '').toLowerCase();
+		if (!skill || requirements.some((r) => r.skill === skill) || requirements.length >= 20)
+			return;
+		onChange([...requirements, { skill, level: 'REQUIRED' }]);
+		setInput('');
+	}
+
+	function toggleLevel(skill: string) {
+		onChange(
+			requirements.map((r) =>
+				r.skill === skill
+					? { ...r, level: r.level === 'REQUIRED' ? 'PREFERRED' : 'REQUIRED' }
+					: r,
+			),
+		);
+	}
+
+	function removeRequirement(skill: string) {
+		onChange(requirements.filter((r) => r.skill !== skill));
+	}
+
+	function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+		if (e.key === 'Enter' || e.key === ',') {
+			e.preventDefault();
+			addRequirement(input);
+		} else if (e.key === 'Backspace' && !input && requirements.length > 0) {
+			onChange(requirements.slice(0, -1));
+		}
+	}
+
+	return (
+		<div
+			className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm cursor-text"
+			onClick={() => inputRef.current?.focus()}
+			onKeyDown={undefined}
+		>
+			{requirements.map((req) => (
+				<span
+					key={req.skill}
+					className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium"
+				>
+					{req.skill}
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation();
+							toggleLevel(req.skill);
+						}}
+						className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
+							req.level === 'REQUIRED'
+								? 'bg-stone-800 text-white hover:bg-stone-700'
+								: 'bg-stone-200 text-stone-600 hover:bg-stone-300'
+						}`}
+					>
+						{req.level === 'REQUIRED' ? 'Required' : 'Preferred'}
+					</button>
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation();
+							removeRequirement(req.skill);
+						}}
+						className="text-muted-foreground hover:text-foreground"
+					>
+						<X className="h-3 w-3" />
+					</button>
+				</span>
+			))}
+			<input
+				ref={inputRef}
+				value={input}
+				onChange={(e) => {
+					const val = e.target.value;
+					if (val.endsWith(',')) {
+						addRequirement(val);
+					} else {
+						setInput(val);
+					}
+				}}
+				onKeyDown={handleKeyDown}
+				onBlur={() => addRequirement(input)}
+				placeholder={requirements.length === 0 ? 'Add a skill…' : ''}
+				className="flex-1 min-w-24 bg-transparent outline-none placeholder:text-muted-foreground"
+			/>
+		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -170,6 +276,7 @@ export function OpportunityDialog({
 	const qc = useQueryClient();
 	const isEdit = Boolean(opportunity);
 	const [tags, setTags] = useState<string[]>([]);
+	const [requirements, setRequirements] = useState<Requirement[]>([]);
 
 	const {
 		register,
@@ -205,6 +312,9 @@ export function OpportunityDialog({
 					capacity: opportunity.capacity ?? undefined,
 				});
 				setTags(opportunity.tags.map((t) => t.name));
+				setRequirements(
+					opportunity.requirements.map((r) => ({ skill: r.skill, level: r.level })),
+				);
 			} else {
 				reset({
 					title: '',
@@ -217,6 +327,7 @@ export function OpportunityDialog({
 					capacity: undefined,
 				});
 				setTags([]);
+				setRequirements([]);
 			}
 		}
 	}, [open, opportunity, reset]);
@@ -256,6 +367,7 @@ export function OpportunityDialog({
 			commitmentHours: values.commitmentHours ?? null,
 			capacity: values.capacity ?? null,
 			tags,
+			requirements,
 		};
 
 		if (isEdit && opportunity) {
@@ -399,6 +511,18 @@ export function OpportunityDialog({
 						<TagInput tags={tags} onChange={setTags} />
 						<p className="text-xs text-muted-foreground">
 							Press Enter or comma to add a tag.
+						</p>
+					</div>
+
+					{/* Requirements */}
+					<div className="space-y-2">
+						<Label>
+							Requirements{' '}
+							<span className="text-muted-foreground">(optional, up to 20)</span>
+						</Label>
+						<RequirementInput requirements={requirements} onChange={setRequirements} />
+						<p className="text-xs text-muted-foreground">
+							Press Enter or comma to add a skill. Click the badge to toggle Required / Preferred.
 						</p>
 					</div>
 

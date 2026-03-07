@@ -239,6 +239,11 @@ enum OpportunityStatus {
   CLOSED
 }
 
+enum RequirementLevel {
+  REQUIRED
+  PREFERRED
+}
+
 model VolunteerOpportunity {
   id              String            @id @default(cuid())
   orgId           String
@@ -254,8 +259,9 @@ model VolunteerOpportunity {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  organization Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  organization Organization             @relation(fields: [orgId], references: [id], onDelete: Cascade)
   tags         OpportunityTag[]
+  requirements OpportunityRequirement[]
   applications VolunteerApplication[]
 
   @@index([orgId])
@@ -270,5 +276,17 @@ model OpportunityTag {
   opportunity VolunteerOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
 
   @@unique([opportunityId, name])
+  @@index([opportunityId])
+}
+
+model OpportunityRequirement {
+  id            String           @id @default(cuid())
+  opportunityId String
+  skill         String
+  level         RequirementLevel @default(REQUIRED)
+
+  opportunity VolunteerOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, skill])
   @@index([opportunityId])
 }

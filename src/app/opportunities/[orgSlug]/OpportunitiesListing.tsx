@@ -4,27 +4,16 @@ import { Calendar, Clock, MapPin, Search, Users, Wifi } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { formatDateRange } from '@/lib/format-date';
+import type { listPublishedOpportunities } from '@/server/repositories/publicOpportunityRepo';
 
 // ---------------------------------------------------------------------------
-// Types (inferred from repo return shape)
+// Types — derived from the repo return shape so they stay in sync automatically
 // ---------------------------------------------------------------------------
 
-type Tag = { id: string; name: string };
-
-type Opportunity = {
-	id: string;
-	title: string;
-	description: string;
-	location: string | null;
-	isRemote: boolean;
-	startDate: Date | string | null;
-	endDate: Date | string | null;
-	commitmentHours: number | null;
-	capacity: number | null;
-	tags: Tag[];
-};
-
-type Org = { id: string; name: string; slug: string };
+type ListResult = NonNullable<Awaited<ReturnType<typeof listPublishedOpportunities>>>;
+type Opportunity = ListResult['opportunities'][number];
+type Org = ListResult['org'];
+type Requirement = Opportunity['requirements'][number];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -44,6 +33,60 @@ function tagColor(name: string): string {
 	for (let i = 0; i < name.length; i++)
 		hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
 	return TAG_PALETTES[Math.abs(hash) % TAG_PALETTES.length];
+}
+
+// ---------------------------------------------------------------------------
+// RequirementChips
+// ---------------------------------------------------------------------------
+
+function RequirementChips({
+	requirements,
+	separator,
+}: {
+	requirements: Requirement[];
+	separator: boolean;
+}) {
+	if (requirements.length === 0) return null;
+	const required = requirements.filter((r) => r.level === 'REQUIRED');
+	const preferred = requirements.filter((r) => r.level === 'PREFERRED');
+	return (
+		<div className={`mb-5 pt-3 space-y-2.5 ${separator ? 'border-t border-stone-100' : ''}`}>
+			{required.length > 0 && (
+				<div>
+					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+						Skills needed
+					</p>
+					<div className="flex flex-wrap gap-1.5">
+						{required.map((r) => (
+							<span
+								key={r.id}
+								className="inline-flex items-center rounded-full bg-stone-800 px-2.5 py-0.5 text-xs font-medium text-white"
+							>
+								{r.skill}
+							</span>
+						))}
+					</div>
+				</div>
+			)}
+			{preferred.length > 0 && (
+				<div>
+					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+						Nice to have
+					</p>
+					<div className="flex flex-wrap gap-1.5">
+						{preferred.map((r) => (
+							<span
+								key={r.id}
+								className="inline-flex items-center rounded-full bg-stone-50 px-2.5 py-0.5 text-xs font-medium text-stone-500 ring-1 ring-stone-200"
+							>
+								{r.skill}
+							</span>
+						))}
+					</div>
+				</div>
+			)}
+		</div>
+	);
 }
 
 // ---------------------------------------------------------------------------
@@ -113,7 +156,7 @@ function OpportunityCard({
 
 			{/* Tags */}
 			{opp.tags.some((t) => t.name) && (
-				<div className="mb-5 flex flex-wrap gap-1.5">
+				<div className="mb-4 flex flex-wrap gap-1.5">
 					{opp.tags
 						.filter((tag) => tag.name)
 						.map((tag) => (
@@ -126,6 +169,17 @@ function OpportunityCard({
 						))}
 				</div>
 			)}
+
+			{/* Requirements */}
+			<RequirementChips
+				requirements={opp.requirements}
+				separator={
+					!!dateRange ||
+					opp.commitmentHours != null ||
+					opp.capacity != null ||
+					opp.tags.some((t) => t.name)
+				}
+			/>
 
 			<Link
 				href={`/apply/${orgSlug}?opportunityId=${opp.id}`}

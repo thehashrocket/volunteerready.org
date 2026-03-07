@@ -50,6 +50,7 @@ export async function listPublishedOpportunities(orgSlug: string) {
 			commitmentHours: true,
 			capacity: true,
 			tags: { select: { id: true, name: true } },
+			requirements: { select: { id: true, skill: true, level: true } },
 		},
 		orderBy: { createdAt: 'desc' },
 	});

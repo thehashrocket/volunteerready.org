@@ -88,6 +88,11 @@ export type VolunteerOpportunity = $Result.DefaultSelection<Prisma.$VolunteerOpp
  * 
  */
 export type OpportunityTag = $Result.DefaultSelection<Prisma.$OpportunityTagPayload>
+/**
+ * Model OpportunityRequirement
+ * 
+ */
+export type OpportunityRequirement = $Result.DefaultSelection<Prisma.$OpportunityRequirementPayload>
 
 /**
  * Enums
@@ -141,6 +146,14 @@ export const OpportunityStatus: {
 
 export type OpportunityStatus = (typeof OpportunityStatus)[keyof typeof OpportunityStatus]
 
+
+export const RequirementLevel: {
+  REQUIRED: 'REQUIRED',
+  PREFERRED: 'PREFERRED'
+};
+
+export type RequirementLevel = (typeof RequirementLevel)[keyof typeof RequirementLevel]
+
 }
 
 export type ApplicationStatus = $Enums.ApplicationStatus
@@ -162,6 +175,10 @@ export const Role: typeof $Enums.Role
 export type OpportunityStatus = $Enums.OpportunityStatus
 
 export const OpportunityStatus: typeof $Enums.OpportunityStatus
+
+export type RequirementLevel = $Enums.RequirementLevel
+
+export const RequirementLevel: typeof $Enums.RequirementLevel
 
 /**
  * ##  Prisma Client ʲˢ
@@ -429,6 +446,16 @@ export class PrismaClient<
     * ```
     */
   get opportunityTag(): Prisma.OpportunityTagDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.opportunityRequirement`: Exposes CRUD operations for the **OpportunityRequirement** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more OpportunityRequirements
+    * const opportunityRequirements = await prisma.opportunityRequirement.findMany()
+    * ```
+    */
+  get opportunityRequirement(): Prisma.OpportunityRequirementDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -877,7 +904,8 @@ export namespace Prisma {
     ScreenerQuestion: 'ScreenerQuestion',
     OrganizationInvitation: 'OrganizationInvitation',
     VolunteerOpportunity: 'VolunteerOpportunity',
-    OpportunityTag: 'OpportunityTag'
+    OpportunityTag: 'OpportunityTag',
+    OpportunityRequirement: 'OpportunityRequirement'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -893,7 +921,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2007,6 +2035,80 @@ export namespace Prisma {
           }
         }
       }
+      OpportunityRequirement: {
+        payload: Prisma.$OpportunityRequirementPayload<ExtArgs>
+        fields: Prisma.OpportunityRequirementFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.OpportunityRequirementFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OpportunityRequirementFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload>
+          }
+          findFirst: {
+            args: Prisma.OpportunityRequirementFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OpportunityRequirementFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload>
+          }
+          findMany: {
+            args: Prisma.OpportunityRequirementFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload>[]
+          }
+          create: {
+            args: Prisma.OpportunityRequirementCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload>
+          }
+          createMany: {
+            args: Prisma.OpportunityRequirementCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OpportunityRequirementCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload>[]
+          }
+          delete: {
+            args: Prisma.OpportunityRequirementDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload>
+          }
+          update: {
+            args: Prisma.OpportunityRequirementUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload>
+          }
+          deleteMany: {
+            args: Prisma.OpportunityRequirementDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OpportunityRequirementUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.OpportunityRequirementUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload>[]
+          }
+          upsert: {
+            args: Prisma.OpportunityRequirementUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OpportunityRequirementPayload>
+          }
+          aggregate: {
+            args: Prisma.OpportunityRequirementAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOpportunityRequirement>
+          }
+          groupBy: {
+            args: Prisma.OpportunityRequirementGroupByArgs<ExtArgs>
+            result: $Utils.Optional<OpportunityRequirementGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OpportunityRequirementCountArgs<ExtArgs>
+            result: $Utils.Optional<OpportunityRequirementCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2130,6 +2232,7 @@ export namespace Prisma {
     organizationInvitation?: OrganizationInvitationOmit
     volunteerOpportunity?: VolunteerOpportunityOmit
     opportunityTag?: OpportunityTagOmit
+    opportunityRequirement?: OpportunityRequirementOmit
   }
 
   /* Types for Logging */
@@ -2403,11 +2506,13 @@ export namespace Prisma {
 
   export type VolunteerOpportunityCountOutputType = {
     tags: number
+    requirements: number
     applications: number
   }
 
   export type VolunteerOpportunityCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tags?: boolean | VolunteerOpportunityCountOutputTypeCountTagsArgs
+    requirements?: boolean | VolunteerOpportunityCountOutputTypeCountRequirementsArgs
     applications?: boolean | VolunteerOpportunityCountOutputTypeCountApplicationsArgs
   }
 
@@ -2427,6 +2532,13 @@ export namespace Prisma {
    */
   export type VolunteerOpportunityCountOutputTypeCountTagsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OpportunityTagWhereInput
+  }
+
+  /**
+   * VolunteerOpportunityCountOutputType without action
+   */
+  export type VolunteerOpportunityCountOutputTypeCountRequirementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OpportunityRequirementWhereInput
   }
 
   /**
@@ -17175,6 +17287,7 @@ export namespace Prisma {
     updatedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     tags?: boolean | VolunteerOpportunity$tagsArgs<ExtArgs>
+    requirements?: boolean | VolunteerOpportunity$requirementsArgs<ExtArgs>
     applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerOpportunity"]>
@@ -17233,6 +17346,7 @@ export namespace Prisma {
   export type VolunteerOpportunityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     tags?: boolean | VolunteerOpportunity$tagsArgs<ExtArgs>
+    requirements?: boolean | VolunteerOpportunity$requirementsArgs<ExtArgs>
     applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -17248,6 +17362,7 @@ export namespace Prisma {
     objects: {
       organization: Prisma.$OrganizationPayload<ExtArgs>
       tags: Prisma.$OpportunityTagPayload<ExtArgs>[]
+      requirements: Prisma.$OpportunityRequirementPayload<ExtArgs>[]
       applications: Prisma.$VolunteerApplicationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -17660,6 +17775,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     tags<T extends VolunteerOpportunity$tagsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    requirements<T extends VolunteerOpportunity$requirementsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$requirementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     applications<T extends VolunteerOpportunity$applicationsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$applicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -18120,6 +18236,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: OpportunityTagScalarFieldEnum | OpportunityTagScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerOpportunity.requirements
+   */
+  export type VolunteerOpportunity$requirementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    where?: OpportunityRequirementWhereInput
+    orderBy?: OpportunityRequirementOrderByWithRelationInput | OpportunityRequirementOrderByWithRelationInput[]
+    cursor?: OpportunityRequirementWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OpportunityRequirementScalarFieldEnum | OpportunityRequirementScalarFieldEnum[]
   }
 
   /**
@@ -19198,6 +19338,1051 @@ export namespace Prisma {
 
 
   /**
+   * Model OpportunityRequirement
+   */
+
+  export type AggregateOpportunityRequirement = {
+    _count: OpportunityRequirementCountAggregateOutputType | null
+    _min: OpportunityRequirementMinAggregateOutputType | null
+    _max: OpportunityRequirementMaxAggregateOutputType | null
+  }
+
+  export type OpportunityRequirementMinAggregateOutputType = {
+    id: string | null
+    opportunityId: string | null
+    skill: string | null
+    level: $Enums.RequirementLevel | null
+  }
+
+  export type OpportunityRequirementMaxAggregateOutputType = {
+    id: string | null
+    opportunityId: string | null
+    skill: string | null
+    level: $Enums.RequirementLevel | null
+  }
+
+  export type OpportunityRequirementCountAggregateOutputType = {
+    id: number
+    opportunityId: number
+    skill: number
+    level: number
+    _all: number
+  }
+
+
+  export type OpportunityRequirementMinAggregateInputType = {
+    id?: true
+    opportunityId?: true
+    skill?: true
+    level?: true
+  }
+
+  export type OpportunityRequirementMaxAggregateInputType = {
+    id?: true
+    opportunityId?: true
+    skill?: true
+    level?: true
+  }
+
+  export type OpportunityRequirementCountAggregateInputType = {
+    id?: true
+    opportunityId?: true
+    skill?: true
+    level?: true
+    _all?: true
+  }
+
+  export type OpportunityRequirementAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OpportunityRequirement to aggregate.
+     */
+    where?: OpportunityRequirementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OpportunityRequirements to fetch.
+     */
+    orderBy?: OpportunityRequirementOrderByWithRelationInput | OpportunityRequirementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: OpportunityRequirementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OpportunityRequirements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OpportunityRequirements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OpportunityRequirements
+    **/
+    _count?: true | OpportunityRequirementCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: OpportunityRequirementMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: OpportunityRequirementMaxAggregateInputType
+  }
+
+  export type GetOpportunityRequirementAggregateType<T extends OpportunityRequirementAggregateArgs> = {
+        [P in keyof T & keyof AggregateOpportunityRequirement]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOpportunityRequirement[P]>
+      : GetScalarType<T[P], AggregateOpportunityRequirement[P]>
+  }
+
+
+
+
+  export type OpportunityRequirementGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OpportunityRequirementWhereInput
+    orderBy?: OpportunityRequirementOrderByWithAggregationInput | OpportunityRequirementOrderByWithAggregationInput[]
+    by: OpportunityRequirementScalarFieldEnum[] | OpportunityRequirementScalarFieldEnum
+    having?: OpportunityRequirementScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: OpportunityRequirementCountAggregateInputType | true
+    _min?: OpportunityRequirementMinAggregateInputType
+    _max?: OpportunityRequirementMaxAggregateInputType
+  }
+
+  export type OpportunityRequirementGroupByOutputType = {
+    id: string
+    opportunityId: string
+    skill: string
+    level: $Enums.RequirementLevel
+    _count: OpportunityRequirementCountAggregateOutputType | null
+    _min: OpportunityRequirementMinAggregateOutputType | null
+    _max: OpportunityRequirementMaxAggregateOutputType | null
+  }
+
+  type GetOpportunityRequirementGroupByPayload<T extends OpportunityRequirementGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<OpportunityRequirementGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof OpportunityRequirementGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OpportunityRequirementGroupByOutputType[P]>
+            : GetScalarType<T[P], OpportunityRequirementGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type OpportunityRequirementSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    opportunityId?: boolean
+    skill?: boolean
+    level?: boolean
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["opportunityRequirement"]>
+
+  export type OpportunityRequirementSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    opportunityId?: boolean
+    skill?: boolean
+    level?: boolean
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["opportunityRequirement"]>
+
+  export type OpportunityRequirementSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    opportunityId?: boolean
+    skill?: boolean
+    level?: boolean
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["opportunityRequirement"]>
+
+  export type OpportunityRequirementSelectScalar = {
+    id?: boolean
+    opportunityId?: boolean
+    skill?: boolean
+    level?: boolean
+  }
+
+  export type OpportunityRequirementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "opportunityId" | "skill" | "level", ExtArgs["result"]["opportunityRequirement"]>
+  export type OpportunityRequirementInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }
+  export type OpportunityRequirementIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }
+  export type OpportunityRequirementIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }
+
+  export type $OpportunityRequirementPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "OpportunityRequirement"
+    objects: {
+      opportunity: Prisma.$VolunteerOpportunityPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      opportunityId: string
+      skill: string
+      level: $Enums.RequirementLevel
+    }, ExtArgs["result"]["opportunityRequirement"]>
+    composites: {}
+  }
+
+  type OpportunityRequirementGetPayload<S extends boolean | null | undefined | OpportunityRequirementDefaultArgs> = $Result.GetResult<Prisma.$OpportunityRequirementPayload, S>
+
+  type OpportunityRequirementCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<OpportunityRequirementFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: OpportunityRequirementCountAggregateInputType | true
+    }
+
+  export interface OpportunityRequirementDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['OpportunityRequirement'], meta: { name: 'OpportunityRequirement' } }
+    /**
+     * Find zero or one OpportunityRequirement that matches the filter.
+     * @param {OpportunityRequirementFindUniqueArgs} args - Arguments to find a OpportunityRequirement
+     * @example
+     * // Get one OpportunityRequirement
+     * const opportunityRequirement = await prisma.opportunityRequirement.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends OpportunityRequirementFindUniqueArgs>(args: SelectSubset<T, OpportunityRequirementFindUniqueArgs<ExtArgs>>): Prisma__OpportunityRequirementClient<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one OpportunityRequirement that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {OpportunityRequirementFindUniqueOrThrowArgs} args - Arguments to find a OpportunityRequirement
+     * @example
+     * // Get one OpportunityRequirement
+     * const opportunityRequirement = await prisma.opportunityRequirement.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends OpportunityRequirementFindUniqueOrThrowArgs>(args: SelectSubset<T, OpportunityRequirementFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OpportunityRequirementClient<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OpportunityRequirement that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OpportunityRequirementFindFirstArgs} args - Arguments to find a OpportunityRequirement
+     * @example
+     * // Get one OpportunityRequirement
+     * const opportunityRequirement = await prisma.opportunityRequirement.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends OpportunityRequirementFindFirstArgs>(args?: SelectSubset<T, OpportunityRequirementFindFirstArgs<ExtArgs>>): Prisma__OpportunityRequirementClient<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OpportunityRequirement that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OpportunityRequirementFindFirstOrThrowArgs} args - Arguments to find a OpportunityRequirement
+     * @example
+     * // Get one OpportunityRequirement
+     * const opportunityRequirement = await prisma.opportunityRequirement.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends OpportunityRequirementFindFirstOrThrowArgs>(args?: SelectSubset<T, OpportunityRequirementFindFirstOrThrowArgs<ExtArgs>>): Prisma__OpportunityRequirementClient<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more OpportunityRequirements that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OpportunityRequirementFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all OpportunityRequirements
+     * const opportunityRequirements = await prisma.opportunityRequirement.findMany()
+     * 
+     * // Get first 10 OpportunityRequirements
+     * const opportunityRequirements = await prisma.opportunityRequirement.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const opportunityRequirementWithIdOnly = await prisma.opportunityRequirement.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends OpportunityRequirementFindManyArgs>(args?: SelectSubset<T, OpportunityRequirementFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a OpportunityRequirement.
+     * @param {OpportunityRequirementCreateArgs} args - Arguments to create a OpportunityRequirement.
+     * @example
+     * // Create one OpportunityRequirement
+     * const OpportunityRequirement = await prisma.opportunityRequirement.create({
+     *   data: {
+     *     // ... data to create a OpportunityRequirement
+     *   }
+     * })
+     * 
+     */
+    create<T extends OpportunityRequirementCreateArgs>(args: SelectSubset<T, OpportunityRequirementCreateArgs<ExtArgs>>): Prisma__OpportunityRequirementClient<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many OpportunityRequirements.
+     * @param {OpportunityRequirementCreateManyArgs} args - Arguments to create many OpportunityRequirements.
+     * @example
+     * // Create many OpportunityRequirements
+     * const opportunityRequirement = await prisma.opportunityRequirement.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends OpportunityRequirementCreateManyArgs>(args?: SelectSubset<T, OpportunityRequirementCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many OpportunityRequirements and returns the data saved in the database.
+     * @param {OpportunityRequirementCreateManyAndReturnArgs} args - Arguments to create many OpportunityRequirements.
+     * @example
+     * // Create many OpportunityRequirements
+     * const opportunityRequirement = await prisma.opportunityRequirement.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many OpportunityRequirements and only return the `id`
+     * const opportunityRequirementWithIdOnly = await prisma.opportunityRequirement.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends OpportunityRequirementCreateManyAndReturnArgs>(args?: SelectSubset<T, OpportunityRequirementCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a OpportunityRequirement.
+     * @param {OpportunityRequirementDeleteArgs} args - Arguments to delete one OpportunityRequirement.
+     * @example
+     * // Delete one OpportunityRequirement
+     * const OpportunityRequirement = await prisma.opportunityRequirement.delete({
+     *   where: {
+     *     // ... filter to delete one OpportunityRequirement
+     *   }
+     * })
+     * 
+     */
+    delete<T extends OpportunityRequirementDeleteArgs>(args: SelectSubset<T, OpportunityRequirementDeleteArgs<ExtArgs>>): Prisma__OpportunityRequirementClient<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one OpportunityRequirement.
+     * @param {OpportunityRequirementUpdateArgs} args - Arguments to update one OpportunityRequirement.
+     * @example
+     * // Update one OpportunityRequirement
+     * const opportunityRequirement = await prisma.opportunityRequirement.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends OpportunityRequirementUpdateArgs>(args: SelectSubset<T, OpportunityRequirementUpdateArgs<ExtArgs>>): Prisma__OpportunityRequirementClient<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more OpportunityRequirements.
+     * @param {OpportunityRequirementDeleteManyArgs} args - Arguments to filter OpportunityRequirements to delete.
+     * @example
+     * // Delete a few OpportunityRequirements
+     * const { count } = await prisma.opportunityRequirement.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends OpportunityRequirementDeleteManyArgs>(args?: SelectSubset<T, OpportunityRequirementDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OpportunityRequirements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OpportunityRequirementUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many OpportunityRequirements
+     * const opportunityRequirement = await prisma.opportunityRequirement.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends OpportunityRequirementUpdateManyArgs>(args: SelectSubset<T, OpportunityRequirementUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OpportunityRequirements and returns the data updated in the database.
+     * @param {OpportunityRequirementUpdateManyAndReturnArgs} args - Arguments to update many OpportunityRequirements.
+     * @example
+     * // Update many OpportunityRequirements
+     * const opportunityRequirement = await prisma.opportunityRequirement.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more OpportunityRequirements and only return the `id`
+     * const opportunityRequirementWithIdOnly = await prisma.opportunityRequirement.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends OpportunityRequirementUpdateManyAndReturnArgs>(args: SelectSubset<T, OpportunityRequirementUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one OpportunityRequirement.
+     * @param {OpportunityRequirementUpsertArgs} args - Arguments to update or create a OpportunityRequirement.
+     * @example
+     * // Update or create a OpportunityRequirement
+     * const opportunityRequirement = await prisma.opportunityRequirement.upsert({
+     *   create: {
+     *     // ... data to create a OpportunityRequirement
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the OpportunityRequirement we want to update
+     *   }
+     * })
+     */
+    upsert<T extends OpportunityRequirementUpsertArgs>(args: SelectSubset<T, OpportunityRequirementUpsertArgs<ExtArgs>>): Prisma__OpportunityRequirementClient<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of OpportunityRequirements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OpportunityRequirementCountArgs} args - Arguments to filter OpportunityRequirements to count.
+     * @example
+     * // Count the number of OpportunityRequirements
+     * const count = await prisma.opportunityRequirement.count({
+     *   where: {
+     *     // ... the filter for the OpportunityRequirements we want to count
+     *   }
+     * })
+    **/
+    count<T extends OpportunityRequirementCountArgs>(
+      args?: Subset<T, OpportunityRequirementCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OpportunityRequirementCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a OpportunityRequirement.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OpportunityRequirementAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends OpportunityRequirementAggregateArgs>(args: Subset<T, OpportunityRequirementAggregateArgs>): Prisma.PrismaPromise<GetOpportunityRequirementAggregateType<T>>
+
+    /**
+     * Group by OpportunityRequirement.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OpportunityRequirementGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends OpportunityRequirementGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: OpportunityRequirementGroupByArgs['orderBy'] }
+        : { orderBy?: OpportunityRequirementGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, OpportunityRequirementGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOpportunityRequirementGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the OpportunityRequirement model
+   */
+  readonly fields: OpportunityRequirementFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for OpportunityRequirement.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__OpportunityRequirementClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    opportunity<T extends VolunteerOpportunityDefaultArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunityDefaultArgs<ExtArgs>>): Prisma__VolunteerOpportunityClient<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the OpportunityRequirement model
+   */
+  interface OpportunityRequirementFieldRefs {
+    readonly id: FieldRef<"OpportunityRequirement", 'String'>
+    readonly opportunityId: FieldRef<"OpportunityRequirement", 'String'>
+    readonly skill: FieldRef<"OpportunityRequirement", 'String'>
+    readonly level: FieldRef<"OpportunityRequirement", 'RequirementLevel'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * OpportunityRequirement findUnique
+   */
+  export type OpportunityRequirementFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    /**
+     * Filter, which OpportunityRequirement to fetch.
+     */
+    where: OpportunityRequirementWhereUniqueInput
+  }
+
+  /**
+   * OpportunityRequirement findUniqueOrThrow
+   */
+  export type OpportunityRequirementFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    /**
+     * Filter, which OpportunityRequirement to fetch.
+     */
+    where: OpportunityRequirementWhereUniqueInput
+  }
+
+  /**
+   * OpportunityRequirement findFirst
+   */
+  export type OpportunityRequirementFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    /**
+     * Filter, which OpportunityRequirement to fetch.
+     */
+    where?: OpportunityRequirementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OpportunityRequirements to fetch.
+     */
+    orderBy?: OpportunityRequirementOrderByWithRelationInput | OpportunityRequirementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OpportunityRequirements.
+     */
+    cursor?: OpportunityRequirementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OpportunityRequirements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OpportunityRequirements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OpportunityRequirements.
+     */
+    distinct?: OpportunityRequirementScalarFieldEnum | OpportunityRequirementScalarFieldEnum[]
+  }
+
+  /**
+   * OpportunityRequirement findFirstOrThrow
+   */
+  export type OpportunityRequirementFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    /**
+     * Filter, which OpportunityRequirement to fetch.
+     */
+    where?: OpportunityRequirementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OpportunityRequirements to fetch.
+     */
+    orderBy?: OpportunityRequirementOrderByWithRelationInput | OpportunityRequirementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OpportunityRequirements.
+     */
+    cursor?: OpportunityRequirementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OpportunityRequirements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OpportunityRequirements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OpportunityRequirements.
+     */
+    distinct?: OpportunityRequirementScalarFieldEnum | OpportunityRequirementScalarFieldEnum[]
+  }
+
+  /**
+   * OpportunityRequirement findMany
+   */
+  export type OpportunityRequirementFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    /**
+     * Filter, which OpportunityRequirements to fetch.
+     */
+    where?: OpportunityRequirementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OpportunityRequirements to fetch.
+     */
+    orderBy?: OpportunityRequirementOrderByWithRelationInput | OpportunityRequirementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OpportunityRequirements.
+     */
+    cursor?: OpportunityRequirementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OpportunityRequirements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OpportunityRequirements.
+     */
+    skip?: number
+    distinct?: OpportunityRequirementScalarFieldEnum | OpportunityRequirementScalarFieldEnum[]
+  }
+
+  /**
+   * OpportunityRequirement create
+   */
+  export type OpportunityRequirementCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    /**
+     * The data needed to create a OpportunityRequirement.
+     */
+    data: XOR<OpportunityRequirementCreateInput, OpportunityRequirementUncheckedCreateInput>
+  }
+
+  /**
+   * OpportunityRequirement createMany
+   */
+  export type OpportunityRequirementCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OpportunityRequirements.
+     */
+    data: OpportunityRequirementCreateManyInput | OpportunityRequirementCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OpportunityRequirement createManyAndReturn
+   */
+  export type OpportunityRequirementCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * The data used to create many OpportunityRequirements.
+     */
+    data: OpportunityRequirementCreateManyInput | OpportunityRequirementCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OpportunityRequirement update
+   */
+  export type OpportunityRequirementUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    /**
+     * The data needed to update a OpportunityRequirement.
+     */
+    data: XOR<OpportunityRequirementUpdateInput, OpportunityRequirementUncheckedUpdateInput>
+    /**
+     * Choose, which OpportunityRequirement to update.
+     */
+    where: OpportunityRequirementWhereUniqueInput
+  }
+
+  /**
+   * OpportunityRequirement updateMany
+   */
+  export type OpportunityRequirementUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update OpportunityRequirements.
+     */
+    data: XOR<OpportunityRequirementUpdateManyMutationInput, OpportunityRequirementUncheckedUpdateManyInput>
+    /**
+     * Filter which OpportunityRequirements to update
+     */
+    where?: OpportunityRequirementWhereInput
+    /**
+     * Limit how many OpportunityRequirements to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * OpportunityRequirement updateManyAndReturn
+   */
+  export type OpportunityRequirementUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * The data used to update OpportunityRequirements.
+     */
+    data: XOR<OpportunityRequirementUpdateManyMutationInput, OpportunityRequirementUncheckedUpdateManyInput>
+    /**
+     * Filter which OpportunityRequirements to update
+     */
+    where?: OpportunityRequirementWhereInput
+    /**
+     * Limit how many OpportunityRequirements to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OpportunityRequirement upsert
+   */
+  export type OpportunityRequirementUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    /**
+     * The filter to search for the OpportunityRequirement to update in case it exists.
+     */
+    where: OpportunityRequirementWhereUniqueInput
+    /**
+     * In case the OpportunityRequirement found by the `where` argument doesn't exist, create a new OpportunityRequirement with this data.
+     */
+    create: XOR<OpportunityRequirementCreateInput, OpportunityRequirementUncheckedCreateInput>
+    /**
+     * In case the OpportunityRequirement was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<OpportunityRequirementUpdateInput, OpportunityRequirementUncheckedUpdateInput>
+  }
+
+  /**
+   * OpportunityRequirement delete
+   */
+  export type OpportunityRequirementDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    /**
+     * Filter which OpportunityRequirement to delete.
+     */
+    where: OpportunityRequirementWhereUniqueInput
+  }
+
+  /**
+   * OpportunityRequirement deleteMany
+   */
+  export type OpportunityRequirementDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OpportunityRequirements to delete
+     */
+    where?: OpportunityRequirementWhereInput
+    /**
+     * Limit how many OpportunityRequirements to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * OpportunityRequirement without action
+   */
+  export type OpportunityRequirementDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -19406,6 +20591,16 @@ export namespace Prisma {
   export type OpportunityTagScalarFieldEnum = (typeof OpportunityTagScalarFieldEnum)[keyof typeof OpportunityTagScalarFieldEnum]
 
 
+  export const OpportunityRequirementScalarFieldEnum: {
+    id: 'id',
+    opportunityId: 'opportunityId',
+    skill: 'skill',
+    level: 'level'
+  };
+
+  export type OpportunityRequirementScalarFieldEnum = (typeof OpportunityRequirementScalarFieldEnum)[keyof typeof OpportunityRequirementScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -19603,6 +20798,20 @@ export namespace Prisma {
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'RequirementLevel'
+   */
+  export type EnumRequirementLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RequirementLevel'>
+    
+
+
+  /**
+   * Reference to a field of type 'RequirementLevel[]'
+   */
+  export type ListEnumRequirementLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RequirementLevel[]'>
     
   /**
    * Deep Input Types
@@ -20517,6 +21726,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VolunteerOpportunity"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     tags?: OpportunityTagListRelationFilter
+    requirements?: OpportunityRequirementListRelationFilter
     applications?: VolunteerApplicationListRelationFilter
   }
 
@@ -20536,6 +21746,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     organization?: OrganizationOrderByWithRelationInput
     tags?: OpportunityTagOrderByRelationAggregateInput
+    requirements?: OpportunityRequirementOrderByRelationAggregateInput
     applications?: VolunteerApplicationOrderByRelationAggregateInput
   }
 
@@ -20558,6 +21769,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VolunteerOpportunity"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     tags?: OpportunityTagListRelationFilter
+    requirements?: OpportunityRequirementListRelationFilter
     applications?: VolunteerApplicationListRelationFilter
   }, "id">
 
@@ -20645,6 +21857,57 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"OpportunityTag"> | string
     opportunityId?: StringWithAggregatesFilter<"OpportunityTag"> | string
     name?: StringWithAggregatesFilter<"OpportunityTag"> | string
+  }
+
+  export type OpportunityRequirementWhereInput = {
+    AND?: OpportunityRequirementWhereInput | OpportunityRequirementWhereInput[]
+    OR?: OpportunityRequirementWhereInput[]
+    NOT?: OpportunityRequirementWhereInput | OpportunityRequirementWhereInput[]
+    id?: StringFilter<"OpportunityRequirement"> | string
+    opportunityId?: StringFilter<"OpportunityRequirement"> | string
+    skill?: StringFilter<"OpportunityRequirement"> | string
+    level?: EnumRequirementLevelFilter<"OpportunityRequirement"> | $Enums.RequirementLevel
+    opportunity?: XOR<VolunteerOpportunityScalarRelationFilter, VolunteerOpportunityWhereInput>
+  }
+
+  export type OpportunityRequirementOrderByWithRelationInput = {
+    id?: SortOrder
+    opportunityId?: SortOrder
+    skill?: SortOrder
+    level?: SortOrder
+    opportunity?: VolunteerOpportunityOrderByWithRelationInput
+  }
+
+  export type OpportunityRequirementWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    opportunityId_skill?: OpportunityRequirementOpportunityIdSkillCompoundUniqueInput
+    AND?: OpportunityRequirementWhereInput | OpportunityRequirementWhereInput[]
+    OR?: OpportunityRequirementWhereInput[]
+    NOT?: OpportunityRequirementWhereInput | OpportunityRequirementWhereInput[]
+    opportunityId?: StringFilter<"OpportunityRequirement"> | string
+    skill?: StringFilter<"OpportunityRequirement"> | string
+    level?: EnumRequirementLevelFilter<"OpportunityRequirement"> | $Enums.RequirementLevel
+    opportunity?: XOR<VolunteerOpportunityScalarRelationFilter, VolunteerOpportunityWhereInput>
+  }, "id" | "opportunityId_skill">
+
+  export type OpportunityRequirementOrderByWithAggregationInput = {
+    id?: SortOrder
+    opportunityId?: SortOrder
+    skill?: SortOrder
+    level?: SortOrder
+    _count?: OpportunityRequirementCountOrderByAggregateInput
+    _max?: OpportunityRequirementMaxOrderByAggregateInput
+    _min?: OpportunityRequirementMinOrderByAggregateInput
+  }
+
+  export type OpportunityRequirementScalarWhereWithAggregatesInput = {
+    AND?: OpportunityRequirementScalarWhereWithAggregatesInput | OpportunityRequirementScalarWhereWithAggregatesInput[]
+    OR?: OpportunityRequirementScalarWhereWithAggregatesInput[]
+    NOT?: OpportunityRequirementScalarWhereWithAggregatesInput | OpportunityRequirementScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"OpportunityRequirement"> | string
+    opportunityId?: StringWithAggregatesFilter<"OpportunityRequirement"> | string
+    skill?: StringWithAggregatesFilter<"OpportunityRequirement"> | string
+    level?: EnumRequirementLevelWithAggregatesFilter<"OpportunityRequirement"> | $Enums.RequirementLevel
   }
 
   export type UserCreateInput = {
@@ -21600,6 +22863,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
   }
 
@@ -21618,6 +22882,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
@@ -21636,6 +22901,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -21654,6 +22920,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -21743,6 +23010,54 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     opportunityId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type OpportunityRequirementCreateInput = {
+    id?: string
+    skill: string
+    level?: $Enums.RequirementLevel
+    opportunity: VolunteerOpportunityCreateNestedOneWithoutRequirementsInput
+  }
+
+  export type OpportunityRequirementUncheckedCreateInput = {
+    id?: string
+    opportunityId: string
+    skill: string
+    level?: $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+    opportunity?: VolunteerOpportunityUpdateOneRequiredWithoutRequirementsNestedInput
+  }
+
+  export type OpportunityRequirementUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementCreateManyInput = {
+    id?: string
+    opportunityId: string
+    skill: string
+    level?: $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -22668,7 +23983,17 @@ export namespace Prisma {
     none?: OpportunityTagWhereInput
   }
 
+  export type OpportunityRequirementListRelationFilter = {
+    every?: OpportunityRequirementWhereInput
+    some?: OpportunityRequirementWhereInput
+    none?: OpportunityRequirementWhereInput
+  }
+
   export type OpportunityTagOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type OpportunityRequirementOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -22782,6 +24107,49 @@ export namespace Prisma {
     id?: SortOrder
     opportunityId?: SortOrder
     name?: SortOrder
+  }
+
+  export type EnumRequirementLevelFilter<$PrismaModel = never> = {
+    equals?: $Enums.RequirementLevel | EnumRequirementLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.RequirementLevel[] | ListEnumRequirementLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RequirementLevel[] | ListEnumRequirementLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumRequirementLevelFilter<$PrismaModel> | $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementOpportunityIdSkillCompoundUniqueInput = {
+    opportunityId: string
+    skill: string
+  }
+
+  export type OpportunityRequirementCountOrderByAggregateInput = {
+    id?: SortOrder
+    opportunityId?: SortOrder
+    skill?: SortOrder
+    level?: SortOrder
+  }
+
+  export type OpportunityRequirementMaxOrderByAggregateInput = {
+    id?: SortOrder
+    opportunityId?: SortOrder
+    skill?: SortOrder
+    level?: SortOrder
+  }
+
+  export type OpportunityRequirementMinOrderByAggregateInput = {
+    id?: SortOrder
+    opportunityId?: SortOrder
+    skill?: SortOrder
+    level?: SortOrder
+  }
+
+  export type EnumRequirementLevelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RequirementLevel | EnumRequirementLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.RequirementLevel[] | ListEnumRequirementLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RequirementLevel[] | ListEnumRequirementLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumRequirementLevelWithAggregatesFilter<$PrismaModel> | $Enums.RequirementLevel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRequirementLevelFilter<$PrismaModel>
+    _max?: NestedEnumRequirementLevelFilter<$PrismaModel>
   }
 
   export type AccountCreateNestedManyWithoutUserInput = {
@@ -23641,6 +25009,13 @@ export namespace Prisma {
     connect?: OpportunityTagWhereUniqueInput | OpportunityTagWhereUniqueInput[]
   }
 
+  export type OpportunityRequirementCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutOpportunityInput, OpportunityRequirementUncheckedCreateWithoutOpportunityInput> | OpportunityRequirementCreateWithoutOpportunityInput[] | OpportunityRequirementUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutOpportunityInput | OpportunityRequirementCreateOrConnectWithoutOpportunityInput[]
+    createMany?: OpportunityRequirementCreateManyOpportunityInputEnvelope
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+  }
+
   export type VolunteerApplicationCreateNestedManyWithoutOpportunityInput = {
     create?: XOR<VolunteerApplicationCreateWithoutOpportunityInput, VolunteerApplicationUncheckedCreateWithoutOpportunityInput> | VolunteerApplicationCreateWithoutOpportunityInput[] | VolunteerApplicationUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: VolunteerApplicationCreateOrConnectWithoutOpportunityInput | VolunteerApplicationCreateOrConnectWithoutOpportunityInput[]
@@ -23653,6 +25028,13 @@ export namespace Prisma {
     connectOrCreate?: OpportunityTagCreateOrConnectWithoutOpportunityInput | OpportunityTagCreateOrConnectWithoutOpportunityInput[]
     createMany?: OpportunityTagCreateManyOpportunityInputEnvelope
     connect?: OpportunityTagWhereUniqueInput | OpportunityTagWhereUniqueInput[]
+  }
+
+  export type OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutOpportunityInput, OpportunityRequirementUncheckedCreateWithoutOpportunityInput> | OpportunityRequirementCreateWithoutOpportunityInput[] | OpportunityRequirementUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutOpportunityInput | OpportunityRequirementCreateOrConnectWithoutOpportunityInput[]
+    createMany?: OpportunityRequirementCreateManyOpportunityInputEnvelope
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
   }
 
   export type VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput = {
@@ -23696,6 +25078,20 @@ export namespace Prisma {
     deleteMany?: OpportunityTagScalarWhereInput | OpportunityTagScalarWhereInput[]
   }
 
+  export type OpportunityRequirementUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutOpportunityInput, OpportunityRequirementUncheckedCreateWithoutOpportunityInput> | OpportunityRequirementCreateWithoutOpportunityInput[] | OpportunityRequirementUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutOpportunityInput | OpportunityRequirementCreateOrConnectWithoutOpportunityInput[]
+    upsert?: OpportunityRequirementUpsertWithWhereUniqueWithoutOpportunityInput | OpportunityRequirementUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: OpportunityRequirementCreateManyOpportunityInputEnvelope
+    set?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    disconnect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    delete?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    update?: OpportunityRequirementUpdateWithWhereUniqueWithoutOpportunityInput | OpportunityRequirementUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: OpportunityRequirementUpdateManyWithWhereWithoutOpportunityInput | OpportunityRequirementUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: OpportunityRequirementScalarWhereInput | OpportunityRequirementScalarWhereInput[]
+  }
+
   export type VolunteerApplicationUpdateManyWithoutOpportunityNestedInput = {
     create?: XOR<VolunteerApplicationCreateWithoutOpportunityInput, VolunteerApplicationUncheckedCreateWithoutOpportunityInput> | VolunteerApplicationCreateWithoutOpportunityInput[] | VolunteerApplicationUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: VolunteerApplicationCreateOrConnectWithoutOpportunityInput | VolunteerApplicationCreateOrConnectWithoutOpportunityInput[]
@@ -23724,6 +25120,20 @@ export namespace Prisma {
     deleteMany?: OpportunityTagScalarWhereInput | OpportunityTagScalarWhereInput[]
   }
 
+  export type OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutOpportunityInput, OpportunityRequirementUncheckedCreateWithoutOpportunityInput> | OpportunityRequirementCreateWithoutOpportunityInput[] | OpportunityRequirementUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutOpportunityInput | OpportunityRequirementCreateOrConnectWithoutOpportunityInput[]
+    upsert?: OpportunityRequirementUpsertWithWhereUniqueWithoutOpportunityInput | OpportunityRequirementUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: OpportunityRequirementCreateManyOpportunityInputEnvelope
+    set?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    disconnect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    delete?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    update?: OpportunityRequirementUpdateWithWhereUniqueWithoutOpportunityInput | OpportunityRequirementUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: OpportunityRequirementUpdateManyWithWhereWithoutOpportunityInput | OpportunityRequirementUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: OpportunityRequirementScalarWhereInput | OpportunityRequirementScalarWhereInput[]
+  }
+
   export type VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput = {
     create?: XOR<VolunteerApplicationCreateWithoutOpportunityInput, VolunteerApplicationUncheckedCreateWithoutOpportunityInput> | VolunteerApplicationCreateWithoutOpportunityInput[] | VolunteerApplicationUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: VolunteerApplicationCreateOrConnectWithoutOpportunityInput | VolunteerApplicationCreateOrConnectWithoutOpportunityInput[]
@@ -23750,6 +25160,24 @@ export namespace Prisma {
     upsert?: VolunteerOpportunityUpsertWithoutTagsInput
     connect?: VolunteerOpportunityWhereUniqueInput
     update?: XOR<XOR<VolunteerOpportunityUpdateToOneWithWhereWithoutTagsInput, VolunteerOpportunityUpdateWithoutTagsInput>, VolunteerOpportunityUncheckedUpdateWithoutTagsInput>
+  }
+
+  export type VolunteerOpportunityCreateNestedOneWithoutRequirementsInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutRequirementsInput, VolunteerOpportunityUncheckedCreateWithoutRequirementsInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutRequirementsInput
+    connect?: VolunteerOpportunityWhereUniqueInput
+  }
+
+  export type EnumRequirementLevelFieldUpdateOperationsInput = {
+    set?: $Enums.RequirementLevel
+  }
+
+  export type VolunteerOpportunityUpdateOneRequiredWithoutRequirementsNestedInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutRequirementsInput, VolunteerOpportunityUncheckedCreateWithoutRequirementsInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutRequirementsInput
+    upsert?: VolunteerOpportunityUpsertWithoutRequirementsInput
+    connect?: VolunteerOpportunityWhereUniqueInput
+    update?: XOR<XOR<VolunteerOpportunityUpdateToOneWithWhereWithoutRequirementsInput, VolunteerOpportunityUpdateWithoutRequirementsInput>, VolunteerOpportunityUncheckedUpdateWithoutRequirementsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -24098,6 +25526,23 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumRequirementLevelFilter<$PrismaModel = never> = {
+    equals?: $Enums.RequirementLevel | EnumRequirementLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.RequirementLevel[] | ListEnumRequirementLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RequirementLevel[] | ListEnumRequirementLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumRequirementLevelFilter<$PrismaModel> | $Enums.RequirementLevel
+  }
+
+  export type NestedEnumRequirementLevelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RequirementLevel | EnumRequirementLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.RequirementLevel[] | ListEnumRequirementLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RequirementLevel[] | ListEnumRequirementLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumRequirementLevelWithAggregatesFilter<$PrismaModel> | $Enums.RequirementLevel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRequirementLevelFilter<$PrismaModel>
+    _max?: NestedEnumRequirementLevelFilter<$PrismaModel>
   }
 
   export type AccountCreateWithoutUserInput = {
@@ -24843,6 +26288,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
   }
 
@@ -24860,6 +26306,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
@@ -25483,6 +26930,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutApplicationsInput = {
@@ -25500,6 +26948,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutApplicationsInput = {
@@ -25629,6 +27078,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutApplicationsInput = {
@@ -25646,6 +27096,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type UserUpsertWithoutSubmittedApplicationsInput = {
@@ -25984,6 +27435,28 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type OpportunityRequirementCreateWithoutOpportunityInput = {
+    id?: string
+    skill: string
+    level?: $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementUncheckedCreateWithoutOpportunityInput = {
+    id?: string
+    skill: string
+    level?: $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementCreateOrConnectWithoutOpportunityInput = {
+    where: OpportunityRequirementWhereUniqueInput
+    create: XOR<OpportunityRequirementCreateWithoutOpportunityInput, OpportunityRequirementUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type OpportunityRequirementCreateManyOpportunityInputEnvelope = {
+    data: OpportunityRequirementCreateManyOpportunityInput | OpportunityRequirementCreateManyOpportunityInput[]
+    skipDuplicates?: boolean
+  }
+
   export type VolunteerApplicationCreateWithoutOpportunityInput = {
     id?: string
     submittedByEmail: string
@@ -26084,6 +27557,32 @@ export namespace Prisma {
     name?: StringFilter<"OpportunityTag"> | string
   }
 
+  export type OpportunityRequirementUpsertWithWhereUniqueWithoutOpportunityInput = {
+    where: OpportunityRequirementWhereUniqueInput
+    update: XOR<OpportunityRequirementUpdateWithoutOpportunityInput, OpportunityRequirementUncheckedUpdateWithoutOpportunityInput>
+    create: XOR<OpportunityRequirementCreateWithoutOpportunityInput, OpportunityRequirementUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type OpportunityRequirementUpdateWithWhereUniqueWithoutOpportunityInput = {
+    where: OpportunityRequirementWhereUniqueInput
+    data: XOR<OpportunityRequirementUpdateWithoutOpportunityInput, OpportunityRequirementUncheckedUpdateWithoutOpportunityInput>
+  }
+
+  export type OpportunityRequirementUpdateManyWithWhereWithoutOpportunityInput = {
+    where: OpportunityRequirementScalarWhereInput
+    data: XOR<OpportunityRequirementUpdateManyMutationInput, OpportunityRequirementUncheckedUpdateManyWithoutOpportunityInput>
+  }
+
+  export type OpportunityRequirementScalarWhereInput = {
+    AND?: OpportunityRequirementScalarWhereInput | OpportunityRequirementScalarWhereInput[]
+    OR?: OpportunityRequirementScalarWhereInput[]
+    NOT?: OpportunityRequirementScalarWhereInput | OpportunityRequirementScalarWhereInput[]
+    id?: StringFilter<"OpportunityRequirement"> | string
+    opportunityId?: StringFilter<"OpportunityRequirement"> | string
+    skill?: StringFilter<"OpportunityRequirement"> | string
+    level?: EnumRequirementLevelFilter<"OpportunityRequirement"> | $Enums.RequirementLevel
+  }
+
   export type VolunteerApplicationUpsertWithWhereUniqueWithoutOpportunityInput = {
     where: VolunteerApplicationWhereUniqueInput
     update: XOR<VolunteerApplicationUpdateWithoutOpportunityInput, VolunteerApplicationUncheckedUpdateWithoutOpportunityInput>
@@ -26114,6 +27613,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
   }
 
@@ -26131,6 +27631,7 @@ export namespace Prisma {
     capacity?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
@@ -26164,6 +27665,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -26181,6 +27683,95 @@ export namespace Prisma {
     capacity?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+  }
+
+  export type VolunteerOpportunityCreateWithoutRequirementsInput = {
+    id?: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
+    tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityUncheckedCreateWithoutRequirementsInput = {
+    id?: string
+    orgId: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityCreateOrConnectWithoutRequirementsInput = {
+    where: VolunteerOpportunityWhereUniqueInput
+    create: XOR<VolunteerOpportunityCreateWithoutRequirementsInput, VolunteerOpportunityUncheckedCreateWithoutRequirementsInput>
+  }
+
+  export type VolunteerOpportunityUpsertWithoutRequirementsInput = {
+    update: XOR<VolunteerOpportunityUpdateWithoutRequirementsInput, VolunteerOpportunityUncheckedUpdateWithoutRequirementsInput>
+    create: XOR<VolunteerOpportunityCreateWithoutRequirementsInput, VolunteerOpportunityUncheckedCreateWithoutRequirementsInput>
+    where?: VolunteerOpportunityWhereInput
+  }
+
+  export type VolunteerOpportunityUpdateToOneWithWhereWithoutRequirementsInput = {
+    where?: VolunteerOpportunityWhereInput
+    data: XOR<VolunteerOpportunityUpdateWithoutRequirementsInput, VolunteerOpportunityUncheckedUpdateWithoutRequirementsInput>
+  }
+
+  export type VolunteerOpportunityUpdateWithoutRequirementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
+    tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+  }
+
+  export type VolunteerOpportunityUncheckedUpdateWithoutRequirementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -26685,6 +28276,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -26702,6 +28294,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -26749,6 +28342,12 @@ export namespace Prisma {
     name: string
   }
 
+  export type OpportunityRequirementCreateManyOpportunityInput = {
+    id?: string
+    skill: string
+    level?: $Enums.RequirementLevel
+  }
+
   export type VolunteerApplicationCreateManyOpportunityInput = {
     id?: string
     orgId: string
@@ -26773,6 +28372,24 @@ export namespace Prisma {
   export type OpportunityTagUncheckedUpdateManyWithoutOpportunityInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type OpportunityRequirementUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementUncheckedUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementUncheckedUpdateManyWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
   }
 
   export type VolunteerApplicationUpdateWithoutOpportunityInput = {

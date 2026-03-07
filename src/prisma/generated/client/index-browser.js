@@ -270,6 +270,13 @@ exports.Prisma.OpportunityTagScalarFieldEnum = {
   name: 'name'
 };
 
+exports.Prisma.OpportunityRequirementScalarFieldEnum = {
+  id: 'id',
+  opportunityId: 'opportunityId',
+  skill: 'skill',
+  level: 'level'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -333,6 +340,11 @@ exports.OpportunityStatus = exports.$Enums.OpportunityStatus = {
   CLOSED: 'CLOSED'
 };
 
+exports.RequirementLevel = exports.$Enums.RequirementLevel = {
+  REQUIRED: 'REQUIRED',
+  PREFERRED: 'PREFERRED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -348,7 +360,8 @@ exports.Prisma.ModelName = {
   ScreenerQuestion: 'ScreenerQuestion',
   OrganizationInvitation: 'OrganizationInvitation',
   VolunteerOpportunity: 'VolunteerOpportunity',
-  OpportunityTag: 'OpportunityTag'
+  OpportunityTag: 'OpportunityTag',
+  OpportunityRequirement: 'OpportunityRequirement'
 };
 
 /**

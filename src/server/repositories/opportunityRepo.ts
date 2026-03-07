@@ -1,4 +1,4 @@
-import type { OpportunityStatus } from '@/prisma/generated/client';
+import type { OpportunityStatus, RequirementLevel } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
 const opportunitySelect = {
@@ -15,6 +15,7 @@ const opportunitySelect = {
 	createdAt: true,
 	updatedAt: true,
 	tags: { select: { id: true, name: true } },
+	requirements: { select: { id: true, skill: true, level: true } },
 } as const;
 
 export async function listOpportunities(orgId: string) {
@@ -43,12 +44,14 @@ export async function createOpportunity(input: {
 	commitmentHours?: number | null;
 	capacity?: number | null;
 	tags: string[];
+	requirements: { skill: string; level: RequirementLevel }[];
 }) {
-	const { tags, ...data } = input;
+	const { tags, requirements, ...data } = input;
 	return prisma.volunteerOpportunity.create({
 		data: {
 			...data,
 			tags: { create: tags.map((name) => ({ name })) },
+			requirements: { create: requirements.map((r) => ({ skill: r.skill, level: r.level })) },
 		},
 		select: opportunitySelect,
 	});
@@ -67,9 +70,10 @@ export async function updateOpportunity(
 		commitmentHours?: number | null;
 		capacity?: number | null;
 		tags?: string[];
+		requirements?: { skill: string; level: RequirementLevel }[];
 	},
 ) {
-	const { tags, ...data } = input;
+	const { tags, requirements, ...data } = input;
 	return prisma.volunteerOpportunity.update({
 		where: { id, orgId },
 		data: {
@@ -78,6 +82,12 @@ export async function updateOpportunity(
 				tags: {
 					deleteMany: {},
 					create: tags.map((name) => ({ name })),
+				},
+			}),
+			...(requirements !== undefined && {
+				requirements: {
+					deleteMany: {},
+					create: requirements.map((r) => ({ skill: r.skill, level: r.level })),
 				},
 			}),
 		},

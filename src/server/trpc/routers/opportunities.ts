@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { OpportunityStatus, Prisma } from '@/prisma/generated/client';
+import { OpportunityStatus, Prisma, RequirementLevel } from '@/prisma/generated/client';
 
 function isPrismaNotFound(err: unknown): boolean {
 	return (
@@ -28,6 +28,15 @@ const opportunityInput = z.object({
 	commitmentHours: z.number().positive().nullish(),
 	capacity: z.number().int().positive().nullish(),
 	tags: z.array(z.string().min(1).max(50)).max(10).default([]),
+	requirements: z
+		.array(
+			z.object({
+				skill: z.string().min(1).max(100),
+				level: z.nativeEnum(RequirementLevel),
+			}),
+		)
+		.max(20)
+		.default([]),
 });
 
 export const opportunitiesRouter = createTRPCRouter({
@@ -48,6 +57,7 @@ export const opportunitiesRouter = createTRPCRouter({
 			startDate: input.startDate ? new Date(input.startDate) : null,
 			endDate: input.endDate ? new Date(input.endDate) : null,
 			tags: input.tags,
+			requirements: input.requirements,
 		}),
 	),
 
@@ -61,6 +71,7 @@ export const opportunitiesRouter = createTRPCRouter({
 			if (!existing) throw new TRPCError({ code: 'NOT_FOUND' });
 			return updateOpportunity(id, ctx.orgId!, {
 				...data,
+				requirements: data.requirements,
 				startDate:
 					data.startDate !== undefined
 						? data.startDate
