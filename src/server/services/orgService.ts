@@ -1,8 +1,10 @@
 import type { PrismaClient } from '@/prisma/generated/client';
+import { Prisma } from '@/prisma/generated/client';
 import { TRPCError } from '@trpc/server';
 import { orgRepo } from '../repositories/orgRepo';
 import { sessionRepo } from '../repositories/sessionRepo';
 import { auditRepo } from '../repositories/auditRepo';
+import { generateSlug, findUniqueSlug } from '@/lib/slug';
 
 export function orgService(prisma: PrismaClient) {
 	const orgs = orgRepo(prisma);
@@ -47,6 +49,65 @@ export function orgService(prisma: PrismaClient) {
 			});
 
 			return { orgId: opts.targetOrgId, role: membership.role };
+		},
+
+		/**
+		 * Create a new organization and make the user its OWNER.
+		 * Generates a unique slug from the name, persists org + membership
+		 * atomically, sets the session's currentOrgId, and writes an audit log.
+		 */
+		async createOrg(opts: {
+			name: string;
+			userId: string;
+			sessionToken: string;
+		}) {
+			const base = generateSlug(opts.name);
+			if (!base) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'Organization name cannot produce a valid slug.',
+				});
+			}
+
+			const slug = await findUniqueSlug(base, async (candidate) => {
+				return (await orgs.findBySlug(candidate)) !== null;
+			});
+
+			let org: { id: string; name: string; slug: string };
+			try {
+				org = await orgs.createOrgWithOwner({
+					name: opts.name,
+					slug,
+					userId: opts.userId,
+				});
+			} catch (e) {
+				if (
+					e instanceof Prisma.PrismaClientKnownRequestError &&
+					e.code === 'P2002'
+				) {
+					throw new TRPCError({
+						code: 'CONFLICT',
+						message: 'A slug conflict occurred. Please try again.',
+					});
+				}
+				throw e;
+			}
+
+			await sessions.setCurrentOrgBySessionToken(
+				opts.sessionToken,
+				org.id,
+			);
+
+			await audit.write({
+				orgId: org.id,
+				actorId: opts.userId,
+				action: 'ORG_CREATED',
+				entityType: 'Organization',
+				entityId: org.id,
+				metadata: { name: org.name, slug: org.slug },
+			});
+
+			return org;
 		},
 
 		/**

@@ -18,5 +18,35 @@ export function orgRepo(prisma: PrismaClient) {
 			});
 			return m; // {orgId, role} | null
 		},
+
+		async findBySlug(slug: string) {
+			return prisma.organization.findUnique({
+				where: { slug },
+				select: { id: true, slug: true },
+			});
+		},
+
+		async createOrgWithOwner(input: {
+			name: string;
+			slug: string;
+			userId: string;
+		}) {
+			return prisma.$transaction(async (tx) => {
+				const org = await tx.organization.create({
+					data: { name: input.name, slug: input.slug },
+					select: { id: true, name: true, slug: true },
+				});
+
+				await tx.organizationMember.create({
+					data: {
+						organizationId: org.id,
+						userId: input.userId,
+						role: 'OWNER',
+					},
+				});
+
+				return org;
+			});
+		},
 	};
 }

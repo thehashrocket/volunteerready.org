@@ -21,7 +21,9 @@ export function middleware(req: NextRequest) {
 		return NextResponse.redirect(signInUrl);
 	}
 
-	return NextResponse.next();
+	const response = NextResponse.next();
+	response.headers.set('x-pathname', req.nextUrl.pathname);
+	return response;
 }
 
 export const config = {
