@@ -113,7 +113,8 @@ export default function ApplicationDetailPage() {
 		);
 	}
 
-	const app = query.data!;
+	const app = query.data;
+	if (!app) return null;
 	const mutate = (args: {
 		id: string;
 		status: 'SUBMITTED' | 'REVIEW' | 'APPROVED' | 'REJECTED';

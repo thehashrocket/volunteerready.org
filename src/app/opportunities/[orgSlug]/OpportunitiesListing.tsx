@@ -10,7 +10,9 @@ import type { listPublishedOpportunities } from '@/server/repositories/publicOpp
 // Types — derived from the repo return shape so they stay in sync automatically
 // ---------------------------------------------------------------------------
 
-type ListResult = NonNullable<Awaited<ReturnType<typeof listPublishedOpportunities>>>;
+type ListResult = NonNullable<
+	Awaited<ReturnType<typeof listPublishedOpportunities>>
+>;
 type Opportunity = ListResult['opportunities'][number];
 type Org = ListResult['org'];
 type Requirement = Opportunity['requirements'][number];
@@ -50,7 +52,9 @@ function RequirementChips({
 	const required = requirements.filter((r) => r.level === 'REQUIRED');
 	const preferred = requirements.filter((r) => r.level === 'PREFERRED');
 	return (
-		<div className={`mb-5 pt-3 space-y-2.5 ${separator ? 'border-t border-stone-100' : ''}`}>
+		<div
+			className={`mb-5 pt-3 space-y-2.5 ${separator ? 'border-t border-stone-100' : ''}`}
+		>
 			{required.length > 0 && (
 				<div>
 					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-400">

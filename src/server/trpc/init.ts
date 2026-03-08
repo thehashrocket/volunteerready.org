@@ -6,46 +6,23 @@ import type { Role } from '@/prisma/generated/client';
 import { authOptions } from '@/server/auth';
 import { prisma } from '@/server/repositories/prisma';
 
+/** Extended session shape produced by our auth callback */
+type SessionExt = {
+	sessionToken?: string;
+	orgId?: string;
+	role?: Role;
+};
+
 export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 	const session = await getServerSession(authOptions);
-	const userId = session?.user?.id;
+	const ext = session as (typeof session & SessionExt) | null;
 	const sessionToken =
-		(session as any)?.sessionToken ?? getSessionTokenFromHeaders(_opts.req);
-	const sessionOrgId = sessionToken
-		? ((
-				await prisma.session.findUnique({
-					where: { sessionToken },
-					select: { currentOrgId: true },
-				})
-			)?.currentOrgId ?? null)
-		: null;
-	const sessionOrgIdFromSession = (session as any)?.currentOrgId ?? null;
+		ext?.sessionToken ?? getSessionTokenFromHeaders(_opts.req);
 
-	let orgId: string | null = null;
-	let role: Role | null = null;
-
-	if (userId) {
-		const scopedOrgId = sessionOrgIdFromSession ?? sessionOrgId ?? null;
-
-		if (scopedOrgId) {
-			const membership = await prisma.organizationMember.findFirst({
-				where: { userId, organizationId: scopedOrgId },
-				select: { organizationId: true, role: true },
-			});
-
-			orgId = scopedOrgId;
-			role = membership?.role ?? null;
-		} else {
-			const membership = await prisma.organizationMember.findFirst({
-				where: { userId },
-				orderBy: { createdAt: 'asc' },
-				select: { organizationId: true, role: true },
-			});
-
-			orgId = membership?.organizationId ?? null;
-			role = membership?.role ?? null;
-		}
-	}
+	// orgId and role are resolved in the auth session callback via a single
+	// DB query (session → user → memberships).  No additional queries needed.
+	const orgId: string | null = ext?.orgId ?? null;
+	const role: Role | null = ext?.role ?? null;
 
 	return { session, orgId, role, prisma, sessionToken };
 }
@@ -79,7 +56,7 @@ export const orgProcedure = protectedProcedure.use(({ ctx, next }) => {
 		throw new TRPCError({ code: 'FORBIDDEN' });
 	}
 
-	return next();
+	return next({ ctx: { orgId: ctx.orgId } });
 });
 
 export const staffProcedure = orgProcedure.use(({ ctx, next }) => {
@@ -90,7 +67,7 @@ export const staffProcedure = orgProcedure.use(({ ctx, next }) => {
 		});
 	}
 
-	return next();
+	return next({ ctx: { role: ctx.role } });
 });
 
 export const adminProcedure = orgProcedure.use(({ ctx, next }) => {
@@ -98,7 +75,7 @@ export const adminProcedure = orgProcedure.use(({ ctx, next }) => {
 		throw new TRPCError({ code: 'FORBIDDEN' });
 	}
 
-	return next();
+	return next({ ctx: { role: ctx.role } });
 });
 
 function getSessionTokenFromHeaders(req: Request) {

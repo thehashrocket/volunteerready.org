@@ -319,9 +319,11 @@ function QuestionField({
 	form,
 }: {
 	question: PublicQuestion;
+	// biome-ignore lint/suspicious/noExplicitAny: form shape varies by dynamic question config
 	form: ReturnType<typeof useForm<any>>;
 }) {
 	const { register, formState } = form;
+	// biome-ignore lint/suspicious/noExplicitAny: configJson is schemaless JSON
 	const cfg = (question.configJson ?? {}) as any;
 
 	// ✅ answers are nested

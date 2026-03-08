@@ -1,54 +1,9 @@
-import type {
-	ApplicationStatus,
-	Prisma,
-	ScreeningStatus,
-} from '@/prisma/generated/client';
+import type { ApplicationStatus } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
-
-interface CreateApplicationInput {
-	orgId: string;
-	opportunityId?: string | null;
-	submittedByEmail: string;
-	submittedByUserId?: string | null;
-	status: ApplicationStatus;
-	screeningStatus: ScreeningStatus;
-	screeningReasons: string[];
-}
 
 interface PaginationInput {
 	page?: number;
 	pageSize?: number;
-}
-
-export async function createApplication(input: CreateApplicationInput) {
-	return prisma.volunteerApplication.create({
-		data: {
-			orgId: input.orgId,
-			opportunityId: input.opportunityId ?? null,
-			submittedByUserId: input.submittedByUserId ?? null,
-			submittedByEmail: input.submittedByEmail,
-			status: input.status,
-			screeningStatus: input.screeningStatus,
-			screeningReasons: input.screeningReasons,
-		},
-	});
-}
-
-export async function submitAnswers(
-	applicationId: string,
-	answers: { questionId: string; answerJson: unknown }[],
-) {
-	if (answers.length === 0) {
-		return { count: 0 };
-	}
-
-	return prisma.volunteerAnswer.createMany({
-		data: answers.map((answer) => ({
-			applicationId,
-			questionId: answer.questionId,
-			answerJson: answer.answerJson as Prisma.InputJsonValue,
-		})),
-	});
 }
 
 export async function listApplications(

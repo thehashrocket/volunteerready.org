@@ -11,7 +11,6 @@ const mapQuestionType = (type: string): PublicQuestionType => {
 			return 'YES_NO';
 		case 'SINGLE_CHOICE':
 			return 'SINGLE_SELECT';
-		case 'TEXT':
 		default:
 			return 'TEXT';
 	}

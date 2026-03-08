@@ -6,6 +6,7 @@ import {
 	type Prisma,
 	ScreenerQuestionType,
 } from '@/prisma/generated/client';
+import { screenerQuestionConfigSchema } from '@/server/domain/screener/configSchema';
 import {
 	screenerResponseSchema,
 	volunteerProfileSchema,
@@ -53,7 +54,8 @@ function buildConfigJson(input: {
 	} else if (input.type === 'SINGLE_CHOICE') {
 		base.options = input.options ?? [];
 	}
-	return base;
+	// Validate through the canonical schema before persisting
+	return screenerQuestionConfigSchema.parse(base);
 }
 
 function buildConfigJsonPatch(
@@ -65,6 +67,7 @@ function buildConfigJsonPatch(
 		disqualifierReason?: string;
 	},
 	type: string,
+	existing: Record<string, unknown>,
 ): Record<string, unknown> {
 	const patch: Record<string, unknown> = {};
 	if (input.required !== undefined) patch.required = input.required;
@@ -79,7 +82,8 @@ function buildConfigJsonPatch(
 				}
 			: null;
 	}
-	return patch;
+	// Merge with existing config and validate through the canonical schema
+	return screenerQuestionConfigSchema.parse({ ...existing, ...patch });
 }
 
 // ---------------------------------------------------------------------------
@@ -194,9 +198,21 @@ export const screenerRouter = createTRPCRouter({
 
 	// ---- Admin: question management ----
 
-	listQuestions: adminProcedure.query(async ({ ctx }) => {
-		return qRepo.listQuestions(ctx.orgId!);
-	}),
+	listQuestions: adminProcedure
+		.input(
+			z
+				.object({
+					cursor: z.string().optional(),
+					limit: z.number().int().positive().max(100).optional(),
+				})
+				.optional(),
+		)
+		.query(async ({ ctx, input }) => {
+			return qRepo.listQuestions(ctx.orgId, {
+				cursor: input?.cursor,
+				limit: input?.limit,
+			});
+		}),
 
 	createQuestion: adminProcedure
 		.input(
@@ -211,7 +227,7 @@ export const screenerRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const orgId = ctx.orgId!;
+			const orgId = ctx.orgId;
 			const maxOrder = await qRepo.getMaxOrder(orgId);
 			const key =
 				generateSlug(input.prompt).slice(0, 50) || `question-${Date.now()}`;
@@ -237,21 +253,25 @@ export const screenerRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const orgId = ctx.orgId!;
+			const orgId = ctx.orgId;
 			const question = await qRepo.getQuestion(orgId, input.id);
 			if (!question) throw new TRPCError({ code: 'NOT_FOUND' });
 			const existing = (question.configJson ?? {}) as Record<string, unknown>;
-			const patch = buildConfigJsonPatch(input, question.type);
+			const validatedConfig = buildConfigJsonPatch(
+				input,
+				question.type,
+				existing,
+			);
 			return qRepo.updateQuestion(orgId, input.id, {
 				...(input.prompt ? { prompt: input.prompt } : {}),
-				configJson: { ...existing, ...patch } as Prisma.InputJsonValue,
+				configJson: validatedConfig as Prisma.InputJsonValue,
 			});
 		}),
 
 	setQuestionActive: adminProcedure
 		.input(z.object({ id: z.string().min(1), isActive: z.boolean() }))
 		.mutation(async ({ ctx, input }) => {
-			return qRepo.updateQuestion(ctx.orgId!, input.id, {
+			return qRepo.updateQuestion(ctx.orgId, input.id, {
 				isActive: input.isActive,
 			});
 		}),
@@ -264,7 +284,7 @@ export const screenerRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const orgId = ctx.orgId!;
+			const orgId = ctx.orgId;
 			const question = await qRepo.getQuestion(orgId, input.id);
 			if (!question) throw new TRPCError({ code: 'NOT_FOUND' });
 			const adjacent = await qRepo.findAdjacentQuestion(
@@ -286,7 +306,7 @@ export const screenerRouter = createTRPCRouter({
 	deleteQuestion: adminProcedure
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
-			const orgId = ctx.orgId!;
+			const orgId = ctx.orgId;
 			const question = await qRepo.getQuestion(orgId, input.id);
 			if (!question) throw new TRPCError({ code: 'NOT_FOUND' });
 			if (await qRepo.questionHasAnswers(input.id)) {

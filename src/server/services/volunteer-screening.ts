@@ -4,20 +4,17 @@ import {
 	type Prisma,
 	type ScreeningStatus,
 } from '@/prisma/generated/client';
+import { parseConfigJson } from '@/server/domain/screener/configSchema';
 import {
-	type DisqualifierRule,
 	evaluateScreening,
 	type ScreenerQuestion,
 	type ScreenerResponse,
 	type VolunteerProfile,
 	validateResponses,
 } from '@/server/domain/volunteer-screening';
+import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
-import {
-	createApplication,
-	getActiveQuestions,
-	submitAnswers,
-} from '@/server/repositories/volunteer-applications';
+import { getActiveQuestions } from '@/server/repositories/volunteer-applications';
 
 interface SubmitVolunteerApplicationPayload {
 	submittedByEmail: string;
@@ -27,80 +24,39 @@ interface SubmitVolunteerApplicationPayload {
 	responses: ScreenerResponse[];
 }
 
-function mapQuestion(question: {
+export function mapQuestion(question: {
 	id: string;
 	prompt: string;
 	type: string;
 	configJson: unknown;
 }): ScreenerQuestion {
-	const config =
-		question.configJson && typeof question.configJson === 'object'
-			? (question.configJson as Record<string, unknown>)
-			: {};
+	const config = parseConfigJson(question.configJson);
 
-	const rules =
-		config.rules && typeof config.rules === 'object'
-			? (config.rules as Record<string, unknown>)
-			: null;
-	const disqualifier =
-		rules &&
-		typeof rules.disqualifierRule === 'object' &&
-		rules.disqualifierRule !== null
-			? (rules.disqualifierRule as Record<string, unknown>)
-			: null;
-	const reviewIf =
-		rules && typeof rules.reviewIf === 'object' && rules.reviewIf !== null
-			? (rules.reviewIf as Record<string, unknown>)
-			: null;
-	const ruleReason =
-		typeof rules?.reason === 'string' ? rules.reason : undefined;
+	const disqualifierRule = config.rules?.disqualifierRule
+		? {
+				operator: config.rules.disqualifierRule.operator,
+				value: config.rules.disqualifierRule.value,
+				reason: config.rules.reason,
+			}
+		: undefined;
 
-	const disqualifierRule =
-		disqualifier && isRule(disqualifier)
-			? {
-					...disqualifier,
-					reason: ruleReason,
-				}
-			: undefined;
-	const reviewRule =
-		reviewIf && isRule(reviewIf)
-			? {
-					...reviewIf,
-					reason: ruleReason,
-				}
-			: undefined;
+	const reviewRule = config.rules?.reviewIf
+		? {
+				operator: config.rules.reviewIf.operator,
+				value: config.rules.reviewIf.value,
+				reason: config.rules.reason,
+			}
+		: undefined;
 
 	return {
 		id: question.id,
 		prompt: question.prompt,
 		type: question.type as ScreenerQuestion['type'],
-		options: Array.isArray(config.options)
-			? (config.options as string[])
-			: undefined,
-		required:
-			typeof config.required === 'boolean' ? config.required : undefined,
+		options: config.options,
+		required: config.required,
 		disqualifierRule,
 		reviewRule,
 	};
-}
-
-const allowedOperators = new Set<DisqualifierRule['operator']>([
-	'equals',
-	'includes',
-	'lt',
-	'lte',
-	'gt',
-	'gte',
-]);
-
-function isRule(
-	rule: Record<string, unknown>,
-): rule is { operator: DisqualifierRule['operator']; value: unknown } {
-	return (
-		typeof rule.operator === 'string' &&
-		allowedOperators.has(rule.operator as DisqualifierRule['operator']) &&
-		'value' in rule
-	);
 }
 
 export async function submitVolunteerApplication(
@@ -136,37 +92,44 @@ export async function submitVolunteerApplication(
 		validatedOpportunityId = opp?.id ?? null;
 	}
 
-	const application = await createApplication({
-		orgId,
-		opportunityId: validatedOpportunityId,
-		submittedByEmail: payload.submittedByEmail,
-		submittedByUserId: payload.submittedByUserId ?? null,
-		status: ApplicationStatus.SUBMITTED,
-		screeningStatus,
-		screeningReasons,
-	});
+	// Application + answers + audit all committed atomically
+	const application = await prisma.$transaction(async (tx) => {
+		const app = await tx.volunteerApplication.create({
+			data: {
+				orgId,
+				opportunityId: validatedOpportunityId,
+				submittedByUserId: payload.submittedByUserId ?? null,
+				submittedByEmail: payload.submittedByEmail,
+				status: ApplicationStatus.SUBMITTED,
+				screeningStatus,
+				screeningReasons,
+			},
+		});
 
-	await submitAnswers(
-		application.id,
-		payload.responses.map((response) => ({
-			questionId: response.questionId,
-			answerJson: { value: response.value },
-		})),
-	);
+		if (payload.responses.length > 0) {
+			await tx.volunteerAnswer.createMany({
+				data: payload.responses.map((response) => ({
+					applicationId: app.id,
+					questionId: response.questionId,
+					answerJson: { value: response.value } as Prisma.InputJsonValue,
+				})),
+			});
+		}
 
-	await prisma.auditLog.create({
-		data: {
+		await writeAuditLogTx(tx, {
 			orgId,
 			action: 'volunteer_application.submitted',
 			entityType: 'VolunteerApplication',
-			entityId: application.id,
+			entityId: app.id,
 			metadata: {
 				submittedByEmail: payload.submittedByEmail,
 				opportunityId: validatedOpportunityId,
 				screeningStatus,
 				profile: payload.profile,
-			} as any as Prisma.InputJsonValue,
-		},
+			},
+		});
+
+		return app;
 	});
 
 	return {

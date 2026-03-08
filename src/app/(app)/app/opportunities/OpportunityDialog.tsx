@@ -39,7 +39,11 @@ type Opportunity = {
 	commitmentHours: number | null;
 	capacity: number | null;
 	tags: { id: string; name: string }[];
-	requirements: { id: string; skill: string; level: 'REQUIRED' | 'PREFERRED' }[];
+	requirements: {
+		id: string;
+		skill: string;
+		level: 'REQUIRED' | 'PREFERRED';
+	}[];
 };
 
 interface OpportunityDialogProps {
@@ -177,7 +181,11 @@ function RequirementInput({
 
 	function addRequirement(value: string) {
 		const skill = value.trim().replace(/,+$/, '').toLowerCase();
-		if (!skill || requirements.some((r) => r.skill === skill) || requirements.length >= 20)
+		if (
+			!skill ||
+			requirements.some((r) => r.skill === skill) ||
+			requirements.length >= 20
+		)
 			return;
 		onChange([...requirements, { skill, level: 'REQUIRED' }]);
 		setInput('');
@@ -207,10 +215,11 @@ function RequirementInput({
 	}
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: click delegates focus to inner input
 		<div
 			className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm cursor-text"
 			onClick={() => inputRef.current?.focus()}
-			onKeyDown={undefined}
+			onKeyDown={() => inputRef.current?.focus()}
 		>
 			{requirements.map((req) => (
 				<span
@@ -313,7 +322,10 @@ export function OpportunityDialog({
 				});
 				setTags(opportunity.tags.map((t) => t.name));
 				setRequirements(
-					opportunity.requirements.map((r) => ({ skill: r.skill, level: r.level })),
+					opportunity.requirements.map((r) => ({
+						skill: r.skill,
+						level: r.level,
+					})),
 				);
 			} else {
 				reset({
@@ -518,11 +530,17 @@ export function OpportunityDialog({
 					<div className="space-y-2">
 						<Label>
 							Requirements{' '}
-							<span className="text-muted-foreground">(optional, up to 20)</span>
+							<span className="text-muted-foreground">
+								(optional, up to 20)
+							</span>
 						</Label>
-						<RequirementInput requirements={requirements} onChange={setRequirements} />
+						<RequirementInput
+							requirements={requirements}
+							onChange={setRequirements}
+						/>
 						<p className="text-xs text-muted-foreground">
-							Press Enter or comma to add a skill. Click the badge to toggle Required / Preferred.
+							Press Enter or comma to add a skill. Click the badge to toggle
+							Required / Preferred.
 						</p>
 					</div>
 

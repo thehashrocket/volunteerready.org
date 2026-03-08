@@ -37,7 +37,7 @@ const TYPE_CLASSES: Record<string, string> = {
 
 export function QuestionsClient() {
 	const questionsQ = trpc.screener.listQuestions.useQuery();
-	const questions: Question[] = questionsQ.data ?? [];
+	const questions: Question[] = questionsQ.data?.items ?? [];
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);

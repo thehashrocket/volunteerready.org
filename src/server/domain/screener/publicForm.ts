@@ -57,7 +57,7 @@ export function buildZodSchema(questions: PublicQuestion[]) {
 	const shape: Record<string, z.ZodTypeAny> = {};
 
 	for (const q of questions) {
-		const cfg = (q.configJson ?? {}) as any;
+		const cfg = (q.configJson ?? {}) as Record<string, unknown>;
 		const required = cfg.required !== false; // default required
 
 		switch (normalizeQuestionType(q.type)) {

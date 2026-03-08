@@ -7,7 +7,9 @@ export async function submitVolunteerApplicationBySlug(
 	orgSlug: string,
 	args: {
 		submittedByEmail: string;
+		// biome-ignore lint/suspicious/noExplicitAny: dynamic volunteer profile shape
 		profile: any;
+		// biome-ignore lint/suspicious/noExplicitAny: dynamic form responses
 		responses: any[];
 	},
 ) {

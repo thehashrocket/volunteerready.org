@@ -19,7 +19,7 @@ import {
 export const membersRouter = createTRPCRouter({
 	// List members in the current org
 	list: adminProcedure.query(async ({ ctx }) => {
-		return listOrgMembers(ctx.orgId!);
+		return listOrgMembers(ctx.orgId);
 	}),
 
 	// Send invitation email
@@ -42,7 +42,7 @@ export const membersRouter = createTRPCRouter({
 				process.env.NEXT_PUBLIC_APP_URL ??
 				process.env.NEXTAUTH_URL ??
 				'http://localhost:3000';
-			return inviteMember(ctx.orgId!, input.email, input.role as Role, baseUrl);
+			return inviteMember(ctx.orgId, input.email, input.role as Role, baseUrl);
 		}),
 
 	// Public: get invitation display info (org name, masked email, role)
@@ -73,8 +73,8 @@ export const membersRouter = createTRPCRouter({
 	accept: protectedProcedure
 		.input(z.object({ token: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
-			const userId = ctx.session!.user!.id;
-			const userEmail = ctx.session!.user?.email ?? '';
+			const userId = ctx.session?.user?.id ?? '';
+			const userEmail = ctx.session?.user?.email ?? '';
 			if (!userEmail) {
 				throw new TRPCError({
 					code: 'BAD_REQUEST',
@@ -88,8 +88,8 @@ export const membersRouter = createTRPCRouter({
 	removeMember: adminProcedure
 		.input(z.object({ memberId: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
-			const actingUserId = ctx.session!.user!.id;
-			return removeOrgMember(ctx.orgId!, actingUserId, input.memberId);
+			const actingUserId = ctx.session?.user?.id ?? '';
+			return removeOrgMember(ctx.orgId, actingUserId, input.memberId);
 		}),
 
 	// Change a member's role
@@ -101,9 +101,9 @@ export const membersRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const actingUserId = ctx.session!.user!.id;
+			const actingUserId = ctx.session?.user?.id ?? '';
 			return updateOrgMemberRole(
-				ctx.orgId!,
+				ctx.orgId,
 				actingUserId,
 				input.memberId,
 				input.role as Role,

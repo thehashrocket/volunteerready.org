@@ -1,4 +1,7 @@
-import type { OpportunityStatus, RequirementLevel } from '@/prisma/generated/client';
+import type {
+	OpportunityStatus,
+	RequirementLevel,
+} from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
 const opportunitySelect = {
@@ -18,12 +21,30 @@ const opportunitySelect = {
 	requirements: { select: { id: true, skill: true, level: true } },
 } as const;
 
-export async function listOpportunities(orgId: string) {
-	return prisma.volunteerOpportunity.findMany({
+export async function listOpportunities(
+	orgId: string,
+	opts?: { cursor?: string; limit?: number },
+) {
+	const limit = Math.min(opts?.limit ?? 50, 100);
+
+	const items = await prisma.volunteerOpportunity.findMany({
 		where: { orgId },
 		select: opportunitySelect,
 		orderBy: { createdAt: 'desc' },
+		take: limit + 1, // fetch one extra to detect next page
+		...(opts?.cursor && {
+			cursor: { id: opts.cursor },
+			skip: 1, // skip the cursor item itself
+		}),
 	});
+
+	const hasMore = items.length > limit;
+	if (hasMore) items.pop();
+
+	return {
+		items,
+		nextCursor: hasMore ? items[items.length - 1]?.id : null,
+	};
 }
 
 export async function getOpportunity(id: string, orgId: string) {
@@ -51,7 +72,9 @@ export async function createOpportunity(input: {
 		data: {
 			...data,
 			tags: { create: tags.map((name) => ({ name })) },
-			requirements: { create: requirements.map((r) => ({ skill: r.skill, level: r.level })) },
+			requirements: {
+				create: requirements.map((r) => ({ skill: r.skill, level: r.level })),
+			},
 		},
 		select: opportunitySelect,
 	});
@@ -74,24 +97,74 @@ export async function updateOpportunity(
 	},
 ) {
 	const { tags, requirements, ...data } = input;
-	return prisma.volunteerOpportunity.update({
-		where: { id, orgId },
-		data: {
-			...data,
-			...(tags !== undefined && {
-				tags: {
-					deleteMany: {},
-					create: tags.map((name) => ({ name })),
-				},
-			}),
-			...(requirements !== undefined && {
-				requirements: {
-					deleteMany: {},
-					create: requirements.map((r) => ({ skill: r.skill, level: r.level })),
-				},
-			}),
-		},
-		select: opportunitySelect,
+
+	return prisma.$transaction(async (tx) => {
+		// --- Diff-and-upsert tags ---
+		if (tags !== undefined) {
+			const existing = await tx.opportunityTag.findMany({
+				where: { opportunityId: id },
+				select: { id: true, name: true },
+			});
+			const existingNames = new Set(existing.map((t) => t.name));
+			const desiredNames = new Set(tags);
+
+			// Delete removed tags
+			const toDelete = existing.filter((t) => !desiredNames.has(t.name));
+			if (toDelete.length > 0) {
+				await tx.opportunityTag.deleteMany({
+					where: { id: { in: toDelete.map((t) => t.id) } },
+				});
+			}
+
+			// Create new tags (existing ones are unchanged, no upsert needed)
+			const toCreate = tags.filter((name) => !existingNames.has(name));
+			if (toCreate.length > 0) {
+				await tx.opportunityTag.createMany({
+					data: toCreate.map((name) => ({ opportunityId: id, name })),
+				});
+			}
+		}
+
+		// --- Diff-and-upsert requirements ---
+		if (requirements !== undefined) {
+			const existing = await tx.opportunityRequirement.findMany({
+				where: { opportunityId: id },
+				select: { id: true, skill: true, level: true },
+			});
+			const existingBySkill = new Map(existing.map((r) => [r.skill, r]));
+			const desiredSkills = new Set(requirements.map((r) => r.skill));
+
+			// Delete removed requirements
+			const toDelete = existing.filter((r) => !desiredSkills.has(r.skill));
+			if (toDelete.length > 0) {
+				await tx.opportunityRequirement.deleteMany({
+					where: { id: { in: toDelete.map((r) => r.id) } },
+				});
+			}
+
+			// Upsert: update changed levels, create new skills
+			for (const req of requirements) {
+				const prev = existingBySkill.get(req.skill);
+				if (!prev) {
+					await tx.opportunityRequirement.create({
+						data: { opportunityId: id, skill: req.skill, level: req.level },
+					});
+				} else if (prev.level !== req.level) {
+					await tx.opportunityRequirement.update({
+						where: { id: prev.id },
+						data: { level: req.level },
+					});
+				}
+				// If skill exists with same level — no-op
+			}
+		}
+
+		// --- Update scalar fields ---
+		return tx.volunteerOpportunity.update({
+			where: { id, orgId },
+			data,
+			select: opportunitySelect,
+		});
 	});
 }
 

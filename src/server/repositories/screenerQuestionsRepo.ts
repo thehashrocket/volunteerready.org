@@ -1,11 +1,29 @@
 import type { Prisma, ScreenerQuestionType } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
-export async function listQuestions(orgId: string) {
-	return prisma.screenerQuestion.findMany({
+export async function listQuestions(
+	orgId: string,
+	opts?: { cursor?: string; limit?: number },
+) {
+	const limit = Math.min(opts?.limit ?? 50, 100);
+
+	const items = await prisma.screenerQuestion.findMany({
 		where: { orgId },
 		orderBy: { order: 'asc' },
+		take: limit + 1,
+		...(opts?.cursor && {
+			cursor: { id: opts.cursor },
+			skip: 1,
+		}),
 	});
+
+	const hasMore = items.length > limit;
+	if (hasMore) items.pop();
+
+	return {
+		items,
+		nextCursor: hasMore ? items[items.length - 1]?.id : null,
+	};
 }
 
 export async function getQuestion(orgId: string, id: string) {

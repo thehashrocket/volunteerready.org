@@ -1,141 +1,152 @@
 import { TRPCError } from '@trpc/server';
 import { findUniqueSlug, generateSlug } from '@/lib/slug';
-import type { PrismaClient } from '@/prisma/generated/client';
 import { Prisma } from '@/prisma/generated/client';
-import { auditRepo } from '../repositories/auditRepo';
-import { orgRepo } from '../repositories/orgRepo';
-import { sessionRepo } from '../repositories/sessionRepo';
+import { writeAuditLogTx } from '../repositories/auditRepo';
+import {
+	findOrgBySlug,
+	getFirstOrgForUser,
+	userIsMemberOfOrg,
+} from '../repositories/orgRepo';
+import { prisma } from '../repositories/prisma';
+import { getSessionByToken } from '../repositories/sessionRepo';
 
-export function orgService(prisma: PrismaClient) {
-	const orgs = orgRepo(prisma);
-	const sessions = sessionRepo(prisma);
-	const audit = auditRepo(prisma);
+/**
+ * Switch org for the *current session*.
+ * Source of truth: Session.currentOrgId in DB.
+ */
+export async function switchOrgForSession(opts: {
+	userId: string;
+	sessionToken: string;
+	targetOrgId: string;
+}) {
+	// 1) Verify membership
+	const membership = await userIsMemberOfOrg(opts.userId, opts.targetOrgId);
+	if (!membership) {
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: 'Not a member of that organization.',
+		});
+	}
 
-	return {
-		/**
-		 * Switch org for the *current session*.
-		 * Source of truth: Session.currentOrgId in DB.
-		 */
-		async switchOrgForSession(opts: {
-			userId: string;
-			sessionToken: string;
-			targetOrgId: string;
-		}) {
-			// 1) Verify membership
-			const membership = await orgs.userIsMemberOfOrg(
-				opts.userId,
-				opts.targetOrgId,
-			);
-			if (!membership) {
-				throw new TRPCError({
-					code: 'FORBIDDEN',
-					message: 'Not a member of that organization.',
-				});
-			}
+	// 2) Update session + audit atomically
+	await prisma.$transaction(async (tx) => {
+		await tx.session.update({
+			where: { sessionToken: opts.sessionToken },
+			data: { currentOrgId: opts.targetOrgId },
+		});
 
-			// 2) Update session
-			await sessions.setCurrentOrgBySessionToken(
-				opts.sessionToken,
-				opts.targetOrgId,
-			);
+		await writeAuditLogTx(tx, {
+			orgId: opts.targetOrgId,
+			actorId: opts.userId,
+			action: 'ORG_SWITCH',
+			entityType: 'Organization',
+			entityId: opts.targetOrgId,
+		});
+	});
 
-			// 3) Audit
-			await audit.write({
-				orgId: opts.targetOrgId,
-				actorId: opts.userId,
-				action: 'ORG_SWITCH',
-				entityType: 'Organization',
-				entityId: opts.targetOrgId,
+	return { orgId: opts.targetOrgId, role: membership.role };
+}
+
+/**
+ * Create a new organization and make the user its OWNER.
+ * Generates a unique slug from the name, persists org + membership
+ * atomically, sets the session's currentOrgId, and writes an audit log.
+ */
+export async function createOrg(opts: {
+	name: string;
+	userId: string;
+	sessionToken: string;
+}) {
+	const base = generateSlug(opts.name);
+	if (!base) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: 'Organization name cannot produce a valid slug.',
+		});
+	}
+
+	const slug = await findUniqueSlug(base, async (candidate) => {
+		return (await findOrgBySlug(candidate)) !== null;
+	});
+
+	let org: { id: string; name: string; slug: string };
+	try {
+		org = await prisma.$transaction(async (tx) => {
+			// Create org + owner membership
+			const newOrg = await tx.organization.create({
+				data: { name: opts.name, slug },
+				select: { id: true, name: true, slug: true },
 			});
 
-			return { orgId: opts.targetOrgId, role: membership.role };
-		},
-
-		/**
-		 * Create a new organization and make the user its OWNER.
-		 * Generates a unique slug from the name, persists org + membership
-		 * atomically, sets the session's currentOrgId, and writes an audit log.
-		 */
-		async createOrg(opts: {
-			name: string;
-			userId: string;
-			sessionToken: string;
-		}) {
-			const base = generateSlug(opts.name);
-			if (!base) {
-				throw new TRPCError({
-					code: 'BAD_REQUEST',
-					message: 'Organization name cannot produce a valid slug.',
-				});
-			}
-
-			const slug = await findUniqueSlug(base, async (candidate) => {
-				return (await orgs.findBySlug(candidate)) !== null;
-			});
-
-			let org: { id: string; name: string; slug: string };
-			try {
-				org = await orgs.createOrgWithOwner({
-					name: opts.name,
-					slug,
+			await tx.organizationMember.create({
+				data: {
+					organizationId: newOrg.id,
 					userId: opts.userId,
-				});
-			} catch (e) {
-				if (
-					e instanceof Prisma.PrismaClientKnownRequestError &&
-					e.code === 'P2002'
-				) {
-					throw new TRPCError({
-						code: 'CONFLICT',
-						message: 'A slug conflict occurred. Please try again.',
-					});
-				}
-				throw e;
-			}
+					role: 'OWNER',
+				},
+			});
 
-			await sessions.setCurrentOrgBySessionToken(opts.sessionToken, org.id);
+			// Set session's current org
+			await tx.session.update({
+				where: { sessionToken: opts.sessionToken },
+				data: { currentOrgId: newOrg.id },
+			});
 
-			await audit.write({
-				orgId: org.id,
+			// Audit — committed atomically with the create
+			await writeAuditLogTx(tx, {
+				orgId: newOrg.id,
 				actorId: opts.userId,
 				action: 'ORG_CREATED',
 				entityType: 'Organization',
-				entityId: org.id,
-				metadata: { name: org.name, slug: org.slug },
+				entityId: newOrg.id,
+				metadata: { name: newOrg.name, slug: newOrg.slug },
 			});
 
-			return org;
-		},
+			return newOrg;
+		});
+	} catch (e) {
+		if (
+			e instanceof Prisma.PrismaClientKnownRequestError &&
+			e.code === 'P2002'
+		) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'A slug conflict occurred. Please try again.',
+			});
+		}
+		throw e;
+	}
 
-		/**
-		 * Ensure currentOrgId is valid; fallback to first org if missing/invalid.
-		 * Handy to call during session callback or context init if you want auto-healing.
-		 */
-		async ensureValidCurrentOrg(opts: {
-			userId: string;
-			sessionToken: string;
-		}) {
-			const session = await sessions.getBySessionToken(opts.sessionToken);
-			if (!session) return null;
+	return org;
+}
 
-			if (session.currentOrgId) {
-				const membership = await orgs.userIsMemberOfOrg(
-					opts.userId,
-					session.currentOrgId,
-				);
-				if (membership)
-					return { orgId: session.currentOrgId, role: membership.role };
-			}
+/**
+ * Ensure currentOrgId is valid; fallback to first org if missing/invalid.
+ * Handy to call during session callback or context init if you want auto-healing.
+ */
+export async function ensureValidCurrentOrg(opts: {
+	userId: string;
+	sessionToken: string;
+}) {
+	const session = await getSessionByToken(opts.sessionToken);
+	if (!session) return null;
 
-			const first = await orgs.getFirstOrgForUser(opts.userId);
-			const fallbackOrgId = first?.organizationId ?? null;
+	if (session.currentOrgId) {
+		const membership = await userIsMemberOfOrg(
+			opts.userId,
+			session.currentOrgId,
+		);
+		if (membership)
+			return { orgId: session.currentOrgId, role: membership.role };
+	}
 
-			await sessions.setCurrentOrgBySessionToken(
-				opts.sessionToken,
-				fallbackOrgId,
-			);
+	const first = await getFirstOrgForUser(opts.userId);
+	const fallbackOrgId = first?.organizationId ?? null;
 
-			return fallbackOrgId ? { orgId: fallbackOrgId, role: first!.role } : null;
-		},
-	};
+	await prisma.session.update({
+		where: { sessionToken: opts.sessionToken },
+		data: { currentOrgId: fallbackOrgId },
+	});
+
+	return first ? { orgId: first.organizationId, role: first.role } : null;
 }

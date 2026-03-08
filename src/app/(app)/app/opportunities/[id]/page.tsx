@@ -172,7 +172,8 @@ export default function OpportunityDashboardPage() {
 		);
 	}
 
-	const opp = oppQuery.data!;
+	const opp = oppQuery.data;
+	if (!opp) return null;
 	const items = appsQuery.data?.items ?? [];
 	const total = appsQuery.data?.total ?? 0;
 

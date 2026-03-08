@@ -48,6 +48,11 @@ type Opportunity = {
 	createdAt: Date;
 	updatedAt: Date;
 	tags: { id: string; name: string }[];
+	requirements: {
+		id: string;
+		skill: string;
+		level: 'REQUIRED' | 'PREFERRED';
+	}[];
 };
 
 // ---------------------------------------------------------------------------
@@ -81,7 +86,7 @@ export function OpportunitiesClient() {
 		onError: (err) => toast.error(err.message ?? 'Failed to update status.'),
 	});
 
-	const opportunities = (query.data ?? []).filter(
+	const opportunities = (query.data?.items ?? []).filter(
 		(o) => statusFilter === 'ALL' || o.status === statusFilter,
 	);
 
@@ -137,7 +142,7 @@ export function OpportunitiesClient() {
 		);
 	}
 
-	const total = query.data?.length ?? 0;
+	const total = query.data?.items?.length ?? 0;
 
 	return (
 		<>

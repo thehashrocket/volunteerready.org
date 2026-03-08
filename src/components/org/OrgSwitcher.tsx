@@ -22,10 +22,14 @@ export function OrgSwitcher() {
 	const qc = useQueryClient();
 	const { data: session } = useSession();
 
+	const sessionExt = session as
+		| (typeof session & { currentOrgId?: string })
+		| null;
+
 	const orgsQ = trpc.org.listOrgs.useQuery();
 	const currentQ = trpc.org.getCurrentOrg.useQuery(undefined, {
 		staleTime: 10_000,
-		enabled: Boolean((session as any)?.currentOrgId),
+		enabled: Boolean(sessionExt?.currentOrgId),
 	});
 
 	const switchMutation = trpc.org.switchOrg.useMutation({
@@ -41,13 +45,13 @@ export function OrgSwitcher() {
 	});
 
 	const orgs = orgsQ.data ?? [];
-	const currentOrgId = (session as any)?.currentOrgId ?? null;
+	const currentOrgId = sessionExt?.currentOrgId ?? null;
 	const current =
 		currentQ.data ?? orgs.find((org) => org.id === currentOrgId) ?? null;
 
 	const currentName = useMemo(() => {
 		if (current?.name) return current.name;
-		if (orgs.length === 1) return orgs[0]!.name;
+		if (orgs.length === 1) return orgs[0]?.name;
 		return 'Select org';
 	}, [current, orgs]);
 
@@ -64,7 +68,7 @@ export function OrgSwitcher() {
 	}
 
 	if (orgs.length === 1) {
-		return <div className="text-xs text-muted-foreground">{orgs[0]!.name}</div>;
+		return <div className="text-xs text-muted-foreground">{orgs[0]?.name}</div>;
 	}
 
 	return (

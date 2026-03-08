@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { orgService } from '@/server/services/orgService';
+import { switchOrgForSession } from '@/server/services/orgService';
 import {
 	createTRPCRouter,
 	orgProcedure,
@@ -46,13 +46,10 @@ export const orgRouter = createTRPCRouter({
 				});
 			}
 
-			const svc = orgService(ctx.prisma);
-			const result = await svc.switchOrgForSession({
+			return switchOrgForSession({
 				userId,
 				sessionToken,
 				targetOrgId: input.orgId,
 			});
-
-			return result; // { orgId, role }
 		}),
 });
