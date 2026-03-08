@@ -98,6 +98,16 @@ export type OpportunityRequirement = $Result.DefaultSelection<Prisma.$Opportunit
  * 
  */
 export type VolunteerSkill = $Result.DefaultSelection<Prisma.$VolunteerSkillPayload>
+/**
+ * Model VolunteerProfile
+ * 
+ */
+export type VolunteerProfile = $Result.DefaultSelection<Prisma.$VolunteerProfilePayload>
+/**
+ * Model VolunteerCredential
+ * 
+ */
+export type VolunteerCredential = $Result.DefaultSelection<Prisma.$VolunteerCredentialPayload>
 
 /**
  * Enums
@@ -159,6 +169,46 @@ export const RequirementLevel: {
 
 export type RequirementLevel = (typeof RequirementLevel)[keyof typeof RequirementLevel]
 
+
+export const AvailabilityType: {
+  WEEKDAYS: 'WEEKDAYS',
+  WEEKENDS: 'WEEKENDS',
+  EVENINGS: 'EVENINGS',
+  FLEXIBLE: 'FLEXIBLE'
+};
+
+export type AvailabilityType = (typeof AvailabilityType)[keyof typeof AvailabilityType]
+
+
+export const ProfileVisibility: {
+  PUBLIC: 'PUBLIC',
+  ORGS_ONLY: 'ORGS_ONLY',
+  PRIVATE: 'PRIVATE'
+};
+
+export type ProfileVisibility = (typeof ProfileVisibility)[keyof typeof ProfileVisibility]
+
+
+export const CredentialType: {
+  BACKGROUND_CHECK: 'BACKGROUND_CHECK',
+  TRAINING_COMPLETE: 'TRAINING_COMPLETE',
+  ID_VERIFIED: 'ID_VERIFIED',
+  REFERENCE_CHECK: 'REFERENCE_CHECK',
+  ORIENTATION_COMPLETE: 'ORIENTATION_COMPLETE'
+};
+
+export type CredentialType = (typeof CredentialType)[keyof typeof CredentialType]
+
+
+export const CredentialStatus: {
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  EXPIRED: 'EXPIRED',
+  REVOKED: 'REVOKED'
+};
+
+export type CredentialStatus = (typeof CredentialStatus)[keyof typeof CredentialStatus]
+
 }
 
 export type ApplicationStatus = $Enums.ApplicationStatus
@@ -185,13 +235,31 @@ export type RequirementLevel = $Enums.RequirementLevel
 
 export const RequirementLevel: typeof $Enums.RequirementLevel
 
+export type AvailabilityType = $Enums.AvailabilityType
+
+export const AvailabilityType: typeof $Enums.AvailabilityType
+
+export type ProfileVisibility = $Enums.ProfileVisibility
+
+export const ProfileVisibility: typeof $Enums.ProfileVisibility
+
+export type CredentialType = $Enums.CredentialType
+
+export const CredentialType: typeof $Enums.CredentialType
+
+export type CredentialStatus = $Enums.CredentialStatus
+
+export const CredentialStatus: typeof $Enums.CredentialStatus
+
 /**
  * ##  Prisma Client ʲˢ
  *
  * Type-safe database client for TypeScript & Node.js
  * @example
  * ```
- * const prisma = new PrismaClient()
+ * const prisma = new PrismaClient({
+ *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+ * })
  * // Fetch zero or more Users
  * const users = await prisma.user.findMany()
  * ```
@@ -212,7 +280,9 @@ export class PrismaClient<
    * Type-safe database client for TypeScript & Node.js
    * @example
    * ```
-   * const prisma = new PrismaClient()
+   * const prisma = new PrismaClient({
+   *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+   * })
    * // Fetch zero or more Users
    * const users = await prisma.user.findMany()
    * ```
@@ -292,7 +362,7 @@ export class PrismaClient<
    * ])
    * ```
    * 
-   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
+   * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/queries/transactions).
    */
   $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
@@ -471,6 +541,26 @@ export class PrismaClient<
     * ```
     */
   get volunteerSkill(): Prisma.VolunteerSkillDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.volunteerProfile`: Exposes CRUD operations for the **VolunteerProfile** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VolunteerProfiles
+    * const volunteerProfiles = await prisma.volunteerProfile.findMany()
+    * ```
+    */
+  get volunteerProfile(): Prisma.VolunteerProfileDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.volunteerCredential`: Exposes CRUD operations for the **VolunteerCredential** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VolunteerCredentials
+    * const volunteerCredentials = await prisma.volunteerCredential.findMany()
+    * ```
+    */
+  get volunteerCredential(): Prisma.VolunteerCredentialDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -521,8 +611,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 7.3.0
-   * Query Engine version: 9d6ad21cbbceab97458517b147a6a09ff43aa735
+   * Prisma Client JS version: 7.4.2
+   * Query Engine version: 94a226be1cf2967af2541cca5529f0f7ba866919
    */
   export type PrismaVersion = {
     client: string
@@ -921,7 +1011,9 @@ export namespace Prisma {
     VolunteerOpportunity: 'VolunteerOpportunity',
     OpportunityTag: 'OpportunityTag',
     OpportunityRequirement: 'OpportunityRequirement',
-    VolunteerSkill: 'VolunteerSkill'
+    VolunteerSkill: 'VolunteerSkill',
+    VolunteerProfile: 'VolunteerProfile',
+    VolunteerCredential: 'VolunteerCredential'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -937,7 +1029,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "volunteerSkill"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2199,6 +2291,154 @@ export namespace Prisma {
           }
         }
       }
+      VolunteerProfile: {
+        payload: Prisma.$VolunteerProfilePayload<ExtArgs>
+        fields: Prisma.VolunteerProfileFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VolunteerProfileFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VolunteerProfileFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload>
+          }
+          findFirst: {
+            args: Prisma.VolunteerProfileFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VolunteerProfileFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload>
+          }
+          findMany: {
+            args: Prisma.VolunteerProfileFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload>[]
+          }
+          create: {
+            args: Prisma.VolunteerProfileCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload>
+          }
+          createMany: {
+            args: Prisma.VolunteerProfileCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VolunteerProfileCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload>[]
+          }
+          delete: {
+            args: Prisma.VolunteerProfileDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload>
+          }
+          update: {
+            args: Prisma.VolunteerProfileUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload>
+          }
+          deleteMany: {
+            args: Prisma.VolunteerProfileDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VolunteerProfileUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.VolunteerProfileUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload>[]
+          }
+          upsert: {
+            args: Prisma.VolunteerProfileUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerProfilePayload>
+          }
+          aggregate: {
+            args: Prisma.VolunteerProfileAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVolunteerProfile>
+          }
+          groupBy: {
+            args: Prisma.VolunteerProfileGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VolunteerProfileGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VolunteerProfileCountArgs<ExtArgs>
+            result: $Utils.Optional<VolunteerProfileCountAggregateOutputType> | number
+          }
+        }
+      }
+      VolunteerCredential: {
+        payload: Prisma.$VolunteerCredentialPayload<ExtArgs>
+        fields: Prisma.VolunteerCredentialFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VolunteerCredentialFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VolunteerCredentialFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload>
+          }
+          findFirst: {
+            args: Prisma.VolunteerCredentialFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VolunteerCredentialFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload>
+          }
+          findMany: {
+            args: Prisma.VolunteerCredentialFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload>[]
+          }
+          create: {
+            args: Prisma.VolunteerCredentialCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload>
+          }
+          createMany: {
+            args: Prisma.VolunteerCredentialCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VolunteerCredentialCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload>[]
+          }
+          delete: {
+            args: Prisma.VolunteerCredentialDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload>
+          }
+          update: {
+            args: Prisma.VolunteerCredentialUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload>
+          }
+          deleteMany: {
+            args: Prisma.VolunteerCredentialDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VolunteerCredentialUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.VolunteerCredentialUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload>[]
+          }
+          upsert: {
+            args: Prisma.VolunteerCredentialUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerCredentialPayload>
+          }
+          aggregate: {
+            args: Prisma.VolunteerCredentialAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVolunteerCredential>
+          }
+          groupBy: {
+            args: Prisma.VolunteerCredentialGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VolunteerCredentialGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VolunteerCredentialCountArgs<ExtArgs>
+            result: $Utils.Optional<VolunteerCredentialCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2324,6 +2564,8 @@ export namespace Prisma {
     opportunityTag?: OpportunityTagOmit
     opportunityRequirement?: OpportunityRequirementOmit
     volunteerSkill?: VolunteerSkillOmit
+    volunteerProfile?: VolunteerProfileOmit
+    volunteerCredential?: VolunteerCredentialOmit
   }
 
   /* Types for Logging */
@@ -2410,6 +2652,7 @@ export namespace Prisma {
     auditLogs: number
     submittedApplications: number
     volunteerSkills: number
+    credentials: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2419,6 +2662,7 @@ export namespace Prisma {
     auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
     submittedApplications?: boolean | UserCountOutputTypeCountSubmittedApplicationsArgs
     volunteerSkills?: boolean | UserCountOutputTypeCountVolunteerSkillsArgs
+    credentials?: boolean | UserCountOutputTypeCountCredentialsArgs
   }
 
   // Custom InputTypes
@@ -2474,6 +2718,13 @@ export namespace Prisma {
     where?: VolunteerSkillWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCredentialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerCredentialWhereInput
+  }
+
 
   /**
    * Count Type OrganizationCountOutputType
@@ -2488,6 +2739,7 @@ export namespace Prisma {
     sessions: number
     invitations: number
     opportunities: number
+    credentials: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2499,6 +2751,7 @@ export namespace Prisma {
     sessions?: boolean | OrganizationCountOutputTypeCountSessionsArgs
     invitations?: boolean | OrganizationCountOutputTypeCountInvitationsArgs
     opportunities?: boolean | OrganizationCountOutputTypeCountOpportunitiesArgs
+    credentials?: boolean | OrganizationCountOutputTypeCountCredentialsArgs
   }
 
   // Custom InputTypes
@@ -2566,6 +2819,13 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountOpportunitiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VolunteerOpportunityWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountCredentialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerCredentialWhereInput
   }
 
 
@@ -2839,6 +3099,8 @@ export namespace Prisma {
     auditLogs?: boolean | User$auditLogsArgs<ExtArgs>
     submittedApplications?: boolean | User$submittedApplicationsArgs<ExtArgs>
     volunteerSkills?: boolean | User$volunteerSkillsArgs<ExtArgs>
+    profile?: boolean | User$profileArgs<ExtArgs>
+    credentials?: boolean | User$credentialsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2880,6 +3142,8 @@ export namespace Prisma {
     auditLogs?: boolean | User$auditLogsArgs<ExtArgs>
     submittedApplications?: boolean | User$submittedApplicationsArgs<ExtArgs>
     volunteerSkills?: boolean | User$volunteerSkillsArgs<ExtArgs>
+    profile?: boolean | User$profileArgs<ExtArgs>
+    credentials?: boolean | User$credentialsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2894,6 +3158,8 @@ export namespace Prisma {
       auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
       submittedApplications: Prisma.$VolunteerApplicationPayload<ExtArgs>[]
       volunteerSkills: Prisma.$VolunteerSkillPayload<ExtArgs>[]
+      profile: Prisma.$VolunteerProfilePayload<ExtArgs> | null
+      credentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3303,6 +3569,8 @@ export namespace Prisma {
     auditLogs<T extends User$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     submittedApplications<T extends User$submittedApplicationsArgs<ExtArgs> = {}>(args?: Subset<T, User$submittedApplicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     volunteerSkills<T extends User$volunteerSkillsArgs<ExtArgs> = {}>(args?: Subset<T, User$volunteerSkillsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    profile<T extends User$profileArgs<ExtArgs> = {}>(args?: Subset<T, User$profileArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    credentials<T extends User$credentialsArgs<ExtArgs> = {}>(args?: Subset<T, User$credentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3868,6 +4136,49 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VolunteerSkillScalarFieldEnum | VolunteerSkillScalarFieldEnum[]
+  }
+
+  /**
+   * User.profile
+   */
+  export type User$profileArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    where?: VolunteerProfileWhereInput
+  }
+
+  /**
+   * User.credentials
+   */
+  export type User$credentialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    where?: VolunteerCredentialWhereInput
+    orderBy?: VolunteerCredentialOrderByWithRelationInput | VolunteerCredentialOrderByWithRelationInput[]
+    cursor?: VolunteerCredentialWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
   }
 
   /**
@@ -8332,6 +8643,7 @@ export namespace Prisma {
     sessions?: boolean | Organization$sessionsArgs<ExtArgs>
     invitations?: boolean | Organization$invitationsArgs<ExtArgs>
     opportunities?: boolean | Organization$opportunitiesArgs<ExtArgs>
+    credentials?: boolean | Organization$credentialsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -8369,6 +8681,7 @@ export namespace Prisma {
     sessions?: boolean | Organization$sessionsArgs<ExtArgs>
     invitations?: boolean | Organization$invitationsArgs<ExtArgs>
     opportunities?: boolean | Organization$opportunitiesArgs<ExtArgs>
+    credentials?: boolean | Organization$credentialsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -8385,6 +8698,7 @@ export namespace Prisma {
       sessions: Prisma.$SessionPayload<ExtArgs>[]
       invitations: Prisma.$OrganizationInvitationPayload<ExtArgs>[]
       opportunities: Prisma.$VolunteerOpportunityPayload<ExtArgs>[]
+      credentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -8794,6 +9108,7 @@ export namespace Prisma {
     sessions<T extends Organization$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     invitations<T extends Organization$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     opportunities<T extends Organization$opportunitiesArgs<ExtArgs> = {}>(args?: Subset<T, Organization$opportunitiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    credentials<T extends Organization$credentialsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$credentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -9405,6 +9720,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VolunteerOpportunityScalarFieldEnum | VolunteerOpportunityScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.credentials
+   */
+  export type Organization$credentialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    where?: VolunteerCredentialWhereInput
+    orderBy?: VolunteerCredentialOrderByWithRelationInput | VolunteerCredentialOrderByWithRelationInput[]
+    cursor?: VolunteerCredentialWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
   }
 
   /**
@@ -21556,6 +21895,2295 @@ export namespace Prisma {
 
 
   /**
+   * Model VolunteerProfile
+   */
+
+  export type AggregateVolunteerProfile = {
+    _count: VolunteerProfileCountAggregateOutputType | null
+    _min: VolunteerProfileMinAggregateOutputType | null
+    _max: VolunteerProfileMaxAggregateOutputType | null
+  }
+
+  export type VolunteerProfileMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    bio: string | null
+    phone: string | null
+    city: string | null
+    state: string | null
+    country: string | null
+    availability: $Enums.AvailabilityType | null
+    visibility: $Enums.ProfileVisibility | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VolunteerProfileMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    bio: string | null
+    phone: string | null
+    city: string | null
+    state: string | null
+    country: string | null
+    availability: $Enums.AvailabilityType | null
+    visibility: $Enums.ProfileVisibility | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VolunteerProfileCountAggregateOutputType = {
+    id: number
+    userId: number
+    bio: number
+    phone: number
+    city: number
+    state: number
+    country: number
+    availability: number
+    visibility: number
+    interests: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type VolunteerProfileMinAggregateInputType = {
+    id?: true
+    userId?: true
+    bio?: true
+    phone?: true
+    city?: true
+    state?: true
+    country?: true
+    availability?: true
+    visibility?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VolunteerProfileMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    bio?: true
+    phone?: true
+    city?: true
+    state?: true
+    country?: true
+    availability?: true
+    visibility?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VolunteerProfileCountAggregateInputType = {
+    id?: true
+    userId?: true
+    bio?: true
+    phone?: true
+    city?: true
+    state?: true
+    country?: true
+    availability?: true
+    visibility?: true
+    interests?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type VolunteerProfileAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VolunteerProfile to aggregate.
+     */
+    where?: VolunteerProfileWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerProfiles to fetch.
+     */
+    orderBy?: VolunteerProfileOrderByWithRelationInput | VolunteerProfileOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VolunteerProfileWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerProfiles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerProfiles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VolunteerProfiles
+    **/
+    _count?: true | VolunteerProfileCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VolunteerProfileMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VolunteerProfileMaxAggregateInputType
+  }
+
+  export type GetVolunteerProfileAggregateType<T extends VolunteerProfileAggregateArgs> = {
+        [P in keyof T & keyof AggregateVolunteerProfile]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVolunteerProfile[P]>
+      : GetScalarType<T[P], AggregateVolunteerProfile[P]>
+  }
+
+
+
+
+  export type VolunteerProfileGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerProfileWhereInput
+    orderBy?: VolunteerProfileOrderByWithAggregationInput | VolunteerProfileOrderByWithAggregationInput[]
+    by: VolunteerProfileScalarFieldEnum[] | VolunteerProfileScalarFieldEnum
+    having?: VolunteerProfileScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VolunteerProfileCountAggregateInputType | true
+    _min?: VolunteerProfileMinAggregateInputType
+    _max?: VolunteerProfileMaxAggregateInputType
+  }
+
+  export type VolunteerProfileGroupByOutputType = {
+    id: string
+    userId: string
+    bio: string | null
+    phone: string | null
+    city: string | null
+    state: string | null
+    country: string | null
+    availability: $Enums.AvailabilityType
+    visibility: $Enums.ProfileVisibility
+    interests: string[]
+    createdAt: Date
+    updatedAt: Date
+    _count: VolunteerProfileCountAggregateOutputType | null
+    _min: VolunteerProfileMinAggregateOutputType | null
+    _max: VolunteerProfileMaxAggregateOutputType | null
+  }
+
+  type GetVolunteerProfileGroupByPayload<T extends VolunteerProfileGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VolunteerProfileGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VolunteerProfileGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VolunteerProfileGroupByOutputType[P]>
+            : GetScalarType<T[P], VolunteerProfileGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VolunteerProfileSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    bio?: boolean
+    phone?: boolean
+    city?: boolean
+    state?: boolean
+    country?: boolean
+    availability?: boolean
+    visibility?: boolean
+    interests?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerProfile"]>
+
+  export type VolunteerProfileSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    bio?: boolean
+    phone?: boolean
+    city?: boolean
+    state?: boolean
+    country?: boolean
+    availability?: boolean
+    visibility?: boolean
+    interests?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerProfile"]>
+
+  export type VolunteerProfileSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    bio?: boolean
+    phone?: boolean
+    city?: boolean
+    state?: boolean
+    country?: boolean
+    availability?: boolean
+    visibility?: boolean
+    interests?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerProfile"]>
+
+  export type VolunteerProfileSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    bio?: boolean
+    phone?: boolean
+    city?: boolean
+    state?: boolean
+    country?: boolean
+    availability?: boolean
+    visibility?: boolean
+    interests?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type VolunteerProfileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "bio" | "phone" | "city" | "state" | "country" | "availability" | "visibility" | "interests" | "createdAt" | "updatedAt", ExtArgs["result"]["volunteerProfile"]>
+  export type VolunteerProfileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type VolunteerProfileIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type VolunteerProfileIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $VolunteerProfilePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VolunteerProfile"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      bio: string | null
+      phone: string | null
+      city: string | null
+      state: string | null
+      country: string | null
+      availability: $Enums.AvailabilityType
+      visibility: $Enums.ProfileVisibility
+      interests: string[]
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["volunteerProfile"]>
+    composites: {}
+  }
+
+  type VolunteerProfileGetPayload<S extends boolean | null | undefined | VolunteerProfileDefaultArgs> = $Result.GetResult<Prisma.$VolunteerProfilePayload, S>
+
+  type VolunteerProfileCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<VolunteerProfileFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: VolunteerProfileCountAggregateInputType | true
+    }
+
+  export interface VolunteerProfileDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VolunteerProfile'], meta: { name: 'VolunteerProfile' } }
+    /**
+     * Find zero or one VolunteerProfile that matches the filter.
+     * @param {VolunteerProfileFindUniqueArgs} args - Arguments to find a VolunteerProfile
+     * @example
+     * // Get one VolunteerProfile
+     * const volunteerProfile = await prisma.volunteerProfile.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VolunteerProfileFindUniqueArgs>(args: SelectSubset<T, VolunteerProfileFindUniqueArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one VolunteerProfile that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {VolunteerProfileFindUniqueOrThrowArgs} args - Arguments to find a VolunteerProfile
+     * @example
+     * // Get one VolunteerProfile
+     * const volunteerProfile = await prisma.volunteerProfile.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VolunteerProfileFindUniqueOrThrowArgs>(args: SelectSubset<T, VolunteerProfileFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VolunteerProfile that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerProfileFindFirstArgs} args - Arguments to find a VolunteerProfile
+     * @example
+     * // Get one VolunteerProfile
+     * const volunteerProfile = await prisma.volunteerProfile.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VolunteerProfileFindFirstArgs>(args?: SelectSubset<T, VolunteerProfileFindFirstArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VolunteerProfile that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerProfileFindFirstOrThrowArgs} args - Arguments to find a VolunteerProfile
+     * @example
+     * // Get one VolunteerProfile
+     * const volunteerProfile = await prisma.volunteerProfile.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VolunteerProfileFindFirstOrThrowArgs>(args?: SelectSubset<T, VolunteerProfileFindFirstOrThrowArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more VolunteerProfiles that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerProfileFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VolunteerProfiles
+     * const volunteerProfiles = await prisma.volunteerProfile.findMany()
+     * 
+     * // Get first 10 VolunteerProfiles
+     * const volunteerProfiles = await prisma.volunteerProfile.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const volunteerProfileWithIdOnly = await prisma.volunteerProfile.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VolunteerProfileFindManyArgs>(args?: SelectSubset<T, VolunteerProfileFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a VolunteerProfile.
+     * @param {VolunteerProfileCreateArgs} args - Arguments to create a VolunteerProfile.
+     * @example
+     * // Create one VolunteerProfile
+     * const VolunteerProfile = await prisma.volunteerProfile.create({
+     *   data: {
+     *     // ... data to create a VolunteerProfile
+     *   }
+     * })
+     * 
+     */
+    create<T extends VolunteerProfileCreateArgs>(args: SelectSubset<T, VolunteerProfileCreateArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many VolunteerProfiles.
+     * @param {VolunteerProfileCreateManyArgs} args - Arguments to create many VolunteerProfiles.
+     * @example
+     * // Create many VolunteerProfiles
+     * const volunteerProfile = await prisma.volunteerProfile.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VolunteerProfileCreateManyArgs>(args?: SelectSubset<T, VolunteerProfileCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VolunteerProfiles and returns the data saved in the database.
+     * @param {VolunteerProfileCreateManyAndReturnArgs} args - Arguments to create many VolunteerProfiles.
+     * @example
+     * // Create many VolunteerProfiles
+     * const volunteerProfile = await prisma.volunteerProfile.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VolunteerProfiles and only return the `id`
+     * const volunteerProfileWithIdOnly = await prisma.volunteerProfile.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VolunteerProfileCreateManyAndReturnArgs>(args?: SelectSubset<T, VolunteerProfileCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a VolunteerProfile.
+     * @param {VolunteerProfileDeleteArgs} args - Arguments to delete one VolunteerProfile.
+     * @example
+     * // Delete one VolunteerProfile
+     * const VolunteerProfile = await prisma.volunteerProfile.delete({
+     *   where: {
+     *     // ... filter to delete one VolunteerProfile
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VolunteerProfileDeleteArgs>(args: SelectSubset<T, VolunteerProfileDeleteArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one VolunteerProfile.
+     * @param {VolunteerProfileUpdateArgs} args - Arguments to update one VolunteerProfile.
+     * @example
+     * // Update one VolunteerProfile
+     * const volunteerProfile = await prisma.volunteerProfile.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VolunteerProfileUpdateArgs>(args: SelectSubset<T, VolunteerProfileUpdateArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more VolunteerProfiles.
+     * @param {VolunteerProfileDeleteManyArgs} args - Arguments to filter VolunteerProfiles to delete.
+     * @example
+     * // Delete a few VolunteerProfiles
+     * const { count } = await prisma.volunteerProfile.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VolunteerProfileDeleteManyArgs>(args?: SelectSubset<T, VolunteerProfileDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VolunteerProfiles.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerProfileUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VolunteerProfiles
+     * const volunteerProfile = await prisma.volunteerProfile.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VolunteerProfileUpdateManyArgs>(args: SelectSubset<T, VolunteerProfileUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VolunteerProfiles and returns the data updated in the database.
+     * @param {VolunteerProfileUpdateManyAndReturnArgs} args - Arguments to update many VolunteerProfiles.
+     * @example
+     * // Update many VolunteerProfiles
+     * const volunteerProfile = await prisma.volunteerProfile.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more VolunteerProfiles and only return the `id`
+     * const volunteerProfileWithIdOnly = await prisma.volunteerProfile.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends VolunteerProfileUpdateManyAndReturnArgs>(args: SelectSubset<T, VolunteerProfileUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one VolunteerProfile.
+     * @param {VolunteerProfileUpsertArgs} args - Arguments to update or create a VolunteerProfile.
+     * @example
+     * // Update or create a VolunteerProfile
+     * const volunteerProfile = await prisma.volunteerProfile.upsert({
+     *   create: {
+     *     // ... data to create a VolunteerProfile
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VolunteerProfile we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VolunteerProfileUpsertArgs>(args: SelectSubset<T, VolunteerProfileUpsertArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of VolunteerProfiles.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerProfileCountArgs} args - Arguments to filter VolunteerProfiles to count.
+     * @example
+     * // Count the number of VolunteerProfiles
+     * const count = await prisma.volunteerProfile.count({
+     *   where: {
+     *     // ... the filter for the VolunteerProfiles we want to count
+     *   }
+     * })
+    **/
+    count<T extends VolunteerProfileCountArgs>(
+      args?: Subset<T, VolunteerProfileCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VolunteerProfileCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VolunteerProfile.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerProfileAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VolunteerProfileAggregateArgs>(args: Subset<T, VolunteerProfileAggregateArgs>): Prisma.PrismaPromise<GetVolunteerProfileAggregateType<T>>
+
+    /**
+     * Group by VolunteerProfile.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerProfileGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VolunteerProfileGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VolunteerProfileGroupByArgs['orderBy'] }
+        : { orderBy?: VolunteerProfileGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VolunteerProfileGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVolunteerProfileGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VolunteerProfile model
+   */
+  readonly fields: VolunteerProfileFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VolunteerProfile.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VolunteerProfileClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VolunteerProfile model
+   */
+  interface VolunteerProfileFieldRefs {
+    readonly id: FieldRef<"VolunteerProfile", 'String'>
+    readonly userId: FieldRef<"VolunteerProfile", 'String'>
+    readonly bio: FieldRef<"VolunteerProfile", 'String'>
+    readonly phone: FieldRef<"VolunteerProfile", 'String'>
+    readonly city: FieldRef<"VolunteerProfile", 'String'>
+    readonly state: FieldRef<"VolunteerProfile", 'String'>
+    readonly country: FieldRef<"VolunteerProfile", 'String'>
+    readonly availability: FieldRef<"VolunteerProfile", 'AvailabilityType'>
+    readonly visibility: FieldRef<"VolunteerProfile", 'ProfileVisibility'>
+    readonly interests: FieldRef<"VolunteerProfile", 'String[]'>
+    readonly createdAt: FieldRef<"VolunteerProfile", 'DateTime'>
+    readonly updatedAt: FieldRef<"VolunteerProfile", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VolunteerProfile findUnique
+   */
+  export type VolunteerProfileFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerProfile to fetch.
+     */
+    where: VolunteerProfileWhereUniqueInput
+  }
+
+  /**
+   * VolunteerProfile findUniqueOrThrow
+   */
+  export type VolunteerProfileFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerProfile to fetch.
+     */
+    where: VolunteerProfileWhereUniqueInput
+  }
+
+  /**
+   * VolunteerProfile findFirst
+   */
+  export type VolunteerProfileFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerProfile to fetch.
+     */
+    where?: VolunteerProfileWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerProfiles to fetch.
+     */
+    orderBy?: VolunteerProfileOrderByWithRelationInput | VolunteerProfileOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VolunteerProfiles.
+     */
+    cursor?: VolunteerProfileWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerProfiles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerProfiles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerProfiles.
+     */
+    distinct?: VolunteerProfileScalarFieldEnum | VolunteerProfileScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerProfile findFirstOrThrow
+   */
+  export type VolunteerProfileFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerProfile to fetch.
+     */
+    where?: VolunteerProfileWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerProfiles to fetch.
+     */
+    orderBy?: VolunteerProfileOrderByWithRelationInput | VolunteerProfileOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VolunteerProfiles.
+     */
+    cursor?: VolunteerProfileWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerProfiles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerProfiles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerProfiles.
+     */
+    distinct?: VolunteerProfileScalarFieldEnum | VolunteerProfileScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerProfile findMany
+   */
+  export type VolunteerProfileFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerProfiles to fetch.
+     */
+    where?: VolunteerProfileWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerProfiles to fetch.
+     */
+    orderBy?: VolunteerProfileOrderByWithRelationInput | VolunteerProfileOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VolunteerProfiles.
+     */
+    cursor?: VolunteerProfileWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerProfiles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerProfiles.
+     */
+    skip?: number
+    distinct?: VolunteerProfileScalarFieldEnum | VolunteerProfileScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerProfile create
+   */
+  export type VolunteerProfileCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    /**
+     * The data needed to create a VolunteerProfile.
+     */
+    data: XOR<VolunteerProfileCreateInput, VolunteerProfileUncheckedCreateInput>
+  }
+
+  /**
+   * VolunteerProfile createMany
+   */
+  export type VolunteerProfileCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VolunteerProfiles.
+     */
+    data: VolunteerProfileCreateManyInput | VolunteerProfileCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VolunteerProfile createManyAndReturn
+   */
+  export type VolunteerProfileCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * The data used to create many VolunteerProfiles.
+     */
+    data: VolunteerProfileCreateManyInput | VolunteerProfileCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VolunteerProfile update
+   */
+  export type VolunteerProfileUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    /**
+     * The data needed to update a VolunteerProfile.
+     */
+    data: XOR<VolunteerProfileUpdateInput, VolunteerProfileUncheckedUpdateInput>
+    /**
+     * Choose, which VolunteerProfile to update.
+     */
+    where: VolunteerProfileWhereUniqueInput
+  }
+
+  /**
+   * VolunteerProfile updateMany
+   */
+  export type VolunteerProfileUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VolunteerProfiles.
+     */
+    data: XOR<VolunteerProfileUpdateManyMutationInput, VolunteerProfileUncheckedUpdateManyInput>
+    /**
+     * Filter which VolunteerProfiles to update
+     */
+    where?: VolunteerProfileWhereInput
+    /**
+     * Limit how many VolunteerProfiles to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * VolunteerProfile updateManyAndReturn
+   */
+  export type VolunteerProfileUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * The data used to update VolunteerProfiles.
+     */
+    data: XOR<VolunteerProfileUpdateManyMutationInput, VolunteerProfileUncheckedUpdateManyInput>
+    /**
+     * Filter which VolunteerProfiles to update
+     */
+    where?: VolunteerProfileWhereInput
+    /**
+     * Limit how many VolunteerProfiles to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VolunteerProfile upsert
+   */
+  export type VolunteerProfileUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    /**
+     * The filter to search for the VolunteerProfile to update in case it exists.
+     */
+    where: VolunteerProfileWhereUniqueInput
+    /**
+     * In case the VolunteerProfile found by the `where` argument doesn't exist, create a new VolunteerProfile with this data.
+     */
+    create: XOR<VolunteerProfileCreateInput, VolunteerProfileUncheckedCreateInput>
+    /**
+     * In case the VolunteerProfile was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VolunteerProfileUpdateInput, VolunteerProfileUncheckedUpdateInput>
+  }
+
+  /**
+   * VolunteerProfile delete
+   */
+  export type VolunteerProfileDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+    /**
+     * Filter which VolunteerProfile to delete.
+     */
+    where: VolunteerProfileWhereUniqueInput
+  }
+
+  /**
+   * VolunteerProfile deleteMany
+   */
+  export type VolunteerProfileDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VolunteerProfiles to delete
+     */
+    where?: VolunteerProfileWhereInput
+    /**
+     * Limit how many VolunteerProfiles to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * VolunteerProfile without action
+   */
+  export type VolunteerProfileDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerProfile
+     */
+    select?: VolunteerProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerProfile
+     */
+    omit?: VolunteerProfileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerProfileInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model VolunteerCredential
+   */
+
+  export type AggregateVolunteerCredential = {
+    _count: VolunteerCredentialCountAggregateOutputType | null
+    _min: VolunteerCredentialMinAggregateOutputType | null
+    _max: VolunteerCredentialMaxAggregateOutputType | null
+  }
+
+  export type VolunteerCredentialMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    orgId: string | null
+    type: $Enums.CredentialType | null
+    status: $Enums.CredentialStatus | null
+    issuedAt: Date | null
+    expiresAt: Date | null
+    notes: string | null
+    issuedById: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VolunteerCredentialMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    orgId: string | null
+    type: $Enums.CredentialType | null
+    status: $Enums.CredentialStatus | null
+    issuedAt: Date | null
+    expiresAt: Date | null
+    notes: string | null
+    issuedById: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VolunteerCredentialCountAggregateOutputType = {
+    id: number
+    userId: number
+    orgId: number
+    type: number
+    status: number
+    issuedAt: number
+    expiresAt: number
+    notes: number
+    issuedById: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type VolunteerCredentialMinAggregateInputType = {
+    id?: true
+    userId?: true
+    orgId?: true
+    type?: true
+    status?: true
+    issuedAt?: true
+    expiresAt?: true
+    notes?: true
+    issuedById?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VolunteerCredentialMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    orgId?: true
+    type?: true
+    status?: true
+    issuedAt?: true
+    expiresAt?: true
+    notes?: true
+    issuedById?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VolunteerCredentialCountAggregateInputType = {
+    id?: true
+    userId?: true
+    orgId?: true
+    type?: true
+    status?: true
+    issuedAt?: true
+    expiresAt?: true
+    notes?: true
+    issuedById?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type VolunteerCredentialAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VolunteerCredential to aggregate.
+     */
+    where?: VolunteerCredentialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerCredentials to fetch.
+     */
+    orderBy?: VolunteerCredentialOrderByWithRelationInput | VolunteerCredentialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VolunteerCredentialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerCredentials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerCredentials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VolunteerCredentials
+    **/
+    _count?: true | VolunteerCredentialCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VolunteerCredentialMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VolunteerCredentialMaxAggregateInputType
+  }
+
+  export type GetVolunteerCredentialAggregateType<T extends VolunteerCredentialAggregateArgs> = {
+        [P in keyof T & keyof AggregateVolunteerCredential]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVolunteerCredential[P]>
+      : GetScalarType<T[P], AggregateVolunteerCredential[P]>
+  }
+
+
+
+
+  export type VolunteerCredentialGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerCredentialWhereInput
+    orderBy?: VolunteerCredentialOrderByWithAggregationInput | VolunteerCredentialOrderByWithAggregationInput[]
+    by: VolunteerCredentialScalarFieldEnum[] | VolunteerCredentialScalarFieldEnum
+    having?: VolunteerCredentialScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VolunteerCredentialCountAggregateInputType | true
+    _min?: VolunteerCredentialMinAggregateInputType
+    _max?: VolunteerCredentialMaxAggregateInputType
+  }
+
+  export type VolunteerCredentialGroupByOutputType = {
+    id: string
+    userId: string
+    orgId: string
+    type: $Enums.CredentialType
+    status: $Enums.CredentialStatus
+    issuedAt: Date | null
+    expiresAt: Date | null
+    notes: string | null
+    issuedById: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: VolunteerCredentialCountAggregateOutputType | null
+    _min: VolunteerCredentialMinAggregateOutputType | null
+    _max: VolunteerCredentialMaxAggregateOutputType | null
+  }
+
+  type GetVolunteerCredentialGroupByPayload<T extends VolunteerCredentialGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VolunteerCredentialGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VolunteerCredentialGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VolunteerCredentialGroupByOutputType[P]>
+            : GetScalarType<T[P], VolunteerCredentialGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VolunteerCredentialSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    orgId?: boolean
+    type?: boolean
+    status?: boolean
+    issuedAt?: boolean
+    expiresAt?: boolean
+    notes?: boolean
+    issuedById?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerCredential"]>
+
+  export type VolunteerCredentialSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    orgId?: boolean
+    type?: boolean
+    status?: boolean
+    issuedAt?: boolean
+    expiresAt?: boolean
+    notes?: boolean
+    issuedById?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerCredential"]>
+
+  export type VolunteerCredentialSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    orgId?: boolean
+    type?: boolean
+    status?: boolean
+    issuedAt?: boolean
+    expiresAt?: boolean
+    notes?: boolean
+    issuedById?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerCredential"]>
+
+  export type VolunteerCredentialSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    orgId?: boolean
+    type?: boolean
+    status?: boolean
+    issuedAt?: boolean
+    expiresAt?: boolean
+    notes?: boolean
+    issuedById?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type VolunteerCredentialOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "orgId" | "type" | "status" | "issuedAt" | "expiresAt" | "notes" | "issuedById" | "createdAt" | "updatedAt", ExtArgs["result"]["volunteerCredential"]>
+  export type VolunteerCredentialInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type VolunteerCredentialIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type VolunteerCredentialIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+
+  export type $VolunteerCredentialPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VolunteerCredential"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      orgId: string
+      type: $Enums.CredentialType
+      status: $Enums.CredentialStatus
+      issuedAt: Date | null
+      expiresAt: Date | null
+      notes: string | null
+      issuedById: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["volunteerCredential"]>
+    composites: {}
+  }
+
+  type VolunteerCredentialGetPayload<S extends boolean | null | undefined | VolunteerCredentialDefaultArgs> = $Result.GetResult<Prisma.$VolunteerCredentialPayload, S>
+
+  type VolunteerCredentialCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<VolunteerCredentialFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: VolunteerCredentialCountAggregateInputType | true
+    }
+
+  export interface VolunteerCredentialDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VolunteerCredential'], meta: { name: 'VolunteerCredential' } }
+    /**
+     * Find zero or one VolunteerCredential that matches the filter.
+     * @param {VolunteerCredentialFindUniqueArgs} args - Arguments to find a VolunteerCredential
+     * @example
+     * // Get one VolunteerCredential
+     * const volunteerCredential = await prisma.volunteerCredential.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VolunteerCredentialFindUniqueArgs>(args: SelectSubset<T, VolunteerCredentialFindUniqueArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one VolunteerCredential that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {VolunteerCredentialFindUniqueOrThrowArgs} args - Arguments to find a VolunteerCredential
+     * @example
+     * // Get one VolunteerCredential
+     * const volunteerCredential = await prisma.volunteerCredential.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VolunteerCredentialFindUniqueOrThrowArgs>(args: SelectSubset<T, VolunteerCredentialFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VolunteerCredential that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerCredentialFindFirstArgs} args - Arguments to find a VolunteerCredential
+     * @example
+     * // Get one VolunteerCredential
+     * const volunteerCredential = await prisma.volunteerCredential.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VolunteerCredentialFindFirstArgs>(args?: SelectSubset<T, VolunteerCredentialFindFirstArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VolunteerCredential that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerCredentialFindFirstOrThrowArgs} args - Arguments to find a VolunteerCredential
+     * @example
+     * // Get one VolunteerCredential
+     * const volunteerCredential = await prisma.volunteerCredential.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VolunteerCredentialFindFirstOrThrowArgs>(args?: SelectSubset<T, VolunteerCredentialFindFirstOrThrowArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more VolunteerCredentials that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerCredentialFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VolunteerCredentials
+     * const volunteerCredentials = await prisma.volunteerCredential.findMany()
+     * 
+     * // Get first 10 VolunteerCredentials
+     * const volunteerCredentials = await prisma.volunteerCredential.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const volunteerCredentialWithIdOnly = await prisma.volunteerCredential.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VolunteerCredentialFindManyArgs>(args?: SelectSubset<T, VolunteerCredentialFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a VolunteerCredential.
+     * @param {VolunteerCredentialCreateArgs} args - Arguments to create a VolunteerCredential.
+     * @example
+     * // Create one VolunteerCredential
+     * const VolunteerCredential = await prisma.volunteerCredential.create({
+     *   data: {
+     *     // ... data to create a VolunteerCredential
+     *   }
+     * })
+     * 
+     */
+    create<T extends VolunteerCredentialCreateArgs>(args: SelectSubset<T, VolunteerCredentialCreateArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many VolunteerCredentials.
+     * @param {VolunteerCredentialCreateManyArgs} args - Arguments to create many VolunteerCredentials.
+     * @example
+     * // Create many VolunteerCredentials
+     * const volunteerCredential = await prisma.volunteerCredential.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VolunteerCredentialCreateManyArgs>(args?: SelectSubset<T, VolunteerCredentialCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VolunteerCredentials and returns the data saved in the database.
+     * @param {VolunteerCredentialCreateManyAndReturnArgs} args - Arguments to create many VolunteerCredentials.
+     * @example
+     * // Create many VolunteerCredentials
+     * const volunteerCredential = await prisma.volunteerCredential.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VolunteerCredentials and only return the `id`
+     * const volunteerCredentialWithIdOnly = await prisma.volunteerCredential.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VolunteerCredentialCreateManyAndReturnArgs>(args?: SelectSubset<T, VolunteerCredentialCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a VolunteerCredential.
+     * @param {VolunteerCredentialDeleteArgs} args - Arguments to delete one VolunteerCredential.
+     * @example
+     * // Delete one VolunteerCredential
+     * const VolunteerCredential = await prisma.volunteerCredential.delete({
+     *   where: {
+     *     // ... filter to delete one VolunteerCredential
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VolunteerCredentialDeleteArgs>(args: SelectSubset<T, VolunteerCredentialDeleteArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one VolunteerCredential.
+     * @param {VolunteerCredentialUpdateArgs} args - Arguments to update one VolunteerCredential.
+     * @example
+     * // Update one VolunteerCredential
+     * const volunteerCredential = await prisma.volunteerCredential.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VolunteerCredentialUpdateArgs>(args: SelectSubset<T, VolunteerCredentialUpdateArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more VolunteerCredentials.
+     * @param {VolunteerCredentialDeleteManyArgs} args - Arguments to filter VolunteerCredentials to delete.
+     * @example
+     * // Delete a few VolunteerCredentials
+     * const { count } = await prisma.volunteerCredential.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VolunteerCredentialDeleteManyArgs>(args?: SelectSubset<T, VolunteerCredentialDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VolunteerCredentials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerCredentialUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VolunteerCredentials
+     * const volunteerCredential = await prisma.volunteerCredential.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VolunteerCredentialUpdateManyArgs>(args: SelectSubset<T, VolunteerCredentialUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VolunteerCredentials and returns the data updated in the database.
+     * @param {VolunteerCredentialUpdateManyAndReturnArgs} args - Arguments to update many VolunteerCredentials.
+     * @example
+     * // Update many VolunteerCredentials
+     * const volunteerCredential = await prisma.volunteerCredential.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more VolunteerCredentials and only return the `id`
+     * const volunteerCredentialWithIdOnly = await prisma.volunteerCredential.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends VolunteerCredentialUpdateManyAndReturnArgs>(args: SelectSubset<T, VolunteerCredentialUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one VolunteerCredential.
+     * @param {VolunteerCredentialUpsertArgs} args - Arguments to update or create a VolunteerCredential.
+     * @example
+     * // Update or create a VolunteerCredential
+     * const volunteerCredential = await prisma.volunteerCredential.upsert({
+     *   create: {
+     *     // ... data to create a VolunteerCredential
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VolunteerCredential we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VolunteerCredentialUpsertArgs>(args: SelectSubset<T, VolunteerCredentialUpsertArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of VolunteerCredentials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerCredentialCountArgs} args - Arguments to filter VolunteerCredentials to count.
+     * @example
+     * // Count the number of VolunteerCredentials
+     * const count = await prisma.volunteerCredential.count({
+     *   where: {
+     *     // ... the filter for the VolunteerCredentials we want to count
+     *   }
+     * })
+    **/
+    count<T extends VolunteerCredentialCountArgs>(
+      args?: Subset<T, VolunteerCredentialCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VolunteerCredentialCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VolunteerCredential.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerCredentialAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VolunteerCredentialAggregateArgs>(args: Subset<T, VolunteerCredentialAggregateArgs>): Prisma.PrismaPromise<GetVolunteerCredentialAggregateType<T>>
+
+    /**
+     * Group by VolunteerCredential.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerCredentialGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VolunteerCredentialGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VolunteerCredentialGroupByArgs['orderBy'] }
+        : { orderBy?: VolunteerCredentialGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VolunteerCredentialGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVolunteerCredentialGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VolunteerCredential model
+   */
+  readonly fields: VolunteerCredentialFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VolunteerCredential.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VolunteerCredentialClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VolunteerCredential model
+   */
+  interface VolunteerCredentialFieldRefs {
+    readonly id: FieldRef<"VolunteerCredential", 'String'>
+    readonly userId: FieldRef<"VolunteerCredential", 'String'>
+    readonly orgId: FieldRef<"VolunteerCredential", 'String'>
+    readonly type: FieldRef<"VolunteerCredential", 'CredentialType'>
+    readonly status: FieldRef<"VolunteerCredential", 'CredentialStatus'>
+    readonly issuedAt: FieldRef<"VolunteerCredential", 'DateTime'>
+    readonly expiresAt: FieldRef<"VolunteerCredential", 'DateTime'>
+    readonly notes: FieldRef<"VolunteerCredential", 'String'>
+    readonly issuedById: FieldRef<"VolunteerCredential", 'String'>
+    readonly createdAt: FieldRef<"VolunteerCredential", 'DateTime'>
+    readonly updatedAt: FieldRef<"VolunteerCredential", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VolunteerCredential findUnique
+   */
+  export type VolunteerCredentialFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerCredential to fetch.
+     */
+    where: VolunteerCredentialWhereUniqueInput
+  }
+
+  /**
+   * VolunteerCredential findUniqueOrThrow
+   */
+  export type VolunteerCredentialFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerCredential to fetch.
+     */
+    where: VolunteerCredentialWhereUniqueInput
+  }
+
+  /**
+   * VolunteerCredential findFirst
+   */
+  export type VolunteerCredentialFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerCredential to fetch.
+     */
+    where?: VolunteerCredentialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerCredentials to fetch.
+     */
+    orderBy?: VolunteerCredentialOrderByWithRelationInput | VolunteerCredentialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VolunteerCredentials.
+     */
+    cursor?: VolunteerCredentialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerCredentials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerCredentials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerCredentials.
+     */
+    distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerCredential findFirstOrThrow
+   */
+  export type VolunteerCredentialFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerCredential to fetch.
+     */
+    where?: VolunteerCredentialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerCredentials to fetch.
+     */
+    orderBy?: VolunteerCredentialOrderByWithRelationInput | VolunteerCredentialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VolunteerCredentials.
+     */
+    cursor?: VolunteerCredentialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerCredentials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerCredentials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerCredentials.
+     */
+    distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerCredential findMany
+   */
+  export type VolunteerCredentialFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerCredentials to fetch.
+     */
+    where?: VolunteerCredentialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerCredentials to fetch.
+     */
+    orderBy?: VolunteerCredentialOrderByWithRelationInput | VolunteerCredentialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VolunteerCredentials.
+     */
+    cursor?: VolunteerCredentialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerCredentials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerCredentials.
+     */
+    skip?: number
+    distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerCredential create
+   */
+  export type VolunteerCredentialCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    /**
+     * The data needed to create a VolunteerCredential.
+     */
+    data: XOR<VolunteerCredentialCreateInput, VolunteerCredentialUncheckedCreateInput>
+  }
+
+  /**
+   * VolunteerCredential createMany
+   */
+  export type VolunteerCredentialCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VolunteerCredentials.
+     */
+    data: VolunteerCredentialCreateManyInput | VolunteerCredentialCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VolunteerCredential createManyAndReturn
+   */
+  export type VolunteerCredentialCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * The data used to create many VolunteerCredentials.
+     */
+    data: VolunteerCredentialCreateManyInput | VolunteerCredentialCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VolunteerCredential update
+   */
+  export type VolunteerCredentialUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    /**
+     * The data needed to update a VolunteerCredential.
+     */
+    data: XOR<VolunteerCredentialUpdateInput, VolunteerCredentialUncheckedUpdateInput>
+    /**
+     * Choose, which VolunteerCredential to update.
+     */
+    where: VolunteerCredentialWhereUniqueInput
+  }
+
+  /**
+   * VolunteerCredential updateMany
+   */
+  export type VolunteerCredentialUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VolunteerCredentials.
+     */
+    data: XOR<VolunteerCredentialUpdateManyMutationInput, VolunteerCredentialUncheckedUpdateManyInput>
+    /**
+     * Filter which VolunteerCredentials to update
+     */
+    where?: VolunteerCredentialWhereInput
+    /**
+     * Limit how many VolunteerCredentials to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * VolunteerCredential updateManyAndReturn
+   */
+  export type VolunteerCredentialUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * The data used to update VolunteerCredentials.
+     */
+    data: XOR<VolunteerCredentialUpdateManyMutationInput, VolunteerCredentialUncheckedUpdateManyInput>
+    /**
+     * Filter which VolunteerCredentials to update
+     */
+    where?: VolunteerCredentialWhereInput
+    /**
+     * Limit how many VolunteerCredentials to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VolunteerCredential upsert
+   */
+  export type VolunteerCredentialUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    /**
+     * The filter to search for the VolunteerCredential to update in case it exists.
+     */
+    where: VolunteerCredentialWhereUniqueInput
+    /**
+     * In case the VolunteerCredential found by the `where` argument doesn't exist, create a new VolunteerCredential with this data.
+     */
+    create: XOR<VolunteerCredentialCreateInput, VolunteerCredentialUncheckedCreateInput>
+    /**
+     * In case the VolunteerCredential was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VolunteerCredentialUpdateInput, VolunteerCredentialUncheckedUpdateInput>
+  }
+
+  /**
+   * VolunteerCredential delete
+   */
+  export type VolunteerCredentialDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    /**
+     * Filter which VolunteerCredential to delete.
+     */
+    where: VolunteerCredentialWhereUniqueInput
+  }
+
+  /**
+   * VolunteerCredential deleteMany
+   */
+  export type VolunteerCredentialDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VolunteerCredentials to delete
+     */
+    where?: VolunteerCredentialWhereInput
+    /**
+     * Limit how many VolunteerCredentials to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * VolunteerCredential without action
+   */
+  export type VolunteerCredentialDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -21784,6 +24412,41 @@ export namespace Prisma {
   export type VolunteerSkillScalarFieldEnum = (typeof VolunteerSkillScalarFieldEnum)[keyof typeof VolunteerSkillScalarFieldEnum]
 
 
+  export const VolunteerProfileScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    bio: 'bio',
+    phone: 'phone',
+    city: 'city',
+    state: 'state',
+    country: 'country',
+    availability: 'availability',
+    visibility: 'visibility',
+    interests: 'interests',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type VolunteerProfileScalarFieldEnum = (typeof VolunteerProfileScalarFieldEnum)[keyof typeof VolunteerProfileScalarFieldEnum]
+
+
+  export const VolunteerCredentialScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    orgId: 'orgId',
+    type: 'type',
+    status: 'status',
+    issuedAt: 'issuedAt',
+    expiresAt: 'expiresAt',
+    notes: 'notes',
+    issuedById: 'issuedById',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type VolunteerCredentialScalarFieldEnum = (typeof VolunteerCredentialScalarFieldEnum)[keyof typeof VolunteerCredentialScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -21996,6 +24659,62 @@ export namespace Prisma {
    */
   export type ListEnumRequirementLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RequirementLevel[]'>
     
+
+
+  /**
+   * Reference to a field of type 'AvailabilityType'
+   */
+  export type EnumAvailabilityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AvailabilityType'>
+    
+
+
+  /**
+   * Reference to a field of type 'AvailabilityType[]'
+   */
+  export type ListEnumAvailabilityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AvailabilityType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ProfileVisibility'
+   */
+  export type EnumProfileVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProfileVisibility'>
+    
+
+
+  /**
+   * Reference to a field of type 'ProfileVisibility[]'
+   */
+  export type ListEnumProfileVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProfileVisibility[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'CredentialType'
+   */
+  export type EnumCredentialTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CredentialType'>
+    
+
+
+  /**
+   * Reference to a field of type 'CredentialType[]'
+   */
+  export type ListEnumCredentialTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CredentialType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'CredentialStatus'
+   */
+  export type EnumCredentialStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CredentialStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'CredentialStatus[]'
+   */
+  export type ListEnumCredentialStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CredentialStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -22018,6 +24737,8 @@ export namespace Prisma {
     auditLogs?: AuditLogListRelationFilter
     submittedApplications?: VolunteerApplicationListRelationFilter
     volunteerSkills?: VolunteerSkillListRelationFilter
+    profile?: XOR<VolunteerProfileNullableScalarRelationFilter, VolunteerProfileWhereInput> | null
+    credentials?: VolunteerCredentialListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -22034,6 +24755,8 @@ export namespace Prisma {
     auditLogs?: AuditLogOrderByRelationAggregateInput
     submittedApplications?: VolunteerApplicationOrderByRelationAggregateInput
     volunteerSkills?: VolunteerSkillOrderByRelationAggregateInput
+    profile?: VolunteerProfileOrderByWithRelationInput
+    credentials?: VolunteerCredentialOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -22053,6 +24776,8 @@ export namespace Prisma {
     auditLogs?: AuditLogListRelationFilter
     submittedApplications?: VolunteerApplicationListRelationFilter
     volunteerSkills?: VolunteerSkillListRelationFilter
+    profile?: XOR<VolunteerProfileNullableScalarRelationFilter, VolunteerProfileWhereInput> | null
+    credentials?: VolunteerCredentialListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -22359,6 +25084,7 @@ export namespace Prisma {
     sessions?: SessionListRelationFilter
     invitations?: OrganizationInvitationListRelationFilter
     opportunities?: VolunteerOpportunityListRelationFilter
+    credentials?: VolunteerCredentialListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -22375,6 +25101,7 @@ export namespace Prisma {
     sessions?: SessionOrderByRelationAggregateInput
     invitations?: OrganizationInvitationOrderByRelationAggregateInput
     opportunities?: VolunteerOpportunityOrderByRelationAggregateInput
+    credentials?: VolunteerCredentialOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -22394,6 +25121,7 @@ export namespace Prisma {
     sessions?: SessionListRelationFilter
     invitations?: OrganizationInvitationListRelationFilter
     opportunities?: VolunteerOpportunityListRelationFilter
+    credentials?: VolunteerCredentialListRelationFilter
   }, "id" | "slug">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -23147,6 +25875,185 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"VolunteerSkill"> | Date | string
   }
 
+  export type VolunteerProfileWhereInput = {
+    AND?: VolunteerProfileWhereInput | VolunteerProfileWhereInput[]
+    OR?: VolunteerProfileWhereInput[]
+    NOT?: VolunteerProfileWhereInput | VolunteerProfileWhereInput[]
+    id?: StringFilter<"VolunteerProfile"> | string
+    userId?: StringFilter<"VolunteerProfile"> | string
+    bio?: StringNullableFilter<"VolunteerProfile"> | string | null
+    phone?: StringNullableFilter<"VolunteerProfile"> | string | null
+    city?: StringNullableFilter<"VolunteerProfile"> | string | null
+    state?: StringNullableFilter<"VolunteerProfile"> | string | null
+    country?: StringNullableFilter<"VolunteerProfile"> | string | null
+    availability?: EnumAvailabilityTypeFilter<"VolunteerProfile"> | $Enums.AvailabilityType
+    visibility?: EnumProfileVisibilityFilter<"VolunteerProfile"> | $Enums.ProfileVisibility
+    interests?: StringNullableListFilter<"VolunteerProfile">
+    createdAt?: DateTimeFilter<"VolunteerProfile"> | Date | string
+    updatedAt?: DateTimeFilter<"VolunteerProfile"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type VolunteerProfileOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    bio?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    state?: SortOrderInput | SortOrder
+    country?: SortOrderInput | SortOrder
+    availability?: SortOrder
+    visibility?: SortOrder
+    interests?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type VolunteerProfileWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId?: string
+    AND?: VolunteerProfileWhereInput | VolunteerProfileWhereInput[]
+    OR?: VolunteerProfileWhereInput[]
+    NOT?: VolunteerProfileWhereInput | VolunteerProfileWhereInput[]
+    bio?: StringNullableFilter<"VolunteerProfile"> | string | null
+    phone?: StringNullableFilter<"VolunteerProfile"> | string | null
+    city?: StringNullableFilter<"VolunteerProfile"> | string | null
+    state?: StringNullableFilter<"VolunteerProfile"> | string | null
+    country?: StringNullableFilter<"VolunteerProfile"> | string | null
+    availability?: EnumAvailabilityTypeFilter<"VolunteerProfile"> | $Enums.AvailabilityType
+    visibility?: EnumProfileVisibilityFilter<"VolunteerProfile"> | $Enums.ProfileVisibility
+    interests?: StringNullableListFilter<"VolunteerProfile">
+    createdAt?: DateTimeFilter<"VolunteerProfile"> | Date | string
+    updatedAt?: DateTimeFilter<"VolunteerProfile"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "userId">
+
+  export type VolunteerProfileOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    bio?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    state?: SortOrderInput | SortOrder
+    country?: SortOrderInput | SortOrder
+    availability?: SortOrder
+    visibility?: SortOrder
+    interests?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: VolunteerProfileCountOrderByAggregateInput
+    _max?: VolunteerProfileMaxOrderByAggregateInput
+    _min?: VolunteerProfileMinOrderByAggregateInput
+  }
+
+  export type VolunteerProfileScalarWhereWithAggregatesInput = {
+    AND?: VolunteerProfileScalarWhereWithAggregatesInput | VolunteerProfileScalarWhereWithAggregatesInput[]
+    OR?: VolunteerProfileScalarWhereWithAggregatesInput[]
+    NOT?: VolunteerProfileScalarWhereWithAggregatesInput | VolunteerProfileScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VolunteerProfile"> | string
+    userId?: StringWithAggregatesFilter<"VolunteerProfile"> | string
+    bio?: StringNullableWithAggregatesFilter<"VolunteerProfile"> | string | null
+    phone?: StringNullableWithAggregatesFilter<"VolunteerProfile"> | string | null
+    city?: StringNullableWithAggregatesFilter<"VolunteerProfile"> | string | null
+    state?: StringNullableWithAggregatesFilter<"VolunteerProfile"> | string | null
+    country?: StringNullableWithAggregatesFilter<"VolunteerProfile"> | string | null
+    availability?: EnumAvailabilityTypeWithAggregatesFilter<"VolunteerProfile"> | $Enums.AvailabilityType
+    visibility?: EnumProfileVisibilityWithAggregatesFilter<"VolunteerProfile"> | $Enums.ProfileVisibility
+    interests?: StringNullableListFilter<"VolunteerProfile">
+    createdAt?: DateTimeWithAggregatesFilter<"VolunteerProfile"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"VolunteerProfile"> | Date | string
+  }
+
+  export type VolunteerCredentialWhereInput = {
+    AND?: VolunteerCredentialWhereInput | VolunteerCredentialWhereInput[]
+    OR?: VolunteerCredentialWhereInput[]
+    NOT?: VolunteerCredentialWhereInput | VolunteerCredentialWhereInput[]
+    id?: StringFilter<"VolunteerCredential"> | string
+    userId?: StringFilter<"VolunteerCredential"> | string
+    orgId?: StringFilter<"VolunteerCredential"> | string
+    type?: EnumCredentialTypeFilter<"VolunteerCredential"> | $Enums.CredentialType
+    status?: EnumCredentialStatusFilter<"VolunteerCredential"> | $Enums.CredentialStatus
+    issuedAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
+    expiresAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
+    notes?: StringNullableFilter<"VolunteerCredential"> | string | null
+    issuedById?: StringNullableFilter<"VolunteerCredential"> | string | null
+    createdAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
+    updatedAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }
+
+  export type VolunteerCredentialOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    issuedAt?: SortOrderInput | SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    issuedById?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    organization?: OrganizationOrderByWithRelationInput
+  }
+
+  export type VolunteerCredentialWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_orgId_type?: VolunteerCredentialUserIdOrgIdTypeCompoundUniqueInput
+    AND?: VolunteerCredentialWhereInput | VolunteerCredentialWhereInput[]
+    OR?: VolunteerCredentialWhereInput[]
+    NOT?: VolunteerCredentialWhereInput | VolunteerCredentialWhereInput[]
+    userId?: StringFilter<"VolunteerCredential"> | string
+    orgId?: StringFilter<"VolunteerCredential"> | string
+    type?: EnumCredentialTypeFilter<"VolunteerCredential"> | $Enums.CredentialType
+    status?: EnumCredentialStatusFilter<"VolunteerCredential"> | $Enums.CredentialStatus
+    issuedAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
+    expiresAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
+    notes?: StringNullableFilter<"VolunteerCredential"> | string | null
+    issuedById?: StringNullableFilter<"VolunteerCredential"> | string | null
+    createdAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
+    updatedAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }, "id" | "userId_orgId_type">
+
+  export type VolunteerCredentialOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    issuedAt?: SortOrderInput | SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    issuedById?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: VolunteerCredentialCountOrderByAggregateInput
+    _max?: VolunteerCredentialMaxOrderByAggregateInput
+    _min?: VolunteerCredentialMinOrderByAggregateInput
+  }
+
+  export type VolunteerCredentialScalarWhereWithAggregatesInput = {
+    AND?: VolunteerCredentialScalarWhereWithAggregatesInput | VolunteerCredentialScalarWhereWithAggregatesInput[]
+    OR?: VolunteerCredentialScalarWhereWithAggregatesInput[]
+    NOT?: VolunteerCredentialScalarWhereWithAggregatesInput | VolunteerCredentialScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VolunteerCredential"> | string
+    userId?: StringWithAggregatesFilter<"VolunteerCredential"> | string
+    orgId?: StringWithAggregatesFilter<"VolunteerCredential"> | string
+    type?: EnumCredentialTypeWithAggregatesFilter<"VolunteerCredential"> | $Enums.CredentialType
+    status?: EnumCredentialStatusWithAggregatesFilter<"VolunteerCredential"> | $Enums.CredentialStatus
+    issuedAt?: DateTimeNullableWithAggregatesFilter<"VolunteerCredential"> | Date | string | null
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"VolunteerCredential"> | Date | string | null
+    notes?: StringNullableWithAggregatesFilter<"VolunteerCredential"> | string | null
+    issuedById?: StringNullableWithAggregatesFilter<"VolunteerCredential"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"VolunteerCredential"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"VolunteerCredential"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -23161,6 +26068,8 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -23177,6 +26086,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -23193,6 +26104,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -23209,6 +26122,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -23532,6 +26447,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -23548,6 +26464,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -23564,6 +26481,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -23580,6 +26498,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -24349,6 +27268,206 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type VolunteerProfileCreateInput = {
+    id?: string
+    bio?: string | null
+    phone?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    availability?: $Enums.AvailabilityType
+    visibility?: $Enums.ProfileVisibility
+    interests?: VolunteerProfileCreateinterestsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutProfileInput
+  }
+
+  export type VolunteerProfileUncheckedCreateInput = {
+    id?: string
+    userId: string
+    bio?: string | null
+    phone?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    availability?: $Enums.AvailabilityType
+    visibility?: $Enums.ProfileVisibility
+    interests?: VolunteerProfileCreateinterestsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerProfileUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    availability?: EnumAvailabilityTypeFieldUpdateOperationsInput | $Enums.AvailabilityType
+    visibility?: EnumProfileVisibilityFieldUpdateOperationsInput | $Enums.ProfileVisibility
+    interests?: VolunteerProfileUpdateinterestsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutProfileNestedInput
+  }
+
+  export type VolunteerProfileUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    availability?: EnumAvailabilityTypeFieldUpdateOperationsInput | $Enums.AvailabilityType
+    visibility?: EnumProfileVisibilityFieldUpdateOperationsInput | $Enums.ProfileVisibility
+    interests?: VolunteerProfileUpdateinterestsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerProfileCreateManyInput = {
+    id?: string
+    userId: string
+    bio?: string | null
+    phone?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    availability?: $Enums.AvailabilityType
+    visibility?: $Enums.ProfileVisibility
+    interests?: VolunteerProfileCreateinterestsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerProfileUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    availability?: EnumAvailabilityTypeFieldUpdateOperationsInput | $Enums.AvailabilityType
+    visibility?: EnumProfileVisibilityFieldUpdateOperationsInput | $Enums.ProfileVisibility
+    interests?: VolunteerProfileUpdateinterestsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerProfileUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    availability?: EnumAvailabilityTypeFieldUpdateOperationsInput | $Enums.AvailabilityType
+    visibility?: EnumProfileVisibilityFieldUpdateOperationsInput | $Enums.ProfileVisibility
+    interests?: VolunteerProfileUpdateinterestsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerCredentialCreateInput = {
+    id?: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCredentialsInput
+    organization: OrganizationCreateNestedOneWithoutCredentialsInput
+  }
+
+  export type VolunteerCredentialUncheckedCreateInput = {
+    id?: string
+    userId: string
+    orgId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerCredentialUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
+    organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+  }
+
+  export type VolunteerCredentialUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerCredentialCreateManyInput = {
+    id?: string
+    userId: string
+    orgId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerCredentialUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerCredentialUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -24437,6 +27556,17 @@ export namespace Prisma {
     none?: VolunteerSkillWhereInput
   }
 
+  export type VolunteerProfileNullableScalarRelationFilter = {
+    is?: VolunteerProfileWhereInput | null
+    isNot?: VolunteerProfileWhereInput | null
+  }
+
+  export type VolunteerCredentialListRelationFilter = {
+    every?: VolunteerCredentialWhereInput
+    some?: VolunteerCredentialWhereInput
+    none?: VolunteerCredentialWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -24463,6 +27593,10 @@ export namespace Prisma {
   }
 
   export type VolunteerSkillOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type VolunteerCredentialOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -25477,6 +28611,173 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type EnumAvailabilityTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.AvailabilityType | EnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AvailabilityType[] | ListEnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AvailabilityType[] | ListEnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAvailabilityTypeFilter<$PrismaModel> | $Enums.AvailabilityType
+  }
+
+  export type EnumProfileVisibilityFilter<$PrismaModel = never> = {
+    equals?: $Enums.ProfileVisibility | EnumProfileVisibilityFieldRefInput<$PrismaModel>
+    in?: $Enums.ProfileVisibility[] | ListEnumProfileVisibilityFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ProfileVisibility[] | ListEnumProfileVisibilityFieldRefInput<$PrismaModel>
+    not?: NestedEnumProfileVisibilityFilter<$PrismaModel> | $Enums.ProfileVisibility
+  }
+
+  export type StringNullableListFilter<$PrismaModel = never> = {
+    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    has?: string | StringFieldRefInput<$PrismaModel> | null
+    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
+    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
+  }
+
+  export type VolunteerProfileCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    bio?: SortOrder
+    phone?: SortOrder
+    city?: SortOrder
+    state?: SortOrder
+    country?: SortOrder
+    availability?: SortOrder
+    visibility?: SortOrder
+    interests?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VolunteerProfileMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    bio?: SortOrder
+    phone?: SortOrder
+    city?: SortOrder
+    state?: SortOrder
+    country?: SortOrder
+    availability?: SortOrder
+    visibility?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VolunteerProfileMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    bio?: SortOrder
+    phone?: SortOrder
+    city?: SortOrder
+    state?: SortOrder
+    country?: SortOrder
+    availability?: SortOrder
+    visibility?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumAvailabilityTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AvailabilityType | EnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AvailabilityType[] | ListEnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AvailabilityType[] | ListEnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAvailabilityTypeWithAggregatesFilter<$PrismaModel> | $Enums.AvailabilityType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAvailabilityTypeFilter<$PrismaModel>
+    _max?: NestedEnumAvailabilityTypeFilter<$PrismaModel>
+  }
+
+  export type EnumProfileVisibilityWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ProfileVisibility | EnumProfileVisibilityFieldRefInput<$PrismaModel>
+    in?: $Enums.ProfileVisibility[] | ListEnumProfileVisibilityFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ProfileVisibility[] | ListEnumProfileVisibilityFieldRefInput<$PrismaModel>
+    not?: NestedEnumProfileVisibilityWithAggregatesFilter<$PrismaModel> | $Enums.ProfileVisibility
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumProfileVisibilityFilter<$PrismaModel>
+    _max?: NestedEnumProfileVisibilityFilter<$PrismaModel>
+  }
+
+  export type EnumCredentialTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.CredentialType | EnumCredentialTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CredentialType[] | ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CredentialType[] | ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCredentialTypeFilter<$PrismaModel> | $Enums.CredentialType
+  }
+
+  export type EnumCredentialStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CredentialStatus | EnumCredentialStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CredentialStatus[] | ListEnumCredentialStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CredentialStatus[] | ListEnumCredentialStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCredentialStatusFilter<$PrismaModel> | $Enums.CredentialStatus
+  }
+
+  export type VolunteerCredentialUserIdOrgIdTypeCompoundUniqueInput = {
+    userId: string
+    orgId: string
+    type: $Enums.CredentialType
+  }
+
+  export type VolunteerCredentialCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    issuedAt?: SortOrder
+    expiresAt?: SortOrder
+    notes?: SortOrder
+    issuedById?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VolunteerCredentialMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    issuedAt?: SortOrder
+    expiresAt?: SortOrder
+    notes?: SortOrder
+    issuedById?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VolunteerCredentialMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    issuedAt?: SortOrder
+    expiresAt?: SortOrder
+    notes?: SortOrder
+    issuedById?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumCredentialTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CredentialType | EnumCredentialTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CredentialType[] | ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CredentialType[] | ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCredentialTypeWithAggregatesFilter<$PrismaModel> | $Enums.CredentialType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCredentialTypeFilter<$PrismaModel>
+    _max?: NestedEnumCredentialTypeFilter<$PrismaModel>
+  }
+
+  export type EnumCredentialStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CredentialStatus | EnumCredentialStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CredentialStatus[] | ListEnumCredentialStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CredentialStatus[] | ListEnumCredentialStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCredentialStatusWithAggregatesFilter<$PrismaModel> | $Enums.CredentialStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCredentialStatusFilter<$PrismaModel>
+    _max?: NestedEnumCredentialStatusFilter<$PrismaModel>
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -25519,6 +28820,19 @@ export namespace Prisma {
     connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
   }
 
+  export type VolunteerProfileCreateNestedOneWithoutUserInput = {
+    create?: XOR<VolunteerProfileCreateWithoutUserInput, VolunteerProfileUncheckedCreateWithoutUserInput>
+    connectOrCreate?: VolunteerProfileCreateOrConnectWithoutUserInput
+    connect?: VolunteerProfileWhereUniqueInput
+  }
+
+  export type VolunteerCredentialCreateNestedManyWithoutUserInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutUserInput, VolunteerCredentialUncheckedCreateWithoutUserInput> | VolunteerCredentialCreateWithoutUserInput[] | VolunteerCredentialUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutUserInput | VolunteerCredentialCreateOrConnectWithoutUserInput[]
+    createMany?: VolunteerCredentialCreateManyUserInputEnvelope
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -25559,6 +28873,19 @@ export namespace Prisma {
     connectOrCreate?: VolunteerSkillCreateOrConnectWithoutUserInput | VolunteerSkillCreateOrConnectWithoutUserInput[]
     createMany?: VolunteerSkillCreateManyUserInputEnvelope
     connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+  }
+
+  export type VolunteerProfileUncheckedCreateNestedOneWithoutUserInput = {
+    create?: XOR<VolunteerProfileCreateWithoutUserInput, VolunteerProfileUncheckedCreateWithoutUserInput>
+    connectOrCreate?: VolunteerProfileCreateOrConnectWithoutUserInput
+    connect?: VolunteerProfileWhereUniqueInput
+  }
+
+  export type VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutUserInput, VolunteerCredentialUncheckedCreateWithoutUserInput> | VolunteerCredentialCreateWithoutUserInput[] | VolunteerCredentialUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutUserInput | VolunteerCredentialCreateOrConnectWithoutUserInput[]
+    createMany?: VolunteerCredentialCreateManyUserInputEnvelope
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -25661,6 +28988,30 @@ export namespace Prisma {
     deleteMany?: VolunteerSkillScalarWhereInput | VolunteerSkillScalarWhereInput[]
   }
 
+  export type VolunteerProfileUpdateOneWithoutUserNestedInput = {
+    create?: XOR<VolunteerProfileCreateWithoutUserInput, VolunteerProfileUncheckedCreateWithoutUserInput>
+    connectOrCreate?: VolunteerProfileCreateOrConnectWithoutUserInput
+    upsert?: VolunteerProfileUpsertWithoutUserInput
+    disconnect?: VolunteerProfileWhereInput | boolean
+    delete?: VolunteerProfileWhereInput | boolean
+    connect?: VolunteerProfileWhereUniqueInput
+    update?: XOR<XOR<VolunteerProfileUpdateToOneWithWhereWithoutUserInput, VolunteerProfileUpdateWithoutUserInput>, VolunteerProfileUncheckedUpdateWithoutUserInput>
+  }
+
+  export type VolunteerCredentialUpdateManyWithoutUserNestedInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutUserInput, VolunteerCredentialUncheckedCreateWithoutUserInput> | VolunteerCredentialCreateWithoutUserInput[] | VolunteerCredentialUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutUserInput | VolunteerCredentialCreateOrConnectWithoutUserInput[]
+    upsert?: VolunteerCredentialUpsertWithWhereUniqueWithoutUserInput | VolunteerCredentialUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: VolunteerCredentialCreateManyUserInputEnvelope
+    set?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    disconnect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    delete?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    update?: VolunteerCredentialUpdateWithWhereUniqueWithoutUserInput | VolunteerCredentialUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutUserInput | VolunteerCredentialUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -25743,6 +29094,30 @@ export namespace Prisma {
     update?: VolunteerSkillUpdateWithWhereUniqueWithoutUserInput | VolunteerSkillUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: VolunteerSkillUpdateManyWithWhereWithoutUserInput | VolunteerSkillUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: VolunteerSkillScalarWhereInput | VolunteerSkillScalarWhereInput[]
+  }
+
+  export type VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput = {
+    create?: XOR<VolunteerProfileCreateWithoutUserInput, VolunteerProfileUncheckedCreateWithoutUserInput>
+    connectOrCreate?: VolunteerProfileCreateOrConnectWithoutUserInput
+    upsert?: VolunteerProfileUpsertWithoutUserInput
+    disconnect?: VolunteerProfileWhereInput | boolean
+    delete?: VolunteerProfileWhereInput | boolean
+    connect?: VolunteerProfileWhereUniqueInput
+    update?: XOR<XOR<VolunteerProfileUpdateToOneWithWhereWithoutUserInput, VolunteerProfileUpdateWithoutUserInput>, VolunteerProfileUncheckedUpdateWithoutUserInput>
+  }
+
+  export type VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutUserInput, VolunteerCredentialUncheckedCreateWithoutUserInput> | VolunteerCredentialCreateWithoutUserInput[] | VolunteerCredentialUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutUserInput | VolunteerCredentialCreateOrConnectWithoutUserInput[]
+    upsert?: VolunteerCredentialUpsertWithWhereUniqueWithoutUserInput | VolunteerCredentialUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: VolunteerCredentialCreateManyUserInputEnvelope
+    set?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    disconnect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    delete?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    update?: VolunteerCredentialUpdateWithWhereUniqueWithoutUserInput | VolunteerCredentialUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutUserInput | VolunteerCredentialUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutAccountsInput = {
@@ -25853,6 +29228,13 @@ export namespace Prisma {
     connect?: VolunteerOpportunityWhereUniqueInput | VolunteerOpportunityWhereUniqueInput[]
   }
 
+  export type VolunteerCredentialCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutOrganizationInput, VolunteerCredentialUncheckedCreateWithoutOrganizationInput> | VolunteerCredentialCreateWithoutOrganizationInput[] | VolunteerCredentialUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutOrganizationInput | VolunteerCredentialCreateOrConnectWithoutOrganizationInput[]
+    createMany?: VolunteerCredentialCreateManyOrganizationInputEnvelope
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+  }
+
   export type OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -25907,6 +29289,13 @@ export namespace Prisma {
     connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutOrganizationInput | VolunteerOpportunityCreateOrConnectWithoutOrganizationInput[]
     createMany?: VolunteerOpportunityCreateManyOrganizationInputEnvelope
     connect?: VolunteerOpportunityWhereUniqueInput | VolunteerOpportunityWhereUniqueInput[]
+  }
+
+  export type VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutOrganizationInput, VolunteerCredentialUncheckedCreateWithoutOrganizationInput> | VolunteerCredentialCreateWithoutOrganizationInput[] | VolunteerCredentialUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutOrganizationInput | VolunteerCredentialCreateOrConnectWithoutOrganizationInput[]
+    createMany?: VolunteerCredentialCreateManyOrganizationInputEnvelope
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
   }
 
   export type OrganizationMemberUpdateManyWithoutOrganizationNestedInput = {
@@ -26021,6 +29410,20 @@ export namespace Prisma {
     deleteMany?: VolunteerOpportunityScalarWhereInput | VolunteerOpportunityScalarWhereInput[]
   }
 
+  export type VolunteerCredentialUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutOrganizationInput, VolunteerCredentialUncheckedCreateWithoutOrganizationInput> | VolunteerCredentialCreateWithoutOrganizationInput[] | VolunteerCredentialUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutOrganizationInput | VolunteerCredentialCreateOrConnectWithoutOrganizationInput[]
+    upsert?: VolunteerCredentialUpsertWithWhereUniqueWithoutOrganizationInput | VolunteerCredentialUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: VolunteerCredentialCreateManyOrganizationInputEnvelope
+    set?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    disconnect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    delete?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    update?: VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput | VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput | VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+  }
+
   export type OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -26131,6 +29534,20 @@ export namespace Prisma {
     update?: VolunteerOpportunityUpdateWithWhereUniqueWithoutOrganizationInput | VolunteerOpportunityUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: VolunteerOpportunityUpdateManyWithWhereWithoutOrganizationInput | VolunteerOpportunityUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: VolunteerOpportunityScalarWhereInput | VolunteerOpportunityScalarWhereInput[]
+  }
+
+  export type VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutOrganizationInput, VolunteerCredentialUncheckedCreateWithoutOrganizationInput> | VolunteerCredentialCreateWithoutOrganizationInput[] | VolunteerCredentialUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutOrganizationInput | VolunteerCredentialCreateOrConnectWithoutOrganizationInput[]
+    upsert?: VolunteerCredentialUpsertWithWhereUniqueWithoutOrganizationInput | VolunteerCredentialUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: VolunteerCredentialCreateManyOrganizationInputEnvelope
+    set?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    disconnect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    delete?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    update?: VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput | VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput | VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutMembersInput = {
@@ -26561,6 +29978,73 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutVolunteerSkillsInput, UserUpdateWithoutVolunteerSkillsInput>, UserUncheckedUpdateWithoutVolunteerSkillsInput>
   }
 
+  export type VolunteerProfileCreateinterestsInput = {
+    set: string[]
+  }
+
+  export type UserCreateNestedOneWithoutProfileInput = {
+    create?: XOR<UserCreateWithoutProfileInput, UserUncheckedCreateWithoutProfileInput>
+    connectOrCreate?: UserCreateOrConnectWithoutProfileInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumAvailabilityTypeFieldUpdateOperationsInput = {
+    set?: $Enums.AvailabilityType
+  }
+
+  export type EnumProfileVisibilityFieldUpdateOperationsInput = {
+    set?: $Enums.ProfileVisibility
+  }
+
+  export type VolunteerProfileUpdateinterestsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type UserUpdateOneRequiredWithoutProfileNestedInput = {
+    create?: XOR<UserCreateWithoutProfileInput, UserUncheckedCreateWithoutProfileInput>
+    connectOrCreate?: UserCreateOrConnectWithoutProfileInput
+    upsert?: UserUpsertWithoutProfileInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutProfileInput, UserUpdateWithoutProfileInput>, UserUncheckedUpdateWithoutProfileInput>
+  }
+
+  export type UserCreateNestedOneWithoutCredentialsInput = {
+    create?: XOR<UserCreateWithoutCredentialsInput, UserUncheckedCreateWithoutCredentialsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCredentialsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type OrganizationCreateNestedOneWithoutCredentialsInput = {
+    create?: XOR<OrganizationCreateWithoutCredentialsInput, OrganizationUncheckedCreateWithoutCredentialsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutCredentialsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type EnumCredentialTypeFieldUpdateOperationsInput = {
+    set?: $Enums.CredentialType
+  }
+
+  export type EnumCredentialStatusFieldUpdateOperationsInput = {
+    set?: $Enums.CredentialStatus
+  }
+
+  export type UserUpdateOneRequiredWithoutCredentialsNestedInput = {
+    create?: XOR<UserCreateWithoutCredentialsInput, UserUncheckedCreateWithoutCredentialsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCredentialsInput
+    upsert?: UserUpsertWithoutCredentialsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCredentialsInput, UserUpdateWithoutCredentialsInput>, UserUncheckedUpdateWithoutCredentialsInput>
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutCredentialsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutCredentialsInput, OrganizationUncheckedCreateWithoutCredentialsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutCredentialsInput
+    upsert?: OrganizationUpsertWithoutCredentialsInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutCredentialsInput, OrganizationUpdateWithoutCredentialsInput>, OrganizationUncheckedUpdateWithoutCredentialsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -26926,6 +30410,74 @@ export namespace Prisma {
     _max?: NestedEnumRequirementLevelFilter<$PrismaModel>
   }
 
+  export type NestedEnumAvailabilityTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.AvailabilityType | EnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AvailabilityType[] | ListEnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AvailabilityType[] | ListEnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAvailabilityTypeFilter<$PrismaModel> | $Enums.AvailabilityType
+  }
+
+  export type NestedEnumProfileVisibilityFilter<$PrismaModel = never> = {
+    equals?: $Enums.ProfileVisibility | EnumProfileVisibilityFieldRefInput<$PrismaModel>
+    in?: $Enums.ProfileVisibility[] | ListEnumProfileVisibilityFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ProfileVisibility[] | ListEnumProfileVisibilityFieldRefInput<$PrismaModel>
+    not?: NestedEnumProfileVisibilityFilter<$PrismaModel> | $Enums.ProfileVisibility
+  }
+
+  export type NestedEnumAvailabilityTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AvailabilityType | EnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AvailabilityType[] | ListEnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AvailabilityType[] | ListEnumAvailabilityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAvailabilityTypeWithAggregatesFilter<$PrismaModel> | $Enums.AvailabilityType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAvailabilityTypeFilter<$PrismaModel>
+    _max?: NestedEnumAvailabilityTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumProfileVisibilityWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ProfileVisibility | EnumProfileVisibilityFieldRefInput<$PrismaModel>
+    in?: $Enums.ProfileVisibility[] | ListEnumProfileVisibilityFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ProfileVisibility[] | ListEnumProfileVisibilityFieldRefInput<$PrismaModel>
+    not?: NestedEnumProfileVisibilityWithAggregatesFilter<$PrismaModel> | $Enums.ProfileVisibility
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumProfileVisibilityFilter<$PrismaModel>
+    _max?: NestedEnumProfileVisibilityFilter<$PrismaModel>
+  }
+
+  export type NestedEnumCredentialTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.CredentialType | EnumCredentialTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CredentialType[] | ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CredentialType[] | ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCredentialTypeFilter<$PrismaModel> | $Enums.CredentialType
+  }
+
+  export type NestedEnumCredentialStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CredentialStatus | EnumCredentialStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CredentialStatus[] | ListEnumCredentialStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CredentialStatus[] | ListEnumCredentialStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCredentialStatusFilter<$PrismaModel> | $Enums.CredentialStatus
+  }
+
+  export type NestedEnumCredentialTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CredentialType | EnumCredentialTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CredentialType[] | ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CredentialType[] | ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCredentialTypeWithAggregatesFilter<$PrismaModel> | $Enums.CredentialType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCredentialTypeFilter<$PrismaModel>
+    _max?: NestedEnumCredentialTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumCredentialStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CredentialStatus | EnumCredentialStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CredentialStatus[] | ListEnumCredentialStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CredentialStatus[] | ListEnumCredentialStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCredentialStatusWithAggregatesFilter<$PrismaModel> | $Enums.CredentialStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCredentialStatusFilter<$PrismaModel>
+    _max?: NestedEnumCredentialStatusFilter<$PrismaModel>
+  }
+
   export type AccountCreateWithoutUserInput = {
     id?: string
     type: string
@@ -27099,6 +30651,75 @@ export namespace Prisma {
 
   export type VolunteerSkillCreateManyUserInputEnvelope = {
     data: VolunteerSkillCreateManyUserInput | VolunteerSkillCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type VolunteerProfileCreateWithoutUserInput = {
+    id?: string
+    bio?: string | null
+    phone?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    availability?: $Enums.AvailabilityType
+    visibility?: $Enums.ProfileVisibility
+    interests?: VolunteerProfileCreateinterestsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerProfileUncheckedCreateWithoutUserInput = {
+    id?: string
+    bio?: string | null
+    phone?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    availability?: $Enums.AvailabilityType
+    visibility?: $Enums.ProfileVisibility
+    interests?: VolunteerProfileCreateinterestsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerProfileCreateOrConnectWithoutUserInput = {
+    where: VolunteerProfileWhereUniqueInput
+    create: XOR<VolunteerProfileCreateWithoutUserInput, VolunteerProfileUncheckedCreateWithoutUserInput>
+  }
+
+  export type VolunteerCredentialCreateWithoutUserInput = {
+    id?: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutCredentialsInput
+  }
+
+  export type VolunteerCredentialUncheckedCreateWithoutUserInput = {
+    id?: string
+    orgId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerCredentialCreateOrConnectWithoutUserInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    create: XOR<VolunteerCredentialCreateWithoutUserInput, VolunteerCredentialUncheckedCreateWithoutUserInput>
+  }
+
+  export type VolunteerCredentialCreateManyUserInputEnvelope = {
+    data: VolunteerCredentialCreateManyUserInput | VolunteerCredentialCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -27279,6 +30900,78 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"VolunteerSkill"> | Date | string
   }
 
+  export type VolunteerProfileUpsertWithoutUserInput = {
+    update: XOR<VolunteerProfileUpdateWithoutUserInput, VolunteerProfileUncheckedUpdateWithoutUserInput>
+    create: XOR<VolunteerProfileCreateWithoutUserInput, VolunteerProfileUncheckedCreateWithoutUserInput>
+    where?: VolunteerProfileWhereInput
+  }
+
+  export type VolunteerProfileUpdateToOneWithWhereWithoutUserInput = {
+    where?: VolunteerProfileWhereInput
+    data: XOR<VolunteerProfileUpdateWithoutUserInput, VolunteerProfileUncheckedUpdateWithoutUserInput>
+  }
+
+  export type VolunteerProfileUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    availability?: EnumAvailabilityTypeFieldUpdateOperationsInput | $Enums.AvailabilityType
+    visibility?: EnumProfileVisibilityFieldUpdateOperationsInput | $Enums.ProfileVisibility
+    interests?: VolunteerProfileUpdateinterestsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerProfileUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    availability?: EnumAvailabilityTypeFieldUpdateOperationsInput | $Enums.AvailabilityType
+    visibility?: EnumProfileVisibilityFieldUpdateOperationsInput | $Enums.ProfileVisibility
+    interests?: VolunteerProfileUpdateinterestsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerCredentialUpsertWithWhereUniqueWithoutUserInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    update: XOR<VolunteerCredentialUpdateWithoutUserInput, VolunteerCredentialUncheckedUpdateWithoutUserInput>
+    create: XOR<VolunteerCredentialCreateWithoutUserInput, VolunteerCredentialUncheckedCreateWithoutUserInput>
+  }
+
+  export type VolunteerCredentialUpdateWithWhereUniqueWithoutUserInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    data: XOR<VolunteerCredentialUpdateWithoutUserInput, VolunteerCredentialUncheckedUpdateWithoutUserInput>
+  }
+
+  export type VolunteerCredentialUpdateManyWithWhereWithoutUserInput = {
+    where: VolunteerCredentialScalarWhereInput
+    data: XOR<VolunteerCredentialUpdateManyMutationInput, VolunteerCredentialUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type VolunteerCredentialScalarWhereInput = {
+    AND?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+    OR?: VolunteerCredentialScalarWhereInput[]
+    NOT?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+    id?: StringFilter<"VolunteerCredential"> | string
+    userId?: StringFilter<"VolunteerCredential"> | string
+    orgId?: StringFilter<"VolunteerCredential"> | string
+    type?: EnumCredentialTypeFilter<"VolunteerCredential"> | $Enums.CredentialType
+    status?: EnumCredentialStatusFilter<"VolunteerCredential"> | $Enums.CredentialStatus
+    issuedAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
+    expiresAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
+    notes?: StringNullableFilter<"VolunteerCredential"> | string | null
+    issuedById?: StringNullableFilter<"VolunteerCredential"> | string | null
+    createdAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
+    updatedAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
+  }
+
   export type UserCreateWithoutAccountsInput = {
     id?: string
     name?: string | null
@@ -27292,6 +30985,8 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -27307,6 +31002,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -27338,6 +31035,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -27353,6 +31052,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -27368,6 +31069,8 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -27383,6 +31086,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -27403,6 +31108,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSessionsInput = {
@@ -27418,6 +31124,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSessionsInput = {
@@ -27449,6 +31156,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -27464,6 +31173,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutSessionsInput = {
@@ -27490,6 +31201,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSessionsInput = {
@@ -27505,6 +31217,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationMemberCreateWithoutOrganizationInput = {
@@ -27757,6 +31470,42 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type VolunteerCredentialCreateWithoutOrganizationInput = {
+    id?: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCredentialsInput
+  }
+
+  export type VolunteerCredentialUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    userId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerCredentialCreateOrConnectWithoutOrganizationInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    create: XOR<VolunteerCredentialCreateWithoutOrganizationInput, VolunteerCredentialUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type VolunteerCredentialCreateManyOrganizationInputEnvelope = {
+    data: VolunteerCredentialCreateManyOrganizationInput | VolunteerCredentialCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrganizationMemberUpsertWithWhereUniqueWithoutOrganizationInput = {
     where: OrganizationMemberWhereUniqueInput
     update: XOR<OrganizationMemberUpdateWithoutOrganizationInput, OrganizationMemberUncheckedUpdateWithoutOrganizationInput>
@@ -27945,6 +31694,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VolunteerOpportunity"> | Date | string
   }
 
+  export type VolunteerCredentialUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    update: XOR<VolunteerCredentialUpdateWithoutOrganizationInput, VolunteerCredentialUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<VolunteerCredentialCreateWithoutOrganizationInput, VolunteerCredentialUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    data: XOR<VolunteerCredentialUpdateWithoutOrganizationInput, VolunteerCredentialUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput = {
+    where: VolunteerCredentialScalarWhereInput
+    data: XOR<VolunteerCredentialUpdateManyMutationInput, VolunteerCredentialUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
   export type OrganizationCreateWithoutMembersInput = {
     id?: string
     name: string
@@ -27958,6 +31723,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -27973,6 +31739,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -27993,6 +31760,8 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -28008,6 +31777,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -28039,6 +31810,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -28054,6 +31826,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutMembershipsInput = {
@@ -28080,6 +31853,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -28095,6 +31870,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -28110,6 +31887,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
@@ -28125,6 +31903,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutAuditLogsInput = {
@@ -28145,6 +31924,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -28160,6 +31941,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -28191,6 +31974,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
@@ -28206,6 +31990,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutAuditLogsInput = {
@@ -28232,6 +32017,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -28247,6 +32034,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutFeatureFlagsInput = {
@@ -28262,6 +32051,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutFeatureFlagsInput = {
@@ -28277,6 +32067,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutFeatureFlagsInput = {
@@ -28308,6 +32099,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutFeatureFlagsInput = {
@@ -28323,6 +32115,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutApplicationsInput = {
@@ -28338,6 +32131,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutApplicationsInput = {
@@ -28353,6 +32147,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutApplicationsInput = {
@@ -28414,6 +32209,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSubmittedApplicationsInput = {
@@ -28429,6 +32226,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSubmittedApplicationsInput = {
@@ -28482,6 +32281,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutApplicationsInput = {
@@ -28497,6 +32297,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutApplicationsInput = {
@@ -28570,6 +32371,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubmittedApplicationsInput = {
@@ -28585,6 +32388,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type VolunteerAnswerUpsertWithWhereUniqueWithoutApplicationInput = {
@@ -28690,6 +32495,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutScreenerQuestionsInput = {
@@ -28705,6 +32511,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutScreenerQuestionsInput = {
@@ -28736,6 +32543,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutScreenerQuestionsInput = {
@@ -28751,6 +32559,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutInvitationsInput = {
@@ -28766,6 +32575,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -28781,6 +32591,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -28812,6 +32623,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -28827,6 +32639,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutOpportunitiesInput = {
@@ -28842,6 +32655,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutOpportunitiesInput = {
@@ -28857,6 +32671,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutOpportunitiesInput = {
@@ -28964,6 +32779,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutOpportunitiesInput = {
@@ -28979,6 +32795,7 @@ export namespace Prisma {
     screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OpportunityTagUpsertWithWhereUniqueWithoutOpportunityInput = {
@@ -29237,6 +33054,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutVolunteerSkillsInput = {
@@ -29252,6 +33071,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutVolunteerSkillsInput = {
@@ -29283,6 +33104,8 @@ export namespace Prisma {
     memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutVolunteerSkillsInput = {
@@ -29298,6 +33121,256 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutProfileInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutProfileInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutProfileInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutProfileInput, UserUncheckedCreateWithoutProfileInput>
+  }
+
+  export type UserUpsertWithoutProfileInput = {
+    update: XOR<UserUpdateWithoutProfileInput, UserUncheckedUpdateWithoutProfileInput>
+    create: XOR<UserCreateWithoutProfileInput, UserUncheckedCreateWithoutProfileInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutProfileInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutProfileInput, UserUncheckedUpdateWithoutProfileInput>
+  }
+
+  export type UserUpdateWithoutProfileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutProfileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutCredentialsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCredentialsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCredentialsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCredentialsInput, UserUncheckedCreateWithoutCredentialsInput>
+  }
+
+  export type OrganizationCreateWithoutCredentialsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutCredentialsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagUncheckedCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutCredentialsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutCredentialsInput, OrganizationUncheckedCreateWithoutCredentialsInput>
+  }
+
+  export type UserUpsertWithoutCredentialsInput = {
+    update: XOR<UserUpdateWithoutCredentialsInput, UserUncheckedUpdateWithoutCredentialsInput>
+    create: XOR<UserCreateWithoutCredentialsInput, UserUncheckedCreateWithoutCredentialsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCredentialsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCredentialsInput, UserUncheckedUpdateWithoutCredentialsInput>
+  }
+
+  export type UserUpdateWithoutCredentialsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCredentialsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+  }
+
+  export type OrganizationUpsertWithoutCredentialsInput = {
+    update: XOR<OrganizationUpdateWithoutCredentialsInput, OrganizationUncheckedUpdateWithoutCredentialsInput>
+    create: XOR<OrganizationCreateWithoutCredentialsInput, OrganizationUncheckedCreateWithoutCredentialsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutCredentialsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutCredentialsInput, OrganizationUncheckedUpdateWithoutCredentialsInput>
+  }
+
+  export type OrganizationUpdateWithoutCredentialsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutCredentialsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUncheckedUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -29355,6 +33428,19 @@ export namespace Prisma {
     id?: string
     skill: string
     createdAt?: Date | string
+  }
+
+  export type VolunteerCredentialCreateManyUserInput = {
+    id?: string
+    orgId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -29530,6 +33616,45 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type VolunteerCredentialUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+  }
+
+  export type VolunteerCredentialUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerCredentialUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrganizationMemberCreateManyOrganizationInput = {
     id?: string
     userId: string
@@ -29607,6 +33732,19 @@ export namespace Prisma {
     endDate?: Date | string | null
     commitmentHours?: number | null
     capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerCredentialCreateManyOrganizationInput = {
+    id?: string
+    userId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -29858,6 +33996,45 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
     capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerCredentialUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
+  }
+
+  export type VolunteerCredentialUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerCredentialUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

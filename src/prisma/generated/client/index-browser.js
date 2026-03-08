@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.3.0
- * Query Engine version: 9d6ad21cbbceab97458517b147a6a09ff43aa735
+ * Prisma Client JS version: 7.4.2
+ * Query Engine version: 94a226be1cf2967af2541cca5529f0f7ba866919
  */
 Prisma.prismaVersion = {
-  client: "7.3.0",
-  engine: "9d6ad21cbbceab97458517b147a6a09ff43aa735"
+  client: "7.4.2",
+  engine: "94a226be1cf2967af2541cca5529f0f7ba866919"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -284,6 +284,35 @@ exports.Prisma.VolunteerSkillScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.VolunteerProfileScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  bio: 'bio',
+  phone: 'phone',
+  city: 'city',
+  state: 'state',
+  country: 'country',
+  availability: 'availability',
+  visibility: 'visibility',
+  interests: 'interests',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VolunteerCredentialScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  orgId: 'orgId',
+  type: 'type',
+  status: 'status',
+  issuedAt: 'issuedAt',
+  expiresAt: 'expiresAt',
+  notes: 'notes',
+  issuedById: 'issuedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -352,6 +381,34 @@ exports.RequirementLevel = exports.$Enums.RequirementLevel = {
   PREFERRED: 'PREFERRED'
 };
 
+exports.AvailabilityType = exports.$Enums.AvailabilityType = {
+  WEEKDAYS: 'WEEKDAYS',
+  WEEKENDS: 'WEEKENDS',
+  EVENINGS: 'EVENINGS',
+  FLEXIBLE: 'FLEXIBLE'
+};
+
+exports.ProfileVisibility = exports.$Enums.ProfileVisibility = {
+  PUBLIC: 'PUBLIC',
+  ORGS_ONLY: 'ORGS_ONLY',
+  PRIVATE: 'PRIVATE'
+};
+
+exports.CredentialType = exports.$Enums.CredentialType = {
+  BACKGROUND_CHECK: 'BACKGROUND_CHECK',
+  TRAINING_COMPLETE: 'TRAINING_COMPLETE',
+  ID_VERIFIED: 'ID_VERIFIED',
+  REFERENCE_CHECK: 'REFERENCE_CHECK',
+  ORIENTATION_COMPLETE: 'ORIENTATION_COMPLETE'
+};
+
+exports.CredentialStatus = exports.$Enums.CredentialStatus = {
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  EXPIRED: 'EXPIRED',
+  REVOKED: 'REVOKED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -369,7 +426,9 @@ exports.Prisma.ModelName = {
   VolunteerOpportunity: 'VolunteerOpportunity',
   OpportunityTag: 'OpportunityTag',
   OpportunityRequirement: 'OpportunityRequirement',
-  VolunteerSkill: 'VolunteerSkill'
+  VolunteerSkill: 'VolunteerSkill',
+  VolunteerProfile: 'VolunteerProfile',
+  VolunteerCredential: 'VolunteerCredential'
 };
 
 /**

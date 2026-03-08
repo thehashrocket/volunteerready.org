@@ -95,25 +95,31 @@ This phase introduces **intelligent discovery and matching**.
 
 ---
 
-# Phase 4 — Volunteer Profiles
+# Phase 4 — Volunteer Profiles ✅ Complete
 
 Goal: Create reusable volunteer identities across organizations.
 
-Planned capabilities:
+Completed capabilities:
 
-- Volunteer profile creation
-- Skills and interests
-- Background verification flags
-- Historical applications
-- Organization-specific visibility
+- ✅ Volunteer profile creation and management (`/app/profile`)
+- ✅ Profile completeness scoring (0–100 with MINIMAL/BASIC/STRONG/COMPLETE levels)
+- ✅ Bio, phone, location (city/state/country), availability preferences
+- ✅ Interest tags (free-text, up to 20)
+- ✅ Profile visibility controls (PUBLIC / ORGS_ONLY / PRIVATE)
+- ✅ Volunteer credential system — org-scoped verification badges
+- ✅ Credential types: Background Check, Training Complete, ID Verified, Reference Check, Orientation Complete
+- ✅ Credential lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED
+- ✅ Staff credential management UI (`/app/credentials`) — issue, revoke, remove
+- ✅ Volunteer credential read-only view on profile page
+- ✅ Cross-org profile stats (applications, orgs, skills, verified credentials)
 
-Potential entities:
+Key entities added:
 
-- VolunteerProfile
-- VolunteerHistory
-- VolunteerCredential
+- VolunteerProfile (1:1 with User, cross-org)
+- VolunteerCredential (org-scoped, unique per user + org + type)
+- AvailabilityType, ProfileVisibility, CredentialType, CredentialStatus (enums)
 
-This phase allows volunteers to interact with multiple organizations efficiently.
+This phase establishes **reusable volunteer identity** across organizations.
 
 ---
 

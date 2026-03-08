@@ -67,8 +67,11 @@ src/
 ├── app/                          # Next.js App Router pages
 │   ├── (app)/app/                # Protected org-scoped routes
 │   │   ├── applications/         # Staff: review volunteer applications
+│   │   ├── credentials/          # Staff: manage volunteer verification badges
 │   │   ├── my-applications/      # Volunteer: track own applications
+│   │   ├── my-skills/            # Volunteer: manage skill tags
 │   │   ├── opportunities/        # Staff: manage opportunities
+│   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
 │   │   ├── settings/team/        # Admin: team/member management
 │   │   ├── onboarding/           # Org setup flow
@@ -133,6 +136,8 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **ScreenerQuestion** — org-specific question with type (`TEXT | SINGLE_CHOICE | MULTI_CHOICE | BOOLEAN | NUMBER`), disqualifier rules, and review rules.
 - **VolunteerOpportunity** — a volunteer position with status (`DRAFT | PUBLISHED | CLOSED`), location, dates, capacity.
 - **OpportunityTag / OpportunityRequirement** — metadata for opportunities.
+- **VolunteerProfile** — 1:1 with User (cross-org). Bio, phone, location, availability, visibility, interests.
+- **VolunteerCredential** — org-scoped verification badges (unique per user + org + type). Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE. Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED.
 - **AuditLog** — append-only, immutable activity log per org.
 - **FeatureFlag** — per-org feature toggles.
 - **OrganizationInvitation** — team invite tokens with expiry.
@@ -169,12 +174,14 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | Router | Key procedures |
 |---|---|
 | `auth` | signout |
+| `credentials` | getMyCredentials, listOrgCredentials, issue, revoke, remove |
 | `health` | ping |
 | `matching` | getMySkills, updateMySkills, getRecommendations |
 | `members` | list, invite, updateRole, remove |
 | `onboarding` | create org, initial setup |
 | `opportunities` | create, update, delete, list, getById |
 | `org` | getCurrentOrg, listOrgs, switchOrg |
+| `profile` | getMyProfile, updateMyProfile, getMyStats |
 | `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail |
 | `status` | public token-based status lookups |
 
@@ -221,6 +228,28 @@ The volunteer–opportunity matching system lives in `src/server/domain/voluntee
 **tRPC router:** `src/server/trpc/routers/matching.ts` — `getMySkills`, `updateMySkills`, `getRecommendations` (all `protectedProcedure`)
 
 **Note:** Volunteer skills are cross-org (tied to `User`, not `Organization`). The `VolunteerSkill` model uses `@@unique([userId, skill])` for deduplication.
+
+---
+
+## Volunteer Profiles & Credentials
+
+The volunteer profile system lives in `src/server/domain/volunteer-profile.ts`.
+
+**Profile:** Cross-org identity (1:1 with User). Includes bio, phone, location, availability, interests, and visibility settings. Profile completeness is scored 0–100 based on weighted fields (name 20, email 15, bio 15, location 15, interests 15, phone 10, photo 5, availability 5).
+
+**Credentials:** Org-scoped verification badges. Each credential is unique per `userId + orgId + type`. Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE. Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED.
+
+**Key types:** `ProfileData`, `ProfileCompleteness`, `CompletenessLevel`, `CredentialRecord`, `CredentialSummary`
+
+**Key functions:** `computeProfileCompleteness()`, `isCredentialValid()`, `summarizeCredentials()` — all pure, no side effects
+
+**Service orchestration:**
+- `src/server/services/volunteerProfileService.ts` — `getVolunteerProfileWithCompleteness()`, `saveVolunteerProfile()` (transactional with audit)
+- `src/server/services/volunteerCredentialService.ts` — `issueCredential()`, `revokeCredential()`, `removeCredential()` (all transactional with audit)
+
+**tRPC routers:**
+- `src/server/trpc/routers/profile.ts` — `getMyProfile`, `updateMyProfile`, `getMyStats` (all `protectedProcedure`)
+- `src/server/trpc/routers/credentials.ts` — `getMyCredentials` (`protectedProcedure`), `listOrgCredentials`, `issue`, `revoke`, `remove` (`staffProcedure`)
 
 ---
 
@@ -274,6 +303,9 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/domain/screener/configSchema.ts` | Zod schemas for screening question configuration |
 | `src/server/domain/volunteer-matching.ts` | Pure matching/scoring logic (case-insensitive, 0–100 scores) |
 | `src/server/services/volunteerMatchingService.ts` | Matching service orchestration |
+| `src/server/domain/volunteer-profile.ts` | Profile completeness scoring + credential validation |
+| `src/server/services/volunteerProfileService.ts` | Profile service orchestration |
+| `src/server/services/volunteerCredentialService.ts` | Credential service orchestration |
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
 
 ---
@@ -285,7 +317,7 @@ pnpm docs:dev               # VitePress dev server
 | 1 — Volunteer Screening | ✅ Complete |
 | 2 — Volunteer Opportunities | ✅ Complete |
 | 3 — Matching Engine | ✅ Complete |
-| 4 — Volunteer Profiles | Planned |
+| 4 — Volunteer Profiles | ✅ Complete |
 | 5 — Scheduling & Shifts | Planned |
 | 6 — Nonprofit Operations (grants, events, analytics) | Planned |
 

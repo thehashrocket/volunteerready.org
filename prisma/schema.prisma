@@ -19,6 +19,8 @@ model User {
   auditLogs             AuditLog[]             @relation("AuditActor")
   submittedApplications VolunteerApplication[] @relation("SubmittedApplications")
   volunteerSkills       VolunteerSkill[]
+  profile               VolunteerProfile?
+  credentials           VolunteerCredential[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 }
@@ -96,6 +98,7 @@ model Organization {
   sessions          Session[] // optional backrelation
   invitations       OrganizationInvitation[]
   opportunities     VolunteerOpportunity[]
+  credentials       VolunteerCredential[]
 }
 
 model OrganizationMember {
@@ -301,4 +304,70 @@ model VolunteerSkill {
 
   @@unique([userId, skill])
   @@index([userId])
+}
+
+model VolunteerProfile {
+  id           String             @id @default(cuid())
+  userId       String             @unique
+  bio          String?
+  phone        String?
+  city         String?
+  state        String?
+  country      String?
+  availability AvailabilityType   @default(FLEXIBLE)
+  visibility   ProfileVisibility  @default(ORGS_ONLY)
+  interests    String[]           @default([])
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum AvailabilityType {
+  WEEKDAYS
+  WEEKENDS
+  EVENINGS
+  FLEXIBLE
+}
+
+enum ProfileVisibility {
+  PUBLIC
+  ORGS_ONLY
+  PRIVATE
+}
+
+model VolunteerCredential {
+  id         String           @id @default(cuid())
+  userId     String
+  orgId      String
+  type       CredentialType
+  status     CredentialStatus @default(PENDING)
+  issuedAt   DateTime?
+  expiresAt  DateTime?
+  notes      String?
+  issuedById String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId, type])
+  @@index([userId])
+  @@index([orgId])
+}
+
+enum CredentialType {
+  BACKGROUND_CHECK
+  TRAINING_COMPLETE
+  ID_VERIFIED
+  REFERENCE_CHECK
+  ORIENTATION_COMPLETE
+}
+
+enum CredentialStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  REVOKED
 }
