@@ -21,6 +21,7 @@ model User {
   volunteerSkills       VolunteerSkill[]
   profile               VolunteerProfile?
   credentials           VolunteerCredential[]
+  shiftSignups          ShiftSignup[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 }
@@ -99,6 +100,7 @@ model Organization {
   invitations       OrganizationInvitation[]
   opportunities     VolunteerOpportunity[]
   credentials       VolunteerCredential[]
+  shifts            Shift[]
 }
 
 model OrganizationMember {
@@ -267,6 +269,7 @@ model VolunteerOpportunity {
   tags          OpportunityTag[]
   requirements  OpportunityRequirement[]
   applications  VolunteerApplication[]
+  shifts        Shift[]
 
   @@index([orgId])
   @@index([status])
@@ -370,4 +373,64 @@ enum CredentialStatus {
   VERIFIED
   EXPIRED
   REVOKED
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5 — Scheduling & Shifts
+// ---------------------------------------------------------------------------
+
+model Shift {
+  id            String      @id @default(cuid())
+  orgId         String
+  opportunityId String?
+  title         String
+  description   String?
+  location      String?
+  isRemote      Boolean     @default(false)
+  startTime     DateTime
+  endTime       DateTime
+  capacity      Int
+  status        ShiftStatus @default(OPEN)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  organization Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  opportunity  VolunteerOpportunity?  @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  signups      ShiftSignup[]
+
+  @@index([orgId])
+  @@index([opportunityId])
+  @@index([orgId, startTime])
+  @@index([status])
+}
+
+enum ShiftStatus {
+  OPEN
+  FULL
+  CANCELLED
+  COMPLETED
+}
+
+model ShiftSignup {
+  id        String       @id @default(cuid())
+  shiftId   String
+  userId    String
+  status    SignupStatus  @default(CONFIRMED)
+  notes     String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shiftId, userId])
+  @@index([shiftId])
+  @@index([userId])
+}
+
+enum SignupStatus {
+  CONFIRMED
+  CANCELLED
+  NO_SHOW
+  ATTENDED
 }

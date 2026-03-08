@@ -123,23 +123,35 @@ This phase establishes **reusable volunteer identity** across organizations.
 
 ---
 
-# Phase 5 — Scheduling and Shifts
+# Phase 5 — Scheduling & Shifts ✅ Complete
 
 Goal: Allow organizations to manage volunteer time and scheduling.
 
-Planned capabilities:
+Completed capabilities:
 
-- Shift creation
-- Volunteer availability
-- Signup management
-- Attendance tracking
-- Reminder notifications
+- ✅ Shift creation and management (staff UI at `/app/shifts`)
+- ✅ Shift status lifecycle: OPEN → FULL → COMPLETED / CANCELLED
+- ✅ Auto-status: shift auto-marks FULL at capacity, re-opens on cancellation
+- ✅ Volunteer shift signup with capacity enforcement and conflict detection
+- ✅ Duplicate signup prevention (one active signup per shift per volunteer)
+- ✅ Time overlap detection across confirmed shifts
+- ✅ Attendance tracking: CONFIRMED → ATTENDED / NO_SHOW / CANCELLED
+- ✅ Staff attendance management with per-volunteer controls
+- ✅ Volunteer "my shifts" page (`/app/my-shifts`) — upcoming signups with cancel
+- ✅ Shift detail dialog with signup roster and attendance actions
+- ✅ Shift capacity computation and fill rate tracking
+- ✅ Attendance summary statistics (rate excludes cancelled)
+- ✅ Optional opportunity linking (shifts can belong to an opportunity)
+- ✅ Cross-org upcoming shift count on volunteer profile stats
+- ✅ Pure domain logic with 20 unit tests
+- ✅ Shift time validation (end after start, max 24h duration)
 
-Potential entities:
+Key entities added:
 
-- Shift
-- ShiftSignup
-- Availability
+- Shift (org-scoped, optional opportunity link)
+- ShiftSignup (unique per shift + user)
+- ShiftStatus (enum: OPEN / FULL / CANCELLED / COMPLETED)
+- SignupStatus (enum: CONFIRMED / CANCELLED / NO_SHOW / ATTENDED)
 
 This phase supports **operational volunteer coordination**.
 

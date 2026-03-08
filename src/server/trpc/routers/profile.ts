@@ -52,18 +52,39 @@ export const profileRouter = createTRPCRouter({
 	getMyStats: protectedProcedure.query(async ({ ctx }) => {
 		const userId = requireUserId(ctx.session);
 
-		const [applicationCount, orgCount, skillCount, credentialCount] =
-			await Promise.all([
-				prisma.volunteerApplication.count({
-					where: { submittedByUserId: userId },
-				}),
-				prisma.organizationMember.count({ where: { userId } }),
-				prisma.volunteerSkill.count({ where: { userId } }),
-				prisma.volunteerCredential.count({
-					where: { userId, status: 'VERIFIED' },
-				}),
-			]);
+		const [
+			applicationCount,
+			orgCount,
+			skillCount,
+			credentialCount,
+			upcomingShiftCount,
+		] = await Promise.all([
+			prisma.volunteerApplication.count({
+				where: { submittedByUserId: userId },
+			}),
+			prisma.organizationMember.count({ where: { userId } }),
+			prisma.volunteerSkill.count({ where: { userId } }),
+			prisma.volunteerCredential.count({
+				where: { userId, status: 'VERIFIED' },
+			}),
+			prisma.shiftSignup.count({
+				where: {
+					userId,
+					status: 'CONFIRMED',
+					shift: {
+						startTime: { gte: new Date() },
+						status: { in: ['OPEN', 'FULL'] },
+					},
+				},
+			}),
+		]);
 
-		return { applicationCount, orgCount, skillCount, credentialCount };
+		return {
+			applicationCount,
+			orgCount,
+			skillCount,
+			credentialCount,
+			upcomingShiftCount,
+		};
 	}),
 });

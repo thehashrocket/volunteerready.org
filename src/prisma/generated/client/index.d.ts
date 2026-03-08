@@ -108,6 +108,16 @@ export type VolunteerProfile = $Result.DefaultSelection<Prisma.$VolunteerProfile
  * 
  */
 export type VolunteerCredential = $Result.DefaultSelection<Prisma.$VolunteerCredentialPayload>
+/**
+ * Model Shift
+ * 
+ */
+export type Shift = $Result.DefaultSelection<Prisma.$ShiftPayload>
+/**
+ * Model ShiftSignup
+ * 
+ */
+export type ShiftSignup = $Result.DefaultSelection<Prisma.$ShiftSignupPayload>
 
 /**
  * Enums
@@ -209,6 +219,26 @@ export const CredentialStatus: {
 
 export type CredentialStatus = (typeof CredentialStatus)[keyof typeof CredentialStatus]
 
+
+export const ShiftStatus: {
+  OPEN: 'OPEN',
+  FULL: 'FULL',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED'
+};
+
+export type ShiftStatus = (typeof ShiftStatus)[keyof typeof ShiftStatus]
+
+
+export const SignupStatus: {
+  CONFIRMED: 'CONFIRMED',
+  CANCELLED: 'CANCELLED',
+  NO_SHOW: 'NO_SHOW',
+  ATTENDED: 'ATTENDED'
+};
+
+export type SignupStatus = (typeof SignupStatus)[keyof typeof SignupStatus]
+
 }
 
 export type ApplicationStatus = $Enums.ApplicationStatus
@@ -250,6 +280,14 @@ export const CredentialType: typeof $Enums.CredentialType
 export type CredentialStatus = $Enums.CredentialStatus
 
 export const CredentialStatus: typeof $Enums.CredentialStatus
+
+export type ShiftStatus = $Enums.ShiftStatus
+
+export const ShiftStatus: typeof $Enums.ShiftStatus
+
+export type SignupStatus = $Enums.SignupStatus
+
+export const SignupStatus: typeof $Enums.SignupStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -561,6 +599,26 @@ export class PrismaClient<
     * ```
     */
   get volunteerCredential(): Prisma.VolunteerCredentialDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.shift`: Exposes CRUD operations for the **Shift** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Shifts
+    * const shifts = await prisma.shift.findMany()
+    * ```
+    */
+  get shift(): Prisma.ShiftDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.shiftSignup`: Exposes CRUD operations for the **ShiftSignup** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ShiftSignups
+    * const shiftSignups = await prisma.shiftSignup.findMany()
+    * ```
+    */
+  get shiftSignup(): Prisma.ShiftSignupDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1013,7 +1071,9 @@ export namespace Prisma {
     OpportunityRequirement: 'OpportunityRequirement',
     VolunteerSkill: 'VolunteerSkill',
     VolunteerProfile: 'VolunteerProfile',
-    VolunteerCredential: 'VolunteerCredential'
+    VolunteerCredential: 'VolunteerCredential',
+    Shift: 'Shift',
+    ShiftSignup: 'ShiftSignup'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1029,7 +1089,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2439,6 +2499,154 @@ export namespace Prisma {
           }
         }
       }
+      Shift: {
+        payload: Prisma.$ShiftPayload<ExtArgs>
+        fields: Prisma.ShiftFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ShiftFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ShiftFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload>
+          }
+          findFirst: {
+            args: Prisma.ShiftFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ShiftFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload>
+          }
+          findMany: {
+            args: Prisma.ShiftFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload>[]
+          }
+          create: {
+            args: Prisma.ShiftCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload>
+          }
+          createMany: {
+            args: Prisma.ShiftCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ShiftCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload>[]
+          }
+          delete: {
+            args: Prisma.ShiftDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload>
+          }
+          update: {
+            args: Prisma.ShiftUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload>
+          }
+          deleteMany: {
+            args: Prisma.ShiftDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ShiftUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ShiftUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload>[]
+          }
+          upsert: {
+            args: Prisma.ShiftUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftPayload>
+          }
+          aggregate: {
+            args: Prisma.ShiftAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateShift>
+          }
+          groupBy: {
+            args: Prisma.ShiftGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ShiftGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ShiftCountArgs<ExtArgs>
+            result: $Utils.Optional<ShiftCountAggregateOutputType> | number
+          }
+        }
+      }
+      ShiftSignup: {
+        payload: Prisma.$ShiftSignupPayload<ExtArgs>
+        fields: Prisma.ShiftSignupFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ShiftSignupFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ShiftSignupFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload>
+          }
+          findFirst: {
+            args: Prisma.ShiftSignupFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ShiftSignupFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload>
+          }
+          findMany: {
+            args: Prisma.ShiftSignupFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload>[]
+          }
+          create: {
+            args: Prisma.ShiftSignupCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload>
+          }
+          createMany: {
+            args: Prisma.ShiftSignupCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ShiftSignupCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload>[]
+          }
+          delete: {
+            args: Prisma.ShiftSignupDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload>
+          }
+          update: {
+            args: Prisma.ShiftSignupUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload>
+          }
+          deleteMany: {
+            args: Prisma.ShiftSignupDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ShiftSignupUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ShiftSignupUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload>[]
+          }
+          upsert: {
+            args: Prisma.ShiftSignupUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftSignupPayload>
+          }
+          aggregate: {
+            args: Prisma.ShiftSignupAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateShiftSignup>
+          }
+          groupBy: {
+            args: Prisma.ShiftSignupGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ShiftSignupGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ShiftSignupCountArgs<ExtArgs>
+            result: $Utils.Optional<ShiftSignupCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2566,6 +2774,8 @@ export namespace Prisma {
     volunteerSkill?: VolunteerSkillOmit
     volunteerProfile?: VolunteerProfileOmit
     volunteerCredential?: VolunteerCredentialOmit
+    shift?: ShiftOmit
+    shiftSignup?: ShiftSignupOmit
   }
 
   /* Types for Logging */
@@ -2653,6 +2863,7 @@ export namespace Prisma {
     submittedApplications: number
     volunteerSkills: number
     credentials: number
+    shiftSignups: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2663,6 +2874,7 @@ export namespace Prisma {
     submittedApplications?: boolean | UserCountOutputTypeCountSubmittedApplicationsArgs
     volunteerSkills?: boolean | UserCountOutputTypeCountVolunteerSkillsArgs
     credentials?: boolean | UserCountOutputTypeCountCredentialsArgs
+    shiftSignups?: boolean | UserCountOutputTypeCountShiftSignupsArgs
   }
 
   // Custom InputTypes
@@ -2725,6 +2937,13 @@ export namespace Prisma {
     where?: VolunteerCredentialWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountShiftSignupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftSignupWhereInput
+  }
+
 
   /**
    * Count Type OrganizationCountOutputType
@@ -2740,6 +2959,7 @@ export namespace Prisma {
     invitations: number
     opportunities: number
     credentials: number
+    shifts: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2752,6 +2972,7 @@ export namespace Prisma {
     invitations?: boolean | OrganizationCountOutputTypeCountInvitationsArgs
     opportunities?: boolean | OrganizationCountOutputTypeCountOpportunitiesArgs
     credentials?: boolean | OrganizationCountOutputTypeCountCredentialsArgs
+    shifts?: boolean | OrganizationCountOutputTypeCountShiftsArgs
   }
 
   // Custom InputTypes
@@ -2828,6 +3049,13 @@ export namespace Prisma {
     where?: VolunteerCredentialWhereInput
   }
 
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountShiftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftWhereInput
+  }
+
 
   /**
    * Count Type VolunteerApplicationCountOutputType
@@ -2868,12 +3096,14 @@ export namespace Prisma {
     tags: number
     requirements: number
     applications: number
+    shifts: number
   }
 
   export type VolunteerOpportunityCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tags?: boolean | VolunteerOpportunityCountOutputTypeCountTagsArgs
     requirements?: boolean | VolunteerOpportunityCountOutputTypeCountRequirementsArgs
     applications?: boolean | VolunteerOpportunityCountOutputTypeCountApplicationsArgs
+    shifts?: boolean | VolunteerOpportunityCountOutputTypeCountShiftsArgs
   }
 
   // Custom InputTypes
@@ -2906,6 +3136,44 @@ export namespace Prisma {
    */
   export type VolunteerOpportunityCountOutputTypeCountApplicationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VolunteerApplicationWhereInput
+  }
+
+  /**
+   * VolunteerOpportunityCountOutputType without action
+   */
+  export type VolunteerOpportunityCountOutputTypeCountShiftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftWhereInput
+  }
+
+
+  /**
+   * Count Type ShiftCountOutputType
+   */
+
+  export type ShiftCountOutputType = {
+    signups: number
+  }
+
+  export type ShiftCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    signups?: boolean | ShiftCountOutputTypeCountSignupsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ShiftCountOutputType without action
+   */
+  export type ShiftCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftCountOutputType
+     */
+    select?: ShiftCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ShiftCountOutputType without action
+   */
+  export type ShiftCountOutputTypeCountSignupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftSignupWhereInput
   }
 
 
@@ -3101,6 +3369,7 @@ export namespace Prisma {
     volunteerSkills?: boolean | User$volunteerSkillsArgs<ExtArgs>
     profile?: boolean | User$profileArgs<ExtArgs>
     credentials?: boolean | User$credentialsArgs<ExtArgs>
+    shiftSignups?: boolean | User$shiftSignupsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -3144,6 +3413,7 @@ export namespace Prisma {
     volunteerSkills?: boolean | User$volunteerSkillsArgs<ExtArgs>
     profile?: boolean | User$profileArgs<ExtArgs>
     credentials?: boolean | User$credentialsArgs<ExtArgs>
+    shiftSignups?: boolean | User$shiftSignupsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -3160,6 +3430,7 @@ export namespace Prisma {
       volunteerSkills: Prisma.$VolunteerSkillPayload<ExtArgs>[]
       profile: Prisma.$VolunteerProfilePayload<ExtArgs> | null
       credentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
+      shiftSignups: Prisma.$ShiftSignupPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3571,6 +3842,7 @@ export namespace Prisma {
     volunteerSkills<T extends User$volunteerSkillsArgs<ExtArgs> = {}>(args?: Subset<T, User$volunteerSkillsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     profile<T extends User$profileArgs<ExtArgs> = {}>(args?: Subset<T, User$profileArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     credentials<T extends User$credentialsArgs<ExtArgs> = {}>(args?: Subset<T, User$credentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    shiftSignups<T extends User$shiftSignupsArgs<ExtArgs> = {}>(args?: Subset<T, User$shiftSignupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4179,6 +4451,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * User.shiftSignups
+   */
+  export type User$shiftSignupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    where?: ShiftSignupWhereInput
+    orderBy?: ShiftSignupOrderByWithRelationInput | ShiftSignupOrderByWithRelationInput[]
+    cursor?: ShiftSignupWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ShiftSignupScalarFieldEnum | ShiftSignupScalarFieldEnum[]
   }
 
   /**
@@ -8644,6 +8940,7 @@ export namespace Prisma {
     invitations?: boolean | Organization$invitationsArgs<ExtArgs>
     opportunities?: boolean | Organization$opportunitiesArgs<ExtArgs>
     credentials?: boolean | Organization$credentialsArgs<ExtArgs>
+    shifts?: boolean | Organization$shiftsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -8682,6 +8979,7 @@ export namespace Prisma {
     invitations?: boolean | Organization$invitationsArgs<ExtArgs>
     opportunities?: boolean | Organization$opportunitiesArgs<ExtArgs>
     credentials?: boolean | Organization$credentialsArgs<ExtArgs>
+    shifts?: boolean | Organization$shiftsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -8699,6 +8997,7 @@ export namespace Prisma {
       invitations: Prisma.$OrganizationInvitationPayload<ExtArgs>[]
       opportunities: Prisma.$VolunteerOpportunityPayload<ExtArgs>[]
       credentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
+      shifts: Prisma.$ShiftPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -9109,6 +9408,7 @@ export namespace Prisma {
     invitations<T extends Organization$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     opportunities<T extends Organization$opportunitiesArgs<ExtArgs> = {}>(args?: Subset<T, Organization$opportunitiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     credentials<T extends Organization$credentialsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$credentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    shifts<T extends Organization$shiftsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -9744,6 +10044,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.shifts
+   */
+  export type Organization$shiftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    where?: ShiftWhereInput
+    orderBy?: ShiftOrderByWithRelationInput | ShiftOrderByWithRelationInput[]
+    cursor?: ShiftWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
   }
 
   /**
@@ -17756,6 +18080,7 @@ export namespace Prisma {
     tags?: boolean | VolunteerOpportunity$tagsArgs<ExtArgs>
     requirements?: boolean | VolunteerOpportunity$requirementsArgs<ExtArgs>
     applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
+    shifts?: boolean | VolunteerOpportunity$shiftsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerOpportunity"]>
 
@@ -17815,6 +18140,7 @@ export namespace Prisma {
     tags?: boolean | VolunteerOpportunity$tagsArgs<ExtArgs>
     requirements?: boolean | VolunteerOpportunity$requirementsArgs<ExtArgs>
     applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
+    shifts?: boolean | VolunteerOpportunity$shiftsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type VolunteerOpportunityIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17831,6 +18157,7 @@ export namespace Prisma {
       tags: Prisma.$OpportunityTagPayload<ExtArgs>[]
       requirements: Prisma.$OpportunityRequirementPayload<ExtArgs>[]
       applications: Prisma.$VolunteerApplicationPayload<ExtArgs>[]
+      shifts: Prisma.$ShiftPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -18244,6 +18571,7 @@ export namespace Prisma {
     tags<T extends VolunteerOpportunity$tagsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     requirements<T extends VolunteerOpportunity$requirementsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$requirementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     applications<T extends VolunteerOpportunity$applicationsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$applicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    shifts<T extends VolunteerOpportunity$shiftsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -18751,6 +19079,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VolunteerApplicationScalarFieldEnum | VolunteerApplicationScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerOpportunity.shifts
+   */
+  export type VolunteerOpportunity$shiftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    where?: ShiftWhereInput
+    orderBy?: ShiftOrderByWithRelationInput | ShiftOrderByWithRelationInput[]
+    cursor?: ShiftWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
   }
 
   /**
@@ -24184,6 +24536,2351 @@ export namespace Prisma {
 
 
   /**
+   * Model Shift
+   */
+
+  export type AggregateShift = {
+    _count: ShiftCountAggregateOutputType | null
+    _avg: ShiftAvgAggregateOutputType | null
+    _sum: ShiftSumAggregateOutputType | null
+    _min: ShiftMinAggregateOutputType | null
+    _max: ShiftMaxAggregateOutputType | null
+  }
+
+  export type ShiftAvgAggregateOutputType = {
+    capacity: number | null
+  }
+
+  export type ShiftSumAggregateOutputType = {
+    capacity: number | null
+  }
+
+  export type ShiftMinAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    opportunityId: string | null
+    title: string | null
+    description: string | null
+    location: string | null
+    isRemote: boolean | null
+    startTime: Date | null
+    endTime: Date | null
+    capacity: number | null
+    status: $Enums.ShiftStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ShiftMaxAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    opportunityId: string | null
+    title: string | null
+    description: string | null
+    location: string | null
+    isRemote: boolean | null
+    startTime: Date | null
+    endTime: Date | null
+    capacity: number | null
+    status: $Enums.ShiftStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ShiftCountAggregateOutputType = {
+    id: number
+    orgId: number
+    opportunityId: number
+    title: number
+    description: number
+    location: number
+    isRemote: number
+    startTime: number
+    endTime: number
+    capacity: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ShiftAvgAggregateInputType = {
+    capacity?: true
+  }
+
+  export type ShiftSumAggregateInputType = {
+    capacity?: true
+  }
+
+  export type ShiftMinAggregateInputType = {
+    id?: true
+    orgId?: true
+    opportunityId?: true
+    title?: true
+    description?: true
+    location?: true
+    isRemote?: true
+    startTime?: true
+    endTime?: true
+    capacity?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ShiftMaxAggregateInputType = {
+    id?: true
+    orgId?: true
+    opportunityId?: true
+    title?: true
+    description?: true
+    location?: true
+    isRemote?: true
+    startTime?: true
+    endTime?: true
+    capacity?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ShiftCountAggregateInputType = {
+    id?: true
+    orgId?: true
+    opportunityId?: true
+    title?: true
+    description?: true
+    location?: true
+    isRemote?: true
+    startTime?: true
+    endTime?: true
+    capacity?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ShiftAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Shift to aggregate.
+     */
+    where?: ShiftWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Shifts to fetch.
+     */
+    orderBy?: ShiftOrderByWithRelationInput | ShiftOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ShiftWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Shifts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Shifts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Shifts
+    **/
+    _count?: true | ShiftCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ShiftAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ShiftSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ShiftMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ShiftMaxAggregateInputType
+  }
+
+  export type GetShiftAggregateType<T extends ShiftAggregateArgs> = {
+        [P in keyof T & keyof AggregateShift]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateShift[P]>
+      : GetScalarType<T[P], AggregateShift[P]>
+  }
+
+
+
+
+  export type ShiftGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftWhereInput
+    orderBy?: ShiftOrderByWithAggregationInput | ShiftOrderByWithAggregationInput[]
+    by: ShiftScalarFieldEnum[] | ShiftScalarFieldEnum
+    having?: ShiftScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ShiftCountAggregateInputType | true
+    _avg?: ShiftAvgAggregateInputType
+    _sum?: ShiftSumAggregateInputType
+    _min?: ShiftMinAggregateInputType
+    _max?: ShiftMaxAggregateInputType
+  }
+
+  export type ShiftGroupByOutputType = {
+    id: string
+    orgId: string
+    opportunityId: string | null
+    title: string
+    description: string | null
+    location: string | null
+    isRemote: boolean
+    startTime: Date
+    endTime: Date
+    capacity: number
+    status: $Enums.ShiftStatus
+    createdAt: Date
+    updatedAt: Date
+    _count: ShiftCountAggregateOutputType | null
+    _avg: ShiftAvgAggregateOutputType | null
+    _sum: ShiftSumAggregateOutputType | null
+    _min: ShiftMinAggregateOutputType | null
+    _max: ShiftMaxAggregateOutputType | null
+  }
+
+  type GetShiftGroupByPayload<T extends ShiftGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ShiftGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ShiftGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ShiftGroupByOutputType[P]>
+            : GetScalarType<T[P], ShiftGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ShiftSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    opportunityId?: boolean
+    title?: boolean
+    description?: boolean
+    location?: boolean
+    isRemote?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    capacity?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+    signups?: boolean | Shift$signupsArgs<ExtArgs>
+    _count?: boolean | ShiftCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["shift"]>
+
+  export type ShiftSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    opportunityId?: boolean
+    title?: boolean
+    description?: boolean
+    location?: boolean
+    isRemote?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    capacity?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+  }, ExtArgs["result"]["shift"]>
+
+  export type ShiftSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    opportunityId?: boolean
+    title?: boolean
+    description?: boolean
+    location?: boolean
+    isRemote?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    capacity?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+  }, ExtArgs["result"]["shift"]>
+
+  export type ShiftSelectScalar = {
+    id?: boolean
+    orgId?: boolean
+    opportunityId?: boolean
+    title?: boolean
+    description?: boolean
+    location?: boolean
+    isRemote?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    capacity?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ShiftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "opportunityId" | "title" | "description" | "location" | "isRemote" | "startTime" | "endTime" | "capacity" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["shift"]>
+  export type ShiftInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+    signups?: boolean | Shift$signupsArgs<ExtArgs>
+    _count?: boolean | ShiftCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ShiftIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+  }
+  export type ShiftIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+  }
+
+  export type $ShiftPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Shift"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+      opportunity: Prisma.$VolunteerOpportunityPayload<ExtArgs> | null
+      signups: Prisma.$ShiftSignupPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orgId: string
+      opportunityId: string | null
+      title: string
+      description: string | null
+      location: string | null
+      isRemote: boolean
+      startTime: Date
+      endTime: Date
+      capacity: number
+      status: $Enums.ShiftStatus
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["shift"]>
+    composites: {}
+  }
+
+  type ShiftGetPayload<S extends boolean | null | undefined | ShiftDefaultArgs> = $Result.GetResult<Prisma.$ShiftPayload, S>
+
+  type ShiftCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ShiftFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ShiftCountAggregateInputType | true
+    }
+
+  export interface ShiftDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Shift'], meta: { name: 'Shift' } }
+    /**
+     * Find zero or one Shift that matches the filter.
+     * @param {ShiftFindUniqueArgs} args - Arguments to find a Shift
+     * @example
+     * // Get one Shift
+     * const shift = await prisma.shift.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ShiftFindUniqueArgs>(args: SelectSubset<T, ShiftFindUniqueArgs<ExtArgs>>): Prisma__ShiftClient<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Shift that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ShiftFindUniqueOrThrowArgs} args - Arguments to find a Shift
+     * @example
+     * // Get one Shift
+     * const shift = await prisma.shift.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ShiftFindUniqueOrThrowArgs>(args: SelectSubset<T, ShiftFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ShiftClient<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Shift that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftFindFirstArgs} args - Arguments to find a Shift
+     * @example
+     * // Get one Shift
+     * const shift = await prisma.shift.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ShiftFindFirstArgs>(args?: SelectSubset<T, ShiftFindFirstArgs<ExtArgs>>): Prisma__ShiftClient<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Shift that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftFindFirstOrThrowArgs} args - Arguments to find a Shift
+     * @example
+     * // Get one Shift
+     * const shift = await prisma.shift.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ShiftFindFirstOrThrowArgs>(args?: SelectSubset<T, ShiftFindFirstOrThrowArgs<ExtArgs>>): Prisma__ShiftClient<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Shifts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Shifts
+     * const shifts = await prisma.shift.findMany()
+     * 
+     * // Get first 10 Shifts
+     * const shifts = await prisma.shift.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const shiftWithIdOnly = await prisma.shift.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ShiftFindManyArgs>(args?: SelectSubset<T, ShiftFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Shift.
+     * @param {ShiftCreateArgs} args - Arguments to create a Shift.
+     * @example
+     * // Create one Shift
+     * const Shift = await prisma.shift.create({
+     *   data: {
+     *     // ... data to create a Shift
+     *   }
+     * })
+     * 
+     */
+    create<T extends ShiftCreateArgs>(args: SelectSubset<T, ShiftCreateArgs<ExtArgs>>): Prisma__ShiftClient<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Shifts.
+     * @param {ShiftCreateManyArgs} args - Arguments to create many Shifts.
+     * @example
+     * // Create many Shifts
+     * const shift = await prisma.shift.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ShiftCreateManyArgs>(args?: SelectSubset<T, ShiftCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Shifts and returns the data saved in the database.
+     * @param {ShiftCreateManyAndReturnArgs} args - Arguments to create many Shifts.
+     * @example
+     * // Create many Shifts
+     * const shift = await prisma.shift.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Shifts and only return the `id`
+     * const shiftWithIdOnly = await prisma.shift.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ShiftCreateManyAndReturnArgs>(args?: SelectSubset<T, ShiftCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Shift.
+     * @param {ShiftDeleteArgs} args - Arguments to delete one Shift.
+     * @example
+     * // Delete one Shift
+     * const Shift = await prisma.shift.delete({
+     *   where: {
+     *     // ... filter to delete one Shift
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ShiftDeleteArgs>(args: SelectSubset<T, ShiftDeleteArgs<ExtArgs>>): Prisma__ShiftClient<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Shift.
+     * @param {ShiftUpdateArgs} args - Arguments to update one Shift.
+     * @example
+     * // Update one Shift
+     * const shift = await prisma.shift.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ShiftUpdateArgs>(args: SelectSubset<T, ShiftUpdateArgs<ExtArgs>>): Prisma__ShiftClient<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Shifts.
+     * @param {ShiftDeleteManyArgs} args - Arguments to filter Shifts to delete.
+     * @example
+     * // Delete a few Shifts
+     * const { count } = await prisma.shift.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ShiftDeleteManyArgs>(args?: SelectSubset<T, ShiftDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Shifts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Shifts
+     * const shift = await prisma.shift.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ShiftUpdateManyArgs>(args: SelectSubset<T, ShiftUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Shifts and returns the data updated in the database.
+     * @param {ShiftUpdateManyAndReturnArgs} args - Arguments to update many Shifts.
+     * @example
+     * // Update many Shifts
+     * const shift = await prisma.shift.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Shifts and only return the `id`
+     * const shiftWithIdOnly = await prisma.shift.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ShiftUpdateManyAndReturnArgs>(args: SelectSubset<T, ShiftUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Shift.
+     * @param {ShiftUpsertArgs} args - Arguments to update or create a Shift.
+     * @example
+     * // Update or create a Shift
+     * const shift = await prisma.shift.upsert({
+     *   create: {
+     *     // ... data to create a Shift
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Shift we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ShiftUpsertArgs>(args: SelectSubset<T, ShiftUpsertArgs<ExtArgs>>): Prisma__ShiftClient<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Shifts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftCountArgs} args - Arguments to filter Shifts to count.
+     * @example
+     * // Count the number of Shifts
+     * const count = await prisma.shift.count({
+     *   where: {
+     *     // ... the filter for the Shifts we want to count
+     *   }
+     * })
+    **/
+    count<T extends ShiftCountArgs>(
+      args?: Subset<T, ShiftCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ShiftCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Shift.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ShiftAggregateArgs>(args: Subset<T, ShiftAggregateArgs>): Prisma.PrismaPromise<GetShiftAggregateType<T>>
+
+    /**
+     * Group by Shift.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ShiftGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ShiftGroupByArgs['orderBy'] }
+        : { orderBy?: ShiftGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ShiftGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetShiftGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Shift model
+   */
+  readonly fields: ShiftFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Shift.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ShiftClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    opportunity<T extends Shift$opportunityArgs<ExtArgs> = {}>(args?: Subset<T, Shift$opportunityArgs<ExtArgs>>): Prisma__VolunteerOpportunityClient<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    signups<T extends Shift$signupsArgs<ExtArgs> = {}>(args?: Subset<T, Shift$signupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Shift model
+   */
+  interface ShiftFieldRefs {
+    readonly id: FieldRef<"Shift", 'String'>
+    readonly orgId: FieldRef<"Shift", 'String'>
+    readonly opportunityId: FieldRef<"Shift", 'String'>
+    readonly title: FieldRef<"Shift", 'String'>
+    readonly description: FieldRef<"Shift", 'String'>
+    readonly location: FieldRef<"Shift", 'String'>
+    readonly isRemote: FieldRef<"Shift", 'Boolean'>
+    readonly startTime: FieldRef<"Shift", 'DateTime'>
+    readonly endTime: FieldRef<"Shift", 'DateTime'>
+    readonly capacity: FieldRef<"Shift", 'Int'>
+    readonly status: FieldRef<"Shift", 'ShiftStatus'>
+    readonly createdAt: FieldRef<"Shift", 'DateTime'>
+    readonly updatedAt: FieldRef<"Shift", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Shift findUnique
+   */
+  export type ShiftFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    /**
+     * Filter, which Shift to fetch.
+     */
+    where: ShiftWhereUniqueInput
+  }
+
+  /**
+   * Shift findUniqueOrThrow
+   */
+  export type ShiftFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    /**
+     * Filter, which Shift to fetch.
+     */
+    where: ShiftWhereUniqueInput
+  }
+
+  /**
+   * Shift findFirst
+   */
+  export type ShiftFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    /**
+     * Filter, which Shift to fetch.
+     */
+    where?: ShiftWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Shifts to fetch.
+     */
+    orderBy?: ShiftOrderByWithRelationInput | ShiftOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Shifts.
+     */
+    cursor?: ShiftWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Shifts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Shifts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Shifts.
+     */
+    distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
+  }
+
+  /**
+   * Shift findFirstOrThrow
+   */
+  export type ShiftFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    /**
+     * Filter, which Shift to fetch.
+     */
+    where?: ShiftWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Shifts to fetch.
+     */
+    orderBy?: ShiftOrderByWithRelationInput | ShiftOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Shifts.
+     */
+    cursor?: ShiftWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Shifts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Shifts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Shifts.
+     */
+    distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
+  }
+
+  /**
+   * Shift findMany
+   */
+  export type ShiftFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    /**
+     * Filter, which Shifts to fetch.
+     */
+    where?: ShiftWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Shifts to fetch.
+     */
+    orderBy?: ShiftOrderByWithRelationInput | ShiftOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Shifts.
+     */
+    cursor?: ShiftWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Shifts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Shifts.
+     */
+    skip?: number
+    distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
+  }
+
+  /**
+   * Shift create
+   */
+  export type ShiftCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Shift.
+     */
+    data: XOR<ShiftCreateInput, ShiftUncheckedCreateInput>
+  }
+
+  /**
+   * Shift createMany
+   */
+  export type ShiftCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Shifts.
+     */
+    data: ShiftCreateManyInput | ShiftCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Shift createManyAndReturn
+   */
+  export type ShiftCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * The data used to create many Shifts.
+     */
+    data: ShiftCreateManyInput | ShiftCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Shift update
+   */
+  export type ShiftUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Shift.
+     */
+    data: XOR<ShiftUpdateInput, ShiftUncheckedUpdateInput>
+    /**
+     * Choose, which Shift to update.
+     */
+    where: ShiftWhereUniqueInput
+  }
+
+  /**
+   * Shift updateMany
+   */
+  export type ShiftUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Shifts.
+     */
+    data: XOR<ShiftUpdateManyMutationInput, ShiftUncheckedUpdateManyInput>
+    /**
+     * Filter which Shifts to update
+     */
+    where?: ShiftWhereInput
+    /**
+     * Limit how many Shifts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Shift updateManyAndReturn
+   */
+  export type ShiftUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * The data used to update Shifts.
+     */
+    data: XOR<ShiftUpdateManyMutationInput, ShiftUncheckedUpdateManyInput>
+    /**
+     * Filter which Shifts to update
+     */
+    where?: ShiftWhereInput
+    /**
+     * Limit how many Shifts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Shift upsert
+   */
+  export type ShiftUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Shift to update in case it exists.
+     */
+    where: ShiftWhereUniqueInput
+    /**
+     * In case the Shift found by the `where` argument doesn't exist, create a new Shift with this data.
+     */
+    create: XOR<ShiftCreateInput, ShiftUncheckedCreateInput>
+    /**
+     * In case the Shift was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ShiftUpdateInput, ShiftUncheckedUpdateInput>
+  }
+
+  /**
+   * Shift delete
+   */
+  export type ShiftDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    /**
+     * Filter which Shift to delete.
+     */
+    where: ShiftWhereUniqueInput
+  }
+
+  /**
+   * Shift deleteMany
+   */
+  export type ShiftDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Shifts to delete
+     */
+    where?: ShiftWhereInput
+    /**
+     * Limit how many Shifts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Shift.opportunity
+   */
+  export type Shift$opportunityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerOpportunity
+     */
+    select?: VolunteerOpportunitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerOpportunity
+     */
+    omit?: VolunteerOpportunityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerOpportunityInclude<ExtArgs> | null
+    where?: VolunteerOpportunityWhereInput
+  }
+
+  /**
+   * Shift.signups
+   */
+  export type Shift$signupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    where?: ShiftSignupWhereInput
+    orderBy?: ShiftSignupOrderByWithRelationInput | ShiftSignupOrderByWithRelationInput[]
+    cursor?: ShiftSignupWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ShiftSignupScalarFieldEnum | ShiftSignupScalarFieldEnum[]
+  }
+
+  /**
+   * Shift without action
+   */
+  export type ShiftDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ShiftSignup
+   */
+
+  export type AggregateShiftSignup = {
+    _count: ShiftSignupCountAggregateOutputType | null
+    _min: ShiftSignupMinAggregateOutputType | null
+    _max: ShiftSignupMaxAggregateOutputType | null
+  }
+
+  export type ShiftSignupMinAggregateOutputType = {
+    id: string | null
+    shiftId: string | null
+    userId: string | null
+    status: $Enums.SignupStatus | null
+    notes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ShiftSignupMaxAggregateOutputType = {
+    id: string | null
+    shiftId: string | null
+    userId: string | null
+    status: $Enums.SignupStatus | null
+    notes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ShiftSignupCountAggregateOutputType = {
+    id: number
+    shiftId: number
+    userId: number
+    status: number
+    notes: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ShiftSignupMinAggregateInputType = {
+    id?: true
+    shiftId?: true
+    userId?: true
+    status?: true
+    notes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ShiftSignupMaxAggregateInputType = {
+    id?: true
+    shiftId?: true
+    userId?: true
+    status?: true
+    notes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ShiftSignupCountAggregateInputType = {
+    id?: true
+    shiftId?: true
+    userId?: true
+    status?: true
+    notes?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ShiftSignupAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ShiftSignup to aggregate.
+     */
+    where?: ShiftSignupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ShiftSignups to fetch.
+     */
+    orderBy?: ShiftSignupOrderByWithRelationInput | ShiftSignupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ShiftSignupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ShiftSignups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ShiftSignups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ShiftSignups
+    **/
+    _count?: true | ShiftSignupCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ShiftSignupMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ShiftSignupMaxAggregateInputType
+  }
+
+  export type GetShiftSignupAggregateType<T extends ShiftSignupAggregateArgs> = {
+        [P in keyof T & keyof AggregateShiftSignup]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateShiftSignup[P]>
+      : GetScalarType<T[P], AggregateShiftSignup[P]>
+  }
+
+
+
+
+  export type ShiftSignupGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftSignupWhereInput
+    orderBy?: ShiftSignupOrderByWithAggregationInput | ShiftSignupOrderByWithAggregationInput[]
+    by: ShiftSignupScalarFieldEnum[] | ShiftSignupScalarFieldEnum
+    having?: ShiftSignupScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ShiftSignupCountAggregateInputType | true
+    _min?: ShiftSignupMinAggregateInputType
+    _max?: ShiftSignupMaxAggregateInputType
+  }
+
+  export type ShiftSignupGroupByOutputType = {
+    id: string
+    shiftId: string
+    userId: string
+    status: $Enums.SignupStatus
+    notes: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ShiftSignupCountAggregateOutputType | null
+    _min: ShiftSignupMinAggregateOutputType | null
+    _max: ShiftSignupMaxAggregateOutputType | null
+  }
+
+  type GetShiftSignupGroupByPayload<T extends ShiftSignupGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ShiftSignupGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ShiftSignupGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ShiftSignupGroupByOutputType[P]>
+            : GetScalarType<T[P], ShiftSignupGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ShiftSignupSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    shiftId?: boolean
+    userId?: boolean
+    status?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    shift?: boolean | ShiftDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["shiftSignup"]>
+
+  export type ShiftSignupSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    shiftId?: boolean
+    userId?: boolean
+    status?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    shift?: boolean | ShiftDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["shiftSignup"]>
+
+  export type ShiftSignupSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    shiftId?: boolean
+    userId?: boolean
+    status?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    shift?: boolean | ShiftDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["shiftSignup"]>
+
+  export type ShiftSignupSelectScalar = {
+    id?: boolean
+    shiftId?: boolean
+    userId?: boolean
+    status?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ShiftSignupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "shiftId" | "userId" | "status" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["shiftSignup"]>
+  export type ShiftSignupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    shift?: boolean | ShiftDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ShiftSignupIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    shift?: boolean | ShiftDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ShiftSignupIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    shift?: boolean | ShiftDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $ShiftSignupPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ShiftSignup"
+    objects: {
+      shift: Prisma.$ShiftPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      shiftId: string
+      userId: string
+      status: $Enums.SignupStatus
+      notes: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["shiftSignup"]>
+    composites: {}
+  }
+
+  type ShiftSignupGetPayload<S extends boolean | null | undefined | ShiftSignupDefaultArgs> = $Result.GetResult<Prisma.$ShiftSignupPayload, S>
+
+  type ShiftSignupCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ShiftSignupFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ShiftSignupCountAggregateInputType | true
+    }
+
+  export interface ShiftSignupDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ShiftSignup'], meta: { name: 'ShiftSignup' } }
+    /**
+     * Find zero or one ShiftSignup that matches the filter.
+     * @param {ShiftSignupFindUniqueArgs} args - Arguments to find a ShiftSignup
+     * @example
+     * // Get one ShiftSignup
+     * const shiftSignup = await prisma.shiftSignup.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ShiftSignupFindUniqueArgs>(args: SelectSubset<T, ShiftSignupFindUniqueArgs<ExtArgs>>): Prisma__ShiftSignupClient<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ShiftSignup that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ShiftSignupFindUniqueOrThrowArgs} args - Arguments to find a ShiftSignup
+     * @example
+     * // Get one ShiftSignup
+     * const shiftSignup = await prisma.shiftSignup.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ShiftSignupFindUniqueOrThrowArgs>(args: SelectSubset<T, ShiftSignupFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ShiftSignupClient<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ShiftSignup that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftSignupFindFirstArgs} args - Arguments to find a ShiftSignup
+     * @example
+     * // Get one ShiftSignup
+     * const shiftSignup = await prisma.shiftSignup.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ShiftSignupFindFirstArgs>(args?: SelectSubset<T, ShiftSignupFindFirstArgs<ExtArgs>>): Prisma__ShiftSignupClient<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ShiftSignup that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftSignupFindFirstOrThrowArgs} args - Arguments to find a ShiftSignup
+     * @example
+     * // Get one ShiftSignup
+     * const shiftSignup = await prisma.shiftSignup.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ShiftSignupFindFirstOrThrowArgs>(args?: SelectSubset<T, ShiftSignupFindFirstOrThrowArgs<ExtArgs>>): Prisma__ShiftSignupClient<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ShiftSignups that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftSignupFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ShiftSignups
+     * const shiftSignups = await prisma.shiftSignup.findMany()
+     * 
+     * // Get first 10 ShiftSignups
+     * const shiftSignups = await prisma.shiftSignup.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const shiftSignupWithIdOnly = await prisma.shiftSignup.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ShiftSignupFindManyArgs>(args?: SelectSubset<T, ShiftSignupFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ShiftSignup.
+     * @param {ShiftSignupCreateArgs} args - Arguments to create a ShiftSignup.
+     * @example
+     * // Create one ShiftSignup
+     * const ShiftSignup = await prisma.shiftSignup.create({
+     *   data: {
+     *     // ... data to create a ShiftSignup
+     *   }
+     * })
+     * 
+     */
+    create<T extends ShiftSignupCreateArgs>(args: SelectSubset<T, ShiftSignupCreateArgs<ExtArgs>>): Prisma__ShiftSignupClient<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ShiftSignups.
+     * @param {ShiftSignupCreateManyArgs} args - Arguments to create many ShiftSignups.
+     * @example
+     * // Create many ShiftSignups
+     * const shiftSignup = await prisma.shiftSignup.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ShiftSignupCreateManyArgs>(args?: SelectSubset<T, ShiftSignupCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ShiftSignups and returns the data saved in the database.
+     * @param {ShiftSignupCreateManyAndReturnArgs} args - Arguments to create many ShiftSignups.
+     * @example
+     * // Create many ShiftSignups
+     * const shiftSignup = await prisma.shiftSignup.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ShiftSignups and only return the `id`
+     * const shiftSignupWithIdOnly = await prisma.shiftSignup.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ShiftSignupCreateManyAndReturnArgs>(args?: SelectSubset<T, ShiftSignupCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ShiftSignup.
+     * @param {ShiftSignupDeleteArgs} args - Arguments to delete one ShiftSignup.
+     * @example
+     * // Delete one ShiftSignup
+     * const ShiftSignup = await prisma.shiftSignup.delete({
+     *   where: {
+     *     // ... filter to delete one ShiftSignup
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ShiftSignupDeleteArgs>(args: SelectSubset<T, ShiftSignupDeleteArgs<ExtArgs>>): Prisma__ShiftSignupClient<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ShiftSignup.
+     * @param {ShiftSignupUpdateArgs} args - Arguments to update one ShiftSignup.
+     * @example
+     * // Update one ShiftSignup
+     * const shiftSignup = await prisma.shiftSignup.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ShiftSignupUpdateArgs>(args: SelectSubset<T, ShiftSignupUpdateArgs<ExtArgs>>): Prisma__ShiftSignupClient<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ShiftSignups.
+     * @param {ShiftSignupDeleteManyArgs} args - Arguments to filter ShiftSignups to delete.
+     * @example
+     * // Delete a few ShiftSignups
+     * const { count } = await prisma.shiftSignup.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ShiftSignupDeleteManyArgs>(args?: SelectSubset<T, ShiftSignupDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ShiftSignups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftSignupUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ShiftSignups
+     * const shiftSignup = await prisma.shiftSignup.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ShiftSignupUpdateManyArgs>(args: SelectSubset<T, ShiftSignupUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ShiftSignups and returns the data updated in the database.
+     * @param {ShiftSignupUpdateManyAndReturnArgs} args - Arguments to update many ShiftSignups.
+     * @example
+     * // Update many ShiftSignups
+     * const shiftSignup = await prisma.shiftSignup.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ShiftSignups and only return the `id`
+     * const shiftSignupWithIdOnly = await prisma.shiftSignup.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ShiftSignupUpdateManyAndReturnArgs>(args: SelectSubset<T, ShiftSignupUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ShiftSignup.
+     * @param {ShiftSignupUpsertArgs} args - Arguments to update or create a ShiftSignup.
+     * @example
+     * // Update or create a ShiftSignup
+     * const shiftSignup = await prisma.shiftSignup.upsert({
+     *   create: {
+     *     // ... data to create a ShiftSignup
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ShiftSignup we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ShiftSignupUpsertArgs>(args: SelectSubset<T, ShiftSignupUpsertArgs<ExtArgs>>): Prisma__ShiftSignupClient<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ShiftSignups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftSignupCountArgs} args - Arguments to filter ShiftSignups to count.
+     * @example
+     * // Count the number of ShiftSignups
+     * const count = await prisma.shiftSignup.count({
+     *   where: {
+     *     // ... the filter for the ShiftSignups we want to count
+     *   }
+     * })
+    **/
+    count<T extends ShiftSignupCountArgs>(
+      args?: Subset<T, ShiftSignupCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ShiftSignupCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ShiftSignup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftSignupAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ShiftSignupAggregateArgs>(args: Subset<T, ShiftSignupAggregateArgs>): Prisma.PrismaPromise<GetShiftSignupAggregateType<T>>
+
+    /**
+     * Group by ShiftSignup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftSignupGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ShiftSignupGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ShiftSignupGroupByArgs['orderBy'] }
+        : { orderBy?: ShiftSignupGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ShiftSignupGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetShiftSignupGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ShiftSignup model
+   */
+  readonly fields: ShiftSignupFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ShiftSignup.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ShiftSignupClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    shift<T extends ShiftDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ShiftDefaultArgs<ExtArgs>>): Prisma__ShiftClient<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ShiftSignup model
+   */
+  interface ShiftSignupFieldRefs {
+    readonly id: FieldRef<"ShiftSignup", 'String'>
+    readonly shiftId: FieldRef<"ShiftSignup", 'String'>
+    readonly userId: FieldRef<"ShiftSignup", 'String'>
+    readonly status: FieldRef<"ShiftSignup", 'SignupStatus'>
+    readonly notes: FieldRef<"ShiftSignup", 'String'>
+    readonly createdAt: FieldRef<"ShiftSignup", 'DateTime'>
+    readonly updatedAt: FieldRef<"ShiftSignup", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ShiftSignup findUnique
+   */
+  export type ShiftSignupFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftSignup to fetch.
+     */
+    where: ShiftSignupWhereUniqueInput
+  }
+
+  /**
+   * ShiftSignup findUniqueOrThrow
+   */
+  export type ShiftSignupFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftSignup to fetch.
+     */
+    where: ShiftSignupWhereUniqueInput
+  }
+
+  /**
+   * ShiftSignup findFirst
+   */
+  export type ShiftSignupFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftSignup to fetch.
+     */
+    where?: ShiftSignupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ShiftSignups to fetch.
+     */
+    orderBy?: ShiftSignupOrderByWithRelationInput | ShiftSignupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ShiftSignups.
+     */
+    cursor?: ShiftSignupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ShiftSignups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ShiftSignups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ShiftSignups.
+     */
+    distinct?: ShiftSignupScalarFieldEnum | ShiftSignupScalarFieldEnum[]
+  }
+
+  /**
+   * ShiftSignup findFirstOrThrow
+   */
+  export type ShiftSignupFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftSignup to fetch.
+     */
+    where?: ShiftSignupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ShiftSignups to fetch.
+     */
+    orderBy?: ShiftSignupOrderByWithRelationInput | ShiftSignupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ShiftSignups.
+     */
+    cursor?: ShiftSignupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ShiftSignups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ShiftSignups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ShiftSignups.
+     */
+    distinct?: ShiftSignupScalarFieldEnum | ShiftSignupScalarFieldEnum[]
+  }
+
+  /**
+   * ShiftSignup findMany
+   */
+  export type ShiftSignupFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftSignups to fetch.
+     */
+    where?: ShiftSignupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ShiftSignups to fetch.
+     */
+    orderBy?: ShiftSignupOrderByWithRelationInput | ShiftSignupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ShiftSignups.
+     */
+    cursor?: ShiftSignupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ShiftSignups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ShiftSignups.
+     */
+    skip?: number
+    distinct?: ShiftSignupScalarFieldEnum | ShiftSignupScalarFieldEnum[]
+  }
+
+  /**
+   * ShiftSignup create
+   */
+  export type ShiftSignupCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ShiftSignup.
+     */
+    data: XOR<ShiftSignupCreateInput, ShiftSignupUncheckedCreateInput>
+  }
+
+  /**
+   * ShiftSignup createMany
+   */
+  export type ShiftSignupCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ShiftSignups.
+     */
+    data: ShiftSignupCreateManyInput | ShiftSignupCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ShiftSignup createManyAndReturn
+   */
+  export type ShiftSignupCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * The data used to create many ShiftSignups.
+     */
+    data: ShiftSignupCreateManyInput | ShiftSignupCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ShiftSignup update
+   */
+  export type ShiftSignupUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ShiftSignup.
+     */
+    data: XOR<ShiftSignupUpdateInput, ShiftSignupUncheckedUpdateInput>
+    /**
+     * Choose, which ShiftSignup to update.
+     */
+    where: ShiftSignupWhereUniqueInput
+  }
+
+  /**
+   * ShiftSignup updateMany
+   */
+  export type ShiftSignupUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ShiftSignups.
+     */
+    data: XOR<ShiftSignupUpdateManyMutationInput, ShiftSignupUncheckedUpdateManyInput>
+    /**
+     * Filter which ShiftSignups to update
+     */
+    where?: ShiftSignupWhereInput
+    /**
+     * Limit how many ShiftSignups to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ShiftSignup updateManyAndReturn
+   */
+  export type ShiftSignupUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * The data used to update ShiftSignups.
+     */
+    data: XOR<ShiftSignupUpdateManyMutationInput, ShiftSignupUncheckedUpdateManyInput>
+    /**
+     * Filter which ShiftSignups to update
+     */
+    where?: ShiftSignupWhereInput
+    /**
+     * Limit how many ShiftSignups to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ShiftSignup upsert
+   */
+  export type ShiftSignupUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ShiftSignup to update in case it exists.
+     */
+    where: ShiftSignupWhereUniqueInput
+    /**
+     * In case the ShiftSignup found by the `where` argument doesn't exist, create a new ShiftSignup with this data.
+     */
+    create: XOR<ShiftSignupCreateInput, ShiftSignupUncheckedCreateInput>
+    /**
+     * In case the ShiftSignup was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ShiftSignupUpdateInput, ShiftSignupUncheckedUpdateInput>
+  }
+
+  /**
+   * ShiftSignup delete
+   */
+  export type ShiftSignupDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+    /**
+     * Filter which ShiftSignup to delete.
+     */
+    where: ShiftSignupWhereUniqueInput
+  }
+
+  /**
+   * ShiftSignup deleteMany
+   */
+  export type ShiftSignupDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ShiftSignups to delete
+     */
+    where?: ShiftSignupWhereInput
+    /**
+     * Limit how many ShiftSignups to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ShiftSignup without action
+   */
+  export type ShiftSignupDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftSignup
+     */
+    select?: ShiftSignupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftSignup
+     */
+    omit?: ShiftSignupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftSignupInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -24445,6 +27142,38 @@ export namespace Prisma {
   };
 
   export type VolunteerCredentialScalarFieldEnum = (typeof VolunteerCredentialScalarFieldEnum)[keyof typeof VolunteerCredentialScalarFieldEnum]
+
+
+  export const ShiftScalarFieldEnum: {
+    id: 'id',
+    orgId: 'orgId',
+    opportunityId: 'opportunityId',
+    title: 'title',
+    description: 'description',
+    location: 'location',
+    isRemote: 'isRemote',
+    startTime: 'startTime',
+    endTime: 'endTime',
+    capacity: 'capacity',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ShiftScalarFieldEnum = (typeof ShiftScalarFieldEnum)[keyof typeof ShiftScalarFieldEnum]
+
+
+  export const ShiftSignupScalarFieldEnum: {
+    id: 'id',
+    shiftId: 'shiftId',
+    userId: 'userId',
+    status: 'status',
+    notes: 'notes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ShiftSignupScalarFieldEnum = (typeof ShiftSignupScalarFieldEnum)[keyof typeof ShiftSignupScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -24715,6 +27444,34 @@ export namespace Prisma {
    */
   export type ListEnumCredentialStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CredentialStatus[]'>
     
+
+
+  /**
+   * Reference to a field of type 'ShiftStatus'
+   */
+  export type EnumShiftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShiftStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'ShiftStatus[]'
+   */
+  export type ListEnumShiftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShiftStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'SignupStatus'
+   */
+  export type EnumSignupStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SignupStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'SignupStatus[]'
+   */
+  export type ListEnumSignupStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SignupStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -24739,6 +27496,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillListRelationFilter
     profile?: XOR<VolunteerProfileNullableScalarRelationFilter, VolunteerProfileWhereInput> | null
     credentials?: VolunteerCredentialListRelationFilter
+    shiftSignups?: ShiftSignupListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -24757,6 +27515,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillOrderByRelationAggregateInput
     profile?: VolunteerProfileOrderByWithRelationInput
     credentials?: VolunteerCredentialOrderByRelationAggregateInput
+    shiftSignups?: ShiftSignupOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -24778,6 +27537,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillListRelationFilter
     profile?: XOR<VolunteerProfileNullableScalarRelationFilter, VolunteerProfileWhereInput> | null
     credentials?: VolunteerCredentialListRelationFilter
+    shiftSignups?: ShiftSignupListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -25085,6 +27845,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationListRelationFilter
     opportunities?: VolunteerOpportunityListRelationFilter
     credentials?: VolunteerCredentialListRelationFilter
+    shifts?: ShiftListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -25102,6 +27863,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationOrderByRelationAggregateInput
     opportunities?: VolunteerOpportunityOrderByRelationAggregateInput
     credentials?: VolunteerCredentialOrderByRelationAggregateInput
+    shifts?: ShiftOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -25122,6 +27884,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationListRelationFilter
     opportunities?: VolunteerOpportunityListRelationFilter
     credentials?: VolunteerCredentialListRelationFilter
+    shifts?: ShiftListRelationFilter
   }, "id" | "slug">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -25642,6 +28405,7 @@ export namespace Prisma {
     tags?: OpportunityTagListRelationFilter
     requirements?: OpportunityRequirementListRelationFilter
     applications?: VolunteerApplicationListRelationFilter
+    shifts?: ShiftListRelationFilter
   }
 
   export type VolunteerOpportunityOrderByWithRelationInput = {
@@ -25662,6 +28426,7 @@ export namespace Prisma {
     tags?: OpportunityTagOrderByRelationAggregateInput
     requirements?: OpportunityRequirementOrderByRelationAggregateInput
     applications?: VolunteerApplicationOrderByRelationAggregateInput
+    shifts?: ShiftOrderByRelationAggregateInput
   }
 
   export type VolunteerOpportunityWhereUniqueInput = Prisma.AtLeast<{
@@ -25685,6 +28450,7 @@ export namespace Prisma {
     tags?: OpportunityTagListRelationFilter
     requirements?: OpportunityRequirementListRelationFilter
     applications?: VolunteerApplicationListRelationFilter
+    shifts?: ShiftListRelationFilter
   }, "id">
 
   export type VolunteerOpportunityOrderByWithAggregationInput = {
@@ -26054,6 +28820,178 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"VolunteerCredential"> | Date | string
   }
 
+  export type ShiftWhereInput = {
+    AND?: ShiftWhereInput | ShiftWhereInput[]
+    OR?: ShiftWhereInput[]
+    NOT?: ShiftWhereInput | ShiftWhereInput[]
+    id?: StringFilter<"Shift"> | string
+    orgId?: StringFilter<"Shift"> | string
+    opportunityId?: StringNullableFilter<"Shift"> | string | null
+    title?: StringFilter<"Shift"> | string
+    description?: StringNullableFilter<"Shift"> | string | null
+    location?: StringNullableFilter<"Shift"> | string | null
+    isRemote?: BoolFilter<"Shift"> | boolean
+    startTime?: DateTimeFilter<"Shift"> | Date | string
+    endTime?: DateTimeFilter<"Shift"> | Date | string
+    capacity?: IntFilter<"Shift"> | number
+    status?: EnumShiftStatusFilter<"Shift"> | $Enums.ShiftStatus
+    createdAt?: DateTimeFilter<"Shift"> | Date | string
+    updatedAt?: DateTimeFilter<"Shift"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    opportunity?: XOR<VolunteerOpportunityNullableScalarRelationFilter, VolunteerOpportunityWhereInput> | null
+    signups?: ShiftSignupListRelationFilter
+  }
+
+  export type ShiftOrderByWithRelationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    opportunityId?: SortOrderInput | SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    location?: SortOrderInput | SortOrder
+    isRemote?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    capacity?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+    opportunity?: VolunteerOpportunityOrderByWithRelationInput
+    signups?: ShiftSignupOrderByRelationAggregateInput
+  }
+
+  export type ShiftWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ShiftWhereInput | ShiftWhereInput[]
+    OR?: ShiftWhereInput[]
+    NOT?: ShiftWhereInput | ShiftWhereInput[]
+    orgId?: StringFilter<"Shift"> | string
+    opportunityId?: StringNullableFilter<"Shift"> | string | null
+    title?: StringFilter<"Shift"> | string
+    description?: StringNullableFilter<"Shift"> | string | null
+    location?: StringNullableFilter<"Shift"> | string | null
+    isRemote?: BoolFilter<"Shift"> | boolean
+    startTime?: DateTimeFilter<"Shift"> | Date | string
+    endTime?: DateTimeFilter<"Shift"> | Date | string
+    capacity?: IntFilter<"Shift"> | number
+    status?: EnumShiftStatusFilter<"Shift"> | $Enums.ShiftStatus
+    createdAt?: DateTimeFilter<"Shift"> | Date | string
+    updatedAt?: DateTimeFilter<"Shift"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    opportunity?: XOR<VolunteerOpportunityNullableScalarRelationFilter, VolunteerOpportunityWhereInput> | null
+    signups?: ShiftSignupListRelationFilter
+  }, "id">
+
+  export type ShiftOrderByWithAggregationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    opportunityId?: SortOrderInput | SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    location?: SortOrderInput | SortOrder
+    isRemote?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    capacity?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ShiftCountOrderByAggregateInput
+    _avg?: ShiftAvgOrderByAggregateInput
+    _max?: ShiftMaxOrderByAggregateInput
+    _min?: ShiftMinOrderByAggregateInput
+    _sum?: ShiftSumOrderByAggregateInput
+  }
+
+  export type ShiftScalarWhereWithAggregatesInput = {
+    AND?: ShiftScalarWhereWithAggregatesInput | ShiftScalarWhereWithAggregatesInput[]
+    OR?: ShiftScalarWhereWithAggregatesInput[]
+    NOT?: ShiftScalarWhereWithAggregatesInput | ShiftScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Shift"> | string
+    orgId?: StringWithAggregatesFilter<"Shift"> | string
+    opportunityId?: StringNullableWithAggregatesFilter<"Shift"> | string | null
+    title?: StringWithAggregatesFilter<"Shift"> | string
+    description?: StringNullableWithAggregatesFilter<"Shift"> | string | null
+    location?: StringNullableWithAggregatesFilter<"Shift"> | string | null
+    isRemote?: BoolWithAggregatesFilter<"Shift"> | boolean
+    startTime?: DateTimeWithAggregatesFilter<"Shift"> | Date | string
+    endTime?: DateTimeWithAggregatesFilter<"Shift"> | Date | string
+    capacity?: IntWithAggregatesFilter<"Shift"> | number
+    status?: EnumShiftStatusWithAggregatesFilter<"Shift"> | $Enums.ShiftStatus
+    createdAt?: DateTimeWithAggregatesFilter<"Shift"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Shift"> | Date | string
+  }
+
+  export type ShiftSignupWhereInput = {
+    AND?: ShiftSignupWhereInput | ShiftSignupWhereInput[]
+    OR?: ShiftSignupWhereInput[]
+    NOT?: ShiftSignupWhereInput | ShiftSignupWhereInput[]
+    id?: StringFilter<"ShiftSignup"> | string
+    shiftId?: StringFilter<"ShiftSignup"> | string
+    userId?: StringFilter<"ShiftSignup"> | string
+    status?: EnumSignupStatusFilter<"ShiftSignup"> | $Enums.SignupStatus
+    notes?: StringNullableFilter<"ShiftSignup"> | string | null
+    createdAt?: DateTimeFilter<"ShiftSignup"> | Date | string
+    updatedAt?: DateTimeFilter<"ShiftSignup"> | Date | string
+    shift?: XOR<ShiftScalarRelationFilter, ShiftWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type ShiftSignupOrderByWithRelationInput = {
+    id?: SortOrder
+    shiftId?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    shift?: ShiftOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type ShiftSignupWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    shiftId_userId?: ShiftSignupShiftIdUserIdCompoundUniqueInput
+    AND?: ShiftSignupWhereInput | ShiftSignupWhereInput[]
+    OR?: ShiftSignupWhereInput[]
+    NOT?: ShiftSignupWhereInput | ShiftSignupWhereInput[]
+    shiftId?: StringFilter<"ShiftSignup"> | string
+    userId?: StringFilter<"ShiftSignup"> | string
+    status?: EnumSignupStatusFilter<"ShiftSignup"> | $Enums.SignupStatus
+    notes?: StringNullableFilter<"ShiftSignup"> | string | null
+    createdAt?: DateTimeFilter<"ShiftSignup"> | Date | string
+    updatedAt?: DateTimeFilter<"ShiftSignup"> | Date | string
+    shift?: XOR<ShiftScalarRelationFilter, ShiftWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "shiftId_userId">
+
+  export type ShiftSignupOrderByWithAggregationInput = {
+    id?: SortOrder
+    shiftId?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ShiftSignupCountOrderByAggregateInput
+    _max?: ShiftSignupMaxOrderByAggregateInput
+    _min?: ShiftSignupMinOrderByAggregateInput
+  }
+
+  export type ShiftSignupScalarWhereWithAggregatesInput = {
+    AND?: ShiftSignupScalarWhereWithAggregatesInput | ShiftSignupScalarWhereWithAggregatesInput[]
+    OR?: ShiftSignupScalarWhereWithAggregatesInput[]
+    NOT?: ShiftSignupScalarWhereWithAggregatesInput | ShiftSignupScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ShiftSignup"> | string
+    shiftId?: StringWithAggregatesFilter<"ShiftSignup"> | string
+    userId?: StringWithAggregatesFilter<"ShiftSignup"> | string
+    status?: EnumSignupStatusWithAggregatesFilter<"ShiftSignup"> | $Enums.SignupStatus
+    notes?: StringNullableWithAggregatesFilter<"ShiftSignup"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ShiftSignup"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ShiftSignup"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -26070,6 +29008,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -26088,6 +29027,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -26106,6 +29046,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -26124,6 +29065,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -26448,6 +29390,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -26465,6 +29408,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -26482,6 +29426,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -26499,6 +29444,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -27025,6 +29971,7 @@ export namespace Prisma {
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateInput = {
@@ -27044,6 +29991,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUpdateInput = {
@@ -27063,6 +30011,7 @@ export namespace Prisma {
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateInput = {
@@ -27082,6 +30031,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityCreateManyInput = {
@@ -27468,6 +30418,188 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ShiftCreateInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutShiftsInput
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftsInput
+    signups?: ShiftSignupCreateNestedManyWithoutShiftInput
+  }
+
+  export type ShiftUncheckedCreateInput = {
+    id?: string
+    orgId: string
+    opportunityId?: string | null
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    signups?: ShiftSignupUncheckedCreateNestedManyWithoutShiftInput
+  }
+
+  export type ShiftUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutShiftsNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneWithoutShiftsNestedInput
+    signups?: ShiftSignupUpdateManyWithoutShiftNestedInput
+  }
+
+  export type ShiftUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    signups?: ShiftSignupUncheckedUpdateManyWithoutShiftNestedInput
+  }
+
+  export type ShiftCreateManyInput = {
+    id?: string
+    orgId: string
+    opportunityId?: string | null
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftSignupCreateInput = {
+    id?: string
+    status?: $Enums.SignupStatus
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    shift: ShiftCreateNestedOneWithoutSignupsInput
+    user: UserCreateNestedOneWithoutShiftSignupsInput
+  }
+
+  export type ShiftSignupUncheckedCreateInput = {
+    id?: string
+    shiftId: string
+    userId: string
+    status?: $Enums.SignupStatus
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftSignupUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    shift?: ShiftUpdateOneRequiredWithoutSignupsNestedInput
+    user?: UserUpdateOneRequiredWithoutShiftSignupsNestedInput
+  }
+
+  export type ShiftSignupUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shiftId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftSignupCreateManyInput = {
+    id?: string
+    shiftId: string
+    userId: string
+    status?: $Enums.SignupStatus
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftSignupUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftSignupUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shiftId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -27567,6 +30699,12 @@ export namespace Prisma {
     none?: VolunteerCredentialWhereInput
   }
 
+  export type ShiftSignupListRelationFilter = {
+    every?: ShiftSignupWhereInput
+    some?: ShiftSignupWhereInput
+    none?: ShiftSignupWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -27597,6 +30735,10 @@ export namespace Prisma {
   }
 
   export type VolunteerCredentialOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ShiftSignupOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -27893,6 +31035,12 @@ export namespace Prisma {
     none?: VolunteerOpportunityWhereInput
   }
 
+  export type ShiftListRelationFilter = {
+    every?: ShiftWhereInput
+    some?: ShiftWhereInput
+    none?: ShiftWhereInput
+  }
+
   export type FeatureFlagOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -27906,6 +31054,10 @@ export namespace Prisma {
   }
 
   export type VolunteerOpportunityOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ShiftOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -28778,6 +31930,136 @@ export namespace Prisma {
     _max?: NestedEnumCredentialStatusFilter<$PrismaModel>
   }
 
+  export type EnumShiftStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ShiftStatus | EnumShiftStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ShiftStatus[] | ListEnumShiftStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ShiftStatus[] | ListEnumShiftStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumShiftStatusFilter<$PrismaModel> | $Enums.ShiftStatus
+  }
+
+  export type ShiftCountOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    opportunityId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    location?: SortOrder
+    isRemote?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    capacity?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ShiftAvgOrderByAggregateInput = {
+    capacity?: SortOrder
+  }
+
+  export type ShiftMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    opportunityId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    location?: SortOrder
+    isRemote?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    capacity?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ShiftMinOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    opportunityId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    location?: SortOrder
+    isRemote?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    capacity?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ShiftSumOrderByAggregateInput = {
+    capacity?: SortOrder
+  }
+
+  export type EnumShiftStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ShiftStatus | EnumShiftStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ShiftStatus[] | ListEnumShiftStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ShiftStatus[] | ListEnumShiftStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumShiftStatusWithAggregatesFilter<$PrismaModel> | $Enums.ShiftStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumShiftStatusFilter<$PrismaModel>
+    _max?: NestedEnumShiftStatusFilter<$PrismaModel>
+  }
+
+  export type EnumSignupStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SignupStatus | EnumSignupStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SignupStatus[] | ListEnumSignupStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SignupStatus[] | ListEnumSignupStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSignupStatusFilter<$PrismaModel> | $Enums.SignupStatus
+  }
+
+  export type ShiftScalarRelationFilter = {
+    is?: ShiftWhereInput
+    isNot?: ShiftWhereInput
+  }
+
+  export type ShiftSignupShiftIdUserIdCompoundUniqueInput = {
+    shiftId: string
+    userId: string
+  }
+
+  export type ShiftSignupCountOrderByAggregateInput = {
+    id?: SortOrder
+    shiftId?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ShiftSignupMaxOrderByAggregateInput = {
+    id?: SortOrder
+    shiftId?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ShiftSignupMinOrderByAggregateInput = {
+    id?: SortOrder
+    shiftId?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumSignupStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SignupStatus | EnumSignupStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SignupStatus[] | ListEnumSignupStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SignupStatus[] | ListEnumSignupStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSignupStatusWithAggregatesFilter<$PrismaModel> | $Enums.SignupStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSignupStatusFilter<$PrismaModel>
+    _max?: NestedEnumSignupStatusFilter<$PrismaModel>
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -28833,6 +32115,13 @@ export namespace Prisma {
     connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
   }
 
+  export type ShiftSignupCreateNestedManyWithoutUserInput = {
+    create?: XOR<ShiftSignupCreateWithoutUserInput, ShiftSignupUncheckedCreateWithoutUserInput> | ShiftSignupCreateWithoutUserInput[] | ShiftSignupUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ShiftSignupCreateOrConnectWithoutUserInput | ShiftSignupCreateOrConnectWithoutUserInput[]
+    createMany?: ShiftSignupCreateManyUserInputEnvelope
+    connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -28886,6 +32175,13 @@ export namespace Prisma {
     connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutUserInput | VolunteerCredentialCreateOrConnectWithoutUserInput[]
     createMany?: VolunteerCredentialCreateManyUserInputEnvelope
     connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+  }
+
+  export type ShiftSignupUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<ShiftSignupCreateWithoutUserInput, ShiftSignupUncheckedCreateWithoutUserInput> | ShiftSignupCreateWithoutUserInput[] | ShiftSignupUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ShiftSignupCreateOrConnectWithoutUserInput | ShiftSignupCreateOrConnectWithoutUserInput[]
+    createMany?: ShiftSignupCreateManyUserInputEnvelope
+    connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -29012,6 +32308,20 @@ export namespace Prisma {
     deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
   }
 
+  export type ShiftSignupUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ShiftSignupCreateWithoutUserInput, ShiftSignupUncheckedCreateWithoutUserInput> | ShiftSignupCreateWithoutUserInput[] | ShiftSignupUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ShiftSignupCreateOrConnectWithoutUserInput | ShiftSignupCreateOrConnectWithoutUserInput[]
+    upsert?: ShiftSignupUpsertWithWhereUniqueWithoutUserInput | ShiftSignupUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ShiftSignupCreateManyUserInputEnvelope
+    set?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    disconnect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    delete?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    update?: ShiftSignupUpdateWithWhereUniqueWithoutUserInput | ShiftSignupUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ShiftSignupUpdateManyWithWhereWithoutUserInput | ShiftSignupUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ShiftSignupScalarWhereInput | ShiftSignupScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -29118,6 +32428,20 @@ export namespace Prisma {
     update?: VolunteerCredentialUpdateWithWhereUniqueWithoutUserInput | VolunteerCredentialUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutUserInput | VolunteerCredentialUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+  }
+
+  export type ShiftSignupUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ShiftSignupCreateWithoutUserInput, ShiftSignupUncheckedCreateWithoutUserInput> | ShiftSignupCreateWithoutUserInput[] | ShiftSignupUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ShiftSignupCreateOrConnectWithoutUserInput | ShiftSignupCreateOrConnectWithoutUserInput[]
+    upsert?: ShiftSignupUpsertWithWhereUniqueWithoutUserInput | ShiftSignupUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ShiftSignupCreateManyUserInputEnvelope
+    set?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    disconnect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    delete?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    update?: ShiftSignupUpdateWithWhereUniqueWithoutUserInput | ShiftSignupUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ShiftSignupUpdateManyWithWhereWithoutUserInput | ShiftSignupUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ShiftSignupScalarWhereInput | ShiftSignupScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutAccountsInput = {
@@ -29235,6 +32559,13 @@ export namespace Prisma {
     connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
   }
 
+  export type ShiftCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<ShiftCreateWithoutOrganizationInput, ShiftUncheckedCreateWithoutOrganizationInput> | ShiftCreateWithoutOrganizationInput[] | ShiftUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutOrganizationInput | ShiftCreateOrConnectWithoutOrganizationInput[]
+    createMany?: ShiftCreateManyOrganizationInputEnvelope
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+  }
+
   export type OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -29296,6 +32627,13 @@ export namespace Prisma {
     connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutOrganizationInput | VolunteerCredentialCreateOrConnectWithoutOrganizationInput[]
     createMany?: VolunteerCredentialCreateManyOrganizationInputEnvelope
     connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+  }
+
+  export type ShiftUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<ShiftCreateWithoutOrganizationInput, ShiftUncheckedCreateWithoutOrganizationInput> | ShiftCreateWithoutOrganizationInput[] | ShiftUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutOrganizationInput | ShiftCreateOrConnectWithoutOrganizationInput[]
+    createMany?: ShiftCreateManyOrganizationInputEnvelope
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
   }
 
   export type OrganizationMemberUpdateManyWithoutOrganizationNestedInput = {
@@ -29424,6 +32762,20 @@ export namespace Prisma {
     deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
   }
 
+  export type ShiftUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<ShiftCreateWithoutOrganizationInput, ShiftUncheckedCreateWithoutOrganizationInput> | ShiftCreateWithoutOrganizationInput[] | ShiftUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutOrganizationInput | ShiftCreateOrConnectWithoutOrganizationInput[]
+    upsert?: ShiftUpsertWithWhereUniqueWithoutOrganizationInput | ShiftUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: ShiftCreateManyOrganizationInputEnvelope
+    set?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    disconnect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    delete?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    update?: ShiftUpdateWithWhereUniqueWithoutOrganizationInput | ShiftUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: ShiftUpdateManyWithWhereWithoutOrganizationInput | ShiftUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+  }
+
   export type OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -29548,6 +32900,20 @@ export namespace Prisma {
     update?: VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput | VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput | VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+  }
+
+  export type ShiftUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<ShiftCreateWithoutOrganizationInput, ShiftUncheckedCreateWithoutOrganizationInput> | ShiftCreateWithoutOrganizationInput[] | ShiftUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutOrganizationInput | ShiftCreateOrConnectWithoutOrganizationInput[]
+    upsert?: ShiftUpsertWithWhereUniqueWithoutOrganizationInput | ShiftUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: ShiftCreateManyOrganizationInputEnvelope
+    set?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    disconnect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    delete?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    update?: ShiftUpdateWithWhereUniqueWithoutOrganizationInput | ShiftUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: ShiftUpdateManyWithWhereWithoutOrganizationInput | ShiftUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutMembersInput = {
@@ -29807,6 +33173,13 @@ export namespace Prisma {
     connect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
   }
 
+  export type ShiftCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<ShiftCreateWithoutOpportunityInput, ShiftUncheckedCreateWithoutOpportunityInput> | ShiftCreateWithoutOpportunityInput[] | ShiftUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutOpportunityInput | ShiftCreateOrConnectWithoutOpportunityInput[]
+    createMany?: ShiftCreateManyOpportunityInputEnvelope
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+  }
+
   export type OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput = {
     create?: XOR<OpportunityTagCreateWithoutOpportunityInput, OpportunityTagUncheckedCreateWithoutOpportunityInput> | OpportunityTagCreateWithoutOpportunityInput[] | OpportunityTagUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: OpportunityTagCreateOrConnectWithoutOpportunityInput | OpportunityTagCreateOrConnectWithoutOpportunityInput[]
@@ -29826,6 +33199,13 @@ export namespace Prisma {
     connectOrCreate?: VolunteerApplicationCreateOrConnectWithoutOpportunityInput | VolunteerApplicationCreateOrConnectWithoutOpportunityInput[]
     createMany?: VolunteerApplicationCreateManyOpportunityInputEnvelope
     connect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+  }
+
+  export type ShiftUncheckedCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<ShiftCreateWithoutOpportunityInput, ShiftUncheckedCreateWithoutOpportunityInput> | ShiftCreateWithoutOpportunityInput[] | ShiftUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutOpportunityInput | ShiftCreateOrConnectWithoutOpportunityInput[]
+    createMany?: ShiftCreateManyOpportunityInputEnvelope
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
   }
 
   export type EnumOpportunityStatusFieldUpdateOperationsInput = {
@@ -29890,6 +33270,20 @@ export namespace Prisma {
     deleteMany?: VolunteerApplicationScalarWhereInput | VolunteerApplicationScalarWhereInput[]
   }
 
+  export type ShiftUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<ShiftCreateWithoutOpportunityInput, ShiftUncheckedCreateWithoutOpportunityInput> | ShiftCreateWithoutOpportunityInput[] | ShiftUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutOpportunityInput | ShiftCreateOrConnectWithoutOpportunityInput[]
+    upsert?: ShiftUpsertWithWhereUniqueWithoutOpportunityInput | ShiftUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: ShiftCreateManyOpportunityInputEnvelope
+    set?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    disconnect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    delete?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    update?: ShiftUpdateWithWhereUniqueWithoutOpportunityInput | ShiftUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: ShiftUpdateManyWithWhereWithoutOpportunityInput | ShiftUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+  }
+
   export type OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput = {
     create?: XOR<OpportunityTagCreateWithoutOpportunityInput, OpportunityTagUncheckedCreateWithoutOpportunityInput> | OpportunityTagCreateWithoutOpportunityInput[] | OpportunityTagUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: OpportunityTagCreateOrConnectWithoutOpportunityInput | OpportunityTagCreateOrConnectWithoutOpportunityInput[]
@@ -29930,6 +33324,20 @@ export namespace Prisma {
     update?: VolunteerApplicationUpdateWithWhereUniqueWithoutOpportunityInput | VolunteerApplicationUpdateWithWhereUniqueWithoutOpportunityInput[]
     updateMany?: VolunteerApplicationUpdateManyWithWhereWithoutOpportunityInput | VolunteerApplicationUpdateManyWithWhereWithoutOpportunityInput[]
     deleteMany?: VolunteerApplicationScalarWhereInput | VolunteerApplicationScalarWhereInput[]
+  }
+
+  export type ShiftUncheckedUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<ShiftCreateWithoutOpportunityInput, ShiftUncheckedCreateWithoutOpportunityInput> | ShiftCreateWithoutOpportunityInput[] | ShiftUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutOpportunityInput | ShiftCreateOrConnectWithoutOpportunityInput[]
+    upsert?: ShiftUpsertWithWhereUniqueWithoutOpportunityInput | ShiftUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: ShiftCreateManyOpportunityInputEnvelope
+    set?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    disconnect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    delete?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    update?: ShiftUpdateWithWhereUniqueWithoutOpportunityInput | ShiftUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: ShiftUpdateManyWithWhereWithoutOpportunityInput | ShiftUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
   }
 
   export type VolunteerOpportunityCreateNestedOneWithoutTagsInput = {
@@ -30043,6 +33451,114 @@ export namespace Prisma {
     upsert?: OrganizationUpsertWithoutCredentialsInput
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutCredentialsInput, OrganizationUpdateWithoutCredentialsInput>, OrganizationUncheckedUpdateWithoutCredentialsInput>
+  }
+
+  export type OrganizationCreateNestedOneWithoutShiftsInput = {
+    create?: XOR<OrganizationCreateWithoutShiftsInput, OrganizationUncheckedCreateWithoutShiftsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutShiftsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type VolunteerOpportunityCreateNestedOneWithoutShiftsInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutShiftsInput, VolunteerOpportunityUncheckedCreateWithoutShiftsInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutShiftsInput
+    connect?: VolunteerOpportunityWhereUniqueInput
+  }
+
+  export type ShiftSignupCreateNestedManyWithoutShiftInput = {
+    create?: XOR<ShiftSignupCreateWithoutShiftInput, ShiftSignupUncheckedCreateWithoutShiftInput> | ShiftSignupCreateWithoutShiftInput[] | ShiftSignupUncheckedCreateWithoutShiftInput[]
+    connectOrCreate?: ShiftSignupCreateOrConnectWithoutShiftInput | ShiftSignupCreateOrConnectWithoutShiftInput[]
+    createMany?: ShiftSignupCreateManyShiftInputEnvelope
+    connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+  }
+
+  export type ShiftSignupUncheckedCreateNestedManyWithoutShiftInput = {
+    create?: XOR<ShiftSignupCreateWithoutShiftInput, ShiftSignupUncheckedCreateWithoutShiftInput> | ShiftSignupCreateWithoutShiftInput[] | ShiftSignupUncheckedCreateWithoutShiftInput[]
+    connectOrCreate?: ShiftSignupCreateOrConnectWithoutShiftInput | ShiftSignupCreateOrConnectWithoutShiftInput[]
+    createMany?: ShiftSignupCreateManyShiftInputEnvelope
+    connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+  }
+
+  export type EnumShiftStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ShiftStatus
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutShiftsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutShiftsInput, OrganizationUncheckedCreateWithoutShiftsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutShiftsInput
+    upsert?: OrganizationUpsertWithoutShiftsInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutShiftsInput, OrganizationUpdateWithoutShiftsInput>, OrganizationUncheckedUpdateWithoutShiftsInput>
+  }
+
+  export type VolunteerOpportunityUpdateOneWithoutShiftsNestedInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutShiftsInput, VolunteerOpportunityUncheckedCreateWithoutShiftsInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutShiftsInput
+    upsert?: VolunteerOpportunityUpsertWithoutShiftsInput
+    disconnect?: VolunteerOpportunityWhereInput | boolean
+    delete?: VolunteerOpportunityWhereInput | boolean
+    connect?: VolunteerOpportunityWhereUniqueInput
+    update?: XOR<XOR<VolunteerOpportunityUpdateToOneWithWhereWithoutShiftsInput, VolunteerOpportunityUpdateWithoutShiftsInput>, VolunteerOpportunityUncheckedUpdateWithoutShiftsInput>
+  }
+
+  export type ShiftSignupUpdateManyWithoutShiftNestedInput = {
+    create?: XOR<ShiftSignupCreateWithoutShiftInput, ShiftSignupUncheckedCreateWithoutShiftInput> | ShiftSignupCreateWithoutShiftInput[] | ShiftSignupUncheckedCreateWithoutShiftInput[]
+    connectOrCreate?: ShiftSignupCreateOrConnectWithoutShiftInput | ShiftSignupCreateOrConnectWithoutShiftInput[]
+    upsert?: ShiftSignupUpsertWithWhereUniqueWithoutShiftInput | ShiftSignupUpsertWithWhereUniqueWithoutShiftInput[]
+    createMany?: ShiftSignupCreateManyShiftInputEnvelope
+    set?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    disconnect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    delete?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    update?: ShiftSignupUpdateWithWhereUniqueWithoutShiftInput | ShiftSignupUpdateWithWhereUniqueWithoutShiftInput[]
+    updateMany?: ShiftSignupUpdateManyWithWhereWithoutShiftInput | ShiftSignupUpdateManyWithWhereWithoutShiftInput[]
+    deleteMany?: ShiftSignupScalarWhereInput | ShiftSignupScalarWhereInput[]
+  }
+
+  export type ShiftSignupUncheckedUpdateManyWithoutShiftNestedInput = {
+    create?: XOR<ShiftSignupCreateWithoutShiftInput, ShiftSignupUncheckedCreateWithoutShiftInput> | ShiftSignupCreateWithoutShiftInput[] | ShiftSignupUncheckedCreateWithoutShiftInput[]
+    connectOrCreate?: ShiftSignupCreateOrConnectWithoutShiftInput | ShiftSignupCreateOrConnectWithoutShiftInput[]
+    upsert?: ShiftSignupUpsertWithWhereUniqueWithoutShiftInput | ShiftSignupUpsertWithWhereUniqueWithoutShiftInput[]
+    createMany?: ShiftSignupCreateManyShiftInputEnvelope
+    set?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    disconnect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    delete?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+    update?: ShiftSignupUpdateWithWhereUniqueWithoutShiftInput | ShiftSignupUpdateWithWhereUniqueWithoutShiftInput[]
+    updateMany?: ShiftSignupUpdateManyWithWhereWithoutShiftInput | ShiftSignupUpdateManyWithWhereWithoutShiftInput[]
+    deleteMany?: ShiftSignupScalarWhereInput | ShiftSignupScalarWhereInput[]
+  }
+
+  export type ShiftCreateNestedOneWithoutSignupsInput = {
+    create?: XOR<ShiftCreateWithoutSignupsInput, ShiftUncheckedCreateWithoutSignupsInput>
+    connectOrCreate?: ShiftCreateOrConnectWithoutSignupsInput
+    connect?: ShiftWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutShiftSignupsInput = {
+    create?: XOR<UserCreateWithoutShiftSignupsInput, UserUncheckedCreateWithoutShiftSignupsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutShiftSignupsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumSignupStatusFieldUpdateOperationsInput = {
+    set?: $Enums.SignupStatus
+  }
+
+  export type ShiftUpdateOneRequiredWithoutSignupsNestedInput = {
+    create?: XOR<ShiftCreateWithoutSignupsInput, ShiftUncheckedCreateWithoutSignupsInput>
+    connectOrCreate?: ShiftCreateOrConnectWithoutSignupsInput
+    upsert?: ShiftUpsertWithoutSignupsInput
+    connect?: ShiftWhereUniqueInput
+    update?: XOR<XOR<ShiftUpdateToOneWithWhereWithoutSignupsInput, ShiftUpdateWithoutSignupsInput>, ShiftUncheckedUpdateWithoutSignupsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutShiftSignupsNestedInput = {
+    create?: XOR<UserCreateWithoutShiftSignupsInput, UserUncheckedCreateWithoutShiftSignupsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutShiftSignupsInput
+    upsert?: UserUpsertWithoutShiftSignupsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutShiftSignupsInput, UserUpdateWithoutShiftSignupsInput>, UserUncheckedUpdateWithoutShiftSignupsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -30478,6 +33994,40 @@ export namespace Prisma {
     _max?: NestedEnumCredentialStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumShiftStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ShiftStatus | EnumShiftStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ShiftStatus[] | ListEnumShiftStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ShiftStatus[] | ListEnumShiftStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumShiftStatusFilter<$PrismaModel> | $Enums.ShiftStatus
+  }
+
+  export type NestedEnumShiftStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ShiftStatus | EnumShiftStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ShiftStatus[] | ListEnumShiftStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ShiftStatus[] | ListEnumShiftStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumShiftStatusWithAggregatesFilter<$PrismaModel> | $Enums.ShiftStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumShiftStatusFilter<$PrismaModel>
+    _max?: NestedEnumShiftStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumSignupStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SignupStatus | EnumSignupStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SignupStatus[] | ListEnumSignupStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SignupStatus[] | ListEnumSignupStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSignupStatusFilter<$PrismaModel> | $Enums.SignupStatus
+  }
+
+  export type NestedEnumSignupStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SignupStatus | EnumSignupStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SignupStatus[] | ListEnumSignupStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SignupStatus[] | ListEnumSignupStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSignupStatusWithAggregatesFilter<$PrismaModel> | $Enums.SignupStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSignupStatusFilter<$PrismaModel>
+    _max?: NestedEnumSignupStatusFilter<$PrismaModel>
+  }
+
   export type AccountCreateWithoutUserInput = {
     id?: string
     type: string
@@ -30720,6 +34270,34 @@ export namespace Prisma {
 
   export type VolunteerCredentialCreateManyUserInputEnvelope = {
     data: VolunteerCredentialCreateManyUserInput | VolunteerCredentialCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ShiftSignupCreateWithoutUserInput = {
+    id?: string
+    status?: $Enums.SignupStatus
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    shift: ShiftCreateNestedOneWithoutSignupsInput
+  }
+
+  export type ShiftSignupUncheckedCreateWithoutUserInput = {
+    id?: string
+    shiftId: string
+    status?: $Enums.SignupStatus
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftSignupCreateOrConnectWithoutUserInput = {
+    where: ShiftSignupWhereUniqueInput
+    create: XOR<ShiftSignupCreateWithoutUserInput, ShiftSignupUncheckedCreateWithoutUserInput>
+  }
+
+  export type ShiftSignupCreateManyUserInputEnvelope = {
+    data: ShiftSignupCreateManyUserInput | ShiftSignupCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -30972,6 +34550,35 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
   }
 
+  export type ShiftSignupUpsertWithWhereUniqueWithoutUserInput = {
+    where: ShiftSignupWhereUniqueInput
+    update: XOR<ShiftSignupUpdateWithoutUserInput, ShiftSignupUncheckedUpdateWithoutUserInput>
+    create: XOR<ShiftSignupCreateWithoutUserInput, ShiftSignupUncheckedCreateWithoutUserInput>
+  }
+
+  export type ShiftSignupUpdateWithWhereUniqueWithoutUserInput = {
+    where: ShiftSignupWhereUniqueInput
+    data: XOR<ShiftSignupUpdateWithoutUserInput, ShiftSignupUncheckedUpdateWithoutUserInput>
+  }
+
+  export type ShiftSignupUpdateManyWithWhereWithoutUserInput = {
+    where: ShiftSignupScalarWhereInput
+    data: XOR<ShiftSignupUpdateManyMutationInput, ShiftSignupUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type ShiftSignupScalarWhereInput = {
+    AND?: ShiftSignupScalarWhereInput | ShiftSignupScalarWhereInput[]
+    OR?: ShiftSignupScalarWhereInput[]
+    NOT?: ShiftSignupScalarWhereInput | ShiftSignupScalarWhereInput[]
+    id?: StringFilter<"ShiftSignup"> | string
+    shiftId?: StringFilter<"ShiftSignup"> | string
+    userId?: StringFilter<"ShiftSignup"> | string
+    status?: EnumSignupStatusFilter<"ShiftSignup"> | $Enums.SignupStatus
+    notes?: StringNullableFilter<"ShiftSignup"> | string | null
+    createdAt?: DateTimeFilter<"ShiftSignup"> | Date | string
+    updatedAt?: DateTimeFilter<"ShiftSignup"> | Date | string
+  }
+
   export type UserCreateWithoutAccountsInput = {
     id?: string
     name?: string | null
@@ -30987,6 +34594,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -31004,6 +34612,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -31037,6 +34646,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -31054,6 +34664,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -31071,6 +34682,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -31088,6 +34700,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -31109,6 +34722,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSessionsInput = {
@@ -31125,6 +34739,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSessionsInput = {
@@ -31158,6 +34773,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -31175,6 +34791,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutSessionsInput = {
@@ -31202,6 +34819,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSessionsInput = {
@@ -31218,6 +34836,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationMemberCreateWithoutOrganizationInput = {
@@ -31440,6 +35059,7 @@ export namespace Prisma {
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutOrganizationInput = {
@@ -31458,6 +35078,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutOrganizationInput = {
@@ -31503,6 +35124,48 @@ export namespace Prisma {
 
   export type VolunteerCredentialCreateManyOrganizationInputEnvelope = {
     data: VolunteerCredentialCreateManyOrganizationInput | VolunteerCredentialCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ShiftCreateWithoutOrganizationInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftsInput
+    signups?: ShiftSignupCreateNestedManyWithoutShiftInput
+  }
+
+  export type ShiftUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    opportunityId?: string | null
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    signups?: ShiftSignupUncheckedCreateNestedManyWithoutShiftInput
+  }
+
+  export type ShiftCreateOrConnectWithoutOrganizationInput = {
+    where: ShiftWhereUniqueInput
+    create: XOR<ShiftCreateWithoutOrganizationInput, ShiftUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type ShiftCreateManyOrganizationInputEnvelope = {
+    data: ShiftCreateManyOrganizationInput | ShiftCreateManyOrganizationInput[]
     skipDuplicates?: boolean
   }
 
@@ -31710,6 +35373,41 @@ export namespace Prisma {
     data: XOR<VolunteerCredentialUpdateManyMutationInput, VolunteerCredentialUncheckedUpdateManyWithoutOrganizationInput>
   }
 
+  export type ShiftUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: ShiftWhereUniqueInput
+    update: XOR<ShiftUpdateWithoutOrganizationInput, ShiftUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<ShiftCreateWithoutOrganizationInput, ShiftUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type ShiftUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: ShiftWhereUniqueInput
+    data: XOR<ShiftUpdateWithoutOrganizationInput, ShiftUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type ShiftUpdateManyWithWhereWithoutOrganizationInput = {
+    where: ShiftScalarWhereInput
+    data: XOR<ShiftUpdateManyMutationInput, ShiftUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type ShiftScalarWhereInput = {
+    AND?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+    OR?: ShiftScalarWhereInput[]
+    NOT?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+    id?: StringFilter<"Shift"> | string
+    orgId?: StringFilter<"Shift"> | string
+    opportunityId?: StringNullableFilter<"Shift"> | string | null
+    title?: StringFilter<"Shift"> | string
+    description?: StringNullableFilter<"Shift"> | string | null
+    location?: StringNullableFilter<"Shift"> | string | null
+    isRemote?: BoolFilter<"Shift"> | boolean
+    startTime?: DateTimeFilter<"Shift"> | Date | string
+    endTime?: DateTimeFilter<"Shift"> | Date | string
+    capacity?: IntFilter<"Shift"> | number
+    status?: EnumShiftStatusFilter<"Shift"> | $Enums.ShiftStatus
+    createdAt?: DateTimeFilter<"Shift"> | Date | string
+    updatedAt?: DateTimeFilter<"Shift"> | Date | string
+  }
+
   export type OrganizationCreateWithoutMembersInput = {
     id?: string
     name: string
@@ -31724,6 +35422,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -31740,6 +35439,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -31762,6 +35462,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -31779,6 +35480,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -31811,6 +35513,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -31827,6 +35530,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutMembershipsInput = {
@@ -31855,6 +35559,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -31872,6 +35577,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -31888,6 +35594,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
@@ -31904,6 +35611,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutAuditLogsInput = {
@@ -31926,6 +35634,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -31943,6 +35652,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -31975,6 +35685,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
@@ -31991,6 +35702,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutAuditLogsInput = {
@@ -32019,6 +35731,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -32036,6 +35749,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutFeatureFlagsInput = {
@@ -32052,6 +35766,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutFeatureFlagsInput = {
@@ -32068,6 +35783,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutFeatureFlagsInput = {
@@ -32100,6 +35816,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutFeatureFlagsInput = {
@@ -32116,6 +35833,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutApplicationsInput = {
@@ -32132,6 +35850,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutApplicationsInput = {
@@ -32148,6 +35867,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutApplicationsInput = {
@@ -32171,6 +35891,7 @@ export namespace Prisma {
     organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutApplicationsInput = {
@@ -32189,6 +35910,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutApplicationsInput = {
@@ -32211,6 +35933,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSubmittedApplicationsInput = {
@@ -32228,6 +35951,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSubmittedApplicationsInput = {
@@ -32282,6 +36006,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutApplicationsInput = {
@@ -32298,6 +36023,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutApplicationsInput = {
@@ -32327,6 +36053,7 @@ export namespace Prisma {
     organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutApplicationsInput = {
@@ -32345,6 +36072,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type UserUpsertWithoutSubmittedApplicationsInput = {
@@ -32373,6 +36101,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubmittedApplicationsInput = {
@@ -32390,6 +36119,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type VolunteerAnswerUpsertWithWhereUniqueWithoutApplicationInput = {
@@ -32496,6 +36226,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutScreenerQuestionsInput = {
@@ -32512,6 +36243,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutScreenerQuestionsInput = {
@@ -32544,6 +36276,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutScreenerQuestionsInput = {
@@ -32560,6 +36293,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutInvitationsInput = {
@@ -32576,6 +36310,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -32592,6 +36327,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -32624,6 +36360,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -32640,6 +36377,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutOpportunitiesInput = {
@@ -32656,6 +36394,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutOpportunitiesInput = {
@@ -32672,6 +36411,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutOpportunitiesInput = {
@@ -32755,6 +36495,48 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ShiftCreateWithoutOpportunityInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutShiftsInput
+    signups?: ShiftSignupCreateNestedManyWithoutShiftInput
+  }
+
+  export type ShiftUncheckedCreateWithoutOpportunityInput = {
+    id?: string
+    orgId: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    signups?: ShiftSignupUncheckedCreateNestedManyWithoutShiftInput
+  }
+
+  export type ShiftCreateOrConnectWithoutOpportunityInput = {
+    where: ShiftWhereUniqueInput
+    create: XOR<ShiftCreateWithoutOpportunityInput, ShiftUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type ShiftCreateManyOpportunityInputEnvelope = {
+    data: ShiftCreateManyOpportunityInput | ShiftCreateManyOpportunityInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrganizationUpsertWithoutOpportunitiesInput = {
     update: XOR<OrganizationUpdateWithoutOpportunitiesInput, OrganizationUncheckedUpdateWithoutOpportunitiesInput>
     create: XOR<OrganizationCreateWithoutOpportunitiesInput, OrganizationUncheckedCreateWithoutOpportunitiesInput>
@@ -32780,6 +36562,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutOpportunitiesInput = {
@@ -32796,6 +36579,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OpportunityTagUpsertWithWhereUniqueWithoutOpportunityInput = {
@@ -32865,6 +36649,22 @@ export namespace Prisma {
     data: XOR<VolunteerApplicationUpdateManyMutationInput, VolunteerApplicationUncheckedUpdateManyWithoutOpportunityInput>
   }
 
+  export type ShiftUpsertWithWhereUniqueWithoutOpportunityInput = {
+    where: ShiftWhereUniqueInput
+    update: XOR<ShiftUpdateWithoutOpportunityInput, ShiftUncheckedUpdateWithoutOpportunityInput>
+    create: XOR<ShiftCreateWithoutOpportunityInput, ShiftUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type ShiftUpdateWithWhereUniqueWithoutOpportunityInput = {
+    where: ShiftWhereUniqueInput
+    data: XOR<ShiftUpdateWithoutOpportunityInput, ShiftUncheckedUpdateWithoutOpportunityInput>
+  }
+
+  export type ShiftUpdateManyWithWhereWithoutOpportunityInput = {
+    where: ShiftScalarWhereInput
+    data: XOR<ShiftUpdateManyMutationInput, ShiftUncheckedUpdateManyWithoutOpportunityInput>
+  }
+
   export type VolunteerOpportunityCreateWithoutTagsInput = {
     id?: string
     title: string
@@ -32881,6 +36681,7 @@ export namespace Prisma {
     organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutTagsInput = {
@@ -32899,6 +36700,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutTagsInput = {
@@ -32933,6 +36735,7 @@ export namespace Prisma {
     organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutTagsInput = {
@@ -32951,6 +36754,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityCreateWithoutRequirementsInput = {
@@ -32969,6 +36773,7 @@ export namespace Prisma {
     organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutRequirementsInput = {
@@ -32987,6 +36792,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutRequirementsInput = {
@@ -33021,6 +36827,7 @@ export namespace Prisma {
     organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutRequirementsInput = {
@@ -33039,6 +36846,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type UserCreateWithoutVolunteerSkillsInput = {
@@ -33056,6 +36864,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutVolunteerSkillsInput = {
@@ -33073,6 +36882,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutVolunteerSkillsInput = {
@@ -33106,6 +36916,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutVolunteerSkillsInput = {
@@ -33123,6 +36934,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutProfileInput = {
@@ -33140,6 +36952,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutProfileInput = {
@@ -33157,6 +36970,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutProfileInput = {
@@ -33190,6 +37004,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProfileInput = {
@@ -33207,6 +37022,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutCredentialsInput = {
@@ -33224,6 +37040,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCredentialsInput = {
@@ -33241,6 +37058,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCredentialsInput = {
@@ -33262,6 +37080,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCredentialsInput = {
@@ -33278,6 +37097,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCredentialsInput = {
@@ -33311,6 +37131,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCredentialsInput = {
@@ -33328,6 +37149,7 @@ export namespace Prisma {
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutCredentialsInput = {
@@ -33355,6 +37177,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCredentialsInput = {
@@ -33371,6 +37194,395 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationCreateWithoutShiftsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutShiftsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagUncheckedCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutShiftsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutShiftsInput, OrganizationUncheckedCreateWithoutShiftsInput>
+  }
+
+  export type VolunteerOpportunityCreateWithoutShiftsInput = {
+    id?: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
+    tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityUncheckedCreateWithoutShiftsInput = {
+    id?: string
+    orgId: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityCreateOrConnectWithoutShiftsInput = {
+    where: VolunteerOpportunityWhereUniqueInput
+    create: XOR<VolunteerOpportunityCreateWithoutShiftsInput, VolunteerOpportunityUncheckedCreateWithoutShiftsInput>
+  }
+
+  export type ShiftSignupCreateWithoutShiftInput = {
+    id?: string
+    status?: $Enums.SignupStatus
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutShiftSignupsInput
+  }
+
+  export type ShiftSignupUncheckedCreateWithoutShiftInput = {
+    id?: string
+    userId: string
+    status?: $Enums.SignupStatus
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftSignupCreateOrConnectWithoutShiftInput = {
+    where: ShiftSignupWhereUniqueInput
+    create: XOR<ShiftSignupCreateWithoutShiftInput, ShiftSignupUncheckedCreateWithoutShiftInput>
+  }
+
+  export type ShiftSignupCreateManyShiftInputEnvelope = {
+    data: ShiftSignupCreateManyShiftInput | ShiftSignupCreateManyShiftInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type OrganizationUpsertWithoutShiftsInput = {
+    update: XOR<OrganizationUpdateWithoutShiftsInput, OrganizationUncheckedUpdateWithoutShiftsInput>
+    create: XOR<OrganizationCreateWithoutShiftsInput, OrganizationUncheckedCreateWithoutShiftsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutShiftsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutShiftsInput, OrganizationUncheckedUpdateWithoutShiftsInput>
+  }
+
+  export type OrganizationUpdateWithoutShiftsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutShiftsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUncheckedUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type VolunteerOpportunityUpsertWithoutShiftsInput = {
+    update: XOR<VolunteerOpportunityUpdateWithoutShiftsInput, VolunteerOpportunityUncheckedUpdateWithoutShiftsInput>
+    create: XOR<VolunteerOpportunityCreateWithoutShiftsInput, VolunteerOpportunityUncheckedCreateWithoutShiftsInput>
+    where?: VolunteerOpportunityWhereInput
+  }
+
+  export type VolunteerOpportunityUpdateToOneWithWhereWithoutShiftsInput = {
+    where?: VolunteerOpportunityWhereInput
+    data: XOR<VolunteerOpportunityUpdateWithoutShiftsInput, VolunteerOpportunityUncheckedUpdateWithoutShiftsInput>
+  }
+
+  export type VolunteerOpportunityUpdateWithoutShiftsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
+    tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+  }
+
+  export type VolunteerOpportunityUncheckedUpdateWithoutShiftsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+  }
+
+  export type ShiftSignupUpsertWithWhereUniqueWithoutShiftInput = {
+    where: ShiftSignupWhereUniqueInput
+    update: XOR<ShiftSignupUpdateWithoutShiftInput, ShiftSignupUncheckedUpdateWithoutShiftInput>
+    create: XOR<ShiftSignupCreateWithoutShiftInput, ShiftSignupUncheckedCreateWithoutShiftInput>
+  }
+
+  export type ShiftSignupUpdateWithWhereUniqueWithoutShiftInput = {
+    where: ShiftSignupWhereUniqueInput
+    data: XOR<ShiftSignupUpdateWithoutShiftInput, ShiftSignupUncheckedUpdateWithoutShiftInput>
+  }
+
+  export type ShiftSignupUpdateManyWithWhereWithoutShiftInput = {
+    where: ShiftSignupScalarWhereInput
+    data: XOR<ShiftSignupUpdateManyMutationInput, ShiftSignupUncheckedUpdateManyWithoutShiftInput>
+  }
+
+  export type ShiftCreateWithoutSignupsInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutShiftsInput
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftsInput
+  }
+
+  export type ShiftUncheckedCreateWithoutSignupsInput = {
+    id?: string
+    orgId: string
+    opportunityId?: string | null
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftCreateOrConnectWithoutSignupsInput = {
+    where: ShiftWhereUniqueInput
+    create: XOR<ShiftCreateWithoutSignupsInput, ShiftUncheckedCreateWithoutSignupsInput>
+  }
+
+  export type UserCreateWithoutShiftSignupsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutShiftSignupsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutShiftSignupsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutShiftSignupsInput, UserUncheckedCreateWithoutShiftSignupsInput>
+  }
+
+  export type ShiftUpsertWithoutSignupsInput = {
+    update: XOR<ShiftUpdateWithoutSignupsInput, ShiftUncheckedUpdateWithoutSignupsInput>
+    create: XOR<ShiftCreateWithoutSignupsInput, ShiftUncheckedCreateWithoutSignupsInput>
+    where?: ShiftWhereInput
+  }
+
+  export type ShiftUpdateToOneWithWhereWithoutSignupsInput = {
+    where?: ShiftWhereInput
+    data: XOR<ShiftUpdateWithoutSignupsInput, ShiftUncheckedUpdateWithoutSignupsInput>
+  }
+
+  export type ShiftUpdateWithoutSignupsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutShiftsNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneWithoutShiftsNestedInput
+  }
+
+  export type ShiftUncheckedUpdateWithoutSignupsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserUpsertWithoutShiftSignupsInput = {
+    update: XOR<UserUpdateWithoutShiftSignupsInput, UserUncheckedUpdateWithoutShiftSignupsInput>
+    create: XOR<UserCreateWithoutShiftSignupsInput, UserUncheckedCreateWithoutShiftSignupsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutShiftSignupsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutShiftSignupsInput, UserUncheckedUpdateWithoutShiftSignupsInput>
+  }
+
+  export type UserUpdateWithoutShiftSignupsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutShiftSignupsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -33439,6 +37651,15 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftSignupCreateManyUserInput = {
+    id?: string
+    shiftId: string
+    status?: $Enums.SignupStatus
+    notes?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -33655,6 +37876,33 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ShiftSignupUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    shift?: ShiftUpdateOneRequiredWithoutSignupsNestedInput
+  }
+
+  export type ShiftSignupUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shiftId?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftSignupUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shiftId?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrganizationMemberCreateManyOrganizationInput = {
     id?: string
     userId: string
@@ -33745,6 +37993,21 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftCreateManyOrganizationInput = {
+    id?: string
+    opportunityId?: string | null
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -33965,6 +38228,7 @@ export namespace Prisma {
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutOrganizationInput = {
@@ -33983,6 +38247,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationInput = {
@@ -34039,6 +38304,53 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ShiftUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    opportunity?: VolunteerOpportunityUpdateOneWithoutShiftsNestedInput
+    signups?: ShiftSignupUpdateManyWithoutShiftNestedInput
+  }
+
+  export type ShiftUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    signups?: ShiftSignupUncheckedUpdateManyWithoutShiftNestedInput
+  }
+
+  export type ShiftUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type VolunteerAnswerCreateManyApplicationInput = {
     id?: string
     questionId: string
@@ -34083,6 +38395,21 @@ export namespace Prisma {
     screeningStatus?: $Enums.ScreeningStatus
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: Date | string
+  }
+
+  export type ShiftCreateManyOpportunityInput = {
+    id?: string
+    orgId: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type OpportunityTagUpdateWithoutOpportunityInput = {
@@ -34151,6 +38478,89 @@ export namespace Prisma {
     screeningStatus?: EnumScreeningStatusFieldUpdateOperationsInput | $Enums.ScreeningStatus
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutShiftsNestedInput
+    signups?: ShiftSignupUpdateManyWithoutShiftNestedInput
+  }
+
+  export type ShiftUncheckedUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    signups?: ShiftSignupUncheckedUpdateManyWithoutShiftNestedInput
+  }
+
+  export type ShiftUncheckedUpdateManyWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftSignupCreateManyShiftInput = {
+    id?: string
+    userId: string
+    status?: $Enums.SignupStatus
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftSignupUpdateWithoutShiftInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutShiftSignupsNestedInput
+  }
+
+  export type ShiftSignupUncheckedUpdateWithoutShiftInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftSignupUncheckedUpdateManyWithoutShiftInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

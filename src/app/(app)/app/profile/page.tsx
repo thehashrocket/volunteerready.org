@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
 	Briefcase,
 	Building2,
+	CalendarClock,
 	CheckCircle2,
 	CircleAlert,
 	CircleDashed,
@@ -313,7 +314,7 @@ export default function ProfilePage() {
 
 			{/* Quick Stats */}
 			{statsQuery.data && (
-				<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+				<div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
 					<Link href="/app/my-applications" className="block">
 						<Card className="transition-colors hover:bg-muted/50">
 							<CardContent className="flex items-center gap-3 py-3">
@@ -362,6 +363,19 @@ export default function ProfilePage() {
 							</div>
 						</CardContent>
 					</Card>
+					<Link href="/app/my-shifts" className="block">
+						<Card className="transition-colors hover:bg-muted/50">
+							<CardContent className="flex items-center gap-3 py-3">
+								<CalendarClock className="h-5 w-5 text-muted-foreground" />
+								<div>
+									<p className="text-lg font-semibold">
+										{statsQuery.data.upcomingShiftCount}
+									</p>
+									<p className="text-xs text-muted-foreground">Shifts</p>
+								</div>
+							</CardContent>
+						</Card>
+					</Link>
 				</div>
 			)}
 

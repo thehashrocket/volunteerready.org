@@ -69,10 +69,12 @@ src/
 │   │   ├── applications/         # Staff: review volunteer applications
 │   │   ├── credentials/          # Staff: manage volunteer verification badges
 │   │   ├── my-applications/      # Volunteer: track own applications
+│   │   ├── my-shifts/            # Volunteer: upcoming shift signups
 │   │   ├── my-skills/            # Volunteer: manage skill tags
 │   │   ├── opportunities/        # Staff: manage opportunities
 │   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
+│   │   ├── shifts/               # Staff: manage shifts + attendance
 │   │   ├── settings/team/        # Admin: team/member management
 │   │   ├── onboarding/           # Org setup flow
 │   │   └── welcome/              # Post-login landing
@@ -138,6 +140,8 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **OpportunityTag / OpportunityRequirement** — metadata for opportunities.
 - **VolunteerProfile** — 1:1 with User (cross-org). Bio, phone, location, availability, visibility, interests.
 - **VolunteerCredential** — org-scoped verification badges (unique per user + org + type). Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE. Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED.
+- **Shift** — org-scoped volunteer shift with time range, capacity, status, optional opportunity link.
+- **ShiftSignup** — volunteer sign-up for a shift (unique per shift + user). Status: CONFIRMED / CANCELLED / NO_SHOW / ATTENDED.
 - **AuditLog** — append-only, immutable activity log per org.
 - **FeatureFlag** — per-org feature toggles.
 - **OrganizationInvitation** — team invite tokens with expiry.
@@ -183,6 +187,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `org` | getCurrentOrg, listOrgs, switchOrg |
 | `profile` | getMyProfile, updateMyProfile, getMyStats |
 | `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail |
+| `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |
 | `status` | public token-based status lookups |
 
 ---
@@ -253,6 +258,26 @@ The volunteer profile system lives in `src/server/domain/volunteer-profile.ts`.
 
 ---
 
+## Scheduling & Shifts
+
+The shift scheduling system lives in `src/server/domain/shift.ts`.
+
+**Shift:** Org-scoped time block with capacity. Optional link to a VolunteerOpportunity. Status lifecycle: OPEN → FULL (auto at capacity) → COMPLETED / CANCELLED. FULL auto-reverts to OPEN when a signup is cancelled.
+
+**Signup:** Unique per shift + user. Validated against capacity, duplicate check, and time overlap with user's other confirmed shifts. Status: CONFIRMED → ATTENDED / NO_SHOW / CANCELLED.
+
+**Key types:** `ShiftData`, `SignupRecord`, `ShiftCapacity`, `AttendanceSummary`, `SignupValidation`
+
+**Key functions:** `computeShiftCapacity()`, `validateSignup()`, `validateShiftTimes()`, `summarizeAttendance()` — all pure, no side effects
+
+**Service orchestration:**
+- `src/server/services/shiftService.ts` — `createNewShift()`, `updateExistingShift()`, `cancelShift()`, `completeShift()`, `removeShift()` (all transactional with audit)
+- `src/server/services/shiftSignupService.ts` — `signUpForShift()` (validates + auto-FULL), `cancelSignup()` (auto-reopen), `markAttendance()` (all transactional with audit)
+
+**tRPC router:** `src/server/trpc/routers/shifts.ts` — Staff: `list`, `getById`, `create`, `update`, `cancel`, `complete`, `remove`, `getSignups`, `markAttendance` (`staffProcedure`). Volunteer: `myUpcoming`, `signup`, `cancelSignup` (`protectedProcedure`).
+
+---
+
 ## Commands
 
 ```bash
@@ -306,6 +331,9 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/domain/volunteer-profile.ts` | Profile completeness scoring + credential validation |
 | `src/server/services/volunteerProfileService.ts` | Profile service orchestration |
 | `src/server/services/volunteerCredentialService.ts` | Credential service orchestration |
+| `src/server/domain/shift.ts` | Shift capacity, signup validation, attendance summaries |
+| `src/server/services/shiftService.ts` | Shift CRUD with audit logging |
+| `src/server/services/shiftSignupService.ts` | Signup orchestration with capacity + conflict checks |
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
 
 ---
@@ -318,7 +346,7 @@ pnpm docs:dev               # VitePress dev server
 | 2 — Volunteer Opportunities | ✅ Complete |
 | 3 — Matching Engine | ✅ Complete |
 | 4 — Volunteer Profiles | ✅ Complete |
-| 5 — Scheduling & Shifts | Planned |
+| 5 — Scheduling & Shifts | ✅ Complete |
 | 6 — Nonprofit Operations (grants, events, analytics) | Planned |
 
 See `docs/ROADMAP.md` for details.

@@ -1,0 +1,488 @@
+'use client';
+
+import { useQueryClient } from '@tanstack/react-query';
+import {
+	Calendar,
+	CheckCircle2,
+	Clock,
+	MapPin,
+	Plus,
+	Trash2,
+	Users,
+	XCircle,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { PageHeader } from '@/components/page-header';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+import { trpc } from '@/lib/trpc/client';
+
+// ---------------------------------------------------------------------------
+// Status badge
+// ---------------------------------------------------------------------------
+
+const STATUS_COLORS: Record<string, string> = {
+	OPEN: 'bg-green-100 text-green-800',
+	FULL: 'bg-amber-100 text-amber-800',
+	CANCELLED: 'bg-red-100 text-red-800',
+	COMPLETED: 'bg-blue-100 text-blue-800',
+};
+
+function ShiftStatusBadge({ status }: { status: string }) {
+	return (
+		<Badge className={STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800'}>
+			{status}
+		</Badge>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Create shift dialog
+// ---------------------------------------------------------------------------
+
+function CreateShiftDialog() {
+	const [open, setOpen] = useState(false);
+	const qc = useQueryClient();
+	const create = trpc.shifts.create.useMutation({
+		onSuccess: () => {
+			toast.success('Shift created');
+			setOpen(false);
+			qc.invalidateQueries();
+		},
+		onError: (err) => toast.error(err.message),
+	});
+
+	function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+		const fd = new FormData(e.currentTarget);
+		create.mutate({
+			title: fd.get('title') as string,
+			description: (fd.get('description') as string) || undefined,
+			location: (fd.get('location') as string) || undefined,
+			isRemote: fd.get('isRemote') === 'on',
+			startTime: new Date(fd.get('startTime') as string),
+			endTime: new Date(fd.get('endTime') as string),
+			capacity: Number(fd.get('capacity')),
+		});
+	}
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button>
+					<Plus className="mr-2 h-4 w-4" /> New Shift
+				</Button>
+			</DialogTrigger>
+			<DialogContent className="max-w-lg">
+				<DialogHeader>
+					<DialogTitle>Create Shift</DialogTitle>
+					<DialogDescription>Schedule a new volunteer shift.</DialogDescription>
+				</DialogHeader>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div>
+						<Label htmlFor="title">Title</Label>
+						<Input id="title" name="title" required maxLength={200} />
+					</div>
+					<div>
+						<Label htmlFor="description">Description</Label>
+						<Textarea id="description" name="description" rows={2} />
+					</div>
+					<div className="grid grid-cols-2 gap-4">
+						<div>
+							<Label htmlFor="startTime">Start</Label>
+							<Input
+								id="startTime"
+								name="startTime"
+								type="datetime-local"
+								required
+							/>
+						</div>
+						<div>
+							<Label htmlFor="endTime">End</Label>
+							<Input
+								id="endTime"
+								name="endTime"
+								type="datetime-local"
+								required
+							/>
+						</div>
+					</div>
+					<div className="grid grid-cols-2 gap-4">
+						<div>
+							<Label htmlFor="capacity">Capacity</Label>
+							<Input
+								id="capacity"
+								name="capacity"
+								type="number"
+								min={1}
+								defaultValue={10}
+								required
+							/>
+						</div>
+						<div>
+							<Label htmlFor="location">Location</Label>
+							<Input id="location" name="location" />
+						</div>
+					</div>
+					<div className="flex items-center gap-2">
+						<input type="checkbox" id="isRemote" name="isRemote" />
+						<Label htmlFor="isRemote">Remote shift</Label>
+					</div>
+					<Button type="submit" disabled={create.isPending} className="w-full">
+						{create.isPending ? 'Creating…' : 'Create Shift'}
+					</Button>
+				</form>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Shift detail dialog (signups + attendance)
+// ---------------------------------------------------------------------------
+
+function ShiftDetailDialog({
+	shiftId,
+	children,
+}: {
+	shiftId: string;
+	children: React.ReactNode;
+}) {
+	const [open, setOpen] = useState(false);
+	const qc = useQueryClient();
+	const { data: shift } = trpc.shifts.getById.useQuery(
+		{ id: shiftId },
+		{ enabled: open },
+	);
+	const markAttendance = trpc.shifts.markAttendance.useMutation({
+		onSuccess: () => {
+			toast.success('Attendance updated');
+			qc.invalidateQueries();
+		},
+		onError: (err) => toast.error(err.message),
+	});
+
+	const ATTENDANCE_COLORS: Record<string, string> = {
+		CONFIRMED: 'bg-blue-100 text-blue-800',
+		ATTENDED: 'bg-green-100 text-green-800',
+		NO_SHOW: 'bg-red-100 text-red-800',
+		CANCELLED: 'bg-gray-100 text-gray-800',
+	};
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>{children}</DialogTrigger>
+			<DialogContent className="max-w-2xl">
+				<DialogHeader>
+					<DialogTitle>{shift?.title ?? 'Shift Details'}</DialogTitle>
+					<DialogDescription>
+						{shift
+							? `${new Date(shift.startTime).toLocaleString()} — ${new Date(shift.endTime).toLocaleTimeString()}`
+							: 'Loading…'}
+					</DialogDescription>
+				</DialogHeader>
+				{shift && (
+					<div className="space-y-4">
+						<div className="flex gap-4 text-sm text-muted-foreground">
+							<span className="flex items-center gap-1">
+								<Users className="h-4 w-4" />
+								{shift.signups.filter((s) => s.status === 'CONFIRMED').length} /{' '}
+								{shift.capacity}
+							</span>
+							{shift.location && (
+								<span className="flex items-center gap-1">
+									<MapPin className="h-4 w-4" /> {shift.location}
+								</span>
+							)}
+						</div>
+
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Volunteer</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{shift.signups.length === 0 && (
+									<TableRow>
+										<TableCell
+											colSpan={3}
+											className="text-center text-muted-foreground"
+										>
+											No signups yet
+										</TableCell>
+									</TableRow>
+								)}
+								{shift.signups.map((signup) => (
+									<TableRow key={signup.id}>
+										<TableCell>
+											{signup.user.name ?? signup.user.email ?? 'Unknown'}
+										</TableCell>
+										<TableCell>
+											<Badge
+												className={
+													ATTENDANCE_COLORS[signup.status] ?? 'bg-gray-100'
+												}
+											>
+												{signup.status}
+											</Badge>
+										</TableCell>
+										<TableCell className="text-right">
+											{signup.status === 'CONFIRMED' && (
+												<div className="flex justify-end gap-1">
+													<Button
+														size="sm"
+														variant="outline"
+														onClick={() =>
+															markAttendance.mutate({
+																shiftId: shift.id,
+																userId: signup.user.id,
+																status: 'ATTENDED',
+															})
+														}
+													>
+														<CheckCircle2 className="mr-1 h-3 w-3" /> Attended
+													</Button>
+													<Button
+														size="sm"
+														variant="outline"
+														onClick={() =>
+															markAttendance.mutate({
+																shiftId: shift.id,
+																userId: signup.user.id,
+																status: 'NO_SHOW',
+															})
+														}
+													>
+														<XCircle className="mr-1 h-3 w-3" /> No Show
+													</Button>
+												</div>
+											)}
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
+				)}
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Main page
+// ---------------------------------------------------------------------------
+
+export default function ShiftsPage() {
+	const [statusFilter, setStatusFilter] = useState<string>('ALL');
+	const qc = useQueryClient();
+
+	const { data: shifts, isLoading } = trpc.shifts.list.useQuery(
+		statusFilter === 'ALL'
+			? {}
+			: { status: statusFilter as 'OPEN' | 'FULL' | 'CANCELLED' | 'COMPLETED' },
+	);
+
+	const cancelMut = trpc.shifts.cancel.useMutation({
+		onSuccess: () => {
+			toast.success('Shift cancelled');
+			qc.invalidateQueries();
+		},
+		onError: (err) => toast.error(err.message),
+	});
+
+	const completeMut = trpc.shifts.complete.useMutation({
+		onSuccess: () => {
+			toast.success('Shift marked complete');
+			qc.invalidateQueries();
+		},
+		onError: (err) => toast.error(err.message),
+	});
+
+	const removeMut = trpc.shifts.remove.useMutation({
+		onSuccess: () => {
+			toast.success('Shift deleted');
+			qc.invalidateQueries();
+		},
+		onError: (err) => toast.error(err.message),
+	});
+
+	return (
+		<div className="space-y-6">
+			<PageHeader
+				title="Shifts"
+				description="Manage volunteer shifts and attendance."
+			/>
+
+			<div className="flex items-center justify-between">
+				<Select value={statusFilter} onValueChange={setStatusFilter}>
+					<SelectTrigger className="w-[180px]">
+						<SelectValue placeholder="Filter by status" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="ALL">All Statuses</SelectItem>
+						<SelectItem value="OPEN">Open</SelectItem>
+						<SelectItem value="FULL">Full</SelectItem>
+						<SelectItem value="CANCELLED">Cancelled</SelectItem>
+						<SelectItem value="COMPLETED">Completed</SelectItem>
+					</SelectContent>
+				</Select>
+
+				<CreateShiftDialog />
+			</div>
+
+			<Card>
+				<CardHeader>
+					<CardTitle>Shift Schedule</CardTitle>
+					<CardDescription>
+						Click a shift to view signups and manage attendance.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{isLoading ? (
+						<p className="text-muted-foreground py-8 text-center">
+							Loading shifts…
+						</p>
+					) : !shifts?.length ? (
+						<p className="text-muted-foreground py-8 text-center">
+							No shifts found. Create one to get started.
+						</p>
+					) : (
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Shift</TableHead>
+									<TableHead>Date & Time</TableHead>
+									<TableHead>Location</TableHead>
+									<TableHead>Signups</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{shifts.map((shift) => (
+									<TableRow key={shift.id}>
+										<TableCell>
+											<ShiftDetailDialog shiftId={shift.id}>
+												<button
+													type="button"
+													className="text-left font-medium hover:underline"
+												>
+													{shift.title}
+													{shift.opportunity && (
+														<span className="ml-2 text-xs text-muted-foreground">
+															({shift.opportunity.title})
+														</span>
+													)}
+												</button>
+											</ShiftDetailDialog>
+										</TableCell>
+										<TableCell className="whitespace-nowrap">
+											<div className="flex items-center gap-1 text-sm">
+												<Calendar className="h-3 w-3" />
+												{new Date(shift.startTime).toLocaleDateString()}
+											</div>
+											<div className="flex items-center gap-1 text-xs text-muted-foreground">
+												<Clock className="h-3 w-3" />
+												{new Date(shift.startTime).toLocaleTimeString([], {
+													hour: '2-digit',
+													minute: '2-digit',
+												})}{' '}
+												–{' '}
+												{new Date(shift.endTime).toLocaleTimeString([], {
+													hour: '2-digit',
+													minute: '2-digit',
+												})}
+											</div>
+										</TableCell>
+										<TableCell>
+											{shift.isRemote ? (
+												<Badge variant="outline">Remote</Badge>
+											) : (
+												(shift.location ?? '—')
+											)}
+										</TableCell>
+										<TableCell>
+											{shift._count.signups} / {shift.capacity}
+										</TableCell>
+										<TableCell>
+											<ShiftStatusBadge status={shift.status} />
+										</TableCell>
+										<TableCell className="text-right">
+											<div className="flex justify-end gap-1">
+												{shift.status === 'OPEN' || shift.status === 'FULL' ? (
+													<>
+														<Button
+															size="sm"
+															variant="outline"
+															onClick={() =>
+																completeMut.mutate({ id: shift.id })
+															}
+														>
+															<CheckCircle2 className="h-3 w-3" />
+														</Button>
+														<Button
+															size="sm"
+															variant="outline"
+															onClick={() => cancelMut.mutate({ id: shift.id })}
+														>
+															<XCircle className="h-3 w-3" />
+														</Button>
+													</>
+												) : null}
+												<Button
+													size="sm"
+													variant="ghost"
+													onClick={() => removeMut.mutate({ id: shift.id })}
+												>
+													<Trash2 className="h-3 w-3" />
+												</Button>
+											</div>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					)}
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
