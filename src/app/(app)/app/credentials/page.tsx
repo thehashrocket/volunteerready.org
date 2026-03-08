@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -313,14 +314,11 @@ export default function CredentialsPage() {
 			/>
 
 			{credentials.length === 0 ? (
-				<Card>
-					<CardContent className="py-12 text-center">
-						<ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground/50" />
-						<p className="mt-3 text-sm text-muted-foreground">
-							No credentials issued yet. Use the button above to add one.
-						</p>
-					</CardContent>
-				</Card>
+				<EmptyState
+					icon={ShieldCheck}
+					title="No credentials yet"
+					description="Issue a verification badge to a volunteer to get started."
+				/>
 			) : (
 				<Card>
 					<CardHeader>

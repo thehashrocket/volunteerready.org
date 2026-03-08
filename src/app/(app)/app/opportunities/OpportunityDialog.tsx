@@ -235,8 +235,8 @@ function RequirementInput({
 						}}
 						className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
 							req.level === 'REQUIRED'
-								? 'bg-stone-800 text-white hover:bg-stone-700'
-								: 'bg-stone-200 text-stone-600 hover:bg-stone-300'
+								? 'bg-foreground text-background hover:bg-foreground/90'
+								: 'bg-muted text-muted-foreground hover:bg-muted/80'
 						}`}
 					>
 						{req.level === 'REQUIRED' ? 'Required' : 'Preferred'}

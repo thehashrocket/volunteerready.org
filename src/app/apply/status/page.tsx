@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import StatusClient from './status-client';
+
+export const metadata: Metadata = {
+	title: 'Application status',
+	description: 'Check the status of your volunteer application.',
+};
 
 export default function ApplyStatusPage({
 	searchParams,

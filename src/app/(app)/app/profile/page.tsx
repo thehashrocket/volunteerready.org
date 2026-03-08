@@ -1,5 +1,6 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
 	Briefcase,
@@ -14,7 +15,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -172,30 +175,23 @@ function CompletenessBar({
 }
 
 // ---------------------------------------------------------------------------
-// Profile form state
+// Schema
 // ---------------------------------------------------------------------------
 
-interface ProfileFormState {
-	bio: string;
-	phone: string;
-	city: string;
-	state: string;
-	country: string;
-	availability: string;
-	visibility: string;
-	interests: string[];
-}
+const profileFormSchema = z.object({
+	bio: z.string().max(500, 'Bio must be 500 characters or fewer').default(''),
+	phone: z.string().max(30).default(''),
+	city: z.string().max(100).default(''),
+	state: z.string().max(100).default(''),
+	country: z.string().max(100).default(''),
+	availability: z
+		.enum(['FLEXIBLE', 'WEEKDAYS', 'WEEKENDS', 'EVENINGS'])
+		.default('FLEXIBLE'),
+	visibility: z.enum(['PUBLIC', 'ORGS_ONLY', 'PRIVATE']).default('ORGS_ONLY'),
+	interests: z.array(z.string()).max(20).default([]),
+});
 
-const EMPTY_FORM: ProfileFormState = {
-	bio: '',
-	phone: '',
-	city: '',
-	state: '',
-	country: '',
-	availability: 'FLEXIBLE',
-	visibility: 'ORGS_ONLY',
-	interests: [],
-};
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 // ---------------------------------------------------------------------------
 // Page
@@ -205,26 +201,39 @@ export default function ProfilePage() {
 	const qc = useQueryClient();
 	const query = trpc.profile.getMyProfile.useQuery();
 	const statsQuery = trpc.profile.getMyStats.useQuery();
-	const [form, setForm] = useState<ProfileFormState>(EMPTY_FORM);
-	const [initialized, setInitialized] = useState(false);
 
-	// Sync server data into form on initial load
+	const form = useForm<ProfileFormValues>({
+		resolver: zodResolver(profileFormSchema),
+		defaultValues: {
+			bio: '',
+			phone: '',
+			city: '',
+			state: '',
+			country: '',
+			availability: 'FLEXIBLE',
+			visibility: 'ORGS_ONLY',
+			interests: [],
+		},
+	});
+
+	// Sync server data into form once loaded
 	useEffect(() => {
-		if (query.data && !initialized) {
+		if (query.data?.profile) {
 			const p = query.data.profile;
-			setForm({
-				bio: p?.bio ?? '',
-				phone: p?.phone ?? '',
-				city: p?.city ?? '',
-				state: p?.state ?? '',
-				country: p?.country ?? '',
-				availability: p?.availability ?? 'FLEXIBLE',
-				visibility: p?.visibility ?? 'ORGS_ONLY',
-				interests: p?.interests ?? [],
+			form.reset({
+				bio: p.bio ?? '',
+				phone: p.phone ?? '',
+				city: p.city ?? '',
+				state: p.state ?? '',
+				country: p.country ?? '',
+				availability:
+					(p.availability as ProfileFormValues['availability']) ?? 'FLEXIBLE',
+				visibility:
+					(p.visibility as ProfileFormValues['visibility']) ?? 'ORGS_ONLY',
+				interests: p.interests ?? [],
 			});
-			setInitialized(true);
 		}
-	}, [query.data, initialized]);
+	}, [query.data, form]);
 
 	const mutation = trpc.profile.updateMyProfile.useMutation({
 		onSuccess: async () => {
@@ -236,29 +245,20 @@ export default function ProfilePage() {
 		},
 	});
 
-	function handleSave() {
+	function onSubmit(values: ProfileFormValues) {
 		mutation.mutate({
-			bio: form.bio || null,
-			phone: form.phone || null,
-			city: form.city || null,
-			state: form.state || null,
-			country: form.country || null,
-			availability: form.availability as
-				| 'WEEKDAYS'
-				| 'WEEKENDS'
-				| 'EVENINGS'
-				| 'FLEXIBLE',
-			visibility: form.visibility as 'PUBLIC' | 'ORGS_ONLY' | 'PRIVATE',
-			interests: form.interests,
+			bio: values.bio || null,
+			phone: values.phone || null,
+			city: values.city || null,
+			state: values.state || null,
+			country: values.country || null,
+			availability: values.availability,
+			visibility: values.visibility,
+			interests: values.interests,
 		});
 	}
 
-	function updateField(
-		field: keyof ProfileFormState,
-		value: string | string[],
-	) {
-		setForm((prev) => ({ ...prev, [field]: value }));
-	}
+	const bio = form.watch('bio');
 
 	if (query.isLoading) {
 		return (
@@ -379,149 +379,165 @@ export default function ProfilePage() {
 				</div>
 			)}
 
-			{/* About */}
-			<Card>
-				<CardHeader>
-					<CardTitle>About</CardTitle>
-					<CardDescription>
-						Tell organizations a bit about yourself and why you volunteer.
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="bio">Bio</Label>
-						<Textarea
-							id="bio"
-							value={form.bio}
-							onChange={(e) => updateField('bio', e.target.value)}
-							placeholder="A short bio about yourself…"
-							maxLength={500}
-							rows={4}
-						/>
-						<p className="text-xs text-muted-foreground text-right">
-							{form.bio.length}/500
-						</p>
-					</div>
-
-					<div className="space-y-2">
-						<Label>Interests</Label>
-						<ChipInput
-							items={form.interests}
-							onChange={(items) => updateField('interests', items)}
-							max={20}
-							placeholder="Type an interest and press Enter…"
-						/>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Contact & Location */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Contact &amp; Location</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="phone">Phone</Label>
-						<Input
-							id="phone"
-							value={form.phone}
-							onChange={(e) => updateField('phone', e.target.value)}
-							placeholder="555-0123"
-							maxLength={30}
-						/>
-					</div>
-					<div className="grid gap-4 sm:grid-cols-3">
+			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+				{/* About */}
+				<Card>
+					<CardHeader>
+						<CardTitle>About</CardTitle>
+						<CardDescription>
+							Tell organizations a bit about yourself and why you volunteer.
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-4">
 						<div className="space-y-2">
-							<Label htmlFor="city">City</Label>
-							<Input
-								id="city"
-								value={form.city}
-								onChange={(e) => updateField('city', e.target.value)}
-								placeholder="Portland"
-								maxLength={100}
+							<Label htmlFor="bio">Bio</Label>
+							<Textarea
+								id="bio"
+								{...form.register('bio')}
+								placeholder="A short bio about yourself…"
+								maxLength={500}
+								rows={4}
+							/>
+							{form.formState.errors.bio && (
+								<p className="text-sm text-destructive">
+									{form.formState.errors.bio.message}
+								</p>
+							)}
+							<p className="text-right text-xs text-muted-foreground">
+								{bio.length}/500
+							</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label>Interests</Label>
+							<Controller
+								control={form.control}
+								name="interests"
+								render={({ field }) => (
+									<ChipInput
+										items={field.value}
+										onChange={field.onChange}
+										max={20}
+										placeholder="Type an interest and press Enter…"
+									/>
+								)}
 							/>
 						</div>
+					</CardContent>
+				</Card>
+
+				{/* Contact & Location */}
+				<Card>
+					<CardHeader>
+						<CardTitle>Contact &amp; Location</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
 						<div className="space-y-2">
-							<Label htmlFor="state">State / Province</Label>
+							<Label htmlFor="phone">Phone</Label>
 							<Input
-								id="state"
-								value={form.state}
-								onChange={(e) => updateField('state', e.target.value)}
-								placeholder="OR"
-								maxLength={100}
+								id="phone"
+								{...form.register('phone')}
+								placeholder="555-0123"
+								maxLength={30}
 							/>
 						</div>
+						<div className="grid gap-4 sm:grid-cols-3">
+							<div className="space-y-2">
+								<Label htmlFor="city">City</Label>
+								<Input
+									id="city"
+									{...form.register('city')}
+									placeholder="Portland"
+									maxLength={100}
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="state">State / Province</Label>
+								<Input
+									id="state"
+									{...form.register('state')}
+									placeholder="OR"
+									maxLength={100}
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="country">Country</Label>
+								<Input
+									id="country"
+									{...form.register('country')}
+									placeholder="US"
+									maxLength={100}
+								/>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Preferences */}
+				<Card>
+					<CardHeader>
+						<CardTitle>Preferences</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
 						<div className="space-y-2">
-							<Label htmlFor="country">Country</Label>
-							<Input
-								id="country"
-								value={form.country}
-								onChange={(e) => updateField('country', e.target.value)}
-								placeholder="US"
-								maxLength={100}
+							<Label>Availability</Label>
+							<Controller
+								control={form.control}
+								name="availability"
+								render={({ field }) => (
+									<Select value={field.value} onValueChange={field.onChange}>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="FLEXIBLE">Flexible</SelectItem>
+											<SelectItem value="WEEKDAYS">Weekdays</SelectItem>
+											<SelectItem value="WEEKENDS">Weekends</SelectItem>
+											<SelectItem value="EVENINGS">Evenings</SelectItem>
+										</SelectContent>
+									</Select>
+								)}
 							/>
 						</div>
-					</div>
-				</CardContent>
-			</Card>
 
-			{/* Preferences */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Preferences</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="space-y-2">
-						<Label>Availability</Label>
-						<Select
-							value={form.availability}
-							onValueChange={(v) => updateField('availability', v)}
-						>
-							<SelectTrigger>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="FLEXIBLE">Flexible</SelectItem>
-								<SelectItem value="WEEKDAYS">Weekdays</SelectItem>
-								<SelectItem value="WEEKENDS">Weekends</SelectItem>
-								<SelectItem value="EVENINGS">Evenings</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
+						<div className="space-y-2">
+							<Label>Profile visibility</Label>
+							<Controller
+								control={form.control}
+								name="visibility"
+								render={({ field }) => (
+									<Select value={field.value} onValueChange={field.onChange}>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="PUBLIC">
+												Public — anyone can see
+											</SelectItem>
+											<SelectItem value="ORGS_ONLY">
+												Organizations only — visible to orgs you've applied to
+											</SelectItem>
+											<SelectItem value="PRIVATE">
+												Private — only you can see
+											</SelectItem>
+										</SelectContent>
+									</Select>
+								)}
+							/>
+						</div>
+					</CardContent>
+				</Card>
 
-					<div className="space-y-2">
-						<Label>Profile visibility</Label>
-						<Select
-							value={form.visibility}
-							onValueChange={(v) => updateField('visibility', v)}
-						>
-							<SelectTrigger>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="PUBLIC">Public — anyone can see</SelectItem>
-								<SelectItem value="ORGS_ONLY">
-									Organizations only — visible to orgs you've applied to
-								</SelectItem>
-								<SelectItem value="PRIVATE">
-									Private — only you can see
-								</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-				</CardContent>
-			</Card>
+				{/* Save */}
+				<div className="flex items-center gap-2 pb-8">
+					<Button type="submit" disabled={mutation.isPending}>
+						{mutation.isPending ? 'Saving…' : 'Save profile'}
+					</Button>
+				</div>
+			</form>
 
 			{/* Credentials (read-only for volunteer) */}
 			<CredentialsCard />
-
-			{/* Save */}
-			<div className="flex items-center gap-2 pb-8">
-				<Button onClick={handleSave} disabled={mutation.isPending}>
-					{mutation.isPending ? 'Saving…' : 'Save profile'}
-				</Button>
-			</div>
 		</div>
 	);
 }

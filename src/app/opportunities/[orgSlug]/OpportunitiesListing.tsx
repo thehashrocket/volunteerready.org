@@ -11,6 +11,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { formatDateRange } from '@/lib/format-date';
 import type { MatchResult } from '@/server/domain/volunteer-matching';
 import type { listPublishedOpportunities } from '@/server/repositories/publicOpportunityRepo';
@@ -30,16 +34,15 @@ type Requirement = Opportunity['requirements'][number];
 // Helpers
 // ---------------------------------------------------------------------------
 
-const TAG_PALETTES = [
-	'bg-amber-100 text-amber-800',
-	'bg-emerald-100 text-emerald-800',
-	'bg-sky-100 text-sky-800',
-	'bg-rose-100 text-rose-800',
-	'bg-violet-100 text-violet-800',
-	'bg-orange-100 text-orange-800',
+const TAG_PALETTES: Array<'warning' | 'success' | 'info' | 'neutral' | 'secondary'> = [
+	'warning',
+	'success',
+	'info',
+	'neutral',
+	'secondary',
 ];
 
-function tagColor(name: string): string {
+function tagVariant(name: string): typeof TAG_PALETTES[number] {
 	let hash = 0;
 	for (let i = 0; i < name.length; i++)
 		hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
@@ -62,18 +65,18 @@ function RequirementChips({
 	const preferred = requirements.filter((r) => r.level === 'PREFERRED');
 	return (
 		<div
-			className={`mb-5 pt-3 space-y-2.5 ${separator ? 'border-t border-stone-100' : ''}`}
+			className={`mb-5 space-y-2.5 pt-3 ${separator ? 'border-t' : ''}`}
 		>
 			{required.length > 0 && (
 				<div>
-					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
 						Skills needed
 					</p>
 					<div className="flex flex-wrap gap-1.5">
 						{required.map((r) => (
 							<span
 								key={r.id}
-								className="inline-flex items-center rounded-full bg-stone-800 px-2.5 py-0.5 text-xs font-medium text-white"
+								className="inline-flex items-center rounded-full bg-foreground px-2.5 py-0.5 text-xs font-medium text-background"
 							>
 								{r.skill}
 							</span>
@@ -83,14 +86,14 @@ function RequirementChips({
 			)}
 			{preferred.length > 0 && (
 				<div>
-					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
 						Nice to have
 					</p>
 					<div className="flex flex-wrap gap-1.5">
 						{preferred.map((r) => (
 							<span
 								key={r.id}
-								className="inline-flex items-center rounded-full bg-stone-50 px-2.5 py-0.5 text-xs font-medium text-stone-500 ring-1 ring-stone-200"
+								className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground ring-1 ring-border"
 							>
 								{r.skill}
 							</span>
@@ -109,24 +112,16 @@ function RequirementChips({
 function MatchBadge({ match }: { match: MatchResult }) {
 	if (match.matchType === 'PERFECT') {
 		return (
-			<span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 ring-1 ring-green-200">
+			<Badge variant="success">
 				<Sparkles className="h-3 w-3" />
 				Perfect match
-			</span>
+			</Badge>
 		);
 	}
 	if (match.matchType === 'PARTIAL') {
-		return (
-			<span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
-				{match.score}% match
-			</span>
-		);
+		return <Badge variant="warning">{match.score}% match</Badge>;
 	}
-	return (
-		<span className="inline-flex items-center gap-1 rounded-full bg-stone-50 px-2.5 py-0.5 text-xs font-medium text-stone-400 ring-1 ring-stone-200">
-			Skills needed
-		</span>
-	);
+	return <Badge variant="neutral">Skills needed</Badge>;
 }
 
 // ---------------------------------------------------------------------------
@@ -145,92 +140,90 @@ function OpportunityCard({
 	const dateRange = formatDateRange(opp.startDate, opp.endDate);
 
 	return (
-		<article className="group flex flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
-			{/* Location / remote badge */}
-			<div className="mb-3 flex flex-wrap gap-2">
-				{opp.isRemote && (
-					<span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-green-200">
-						<Wifi className="h-3 w-3" />
-						Remote
-					</span>
-				)}
-				{opp.location && (
-					<span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
-						<MapPin className="h-3 w-3" />
-						{opp.location}
-					</span>
-				)}
-				{matchResult && <MatchBadge match={matchResult} />}
-			</div>
-
-			{/* Title */}
-			<h3 className="mb-2 text-lg font-semibold text-stone-900 transition-colors group-hover:text-green-800">
-				{opp.title}
-			</h3>
-
-			{/* Description */}
-			<p className="mb-4 line-clamp-3 flex-1 text-sm leading-relaxed text-stone-500">
-				{opp.description}
-			</p>
-
-			{/* Meta row */}
-			{(dateRange || opp.commitmentHours != null || opp.capacity != null) && (
-				<div className="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-400">
-					{dateRange && (
-						<span className="flex items-center gap-1">
-							<Calendar className="h-3 w-3 shrink-0" />
-							{dateRange}
-						</span>
+		<Card className="group flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+			<CardContent className="flex flex-1 flex-col p-6">
+				{/* Location / remote badge */}
+				<div className="mb-3 flex flex-wrap gap-2">
+					{opp.isRemote && (
+						<Badge variant="success">
+							<Wifi className="h-3 w-3" />
+							Remote
+						</Badge>
 					)}
-					{opp.commitmentHours != null && (
-						<span className="flex items-center gap-1">
-							<Clock className="h-3 w-3 shrink-0" />
-							{opp.commitmentHours}h/week
-						</span>
+					{opp.location && (
+						<Badge variant="neutral">
+							<MapPin className="h-3 w-3" />
+							{opp.location}
+						</Badge>
 					)}
-					{opp.capacity != null && (
-						<span className="flex items-center gap-1">
-							<Users className="h-3 w-3 shrink-0" />
-							{opp.capacity} spots
-						</span>
-					)}
+					{matchResult && <MatchBadge match={matchResult} />}
 				</div>
-			)}
 
-			{/* Tags */}
-			{opp.tags.some((t) => t.name) && (
-				<div className="mb-4 flex flex-wrap gap-1.5">
-					{opp.tags
-						.filter((tag) => tag.name)
-						.map((tag) => (
-							<span
-								key={tag.id}
-								className={`rounded-full px-2 py-0.5 text-xs font-medium ${tagColor(tag.name)}`}
-							>
-								{tag.name}
+				{/* Title */}
+				<h3 className="mb-2 text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
+					{opp.title}
+				</h3>
+
+				{/* Description */}
+				<p className="mb-4 line-clamp-3 flex-1 text-sm leading-relaxed text-muted-foreground">
+					{opp.description}
+				</p>
+
+				{/* Meta row */}
+				{(dateRange || opp.commitmentHours != null || opp.capacity != null) && (
+					<div className="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+						{dateRange && (
+							<span className="flex items-center gap-1">
+								<Calendar className="h-3 w-3 shrink-0" />
+								{dateRange}
 							</span>
-						))}
-				</div>
-			)}
+						)}
+						{opp.commitmentHours != null && (
+							<span className="flex items-center gap-1">
+								<Clock className="h-3 w-3 shrink-0" />
+								{opp.commitmentHours}h/week
+							</span>
+						)}
+						{opp.capacity != null && (
+							<span className="flex items-center gap-1">
+								<Users className="h-3 w-3 shrink-0" />
+								{opp.capacity} spots
+							</span>
+						)}
+					</div>
+				)}
 
-			{/* Requirements */}
-			<RequirementChips
-				requirements={opp.requirements}
-				separator={
-					!!dateRange ||
-					opp.commitmentHours != null ||
-					opp.capacity != null ||
-					opp.tags.some((t) => t.name)
-				}
-			/>
+				{/* Tags */}
+				{opp.tags.some((t) => t.name) && (
+					<div className="mb-4 flex flex-wrap gap-1.5">
+						{opp.tags
+							.filter((tag) => tag.name)
+							.map((tag) => (
+								<Badge key={tag.id} variant={tagVariant(tag.name)}>
+									{tag.name}
+								</Badge>
+							))}
+					</div>
+				)}
 
-			<Link
-				href={`/apply/${orgSlug}?opportunityId=${opp.id}`}
-				className="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-green-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2"
-			>
-				Apply now
-			</Link>
-		</article>
+				{/* Requirements */}
+				<RequirementChips
+					requirements={opp.requirements}
+					separator={
+						!!dateRange ||
+						opp.commitmentHours != null ||
+						opp.capacity != null ||
+						opp.tags.some((t) => t.name)
+					}
+				/>
+
+				<Button asChild className="mt-auto w-full">
+					<Link href={`/apply/${orgSlug}?opportunityId=${opp.id}`}>
+						Apply now
+					</Link>
+				</Button>
+			</CardContent>
+		</Card>
 	);
 }
 
@@ -345,19 +338,16 @@ export function OpportunitiesListing({
 	}
 
 	return (
-		<main className="min-h-[calc(100vh-3.5rem)] bg-stone-50">
+		<main className="min-h-[calc(100vh-3.5rem)]">
 			{/* Hero */}
-			<div className="border-b border-stone-200 bg-white px-4 py-14 text-center">
-				<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-green-700">
+			<div className="border-b bg-background px-4 py-14 text-center">
+				<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary">
 					Volunteer opportunities
 				</p>
-				<h1
-					className="mx-auto max-w-2xl text-4xl italic leading-tight text-stone-900 sm:text-5xl"
-					style={{ fontFamily: 'var(--font-playfair)' }}
-				>
+				<h1 className="mx-auto max-w-2xl text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
 					Volunteer with {org.name}
 				</h1>
-				<p className="mx-auto mt-4 max-w-xl text-base text-stone-500">
+				<p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
 					{opportunities.length === 0
 						? 'No open opportunities right now — check back soon.'
 						: `${opportunities.length} open position${opportunities.length === 1 ? '' : 's'} available`}
@@ -369,34 +359,32 @@ export function OpportunitiesListing({
 				<div className="mx-auto max-w-5xl px-4 py-10">
 					{/* Search */}
 					<div className="relative mb-4">
-						<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-						<input
+						<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+						<Input
 							type="search"
 							placeholder="Search opportunities…"
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							className="w-full rounded-xl border-0 bg-white py-2.5 pl-9 pr-4 text-sm text-stone-900 ring-1 ring-stone-200 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-green-700"
+							className="pl-9"
 						/>
 					</div>
 
 					{/* Filter row */}
 					<div className="mb-4 flex flex-wrap items-center justify-between gap-3">
 						{/* Work mode toggle */}
-						<div className="flex overflow-hidden rounded-xl bg-white ring-1 ring-stone-200">
+						<div className="flex overflow-hidden rounded-md border">
 							{REMOTE_OPTIONS.map(([value, label]) => (
-								<button
+								<Button
 									key={value}
 									type="button"
+									variant={remoteFilter === value ? 'default' : 'ghost'}
+									size="sm"
 									aria-pressed={remoteFilter === value}
 									onClick={() => setRemoteFilter(value)}
-									className={`px-3 py-2 text-sm font-medium transition-colors ${
-										remoteFilter === value
-											? 'bg-green-700 text-white'
-											: 'text-stone-600 hover:bg-stone-50'
-									}`}
+									className="rounded-none"
 								>
 									{label}
-								</button>
+								</Button>
 							))}
 						</div>
 
@@ -404,7 +392,7 @@ export function OpportunitiesListing({
 						<select
 							value={sortBy}
 							onChange={(e) => setSortBy(e.target.value as SortBy)}
-							className="rounded-xl bg-white px-3 py-2 text-sm text-stone-700 ring-1 ring-stone-200 focus:outline-none focus:ring-2 focus:ring-green-700"
+							className="rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 						>
 							{hasMatching && <option value="best-match">Best match</option>}
 							<option value="newest">Newest</option>
@@ -416,34 +404,30 @@ export function OpportunitiesListing({
 					{/* Tag filters */}
 					{allTags.length > 0 && (
 						<div className="mb-6 flex flex-wrap gap-2">
-							<button
+							<Button
 								type="button"
+								variant={activeTag === null ? 'default' : 'outline'}
+								size="sm"
 								aria-pressed={activeTag === null}
 								onClick={() => setActiveTag(null)}
-								className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-									activeTag === null
-										? 'bg-green-700 text-white'
-										: 'bg-white text-stone-600 ring-1 ring-stone-200 hover:bg-stone-100'
-								}`}
+								className="rounded-full"
 							>
 								All
-							</button>
+							</Button>
 							{allTags.map((tagName) => (
-								<button
+								<Button
 									type="button"
 									key={tagName}
+									variant={activeTag === tagName ? 'default' : 'outline'}
+									size="sm"
 									aria-pressed={activeTag === tagName}
 									onClick={() =>
 										setActiveTag(activeTag === tagName ? null : tagName)
 									}
-									className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-										activeTag === tagName
-											? 'bg-green-700 text-white'
-											: 'bg-white text-stone-600 ring-1 ring-stone-200 hover:bg-stone-100'
-									}`}
+									className="rounded-full"
 								>
 									{tagName}
-								</button>
+								</Button>
 							))}
 						</div>
 					)}
@@ -451,30 +435,33 @@ export function OpportunitiesListing({
 					{/* Results bar */}
 					{hasActiveFilters && (
 						<div className="mb-6 flex items-center justify-between text-sm">
-							<span className="text-stone-500">
+							<span className="text-muted-foreground">
 								{`${filtered.length} ${filtered.length === 1 ? 'result' : 'results'}`}
 							</span>
-							<button
+							<Button
 								type="button"
+								variant="link"
+								size="sm"
 								onClick={clearFilters}
-								className="text-green-700 hover:underline"
+								className="h-auto p-0"
 							>
 								Clear filters
-							</button>
+							</Button>
 						</div>
 					)}
 
 					{/* Grid */}
 					{filtered.length === 0 ? (
-						<div className="text-center text-sm text-stone-400">
+						<div className="text-center text-sm text-muted-foreground">
 							<p>No opportunities match your filters.</p>
-							<button
+							<Button
 								type="button"
+								variant="link"
 								onClick={clearFilters}
-								className="mt-2 text-green-700 hover:underline"
+								className="mt-2 h-auto p-0"
 							>
 								Clear filters
-							</button>
+							</Button>
 						</div>
 					) : (
 						<div className="grid gap-6 sm:grid-cols-2">

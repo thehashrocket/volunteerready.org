@@ -336,14 +336,16 @@ function QuestionField({
 
 	switch (question.type) {
 		case 'YES_NO': {
+			const labelId = `label-${question.key}`;
 			return (
 				<div className="space-y-2">
-					<Label>{question.prompt}</Label>
+					<Label id={labelId}>{question.prompt}</Label>
 					<Controller
 						control={form.control}
 						name={path}
 						render={({ field }) => (
 							<RadioGroup
+								aria-labelledby={labelId}
 								value={
 									field.value === true
 										? 'yes'
@@ -354,14 +356,14 @@ function QuestionField({
 								onValueChange={(value) => field.onChange(value === 'yes')}
 								className="flex gap-6"
 							>
-								<span className="flex items-center gap-2 text-sm">
-									<RadioGroupItem value="yes" />
-									Yes
-								</span>
-								<span className="flex items-center gap-2 text-sm">
-									<RadioGroupItem value="no" />
-									No
-								</span>
+								<div className="flex items-center gap-2 text-sm">
+									<RadioGroupItem value="yes" id={`${question.key}-yes`} />
+									<Label htmlFor={`${question.key}-yes`} className="cursor-pointer font-normal">Yes</Label>
+								</div>
+								<div className="flex items-center gap-2 text-sm">
+									<RadioGroupItem value="no" id={`${question.key}-no`} />
+									<Label htmlFor={`${question.key}-no`} className="cursor-pointer font-normal">No</Label>
+								</div>
 							</RadioGroup>
 						)}
 					/>

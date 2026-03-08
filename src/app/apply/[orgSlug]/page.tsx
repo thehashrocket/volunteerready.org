@@ -1,9 +1,24 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import { getPublishedOpportunityById } from '@/server/repositories/publicOpportunityRepo';
 import { ApplyProviders } from '../providers';
 import ApplyFormClient from './ApplyFormClient';
+
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ orgSlug: string }>;
+}): Promise<Metadata> {
+	const { orgSlug } = await params;
+	const { org } = await getPublicFormByOrgSlug(orgSlug);
+	if (!org) return { title: 'Volunteer Application' };
+	return {
+		title: `Volunteer Application — ${org.name}`,
+		description: `Apply to volunteer with ${org.name}.`,
+	};
+}
 
 export default async function ApplyPage({
 	params,

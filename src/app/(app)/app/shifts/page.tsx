@@ -1,5 +1,6 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
 	Calendar,
@@ -12,7 +13,10 @@ import {
 	XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
+import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -53,6 +57,30 @@ import { Textarea } from '@/components/ui/textarea';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
+// Schema
+// ---------------------------------------------------------------------------
+
+const createShiftSchema = z
+	.object({
+		title: z.string().min(1, 'Title is required').max(200),
+		description: z.string().optional(),
+		location: z.string().optional(),
+		isRemote: z.boolean().default(false),
+		startTime: z.string().min(1, 'Start time is required'),
+		endTime: z.string().min(1, 'End time is required'),
+		capacity: z.coerce
+			.number({ invalid_type_error: 'Capacity must be a number' })
+			.int()
+			.min(1, 'Capacity must be at least 1'),
+	})
+	.refine((d) => new Date(d.endTime) > new Date(d.startTime), {
+		message: 'End time must be after start time',
+		path: ['endTime'],
+	});
+
+type CreateShiftValues = z.infer<typeof createShiftSchema>;
+
+// ---------------------------------------------------------------------------
 // Status badge
 // ---------------------------------------------------------------------------
 
@@ -80,22 +108,34 @@ function CreateShiftDialog() {
 		onSuccess: () => {
 			toast.success('Shift created');
 			setOpen(false);
+			form.reset();
 			qc.invalidateQueries();
 		},
 		onError: (err) => toast.error(err.message),
 	});
 
-	function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-		e.preventDefault();
-		const fd = new FormData(e.currentTarget);
+	const form = useForm<CreateShiftValues>({
+		resolver: zodResolver(createShiftSchema),
+		defaultValues: {
+			title: '',
+			description: '',
+			location: '',
+			isRemote: false,
+			startTime: '',
+			endTime: '',
+			capacity: 10,
+		},
+	});
+
+	function onSubmit(values: CreateShiftValues) {
 		create.mutate({
-			title: fd.get('title') as string,
-			description: (fd.get('description') as string) || undefined,
-			location: (fd.get('location') as string) || undefined,
-			isRemote: fd.get('isRemote') === 'on',
-			startTime: new Date(fd.get('startTime') as string),
-			endTime: new Date(fd.get('endTime') as string),
-			capacity: Number(fd.get('capacity')),
+			title: values.title,
+			description: values.description || undefined,
+			location: values.location || undefined,
+			isRemote: values.isRemote,
+			startTime: new Date(values.startTime),
+			endTime: new Date(values.endTime),
+			capacity: values.capacity,
 		});
 	}
 
@@ -111,54 +151,78 @@ function CreateShiftDialog() {
 					<DialogTitle>Create Shift</DialogTitle>
 					<DialogDescription>Schedule a new volunteer shift.</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit} className="space-y-4">
-					<div>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					<div className="space-y-1">
 						<Label htmlFor="title">Title</Label>
-						<Input id="title" name="title" required maxLength={200} />
+						<Input id="title" {...form.register('title')} maxLength={200} />
+						{form.formState.errors.title && (
+							<p className="text-sm text-destructive">
+								{form.formState.errors.title.message}
+							</p>
+						)}
 					</div>
-					<div>
+					<div className="space-y-1">
 						<Label htmlFor="description">Description</Label>
-						<Textarea id="description" name="description" rows={2} />
+						<Textarea
+							id="description"
+							{...form.register('description')}
+							rows={2}
+						/>
 					</div>
 					<div className="grid grid-cols-2 gap-4">
-						<div>
+						<div className="space-y-1">
 							<Label htmlFor="startTime">Start</Label>
 							<Input
 								id="startTime"
-								name="startTime"
 								type="datetime-local"
-								required
+								{...form.register('startTime')}
 							/>
+							{form.formState.errors.startTime && (
+								<p className="text-sm text-destructive">
+									{form.formState.errors.startTime.message}
+								</p>
+							)}
 						</div>
-						<div>
+						<div className="space-y-1">
 							<Label htmlFor="endTime">End</Label>
 							<Input
 								id="endTime"
-								name="endTime"
 								type="datetime-local"
-								required
+								{...form.register('endTime')}
 							/>
+							{form.formState.errors.endTime && (
+								<p className="text-sm text-destructive">
+									{form.formState.errors.endTime.message}
+								</p>
+							)}
 						</div>
 					</div>
 					<div className="grid grid-cols-2 gap-4">
-						<div>
+						<div className="space-y-1">
 							<Label htmlFor="capacity">Capacity</Label>
 							<Input
 								id="capacity"
-								name="capacity"
 								type="number"
 								min={1}
-								defaultValue={10}
-								required
+								{...form.register('capacity')}
 							/>
+							{form.formState.errors.capacity && (
+								<p className="text-sm text-destructive">
+									{form.formState.errors.capacity.message}
+								</p>
+							)}
 						</div>
-						<div>
+						<div className="space-y-1">
 							<Label htmlFor="location">Location</Label>
-							<Input id="location" name="location" />
+							<Input id="location" {...form.register('location')} />
 						</div>
 					</div>
 					<div className="flex items-center gap-2">
-						<input type="checkbox" id="isRemote" name="isRemote" />
+						<input
+							type="checkbox"
+							id="isRemote"
+							{...form.register('isRemote')}
+						/>
 						<Label htmlFor="isRemote">Remote shift</Label>
 					</div>
 					<Button type="submit" disabled={create.isPending} className="w-full">
@@ -382,9 +446,11 @@ export default function ShiftsPage() {
 							))}
 						</div>
 					) : !shifts?.length ? (
-						<p className="text-muted-foreground py-8 text-center">
-							No shifts found. Create one to get started.
-						</p>
+						<EmptyState
+							icon={Calendar}
+							title="No shifts found"
+							description="Create a shift to start scheduling volunteers."
+						/>
 					) : (
 						<Table>
 							<TableHeader>

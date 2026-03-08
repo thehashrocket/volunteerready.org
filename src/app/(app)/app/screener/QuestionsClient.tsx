@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { trpc } from '@/lib/trpc/client';
+import { EmptyState } from '@/components/empty-state';
 import { QuestionDialog } from './QuestionDialog';
 
 type Question = {
@@ -27,12 +28,15 @@ const TYPE_LABELS: Record<string, string> = {
 	NUMBER: 'Number',
 };
 
-const TYPE_CLASSES: Record<string, string> = {
-	BOOLEAN: 'border-blue-200 text-blue-700 bg-blue-50',
-	TEXT: 'border-zinc-200 text-zinc-600 bg-zinc-50',
-	SINGLE_CHOICE: 'border-purple-200 text-purple-700 bg-purple-50',
-	MULTI_CHOICE: 'border-orange-200 text-orange-700 bg-orange-50',
-	NUMBER: 'border-green-200 text-green-700 bg-green-50',
+const TYPE_VARIANT: Record<
+	string,
+	'info' | 'neutral' | 'secondary' | 'warning' | 'success'
+> = {
+	BOOLEAN: 'info',
+	TEXT: 'neutral',
+	SINGLE_CHOICE: 'secondary',
+	MULTI_CHOICE: 'warning',
+	NUMBER: 'success',
 };
 
 export function QuestionsClient() {
@@ -104,9 +108,7 @@ export function QuestionsClient() {
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
 				<p className="text-sm text-muted-foreground">
-					{questions.length === 0
-						? 'No questions yet. Add your first question below.'
-						: `${questions.length} question${questions.length !== 1 ? 's' : ''}`}
+					{questions.length > 0 && `${questions.length} question${questions.length !== 1 ? 's' : ''}`}
 				</p>
 				<Button size="sm" onClick={openCreate}>
 					<Plus className="mr-2 h-4 w-4" />
@@ -114,7 +116,19 @@ export function QuestionsClient() {
 				</Button>
 			</div>
 
-			{questions.length > 0 && (
+			{questions.length === 0 ? (
+				<EmptyState
+					icon={Plus}
+					title="No questions yet"
+					description="Add your first screening question to start collecting volunteer information."
+					action={
+						<Button size="sm" onClick={openCreate}>
+							<Plus className="mr-2 h-4 w-4" />
+							Add question
+						</Button>
+					}
+				/>
+			) : (
 				<div className="space-y-2">
 					{questions.map((q, index) => (
 						<Card key={q.id} className={q.isActive ? '' : 'opacity-60'}>
@@ -126,8 +140,8 @@ export function QuestionsClient() {
 
 								{/* Type badge */}
 								<Badge
-									variant="outline"
-									className={`shrink-0 text-xs font-normal ${TYPE_CLASSES[q.type] ?? ''}`}
+									variant={TYPE_VARIANT[q.type] ?? 'neutral'}
+									className="shrink-0 text-xs font-normal"
 								>
 									{TYPE_LABELS[q.type] ?? q.type}
 								</Badge>

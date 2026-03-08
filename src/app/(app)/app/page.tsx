@@ -87,22 +87,22 @@ export default function DashboardPage() {
 						<StatCard
 							label="Published opportunities"
 							value={data?.opportunities.published ?? 0}
-							accent="bg-green-500"
+							accent="bg-success"
 						/>
 						<StatCard
 							label="Total applications"
 							value={data?.applications.total ?? 0}
-							accent="bg-blue-400"
+							accent="bg-info"
 						/>
 						<StatCard
 							label="In review"
 							value={data?.applications.review ?? 0}
-							accent="bg-amber-400"
+							accent="bg-warning"
 						/>
 						<StatCard
 							label="Approved"
 							value={data?.applications.approved ?? 0}
-							accent="bg-emerald-500"
+							accent="bg-success/70"
 						/>
 					</>
 				)}
