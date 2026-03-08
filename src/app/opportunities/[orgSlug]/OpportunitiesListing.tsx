@@ -34,15 +34,11 @@ type Requirement = Opportunity['requirements'][number];
 // Helpers
 // ---------------------------------------------------------------------------
 
-const TAG_PALETTES: Array<'warning' | 'success' | 'info' | 'neutral' | 'secondary'> = [
-	'warning',
-	'success',
-	'info',
-	'neutral',
-	'secondary',
-];
+const TAG_PALETTES: Array<
+	'warning' | 'success' | 'info' | 'neutral' | 'secondary'
+> = ['warning', 'success', 'info', 'neutral', 'secondary'];
 
-function tagVariant(name: string): typeof TAG_PALETTES[number] {
+function tagVariant(name: string): (typeof TAG_PALETTES)[number] {
 	let hash = 0;
 	for (let i = 0; i < name.length; i++)
 		hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
@@ -64,9 +60,7 @@ function RequirementChips({
 	const required = requirements.filter((r) => r.level === 'REQUIRED');
 	const preferred = requirements.filter((r) => r.level === 'PREFERRED');
 	return (
-		<div
-			className={`mb-5 space-y-2.5 pt-3 ${separator ? 'border-t' : ''}`}
-		>
+		<div className={`mb-5 space-y-2.5 pt-3 ${separator ? 'border-t' : ''}`}>
 			{required.length > 0 && (
 				<div>
 					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">

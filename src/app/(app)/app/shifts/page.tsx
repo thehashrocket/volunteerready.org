@@ -13,6 +13,7 @@ import {
 	XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import type { Resolver } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -65,13 +66,10 @@ const createShiftSchema = z
 		title: z.string().min(1, 'Title is required').max(200),
 		description: z.string().optional(),
 		location: z.string().optional(),
-		isRemote: z.boolean().default(false),
+		isRemote: z.boolean(),
 		startTime: z.string().min(1, 'Start time is required'),
 		endTime: z.string().min(1, 'End time is required'),
-		capacity: z.coerce
-			.number({ invalid_type_error: 'Capacity must be a number' })
-			.int()
-			.min(1, 'Capacity must be at least 1'),
+		capacity: z.coerce.number().int().min(1, 'Capacity must be at least 1'),
 	})
 	.refine((d) => new Date(d.endTime) > new Date(d.startTime), {
 		message: 'End time must be after start time',
@@ -115,7 +113,7 @@ function CreateShiftDialog() {
 	});
 
 	const form = useForm<CreateShiftValues>({
-		resolver: zodResolver(createShiftSchema),
+		resolver: zodResolver(createShiftSchema) as Resolver<CreateShiftValues>,
 		defaultValues: {
 			title: '',
 			description: '',

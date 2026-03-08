@@ -3,12 +3,12 @@
 import { ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { trpc } from '@/lib/trpc/client';
-import { EmptyState } from '@/components/empty-state';
 import { QuestionDialog } from './QuestionDialog';
 
 type Question = {
@@ -108,7 +108,8 @@ export function QuestionsClient() {
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
 				<p className="text-sm text-muted-foreground">
-					{questions.length > 0 && `${questions.length} question${questions.length !== 1 ? 's' : ''}`}
+					{questions.length > 0 &&
+						`${questions.length} question${questions.length !== 1 ? 's' : ''}`}
 				</p>
 				<Button size="sm" onClick={openCreate}>
 					<Plus className="mr-2 h-4 w-4" />

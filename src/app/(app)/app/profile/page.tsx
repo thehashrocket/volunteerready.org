@@ -179,16 +179,14 @@ function CompletenessBar({
 // ---------------------------------------------------------------------------
 
 const profileFormSchema = z.object({
-	bio: z.string().max(500, 'Bio must be 500 characters or fewer').default(''),
-	phone: z.string().max(30).default(''),
-	city: z.string().max(100).default(''),
-	state: z.string().max(100).default(''),
-	country: z.string().max(100).default(''),
-	availability: z
-		.enum(['FLEXIBLE', 'WEEKDAYS', 'WEEKENDS', 'EVENINGS'])
-		.default('FLEXIBLE'),
-	visibility: z.enum(['PUBLIC', 'ORGS_ONLY', 'PRIVATE']).default('ORGS_ONLY'),
-	interests: z.array(z.string()).max(20).default([]),
+	bio: z.string().max(500, 'Bio must be 500 characters or fewer').optional(),
+	phone: z.string().max(30).optional(),
+	city: z.string().max(100).optional(),
+	state: z.string().max(100).optional(),
+	country: z.string().max(100).optional(),
+	availability: z.enum(['FLEXIBLE', 'WEEKDAYS', 'WEEKENDS', 'EVENINGS']),
+	visibility: z.enum(['PUBLIC', 'ORGS_ONLY', 'PRIVATE']),
+	interests: z.array(z.string()).max(20),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -404,7 +402,7 @@ export default function ProfilePage() {
 								</p>
 							)}
 							<p className="text-right text-xs text-muted-foreground">
-								{bio.length}/500
+								{(bio ?? '').length}/500
 							</p>
 						</div>
 

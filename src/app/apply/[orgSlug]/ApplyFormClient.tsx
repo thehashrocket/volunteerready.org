@@ -358,11 +358,21 @@ function QuestionField({
 							>
 								<div className="flex items-center gap-2 text-sm">
 									<RadioGroupItem value="yes" id={`${question.key}-yes`} />
-									<Label htmlFor={`${question.key}-yes`} className="cursor-pointer font-normal">Yes</Label>
+									<Label
+										htmlFor={`${question.key}-yes`}
+										className="cursor-pointer font-normal"
+									>
+										Yes
+									</Label>
 								</div>
 								<div className="flex items-center gap-2 text-sm">
 									<RadioGroupItem value="no" id={`${question.key}-no`} />
-									<Label htmlFor={`${question.key}-no`} className="cursor-pointer font-normal">No</Label>
+									<Label
+										htmlFor={`${question.key}-no`}
+										className="cursor-pointer font-normal"
+									>
+										No
+									</Label>
 								</div>
 							</RadioGroup>
 						)}
