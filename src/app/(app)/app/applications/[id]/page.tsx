@@ -18,6 +18,7 @@ import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStat
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatDateRange } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 
@@ -85,8 +86,10 @@ export default function ApplicationDetailPage() {
 					description="Fetching application details."
 				/>
 				<Card>
-					<CardContent className="pt-6 text-sm text-muted-foreground">
-						Please wait…
+					<CardContent className="space-y-2 pt-6">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Skeleton key={i} className="h-12 w-full" />
+						))}
 					</CardContent>
 				</Card>
 			</div>
@@ -103,7 +106,7 @@ export default function ApplicationDetailPage() {
 				/>
 				<Card>
 					<CardContent className="space-y-4 pt-6 text-sm text-muted-foreground">
-						<Button onClick={() => query.refetch()} variant="outline">
+						<Button onClick={() => query.refetch()} variant="outline" size="sm">
 							<RefreshCw className="h-4 w-4" />
 							Try again
 						</Button>

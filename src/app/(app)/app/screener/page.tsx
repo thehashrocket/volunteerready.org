@@ -3,7 +3,7 @@ import { QuestionsClient } from './QuestionsClient';
 
 export default function ScreenerPage() {
 	return (
-		<div className="space-y-8">
+		<div className="space-y-6">
 			<PageHeader
 				title="Screener Questions"
 				description="Configure the questions volunteers answer when applying."

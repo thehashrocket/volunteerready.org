@@ -19,6 +19,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
 	TableBody,
@@ -103,8 +104,10 @@ export default function TeamPage() {
 			<div className="space-y-6">
 				<PageHeader title="Team members" description="Loading…" />
 				<Card>
-					<CardContent className="pt-6 text-sm text-muted-foreground">
-						Fetching team members…
+					<CardContent className="space-y-2 pt-6">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Skeleton key={i} className="h-12 w-full" />
+						))}
 					</CardContent>
 				</Card>
 			</div>
@@ -121,7 +124,7 @@ export default function TeamPage() {
 				<Card>
 					<CardContent className="space-y-4 pt-6 text-sm text-muted-foreground">
 						<p>{query.error.message}</p>
-						<Button onClick={() => query.refetch()} variant="outline">
+						<Button onClick={() => query.refetch()} variant="outline" size="sm">
 							<RefreshCw className="h-4 w-4" />
 							Try again
 						</Button>
@@ -132,7 +135,7 @@ export default function TeamPage() {
 	}
 
 	return (
-		<div className="space-y-8">
+		<div className="space-y-6">
 			<PageHeader
 				title="Team members"
 				description={`${members.length} member${members.length === 1 ? '' : 's'}`}

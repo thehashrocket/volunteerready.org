@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Briefcase, RefreshCw } from 'lucide-react';
+import { Briefcase, Plus, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
 	TableBody,
@@ -108,11 +109,12 @@ export function OpportunitiesClient() {
 					description="Manage your organization's volunteer roles."
 				/>
 				<Card>
-					<CardHeader>
-						<CardTitle>Loading opportunities…</CardTitle>
-					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground">
-						Fetching your opportunities.
+					<CardContent className="pt-6">
+						<div className="space-y-2">
+							{Array.from({ length: 5 }).map((_, i) => (
+								<Skeleton key={i} className="h-12 w-full" />
+							))}
+						</div>
 					</CardContent>
 				</Card>
 			</div>
@@ -132,7 +134,7 @@ export function OpportunitiesClient() {
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm text-muted-foreground">
 						<p>{query.error.message}</p>
-						<Button onClick={() => query.refetch()} variant="outline">
+						<Button onClick={() => query.refetch()} variant="outline" size="sm">
 							<RefreshCw className="h-4 w-4" />
 							Try again
 						</Button>
@@ -163,7 +165,10 @@ export function OpportunitiesClient() {
 									<SelectItem value="CLOSED">Closed</SelectItem>
 								</SelectContent>
 							</Select>
-							<Button onClick={openCreate}>New opportunity</Button>
+							<Button size="sm" onClick={openCreate}>
+								<Plus className="mr-2 h-4 w-4" />
+								New opportunity
+							</Button>
 						</div>
 					}
 				/>
@@ -173,7 +178,12 @@ export function OpportunitiesClient() {
 						title="No opportunities yet"
 						description="Create your first volunteer opportunity to get started."
 						icon={Briefcase}
-						action={<Button onClick={openCreate}>New opportunity</Button>}
+						action={
+							<Button size="sm" onClick={openCreate}>
+								<Plus className="mr-2 h-4 w-4" />
+								New opportunity
+							</Button>
+						}
 					/>
 				) : (
 					<Card>

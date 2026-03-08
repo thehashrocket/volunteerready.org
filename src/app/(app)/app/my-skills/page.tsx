@@ -13,6 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
@@ -131,14 +132,16 @@ export default function MySkillsPage() {
 
 	if (query.isLoading) {
 		return (
-			<div className="mx-auto max-w-xl space-y-8">
+			<div className="mx-auto max-w-xl space-y-6">
 				<PageHeader
 					title="My Skills"
 					description="Add skills to get matched with volunteer opportunities."
 				/>
 				<Card>
-					<CardContent className="py-8 text-center text-muted-foreground">
-						Loading your skills…
+					<CardContent className="space-y-2 pt-6">
+						{Array.from({ length: 3 }).map((_, i) => (
+							<Skeleton key={i} className="h-10 w-full" />
+						))}
 					</CardContent>
 				</Card>
 			</div>
@@ -147,7 +150,7 @@ export default function MySkillsPage() {
 
 	if (query.isError) {
 		return (
-			<div className="mx-auto max-w-xl space-y-8">
+			<div className="mx-auto max-w-xl space-y-6">
 				<PageHeader
 					title="My Skills"
 					description="Add skills to get matched with volunteer opportunities."
@@ -155,7 +158,7 @@ export default function MySkillsPage() {
 				<Card>
 					<CardContent className="space-y-4 py-8 text-center">
 						<p className="text-sm text-destructive">{query.error.message}</p>
-						<Button variant="outline" onClick={() => query.refetch()}>
+						<Button variant="outline" size="sm" onClick={() => query.refetch()}>
 							Try again
 						</Button>
 					</CardContent>
@@ -165,7 +168,7 @@ export default function MySkillsPage() {
 	}
 
 	return (
-		<div className="mx-auto max-w-xl space-y-8">
+		<div className="mx-auto max-w-xl space-y-6">
 			<PageHeader
 				title="My Skills"
 				description="Add skills to get matched with volunteer opportunities."

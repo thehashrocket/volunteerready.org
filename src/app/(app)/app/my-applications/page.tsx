@@ -54,7 +54,7 @@ export default function MyApplicationsPage() {
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm text-muted-foreground">
 						<p>{query.error.message}</p>
-						<Button onClick={() => query.refetch()} variant="outline">
+						<Button onClick={() => query.refetch()} variant="outline" size="sm">
 							<RefreshCw className="h-4 w-4" />
 							Try again
 						</Button>

@@ -13,6 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { trpc } from '@/lib/trpc/client';
 
 export default function MyShiftsPage() {
@@ -35,7 +36,13 @@ export default function MyShiftsPage() {
 			/>
 
 			{isLoading ? (
-				<p className="text-muted-foreground py-8 text-center">Loading…</p>
+				<Card>
+					<CardContent className="space-y-2 pt-6">
+						{Array.from({ length: 3 }).map((_, i) => (
+							<Skeleton key={i} className="h-28 w-full" />
+						))}
+					</CardContent>
+				</Card>
 			) : !signups?.length ? (
 				<Card>
 					<CardContent className="py-12 text-center">

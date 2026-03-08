@@ -31,6 +31,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
 	TableBody,
@@ -253,8 +254,10 @@ export default function CredentialsPage() {
 					description="Manage volunteer verifications."
 				/>
 				<Card>
-					<CardContent className="py-8 text-center text-muted-foreground">
-						Loading credentials…
+					<CardContent className="space-y-2 pt-6">
+						{Array.from({ length: 5 }).map((_, i) => (
+							<Skeleton key={i} className="h-12 w-full" />
+						))}
 					</CardContent>
 				</Card>
 			</div>
@@ -269,9 +272,9 @@ export default function CredentialsPage() {
 					description="Manage volunteer verifications."
 				/>
 				<Card>
-					<CardContent className="space-y-4 py-8 text-center">
-						<p className="text-sm text-destructive">{query.error.message}</p>
-						<Button variant="outline" onClick={() => query.refetch()}>
+					<CardContent className="space-y-4 pt-6 text-sm text-muted-foreground">
+						<p className="text-destructive">{query.error.message}</p>
+						<Button variant="outline" size="sm" onClick={() => query.refetch()}>
 							Try again
 						</Button>
 					</CardContent>

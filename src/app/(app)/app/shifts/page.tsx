@@ -40,6 +40,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
 	TableBody,
@@ -377,9 +378,11 @@ export default function ShiftsPage() {
 				</CardHeader>
 				<CardContent>
 					{isLoading ? (
-						<p className="text-muted-foreground py-8 text-center">
-							Loading shifts…
-						</p>
+						<div className="space-y-2 pt-2">
+							{Array.from({ length: 5 }).map((_, i) => (
+								<Skeleton key={i} className="h-12 w-full" />
+							))}
+						</div>
 					) : !shifts?.length ? (
 						<p className="text-muted-foreground py-8 text-center">
 							No shifts found. Create one to get started.
