@@ -1,0 +1,18 @@
+#!/bin/sh
+# Pre-commit hook: runs typecheck + lint + tests before every commit.
+# To enable: git config core.hooksPath .githooks
+# Or run: pnpm prepare
+
+echo "🔍 Running pre-commit checks..."
+
+pnpm check
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+  echo ""
+  echo "❌ Pre-commit check failed. Fix the errors above before committing."
+  echo "   To skip this hook (use sparingly): git commit --no-verify"
+  exit 1
+fi
+
+echo "✅ All checks passed."

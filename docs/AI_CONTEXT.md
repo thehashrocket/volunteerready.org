@@ -53,6 +53,8 @@ Database  (PostgreSQL)
 - All DB writes go through services so audit logging is automatic.
 - Domain layer is pure — no imports from Prisma, Next.js, or tRPC.
 - Zod schemas live next to domain models; import on both client and server.
+- All multi-step writes (create + audit, update + audit) use `prisma.$transaction` for atomicity.
+- Audit logs are written inside the same transaction as the operation they record via `writeAuditLogTx(tx, input)`.
 
 See `docs/ARCHITECTURE.md` for the full rationale.
 
@@ -94,8 +96,11 @@ src/
 │   ├── services/                 # Business logic layer
 │   ├── repositories/             # Prisma data access layer
 │   └── domain/                   # Pure types + functions + tests
-│       ├── volunteer-screening.ts
+│       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
 │       ├── screener/
+│       │   ├── configSchema.ts     # Zod schemas for screening question config
+│       │   ├── publicForm.ts       # Public form type mapping
+│       │   └── __tests__/
 │       └── __tests__/
 │
 ├── lib/
@@ -141,19 +146,19 @@ See `docs/DOMAIN.md` for canonical vocabulary.
 
 **Auth flow:** NextAuth with database sessions (not JWT). Providers: Google OAuth and email magic links (Resend).
 
-**Session:** Extended with `currentOrgId` to support org switching without token refresh.
+**Session resolution (single source of truth):** The NextAuth session callback in `auth.ts` performs a single DB query that fetches `session.currentOrgId` and the user's full membership list. It resolves `orgId` and `role` from that data and attaches them to the session object. The tRPC context in `init.ts` reads these pre-resolved values — no additional queries needed.
 
 **tRPC procedure levels** (defined in `src/server/trpc/init.ts`):
 
-| Procedure | Requires |
-|---|---|
-| `publicProcedure` | Nothing |
-| `protectedProcedure` | Authenticated user |
-| `orgProcedure` | Authenticated + org membership |
-| `staffProcedure` | STAFF, ADMIN, or OWNER role |
-| `adminProcedure` | ADMIN or OWNER role |
+| Procedure | Requires | Context narrowing |
+|---|---|---|
+| `publicProcedure` | Nothing | — |
+| `protectedProcedure` | Authenticated user | — |
+| `orgProcedure` | Authenticated + org membership | `orgId: string` (non-null) |
+| `staffProcedure` | STAFF, ADMIN, or OWNER role | `role: Role` (non-null) |
+| `adminProcedure` | ADMIN or OWNER role | `role: Role` (non-null) |
 
-Always use the **narrowest** access level possible.
+Each middleware narrows the context type via `next({ ctx: { ... } })`, so downstream code can use `ctx.orgId` and `ctx.role` without non-null assertions. Always use the **narrowest** access level possible.
 
 ---
 
@@ -186,7 +191,9 @@ The screening engine lives in `src/server/domain/volunteer-screening.ts`.
 - **ReviewRule** — matched answer → `REVIEW` (manual review needed)
 - **Operators:** `equals`, `includes`, `lt`, `lte`, `gt`, `gte`
 
-The service orchestrator is `src/server/services/volunteer-screening.ts`.
+**Config validation:** `src/server/domain/screener/configSchema.ts` provides Zod schemas for validating screening question configurations, including `disqualifierRuleSchema`, `reviewRuleSchema`, and `questionConfigSchema`.
+
+The service orchestrator is `src/server/services/volunteer-screening.ts`. It wraps application creation, answer submission, and audit logging in a single `prisma.$transaction`.
 
 ---
 
@@ -235,7 +242,10 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/services/volunteer-screening.ts` | Primary service orchestration pattern |
 | `src/server/trpc/routers/screener.ts` | Largest router — shows tRPC patterns |
 | `src/middleware.ts` | Auth middleware for route protection |
-| `src/server/auth.ts` | NextAuth configuration |
+| `src/server/auth.ts` | NextAuth configuration + session org resolution |
+| `src/server/repositories/auditRepo.ts` | Audit logging (both standalone and transactional variants) |
+| `src/server/domain/screener/configSchema.ts` | Zod schemas for screening question configuration |
+| `vitest.config.mts` | Test configuration (ESM, path aliases) |
 
 ---
 
@@ -269,7 +279,10 @@ When you need framework-specific guidance, consult these:
 
 1. **Forgetting `orgId`** — every org-scoped query must filter by it. If you skip it, data leaks across tenants.
 2. **Putting Prisma in routers** — routers must call services, services call repositories. No exceptions.
-3. **Skipping audit logging** — route writes through services so audit logs are created automatically.
+3. **Skipping audit logging** — route writes through services so audit logs are created automatically. Use `writeAuditLogTx(tx, input)` inside transactions, not the fire-and-forget `writeAuditLog`.
 4. **Using JWT assumptions** — sessions are database-backed, not JWT. `currentOrgId` lives in the session row.
 5. **Duplicating Zod schemas** — schemas are defined once in the domain layer and imported everywhere else.
 6. **Ignoring role hierarchy** — use the narrowest procedure type. Don't default to `orgProcedure` when `staffProcedure` or `adminProcedure` is appropriate.
+7. **Using non-null assertions (`!`)** — tRPC middleware narrows context types. Use `ctx.orgId` (already `string`), not `ctx.orgId!`.
+8. **Fire-and-forget writes** — always wrap related writes (e.g., create + audit) in `prisma.$transaction` so they succeed or fail together.
+9. **Pagination** — opportunity and application list endpoints use cursor-based pagination. Use `take + cursor + skip: 1` pattern, not offset-based `skip`.
