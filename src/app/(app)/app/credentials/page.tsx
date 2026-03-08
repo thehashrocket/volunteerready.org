@@ -1,9 +1,12 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,59 +66,71 @@ const CREDENTIAL_STATUSES = [
 ] as const;
 
 type CredentialType = (typeof CREDENTIAL_TYPES)[number]['value'];
-type CredentialStatus = (typeof CREDENTIAL_STATUSES)[number]['value'];
 
 const statusVariant: Record<
 	string,
-	'default' | 'secondary' | 'destructive' | 'outline'
+	'success' | 'warning' | 'neutral' | 'destructive'
 > = {
-	VERIFIED: 'default',
-	PENDING: 'secondary',
-	EXPIRED: 'outline',
+	VERIFIED: 'success',
+	PENDING: 'warning',
+	EXPIRED: 'neutral',
 	REVOKED: 'destructive',
 };
 
 // ---------------------------------------------------------------------------
-// Issue Credential Dialog
+// Issue Credential Dialog – react-hook-form + zod
 // ---------------------------------------------------------------------------
+
+const issueSchema = z.object({
+	userId: z.string().min(1, 'Volunteer User ID is required'),
+	type: z.enum([
+		'BACKGROUND_CHECK',
+		'TRAINING_COMPLETE',
+		'ID_VERIFIED',
+		'REFERENCE_CHECK',
+		'ORIENTATION_COMPLETE',
+	]),
+	status: z.enum(['PENDING', 'VERIFIED', 'EXPIRED', 'REVOKED']),
+	notes: z.string().max(500).optional(),
+	expiresAt: z.string().optional(),
+});
+
+type IssueFormValues = z.infer<typeof issueSchema>;
 
 function IssueCredentialDialog() {
 	const qc = useQueryClient();
 	const [open, setOpen] = useState(false);
-	const [userId, setUserId] = useState('');
-	const [type, setType] = useState<CredentialType>('BACKGROUND_CHECK');
-	const [status, setStatus] = useState<CredentialStatus>('VERIFIED');
-	const [notes, setNotes] = useState('');
-	const [expiresAt, setExpiresAt] = useState('');
+
+	const form = useForm<IssueFormValues>({
+		resolver: zodResolver(issueSchema),
+		defaultValues: {
+			userId: '',
+			type: 'BACKGROUND_CHECK',
+			status: 'VERIFIED',
+			notes: '',
+			expiresAt: '',
+		},
+	});
 
 	const mutation = trpc.credentials.issue.useMutation({
 		onSuccess: async () => {
 			toast.success('Credential issued.');
 			await qc.invalidateQueries();
 			setOpen(false);
-			resetForm();
+			form.reset();
 		},
 		onError: (err) => {
 			toast.error(err.message ?? 'Failed to issue credential.');
 		},
 	});
 
-	function resetForm() {
-		setUserId('');
-		setType('BACKGROUND_CHECK');
-		setStatus('VERIFIED');
-		setNotes('');
-		setExpiresAt('');
-	}
-
-	function handleSubmit(e: React.FormEvent) {
-		e.preventDefault();
+	function onSubmit(values: IssueFormValues) {
 		mutation.mutate({
-			userId,
-			type,
-			status,
-			notes: notes || null,
-			expiresAt: expiresAt ? new Date(expiresAt) : null,
+			userId: values.userId,
+			type: values.type,
+			status: values.status,
+			notes: values.notes || null,
+			expiresAt: values.expiresAt ? new Date(values.expiresAt) : null,
 		});
 	}
 
@@ -134,22 +149,27 @@ function IssueCredentialDialog() {
 						Add or update a verification badge for a volunteer.
 					</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 					<div className="space-y-2">
 						<Label htmlFor="userId">Volunteer User ID</Label>
 						<Input
 							id="userId"
-							value={userId}
-							onChange={(e) => setUserId(e.target.value)}
 							placeholder="cuid…"
-							required
+							{...form.register('userId')}
 						/>
+						{form.formState.errors.userId && (
+							<p className="text-xs text-destructive">
+								{form.formState.errors.userId.message}
+							</p>
+						)}
 					</div>
 					<div className="space-y-2">
 						<Label>Type</Label>
 						<Select
-							value={type}
-							onValueChange={(v) => setType(v as CredentialType)}
+							value={form.watch('type')}
+							onValueChange={(v) =>
+								form.setValue('type', v as IssueFormValues['type'])
+							}
 						>
 							<SelectTrigger>
 								<SelectValue />
@@ -166,8 +186,10 @@ function IssueCredentialDialog() {
 					<div className="space-y-2">
 						<Label>Status</Label>
 						<Select
-							value={status}
-							onValueChange={(v) => setStatus(v as CredentialStatus)}
+							value={form.watch('status')}
+							onValueChange={(v) =>
+								form.setValue('status', v as IssueFormValues['status'])
+							}
 						>
 							<SelectTrigger>
 								<SelectValue />
@@ -183,21 +205,15 @@ function IssueCredentialDialog() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="expiresAt">Expires (optional)</Label>
-						<Input
-							id="expiresAt"
-							type="date"
-							value={expiresAt}
-							onChange={(e) => setExpiresAt(e.target.value)}
-						/>
+						<Input id="expiresAt" type="date" {...form.register('expiresAt')} />
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="notes">Notes (optional)</Label>
 						<Textarea
 							id="notes"
-							value={notes}
-							onChange={(e) => setNotes(e.target.value)}
 							maxLength={500}
 							rows={2}
+							{...form.register('notes')}
 						/>
 					</div>
 					<div className="flex justify-end gap-2">
@@ -208,7 +224,7 @@ function IssueCredentialDialog() {
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={mutation.isPending || !userId}>
+						<Button type="submit" disabled={mutation.isPending}>
 							{mutation.isPending ? 'Issuing…' : 'Issue'}
 						</Button>
 					</div>

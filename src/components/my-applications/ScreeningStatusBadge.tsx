@@ -1,26 +1,26 @@
 import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ScreeningStatus } from '@/prisma/generated/client';
 
 const statusConfig: Record<
 	ScreeningStatus,
-	{ label: string; icon: typeof CheckCircle2; className: string }
+	{ label: string; icon: typeof CheckCircle2; variant: BadgeProps['variant'] }
 > = {
 	PASS: {
 		label: 'Pass',
 		icon: CheckCircle2,
-		className: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+		variant: 'success',
 	},
 	REVIEW: {
 		label: 'Needs review',
 		icon: AlertTriangle,
-		className: 'border-amber-200 bg-amber-50 text-amber-900',
+		variant: 'warning',
 	},
 	FAIL: {
 		label: 'Fail',
 		icon: XCircle,
-		className: 'border-rose-200 bg-rose-50 text-rose-900',
+		variant: 'destructive',
 	},
 };
 
@@ -35,7 +35,7 @@ export function ScreeningStatusBadge({
 	const Icon = config.icon;
 
 	return (
-		<Badge className={cn(config.className, className)}>
+		<Badge variant={config.variant} className={cn(className)}>
 			<Icon className="h-3.5 w-3.5" />
 			{config.label}
 		</Badge>

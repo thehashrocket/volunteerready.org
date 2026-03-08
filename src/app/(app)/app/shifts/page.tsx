@@ -56,19 +56,17 @@ import { trpc } from '@/lib/trpc/client';
 // Status badge
 // ---------------------------------------------------------------------------
 
-const STATUS_COLORS: Record<string, string> = {
-	OPEN: 'bg-green-100 text-green-800',
-	FULL: 'bg-amber-100 text-amber-800',
-	CANCELLED: 'bg-red-100 text-red-800',
-	COMPLETED: 'bg-blue-100 text-blue-800',
+import type { BadgeProps } from '@/components/ui/badge';
+
+const STATUS_VARIANTS: Record<string, BadgeProps['variant']> = {
+	OPEN: 'success',
+	FULL: 'warning',
+	CANCELLED: 'destructive',
+	COMPLETED: 'info',
 };
 
 function ShiftStatusBadge({ status }: { status: string }) {
-	return (
-		<Badge className={STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800'}>
-			{status}
-		</Badge>
-	);
+	return <Badge variant={STATUS_VARIANTS[status] ?? 'neutral'}>{status}</Badge>;
 }
 
 // ---------------------------------------------------------------------------
@@ -197,11 +195,11 @@ function ShiftDetailDialog({
 		onError: (err) => toast.error(err.message),
 	});
 
-	const ATTENDANCE_COLORS: Record<string, string> = {
-		CONFIRMED: 'bg-blue-100 text-blue-800',
-		ATTENDED: 'bg-green-100 text-green-800',
-		NO_SHOW: 'bg-red-100 text-red-800',
-		CANCELLED: 'bg-gray-100 text-gray-800',
+	const ATTENDANCE_VARIANTS: Record<string, BadgeProps['variant']> = {
+		CONFIRMED: 'info',
+		ATTENDED: 'success',
+		NO_SHOW: 'destructive',
+		CANCELLED: 'neutral',
 	};
 
 	return (
@@ -257,8 +255,8 @@ function ShiftDetailDialog({
 										</TableCell>
 										<TableCell>
 											<Badge
-												className={
-													ATTENDANCE_COLORS[signup.status] ?? 'bg-gray-100'
+												variant={
+													ATTENDANCE_VARIANTS[signup.status] ?? 'neutral'
 												}
 											>
 												{signup.status}

@@ -1,31 +1,31 @@
 import { AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ApplicationStatus } from '@/prisma/generated/client';
 
 const statusConfig: Record<
 	ApplicationStatus,
-	{ label: string; icon: typeof Clock; className: string }
+	{ label: string; icon: typeof Clock; variant: BadgeProps['variant'] }
 > = {
 	SUBMITTED: {
 		label: 'Submitted',
 		icon: Clock,
-		className: 'border-blue-200 bg-blue-50 text-blue-800',
+		variant: 'info',
 	},
 	REVIEW: {
 		label: 'In review',
 		icon: AlertCircle,
-		className: 'border-amber-200 bg-amber-50 text-amber-900',
+		variant: 'warning',
 	},
 	APPROVED: {
 		label: 'Approved',
 		icon: CheckCircle2,
-		className: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+		variant: 'success',
 	},
 	REJECTED: {
 		label: 'Rejected',
 		icon: XCircle,
-		className: 'border-rose-200 bg-rose-50 text-rose-900',
+		variant: 'destructive',
 	},
 };
 
@@ -40,7 +40,7 @@ export function ApplicationStatusBadge({
 	const Icon = config.icon;
 
 	return (
-		<Badge className={cn(config.className, className)}>
+		<Badge variant={config.variant} className={cn(className)}>
 			<Icon className="h-3.5 w-3.5" />
 			{config.label}
 		</Badge>

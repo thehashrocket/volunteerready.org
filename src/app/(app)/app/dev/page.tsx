@@ -1,5 +1,7 @@
 'use client';
 
+import { PageHeader } from '@/components/page-header';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc/client';
 
 export default function DevPage() {
@@ -7,27 +9,33 @@ export default function DevPage() {
 	const currentOrg = trpc.org.getCurrentOrg.useQuery();
 
 	return (
-		<section className="space-y-6">
-			<div>
-				<h1 className="text-2xl font-semibold">Dev Console</h1>
-				<p className="text-muted-foreground">
-					tRPC health and org context checks.
-				</p>
-			</div>
-			<div className="rounded-lg border p-4">
-				<h2 className="text-sm font-semibold">health.ping</h2>
-				<pre className="mt-2 overflow-auto text-sm text-muted-foreground">
-					{ping.isLoading ? 'Loading...' : JSON.stringify(ping.data, null, 2)}
-				</pre>
-			</div>
-			<div className="rounded-lg border p-4">
-				<h2 className="text-sm font-semibold">org.getCurrentOrg</h2>
-				<pre className="mt-2 overflow-auto text-sm text-muted-foreground">
-					{currentOrg.isLoading
-						? 'Loading...'
-						: JSON.stringify(currentOrg.data, null, 2)}
-				</pre>
-			</div>
-		</section>
+		<div className="space-y-6">
+			<PageHeader
+				title="Dev Console"
+				description="tRPC health and org context checks."
+			/>
+			<Card>
+				<CardHeader className="pb-3">
+					<CardTitle className="text-sm">health.ping</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<pre className="overflow-auto rounded-md bg-muted p-3 text-sm text-muted-foreground">
+						{ping.isLoading ? 'Loading...' : JSON.stringify(ping.data, null, 2)}
+					</pre>
+				</CardContent>
+			</Card>
+			<Card>
+				<CardHeader className="pb-3">
+					<CardTitle className="text-sm">org.getCurrentOrg</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<pre className="overflow-auto rounded-md bg-muted p-3 text-sm text-muted-foreground">
+						{currentOrg.isLoading
+							? 'Loading...'
+							: JSON.stringify(currentOrg.data, null, 2)}
+					</pre>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }

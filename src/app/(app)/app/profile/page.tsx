@@ -136,11 +136,11 @@ function CompletenessBar({
 
 	const color =
 		level === 'COMPLETE'
-			? 'text-green-600'
+			? 'text-success-foreground'
 			: level === 'STRONG'
-				? 'text-green-500'
+				? 'text-success'
 				: level === 'BASIC'
-					? 'text-amber-500'
+					? 'text-warning'
 					: 'text-muted-foreground';
 
 	return (
@@ -537,11 +537,11 @@ function CredentialsCard() {
 
 	const statusVariant: Record<
 		string,
-		'default' | 'secondary' | 'destructive' | 'outline'
+		'success' | 'warning' | 'neutral' | 'destructive'
 	> = {
-		VERIFIED: 'default',
-		PENDING: 'secondary',
-		EXPIRED: 'outline',
+		VERIFIED: 'success',
+		PENDING: 'warning',
+		EXPIRED: 'neutral',
 		REVOKED: 'destructive',
 	};
 

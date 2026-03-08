@@ -37,9 +37,9 @@ import { OpportunityDialog } from '../OpportunityDialog';
 // ---------------------------------------------------------------------------
 
 const STATUS_LEFT_BORDER: Record<'DRAFT' | 'PUBLISHED' | 'CLOSED', string> = {
-	PUBLISHED: 'border-l-green-500',
-	DRAFT: 'border-l-stone-300',
-	CLOSED: 'border-l-slate-400',
+	PUBLISHED: 'border-l-success',
+	DRAFT: 'border-l-neutral',
+	CLOSED: 'border-l-muted-foreground',
 };
 
 // ---------------------------------------------------------------------------
@@ -281,7 +281,7 @@ export default function OpportunityDashboardPage() {
 								</div>
 								<div className="h-1.5 overflow-hidden rounded-full bg-muted">
 									<div
-										className="h-full rounded-full bg-emerald-500 transition-all duration-700"
+										className="h-full rounded-full bg-success transition-all duration-700"
 										style={{ width: `${fillPct}%` }}
 									/>
 								</div>
@@ -310,25 +310,25 @@ export default function OpportunityDashboardPage() {
 							label="Submitted"
 							value={counts.SUBMITTED}
 							total={total}
-							barClass="bg-blue-400"
+							barClass="bg-info"
 						/>
 						<PipelineStat
 							label="In review"
 							value={counts.REVIEW}
 							total={total}
-							barClass="bg-amber-400"
+							barClass="bg-warning"
 						/>
 						<PipelineStat
 							label="Approved"
 							value={counts.APPROVED}
 							total={total}
-							barClass="bg-emerald-500"
+							barClass="bg-success"
 						/>
 						<PipelineStat
 							label="Rejected"
 							value={counts.REJECTED}
 							total={total}
-							barClass="bg-rose-400"
+							barClass="bg-destructive"
 						/>
 					</div>
 				</div>
