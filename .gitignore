@@ -50,6 +50,10 @@ docs/.vitepress/dist
 .vscode
 .idea
 
+# AI tooling
+.claude
+VolunteerReady_Action_Plan.docx
+
 # prisma
 prisma/dev.db
 prisma/dev.db-journal
