@@ -18,6 +18,7 @@ model User {
   memberships           OrganizationMember[]
   auditLogs             AuditLog[]             @relation("AuditActor")
   submittedApplications VolunteerApplication[] @relation("SubmittedApplications")
+  volunteerSkills       VolunteerSkill[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 }
@@ -289,4 +290,15 @@ model OpportunityRequirement {
 
   @@unique([opportunityId, skill])
   @@index([opportunityId])
+}
+
+model VolunteerSkill {
+  id        String   @id @default(cuid())
+  userId    String
+  skill     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, skill])
+  @@index([userId])
 }

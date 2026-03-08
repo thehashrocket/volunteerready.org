@@ -277,6 +277,13 @@ exports.Prisma.OpportunityRequirementScalarFieldEnum = {
   level: 'level'
 };
 
+exports.Prisma.VolunteerSkillScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  skill: 'skill',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -361,7 +368,8 @@ exports.Prisma.ModelName = {
   OrganizationInvitation: 'OrganizationInvitation',
   VolunteerOpportunity: 'VolunteerOpportunity',
   OpportunityTag: 'OpportunityTag',
-  OpportunityRequirement: 'OpportunityRequirement'
+  OpportunityRequirement: 'OpportunityRequirement',
+  VolunteerSkill: 'VolunteerSkill'
 };
 
 /**

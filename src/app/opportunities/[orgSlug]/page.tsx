@@ -1,8 +1,13 @@
 import type { Metadata } from 'next';
 import { Playfair_Display } from 'next/font/google';
 import { notFound } from 'next/navigation';
+import { getServerSession } from 'next-auth';
 import { cache } from 'react';
+import { authOptions } from '@/server/auth';
+import type { MatchResult } from '@/server/domain/volunteer-matching';
+import { rankOpportunities } from '@/server/domain/volunteer-matching';
 import { listPublishedOpportunities } from '@/server/repositories/publicOpportunityRepo';
+import { getSkillsForUser } from '@/server/repositories/volunteerSkillRepo';
 import { OpportunitiesListing } from './OpportunitiesListing';
 
 // Deduplicate the DB call between generateMetadata and the page component
@@ -33,12 +38,36 @@ export default async function OpportunitiesPage({ params }: Props) {
 
 	if (!result) notFound();
 
+	// Build match results for authenticated volunteers
+	let matchResults: Record<string, MatchResult> | undefined;
+	const session = await getServerSession(authOptions);
+	const userId = session?.user?.id;
+
+	if (userId) {
+		const skills = await getSkillsForUser(userId);
+		if (skills.length > 0) {
+			const requirementSets = result.opportunities.map((opp) => ({
+				opportunityId: opp.id,
+				requirements: opp.requirements.map((r) => ({
+					skill: r.skill,
+					level: r.level,
+				})),
+			}));
+
+			const ranked = rankOpportunities({ skills }, requirementSets);
+			matchResults = Object.fromEntries(
+				ranked.map((r) => [r.opportunityId, r]),
+			);
+		}
+	}
+
 	// The outer div injects --font-playfair CSS variable into the subtree for use via style prop.
 	return (
 		<div className={playfair.variable}>
 			<OpportunitiesListing
 				org={result.org}
 				opportunities={result.opportunities}
+				matchResults={matchResults}
 			/>
 		</div>
 	);

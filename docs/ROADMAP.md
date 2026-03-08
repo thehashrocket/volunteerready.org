@@ -68,7 +68,7 @@ This phase enables the **first public-facing discovery layer**.
 
 ---
 
-# Phase 3 — Volunteer Matching Engine
+# Phase 3 — Volunteer Matching Engine ✅ Complete
 
 Goal: Match volunteers with opportunities using structured profile and preference data.
 
@@ -76,23 +76,20 @@ Completed capabilities:
 
 - ✅ Opportunity skill requirements with REQUIRED/PREFERRED levels (demand side)
 - ✅ Requirements displayed on public opportunity listing cards
-
-Planned capabilities:
-
-- Volunteer interests and skills (supply side)
-- Match scoring algorithms
-- Personalized opportunity recommendations
+- ✅ Volunteer skill profiles (supply side) — self-service skill management at `/app/my-skills`
+- ✅ Pure matching/scoring domain logic — case-insensitive skill comparison, 0–100 scoring
+- ✅ Match scoring algorithm: REQUIRED skills gate (missing → 0), PREFERRED skills add bonus (50 base + 50 × preferred ratio)
+- ✅ Match types: PERFECT (100), PARTIAL (50–99), NONE (0)
+- ✅ Personalized opportunity recommendations via tRPC `matching.getRecommendations`
+- ✅ Match badges on public opportunity listings (green/amber/gray) for authenticated volunteers
+- ✅ "Best match" sort option on public listings when logged in
+- ✅ Comprehensive domain tests for scoring and ranking
 
 Key entities added:
 
 - OpportunityRequirement
 - RequirementLevel (enum: REQUIRED / PREFERRED)
-
-Potential entities:
-
-- VolunteerProfile
 - VolunteerSkill
-- MatchScore
 
 This phase introduces **intelligent discovery and matching**.
 

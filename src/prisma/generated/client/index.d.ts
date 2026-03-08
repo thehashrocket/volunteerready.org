@@ -93,6 +93,11 @@ export type OpportunityTag = $Result.DefaultSelection<Prisma.$OpportunityTagPayl
  * 
  */
 export type OpportunityRequirement = $Result.DefaultSelection<Prisma.$OpportunityRequirementPayload>
+/**
+ * Model VolunteerSkill
+ * 
+ */
+export type VolunteerSkill = $Result.DefaultSelection<Prisma.$VolunteerSkillPayload>
 
 /**
  * Enums
@@ -456,6 +461,16 @@ export class PrismaClient<
     * ```
     */
   get opportunityRequirement(): Prisma.OpportunityRequirementDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.volunteerSkill`: Exposes CRUD operations for the **VolunteerSkill** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VolunteerSkills
+    * const volunteerSkills = await prisma.volunteerSkill.findMany()
+    * ```
+    */
+  get volunteerSkill(): Prisma.VolunteerSkillDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -905,7 +920,8 @@ export namespace Prisma {
     OrganizationInvitation: 'OrganizationInvitation',
     VolunteerOpportunity: 'VolunteerOpportunity',
     OpportunityTag: 'OpportunityTag',
-    OpportunityRequirement: 'OpportunityRequirement'
+    OpportunityRequirement: 'OpportunityRequirement',
+    VolunteerSkill: 'VolunteerSkill'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -921,7 +937,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "volunteerSkill"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2109,6 +2125,80 @@ export namespace Prisma {
           }
         }
       }
+      VolunteerSkill: {
+        payload: Prisma.$VolunteerSkillPayload<ExtArgs>
+        fields: Prisma.VolunteerSkillFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VolunteerSkillFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VolunteerSkillFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload>
+          }
+          findFirst: {
+            args: Prisma.VolunteerSkillFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VolunteerSkillFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload>
+          }
+          findMany: {
+            args: Prisma.VolunteerSkillFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload>[]
+          }
+          create: {
+            args: Prisma.VolunteerSkillCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload>
+          }
+          createMany: {
+            args: Prisma.VolunteerSkillCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VolunteerSkillCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload>[]
+          }
+          delete: {
+            args: Prisma.VolunteerSkillDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload>
+          }
+          update: {
+            args: Prisma.VolunteerSkillUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload>
+          }
+          deleteMany: {
+            args: Prisma.VolunteerSkillDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VolunteerSkillUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.VolunteerSkillUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload>[]
+          }
+          upsert: {
+            args: Prisma.VolunteerSkillUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerSkillPayload>
+          }
+          aggregate: {
+            args: Prisma.VolunteerSkillAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVolunteerSkill>
+          }
+          groupBy: {
+            args: Prisma.VolunteerSkillGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VolunteerSkillGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VolunteerSkillCountArgs<ExtArgs>
+            result: $Utils.Optional<VolunteerSkillCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2233,6 +2323,7 @@ export namespace Prisma {
     volunteerOpportunity?: VolunteerOpportunityOmit
     opportunityTag?: OpportunityTagOmit
     opportunityRequirement?: OpportunityRequirementOmit
+    volunteerSkill?: VolunteerSkillOmit
   }
 
   /* Types for Logging */
@@ -2318,6 +2409,7 @@ export namespace Prisma {
     memberships: number
     auditLogs: number
     submittedApplications: number
+    volunteerSkills: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2326,6 +2418,7 @@ export namespace Prisma {
     memberships?: boolean | UserCountOutputTypeCountMembershipsArgs
     auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
     submittedApplications?: boolean | UserCountOutputTypeCountSubmittedApplicationsArgs
+    volunteerSkills?: boolean | UserCountOutputTypeCountVolunteerSkillsArgs
   }
 
   // Custom InputTypes
@@ -2372,6 +2465,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountSubmittedApplicationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VolunteerApplicationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountVolunteerSkillsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerSkillWhereInput
   }
 
 
@@ -2738,6 +2838,7 @@ export namespace Prisma {
     memberships?: boolean | User$membershipsArgs<ExtArgs>
     auditLogs?: boolean | User$auditLogsArgs<ExtArgs>
     submittedApplications?: boolean | User$submittedApplicationsArgs<ExtArgs>
+    volunteerSkills?: boolean | User$volunteerSkillsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2778,6 +2879,7 @@ export namespace Prisma {
     memberships?: boolean | User$membershipsArgs<ExtArgs>
     auditLogs?: boolean | User$auditLogsArgs<ExtArgs>
     submittedApplications?: boolean | User$submittedApplicationsArgs<ExtArgs>
+    volunteerSkills?: boolean | User$volunteerSkillsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2791,6 +2893,7 @@ export namespace Prisma {
       memberships: Prisma.$OrganizationMemberPayload<ExtArgs>[]
       auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
       submittedApplications: Prisma.$VolunteerApplicationPayload<ExtArgs>[]
+      volunteerSkills: Prisma.$VolunteerSkillPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3199,6 +3302,7 @@ export namespace Prisma {
     memberships<T extends User$membershipsArgs<ExtArgs> = {}>(args?: Subset<T, User$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     auditLogs<T extends User$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     submittedApplications<T extends User$submittedApplicationsArgs<ExtArgs> = {}>(args?: Subset<T, User$submittedApplicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    volunteerSkills<T extends User$volunteerSkillsArgs<ExtArgs> = {}>(args?: Subset<T, User$volunteerSkillsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3740,6 +3844,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VolunteerApplicationScalarFieldEnum | VolunteerApplicationScalarFieldEnum[]
+  }
+
+  /**
+   * User.volunteerSkills
+   */
+  export type User$volunteerSkillsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    where?: VolunteerSkillWhereInput
+    orderBy?: VolunteerSkillOrderByWithRelationInput | VolunteerSkillOrderByWithRelationInput[]
+    cursor?: VolunteerSkillWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VolunteerSkillScalarFieldEnum | VolunteerSkillScalarFieldEnum[]
   }
 
   /**
@@ -20383,6 +20511,1051 @@ export namespace Prisma {
 
 
   /**
+   * Model VolunteerSkill
+   */
+
+  export type AggregateVolunteerSkill = {
+    _count: VolunteerSkillCountAggregateOutputType | null
+    _min: VolunteerSkillMinAggregateOutputType | null
+    _max: VolunteerSkillMaxAggregateOutputType | null
+  }
+
+  export type VolunteerSkillMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    skill: string | null
+    createdAt: Date | null
+  }
+
+  export type VolunteerSkillMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    skill: string | null
+    createdAt: Date | null
+  }
+
+  export type VolunteerSkillCountAggregateOutputType = {
+    id: number
+    userId: number
+    skill: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type VolunteerSkillMinAggregateInputType = {
+    id?: true
+    userId?: true
+    skill?: true
+    createdAt?: true
+  }
+
+  export type VolunteerSkillMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    skill?: true
+    createdAt?: true
+  }
+
+  export type VolunteerSkillCountAggregateInputType = {
+    id?: true
+    userId?: true
+    skill?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type VolunteerSkillAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VolunteerSkill to aggregate.
+     */
+    where?: VolunteerSkillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerSkills to fetch.
+     */
+    orderBy?: VolunteerSkillOrderByWithRelationInput | VolunteerSkillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VolunteerSkillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerSkills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerSkills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VolunteerSkills
+    **/
+    _count?: true | VolunteerSkillCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VolunteerSkillMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VolunteerSkillMaxAggregateInputType
+  }
+
+  export type GetVolunteerSkillAggregateType<T extends VolunteerSkillAggregateArgs> = {
+        [P in keyof T & keyof AggregateVolunteerSkill]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVolunteerSkill[P]>
+      : GetScalarType<T[P], AggregateVolunteerSkill[P]>
+  }
+
+
+
+
+  export type VolunteerSkillGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerSkillWhereInput
+    orderBy?: VolunteerSkillOrderByWithAggregationInput | VolunteerSkillOrderByWithAggregationInput[]
+    by: VolunteerSkillScalarFieldEnum[] | VolunteerSkillScalarFieldEnum
+    having?: VolunteerSkillScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VolunteerSkillCountAggregateInputType | true
+    _min?: VolunteerSkillMinAggregateInputType
+    _max?: VolunteerSkillMaxAggregateInputType
+  }
+
+  export type VolunteerSkillGroupByOutputType = {
+    id: string
+    userId: string
+    skill: string
+    createdAt: Date
+    _count: VolunteerSkillCountAggregateOutputType | null
+    _min: VolunteerSkillMinAggregateOutputType | null
+    _max: VolunteerSkillMaxAggregateOutputType | null
+  }
+
+  type GetVolunteerSkillGroupByPayload<T extends VolunteerSkillGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VolunteerSkillGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VolunteerSkillGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VolunteerSkillGroupByOutputType[P]>
+            : GetScalarType<T[P], VolunteerSkillGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VolunteerSkillSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    skill?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerSkill"]>
+
+  export type VolunteerSkillSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    skill?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerSkill"]>
+
+  export type VolunteerSkillSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    skill?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerSkill"]>
+
+  export type VolunteerSkillSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    skill?: boolean
+    createdAt?: boolean
+  }
+
+  export type VolunteerSkillOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "skill" | "createdAt", ExtArgs["result"]["volunteerSkill"]>
+  export type VolunteerSkillInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type VolunteerSkillIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type VolunteerSkillIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $VolunteerSkillPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VolunteerSkill"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      skill: string
+      createdAt: Date
+    }, ExtArgs["result"]["volunteerSkill"]>
+    composites: {}
+  }
+
+  type VolunteerSkillGetPayload<S extends boolean | null | undefined | VolunteerSkillDefaultArgs> = $Result.GetResult<Prisma.$VolunteerSkillPayload, S>
+
+  type VolunteerSkillCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<VolunteerSkillFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: VolunteerSkillCountAggregateInputType | true
+    }
+
+  export interface VolunteerSkillDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VolunteerSkill'], meta: { name: 'VolunteerSkill' } }
+    /**
+     * Find zero or one VolunteerSkill that matches the filter.
+     * @param {VolunteerSkillFindUniqueArgs} args - Arguments to find a VolunteerSkill
+     * @example
+     * // Get one VolunteerSkill
+     * const volunteerSkill = await prisma.volunteerSkill.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VolunteerSkillFindUniqueArgs>(args: SelectSubset<T, VolunteerSkillFindUniqueArgs<ExtArgs>>): Prisma__VolunteerSkillClient<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one VolunteerSkill that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {VolunteerSkillFindUniqueOrThrowArgs} args - Arguments to find a VolunteerSkill
+     * @example
+     * // Get one VolunteerSkill
+     * const volunteerSkill = await prisma.volunteerSkill.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VolunteerSkillFindUniqueOrThrowArgs>(args: SelectSubset<T, VolunteerSkillFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VolunteerSkillClient<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VolunteerSkill that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerSkillFindFirstArgs} args - Arguments to find a VolunteerSkill
+     * @example
+     * // Get one VolunteerSkill
+     * const volunteerSkill = await prisma.volunteerSkill.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VolunteerSkillFindFirstArgs>(args?: SelectSubset<T, VolunteerSkillFindFirstArgs<ExtArgs>>): Prisma__VolunteerSkillClient<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VolunteerSkill that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerSkillFindFirstOrThrowArgs} args - Arguments to find a VolunteerSkill
+     * @example
+     * // Get one VolunteerSkill
+     * const volunteerSkill = await prisma.volunteerSkill.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VolunteerSkillFindFirstOrThrowArgs>(args?: SelectSubset<T, VolunteerSkillFindFirstOrThrowArgs<ExtArgs>>): Prisma__VolunteerSkillClient<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more VolunteerSkills that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerSkillFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VolunteerSkills
+     * const volunteerSkills = await prisma.volunteerSkill.findMany()
+     * 
+     * // Get first 10 VolunteerSkills
+     * const volunteerSkills = await prisma.volunteerSkill.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const volunteerSkillWithIdOnly = await prisma.volunteerSkill.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VolunteerSkillFindManyArgs>(args?: SelectSubset<T, VolunteerSkillFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a VolunteerSkill.
+     * @param {VolunteerSkillCreateArgs} args - Arguments to create a VolunteerSkill.
+     * @example
+     * // Create one VolunteerSkill
+     * const VolunteerSkill = await prisma.volunteerSkill.create({
+     *   data: {
+     *     // ... data to create a VolunteerSkill
+     *   }
+     * })
+     * 
+     */
+    create<T extends VolunteerSkillCreateArgs>(args: SelectSubset<T, VolunteerSkillCreateArgs<ExtArgs>>): Prisma__VolunteerSkillClient<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many VolunteerSkills.
+     * @param {VolunteerSkillCreateManyArgs} args - Arguments to create many VolunteerSkills.
+     * @example
+     * // Create many VolunteerSkills
+     * const volunteerSkill = await prisma.volunteerSkill.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VolunteerSkillCreateManyArgs>(args?: SelectSubset<T, VolunteerSkillCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VolunteerSkills and returns the data saved in the database.
+     * @param {VolunteerSkillCreateManyAndReturnArgs} args - Arguments to create many VolunteerSkills.
+     * @example
+     * // Create many VolunteerSkills
+     * const volunteerSkill = await prisma.volunteerSkill.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VolunteerSkills and only return the `id`
+     * const volunteerSkillWithIdOnly = await prisma.volunteerSkill.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VolunteerSkillCreateManyAndReturnArgs>(args?: SelectSubset<T, VolunteerSkillCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a VolunteerSkill.
+     * @param {VolunteerSkillDeleteArgs} args - Arguments to delete one VolunteerSkill.
+     * @example
+     * // Delete one VolunteerSkill
+     * const VolunteerSkill = await prisma.volunteerSkill.delete({
+     *   where: {
+     *     // ... filter to delete one VolunteerSkill
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VolunteerSkillDeleteArgs>(args: SelectSubset<T, VolunteerSkillDeleteArgs<ExtArgs>>): Prisma__VolunteerSkillClient<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one VolunteerSkill.
+     * @param {VolunteerSkillUpdateArgs} args - Arguments to update one VolunteerSkill.
+     * @example
+     * // Update one VolunteerSkill
+     * const volunteerSkill = await prisma.volunteerSkill.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VolunteerSkillUpdateArgs>(args: SelectSubset<T, VolunteerSkillUpdateArgs<ExtArgs>>): Prisma__VolunteerSkillClient<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more VolunteerSkills.
+     * @param {VolunteerSkillDeleteManyArgs} args - Arguments to filter VolunteerSkills to delete.
+     * @example
+     * // Delete a few VolunteerSkills
+     * const { count } = await prisma.volunteerSkill.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VolunteerSkillDeleteManyArgs>(args?: SelectSubset<T, VolunteerSkillDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VolunteerSkills.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerSkillUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VolunteerSkills
+     * const volunteerSkill = await prisma.volunteerSkill.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VolunteerSkillUpdateManyArgs>(args: SelectSubset<T, VolunteerSkillUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VolunteerSkills and returns the data updated in the database.
+     * @param {VolunteerSkillUpdateManyAndReturnArgs} args - Arguments to update many VolunteerSkills.
+     * @example
+     * // Update many VolunteerSkills
+     * const volunteerSkill = await prisma.volunteerSkill.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more VolunteerSkills and only return the `id`
+     * const volunteerSkillWithIdOnly = await prisma.volunteerSkill.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends VolunteerSkillUpdateManyAndReturnArgs>(args: SelectSubset<T, VolunteerSkillUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one VolunteerSkill.
+     * @param {VolunteerSkillUpsertArgs} args - Arguments to update or create a VolunteerSkill.
+     * @example
+     * // Update or create a VolunteerSkill
+     * const volunteerSkill = await prisma.volunteerSkill.upsert({
+     *   create: {
+     *     // ... data to create a VolunteerSkill
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VolunteerSkill we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VolunteerSkillUpsertArgs>(args: SelectSubset<T, VolunteerSkillUpsertArgs<ExtArgs>>): Prisma__VolunteerSkillClient<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of VolunteerSkills.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerSkillCountArgs} args - Arguments to filter VolunteerSkills to count.
+     * @example
+     * // Count the number of VolunteerSkills
+     * const count = await prisma.volunteerSkill.count({
+     *   where: {
+     *     // ... the filter for the VolunteerSkills we want to count
+     *   }
+     * })
+    **/
+    count<T extends VolunteerSkillCountArgs>(
+      args?: Subset<T, VolunteerSkillCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VolunteerSkillCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VolunteerSkill.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerSkillAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VolunteerSkillAggregateArgs>(args: Subset<T, VolunteerSkillAggregateArgs>): Prisma.PrismaPromise<GetVolunteerSkillAggregateType<T>>
+
+    /**
+     * Group by VolunteerSkill.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerSkillGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VolunteerSkillGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VolunteerSkillGroupByArgs['orderBy'] }
+        : { orderBy?: VolunteerSkillGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VolunteerSkillGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVolunteerSkillGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VolunteerSkill model
+   */
+  readonly fields: VolunteerSkillFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VolunteerSkill.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VolunteerSkillClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VolunteerSkill model
+   */
+  interface VolunteerSkillFieldRefs {
+    readonly id: FieldRef<"VolunteerSkill", 'String'>
+    readonly userId: FieldRef<"VolunteerSkill", 'String'>
+    readonly skill: FieldRef<"VolunteerSkill", 'String'>
+    readonly createdAt: FieldRef<"VolunteerSkill", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VolunteerSkill findUnique
+   */
+  export type VolunteerSkillFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerSkill to fetch.
+     */
+    where: VolunteerSkillWhereUniqueInput
+  }
+
+  /**
+   * VolunteerSkill findUniqueOrThrow
+   */
+  export type VolunteerSkillFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerSkill to fetch.
+     */
+    where: VolunteerSkillWhereUniqueInput
+  }
+
+  /**
+   * VolunteerSkill findFirst
+   */
+  export type VolunteerSkillFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerSkill to fetch.
+     */
+    where?: VolunteerSkillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerSkills to fetch.
+     */
+    orderBy?: VolunteerSkillOrderByWithRelationInput | VolunteerSkillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VolunteerSkills.
+     */
+    cursor?: VolunteerSkillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerSkills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerSkills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerSkills.
+     */
+    distinct?: VolunteerSkillScalarFieldEnum | VolunteerSkillScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerSkill findFirstOrThrow
+   */
+  export type VolunteerSkillFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerSkill to fetch.
+     */
+    where?: VolunteerSkillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerSkills to fetch.
+     */
+    orderBy?: VolunteerSkillOrderByWithRelationInput | VolunteerSkillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VolunteerSkills.
+     */
+    cursor?: VolunteerSkillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerSkills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerSkills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerSkills.
+     */
+    distinct?: VolunteerSkillScalarFieldEnum | VolunteerSkillScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerSkill findMany
+   */
+  export type VolunteerSkillFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerSkills to fetch.
+     */
+    where?: VolunteerSkillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerSkills to fetch.
+     */
+    orderBy?: VolunteerSkillOrderByWithRelationInput | VolunteerSkillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VolunteerSkills.
+     */
+    cursor?: VolunteerSkillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerSkills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerSkills.
+     */
+    skip?: number
+    distinct?: VolunteerSkillScalarFieldEnum | VolunteerSkillScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerSkill create
+   */
+  export type VolunteerSkillCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    /**
+     * The data needed to create a VolunteerSkill.
+     */
+    data: XOR<VolunteerSkillCreateInput, VolunteerSkillUncheckedCreateInput>
+  }
+
+  /**
+   * VolunteerSkill createMany
+   */
+  export type VolunteerSkillCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VolunteerSkills.
+     */
+    data: VolunteerSkillCreateManyInput | VolunteerSkillCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VolunteerSkill createManyAndReturn
+   */
+  export type VolunteerSkillCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * The data used to create many VolunteerSkills.
+     */
+    data: VolunteerSkillCreateManyInput | VolunteerSkillCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VolunteerSkill update
+   */
+  export type VolunteerSkillUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    /**
+     * The data needed to update a VolunteerSkill.
+     */
+    data: XOR<VolunteerSkillUpdateInput, VolunteerSkillUncheckedUpdateInput>
+    /**
+     * Choose, which VolunteerSkill to update.
+     */
+    where: VolunteerSkillWhereUniqueInput
+  }
+
+  /**
+   * VolunteerSkill updateMany
+   */
+  export type VolunteerSkillUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VolunteerSkills.
+     */
+    data: XOR<VolunteerSkillUpdateManyMutationInput, VolunteerSkillUncheckedUpdateManyInput>
+    /**
+     * Filter which VolunteerSkills to update
+     */
+    where?: VolunteerSkillWhereInput
+    /**
+     * Limit how many VolunteerSkills to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * VolunteerSkill updateManyAndReturn
+   */
+  export type VolunteerSkillUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * The data used to update VolunteerSkills.
+     */
+    data: XOR<VolunteerSkillUpdateManyMutationInput, VolunteerSkillUncheckedUpdateManyInput>
+    /**
+     * Filter which VolunteerSkills to update
+     */
+    where?: VolunteerSkillWhereInput
+    /**
+     * Limit how many VolunteerSkills to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VolunteerSkill upsert
+   */
+  export type VolunteerSkillUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    /**
+     * The filter to search for the VolunteerSkill to update in case it exists.
+     */
+    where: VolunteerSkillWhereUniqueInput
+    /**
+     * In case the VolunteerSkill found by the `where` argument doesn't exist, create a new VolunteerSkill with this data.
+     */
+    create: XOR<VolunteerSkillCreateInput, VolunteerSkillUncheckedCreateInput>
+    /**
+     * In case the VolunteerSkill was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VolunteerSkillUpdateInput, VolunteerSkillUncheckedUpdateInput>
+  }
+
+  /**
+   * VolunteerSkill delete
+   */
+  export type VolunteerSkillDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    /**
+     * Filter which VolunteerSkill to delete.
+     */
+    where: VolunteerSkillWhereUniqueInput
+  }
+
+  /**
+   * VolunteerSkill deleteMany
+   */
+  export type VolunteerSkillDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VolunteerSkills to delete
+     */
+    where?: VolunteerSkillWhereInput
+    /**
+     * Limit how many VolunteerSkills to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * VolunteerSkill without action
+   */
+  export type VolunteerSkillDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -20599,6 +21772,16 @@ export namespace Prisma {
   };
 
   export type OpportunityRequirementScalarFieldEnum = (typeof OpportunityRequirementScalarFieldEnum)[keyof typeof OpportunityRequirementScalarFieldEnum]
+
+
+  export const VolunteerSkillScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    skill: 'skill',
+    createdAt: 'createdAt'
+  };
+
+  export type VolunteerSkillScalarFieldEnum = (typeof VolunteerSkillScalarFieldEnum)[keyof typeof VolunteerSkillScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -20834,6 +22017,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberListRelationFilter
     auditLogs?: AuditLogListRelationFilter
     submittedApplications?: VolunteerApplicationListRelationFilter
+    volunteerSkills?: VolunteerSkillListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -20849,6 +22033,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberOrderByRelationAggregateInput
     auditLogs?: AuditLogOrderByRelationAggregateInput
     submittedApplications?: VolunteerApplicationOrderByRelationAggregateInput
+    volunteerSkills?: VolunteerSkillOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -20867,6 +22052,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberListRelationFilter
     auditLogs?: AuditLogListRelationFilter
     submittedApplications?: VolunteerApplicationListRelationFilter
+    volunteerSkills?: VolunteerSkillListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -21910,6 +23096,57 @@ export namespace Prisma {
     level?: EnumRequirementLevelWithAggregatesFilter<"OpportunityRequirement"> | $Enums.RequirementLevel
   }
 
+  export type VolunteerSkillWhereInput = {
+    AND?: VolunteerSkillWhereInput | VolunteerSkillWhereInput[]
+    OR?: VolunteerSkillWhereInput[]
+    NOT?: VolunteerSkillWhereInput | VolunteerSkillWhereInput[]
+    id?: StringFilter<"VolunteerSkill"> | string
+    userId?: StringFilter<"VolunteerSkill"> | string
+    skill?: StringFilter<"VolunteerSkill"> | string
+    createdAt?: DateTimeFilter<"VolunteerSkill"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type VolunteerSkillOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    skill?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type VolunteerSkillWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_skill?: VolunteerSkillUserIdSkillCompoundUniqueInput
+    AND?: VolunteerSkillWhereInput | VolunteerSkillWhereInput[]
+    OR?: VolunteerSkillWhereInput[]
+    NOT?: VolunteerSkillWhereInput | VolunteerSkillWhereInput[]
+    userId?: StringFilter<"VolunteerSkill"> | string
+    skill?: StringFilter<"VolunteerSkill"> | string
+    createdAt?: DateTimeFilter<"VolunteerSkill"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "userId_skill">
+
+  export type VolunteerSkillOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    skill?: SortOrder
+    createdAt?: SortOrder
+    _count?: VolunteerSkillCountOrderByAggregateInput
+    _max?: VolunteerSkillMaxOrderByAggregateInput
+    _min?: VolunteerSkillMinOrderByAggregateInput
+  }
+
+  export type VolunteerSkillScalarWhereWithAggregatesInput = {
+    AND?: VolunteerSkillScalarWhereWithAggregatesInput | VolunteerSkillScalarWhereWithAggregatesInput[]
+    OR?: VolunteerSkillScalarWhereWithAggregatesInput[]
+    NOT?: VolunteerSkillScalarWhereWithAggregatesInput | VolunteerSkillScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VolunteerSkill"> | string
+    userId?: StringWithAggregatesFilter<"VolunteerSkill"> | string
+    skill?: StringWithAggregatesFilter<"VolunteerSkill"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"VolunteerSkill"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -21923,6 +23160,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -21938,6 +23176,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -21953,6 +23192,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -21968,6 +23208,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -23060,6 +24301,54 @@ export namespace Prisma {
     level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
   }
 
+  export type VolunteerSkillCreateInput = {
+    id?: string
+    skill: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutVolunteerSkillsInput
+  }
+
+  export type VolunteerSkillUncheckedCreateInput = {
+    id?: string
+    userId: string
+    skill: string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerSkillUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutVolunteerSkillsNestedInput
+  }
+
+  export type VolunteerSkillUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerSkillCreateManyInput = {
+    id?: string
+    userId: string
+    skill: string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerSkillUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerSkillUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -23142,6 +24431,12 @@ export namespace Prisma {
     none?: VolunteerApplicationWhereInput
   }
 
+  export type VolunteerSkillListRelationFilter = {
+    every?: VolunteerSkillWhereInput
+    some?: VolunteerSkillWhereInput
+    none?: VolunteerSkillWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -23164,6 +24459,10 @@ export namespace Prisma {
   }
 
   export type VolunteerApplicationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type VolunteerSkillOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -24152,6 +25451,32 @@ export namespace Prisma {
     _max?: NestedEnumRequirementLevelFilter<$PrismaModel>
   }
 
+  export type VolunteerSkillUserIdSkillCompoundUniqueInput = {
+    userId: string
+    skill: string
+  }
+
+  export type VolunteerSkillCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    skill?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type VolunteerSkillMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    skill?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type VolunteerSkillMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    skill?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -24187,6 +25512,13 @@ export namespace Prisma {
     connect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
   }
 
+  export type VolunteerSkillCreateNestedManyWithoutUserInput = {
+    create?: XOR<VolunteerSkillCreateWithoutUserInput, VolunteerSkillUncheckedCreateWithoutUserInput> | VolunteerSkillCreateWithoutUserInput[] | VolunteerSkillUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: VolunteerSkillCreateOrConnectWithoutUserInput | VolunteerSkillCreateOrConnectWithoutUserInput[]
+    createMany?: VolunteerSkillCreateManyUserInputEnvelope
+    connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -24220,6 +25552,13 @@ export namespace Prisma {
     connectOrCreate?: VolunteerApplicationCreateOrConnectWithoutSubmittedByUserInput | VolunteerApplicationCreateOrConnectWithoutSubmittedByUserInput[]
     createMany?: VolunteerApplicationCreateManySubmittedByUserInputEnvelope
     connect?: VolunteerApplicationWhereUniqueInput | VolunteerApplicationWhereUniqueInput[]
+  }
+
+  export type VolunteerSkillUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<VolunteerSkillCreateWithoutUserInput, VolunteerSkillUncheckedCreateWithoutUserInput> | VolunteerSkillCreateWithoutUserInput[] | VolunteerSkillUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: VolunteerSkillCreateOrConnectWithoutUserInput | VolunteerSkillCreateOrConnectWithoutUserInput[]
+    createMany?: VolunteerSkillCreateManyUserInputEnvelope
+    connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -24308,6 +25647,20 @@ export namespace Prisma {
     deleteMany?: VolunteerApplicationScalarWhereInput | VolunteerApplicationScalarWhereInput[]
   }
 
+  export type VolunteerSkillUpdateManyWithoutUserNestedInput = {
+    create?: XOR<VolunteerSkillCreateWithoutUserInput, VolunteerSkillUncheckedCreateWithoutUserInput> | VolunteerSkillCreateWithoutUserInput[] | VolunteerSkillUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: VolunteerSkillCreateOrConnectWithoutUserInput | VolunteerSkillCreateOrConnectWithoutUserInput[]
+    upsert?: VolunteerSkillUpsertWithWhereUniqueWithoutUserInput | VolunteerSkillUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: VolunteerSkillCreateManyUserInputEnvelope
+    set?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    disconnect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    delete?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    update?: VolunteerSkillUpdateWithWhereUniqueWithoutUserInput | VolunteerSkillUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: VolunteerSkillUpdateManyWithWhereWithoutUserInput | VolunteerSkillUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: VolunteerSkillScalarWhereInput | VolunteerSkillScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -24376,6 +25729,20 @@ export namespace Prisma {
     update?: VolunteerApplicationUpdateWithWhereUniqueWithoutSubmittedByUserInput | VolunteerApplicationUpdateWithWhereUniqueWithoutSubmittedByUserInput[]
     updateMany?: VolunteerApplicationUpdateManyWithWhereWithoutSubmittedByUserInput | VolunteerApplicationUpdateManyWithWhereWithoutSubmittedByUserInput[]
     deleteMany?: VolunteerApplicationScalarWhereInput | VolunteerApplicationScalarWhereInput[]
+  }
+
+  export type VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<VolunteerSkillCreateWithoutUserInput, VolunteerSkillUncheckedCreateWithoutUserInput> | VolunteerSkillCreateWithoutUserInput[] | VolunteerSkillUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: VolunteerSkillCreateOrConnectWithoutUserInput | VolunteerSkillCreateOrConnectWithoutUserInput[]
+    upsert?: VolunteerSkillUpsertWithWhereUniqueWithoutUserInput | VolunteerSkillUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: VolunteerSkillCreateManyUserInputEnvelope
+    set?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    disconnect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    delete?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    update?: VolunteerSkillUpdateWithWhereUniqueWithoutUserInput | VolunteerSkillUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: VolunteerSkillUpdateManyWithWhereWithoutUserInput | VolunteerSkillUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: VolunteerSkillScalarWhereInput | VolunteerSkillScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutAccountsInput = {
@@ -25180,6 +26547,20 @@ export namespace Prisma {
     update?: XOR<XOR<VolunteerOpportunityUpdateToOneWithWhereWithoutRequirementsInput, VolunteerOpportunityUpdateWithoutRequirementsInput>, VolunteerOpportunityUncheckedUpdateWithoutRequirementsInput>
   }
 
+  export type UserCreateNestedOneWithoutVolunteerSkillsInput = {
+    create?: XOR<UserCreateWithoutVolunteerSkillsInput, UserUncheckedCreateWithoutVolunteerSkillsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutVolunteerSkillsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutVolunteerSkillsNestedInput = {
+    create?: XOR<UserCreateWithoutVolunteerSkillsInput, UserUncheckedCreateWithoutVolunteerSkillsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutVolunteerSkillsInput
+    upsert?: UserUpsertWithoutVolunteerSkillsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutVolunteerSkillsInput, UserUpdateWithoutVolunteerSkillsInput>, UserUncheckedUpdateWithoutVolunteerSkillsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -25699,6 +27080,28 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type VolunteerSkillCreateWithoutUserInput = {
+    id?: string
+    skill: string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerSkillUncheckedCreateWithoutUserInput = {
+    id?: string
+    skill: string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerSkillCreateOrConnectWithoutUserInput = {
+    where: VolunteerSkillWhereUniqueInput
+    create: XOR<VolunteerSkillCreateWithoutUserInput, VolunteerSkillUncheckedCreateWithoutUserInput>
+  }
+
+  export type VolunteerSkillCreateManyUserInputEnvelope = {
+    data: VolunteerSkillCreateManyUserInput | VolunteerSkillCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
     where: AccountWhereUniqueInput
     update: XOR<AccountUpdateWithoutUserInput, AccountUncheckedUpdateWithoutUserInput>
@@ -25850,6 +27253,32 @@ export namespace Prisma {
     submittedAt?: DateTimeFilter<"VolunteerApplication"> | Date | string
   }
 
+  export type VolunteerSkillUpsertWithWhereUniqueWithoutUserInput = {
+    where: VolunteerSkillWhereUniqueInput
+    update: XOR<VolunteerSkillUpdateWithoutUserInput, VolunteerSkillUncheckedUpdateWithoutUserInput>
+    create: XOR<VolunteerSkillCreateWithoutUserInput, VolunteerSkillUncheckedCreateWithoutUserInput>
+  }
+
+  export type VolunteerSkillUpdateWithWhereUniqueWithoutUserInput = {
+    where: VolunteerSkillWhereUniqueInput
+    data: XOR<VolunteerSkillUpdateWithoutUserInput, VolunteerSkillUncheckedUpdateWithoutUserInput>
+  }
+
+  export type VolunteerSkillUpdateManyWithWhereWithoutUserInput = {
+    where: VolunteerSkillScalarWhereInput
+    data: XOR<VolunteerSkillUpdateManyMutationInput, VolunteerSkillUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type VolunteerSkillScalarWhereInput = {
+    AND?: VolunteerSkillScalarWhereInput | VolunteerSkillScalarWhereInput[]
+    OR?: VolunteerSkillScalarWhereInput[]
+    NOT?: VolunteerSkillScalarWhereInput | VolunteerSkillScalarWhereInput[]
+    id?: StringFilter<"VolunteerSkill"> | string
+    userId?: StringFilter<"VolunteerSkill"> | string
+    skill?: StringFilter<"VolunteerSkill"> | string
+    createdAt?: DateTimeFilter<"VolunteerSkill"> | Date | string
+  }
+
   export type UserCreateWithoutAccountsInput = {
     id?: string
     name?: string | null
@@ -25862,6 +27291,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -25876,6 +27306,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -25906,6 +27337,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -25920,6 +27352,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -25934,6 +27367,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -25948,6 +27382,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -26013,6 +27448,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -26027,6 +27463,7 @@ export namespace Prisma {
     memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutSessionsInput = {
@@ -26555,6 +27992,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -26569,6 +28007,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -26640,6 +28079,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -26654,6 +28094,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -26703,6 +28144,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
     submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -26717,6 +28159,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
     submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -26788,6 +28231,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
     submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -26802,6 +28246,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
     submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutFeatureFlagsInput = {
@@ -26968,6 +28413,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSubmittedApplicationsInput = {
@@ -26982,6 +28428,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSubmittedApplicationsInput = {
@@ -27122,6 +28569,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubmittedApplicationsInput = {
@@ -27136,6 +28584,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type VolunteerAnswerUpsertWithWhereUniqueWithoutApplicationInput = {
@@ -27775,6 +29224,82 @@ export namespace Prisma {
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
+  export type UserCreateWithoutVolunteerSkillsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+  }
+
+  export type UserUncheckedCreateWithoutVolunteerSkillsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+  }
+
+  export type UserCreateOrConnectWithoutVolunteerSkillsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutVolunteerSkillsInput, UserUncheckedCreateWithoutVolunteerSkillsInput>
+  }
+
+  export type UserUpsertWithoutVolunteerSkillsInput = {
+    update: XOR<UserUpdateWithoutVolunteerSkillsInput, UserUncheckedUpdateWithoutVolunteerSkillsInput>
+    create: XOR<UserCreateWithoutVolunteerSkillsInput, UserUncheckedCreateWithoutVolunteerSkillsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutVolunteerSkillsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutVolunteerSkillsInput, UserUncheckedUpdateWithoutVolunteerSkillsInput>
+  }
+
+  export type UserUpdateWithoutVolunteerSkillsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutVolunteerSkillsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+  }
+
   export type AccountCreateManyUserInput = {
     id?: string
     type: string
@@ -27824,6 +29349,12 @@ export namespace Prisma {
     screeningStatus?: $Enums.ScreeningStatus
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: Date | string
+  }
+
+  export type VolunteerSkillCreateManyUserInput = {
+    id?: string
+    skill: string
+    createdAt?: Date | string
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -27979,6 +29510,24 @@ export namespace Prisma {
     screeningStatus?: EnumScreeningStatusFieldUpdateOperationsInput | $Enums.ScreeningStatus
     screeningReasons?: JsonNullValueInput | InputJsonValue
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerSkillUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerSkillUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerSkillUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    skill?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrganizationMemberCreateManyOrganizationInput = {

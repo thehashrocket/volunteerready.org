@@ -170,6 +170,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 |---|---|
 | `auth` | signout |
 | `health` | ping |
+| `matching` | getMySkills, updateMySkills, getRecommendations |
 | `members` | list, invite, updateRole, remove |
 | `onboarding` | create org, initial setup |
 | `opportunities` | create, update, delete, list, getById |
@@ -194,6 +195,32 @@ The screening engine lives in `src/server/domain/volunteer-screening.ts`.
 **Config validation:** `src/server/domain/screener/configSchema.ts` provides Zod schemas for validating screening question configurations, including `disqualifierRuleSchema`, `reviewRuleSchema`, and `questionConfigSchema`.
 
 The service orchestrator is `src/server/services/volunteer-screening.ts`. It wraps application creation, answer submission, and audit logging in a single `prisma.$transaction`.
+
+---
+
+## Matching Engine (Core Domain)
+
+The volunteer–opportunity matching system lives in `src/server/domain/volunteer-matching.ts`.
+
+**Flow:** Volunteer adds skills via `/app/my-skills` → skills stored in `VolunteerSkill` → when browsing opportunities, `rankOpportunities()` scores each opportunity against the volunteer's skill set → results shown as match badges on cards.
+
+**Scoring algorithm (MVP):**
+
+- No requirements → score 100 (PERFECT)
+- Any REQUIRED skill missing → score 0 (NONE)
+- All REQUIRED met → base 50 + up to 50 bonus for PREFERRED match ratio
+- PERFECT = 100, PARTIAL = 50–99, NONE = 0
+- Skills are compared case-insensitively with whitespace trimming
+
+**Key types:** `VolunteerSkillSet`, `OpportunityRequirementSet`, `MatchResult`, `MatchType`
+
+**Key functions:** `scoreOpportunity()`, `rankOpportunities()` — both pure, no side effects
+
+**Service orchestration:** `src/server/services/volunteerMatchingService.ts` — `updateVolunteerSkills()` (transactional with audit), `getMatchedOpportunities()` (parallel fetch + rank)
+
+**tRPC router:** `src/server/trpc/routers/matching.ts` — `getMySkills`, `updateMySkills`, `getRecommendations` (all `protectedProcedure`)
+
+**Note:** Volunteer skills are cross-org (tied to `User`, not `Organization`). The `VolunteerSkill` model uses `@@unique([userId, skill])` for deduplication.
 
 ---
 
@@ -245,6 +272,8 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/auth.ts` | NextAuth configuration + session org resolution |
 | `src/server/repositories/auditRepo.ts` | Audit logging (both standalone and transactional variants) |
 | `src/server/domain/screener/configSchema.ts` | Zod schemas for screening question configuration |
+| `src/server/domain/volunteer-matching.ts` | Pure matching/scoring logic (case-insensitive, 0–100 scores) |
+| `src/server/services/volunteerMatchingService.ts` | Matching service orchestration |
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
 
 ---
@@ -255,7 +284,7 @@ pnpm docs:dev               # VitePress dev server
 |---|---|
 | 1 — Volunteer Screening | ✅ Complete |
 | 2 — Volunteer Opportunities | ✅ Complete |
-| 3 — Matching Engine | In progress (requirements added, matching algo pending) |
+| 3 — Matching Engine | ✅ Complete |
 | 4 — Volunteer Profiles | Planned |
 | 5 — Scheduling & Shifts | Planned |
 | 6 — Nonprofit Operations (grants, events, analytics) | Planned |

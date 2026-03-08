@@ -1,9 +1,18 @@
 'use client';
 
-import { Calendar, Clock, MapPin, Search, Users, Wifi } from 'lucide-react';
+import {
+	Calendar,
+	Clock,
+	MapPin,
+	Search,
+	Sparkles,
+	Users,
+	Wifi,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { formatDateRange } from '@/lib/format-date';
+import type { MatchResult } from '@/server/domain/volunteer-matching';
 import type { listPublishedOpportunities } from '@/server/repositories/publicOpportunityRepo';
 
 // ---------------------------------------------------------------------------
@@ -94,15 +103,44 @@ function RequirementChips({
 }
 
 // ---------------------------------------------------------------------------
+// MatchBadge — shows how well a volunteer matches an opportunity
+// ---------------------------------------------------------------------------
+
+function MatchBadge({ match }: { match: MatchResult }) {
+	if (match.matchType === 'PERFECT') {
+		return (
+			<span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 ring-1 ring-green-200">
+				<Sparkles className="h-3 w-3" />
+				Perfect match
+			</span>
+		);
+	}
+	if (match.matchType === 'PARTIAL') {
+		return (
+			<span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+				{match.score}% match
+			</span>
+		);
+	}
+	return (
+		<span className="inline-flex items-center gap-1 rounded-full bg-stone-50 px-2.5 py-0.5 text-xs font-medium text-stone-400 ring-1 ring-stone-200">
+			Skills needed
+		</span>
+	);
+}
+
+// ---------------------------------------------------------------------------
 // OpportunityCard
 // ---------------------------------------------------------------------------
 
 function OpportunityCard({
 	opp,
 	orgSlug,
+	matchResult,
 }: {
 	opp: Opportunity;
 	orgSlug: string;
+	matchResult?: MatchResult | null;
 }) {
 	const dateRange = formatDateRange(opp.startDate, opp.endDate);
 
@@ -122,6 +160,7 @@ function OpportunityCard({
 						{opp.location}
 					</span>
 				)}
+				{matchResult && <MatchBadge match={matchResult} />}
 			</div>
 
 			{/* Title */}
@@ -200,7 +239,7 @@ function OpportunityCard({
 // ---------------------------------------------------------------------------
 
 type RemoteFilter = 'all' | 'remote' | 'in-person';
-type SortBy = 'newest' | 'soonest' | 'commitment';
+type SortBy = 'newest' | 'soonest' | 'commitment' | 'best-match';
 
 const REMOTE_OPTIONS: [RemoteFilter, string][] = [
 	['all', 'All'],
@@ -211,14 +250,22 @@ const REMOTE_OPTIONS: [RemoteFilter, string][] = [
 export function OpportunitiesListing({
 	org,
 	opportunities,
+	matchResults,
 }: {
 	org: Org;
 	opportunities: Opportunity[];
+	/** Optional match results keyed by opportunityId (only present for authenticated volunteers). */
+	matchResults?: Record<string, MatchResult>;
 }) {
+	const hasMatching =
+		matchResults != null && Object.keys(matchResults).length > 0;
+
 	const [activeTag, setActiveTag] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [remoteFilter, setRemoteFilter] = useState<RemoteFilter>('all');
-	const [sortBy, setSortBy] = useState<SortBy>('newest');
+	const [sortBy, setSortBy] = useState<SortBy>(
+		hasMatching ? 'best-match' : 'newest',
+	);
 
 	// Collect unique tag names across all opportunities. Tag name is the filter
 	// identity, so use it as the React key rather than borrowing a per-opportunity
@@ -253,7 +300,13 @@ export function OpportunitiesListing({
 			results = results.filter((o) => o.tags.some((t) => t.name === activeTag));
 
 		const sorted = [...results];
-		if (sortBy === 'soonest') {
+		if (sortBy === 'best-match' && matchResults) {
+			sorted.sort((a, b) => {
+				const sa = matchResults[a.id]?.score ?? 0;
+				const sb = matchResults[b.id]?.score ?? 0;
+				return sb - sa;
+			});
+		} else if (sortBy === 'soonest') {
 			sorted.sort((a, b) => {
 				if (a.startDate == null) return 1;
 				if (b.startDate == null) return -1;
@@ -270,7 +323,14 @@ export function OpportunitiesListing({
 		}
 
 		return sorted;
-	}, [opportunities, searchQuery, remoteFilter, activeTag, sortBy]);
+	}, [
+		opportunities,
+		searchQuery,
+		remoteFilter,
+		activeTag,
+		sortBy,
+		matchResults,
+	]);
 
 	// Sorting alone does not narrow results, so it does not count as an active
 	// filter. Only changes that actually reduce the result set trigger the
@@ -346,6 +406,7 @@ export function OpportunitiesListing({
 							onChange={(e) => setSortBy(e.target.value as SortBy)}
 							className="rounded-xl bg-white px-3 py-2 text-sm text-stone-700 ring-1 ring-stone-200 focus:outline-none focus:ring-2 focus:ring-green-700"
 						>
+							{hasMatching && <option value="best-match">Best match</option>}
 							<option value="newest">Newest</option>
 							<option value="soonest">Starting soonest</option>
 							<option value="commitment">Shortest commitment</option>
@@ -418,7 +479,12 @@ export function OpportunitiesListing({
 					) : (
 						<div className="grid gap-6 sm:grid-cols-2">
 							{filtered.map((opp) => (
-								<OpportunityCard key={opp.id} opp={opp} orgSlug={org.slug} />
+								<OpportunityCard
+									key={opp.id}
+									opp={opp}
+									orgSlug={org.slug}
+									matchResult={matchResults?.[opp.id]}
+								/>
 							))}
 						</div>
 					)}
