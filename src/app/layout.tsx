@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import Link from 'next/link';
@@ -41,6 +42,7 @@ export default function RootLayout({
 				</header>
 				{children}
 				<AppToaster />
+				<Analytics />
 			</body>
 		</html>
 	);
