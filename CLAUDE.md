@@ -106,6 +106,18 @@ docs/
 
 ## Docs Index
 
+### Architecture & Design (read these first)
+
+- `docs/AI_CONTEXT.md` — full project orientation (tech stack, patterns, conventions)
+- `docs/AGENT_RULES.md` — strict rules for AI agents (layer boundaries, multi-tenancy, etc.)
+- `docs/ARCHITECTURE.md` — architectural principles and layered design
+- `docs/DOMAIN.md` — canonical domain model definitions
+- `docs/REQUEST_FLOW.md` — how data flows through the system
+- `docs/SYSTEM_DIAGRAM.md` — Mermaid diagrams of system architecture
+- `docs/ROADMAP.md` — phased development plan
+
+### Guides
+
 - `docs/guide/getting-started.md`
 - `docs/guide/architecture.md`
 - `docs/guide/auth-flows.md`

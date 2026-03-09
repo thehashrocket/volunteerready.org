@@ -2,7 +2,7 @@
 
 import { Mail, ShieldCheck } from 'lucide-react';
 import { signIn } from 'next-auth/react';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { toast } from 'sonner';
 import { AuthFeedback } from '@/components/auth-feedback';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,9 @@ export default function LoginPage() {
 
 	return (
 		<div className="mx-auto flex min-h-[70vh] max-w-md items-center">
-			<AuthFeedback />
+			<Suspense fallback={null}>
+				<AuthFeedback />
+			</Suspense>
 			<Card className="w-full">
 				<CardHeader>
 					<div className="space-y-2">
