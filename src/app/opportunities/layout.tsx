@@ -1,11 +1,6 @@
-import type { Metadata } from 'next';
 import { PublicHeader } from '@/components/public-header';
 
-export const metadata: Metadata = {
-	title: 'Sign in',
-};
-
-export default function LoginLayout({
+export default function OpportunitiesLayout({
 	children,
 }: {
 	children: React.ReactNode;

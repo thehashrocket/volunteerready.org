@@ -28,10 +28,6 @@ import { formatDate } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
 
@@ -43,10 +39,12 @@ interface StatCardProps {
 
 function StatCard({ label, value, accent }: StatCardProps) {
 	return (
-		<Card className="overflow-hidden">
-			<div className={`h-1 ${accent}`} />
+		<Card className="overflow-hidden border-border/70">
+			<div className={`h-1.5 ${accent}`} />
 			<CardContent className="pb-5 pt-4">
-				<div className="text-3xl font-bold tabular-nums">{value}</div>
+				<div className="text-3xl font-bold tabular-nums tracking-tight">
+					{value}
+				</div>
 				<div className="mt-1 text-sm text-muted-foreground">{label}</div>
 			</CardContent>
 		</Card>
@@ -63,6 +61,16 @@ export default function DashboardPage() {
 
 	return (
 		<div className="space-y-8">
+			{/* ── Greeting banner ── */}
+			<div className="rounded-xl border border-border/60 bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-5">
+				<p className="font-display text-xl font-bold text-foreground">
+					Good to see you again.
+				</p>
+				<p className="mt-1 text-sm text-muted-foreground">
+					Here's what's happening across your organization today.
+				</p>
+			</div>
+
 			<PageHeader
 				title="Dashboard"
 				description="Track activity across your organization."
@@ -110,9 +118,11 @@ export default function DashboardPage() {
 
 			{/* ── Quick links ── */}
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<Card>
+				<Card className="border-border/70">
 					<CardContent className="flex items-start gap-4 pt-6">
-						<ClipboardList className="mt-1 h-5 w-5 text-muted-foreground" />
+						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-info/10">
+							<ClipboardList className="h-5 w-5 text-info-foreground" />
+						</div>
 						<div className="flex-1 space-y-1">
 							<p className="font-medium">Screener questions</p>
 							<p className="text-sm text-muted-foreground">
@@ -126,9 +136,11 @@ export default function DashboardPage() {
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card className="border-border/70">
 					<CardContent className="flex items-start gap-4 pt-6">
-						<FileText className="mt-1 h-5 w-5 text-muted-foreground" />
+						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-warning/10">
+							<FileText className="h-5 w-5 text-warning-foreground" />
+						</div>
 						<div className="flex-1 space-y-1">
 							<p className="font-medium">Volunteer applications</p>
 							<p className="text-sm text-muted-foreground">
@@ -141,9 +153,11 @@ export default function DashboardPage() {
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card className="border-border/70">
 					<CardContent className="flex items-start gap-4 pt-6">
-						<Users className="mt-1 h-5 w-5 text-muted-foreground" />
+						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/15">
+							<Users className="h-5 w-5 text-success-foreground" />
+						</div>
 						<div className="flex-1 space-y-1">
 							<p className="font-medium">Team members</p>
 							<p className="text-sm text-muted-foreground">
@@ -156,9 +170,11 @@ export default function DashboardPage() {
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card className="border-border/70">
 					<CardContent className="flex items-start gap-4 pt-6">
-						<Briefcase className="mt-1 h-5 w-5 text-muted-foreground" />
+						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+							<Briefcase className="h-5 w-5 text-primary" />
+						</div>
 						<div className="flex-1 space-y-1">
 							<p className="font-medium">Opportunities</p>
 							<p className="text-sm text-muted-foreground">
@@ -174,9 +190,11 @@ export default function DashboardPage() {
 			</div>
 
 			{/* ── Recent applications ── */}
-			<Card>
-				<CardHeader className="pb-4">
-					<CardTitle>Recent applications</CardTitle>
+			<Card className="border-border/70">
+				<CardHeader className="pb-3">
+					<CardTitle className="text-base font-semibold">
+						Recent applications
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					{isLoading ? (

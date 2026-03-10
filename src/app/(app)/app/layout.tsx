@@ -8,7 +8,11 @@ import { prisma } from '@/server/repositories/prisma';
 
 // Routes that are exempt from the no-org redirect guard.
 // These pages must be reachable by logged-in users who have no org yet.
-const NO_ORG_EXEMPT_PREFIXES = ['/app/welcome', '/app/onboarding'];
+const NO_ORG_EXEMPT_PREFIXES = [
+	'/app/welcome',
+	'/app/onboarding',
+	'/app/my-applications',
+];
 
 export default async function AppLayout({
 	children,
@@ -21,23 +25,20 @@ export default async function AppLayout({
 		pathname.startsWith(prefix),
 	);
 
-	if (!isExempt) {
-		const session = await getServerSession(authOptions);
-		const userId = session?.user?.id;
+	const session = await getServerSession(authOptions);
+	const userId = session?.user?.id;
 
-		if (userId) {
-			const memberCount = await prisma.organizationMember.count({
-				where: { userId },
-			});
+	const memberCount = userId
+		? await prisma.organizationMember.count({ where: { userId } })
+		: 0;
+	const hasOrg = memberCount > 0;
 
-			if (memberCount === 0) {
-				redirect('/app/welcome');
-			}
-		}
+	if (!isExempt && !hasOrg) {
+		redirect('/app/my-applications');
 	}
 
 	return (
-		<AppShell>
+		<AppShell hasOrg={hasOrg}>
 			<AuthFeedback />
 			{children}
 		</AppShell>

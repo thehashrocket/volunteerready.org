@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, FileText, RefreshCw } from 'lucide-react';
+import { AlertTriangle, FileText, RefreshCw, Search } from 'lucide-react';
 import Link from 'next/link';
 import { EmptyState } from '@/components/empty-state';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
@@ -76,8 +76,16 @@ export default function MyApplicationsPage() {
 			{applications.length === 0 ? (
 				<EmptyState
 					title="No applications yet"
-					description="When you submit a volunteer application, it will show up here."
+					description="Browse volunteer opportunities and apply to get started."
 					icon={FileText}
+					action={
+						<Button asChild variant="outline">
+							<Link href="/opportunities">
+								<Search className="h-4 w-4" />
+								Browse opportunities
+							</Link>
+						</Button>
+					}
 				/>
 			) : (
 				<Card>
