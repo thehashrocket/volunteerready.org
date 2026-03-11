@@ -95,8 +95,9 @@ export function AppShell({ children, hasOrg }: AppShellProps) {
 				{/* Mobile sidebar overlay */}
 				{sidebarOpen && (
 					<>
-						{/* biome-ignore lint/a11y/useKeyWithClickEvents: overlay dismiss */}
-						<div
+						<button
+							type="button"
+							aria-label="Close sidebar"
 							className="fixed inset-0 top-14 z-30 bg-black/40 lg:hidden"
 							onClick={() => setSidebarOpen(false)}
 						/>

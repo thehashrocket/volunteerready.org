@@ -25,7 +25,9 @@ import type { listAllPublishedOpportunities } from '@/server/repositories/public
 // Types
 // ---------------------------------------------------------------------------
 
-type Opportunity = Awaited<ReturnType<typeof listAllPublishedOpportunities>>[number];
+type Opportunity = Awaited<
+	ReturnType<typeof listAllPublishedOpportunities>
+>[number];
 type Requirement = Opportunity['requirements'][number];
 
 // ---------------------------------------------------------------------------
@@ -388,9 +390,7 @@ export function BrowseOpportunities({
 							{allOrgs.length > 1 && (
 								<select
 									value={activeOrg ?? ''}
-									onChange={(e) =>
-										setActiveOrg(e.target.value || null)
-									}
+									onChange={(e) => setActiveOrg(e.target.value || null)}
 									className="rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 								>
 									<option value="">All organizations</option>
@@ -451,8 +451,7 @@ export function BrowseOpportunities({
 					{hasActiveFilters && (
 						<div className="flex items-center justify-between text-sm">
 							<span className="text-muted-foreground">
-								{filtered.length}{' '}
-								{filtered.length === 1 ? 'result' : 'results'}
+								{filtered.length} {filtered.length === 1 ? 'result' : 'results'}
 							</span>
 							<Button
 								type="button"

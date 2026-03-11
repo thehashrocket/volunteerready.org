@@ -43,9 +43,7 @@ const STAFF_NAV: NavItem[] = [
 function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 	// Exact match for dashboard (/app), prefix match for everything else
 	const isActive =
-		item.href === '/app'
-			? pathname === '/app'
-			: pathname.startsWith(item.href);
+		item.href === '/app' ? pathname === '/app' : pathname.startsWith(item.href);
 
 	const Icon = item.icon;
 
