@@ -56,7 +56,7 @@
 		"@biomejs/biome": "^2.4.6",
 		"@tailwindcss/postcss": "^4.2.1",
 		"@types/node": "^20.19.37",
-		"@types/pg": "^8.18.0",
+		"@types/pg": "8.11.11",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
 		"dotenv": "^17.3.1",
@@ -70,5 +70,10 @@
 	},
 	"prisma": {
 		"seed": "node prisma/seed.cjs"
+	},
+	"pnpm": {
+		"overrides": {
+			"@types/pg": "8.11.11"
+		}
 	}
 }
