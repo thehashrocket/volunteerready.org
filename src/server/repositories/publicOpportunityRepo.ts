@@ -57,3 +57,28 @@ export async function listPublishedOpportunities(orgSlug: string) {
 
 	return { org, opportunities };
 }
+
+/**
+ * List ALL published opportunities across every organization.
+ * Used by the authenticated volunteer browse page.
+ */
+export async function listAllPublishedOpportunities() {
+	return prisma.volunteerOpportunity.findMany({
+		where: { status: OpportunityStatus.PUBLISHED },
+		select: {
+			id: true,
+			title: true,
+			description: true,
+			location: true,
+			isRemote: true,
+			startDate: true,
+			endDate: true,
+			commitmentHours: true,
+			capacity: true,
+			tags: { select: { id: true, name: true } },
+			requirements: { select: { id: true, skill: true, level: true } },
+			organization: { select: { id: true, name: true, slug: true } },
+		},
+		orderBy: { createdAt: 'desc' },
+	});
+}

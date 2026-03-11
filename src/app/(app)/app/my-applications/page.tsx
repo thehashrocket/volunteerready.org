@@ -80,7 +80,7 @@ export default function MyApplicationsPage() {
 					icon={FileText}
 					action={
 						<Button asChild variant="outline">
-							<Link href="/opportunities">
+							<Link href="/app/browse">
 								<Search className="h-4 w-4" />
 								Browse opportunities
 							</Link>

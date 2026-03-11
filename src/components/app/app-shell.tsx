@@ -1,9 +1,10 @@
 'use client';
 
-import { ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
+import { AppSidebar } from '@/components/app/app-sidebar';
 import { OrgSwitcher } from '@/components/org/OrgSwitcher';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,13 +24,29 @@ interface AppShellProps {
 export function AppShell({ children, hasOrg }: AppShellProps) {
 	const { data: session } = useSession();
 	const initial = session?.user?.email?.[0]?.toUpperCase() ?? 'U';
-	const homeHref = hasOrg ? '/app' : '/app/my-applications';
+	const homeHref = hasOrg ? '/app' : '/app/browse';
+	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	return (
 		<div className="min-h-screen bg-background text-foreground">
 			<header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-sm">
-				<div className="container mx-auto flex h-14 items-center justify-between px-4">
-					<div className="flex items-center gap-4">
+				<div className="flex h-14 items-center justify-between px-4">
+					<div className="flex items-center gap-3">
+						{/* Mobile sidebar toggle */}
+						<Button
+							variant="ghost"
+							size="sm"
+							className="lg:hidden"
+							onClick={() => setSidebarOpen(!sidebarOpen)}
+							aria-label="Toggle navigation"
+						>
+							{sidebarOpen ? (
+								<X className="h-5 w-5" />
+							) : (
+								<Menu className="h-5 w-5" />
+							)}
+						</Button>
+
 						<Link className="flex items-center gap-2.5" href={homeHref}>
 							<div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
 								V
@@ -66,7 +83,34 @@ export function AppShell({ children, hasOrg }: AppShellProps) {
 					</DropdownMenu>
 				</div>
 			</header>
-			<main className="container mx-auto px-4 py-8">{children}</main>
+
+			<div className="flex">
+				{/* Desktop sidebar */}
+				<aside className="hidden w-56 shrink-0 border-r border-border/60 lg:block">
+					<div className="sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto p-4">
+						<AppSidebar hasOrg={hasOrg} />
+					</div>
+				</aside>
+
+				{/* Mobile sidebar overlay */}
+				{sidebarOpen && (
+					<>
+						{/* biome-ignore lint/a11y/useKeyWithClickEvents: overlay dismiss */}
+						<div
+							className="fixed inset-0 top-14 z-30 bg-black/40 lg:hidden"
+							onClick={() => setSidebarOpen(false)}
+						/>
+						<aside className="fixed left-0 top-14 z-30 h-[calc(100vh-3.5rem)] w-56 overflow-y-auto border-r border-border/60 bg-background p-4 lg:hidden">
+							<AppSidebar hasOrg={hasOrg} />
+						</aside>
+					</>
+				)}
+
+				{/* Main content */}
+				<main className="min-w-0 flex-1 px-4 py-8 sm:px-6 lg:px-8">
+					{children}
+				</main>
+			</div>
 		</div>
 	);
 }

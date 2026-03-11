@@ -11,7 +11,11 @@ import { prisma } from '@/server/repositories/prisma';
 const NO_ORG_EXEMPT_PREFIXES = [
 	'/app/welcome',
 	'/app/onboarding',
+	'/app/browse',
 	'/app/my-applications',
+	'/app/my-shifts',
+	'/app/my-skills',
+	'/app/profile',
 ];
 
 export default async function AppLayout({
@@ -34,7 +38,7 @@ export default async function AppLayout({
 	const hasOrg = memberCount > 0;
 
 	if (!isExempt && !hasOrg) {
-		redirect('/app/my-applications');
+		redirect('/app/browse');
 	}
 
 	return (

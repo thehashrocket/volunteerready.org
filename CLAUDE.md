@@ -116,15 +116,6 @@ docs/
 - `docs/SYSTEM_DIAGRAM.md` — Mermaid diagrams of system architecture
 - `docs/ROADMAP.md` — phased development plan
 
-### Guides
-
-- `docs/guide/getting-started.md`
-- `docs/guide/architecture.md`
-- `docs/guide/auth-flows.md`
-- `docs/guide/org-model.md`
-- `docs/guide/deployment.md`
-- `docs/guide/trpc.md`
-
 ## LLMs documentation
 
 - Prisma 7.2.0: <https://www.prisma.io/llms.txt>
