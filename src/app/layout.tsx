@@ -22,8 +22,22 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
+	metadataBase: new URL('https://www.volunteerready.org'),
 	title: 'VolunteerReady',
 	description: 'Find and manage volunteer opportunities.',
+	openGraph: {
+		title: 'VolunteerReady',
+		description: 'Find and manage volunteer opportunities.',
+		url: 'https://www.volunteerready.org/',
+		siteName: 'VolunteerReady',
+		images: ['/images/og-image.png'],
+	},
+	twitter: {
+		card: 'summary_large_image',
+		title: 'VolunteerReady',
+		description: 'Find and manage volunteer opportunities.',
+		images: ['/images/og-image.png'],
+	},
 };
 
 export default function RootLayout({
