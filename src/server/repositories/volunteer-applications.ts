@@ -143,6 +143,22 @@ export async function countApplicationsByStatus(orgId: string) {
 	return { submitted, review, approved, rejected };
 }
 
+export async function listApplicationsWithSkills(
+	orgId: string,
+	opportunityId: string,
+) {
+	return prisma.volunteerApplication.findMany({
+		where: { orgId, opportunityId },
+		select: {
+			id: true,
+			submittedByUserId: true,
+			submittedByUser: {
+				select: { volunteerSkills: { select: { skill: true } } },
+			},
+		},
+	});
+}
+
 export async function getRecentApplications(orgId: string, limit: number) {
 	return prisma.volunteerApplication.findMany({
 		where: { orgId },

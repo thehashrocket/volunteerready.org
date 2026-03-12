@@ -30,7 +30,48 @@ import {
 } from '@/components/ui/table';
 import { formatDate, formatDateRange, formatRelative } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
+import type { MatchResult } from '@/server/domain/volunteer-matching';
 import { OpportunityDialog } from '../OpportunityDialog';
+
+// ---------------------------------------------------------------------------
+// MatchScoreBadge
+// ---------------------------------------------------------------------------
+
+function MatchScoreBadge({
+	result,
+}: {
+	result: MatchResult | null | undefined;
+}) {
+	if (result === null || result === undefined) {
+		return <span className="text-xs text-muted-foreground">N/A</span>;
+	}
+
+	const colorClass =
+		result.matchType === 'PERFECT'
+			? 'bg-success/15 text-success border-success/30'
+			: result.matchType === 'PARTIAL'
+				? 'bg-warning/15 text-warning border-warning/30'
+				: 'bg-destructive/15 text-destructive border-destructive/30';
+
+	const lines: string[] = [];
+	if (result.matchedRequired.length > 0)
+		lines.push(`✓ Required: ${result.matchedRequired.join(', ')}`);
+	if (result.missingRequired.length > 0)
+		lines.push(`✗ Missing: ${result.missingRequired.join(', ')}`);
+	if (result.matchedPreferred.length > 0)
+		lines.push(`+ Preferred: ${result.matchedPreferred.join(', ')}`);
+	const tooltip = lines.join('\n') || 'No requirements';
+
+	return (
+		<span
+			title={tooltip}
+			className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${colorClass}`}
+		>
+			{result.score}
+			<span className="opacity-70">{result.matchType}</span>
+		</span>
+	);
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -90,6 +131,13 @@ export default function OpportunityDashboardPage() {
 		page: 1,
 		pageSize: 200,
 	});
+	const scoresQuery = trpc.matching.getApplicationScores.useQuery({
+		opportunityId: id,
+	});
+
+	const scoreMap = new Map(
+		(scoresQuery.data ?? []).map((s) => [s.applicationId, s.matchResult]),
+	);
 
 	const backButton = (
 		<Button variant="ghost" size="sm" asChild className="-ml-2 mb-2">
@@ -373,6 +421,7 @@ export default function OpportunityDashboardPage() {
 										<TableHead>Status</TableHead>
 										<TableHead>Screening</TableHead>
 										<TableHead>Flags</TableHead>
+										<TableHead>Match</TableHead>
 										<TableHead />
 									</TableRow>
 								</TableHeader>
@@ -381,6 +430,9 @@ export default function OpportunityDashboardPage() {
 										const flags = Array.isArray(app.screeningReasons)
 											? app.screeningReasons.length
 											: 0;
+										const matchResult = scoresQuery.isLoading
+											? undefined
+											: (scoreMap.get(app.id) ?? null);
 										return (
 											<TableRow
 												key={app.id}
@@ -411,6 +463,13 @@ export default function OpportunityDashboardPage() {
 														<Badge variant="destructive">
 															{flags} flag{flags > 1 ? 's' : ''}
 														</Badge>
+													)}
+												</TableCell>
+												<TableCell>
+													{scoresQuery.isLoading ? (
+														<Skeleton className="h-5 w-16 rounded-full" />
+													) : (
+														<MatchScoreBadge result={matchResult} />
 													)}
 												</TableCell>
 												<TableCell>

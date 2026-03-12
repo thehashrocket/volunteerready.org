@@ -1,8 +1,16 @@
-import type { OpportunityRequirementSet } from '@/server/domain/volunteer-matching';
-import { rankOpportunities } from '@/server/domain/volunteer-matching';
+import type {
+	MatchResult,
+	OpportunityRequirementSet,
+} from '@/server/domain/volunteer-matching';
+import {
+	rankOpportunities,
+	scoreOpportunity,
+} from '@/server/domain/volunteer-matching';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
+import { getOpportunity } from '@/server/repositories/opportunityRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { listPublishedOpportunities } from '@/server/repositories/publicOpportunityRepo';
+import { listApplicationsWithSkills } from '@/server/repositories/volunteer-applications';
 import {
 	getSkillsForUser,
 	setSkillsForUser,
@@ -65,4 +73,39 @@ export async function getMatchedOpportunities(userId: string, orgSlug: string) {
 		});
 
 	return { org: listing.org, opportunities: scored };
+}
+
+/**
+ * Score all applicants for an opportunity against its skill requirements.
+ * Applications without a linked user return a null matchResult.
+ */
+export async function scoreApplicationsForOpportunity(
+	orgId: string,
+	opportunityId: string,
+): Promise<{ applicationId: string; matchResult: MatchResult | null }[]> {
+	const [opportunity, applications] = await Promise.all([
+		getOpportunity(opportunityId, orgId),
+		listApplicationsWithSkills(orgId, opportunityId),
+	]);
+
+	if (!opportunity) return [];
+
+	const requirementSet: OpportunityRequirementSet = {
+		opportunityId,
+		requirements: opportunity.requirements.map((r) => ({
+			skill: r.skill,
+			level: r.level,
+		})),
+	};
+
+	return applications.map((app) => {
+		if (!app.submittedByUserId || !app.submittedByUser) {
+			return { applicationId: app.id, matchResult: null };
+		}
+		const skills = app.submittedByUser.volunteerSkills.map((s) => s.skill);
+		return {
+			applicationId: app.id,
+			matchResult: scoreOpportunity({ skills }, requirementSet),
+		};
+	});
 }

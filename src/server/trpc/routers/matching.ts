@@ -3,9 +3,14 @@ import { z } from 'zod';
 import { getSkillsForUser } from '@/server/repositories/volunteerSkillRepo';
 import {
 	getMatchedOpportunities,
+	scoreApplicationsForOpportunity,
 	updateVolunteerSkills,
 } from '@/server/services/volunteerMatchingService';
-import { createTRPCRouter, protectedProcedure } from '@/server/trpc/init';
+import {
+	createTRPCRouter,
+	protectedProcedure,
+	staffProcedure,
+} from '@/server/trpc/init';
 
 /** Extract userId from session, throwing if somehow missing (should never happen after protectedProcedure). */
 function requireUserId(session: { user?: { id?: string } } | null): string {
@@ -36,5 +41,12 @@ export const matchingRouter = createTRPCRouter({
 		.input(z.object({ orgSlug: z.string().min(1) }))
 		.query(({ ctx, input }) =>
 			getMatchedOpportunities(requireUserId(ctx.session), input.orgSlug),
+		),
+
+	/** Score all applicants for an opportunity against its skill requirements (staff only). */
+	getApplicationScores: staffProcedure
+		.input(z.object({ opportunityId: z.string().min(1) }))
+		.query(({ ctx, input }) =>
+			scoreApplicationsForOpportunity(ctx.orgId, input.opportunityId),
 		),
 });
