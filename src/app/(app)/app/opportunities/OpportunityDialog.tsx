@@ -32,8 +32,8 @@ import {
 } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc/client';
+import { cn } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -234,9 +234,7 @@ function RequirementPicker({
 }) {
 	const [open, setOpen] = useState(false);
 
-	const selectedKeys = new Set(
-		requirements.map((r) => `${r.type}:${r.refId}`),
-	);
+	const selectedKeys = new Set(requirements.map((r) => `${r.type}:${r.refId}`));
 
 	function toggleItem(key: string, item: Requirement) {
 		if (selectedKeys.has(key)) {
@@ -305,9 +303,7 @@ function RequirementPicker({
 													: 'opacity-0',
 											)}
 										/>
-										<span className="font-medium">
-											Any {family.name} skill
-										</span>
+										<span className="font-medium">Any {family.name} skill</span>
 										<span className="ml-auto text-xs text-muted-foreground">
 											Family
 										</span>
@@ -356,8 +352,7 @@ function RequirementPicker({
 						>
 							{req.type === 'family' ? (
 								<>
-									<span className="text-muted-foreground">Any</span>{' '}
-									{req.name}
+									<span className="text-muted-foreground">Any</span> {req.name}
 								</>
 							) : (
 								<>
@@ -509,8 +504,16 @@ export function OpportunityDialog({
 			.filter((r) => r.refId)
 			.map((r) =>
 				r.type === 'skill'
-					? ({ skillId: r.refId, familyId: undefined, level: r.level as 'REQUIRED' | 'PREFERRED' } as const)
-					: ({ familyId: r.refId, skillId: undefined, level: r.level as 'REQUIRED' | 'PREFERRED' } as const),
+					? ({
+							skillId: r.refId,
+							familyId: undefined,
+							level: r.level as 'REQUIRED' | 'PREFERRED',
+						} as const)
+					: ({
+							familyId: r.refId,
+							skillId: undefined,
+							level: r.level as 'REQUIRED' | 'PREFERRED',
+						} as const),
 			);
 
 		const payload = {
@@ -660,7 +663,9 @@ export function OpportunityDialog({
 					<div className="space-y-2">
 						<Label>
 							Tags{' '}
-							<span className="text-muted-foreground">(optional, up to 10)</span>
+							<span className="text-muted-foreground">
+								(optional, up to 10)
+							</span>
 						</Label>
 						<TagInput tags={tags} onChange={setTags} />
 						<p className="text-xs text-muted-foreground">

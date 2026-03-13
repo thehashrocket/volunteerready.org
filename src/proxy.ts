@@ -6,7 +6,7 @@ const sessionCookieNames = [
 	'next-auth.session-token',
 ];
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
 	if (!req.nextUrl.pathname.startsWith('/app')) {
 		return NextResponse.next();
 	}

@@ -28,8 +28,8 @@ import {
 	PopoverTrigger,
 } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc/client';
+import { cn } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // Skill combobox
@@ -93,9 +93,7 @@ function SkillCombobox({
 										<Check
 											className={cn(
 												'mr-2 h-4 w-4',
-												selectedIds.has(skill.id)
-													? 'opacity-100'
-													: 'opacity-0',
+												selectedIds.has(skill.id) ? 'opacity-100' : 'opacity-0',
 											)}
 										/>
 										{skill.name}
@@ -144,7 +142,8 @@ export default function MySkillsPage() {
 
 	const isDirty =
 		localIds !== null &&
-		JSON.stringify([...localIds].sort()) !== JSON.stringify([...serverIds].sort());
+		JSON.stringify([...localIds].sort()) !==
+			JSON.stringify([...serverIds].sort());
 
 	const mutation = trpc.matching.updateMySkills.useMutation({
 		onSuccess: async () => {

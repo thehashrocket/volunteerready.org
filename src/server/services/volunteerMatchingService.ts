@@ -20,7 +20,10 @@ import {
 /**
  * Replace a volunteer's skill list, with audit logging.
  */
-export async function updateVolunteerSkills(userId: string, skillIds: string[]) {
+export async function updateVolunteerSkills(
+	userId: string,
+	skillIds: string[],
+) {
 	await prisma.$transaction(async (tx) => {
 		await setSkillsForUser(tx, userId, skillIds);
 		await writeAuditLogTx(tx, {

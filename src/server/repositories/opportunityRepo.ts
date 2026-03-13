@@ -80,7 +80,11 @@ export async function createOpportunity(input: {
 	commitmentHours?: number | null;
 	capacity?: number | null;
 	tags: string[];
-	requirements: { skillId?: string; familyId?: string; level: RequirementLevel }[];
+	requirements: {
+		skillId?: string;
+		familyId?: string;
+		level: RequirementLevel;
+	}[];
 }) {
 	const { tags, requirements, ...data } = input;
 	return prisma.volunteerOpportunity.create({
@@ -119,7 +123,11 @@ export async function updateOpportunity(
 		commitmentHours?: number | null;
 		capacity?: number | null;
 		tags?: string[];
-		requirements?: { skillId?: string; familyId?: string; level: RequirementLevel }[];
+		requirements?: {
+			skillId?: string;
+			familyId?: string;
+			level: RequirementLevel;
+		}[];
 	},
 ) {
 	const { tags, requirements, ...data } = input;
