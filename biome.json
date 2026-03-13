@@ -4,7 +4,7 @@
 		"ignoreUnknown": true,
 		"includes": [
 			"src/**",
-			"!src/prisma/generated",
+			"!src/prisma/generated/**",
 			"prisma/**/*.ts",
 			"prisma/**/*.js",
 			"package.json",

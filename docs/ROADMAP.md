@@ -157,31 +157,129 @@ This phase supports **operational volunteer coordination**.
 
 ---
 
-# Phase 6 — Nonprofit Operations
+# Phase 6 — Corporate CSR & Network Effects
 
-Goal: Expand the platform into broader nonprofit infrastructure.
+Goal: Unlock the corporate CSR revenue surface, cement the quality niche with background check
+integrations, and make volunteer credentials portable across the network.
 
-Possible areas:
+The product is already differentiated on screening and credentialing. This phase fixes the growth
+problem — pricing clarity, a new corporate buyer segment, and the network effects that come from
+portable volunteer identity.
 
-Grant discovery and tracking
+## 6A — Employer Accounts & Billing
 
-- GrantOpportunity
-- GrantApplication
-- GrantFitScore
+- Corporate account type (`CompanyAccount`) — separate from nonprofit orgs, with its own auth
+  flow, member roster, and subscription
+- `CompanyMember` roles: OWNER / ADMIN / MEMBER
+- `CompanyNonprofitLink` — companies fund/sponsor nonprofit org access
+- Public `/pricing` page with nonprofit tiers (Free / Starter / Pro) and corporate pricing
+- Stripe billing integration — subscription creation, plan tier updates, webhook handling
+- `planTierProcedure` tRPC middleware — gates features by `org.planTier`; modeled after
+  existing `staffProcedure`
+- Stripe webhook idempotency — `StripeWebhookEvent` table prevents double-processing on retries
+- Trial-to-paid conversion flow for nonprofits
 
-Event management
+Key entities added:
 
-- Event
-- EventVolunteer
-- EventSchedule
+- CompanyAccount
+- CompanyMember (role: OWNER / ADMIN / MEMBER)
+- CompanyNonprofitLink (status: ACTIVE / PAUSED)
+- StripeWebhookEvent (idempotency log)
+- Organization gains: `planTier` (FREE / STARTER / PRO), `stripeCustomerId`,
+  `stripeSubscriptionId`
+
+## 6B — Background Check Integration
+
+- Checkr (or Sterling) API integration for initiating background checks from within the platform
+- `BackgroundCheckRequest` entity tracks lifecycle: PENDING → COMPLETE → FAILED / CANCELLED
+- Async webhook handler — provider posts result; credential is auto-created on pass
+- PII guardrail — SSN/DOB passed through to provider only, never stored in the database
+- Staff-initiated check UI at `/app/credentials` — existing page extended
+- Result = CONSIDER flow — marks request PENDING and notifies staff for manual review
+- Webhook race condition handling — lookup by `externalId`; not-found requeues with delay
+
+Key entities added:
+
+- BackgroundCheckRequest (provider, externalId, status, webhookPayload, credentialId)
+- BackgroundCheckProvider (enum: CHECKR / STERLING)
+
+## 6C — Portable Credential Sharing
+
+- `CredentialShareToken` — volunteer generates a time-limited share link for any verified
+  credential
+- Org staff claims the token at `/credentials/claim/[token]` — credential appears in their view
+  without re-verification
+- Token lifecycle: ACTIVE → CLAIMED / EXPIRED
+- Validation at claim time — credential status re-checked; REVOKED credentials cannot be claimed
+- "Bring my credentials" checkbox on apply flow — one-click share of all portable credentials
+  to a new org at application time (volunteer-opt-in)
+- `VolunteerCredential` gains: `expiresAt` (nullable), `notifiedAt` (expiry email tracking)
+
+Key entities added:
+
+- CredentialShareToken (token, credentialId, expiresAt, claimedByOrgId, claimedAt)
+
+## 6D — Corporate ESG Reporting
+
+- Corporate account dashboard at `/app/team` — employee volunteer activity, hours, orgs supported
+- Aggregate-only view for corporate admins — individual employee records require employee consent
+- One-click ESG report export (PDF/CSV) — hours logged, verified credentials, supported nonprofits
+- `EmployerReportService` — uses DB aggregations (`groupBy`), not per-row queries
+- Structured log events for all billing and report actions
+
+## 6E — Mobile PWA
+
+- Progressive Web App manifest — installable on iOS and Android home screens
+- Volunteer check-in via mobile — QR code displayed on `/app/my-shifts`; staff scans to mark
+  ATTENDED
+- Push notification groundwork — shift reminders (implementation deferred to Phase 7)
+
+Key new routes:
+
+- `/pricing` — public nonprofit + corporate pricing page
+- `/for-employers` — corporate marketing landing page
+- `/app/team` — corporate account dashboard (employees, activity, ESG report)
+- `/app/billing` — nonprofit plan management + upgrade flow
+- `/credentials/claim/[token]` — credential share token claim
+
+This phase establishes **the corporate CSR revenue surface and portable volunteer identity network**.
+
+---
+
+# Phase 7 — Network Growth & Volunteer Identity
+
+Goal: Drive organic growth through volunteer-facing public identity and deepen the quality moat
+with AI-assisted matching.
+
+Planned areas:
+
+Volunteer impact public pages
+
+- `/v/[userId]` — SEO-optimized public page per volunteer showing verified credentials, total
+  hours, and supported orgs (no PII; volunteer controls visibility)
+- "Add to LinkedIn" deep link for verified credential badges
+- Volunteer tenure badges — automatic "1 year / 3 year / 5 year" milestone credentials
+
+AI-powered matching upgrades
+
+- Credential-weighted recommendations — factor verified credential types into match scores
+- Interest + availability signal integration — surface best-fit opportunities by schedule
+- Cross-org "volunteers like you also served" discovery
+
+Grant discovery and tracking (original Phase 6 intent — correct direction, right timing)
+
+- GrantOpportunity — curated grants relevant to the org's cause area
+- GrantApplication — track status and deadlines
+- GrantFitScore — lightweight AI scoring of org/grant alignment
 
 Organization analytics
 
-- Volunteer engagement metrics
-- Application conversion metrics
-- Volunteer retention tracking
+- Volunteer engagement metrics (retention, return rate, avg hours)
+- Application conversion funnel (submitted → approved → shifted → credentialed)
+- Shift fill rate and no-show trends
 
-This phase evolves VolunteerReady into a **comprehensive nonprofit operations platform**.
+This phase evolves VolunteerReady into a **network with compounding value** — more verified
+volunteers attract more orgs; more orgs attract more corporate sponsors.
 
 ---
 
@@ -189,23 +287,29 @@ This phase evolves VolunteerReady into a **comprehensive nonprofit operations pl
 
 Across all phases the platform must maintain:
 
-Multi-tenant isolation
-Organization-scoped data access
-Clear domain boundaries
-Audit logging of important actions
-Extensible service architecture
+- Multi-tenant isolation — every record scoped by `orgId` or `companyId`
+- Organization-scoped data access — no cross-org data leakage
+- Clear domain boundaries — routers → services → repositories, no shortcuts
+- Audit logging of all writes via `writeAuditLogTx`
+- Extensible service architecture — new integrations go through adapter classes in
+  `src/server/lib/adapters/`
+- Plan tier enforcement is server-side only — never trust client-passed tier values
+- PII discipline — sensitive identity data (SSN, DOB) is never stored; pass-through only
 
 ---
 
 # Long-Term Vision
 
-VolunteerReady should eventually support a full ecosystem connecting:
+VolunteerReady is the **quality layer for volunteer engagement** — the platform that serious
+nonprofits choose when screening, credentials, and fit matter more than volume.
 
-- Volunteers
-- Nonprofit organizations
-- Volunteer opportunities
-- Events
-- Grants
-- Community engagement
+The long-term ecosystem connects:
 
-The goal is to provide a **shared infrastructure layer for volunteer engagement and nonprofit operations**.
+- Volunteers — portable verified identity that travels across every org they serve
+- Nonprofit organizations — full workflow from application through scheduling and credentialing
+- Corporate employers — CSR and employee volunteer programs with real ESG reporting
+- Background check and identity providers — integrated, not bolted on
+- Grant funders — discovery and fit scoring for nonprofits seeking funding
+
+The goal is to be the **trusted infrastructure layer** that makes volunteer engagement safer,
+more accountable, and more meaningful for everyone involved.
