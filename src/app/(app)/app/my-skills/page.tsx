@@ -59,7 +59,7 @@ function SkillCombobox({
 		if (!families.has(opt.familyId)) {
 			families.set(opt.familyId, { name: opt.familyName, skills: [] });
 		}
-		families.get(opt.familyId)!.skills.push(opt);
+		families.get(opt.familyId)?.skills.push(opt);
 	}
 
 	return (

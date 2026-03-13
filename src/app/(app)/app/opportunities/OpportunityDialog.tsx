@@ -346,7 +346,6 @@ function RequirementPicker({
 				<div className="flex flex-wrap gap-1.5">
 					{requirements.map((req, idx) => (
 						<span
-							// biome-ignore lint/suspicious/noArrayIndexKey: stable order while editing
 							key={idx}
 							className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium"
 						>
