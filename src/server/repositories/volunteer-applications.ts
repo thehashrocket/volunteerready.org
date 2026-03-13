@@ -153,7 +153,14 @@ export async function listApplicationsWithSkills(
 			id: true,
 			submittedByUserId: true,
 			submittedByUser: {
-				select: { volunteerSkills: { select: { skill: true } } },
+				select: {
+					volunteerSkills: {
+						select: {
+							skillId: true,
+							skill: { select: { name: true } },
+						},
+					},
+				},
 			},
 		},
 	});

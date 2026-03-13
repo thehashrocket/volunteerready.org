@@ -2,12 +2,20 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { X } from 'lucide-react';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from '@/components/ui/command';
 import {
 	Dialog,
 	DialogContent,
@@ -17,15 +25,32 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type Requirement = { skill: string; level: 'REQUIRED' | 'PREFERRED' };
+/** Local state representation of a single requirement. */
+type Requirement = {
+	/** 'skill' = specific skill, 'family' = any skill in a family */
+	type: 'skill' | 'family';
+	/** skillId or familyId depending on type */
+	refId: string;
+	/** Display name */
+	name: string;
+	/** Parent family name (for skill-type requirements) */
+	familyName?: string;
+	level: 'REQUIRED' | 'PREFERRED';
+};
 
 type Opportunity = {
 	id: string;
@@ -41,8 +66,11 @@ type Opportunity = {
 	tags: { id: string; name: string }[];
 	requirements: {
 		id: string;
-		skill: string;
+		skillId: string | null;
+		familyId: string | null;
 		level: 'REQUIRED' | 'PREFERRED';
+		skill: { id: string; name: string } | null;
+		family: { id: string; name: string; skills: { id: string }[] } | null;
 	}[];
 };
 
@@ -91,8 +119,28 @@ function toDateInput(d: Date | null | undefined): string {
 
 function toISOString(dateStr: string | undefined): string | null {
 	if (!dateStr) return null;
-	// Use noon UTC so local-timezone formatting never shifts the date by one day.
 	return `${dateStr}T12:00:00.000Z`;
+}
+
+function requirementFromRow(r: Opportunity['requirements'][0]): Requirement {
+	if (r.skillId && r.skill) {
+		return {
+			type: 'skill',
+			refId: r.skillId,
+			name: r.skill.name,
+			familyName: undefined, // unknown without catalog — filled in via catalog lookup
+			level: r.level,
+		};
+	}
+	if (r.familyId && r.family) {
+		return {
+			type: 'family',
+			refId: r.familyId,
+			name: r.family.name,
+			level: r.level,
+		};
+	}
+	return { type: 'skill', refId: '', name: '(unknown)', level: r.level };
 }
 
 // ---------------------------------------------------------------------------
@@ -166,109 +214,183 @@ function TagInput({
 }
 
 // ---------------------------------------------------------------------------
-// Requirement input
+// Requirement picker
 // ---------------------------------------------------------------------------
 
-function RequirementInput({
+interface CatalogFamily {
+	id: string;
+	name: string;
+	skills: { id: string; name: string }[];
+}
+
+function RequirementPicker({
 	requirements,
+	catalog,
 	onChange,
 }: {
 	requirements: Requirement[];
+	catalog: CatalogFamily[];
 	onChange: (requirements: Requirement[]) => void;
 }) {
-	const [input, setInput] = useState('');
-	const inputRef = useRef<HTMLInputElement>(null);
+	const [open, setOpen] = useState(false);
 
-	function addRequirement(value: string) {
-		const skill = value.trim().replace(/,+$/, '').toLowerCase();
-		if (
-			!skill ||
-			requirements.some((r) => r.skill === skill) ||
-			requirements.length >= 20
-		)
-			return;
-		onChange([...requirements, { skill, level: 'REQUIRED' }]);
-		setInput('');
-	}
+	const selectedKeys = new Set(
+		requirements.map((r) => `${r.type}:${r.refId}`),
+	);
 
-	function toggleLevel(skill: string) {
-		onChange(
-			requirements.map((r) =>
-				r.skill === skill
-					? { ...r, level: r.level === 'REQUIRED' ? 'PREFERRED' : 'REQUIRED' }
-					: r,
-			),
-		);
-	}
-
-	function removeRequirement(skill: string) {
-		onChange(requirements.filter((r) => r.skill !== skill));
-	}
-
-	function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-		if (e.key === 'Enter' || e.key === ',') {
-			e.preventDefault();
-			addRequirement(input);
-		} else if (e.key === 'Backspace' && !input && requirements.length > 0) {
-			onChange(requirements.slice(0, -1));
+	function toggleItem(key: string, item: Requirement) {
+		if (selectedKeys.has(key)) {
+			onChange(requirements.filter((r) => `${r.type}:${r.refId}` !== key));
+		} else {
+			if (requirements.length >= 20) {
+				toast.error('Maximum 20 requirements.');
+				return;
+			}
+			onChange([...requirements, item]);
 		}
 	}
 
+	function toggleLevel(idx: number) {
+		const next = [...requirements];
+		next[idx] = {
+			...next[idx],
+			level: next[idx].level === 'REQUIRED' ? 'PREFERRED' : 'REQUIRED',
+		};
+		onChange(next);
+	}
+
+	function remove(idx: number) {
+		onChange(requirements.filter((_, i) => i !== idx));
+	}
+
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: click delegates focus to inner input
-		<div
-			className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm cursor-text"
-			onClick={() => inputRef.current?.focus()}
-			onKeyDown={() => inputRef.current?.focus()}
-		>
-			{requirements.map((req) => (
-				<span
-					key={req.skill}
-					className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium"
-				>
-					{req.skill}
-					<button
-						type="button"
-						onClick={(e) => {
-							e.stopPropagation();
-							toggleLevel(req.skill);
-						}}
-						className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
-							req.level === 'REQUIRED'
-								? 'bg-foreground text-background hover:bg-foreground/90'
-								: 'bg-muted text-muted-foreground hover:bg-muted/80'
-						}`}
+		<div className="space-y-2">
+			<Popover open={open} onOpenChange={setOpen}>
+				<PopoverTrigger asChild>
+					<Button
+						variant="outline"
+						role="combobox"
+						aria-expanded={open}
+						className="w-full justify-between text-muted-foreground"
 					>
-						{req.level === 'REQUIRED' ? 'Required' : 'Preferred'}
-					</button>
-					<button
-						type="button"
-						onClick={(e) => {
-							e.stopPropagation();
-							removeRequirement(req.skill);
-						}}
-						className="text-muted-foreground hover:text-foreground"
-					>
-						<X className="h-3 w-3" />
-					</button>
-				</span>
-			))}
-			<input
-				ref={inputRef}
-				value={input}
-				onChange={(e) => {
-					const val = e.target.value;
-					if (val.endsWith(',')) {
-						addRequirement(val);
-					} else {
-						setInput(val);
-					}
-				}}
-				onKeyDown={handleKeyDown}
-				onBlur={() => addRequirement(input)}
-				placeholder={requirements.length === 0 ? 'Add a skill…' : ''}
-				className="flex-1 min-w-24 bg-transparent outline-none placeholder:text-muted-foreground"
-			/>
+						Add a skill or family requirement…
+						<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-[420px] p-0" align="start">
+					<Command>
+						<CommandInput placeholder="Search skills or families…" />
+						<CommandList>
+							<CommandEmpty>No matches found.</CommandEmpty>
+							{catalog.map((family) => (
+								<CommandGroup key={family.id} heading={family.name}>
+									{/* Family-level requirement */}
+									<CommandItem
+										value={`any ${family.name}`}
+										onSelect={() => {
+											const key = `family:${family.id}`;
+											toggleItem(key, {
+												type: 'family',
+												refId: family.id,
+												name: family.name,
+												level: 'REQUIRED',
+											});
+										}}
+									>
+										<Check
+											className={cn(
+												'mr-2 h-4 w-4',
+												selectedKeys.has(`family:${family.id}`)
+													? 'opacity-100'
+													: 'opacity-0',
+											)}
+										/>
+										<span className="font-medium">
+											Any {family.name} skill
+										</span>
+										<span className="ml-auto text-xs text-muted-foreground">
+											Family
+										</span>
+									</CommandItem>
+									{/* Individual skills */}
+									{family.skills.map((skill) => (
+										<CommandItem
+											key={skill.id}
+											value={`${family.name} ${skill.name}`}
+											onSelect={() => {
+												const key = `skill:${skill.id}`;
+												toggleItem(key, {
+													type: 'skill',
+													refId: skill.id,
+													name: skill.name,
+													familyName: family.name,
+													level: 'REQUIRED',
+												});
+											}}
+										>
+											<Check
+												className={cn(
+													'mr-2 h-4 w-4',
+													selectedKeys.has(`skill:${skill.id}`)
+														? 'opacity-100'
+														: 'opacity-0',
+												)}
+											/>
+											{skill.name}
+										</CommandItem>
+									))}
+								</CommandGroup>
+							))}
+						</CommandList>
+					</Command>
+				</PopoverContent>
+			</Popover>
+
+			{requirements.length > 0 && (
+				<div className="flex flex-wrap gap-1.5">
+					{requirements.map((req, idx) => (
+						<span
+							// biome-ignore lint/suspicious/noArrayIndexKey: stable order while editing
+							key={idx}
+							className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium"
+						>
+							{req.type === 'family' ? (
+								<>
+									<span className="text-muted-foreground">Any</span>{' '}
+									{req.name}
+								</>
+							) : (
+								<>
+									{req.name}
+									{req.familyName && (
+										<span className="text-muted-foreground">
+											· {req.familyName}
+										</span>
+									)}
+								</>
+							)}
+							<button
+								type="button"
+								onClick={() => toggleLevel(idx)}
+								className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
+									req.level === 'REQUIRED'
+										? 'bg-foreground text-background hover:bg-foreground/90'
+										: 'bg-muted text-muted-foreground hover:bg-muted/80'
+								}`}
+							>
+								{req.level === 'REQUIRED' ? 'Required' : 'Preferred'}
+							</button>
+							<button
+								type="button"
+								onClick={() => remove(idx)}
+								className="text-muted-foreground hover:text-foreground"
+							>
+								<X className="h-3 w-3" />
+							</button>
+						</span>
+					))}
+				</div>
+			)}
 		</div>
 	);
 }
@@ -286,6 +408,8 @@ export function OpportunityDialog({
 	const isEdit = Boolean(opportunity);
 	const [tags, setTags] = useState<string[]>([]);
 	const [requirements, setRequirements] = useState<Requirement[]>([]);
+
+	const catalogQuery = trpc.matching.getSkillCatalog.useQuery();
 
 	const {
 		register,
@@ -321,12 +445,24 @@ export function OpportunityDialog({
 					capacity: opportunity.capacity ?? undefined,
 				});
 				setTags(opportunity.tags.map((t) => t.name));
-				setRequirements(
-					opportunity.requirements.map((r) => ({
-						skill: r.skill,
-						level: r.level,
-					})),
-				);
+
+				// Convert API requirements to local state
+				const reqs = opportunity.requirements.map(requirementFromRow);
+				// Enrich skill requirements with familyName from catalog if available
+				if (catalogQuery.data) {
+					const skillToFamily = new Map<string, string>();
+					for (const family of catalogQuery.data) {
+						for (const skill of family.skills) {
+							skillToFamily.set(skill.id, family.name);
+						}
+					}
+					for (const req of reqs) {
+						if (req.type === 'skill' && !req.familyName) {
+							req.familyName = skillToFamily.get(req.refId);
+						}
+					}
+				}
+				setRequirements(reqs);
 			} else {
 				reset({
 					title: '',
@@ -342,7 +478,7 @@ export function OpportunityDialog({
 				setRequirements([]);
 			}
 		}
-	}, [open, opportunity, reset]);
+	}, [open, opportunity, reset, catalogQuery.data]);
 
 	const isRemote = watch('isRemote') ?? false;
 
@@ -369,6 +505,14 @@ export function OpportunityDialog({
 	const isPending = createMutation.isPending || updateMutation.isPending;
 
 	function onSubmit(values: FormValues) {
+		const apiRequirements = requirements
+			.filter((r) => r.refId)
+			.map((r) =>
+				r.type === 'skill'
+					? ({ skillId: r.refId, familyId: undefined, level: r.level as 'REQUIRED' | 'PREFERRED' } as const)
+					: ({ familyId: r.refId, skillId: undefined, level: r.level as 'REQUIRED' | 'PREFERRED' } as const),
+			);
+
 		const payload = {
 			title: values.title,
 			description: values.description,
@@ -379,7 +523,7 @@ export function OpportunityDialog({
 			commitmentHours: values.commitmentHours ?? null,
 			capacity: values.capacity ?? null,
 			tags,
-			requirements,
+			requirements: apiRequirements,
 		};
 
 		if (isEdit && opportunity) {
@@ -516,9 +660,7 @@ export function OpportunityDialog({
 					<div className="space-y-2">
 						<Label>
 							Tags{' '}
-							<span className="text-muted-foreground">
-								(optional, up to 10)
-							</span>
+							<span className="text-muted-foreground">(optional, up to 10)</span>
 						</Label>
 						<TagInput tags={tags} onChange={setTags} />
 						<p className="text-xs text-muted-foreground">
@@ -534,13 +676,14 @@ export function OpportunityDialog({
 								(optional, up to 20)
 							</span>
 						</Label>
-						<RequirementInput
+						<RequirementPicker
 							requirements={requirements}
+							catalog={catalogQuery.data ?? []}
 							onChange={setRequirements}
 						/>
 						<p className="text-xs text-muted-foreground">
-							Press Enter or comma to add a skill. Click the badge to toggle
-							Required / Preferred.
+							Select specific skills or entire skill families. Click the badge
+							to toggle Required / Preferred.
 						</p>
 					</div>
 

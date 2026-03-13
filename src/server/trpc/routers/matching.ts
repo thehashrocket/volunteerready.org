@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { listSkillFamilies } from '@/server/repositories/skillCatalogRepo';
 import { getSkillsForUser } from '@/server/repositories/volunteerSkillRepo';
 import {
 	getMatchedOpportunities,
@@ -9,6 +10,7 @@ import {
 import {
 	createTRPCRouter,
 	protectedProcedure,
+	publicProcedure,
 	staffProcedure,
 } from '@/server/trpc/init';
 
@@ -20,6 +22,9 @@ function requireUserId(session: { user?: { id?: string } } | null): string {
 }
 
 export const matchingRouter = createTRPCRouter({
+	/** Return the full skill catalog grouped by family. */
+	getSkillCatalog: publicProcedure.query(() => listSkillFamilies()),
+
 	/** Return the authenticated user's skill list. */
 	getMySkills: protectedProcedure.query(({ ctx }) =>
 		getSkillsForUser(requireUserId(ctx.session)),
@@ -29,11 +34,11 @@ export const matchingRouter = createTRPCRouter({
 	updateMySkills: protectedProcedure
 		.input(
 			z.object({
-				skills: z.array(z.string().trim().min(1).max(100)).max(50),
+				skillIds: z.array(z.string().cuid()).max(50),
 			}),
 		)
 		.mutation(({ ctx, input }) =>
-			updateVolunteerSkills(requireUserId(ctx.session), input.skills),
+			updateVolunteerSkills(requireUserId(ctx.session), input.skillIds),
 		),
 
 	/** Get published opportunities for an org, scored against the user's skills. */

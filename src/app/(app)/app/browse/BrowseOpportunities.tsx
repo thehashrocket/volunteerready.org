@@ -66,7 +66,7 @@ function RequirementChips({ requirements }: { requirements: Requirement[] }) {
 								key={r.id}
 								className="inline-flex items-center rounded-full bg-foreground px-2.5 py-0.5 text-xs font-medium text-background"
 							>
-								{r.skill}
+								{r.skill?.name ?? r.family?.name}
 							</span>
 						))}
 					</div>
@@ -83,7 +83,7 @@ function RequirementChips({ requirements }: { requirements: Requirement[] }) {
 								key={r.id}
 								className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground ring-1 ring-border"
 							>
-								{r.skill}
+								{r.skill?.name ?? r.family?.name}
 							</span>
 						))}
 					</div>

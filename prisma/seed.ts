@@ -115,12 +115,195 @@ async function upsertProfile(
 	});
 }
 
-async function upsertSkills(userId: string, skills: string[]) {
-	for (const skill of skills) {
+// ---------------------------------------------------------------------------
+// Skill catalog (SkillFamily + Skill)
+// ---------------------------------------------------------------------------
+
+type SkillFamilyDef = { name: string; slug: string; skills: { name: string; slug: string }[] };
+
+const SKILL_CATALOG: SkillFamilyDef[] = [
+	{
+		name: 'Microsoft Office',
+		slug: 'microsoft-office',
+		skills: [
+			{ name: 'Word', slug: 'word' },
+			{ name: 'Excel', slug: 'excel' },
+			{ name: 'PowerPoint', slug: 'powerpoint' },
+			{ name: 'Outlook', slug: 'outlook' },
+		],
+	},
+	{
+		name: 'Adobe Creative Suite',
+		slug: 'adobe-creative-suite',
+		skills: [
+			{ name: 'Photoshop', slug: 'photoshop' },
+			{ name: 'Illustrator', slug: 'illustrator' },
+			{ name: 'InDesign', slug: 'indesign' },
+			{ name: 'Premiere Pro', slug: 'premiere-pro' },
+			{ name: 'Lightroom', slug: 'lightroom' },
+		],
+	},
+	{
+		name: 'Programming & Development',
+		slug: 'programming-development',
+		skills: [
+			{ name: 'Python', slug: 'python' },
+			{ name: 'JavaScript', slug: 'javascript' },
+			{ name: 'TypeScript', slug: 'typescript' },
+			{ name: 'SQL', slug: 'sql' },
+			{ name: 'HTML/CSS', slug: 'html-css' },
+		],
+	},
+	{
+		name: 'Communication',
+		slug: 'communication',
+		skills: [
+			{ name: 'Public Speaking', slug: 'public-speaking' },
+			{ name: 'Grant Writing', slug: 'grant-writing' },
+			{ name: 'Copywriting', slug: 'copywriting' },
+			{ name: 'Technical Writing', slug: 'technical-writing' },
+			{ name: 'Social Media Management', slug: 'social-media-management' },
+		],
+	},
+	{
+		name: 'Education & Training',
+		slug: 'education-training',
+		skills: [
+			{ name: 'Teaching', slug: 'teaching' },
+			{ name: 'Tutoring', slug: 'tutoring' },
+			{ name: 'Curriculum Development', slug: 'curriculum-development' },
+			{ name: 'Mentoring', slug: 'mentoring' },
+		],
+	},
+	{
+		name: 'Healthcare',
+		slug: 'healthcare',
+		skills: [
+			{ name: 'First Aid/CPR', slug: 'first-aid-cpr' },
+			{ name: 'Patient Care', slug: 'patient-care' },
+			{ name: 'Mental Health Support', slug: 'mental-health-support' },
+		],
+	},
+	{
+		name: 'Finance & Accounting',
+		slug: 'finance-accounting',
+		skills: [
+			{ name: 'Bookkeeping', slug: 'bookkeeping' },
+			{ name: 'QuickBooks', slug: 'quickbooks' },
+			{ name: 'Fundraising', slug: 'fundraising' },
+			{ name: 'Grant Management', slug: 'grant-management' },
+		],
+	},
+	{
+		name: 'Project Management',
+		slug: 'project-management',
+		skills: [
+			{ name: 'Volunteer Coordination', slug: 'volunteer-coordination' },
+			{ name: 'Event Planning', slug: 'event-planning' },
+			{ name: 'Project Planning', slug: 'project-planning' },
+		],
+	},
+	{
+		name: 'Languages',
+		slug: 'languages',
+		skills: [
+			{ name: 'Spanish', slug: 'spanish' },
+			{ name: 'French', slug: 'french' },
+			{ name: 'Mandarin', slug: 'mandarin' },
+			{ name: 'Arabic', slug: 'arabic' },
+			{ name: 'American Sign Language (ASL)', slug: 'asl' },
+		],
+	},
+	{
+		name: 'Design & Creative',
+		slug: 'design-creative',
+		skills: [
+			{ name: 'Graphic Design', slug: 'graphic-design' },
+			{ name: 'Photography', slug: 'photography' },
+			{ name: 'Videography', slug: 'videography' },
+			{ name: 'Web Design', slug: 'web-design' },
+			{ name: 'UX/UI Design', slug: 'ux-ui-design' },
+		],
+	},
+	{
+		name: 'Technology & IT',
+		slug: 'technology-it',
+		skills: [
+			{ name: 'Salesforce (NPSP)', slug: 'salesforce-npsp' },
+			{ name: 'Google Workspace', slug: 'google-workspace' },
+			{ name: 'Database Management', slug: 'database-management' },
+		],
+	},
+	{
+		name: 'Social Services',
+		slug: 'social-services',
+		skills: [
+			{ name: 'Case Management', slug: 'case-management' },
+			{ name: 'Community Outreach', slug: 'community-outreach' },
+			{ name: 'Youth Development', slug: 'youth-development' },
+			{ name: 'Senior Care', slug: 'senior-care' },
+		],
+	},
+	{
+		name: 'Animal Care',
+		slug: 'animal-care',
+		skills: [
+			{ name: 'Animal Handling', slug: 'animal-handling' },
+			{ name: 'Dog Training', slug: 'dog-training' },
+			{ name: 'Cat Socialization', slug: 'cat-socialization' },
+			{ name: 'Wildlife Rehabilitation', slug: 'wildlife-rehabilitation' },
+			{ name: 'Veterinary Assistance', slug: 'veterinary-assistance' },
+			{ name: 'Animal Behavior Assessment', slug: 'animal-behavior-assessment' },
+			{ name: 'Foster Care (Animals)', slug: 'foster-care-animals' },
+			{ name: 'Kennel Management', slug: 'kennel-management' },
+			{ name: 'Animal Transport', slug: 'animal-transport' },
+			{ name: 'Trap-Neuter-Return (TNR)', slug: 'trap-neuter-return' },
+		],
+	},
+];
+
+/** Seed skill catalog and return a slug→id lookup map for all skills and families. */
+async function seedSkillCatalog(): Promise<{
+	skillBySlug: Map<string, string>;
+	familyBySlug: Map<string, string>;
+}> {
+	const skillBySlug = new Map<string, string>();
+	const familyBySlug = new Map<string, string>();
+
+	for (const familyDef of SKILL_CATALOG) {
+		const family = await prisma.skillFamily.upsert({
+			where: { slug: familyDef.slug },
+			update: { name: familyDef.name },
+			create: { name: familyDef.name, slug: familyDef.slug },
+			select: { id: true, slug: true },
+		});
+		familyBySlug.set(family.slug, family.id);
+
+		for (const skillDef of familyDef.skills) {
+			const skill = await prisma.skill.upsert({
+				where: { slug: skillDef.slug },
+				update: { name: skillDef.name, familyId: family.id },
+				create: { name: skillDef.name, slug: skillDef.slug, familyId: family.id },
+				select: { id: true, slug: true },
+			});
+			skillBySlug.set(skill.slug, skill.id);
+		}
+	}
+
+	return { skillBySlug, familyBySlug };
+}
+
+async function upsertSkills(userId: string, skillSlugs: string[], skillBySlug: Map<string, string>) {
+	for (const slug of skillSlugs) {
+		const skillId = skillBySlug.get(slug);
+		if (!skillId) {
+			console.warn(`⚠️  Unknown skill slug: ${slug} — skipping`);
+			continue;
+		}
 		await prisma.volunteerSkill.upsert({
-			where: { userId_skill: { userId, skill } },
+			where: { userId_skillId: { userId, skillId } },
 			update: {},
-			create: { userId, skill },
+			create: { userId, skillId },
 		});
 	}
 }
@@ -222,6 +405,13 @@ async function upsertCredential(
 
 async function main() {
 	console.log('🌱 Seeding database...\n');
+
+	// =========================================================================
+	// 0. Skill catalog
+	// =========================================================================
+	console.log('🎯 Seeding skill catalog...');
+	const { skillBySlug, familyBySlug } = await seedSkillCatalog();
+	console.log(`   ${skillBySlug.size} skills seeded across ${familyBySlug.size} families\n`);
 
 	// =========================================================================
 	// 1. Organizations
@@ -413,13 +603,13 @@ async function main() {
 	// =========================================================================
 	console.log('🛠️  Adding volunteer skills...');
 
-	await upsertSkills(vol1.id, ['Event Planning', 'Public Speaking', 'First Aid', 'Cooking', 'Spanish']);
-	await upsertSkills(vol2.id, ['Web Development', 'Teaching', 'Python', 'JavaScript']);
-	await upsertSkills(vol3.id, ['Data Entry', 'Research', 'Writing', 'Hiking']);
-	await upsertSkills(vol4.id, ['Driving', 'Carpentry']);
-	await upsertSkills(vol5.id, ['First Aid', 'CPR', 'Spanish', 'Patient Care', 'Teaching']);
-	await upsertSkills(vol7.id, ['Photography', 'Video Editing', 'Graphic Design', 'Social Media']);
-	await upsertSkills(vol9.id, ['Tutoring', 'Writing']);
+	await upsertSkills(vol1.id, ['event-planning', 'public-speaking', 'first-aid-cpr', 'spanish'], skillBySlug);
+	await upsertSkills(vol2.id, ['javascript', 'teaching', 'python'], skillBySlug);
+	await upsertSkills(vol3.id, ['community-outreach', 'grant-writing'], skillBySlug);
+	await upsertSkills(vol4.id, ['volunteer-coordination'], skillBySlug);
+	await upsertSkills(vol5.id, ['first-aid-cpr', 'spanish', 'patient-care', 'teaching'], skillBySlug);
+	await upsertSkills(vol7.id, ['photography', 'videography', 'graphic-design', 'social-media-management'], skillBySlug);
+	await upsertSkills(vol9.id, ['tutoring', 'copywriting'], skillBySlug);
 
 	// =========================================================================
 	// 7. Screener questions per org
@@ -689,7 +879,8 @@ async function main() {
 	// =========================================================================
 	console.log('🎯 Creating volunteer opportunities...');
 
-	// Helper: create opportunity only if none with this title exists for the org
+	// Helper: create opportunity only if none with this title exists for the org.
+	// Always syncs requirements so re-running the seed after a migration is safe.
 	async function createOpportunityIfNotExists(data: {
 		orgId: string;
 		title: string;
@@ -702,13 +893,30 @@ async function main() {
 		commitmentHours?: number;
 		capacity?: number;
 		tags?: string[];
-		requirements?: Array<{ skill: string; level: RequirementLevel }>;
+		requirements?: Array<{ skillId?: string; familyId?: string; level: RequirementLevel }>;
 	}) {
 		const existing = await prisma.volunteerOpportunity.findFirst({
 			where: { orgId: data.orgId, title: data.title },
 			select: { id: true },
 		});
-		if (existing) return existing;
+
+		if (existing) {
+			// Re-sync requirements (migration may have cleared them)
+			if (data.requirements && data.requirements.length > 0) {
+				await prisma.opportunityRequirement.deleteMany({
+					where: { opportunityId: existing.id },
+				});
+				await prisma.opportunityRequirement.createMany({
+					data: data.requirements.map((r) => ({
+						opportunityId: existing.id,
+						skillId: r.skillId ?? null,
+						familyId: r.familyId ?? null,
+						level: r.level,
+					})),
+				});
+			}
+			return existing;
+		}
 
 		return prisma.volunteerOpportunity.create({
 			data: {
@@ -725,7 +933,8 @@ async function main() {
 				tags: { create: (data.tags ?? []).map((name) => ({ name })) },
 				requirements: {
 					create: (data.requirements ?? []).map((r) => ({
-						skill: r.skill,
+						skillId: r.skillId ?? null,
+						familyId: r.familyId ?? null,
 						level: r.level,
 					})),
 				},
@@ -733,6 +942,10 @@ async function main() {
 			select: { id: true },
 		});
 	}
+
+	// Skill ID helpers (non-null assertions are safe — catalog was just seeded)
+	const s = (slug: string) => skillBySlug.get(slug)!;
+	const f = (slug: string) => familyBySlug.get(slug)!;
 
 	// Helping Hands opportunities
 	const hhFoodBank = await createOpportunityIfNotExists({
@@ -747,7 +960,7 @@ async function main() {
 		capacity: 20,
 		tags: ['food security', 'warehouse', 'weekly'],
 		requirements: [
-			{ skill: 'Driving', level: 'PREFERRED' },
+			{ skillId: s('volunteer-coordination'), level: 'PREFERRED' },
 		],
 	});
 
@@ -763,8 +976,8 @@ async function main() {
 		capacity: 15,
 		tags: ['education', 'youth', 'tutoring'],
 		requirements: [
-			{ skill: 'Teaching', level: 'REQUIRED' },
-			{ skill: 'First Aid', level: 'PREFERRED' },
+			{ skillId: s('teaching'), level: 'REQUIRED' },
+			{ skillId: s('first-aid-cpr'), level: 'PREFERRED' },
 		],
 	});
 
@@ -780,8 +993,8 @@ async function main() {
 		capacity: 10,
 		tags: ['elderly care', 'driving', 'daily'],
 		requirements: [
-			{ skill: 'Driving', level: 'REQUIRED' },
-			{ skill: 'Spanish', level: 'PREFERRED' },
+			{ skillId: s('senior-care'), level: 'REQUIRED' },
+			{ skillId: s('spanish'), level: 'PREFERRED' },
 		],
 	});
 
@@ -795,8 +1008,8 @@ async function main() {
 		capacity: 5,
 		tags: ['technology', 'remote', 'design'],
 		requirements: [
-			{ skill: 'Web Development', level: 'REQUIRED' },
-			{ skill: 'Graphic Design', level: 'PREFERRED' },
+			{ familyId: f('programming-development'), level: 'REQUIRED' },
+			{ skillId: s('graphic-design'), level: 'PREFERRED' },
 		],
 	});
 
@@ -812,8 +1025,8 @@ async function main() {
 		capacity: 30,
 		tags: ['events', 'fundraising', 'one-time'],
 		requirements: [
-			{ skill: 'Event Planning', level: 'PREFERRED' },
-			{ skill: 'Public Speaking', level: 'PREFERRED' },
+			{ skillId: s('event-planning'), level: 'PREFERRED' },
+			{ skillId: s('public-speaking'), level: 'PREFERRED' },
 		],
 	});
 
@@ -829,10 +1042,6 @@ async function main() {
 		commitmentHours: 6,
 		capacity: 25,
 		tags: ['outdoors', 'trails', 'conservation'],
-		requirements: [
-			{ skill: 'Carpentry', level: 'PREFERRED' },
-			{ skill: 'Hiking', level: 'PREFERRED' },
-		],
 	});
 
 	const gcGarden = await createOpportunityIfNotExists({
@@ -846,7 +1055,7 @@ async function main() {
 		commitmentHours: 8,
 		tags: ['gardening', 'leadership', 'community'],
 		requirements: [
-			{ skill: 'Event Planning', level: 'REQUIRED' },
+			{ skillId: s('volunteer-coordination'), level: 'REQUIRED' },
 		],
 	});
 
@@ -862,9 +1071,8 @@ async function main() {
 		commitmentHours: 3,
 		tags: ['wildlife', 'research', 'outdoors'],
 		requirements: [
-			{ skill: 'Research', level: 'PREFERRED' },
-			{ skill: 'Photography', level: 'PREFERRED' },
-			{ skill: 'Data Entry', level: 'PREFERRED' },
+			{ skillId: s('photography'), level: 'PREFERRED' },
+			{ skillId: s('database-management'), level: 'PREFERRED' },
 		],
 	});
 
@@ -894,8 +1102,8 @@ async function main() {
 		capacity: 20,
 		tags: ['mentoring', 'youth', 'education'],
 		requirements: [
-			{ skill: 'Teaching', level: 'PREFERRED' },
-			{ skill: 'Public Speaking', level: 'PREFERRED' },
+			{ skillId: s('teaching'), level: 'PREFERRED' },
+			{ skillId: s('public-speaking'), level: 'PREFERRED' },
 		],
 	});
 

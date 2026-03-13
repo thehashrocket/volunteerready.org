@@ -4,18 +4,28 @@
 // Zero framework imports. All functions are pure and side-effect free.
 // ---------------------------------------------------------------------------
 
-/** A volunteer's normalized skill set. */
+/** A volunteer's canonical skill ID set. */
 export interface VolunteerSkillSet {
-	skills: string[];
+	skillIds: string[];
+}
+
+/** A single requirement on the demand side. */
+export interface OpportunityRequirement {
+	/** Set for specific-skill requirements. */
+	skillId?: string;
+	/** Set for family-level requirements. All child skill IDs for matching. */
+	familyId?: string;
+	/** Populated by the service layer for family requirements. */
+	familySkillIds?: string[];
+	level: 'REQUIRED' | 'PREFERRED';
+	/** Human-readable label: skill name or family name. */
+	label: string;
 }
 
 /** An opportunity's requirements (demand side). */
 export interface OpportunityRequirementSet {
 	opportunityId: string;
-	requirements: {
-		skill: string;
-		level: 'REQUIRED' | 'PREFERRED';
-	}[];
+	requirements: OpportunityRequirement[];
 }
 
 export type MatchType = 'PERFECT' | 'PARTIAL' | 'NONE';
@@ -26,33 +36,37 @@ export interface MatchResult {
 	/** 0–100 inclusive */
 	score: number;
 	matchType: MatchType;
+	/** Labels of matched required requirements. */
 	matchedRequired: string[];
+	/** Labels of missing required requirements. */
 	missingRequired: string[];
+	/** Labels of matched preferred requirements. */
 	matchedPreferred: string[];
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function normalize(s: string): string {
-	return s.trim().toLowerCase();
-}
-
-function toSet(skills: string[]): Set<string> {
-	return new Set(skills.map(normalize));
 }
 
 // ---------------------------------------------------------------------------
 // Scoring
 // ---------------------------------------------------------------------------
 
+function requirementMatched(
+	req: OpportunityRequirement,
+	volunteerSet: Set<string>,
+): boolean {
+	if (req.skillId) {
+		return volunteerSet.has(req.skillId);
+	}
+	if (req.familySkillIds && req.familySkillIds.length > 0) {
+		return req.familySkillIds.some((id) => volunteerSet.has(id));
+	}
+	return false;
+}
+
 /**
  * Score a single opportunity against the volunteer's skill set.
  *
  * Algorithm (MVP):
  *   - If opportunity has no requirements → score 100, PERFECT
- *   - If any REQUIRED skill is missing   → score 0, NONE
+ *   - If any REQUIRED skill/family is missing → score 0, NONE
  *   - Otherwise base 50 + up to 50 bonus for PREFERRED matches
  *   - PERFECT = all required + all preferred matched
  *   - PARTIAL = all required, some preferred missing
@@ -61,7 +75,7 @@ export function scoreOpportunity(
 	volunteer: VolunteerSkillSet,
 	opportunity: OpportunityRequirementSet,
 ): MatchResult {
-	const volunteerSet = toSet(volunteer.skills);
+	const volunteerSet = new Set(volunteer.skillIds);
 	const required = opportunity.requirements.filter(
 		(r) => r.level === 'REQUIRED',
 	);
@@ -73,17 +87,17 @@ export function scoreOpportunity(
 	const matchedRequired: string[] = [];
 	const missingRequired: string[] = [];
 	for (const r of required) {
-		if (volunteerSet.has(normalize(r.skill))) {
-			matchedRequired.push(r.skill);
+		if (requirementMatched(r, volunteerSet)) {
+			matchedRequired.push(r.label);
 		} else {
-			missingRequired.push(r.skill);
+			missingRequired.push(r.label);
 		}
 	}
 
 	const matchedPreferred: string[] = [];
 	for (const p of preferred) {
-		if (volunteerSet.has(normalize(p.skill))) {
-			matchedPreferred.push(p.skill);
+		if (requirementMatched(p, volunteerSet)) {
+			matchedPreferred.push(p.label);
 		}
 	}
 

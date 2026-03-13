@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "AuditLog" ALTER COLUMN "orgId" DROP NOT NULL;

@@ -44,17 +44,21 @@ export default async function OpportunitiesPage({ params }: Props) {
 	const userId = session?.user?.id;
 
 	if (userId) {
-		const skills = await getSkillsForUser(userId);
-		if (skills.length > 0) {
+		const userSkills = await getSkillsForUser(userId);
+		if (userSkills.length > 0) {
+			const skillIds = userSkills.map((s) => s.skillId);
 			const requirementSets = result.opportunities.map((opp) => ({
 				opportunityId: opp.id,
 				requirements: opp.requirements.map((r) => ({
-					skill: r.skill,
+					skillId: r.skillId ?? undefined,
+					familyId: r.familyId ?? undefined,
+					familySkillIds: r.family?.skills.map((s) => s.id),
 					level: r.level,
+					label: r.skill?.name ?? r.family?.name ?? '',
 				})),
 			}));
 
-			const ranked = rankOpportunities({ skills }, requirementSets);
+			const ranked = rankOpportunities({ skillIds }, requirementSets);
 			matchResults = Object.fromEntries(
 				ranked.map((r) => [r.opportunityId, r]),
 			);

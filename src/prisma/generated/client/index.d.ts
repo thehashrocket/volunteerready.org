@@ -94,6 +94,16 @@ export type OpportunityTag = $Result.DefaultSelection<Prisma.$OpportunityTagPayl
  */
 export type OpportunityRequirement = $Result.DefaultSelection<Prisma.$OpportunityRequirementPayload>
 /**
+ * Model SkillFamily
+ * 
+ */
+export type SkillFamily = $Result.DefaultSelection<Prisma.$SkillFamilyPayload>
+/**
+ * Model Skill
+ * 
+ */
+export type Skill = $Result.DefaultSelection<Prisma.$SkillPayload>
+/**
  * Model VolunteerSkill
  * 
  */
@@ -571,6 +581,26 @@ export class PrismaClient<
   get opportunityRequirement(): Prisma.OpportunityRequirementDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.skillFamily`: Exposes CRUD operations for the **SkillFamily** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SkillFamilies
+    * const skillFamilies = await prisma.skillFamily.findMany()
+    * ```
+    */
+  get skillFamily(): Prisma.SkillFamilyDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.skill`: Exposes CRUD operations for the **Skill** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Skills
+    * const skills = await prisma.skill.findMany()
+    * ```
+    */
+  get skill(): Prisma.SkillDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.volunteerSkill`: Exposes CRUD operations for the **VolunteerSkill** model.
     * Example usage:
     * ```ts
@@ -669,8 +699,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 7.4.2
-   * Query Engine version: 94a226be1cf2967af2541cca5529f0f7ba866919
+   * Prisma Client JS version: 7.5.0
+   * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
    */
   export type PrismaVersion = {
     client: string
@@ -1069,6 +1099,8 @@ export namespace Prisma {
     VolunteerOpportunity: 'VolunteerOpportunity',
     OpportunityTag: 'OpportunityTag',
     OpportunityRequirement: 'OpportunityRequirement',
+    SkillFamily: 'SkillFamily',
+    Skill: 'Skill',
     VolunteerSkill: 'VolunteerSkill',
     VolunteerProfile: 'VolunteerProfile',
     VolunteerCredential: 'VolunteerCredential',
@@ -1089,7 +1121,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2277,6 +2309,154 @@ export namespace Prisma {
           }
         }
       }
+      SkillFamily: {
+        payload: Prisma.$SkillFamilyPayload<ExtArgs>
+        fields: Prisma.SkillFamilyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SkillFamilyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SkillFamilyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload>
+          }
+          findFirst: {
+            args: Prisma.SkillFamilyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SkillFamilyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload>
+          }
+          findMany: {
+            args: Prisma.SkillFamilyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload>[]
+          }
+          create: {
+            args: Prisma.SkillFamilyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload>
+          }
+          createMany: {
+            args: Prisma.SkillFamilyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SkillFamilyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload>[]
+          }
+          delete: {
+            args: Prisma.SkillFamilyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload>
+          }
+          update: {
+            args: Prisma.SkillFamilyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload>
+          }
+          deleteMany: {
+            args: Prisma.SkillFamilyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SkillFamilyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SkillFamilyUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload>[]
+          }
+          upsert: {
+            args: Prisma.SkillFamilyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillFamilyPayload>
+          }
+          aggregate: {
+            args: Prisma.SkillFamilyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSkillFamily>
+          }
+          groupBy: {
+            args: Prisma.SkillFamilyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SkillFamilyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SkillFamilyCountArgs<ExtArgs>
+            result: $Utils.Optional<SkillFamilyCountAggregateOutputType> | number
+          }
+        }
+      }
+      Skill: {
+        payload: Prisma.$SkillPayload<ExtArgs>
+        fields: Prisma.SkillFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SkillFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SkillFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload>
+          }
+          findFirst: {
+            args: Prisma.SkillFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SkillFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload>
+          }
+          findMany: {
+            args: Prisma.SkillFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload>[]
+          }
+          create: {
+            args: Prisma.SkillCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload>
+          }
+          createMany: {
+            args: Prisma.SkillCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SkillCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload>[]
+          }
+          delete: {
+            args: Prisma.SkillDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload>
+          }
+          update: {
+            args: Prisma.SkillUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload>
+          }
+          deleteMany: {
+            args: Prisma.SkillDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SkillUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SkillUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload>[]
+          }
+          upsert: {
+            args: Prisma.SkillUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SkillPayload>
+          }
+          aggregate: {
+            args: Prisma.SkillAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSkill>
+          }
+          groupBy: {
+            args: Prisma.SkillGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SkillGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SkillCountArgs<ExtArgs>
+            result: $Utils.Optional<SkillCountAggregateOutputType> | number
+          }
+        }
+      }
       VolunteerSkill: {
         payload: Prisma.$VolunteerSkillPayload<ExtArgs>
         fields: Prisma.VolunteerSkillFieldRefs
@@ -2771,6 +2951,8 @@ export namespace Prisma {
     volunteerOpportunity?: VolunteerOpportunityOmit
     opportunityTag?: OpportunityTagOmit
     opportunityRequirement?: OpportunityRequirementOmit
+    skillFamily?: SkillFamilyOmit
+    skill?: SkillOmit
     volunteerSkill?: VolunteerSkillOmit
     volunteerProfile?: VolunteerProfileOmit
     volunteerCredential?: VolunteerCredentialOmit
@@ -3143,6 +3325,86 @@ export namespace Prisma {
    */
   export type VolunteerOpportunityCountOutputTypeCountShiftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ShiftWhereInput
+  }
+
+
+  /**
+   * Count Type SkillFamilyCountOutputType
+   */
+
+  export type SkillFamilyCountOutputType = {
+    skills: number
+    requirements: number
+  }
+
+  export type SkillFamilyCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    skills?: boolean | SkillFamilyCountOutputTypeCountSkillsArgs
+    requirements?: boolean | SkillFamilyCountOutputTypeCountRequirementsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * SkillFamilyCountOutputType without action
+   */
+  export type SkillFamilyCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamilyCountOutputType
+     */
+    select?: SkillFamilyCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * SkillFamilyCountOutputType without action
+   */
+  export type SkillFamilyCountOutputTypeCountSkillsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SkillWhereInput
+  }
+
+  /**
+   * SkillFamilyCountOutputType without action
+   */
+  export type SkillFamilyCountOutputTypeCountRequirementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OpportunityRequirementWhereInput
+  }
+
+
+  /**
+   * Count Type SkillCountOutputType
+   */
+
+  export type SkillCountOutputType = {
+    volunteerSkills: number
+    requirements: number
+  }
+
+  export type SkillCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    volunteerSkills?: boolean | SkillCountOutputTypeCountVolunteerSkillsArgs
+    requirements?: boolean | SkillCountOutputTypeCountRequirementsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * SkillCountOutputType without action
+   */
+  export type SkillCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillCountOutputType
+     */
+    select?: SkillCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * SkillCountOutputType without action
+   */
+  export type SkillCountOutputTypeCountVolunteerSkillsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerSkillWhereInput
+  }
+
+  /**
+   * SkillCountOutputType without action
+   */
+  export type SkillCountOutputTypeCountRequirementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OpportunityRequirementWhereInput
   }
 
 
@@ -4075,6 +4337,11 @@ export namespace Prisma {
      * Skip the first `n` Users.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Users.
+     */
     distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
@@ -5461,6 +5728,11 @@ export namespace Prisma {
      * Skip the first `n` Accounts.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Accounts.
+     */
     distinct?: AccountScalarFieldEnum | AccountScalarFieldEnum[]
   }
 
@@ -6553,6 +6825,11 @@ export namespace Prisma {
      * Skip the first `n` Sessions.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Sessions.
+     */
     distinct?: SessionScalarFieldEnum | SessionScalarFieldEnum[]
   }
 
@@ -7569,6 +7846,11 @@ export namespace Prisma {
      * Skip the first `n` VerificationTokens.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VerificationTokens.
+     */
     distinct?: VerificationTokenScalarFieldEnum | VerificationTokenScalarFieldEnum[]
   }
 
@@ -8577,6 +8859,11 @@ export namespace Prisma {
      * Skip the first `n` ApplicationStatusTokens.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ApplicationStatusTokens.
+     */
     distinct?: ApplicationStatusTokenScalarFieldEnum | ApplicationStatusTokenScalarFieldEnum[]
   }
 
@@ -9639,6 +9926,11 @@ export namespace Prisma {
      * Skip the first `n` Organizations.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Organizations.
+     */
     distinct?: OrganizationScalarFieldEnum | OrganizationScalarFieldEnum[]
   }
 
@@ -10937,6 +11229,11 @@ export namespace Prisma {
      * Skip the first `n` OrganizationMembers.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrganizationMembers.
+     */
     distinct?: OrganizationMemberScalarFieldEnum | OrganizationMemberScalarFieldEnum[]
   }
 
@@ -11305,7 +11602,7 @@ export namespace Prisma {
   export type AuditLogGroupByOutputType = {
     id: string
     actorId: string | null
-    orgId: string
+    orgId: string | null
     action: string
     entityType: string
     entityId: string | null
@@ -11339,7 +11636,7 @@ export namespace Prisma {
     entityId?: boolean
     metadata?: boolean
     createdAt?: boolean
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    organization?: boolean | AuditLog$organizationArgs<ExtArgs>
     actor?: boolean | AuditLog$actorArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
@@ -11352,7 +11649,7 @@ export namespace Prisma {
     entityId?: boolean
     metadata?: boolean
     createdAt?: boolean
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    organization?: boolean | AuditLog$organizationArgs<ExtArgs>
     actor?: boolean | AuditLog$actorArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
@@ -11365,7 +11662,7 @@ export namespace Prisma {
     entityId?: boolean
     metadata?: boolean
     createdAt?: boolean
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    organization?: boolean | AuditLog$organizationArgs<ExtArgs>
     actor?: boolean | AuditLog$actorArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
@@ -11382,28 +11679,28 @@ export namespace Prisma {
 
   export type AuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "actorId" | "orgId" | "action" | "entityType" | "entityId" | "metadata" | "createdAt", ExtArgs["result"]["auditLog"]>
   export type AuditLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    organization?: boolean | AuditLog$organizationArgs<ExtArgs>
     actor?: boolean | AuditLog$actorArgs<ExtArgs>
   }
   export type AuditLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    organization?: boolean | AuditLog$organizationArgs<ExtArgs>
     actor?: boolean | AuditLog$actorArgs<ExtArgs>
   }
   export type AuditLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    organization?: boolean | AuditLog$organizationArgs<ExtArgs>
     actor?: boolean | AuditLog$actorArgs<ExtArgs>
   }
 
   export type $AuditLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AuditLog"
     objects: {
-      organization: Prisma.$OrganizationPayload<ExtArgs>
+      organization: Prisma.$OrganizationPayload<ExtArgs> | null
       actor: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       actorId: string | null
-      orgId: string
+      orgId: string | null
       action: string
       entityType: string
       entityId: string | null
@@ -11803,7 +12100,7 @@ export namespace Prisma {
    */
   export interface Prisma__AuditLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    organization<T extends AuditLog$organizationArgs<ExtArgs> = {}>(args?: Subset<T, AuditLog$organizationArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     actor<T extends AuditLog$actorArgs<ExtArgs> = {}>(args?: Subset<T, AuditLog$actorArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -12038,6 +12335,11 @@ export namespace Prisma {
      * Skip the first `n` AuditLogs.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AuditLogs.
+     */
     distinct?: AuditLogScalarFieldEnum | AuditLogScalarFieldEnum[]
   }
 
@@ -12235,6 +12537,25 @@ export namespace Prisma {
      * Limit how many AuditLogs to delete.
      */
     limit?: number
+  }
+
+  /**
+   * AuditLog.organization
+   */
+  export type AuditLog$organizationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Organization
+     */
+    select?: OrganizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Organization
+     */
+    omit?: OrganizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationInclude<ExtArgs> | null
+    where?: OrganizationWhereInput
   }
 
   /**
@@ -13115,6 +13436,11 @@ export namespace Prisma {
      * Skip the first `n` FeatureFlags.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FeatureFlags.
+     */
     distinct?: FeatureFlagScalarFieldEnum | FeatureFlagScalarFieldEnum[]
   }
 
@@ -14243,6 +14569,11 @@ export namespace Prisma {
      * Skip the first `n` VolunteerApplications.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerApplications.
+     */
     distinct?: VolunteerApplicationScalarFieldEnum | VolunteerApplicationScalarFieldEnum[]
   }
 
@@ -15346,6 +15677,11 @@ export namespace Prisma {
      * Skip the first `n` VolunteerAnswers.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerAnswers.
+     */
     distinct?: VolunteerAnswerScalarFieldEnum | VolunteerAnswerScalarFieldEnum[]
   }
 
@@ -16495,6 +16831,11 @@ export namespace Prisma {
      * Skip the first `n` ScreenerQuestions.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ScreenerQuestions.
+     */
     distinct?: ScreenerQuestionScalarFieldEnum | ScreenerQuestionScalarFieldEnum[]
   }
 
@@ -17592,6 +17933,11 @@ export namespace Prisma {
      * Skip the first `n` OrganizationInvitations.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrganizationInvitations.
+     */
     distinct?: OrganizationInvitationScalarFieldEnum | OrganizationInvitationScalarFieldEnum[]
   }
 
@@ -18810,6 +19156,11 @@ export namespace Prisma {
      * Skip the first `n` VolunteerOpportunities.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerOpportunities.
+     */
     distinct?: VolunteerOpportunityScalarFieldEnum | VolunteerOpportunityScalarFieldEnum[]
   }
 
@@ -19938,6 +20289,11 @@ export namespace Prisma {
      * Skip the first `n` OpportunityTags.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OpportunityTags.
+     */
     distinct?: OpportunityTagScalarFieldEnum | OpportunityTagScalarFieldEnum[]
   }
 
@@ -20169,21 +20525,24 @@ export namespace Prisma {
   export type OpportunityRequirementMinAggregateOutputType = {
     id: string | null
     opportunityId: string | null
-    skill: string | null
+    skillId: string | null
+    familyId: string | null
     level: $Enums.RequirementLevel | null
   }
 
   export type OpportunityRequirementMaxAggregateOutputType = {
     id: string | null
     opportunityId: string | null
-    skill: string | null
+    skillId: string | null
+    familyId: string | null
     level: $Enums.RequirementLevel | null
   }
 
   export type OpportunityRequirementCountAggregateOutputType = {
     id: number
     opportunityId: number
-    skill: number
+    skillId: number
+    familyId: number
     level: number
     _all: number
   }
@@ -20192,21 +20551,24 @@ export namespace Prisma {
   export type OpportunityRequirementMinAggregateInputType = {
     id?: true
     opportunityId?: true
-    skill?: true
+    skillId?: true
+    familyId?: true
     level?: true
   }
 
   export type OpportunityRequirementMaxAggregateInputType = {
     id?: true
     opportunityId?: true
-    skill?: true
+    skillId?: true
+    familyId?: true
     level?: true
   }
 
   export type OpportunityRequirementCountAggregateInputType = {
     id?: true
     opportunityId?: true
-    skill?: true
+    skillId?: true
+    familyId?: true
     level?: true
     _all?: true
   }
@@ -20286,7 +20648,8 @@ export namespace Prisma {
   export type OpportunityRequirementGroupByOutputType = {
     id: string
     opportunityId: string
-    skill: string
+    skillId: string | null
+    familyId: string | null
     level: $Enums.RequirementLevel
     _count: OpportunityRequirementCountAggregateOutputType | null
     _min: OpportunityRequirementMinAggregateOutputType | null
@@ -20310,54 +20673,73 @@ export namespace Prisma {
   export type OpportunityRequirementSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     opportunityId?: boolean
-    skill?: boolean
+    skillId?: boolean
+    familyId?: boolean
     level?: boolean
     opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+    skill?: boolean | OpportunityRequirement$skillArgs<ExtArgs>
+    family?: boolean | OpportunityRequirement$familyArgs<ExtArgs>
   }, ExtArgs["result"]["opportunityRequirement"]>
 
   export type OpportunityRequirementSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     opportunityId?: boolean
-    skill?: boolean
+    skillId?: boolean
+    familyId?: boolean
     level?: boolean
     opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+    skill?: boolean | OpportunityRequirement$skillArgs<ExtArgs>
+    family?: boolean | OpportunityRequirement$familyArgs<ExtArgs>
   }, ExtArgs["result"]["opportunityRequirement"]>
 
   export type OpportunityRequirementSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     opportunityId?: boolean
-    skill?: boolean
+    skillId?: boolean
+    familyId?: boolean
     level?: boolean
     opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+    skill?: boolean | OpportunityRequirement$skillArgs<ExtArgs>
+    family?: boolean | OpportunityRequirement$familyArgs<ExtArgs>
   }, ExtArgs["result"]["opportunityRequirement"]>
 
   export type OpportunityRequirementSelectScalar = {
     id?: boolean
     opportunityId?: boolean
-    skill?: boolean
+    skillId?: boolean
+    familyId?: boolean
     level?: boolean
   }
 
-  export type OpportunityRequirementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "opportunityId" | "skill" | "level", ExtArgs["result"]["opportunityRequirement"]>
+  export type OpportunityRequirementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "opportunityId" | "skillId" | "familyId" | "level", ExtArgs["result"]["opportunityRequirement"]>
   export type OpportunityRequirementInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+    skill?: boolean | OpportunityRequirement$skillArgs<ExtArgs>
+    family?: boolean | OpportunityRequirement$familyArgs<ExtArgs>
   }
   export type OpportunityRequirementIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+    skill?: boolean | OpportunityRequirement$skillArgs<ExtArgs>
+    family?: boolean | OpportunityRequirement$familyArgs<ExtArgs>
   }
   export type OpportunityRequirementIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+    skill?: boolean | OpportunityRequirement$skillArgs<ExtArgs>
+    family?: boolean | OpportunityRequirement$familyArgs<ExtArgs>
   }
 
   export type $OpportunityRequirementPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "OpportunityRequirement"
     objects: {
       opportunity: Prisma.$VolunteerOpportunityPayload<ExtArgs>
+      skill: Prisma.$SkillPayload<ExtArgs> | null
+      family: Prisma.$SkillFamilyPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       opportunityId: string
-      skill: string
+      skillId: string | null
+      familyId: string | null
       level: $Enums.RequirementLevel
     }, ExtArgs["result"]["opportunityRequirement"]>
     composites: {}
@@ -20754,6 +21136,8 @@ export namespace Prisma {
   export interface Prisma__OpportunityRequirementClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     opportunity<T extends VolunteerOpportunityDefaultArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunityDefaultArgs<ExtArgs>>): Prisma__VolunteerOpportunityClient<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    skill<T extends OpportunityRequirement$skillArgs<ExtArgs> = {}>(args?: Subset<T, OpportunityRequirement$skillArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    family<T extends OpportunityRequirement$familyArgs<ExtArgs> = {}>(args?: Subset<T, OpportunityRequirement$familyArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -20785,7 +21169,8 @@ export namespace Prisma {
   interface OpportunityRequirementFieldRefs {
     readonly id: FieldRef<"OpportunityRequirement", 'String'>
     readonly opportunityId: FieldRef<"OpportunityRequirement", 'String'>
-    readonly skill: FieldRef<"OpportunityRequirement", 'String'>
+    readonly skillId: FieldRef<"OpportunityRequirement", 'String'>
+    readonly familyId: FieldRef<"OpportunityRequirement", 'String'>
     readonly level: FieldRef<"OpportunityRequirement", 'RequirementLevel'>
   }
     
@@ -20983,6 +21368,11 @@ export namespace Prisma {
      * Skip the first `n` OpportunityRequirements.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OpportunityRequirements.
+     */
     distinct?: OpportunityRequirementScalarFieldEnum | OpportunityRequirementScalarFieldEnum[]
   }
 
@@ -21183,6 +21573,44 @@ export namespace Prisma {
   }
 
   /**
+   * OpportunityRequirement.skill
+   */
+  export type OpportunityRequirement$skillArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    where?: SkillWhereInput
+  }
+
+  /**
+   * OpportunityRequirement.family
+   */
+  export type OpportunityRequirement$familyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    where?: SkillFamilyWhereInput
+  }
+
+  /**
    * OpportunityRequirement without action
    */
   export type OpportunityRequirementDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -21202,6 +21630,2243 @@ export namespace Prisma {
 
 
   /**
+   * Model SkillFamily
+   */
+
+  export type AggregateSkillFamily = {
+    _count: SkillFamilyCountAggregateOutputType | null
+    _min: SkillFamilyMinAggregateOutputType | null
+    _max: SkillFamilyMaxAggregateOutputType | null
+  }
+
+  export type SkillFamilyMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    slug: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SkillFamilyMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    slug: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SkillFamilyCountAggregateOutputType = {
+    id: number
+    name: number
+    slug: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SkillFamilyMinAggregateInputType = {
+    id?: true
+    name?: true
+    slug?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SkillFamilyMaxAggregateInputType = {
+    id?: true
+    name?: true
+    slug?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SkillFamilyCountAggregateInputType = {
+    id?: true
+    name?: true
+    slug?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SkillFamilyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SkillFamily to aggregate.
+     */
+    where?: SkillFamilyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SkillFamilies to fetch.
+     */
+    orderBy?: SkillFamilyOrderByWithRelationInput | SkillFamilyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SkillFamilyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SkillFamilies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SkillFamilies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SkillFamilies
+    **/
+    _count?: true | SkillFamilyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SkillFamilyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SkillFamilyMaxAggregateInputType
+  }
+
+  export type GetSkillFamilyAggregateType<T extends SkillFamilyAggregateArgs> = {
+        [P in keyof T & keyof AggregateSkillFamily]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSkillFamily[P]>
+      : GetScalarType<T[P], AggregateSkillFamily[P]>
+  }
+
+
+
+
+  export type SkillFamilyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SkillFamilyWhereInput
+    orderBy?: SkillFamilyOrderByWithAggregationInput | SkillFamilyOrderByWithAggregationInput[]
+    by: SkillFamilyScalarFieldEnum[] | SkillFamilyScalarFieldEnum
+    having?: SkillFamilyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SkillFamilyCountAggregateInputType | true
+    _min?: SkillFamilyMinAggregateInputType
+    _max?: SkillFamilyMaxAggregateInputType
+  }
+
+  export type SkillFamilyGroupByOutputType = {
+    id: string
+    name: string
+    slug: string
+    createdAt: Date
+    updatedAt: Date
+    _count: SkillFamilyCountAggregateOutputType | null
+    _min: SkillFamilyMinAggregateOutputType | null
+    _max: SkillFamilyMaxAggregateOutputType | null
+  }
+
+  type GetSkillFamilyGroupByPayload<T extends SkillFamilyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SkillFamilyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SkillFamilyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SkillFamilyGroupByOutputType[P]>
+            : GetScalarType<T[P], SkillFamilyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SkillFamilySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    slug?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    skills?: boolean | SkillFamily$skillsArgs<ExtArgs>
+    requirements?: boolean | SkillFamily$requirementsArgs<ExtArgs>
+    _count?: boolean | SkillFamilyCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["skillFamily"]>
+
+  export type SkillFamilySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    slug?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["skillFamily"]>
+
+  export type SkillFamilySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    slug?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["skillFamily"]>
+
+  export type SkillFamilySelectScalar = {
+    id?: boolean
+    name?: boolean
+    slug?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SkillFamilyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "createdAt" | "updatedAt", ExtArgs["result"]["skillFamily"]>
+  export type SkillFamilyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    skills?: boolean | SkillFamily$skillsArgs<ExtArgs>
+    requirements?: boolean | SkillFamily$requirementsArgs<ExtArgs>
+    _count?: boolean | SkillFamilyCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type SkillFamilyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type SkillFamilyIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $SkillFamilyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SkillFamily"
+    objects: {
+      skills: Prisma.$SkillPayload<ExtArgs>[]
+      requirements: Prisma.$OpportunityRequirementPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      slug: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["skillFamily"]>
+    composites: {}
+  }
+
+  type SkillFamilyGetPayload<S extends boolean | null | undefined | SkillFamilyDefaultArgs> = $Result.GetResult<Prisma.$SkillFamilyPayload, S>
+
+  type SkillFamilyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SkillFamilyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SkillFamilyCountAggregateInputType | true
+    }
+
+  export interface SkillFamilyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SkillFamily'], meta: { name: 'SkillFamily' } }
+    /**
+     * Find zero or one SkillFamily that matches the filter.
+     * @param {SkillFamilyFindUniqueArgs} args - Arguments to find a SkillFamily
+     * @example
+     * // Get one SkillFamily
+     * const skillFamily = await prisma.skillFamily.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SkillFamilyFindUniqueArgs>(args: SelectSubset<T, SkillFamilyFindUniqueArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one SkillFamily that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SkillFamilyFindUniqueOrThrowArgs} args - Arguments to find a SkillFamily
+     * @example
+     * // Get one SkillFamily
+     * const skillFamily = await prisma.skillFamily.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SkillFamilyFindUniqueOrThrowArgs>(args: SelectSubset<T, SkillFamilyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SkillFamily that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFamilyFindFirstArgs} args - Arguments to find a SkillFamily
+     * @example
+     * // Get one SkillFamily
+     * const skillFamily = await prisma.skillFamily.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SkillFamilyFindFirstArgs>(args?: SelectSubset<T, SkillFamilyFindFirstArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SkillFamily that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFamilyFindFirstOrThrowArgs} args - Arguments to find a SkillFamily
+     * @example
+     * // Get one SkillFamily
+     * const skillFamily = await prisma.skillFamily.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SkillFamilyFindFirstOrThrowArgs>(args?: SelectSubset<T, SkillFamilyFindFirstOrThrowArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more SkillFamilies that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFamilyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SkillFamilies
+     * const skillFamilies = await prisma.skillFamily.findMany()
+     * 
+     * // Get first 10 SkillFamilies
+     * const skillFamilies = await prisma.skillFamily.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const skillFamilyWithIdOnly = await prisma.skillFamily.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SkillFamilyFindManyArgs>(args?: SelectSubset<T, SkillFamilyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a SkillFamily.
+     * @param {SkillFamilyCreateArgs} args - Arguments to create a SkillFamily.
+     * @example
+     * // Create one SkillFamily
+     * const SkillFamily = await prisma.skillFamily.create({
+     *   data: {
+     *     // ... data to create a SkillFamily
+     *   }
+     * })
+     * 
+     */
+    create<T extends SkillFamilyCreateArgs>(args: SelectSubset<T, SkillFamilyCreateArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many SkillFamilies.
+     * @param {SkillFamilyCreateManyArgs} args - Arguments to create many SkillFamilies.
+     * @example
+     * // Create many SkillFamilies
+     * const skillFamily = await prisma.skillFamily.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SkillFamilyCreateManyArgs>(args?: SelectSubset<T, SkillFamilyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SkillFamilies and returns the data saved in the database.
+     * @param {SkillFamilyCreateManyAndReturnArgs} args - Arguments to create many SkillFamilies.
+     * @example
+     * // Create many SkillFamilies
+     * const skillFamily = await prisma.skillFamily.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SkillFamilies and only return the `id`
+     * const skillFamilyWithIdOnly = await prisma.skillFamily.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SkillFamilyCreateManyAndReturnArgs>(args?: SelectSubset<T, SkillFamilyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a SkillFamily.
+     * @param {SkillFamilyDeleteArgs} args - Arguments to delete one SkillFamily.
+     * @example
+     * // Delete one SkillFamily
+     * const SkillFamily = await prisma.skillFamily.delete({
+     *   where: {
+     *     // ... filter to delete one SkillFamily
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SkillFamilyDeleteArgs>(args: SelectSubset<T, SkillFamilyDeleteArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one SkillFamily.
+     * @param {SkillFamilyUpdateArgs} args - Arguments to update one SkillFamily.
+     * @example
+     * // Update one SkillFamily
+     * const skillFamily = await prisma.skillFamily.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SkillFamilyUpdateArgs>(args: SelectSubset<T, SkillFamilyUpdateArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more SkillFamilies.
+     * @param {SkillFamilyDeleteManyArgs} args - Arguments to filter SkillFamilies to delete.
+     * @example
+     * // Delete a few SkillFamilies
+     * const { count } = await prisma.skillFamily.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SkillFamilyDeleteManyArgs>(args?: SelectSubset<T, SkillFamilyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SkillFamilies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFamilyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SkillFamilies
+     * const skillFamily = await prisma.skillFamily.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SkillFamilyUpdateManyArgs>(args: SelectSubset<T, SkillFamilyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SkillFamilies and returns the data updated in the database.
+     * @param {SkillFamilyUpdateManyAndReturnArgs} args - Arguments to update many SkillFamilies.
+     * @example
+     * // Update many SkillFamilies
+     * const skillFamily = await prisma.skillFamily.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more SkillFamilies and only return the `id`
+     * const skillFamilyWithIdOnly = await prisma.skillFamily.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SkillFamilyUpdateManyAndReturnArgs>(args: SelectSubset<T, SkillFamilyUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one SkillFamily.
+     * @param {SkillFamilyUpsertArgs} args - Arguments to update or create a SkillFamily.
+     * @example
+     * // Update or create a SkillFamily
+     * const skillFamily = await prisma.skillFamily.upsert({
+     *   create: {
+     *     // ... data to create a SkillFamily
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SkillFamily we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SkillFamilyUpsertArgs>(args: SelectSubset<T, SkillFamilyUpsertArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of SkillFamilies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFamilyCountArgs} args - Arguments to filter SkillFamilies to count.
+     * @example
+     * // Count the number of SkillFamilies
+     * const count = await prisma.skillFamily.count({
+     *   where: {
+     *     // ... the filter for the SkillFamilies we want to count
+     *   }
+     * })
+    **/
+    count<T extends SkillFamilyCountArgs>(
+      args?: Subset<T, SkillFamilyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SkillFamilyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SkillFamily.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFamilyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SkillFamilyAggregateArgs>(args: Subset<T, SkillFamilyAggregateArgs>): Prisma.PrismaPromise<GetSkillFamilyAggregateType<T>>
+
+    /**
+     * Group by SkillFamily.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFamilyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SkillFamilyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SkillFamilyGroupByArgs['orderBy'] }
+        : { orderBy?: SkillFamilyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SkillFamilyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSkillFamilyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SkillFamily model
+   */
+  readonly fields: SkillFamilyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SkillFamily.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SkillFamilyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    skills<T extends SkillFamily$skillsArgs<ExtArgs> = {}>(args?: Subset<T, SkillFamily$skillsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    requirements<T extends SkillFamily$requirementsArgs<ExtArgs> = {}>(args?: Subset<T, SkillFamily$requirementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SkillFamily model
+   */
+  interface SkillFamilyFieldRefs {
+    readonly id: FieldRef<"SkillFamily", 'String'>
+    readonly name: FieldRef<"SkillFamily", 'String'>
+    readonly slug: FieldRef<"SkillFamily", 'String'>
+    readonly createdAt: FieldRef<"SkillFamily", 'DateTime'>
+    readonly updatedAt: FieldRef<"SkillFamily", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SkillFamily findUnique
+   */
+  export type SkillFamilyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    /**
+     * Filter, which SkillFamily to fetch.
+     */
+    where: SkillFamilyWhereUniqueInput
+  }
+
+  /**
+   * SkillFamily findUniqueOrThrow
+   */
+  export type SkillFamilyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    /**
+     * Filter, which SkillFamily to fetch.
+     */
+    where: SkillFamilyWhereUniqueInput
+  }
+
+  /**
+   * SkillFamily findFirst
+   */
+  export type SkillFamilyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    /**
+     * Filter, which SkillFamily to fetch.
+     */
+    where?: SkillFamilyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SkillFamilies to fetch.
+     */
+    orderBy?: SkillFamilyOrderByWithRelationInput | SkillFamilyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SkillFamilies.
+     */
+    cursor?: SkillFamilyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SkillFamilies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SkillFamilies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SkillFamilies.
+     */
+    distinct?: SkillFamilyScalarFieldEnum | SkillFamilyScalarFieldEnum[]
+  }
+
+  /**
+   * SkillFamily findFirstOrThrow
+   */
+  export type SkillFamilyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    /**
+     * Filter, which SkillFamily to fetch.
+     */
+    where?: SkillFamilyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SkillFamilies to fetch.
+     */
+    orderBy?: SkillFamilyOrderByWithRelationInput | SkillFamilyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SkillFamilies.
+     */
+    cursor?: SkillFamilyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SkillFamilies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SkillFamilies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SkillFamilies.
+     */
+    distinct?: SkillFamilyScalarFieldEnum | SkillFamilyScalarFieldEnum[]
+  }
+
+  /**
+   * SkillFamily findMany
+   */
+  export type SkillFamilyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    /**
+     * Filter, which SkillFamilies to fetch.
+     */
+    where?: SkillFamilyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SkillFamilies to fetch.
+     */
+    orderBy?: SkillFamilyOrderByWithRelationInput | SkillFamilyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SkillFamilies.
+     */
+    cursor?: SkillFamilyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SkillFamilies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SkillFamilies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SkillFamilies.
+     */
+    distinct?: SkillFamilyScalarFieldEnum | SkillFamilyScalarFieldEnum[]
+  }
+
+  /**
+   * SkillFamily create
+   */
+  export type SkillFamilyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SkillFamily.
+     */
+    data: XOR<SkillFamilyCreateInput, SkillFamilyUncheckedCreateInput>
+  }
+
+  /**
+   * SkillFamily createMany
+   */
+  export type SkillFamilyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SkillFamilies.
+     */
+    data: SkillFamilyCreateManyInput | SkillFamilyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SkillFamily createManyAndReturn
+   */
+  export type SkillFamilyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * The data used to create many SkillFamilies.
+     */
+    data: SkillFamilyCreateManyInput | SkillFamilyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SkillFamily update
+   */
+  export type SkillFamilyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SkillFamily.
+     */
+    data: XOR<SkillFamilyUpdateInput, SkillFamilyUncheckedUpdateInput>
+    /**
+     * Choose, which SkillFamily to update.
+     */
+    where: SkillFamilyWhereUniqueInput
+  }
+
+  /**
+   * SkillFamily updateMany
+   */
+  export type SkillFamilyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SkillFamilies.
+     */
+    data: XOR<SkillFamilyUpdateManyMutationInput, SkillFamilyUncheckedUpdateManyInput>
+    /**
+     * Filter which SkillFamilies to update
+     */
+    where?: SkillFamilyWhereInput
+    /**
+     * Limit how many SkillFamilies to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SkillFamily updateManyAndReturn
+   */
+  export type SkillFamilyUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * The data used to update SkillFamilies.
+     */
+    data: XOR<SkillFamilyUpdateManyMutationInput, SkillFamilyUncheckedUpdateManyInput>
+    /**
+     * Filter which SkillFamilies to update
+     */
+    where?: SkillFamilyWhereInput
+    /**
+     * Limit how many SkillFamilies to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SkillFamily upsert
+   */
+  export type SkillFamilyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SkillFamily to update in case it exists.
+     */
+    where: SkillFamilyWhereUniqueInput
+    /**
+     * In case the SkillFamily found by the `where` argument doesn't exist, create a new SkillFamily with this data.
+     */
+    create: XOR<SkillFamilyCreateInput, SkillFamilyUncheckedCreateInput>
+    /**
+     * In case the SkillFamily was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SkillFamilyUpdateInput, SkillFamilyUncheckedUpdateInput>
+  }
+
+  /**
+   * SkillFamily delete
+   */
+  export type SkillFamilyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+    /**
+     * Filter which SkillFamily to delete.
+     */
+    where: SkillFamilyWhereUniqueInput
+  }
+
+  /**
+   * SkillFamily deleteMany
+   */
+  export type SkillFamilyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SkillFamilies to delete
+     */
+    where?: SkillFamilyWhereInput
+    /**
+     * Limit how many SkillFamilies to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * SkillFamily.skills
+   */
+  export type SkillFamily$skillsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    where?: SkillWhereInput
+    orderBy?: SkillOrderByWithRelationInput | SkillOrderByWithRelationInput[]
+    cursor?: SkillWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SkillScalarFieldEnum | SkillScalarFieldEnum[]
+  }
+
+  /**
+   * SkillFamily.requirements
+   */
+  export type SkillFamily$requirementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    where?: OpportunityRequirementWhereInput
+    orderBy?: OpportunityRequirementOrderByWithRelationInput | OpportunityRequirementOrderByWithRelationInput[]
+    cursor?: OpportunityRequirementWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OpportunityRequirementScalarFieldEnum | OpportunityRequirementScalarFieldEnum[]
+  }
+
+  /**
+   * SkillFamily without action
+   */
+  export type SkillFamilyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SkillFamily
+     */
+    select?: SkillFamilySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SkillFamily
+     */
+    omit?: SkillFamilyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillFamilyInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Skill
+   */
+
+  export type AggregateSkill = {
+    _count: SkillCountAggregateOutputType | null
+    _min: SkillMinAggregateOutputType | null
+    _max: SkillMaxAggregateOutputType | null
+  }
+
+  export type SkillMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    slug: string | null
+    familyId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SkillMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    slug: string | null
+    familyId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SkillCountAggregateOutputType = {
+    id: number
+    name: number
+    slug: number
+    familyId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SkillMinAggregateInputType = {
+    id?: true
+    name?: true
+    slug?: true
+    familyId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SkillMaxAggregateInputType = {
+    id?: true
+    name?: true
+    slug?: true
+    familyId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SkillCountAggregateInputType = {
+    id?: true
+    name?: true
+    slug?: true
+    familyId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SkillAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Skill to aggregate.
+     */
+    where?: SkillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Skills to fetch.
+     */
+    orderBy?: SkillOrderByWithRelationInput | SkillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SkillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Skills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Skills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Skills
+    **/
+    _count?: true | SkillCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SkillMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SkillMaxAggregateInputType
+  }
+
+  export type GetSkillAggregateType<T extends SkillAggregateArgs> = {
+        [P in keyof T & keyof AggregateSkill]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSkill[P]>
+      : GetScalarType<T[P], AggregateSkill[P]>
+  }
+
+
+
+
+  export type SkillGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SkillWhereInput
+    orderBy?: SkillOrderByWithAggregationInput | SkillOrderByWithAggregationInput[]
+    by: SkillScalarFieldEnum[] | SkillScalarFieldEnum
+    having?: SkillScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SkillCountAggregateInputType | true
+    _min?: SkillMinAggregateInputType
+    _max?: SkillMaxAggregateInputType
+  }
+
+  export type SkillGroupByOutputType = {
+    id: string
+    name: string
+    slug: string
+    familyId: string
+    createdAt: Date
+    updatedAt: Date
+    _count: SkillCountAggregateOutputType | null
+    _min: SkillMinAggregateOutputType | null
+    _max: SkillMaxAggregateOutputType | null
+  }
+
+  type GetSkillGroupByPayload<T extends SkillGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SkillGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SkillGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SkillGroupByOutputType[P]>
+            : GetScalarType<T[P], SkillGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SkillSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    slug?: boolean
+    familyId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    family?: boolean | SkillFamilyDefaultArgs<ExtArgs>
+    volunteerSkills?: boolean | Skill$volunteerSkillsArgs<ExtArgs>
+    requirements?: boolean | Skill$requirementsArgs<ExtArgs>
+    _count?: boolean | SkillCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["skill"]>
+
+  export type SkillSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    slug?: boolean
+    familyId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    family?: boolean | SkillFamilyDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["skill"]>
+
+  export type SkillSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    slug?: boolean
+    familyId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    family?: boolean | SkillFamilyDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["skill"]>
+
+  export type SkillSelectScalar = {
+    id?: boolean
+    name?: boolean
+    slug?: boolean
+    familyId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SkillOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "familyId" | "createdAt" | "updatedAt", ExtArgs["result"]["skill"]>
+  export type SkillInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    family?: boolean | SkillFamilyDefaultArgs<ExtArgs>
+    volunteerSkills?: boolean | Skill$volunteerSkillsArgs<ExtArgs>
+    requirements?: boolean | Skill$requirementsArgs<ExtArgs>
+    _count?: boolean | SkillCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type SkillIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    family?: boolean | SkillFamilyDefaultArgs<ExtArgs>
+  }
+  export type SkillIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    family?: boolean | SkillFamilyDefaultArgs<ExtArgs>
+  }
+
+  export type $SkillPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Skill"
+    objects: {
+      family: Prisma.$SkillFamilyPayload<ExtArgs>
+      volunteerSkills: Prisma.$VolunteerSkillPayload<ExtArgs>[]
+      requirements: Prisma.$OpportunityRequirementPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      slug: string
+      familyId: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["skill"]>
+    composites: {}
+  }
+
+  type SkillGetPayload<S extends boolean | null | undefined | SkillDefaultArgs> = $Result.GetResult<Prisma.$SkillPayload, S>
+
+  type SkillCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SkillFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SkillCountAggregateInputType | true
+    }
+
+  export interface SkillDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Skill'], meta: { name: 'Skill' } }
+    /**
+     * Find zero or one Skill that matches the filter.
+     * @param {SkillFindUniqueArgs} args - Arguments to find a Skill
+     * @example
+     * // Get one Skill
+     * const skill = await prisma.skill.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SkillFindUniqueArgs>(args: SelectSubset<T, SkillFindUniqueArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Skill that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SkillFindUniqueOrThrowArgs} args - Arguments to find a Skill
+     * @example
+     * // Get one Skill
+     * const skill = await prisma.skill.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SkillFindUniqueOrThrowArgs>(args: SelectSubset<T, SkillFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Skill that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFindFirstArgs} args - Arguments to find a Skill
+     * @example
+     * // Get one Skill
+     * const skill = await prisma.skill.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SkillFindFirstArgs>(args?: SelectSubset<T, SkillFindFirstArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Skill that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFindFirstOrThrowArgs} args - Arguments to find a Skill
+     * @example
+     * // Get one Skill
+     * const skill = await prisma.skill.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SkillFindFirstOrThrowArgs>(args?: SelectSubset<T, SkillFindFirstOrThrowArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Skills that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Skills
+     * const skills = await prisma.skill.findMany()
+     * 
+     * // Get first 10 Skills
+     * const skills = await prisma.skill.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const skillWithIdOnly = await prisma.skill.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SkillFindManyArgs>(args?: SelectSubset<T, SkillFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Skill.
+     * @param {SkillCreateArgs} args - Arguments to create a Skill.
+     * @example
+     * // Create one Skill
+     * const Skill = await prisma.skill.create({
+     *   data: {
+     *     // ... data to create a Skill
+     *   }
+     * })
+     * 
+     */
+    create<T extends SkillCreateArgs>(args: SelectSubset<T, SkillCreateArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Skills.
+     * @param {SkillCreateManyArgs} args - Arguments to create many Skills.
+     * @example
+     * // Create many Skills
+     * const skill = await prisma.skill.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SkillCreateManyArgs>(args?: SelectSubset<T, SkillCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Skills and returns the data saved in the database.
+     * @param {SkillCreateManyAndReturnArgs} args - Arguments to create many Skills.
+     * @example
+     * // Create many Skills
+     * const skill = await prisma.skill.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Skills and only return the `id`
+     * const skillWithIdOnly = await prisma.skill.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SkillCreateManyAndReturnArgs>(args?: SelectSubset<T, SkillCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Skill.
+     * @param {SkillDeleteArgs} args - Arguments to delete one Skill.
+     * @example
+     * // Delete one Skill
+     * const Skill = await prisma.skill.delete({
+     *   where: {
+     *     // ... filter to delete one Skill
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SkillDeleteArgs>(args: SelectSubset<T, SkillDeleteArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Skill.
+     * @param {SkillUpdateArgs} args - Arguments to update one Skill.
+     * @example
+     * // Update one Skill
+     * const skill = await prisma.skill.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SkillUpdateArgs>(args: SelectSubset<T, SkillUpdateArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Skills.
+     * @param {SkillDeleteManyArgs} args - Arguments to filter Skills to delete.
+     * @example
+     * // Delete a few Skills
+     * const { count } = await prisma.skill.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SkillDeleteManyArgs>(args?: SelectSubset<T, SkillDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Skills.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Skills
+     * const skill = await prisma.skill.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SkillUpdateManyArgs>(args: SelectSubset<T, SkillUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Skills and returns the data updated in the database.
+     * @param {SkillUpdateManyAndReturnArgs} args - Arguments to update many Skills.
+     * @example
+     * // Update many Skills
+     * const skill = await prisma.skill.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Skills and only return the `id`
+     * const skillWithIdOnly = await prisma.skill.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SkillUpdateManyAndReturnArgs>(args: SelectSubset<T, SkillUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Skill.
+     * @param {SkillUpsertArgs} args - Arguments to update or create a Skill.
+     * @example
+     * // Update or create a Skill
+     * const skill = await prisma.skill.upsert({
+     *   create: {
+     *     // ... data to create a Skill
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Skill we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SkillUpsertArgs>(args: SelectSubset<T, SkillUpsertArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Skills.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillCountArgs} args - Arguments to filter Skills to count.
+     * @example
+     * // Count the number of Skills
+     * const count = await prisma.skill.count({
+     *   where: {
+     *     // ... the filter for the Skills we want to count
+     *   }
+     * })
+    **/
+    count<T extends SkillCountArgs>(
+      args?: Subset<T, SkillCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SkillCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Skill.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SkillAggregateArgs>(args: Subset<T, SkillAggregateArgs>): Prisma.PrismaPromise<GetSkillAggregateType<T>>
+
+    /**
+     * Group by Skill.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SkillGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SkillGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SkillGroupByArgs['orderBy'] }
+        : { orderBy?: SkillGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SkillGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSkillGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Skill model
+   */
+  readonly fields: SkillFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Skill.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SkillClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    family<T extends SkillFamilyDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SkillFamilyDefaultArgs<ExtArgs>>): Prisma__SkillFamilyClient<$Result.GetResult<Prisma.$SkillFamilyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    volunteerSkills<T extends Skill$volunteerSkillsArgs<ExtArgs> = {}>(args?: Subset<T, Skill$volunteerSkillsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerSkillPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    requirements<T extends Skill$requirementsArgs<ExtArgs> = {}>(args?: Subset<T, Skill$requirementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Skill model
+   */
+  interface SkillFieldRefs {
+    readonly id: FieldRef<"Skill", 'String'>
+    readonly name: FieldRef<"Skill", 'String'>
+    readonly slug: FieldRef<"Skill", 'String'>
+    readonly familyId: FieldRef<"Skill", 'String'>
+    readonly createdAt: FieldRef<"Skill", 'DateTime'>
+    readonly updatedAt: FieldRef<"Skill", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Skill findUnique
+   */
+  export type SkillFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    /**
+     * Filter, which Skill to fetch.
+     */
+    where: SkillWhereUniqueInput
+  }
+
+  /**
+   * Skill findUniqueOrThrow
+   */
+  export type SkillFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    /**
+     * Filter, which Skill to fetch.
+     */
+    where: SkillWhereUniqueInput
+  }
+
+  /**
+   * Skill findFirst
+   */
+  export type SkillFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    /**
+     * Filter, which Skill to fetch.
+     */
+    where?: SkillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Skills to fetch.
+     */
+    orderBy?: SkillOrderByWithRelationInput | SkillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Skills.
+     */
+    cursor?: SkillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Skills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Skills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Skills.
+     */
+    distinct?: SkillScalarFieldEnum | SkillScalarFieldEnum[]
+  }
+
+  /**
+   * Skill findFirstOrThrow
+   */
+  export type SkillFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    /**
+     * Filter, which Skill to fetch.
+     */
+    where?: SkillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Skills to fetch.
+     */
+    orderBy?: SkillOrderByWithRelationInput | SkillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Skills.
+     */
+    cursor?: SkillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Skills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Skills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Skills.
+     */
+    distinct?: SkillScalarFieldEnum | SkillScalarFieldEnum[]
+  }
+
+  /**
+   * Skill findMany
+   */
+  export type SkillFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    /**
+     * Filter, which Skills to fetch.
+     */
+    where?: SkillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Skills to fetch.
+     */
+    orderBy?: SkillOrderByWithRelationInput | SkillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Skills.
+     */
+    cursor?: SkillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Skills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Skills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Skills.
+     */
+    distinct?: SkillScalarFieldEnum | SkillScalarFieldEnum[]
+  }
+
+  /**
+   * Skill create
+   */
+  export type SkillCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Skill.
+     */
+    data: XOR<SkillCreateInput, SkillUncheckedCreateInput>
+  }
+
+  /**
+   * Skill createMany
+   */
+  export type SkillCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Skills.
+     */
+    data: SkillCreateManyInput | SkillCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Skill createManyAndReturn
+   */
+  export type SkillCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * The data used to create many Skills.
+     */
+    data: SkillCreateManyInput | SkillCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Skill update
+   */
+  export type SkillUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Skill.
+     */
+    data: XOR<SkillUpdateInput, SkillUncheckedUpdateInput>
+    /**
+     * Choose, which Skill to update.
+     */
+    where: SkillWhereUniqueInput
+  }
+
+  /**
+   * Skill updateMany
+   */
+  export type SkillUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Skills.
+     */
+    data: XOR<SkillUpdateManyMutationInput, SkillUncheckedUpdateManyInput>
+    /**
+     * Filter which Skills to update
+     */
+    where?: SkillWhereInput
+    /**
+     * Limit how many Skills to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Skill updateManyAndReturn
+   */
+  export type SkillUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * The data used to update Skills.
+     */
+    data: XOR<SkillUpdateManyMutationInput, SkillUncheckedUpdateManyInput>
+    /**
+     * Filter which Skills to update
+     */
+    where?: SkillWhereInput
+    /**
+     * Limit how many Skills to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Skill upsert
+   */
+  export type SkillUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Skill to update in case it exists.
+     */
+    where: SkillWhereUniqueInput
+    /**
+     * In case the Skill found by the `where` argument doesn't exist, create a new Skill with this data.
+     */
+    create: XOR<SkillCreateInput, SkillUncheckedCreateInput>
+    /**
+     * In case the Skill was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SkillUpdateInput, SkillUncheckedUpdateInput>
+  }
+
+  /**
+   * Skill delete
+   */
+  export type SkillDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+    /**
+     * Filter which Skill to delete.
+     */
+    where: SkillWhereUniqueInput
+  }
+
+  /**
+   * Skill deleteMany
+   */
+  export type SkillDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Skills to delete
+     */
+    where?: SkillWhereInput
+    /**
+     * Limit how many Skills to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Skill.volunteerSkills
+   */
+  export type Skill$volunteerSkillsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerSkill
+     */
+    select?: VolunteerSkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerSkill
+     */
+    omit?: VolunteerSkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerSkillInclude<ExtArgs> | null
+    where?: VolunteerSkillWhereInput
+    orderBy?: VolunteerSkillOrderByWithRelationInput | VolunteerSkillOrderByWithRelationInput[]
+    cursor?: VolunteerSkillWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VolunteerSkillScalarFieldEnum | VolunteerSkillScalarFieldEnum[]
+  }
+
+  /**
+   * Skill.requirements
+   */
+  export type Skill$requirementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OpportunityRequirement
+     */
+    select?: OpportunityRequirementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OpportunityRequirement
+     */
+    omit?: OpportunityRequirementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OpportunityRequirementInclude<ExtArgs> | null
+    where?: OpportunityRequirementWhereInput
+    orderBy?: OpportunityRequirementOrderByWithRelationInput | OpportunityRequirementOrderByWithRelationInput[]
+    cursor?: OpportunityRequirementWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OpportunityRequirementScalarFieldEnum | OpportunityRequirementScalarFieldEnum[]
+  }
+
+  /**
+   * Skill without action
+   */
+  export type SkillDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Skill
+     */
+    select?: SkillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Skill
+     */
+    omit?: SkillOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SkillInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model VolunteerSkill
    */
 
@@ -21214,21 +23879,21 @@ export namespace Prisma {
   export type VolunteerSkillMinAggregateOutputType = {
     id: string | null
     userId: string | null
-    skill: string | null
+    skillId: string | null
     createdAt: Date | null
   }
 
   export type VolunteerSkillMaxAggregateOutputType = {
     id: string | null
     userId: string | null
-    skill: string | null
+    skillId: string | null
     createdAt: Date | null
   }
 
   export type VolunteerSkillCountAggregateOutputType = {
     id: number
     userId: number
-    skill: number
+    skillId: number
     createdAt: number
     _all: number
   }
@@ -21237,21 +23902,21 @@ export namespace Prisma {
   export type VolunteerSkillMinAggregateInputType = {
     id?: true
     userId?: true
-    skill?: true
+    skillId?: true
     createdAt?: true
   }
 
   export type VolunteerSkillMaxAggregateInputType = {
     id?: true
     userId?: true
-    skill?: true
+    skillId?: true
     createdAt?: true
   }
 
   export type VolunteerSkillCountAggregateInputType = {
     id?: true
     userId?: true
-    skill?: true
+    skillId?: true
     createdAt?: true
     _all?: true
   }
@@ -21331,7 +23996,7 @@ export namespace Prisma {
   export type VolunteerSkillGroupByOutputType = {
     id: string
     userId: string
-    skill: string
+    skillId: string
     createdAt: Date
     _count: VolunteerSkillCountAggregateOutputType | null
     _min: VolunteerSkillMinAggregateOutputType | null
@@ -21355,54 +24020,61 @@ export namespace Prisma {
   export type VolunteerSkillSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
-    skill?: boolean
+    skillId?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    skill?: boolean | SkillDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerSkill"]>
 
   export type VolunteerSkillSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
-    skill?: boolean
+    skillId?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    skill?: boolean | SkillDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerSkill"]>
 
   export type VolunteerSkillSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
-    skill?: boolean
+    skillId?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    skill?: boolean | SkillDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerSkill"]>
 
   export type VolunteerSkillSelectScalar = {
     id?: boolean
     userId?: boolean
-    skill?: boolean
+    skillId?: boolean
     createdAt?: boolean
   }
 
-  export type VolunteerSkillOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "skill" | "createdAt", ExtArgs["result"]["volunteerSkill"]>
+  export type VolunteerSkillOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "skillId" | "createdAt", ExtArgs["result"]["volunteerSkill"]>
   export type VolunteerSkillInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    skill?: boolean | SkillDefaultArgs<ExtArgs>
   }
   export type VolunteerSkillIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    skill?: boolean | SkillDefaultArgs<ExtArgs>
   }
   export type VolunteerSkillIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    skill?: boolean | SkillDefaultArgs<ExtArgs>
   }
 
   export type $VolunteerSkillPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "VolunteerSkill"
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
+      skill: Prisma.$SkillPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       userId: string
-      skill: string
+      skillId: string
       createdAt: Date
     }, ExtArgs["result"]["volunteerSkill"]>
     composites: {}
@@ -21799,6 +24471,7 @@ export namespace Prisma {
   export interface Prisma__VolunteerSkillClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    skill<T extends SkillDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SkillDefaultArgs<ExtArgs>>): Prisma__SkillClient<$Result.GetResult<Prisma.$SkillPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -21830,7 +24503,7 @@ export namespace Prisma {
   interface VolunteerSkillFieldRefs {
     readonly id: FieldRef<"VolunteerSkill", 'String'>
     readonly userId: FieldRef<"VolunteerSkill", 'String'>
-    readonly skill: FieldRef<"VolunteerSkill", 'String'>
+    readonly skillId: FieldRef<"VolunteerSkill", 'String'>
     readonly createdAt: FieldRef<"VolunteerSkill", 'DateTime'>
   }
     
@@ -22028,6 +24701,11 @@ export namespace Prisma {
      * Skip the first `n` VolunteerSkills.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerSkills.
+     */
     distinct?: VolunteerSkillScalarFieldEnum | VolunteerSkillScalarFieldEnum[]
   }
 
@@ -23173,6 +25851,11 @@ export namespace Prisma {
      * Skip the first `n` VolunteerProfiles.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerProfiles.
+     */
     distinct?: VolunteerProfileScalarFieldEnum | VolunteerProfileScalarFieldEnum[]
   }
 
@@ -24317,6 +27000,11 @@ export namespace Prisma {
      * Skip the first `n` VolunteerCredentials.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerCredentials.
+     */
     distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
   }
 
@@ -25527,6 +28215,11 @@ export namespace Prisma {
      * Skip the first `n` Shifts.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Shifts.
+     */
     distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
   }
 
@@ -26662,6 +29355,11 @@ export namespace Prisma {
      * Skip the first `n` ShiftSignups.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ShiftSignups.
+     */
     distinct?: ShiftSignupScalarFieldEnum | ShiftSignupScalarFieldEnum[]
   }
 
@@ -27092,17 +29790,41 @@ export namespace Prisma {
   export const OpportunityRequirementScalarFieldEnum: {
     id: 'id',
     opportunityId: 'opportunityId',
-    skill: 'skill',
+    skillId: 'skillId',
+    familyId: 'familyId',
     level: 'level'
   };
 
   export type OpportunityRequirementScalarFieldEnum = (typeof OpportunityRequirementScalarFieldEnum)[keyof typeof OpportunityRequirementScalarFieldEnum]
 
 
+  export const SkillFamilyScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    slug: 'slug',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SkillFamilyScalarFieldEnum = (typeof SkillFamilyScalarFieldEnum)[keyof typeof SkillFamilyScalarFieldEnum]
+
+
+  export const SkillScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    slug: 'slug',
+    familyId: 'familyId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SkillScalarFieldEnum = (typeof SkillScalarFieldEnum)[keyof typeof SkillScalarFieldEnum]
+
+
   export const VolunteerSkillScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
-    skill: 'skill',
+    skillId: 'skillId',
     createdAt: 'createdAt'
   };
 
@@ -27974,20 +30696,20 @@ export namespace Prisma {
     NOT?: AuditLogWhereInput | AuditLogWhereInput[]
     id?: StringFilter<"AuditLog"> | string
     actorId?: StringNullableFilter<"AuditLog"> | string | null
-    orgId?: StringFilter<"AuditLog"> | string
+    orgId?: StringNullableFilter<"AuditLog"> | string | null
     action?: StringFilter<"AuditLog"> | string
     entityType?: StringFilter<"AuditLog"> | string
     entityId?: StringNullableFilter<"AuditLog"> | string | null
     metadata?: JsonNullableFilter<"AuditLog">
     createdAt?: DateTimeFilter<"AuditLog"> | Date | string
-    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
     actor?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
   export type AuditLogOrderByWithRelationInput = {
     id?: SortOrder
     actorId?: SortOrderInput | SortOrder
-    orgId?: SortOrder
+    orgId?: SortOrderInput | SortOrder
     action?: SortOrder
     entityType?: SortOrder
     entityId?: SortOrderInput | SortOrder
@@ -28003,20 +30725,20 @@ export namespace Prisma {
     OR?: AuditLogWhereInput[]
     NOT?: AuditLogWhereInput | AuditLogWhereInput[]
     actorId?: StringNullableFilter<"AuditLog"> | string | null
-    orgId?: StringFilter<"AuditLog"> | string
+    orgId?: StringNullableFilter<"AuditLog"> | string | null
     action?: StringFilter<"AuditLog"> | string
     entityType?: StringFilter<"AuditLog"> | string
     entityId?: StringNullableFilter<"AuditLog"> | string | null
     metadata?: JsonNullableFilter<"AuditLog">
     createdAt?: DateTimeFilter<"AuditLog"> | Date | string
-    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
     actor?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id">
 
   export type AuditLogOrderByWithAggregationInput = {
     id?: SortOrder
     actorId?: SortOrderInput | SortOrder
-    orgId?: SortOrder
+    orgId?: SortOrderInput | SortOrder
     action?: SortOrder
     entityType?: SortOrder
     entityId?: SortOrderInput | SortOrder
@@ -28033,7 +30755,7 @@ export namespace Prisma {
     NOT?: AuditLogScalarWhereWithAggregatesInput | AuditLogScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"AuditLog"> | string
     actorId?: StringNullableWithAggregatesFilter<"AuditLog"> | string | null
-    orgId?: StringWithAggregatesFilter<"AuditLog"> | string
+    orgId?: StringNullableWithAggregatesFilter<"AuditLog"> | string | null
     action?: StringWithAggregatesFilter<"AuditLog"> | string
     entityType?: StringWithAggregatesFilter<"AuditLog"> | string
     entityId?: StringNullableWithAggregatesFilter<"AuditLog"> | string | null
@@ -28545,35 +31267,44 @@ export namespace Prisma {
     NOT?: OpportunityRequirementWhereInput | OpportunityRequirementWhereInput[]
     id?: StringFilter<"OpportunityRequirement"> | string
     opportunityId?: StringFilter<"OpportunityRequirement"> | string
-    skill?: StringFilter<"OpportunityRequirement"> | string
+    skillId?: StringNullableFilter<"OpportunityRequirement"> | string | null
+    familyId?: StringNullableFilter<"OpportunityRequirement"> | string | null
     level?: EnumRequirementLevelFilter<"OpportunityRequirement"> | $Enums.RequirementLevel
     opportunity?: XOR<VolunteerOpportunityScalarRelationFilter, VolunteerOpportunityWhereInput>
+    skill?: XOR<SkillNullableScalarRelationFilter, SkillWhereInput> | null
+    family?: XOR<SkillFamilyNullableScalarRelationFilter, SkillFamilyWhereInput> | null
   }
 
   export type OpportunityRequirementOrderByWithRelationInput = {
     id?: SortOrder
     opportunityId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrderInput | SortOrder
+    familyId?: SortOrderInput | SortOrder
     level?: SortOrder
     opportunity?: VolunteerOpportunityOrderByWithRelationInput
+    skill?: SkillOrderByWithRelationInput
+    family?: SkillFamilyOrderByWithRelationInput
   }
 
   export type OpportunityRequirementWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    opportunityId_skill?: OpportunityRequirementOpportunityIdSkillCompoundUniqueInput
     AND?: OpportunityRequirementWhereInput | OpportunityRequirementWhereInput[]
     OR?: OpportunityRequirementWhereInput[]
     NOT?: OpportunityRequirementWhereInput | OpportunityRequirementWhereInput[]
     opportunityId?: StringFilter<"OpportunityRequirement"> | string
-    skill?: StringFilter<"OpportunityRequirement"> | string
+    skillId?: StringNullableFilter<"OpportunityRequirement"> | string | null
+    familyId?: StringNullableFilter<"OpportunityRequirement"> | string | null
     level?: EnumRequirementLevelFilter<"OpportunityRequirement"> | $Enums.RequirementLevel
     opportunity?: XOR<VolunteerOpportunityScalarRelationFilter, VolunteerOpportunityWhereInput>
-  }, "id" | "opportunityId_skill">
+    skill?: XOR<SkillNullableScalarRelationFilter, SkillWhereInput> | null
+    family?: XOR<SkillFamilyNullableScalarRelationFilter, SkillFamilyWhereInput> | null
+  }, "id">
 
   export type OpportunityRequirementOrderByWithAggregationInput = {
     id?: SortOrder
     opportunityId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrderInput | SortOrder
+    familyId?: SortOrderInput | SortOrder
     level?: SortOrder
     _count?: OpportunityRequirementCountOrderByAggregateInput
     _max?: OpportunityRequirementMaxOrderByAggregateInput
@@ -28586,8 +31317,133 @@ export namespace Prisma {
     NOT?: OpportunityRequirementScalarWhereWithAggregatesInput | OpportunityRequirementScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"OpportunityRequirement"> | string
     opportunityId?: StringWithAggregatesFilter<"OpportunityRequirement"> | string
-    skill?: StringWithAggregatesFilter<"OpportunityRequirement"> | string
+    skillId?: StringNullableWithAggregatesFilter<"OpportunityRequirement"> | string | null
+    familyId?: StringNullableWithAggregatesFilter<"OpportunityRequirement"> | string | null
     level?: EnumRequirementLevelWithAggregatesFilter<"OpportunityRequirement"> | $Enums.RequirementLevel
+  }
+
+  export type SkillFamilyWhereInput = {
+    AND?: SkillFamilyWhereInput | SkillFamilyWhereInput[]
+    OR?: SkillFamilyWhereInput[]
+    NOT?: SkillFamilyWhereInput | SkillFamilyWhereInput[]
+    id?: StringFilter<"SkillFamily"> | string
+    name?: StringFilter<"SkillFamily"> | string
+    slug?: StringFilter<"SkillFamily"> | string
+    createdAt?: DateTimeFilter<"SkillFamily"> | Date | string
+    updatedAt?: DateTimeFilter<"SkillFamily"> | Date | string
+    skills?: SkillListRelationFilter
+    requirements?: OpportunityRequirementListRelationFilter
+  }
+
+  export type SkillFamilyOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    skills?: SkillOrderByRelationAggregateInput
+    requirements?: OpportunityRequirementOrderByRelationAggregateInput
+  }
+
+  export type SkillFamilyWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    slug?: string
+    AND?: SkillFamilyWhereInput | SkillFamilyWhereInput[]
+    OR?: SkillFamilyWhereInput[]
+    NOT?: SkillFamilyWhereInput | SkillFamilyWhereInput[]
+    createdAt?: DateTimeFilter<"SkillFamily"> | Date | string
+    updatedAt?: DateTimeFilter<"SkillFamily"> | Date | string
+    skills?: SkillListRelationFilter
+    requirements?: OpportunityRequirementListRelationFilter
+  }, "id" | "name" | "slug">
+
+  export type SkillFamilyOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SkillFamilyCountOrderByAggregateInput
+    _max?: SkillFamilyMaxOrderByAggregateInput
+    _min?: SkillFamilyMinOrderByAggregateInput
+  }
+
+  export type SkillFamilyScalarWhereWithAggregatesInput = {
+    AND?: SkillFamilyScalarWhereWithAggregatesInput | SkillFamilyScalarWhereWithAggregatesInput[]
+    OR?: SkillFamilyScalarWhereWithAggregatesInput[]
+    NOT?: SkillFamilyScalarWhereWithAggregatesInput | SkillFamilyScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SkillFamily"> | string
+    name?: StringWithAggregatesFilter<"SkillFamily"> | string
+    slug?: StringWithAggregatesFilter<"SkillFamily"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"SkillFamily"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SkillFamily"> | Date | string
+  }
+
+  export type SkillWhereInput = {
+    AND?: SkillWhereInput | SkillWhereInput[]
+    OR?: SkillWhereInput[]
+    NOT?: SkillWhereInput | SkillWhereInput[]
+    id?: StringFilter<"Skill"> | string
+    name?: StringFilter<"Skill"> | string
+    slug?: StringFilter<"Skill"> | string
+    familyId?: StringFilter<"Skill"> | string
+    createdAt?: DateTimeFilter<"Skill"> | Date | string
+    updatedAt?: DateTimeFilter<"Skill"> | Date | string
+    family?: XOR<SkillFamilyScalarRelationFilter, SkillFamilyWhereInput>
+    volunteerSkills?: VolunteerSkillListRelationFilter
+    requirements?: OpportunityRequirementListRelationFilter
+  }
+
+  export type SkillOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    familyId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    family?: SkillFamilyOrderByWithRelationInput
+    volunteerSkills?: VolunteerSkillOrderByRelationAggregateInput
+    requirements?: OpportunityRequirementOrderByRelationAggregateInput
+  }
+
+  export type SkillWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    slug?: string
+    AND?: SkillWhereInput | SkillWhereInput[]
+    OR?: SkillWhereInput[]
+    NOT?: SkillWhereInput | SkillWhereInput[]
+    familyId?: StringFilter<"Skill"> | string
+    createdAt?: DateTimeFilter<"Skill"> | Date | string
+    updatedAt?: DateTimeFilter<"Skill"> | Date | string
+    family?: XOR<SkillFamilyScalarRelationFilter, SkillFamilyWhereInput>
+    volunteerSkills?: VolunteerSkillListRelationFilter
+    requirements?: OpportunityRequirementListRelationFilter
+  }, "id" | "name" | "slug">
+
+  export type SkillOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    familyId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SkillCountOrderByAggregateInput
+    _max?: SkillMaxOrderByAggregateInput
+    _min?: SkillMinOrderByAggregateInput
+  }
+
+  export type SkillScalarWhereWithAggregatesInput = {
+    AND?: SkillScalarWhereWithAggregatesInput | SkillScalarWhereWithAggregatesInput[]
+    OR?: SkillScalarWhereWithAggregatesInput[]
+    NOT?: SkillScalarWhereWithAggregatesInput | SkillScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Skill"> | string
+    name?: StringWithAggregatesFilter<"Skill"> | string
+    slug?: StringWithAggregatesFilter<"Skill"> | string
+    familyId?: StringWithAggregatesFilter<"Skill"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Skill"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Skill"> | Date | string
   }
 
   export type VolunteerSkillWhereInput = {
@@ -28596,35 +31452,38 @@ export namespace Prisma {
     NOT?: VolunteerSkillWhereInput | VolunteerSkillWhereInput[]
     id?: StringFilter<"VolunteerSkill"> | string
     userId?: StringFilter<"VolunteerSkill"> | string
-    skill?: StringFilter<"VolunteerSkill"> | string
+    skillId?: StringFilter<"VolunteerSkill"> | string
     createdAt?: DateTimeFilter<"VolunteerSkill"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    skill?: XOR<SkillScalarRelationFilter, SkillWhereInput>
   }
 
   export type VolunteerSkillOrderByWithRelationInput = {
     id?: SortOrder
     userId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrder
     createdAt?: SortOrder
     user?: UserOrderByWithRelationInput
+    skill?: SkillOrderByWithRelationInput
   }
 
   export type VolunteerSkillWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    userId_skill?: VolunteerSkillUserIdSkillCompoundUniqueInput
+    userId_skillId?: VolunteerSkillUserIdSkillIdCompoundUniqueInput
     AND?: VolunteerSkillWhereInput | VolunteerSkillWhereInput[]
     OR?: VolunteerSkillWhereInput[]
     NOT?: VolunteerSkillWhereInput | VolunteerSkillWhereInput[]
     userId?: StringFilter<"VolunteerSkill"> | string
-    skill?: StringFilter<"VolunteerSkill"> | string
+    skillId?: StringFilter<"VolunteerSkill"> | string
     createdAt?: DateTimeFilter<"VolunteerSkill"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "id" | "userId_skill">
+    skill?: XOR<SkillScalarRelationFilter, SkillWhereInput>
+  }, "id" | "userId_skillId">
 
   export type VolunteerSkillOrderByWithAggregationInput = {
     id?: SortOrder
     userId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrder
     createdAt?: SortOrder
     _count?: VolunteerSkillCountOrderByAggregateInput
     _max?: VolunteerSkillMaxOrderByAggregateInput
@@ -28637,7 +31496,7 @@ export namespace Prisma {
     NOT?: VolunteerSkillScalarWhereWithAggregatesInput | VolunteerSkillScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"VolunteerSkill"> | string
     userId?: StringWithAggregatesFilter<"VolunteerSkill"> | string
-    skill?: StringWithAggregatesFilter<"VolunteerSkill"> | string
+    skillId?: StringWithAggregatesFilter<"VolunteerSkill"> | string
     createdAt?: DateTimeWithAggregatesFilter<"VolunteerSkill"> | Date | string
   }
 
@@ -29532,14 +32391,14 @@ export namespace Prisma {
     entityId?: string | null
     metadata?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
-    organization: OrganizationCreateNestedOneWithoutAuditLogsInput
+    organization?: OrganizationCreateNestedOneWithoutAuditLogsInput
     actor?: UserCreateNestedOneWithoutAuditLogsInput
   }
 
   export type AuditLogUncheckedCreateInput = {
     id?: string
     actorId?: string | null
-    orgId: string
+    orgId?: string | null
     action: string
     entityType: string
     entityId?: string | null
@@ -29554,14 +32413,14 @@ export namespace Prisma {
     entityId?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    organization?: OrganizationUpdateOneRequiredWithoutAuditLogsNestedInput
+    organization?: OrganizationUpdateOneWithoutAuditLogsNestedInput
     actor?: UserUpdateOneWithoutAuditLogsNestedInput
   }
 
   export type AuditLogUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     actorId?: NullableStringFieldUpdateOperationsInput | string | null
-    orgId?: StringFieldUpdateOperationsInput | string
+    orgId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: StringFieldUpdateOperationsInput | string
     entityType?: StringFieldUpdateOperationsInput | string
     entityId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -29572,7 +32431,7 @@ export namespace Prisma {
   export type AuditLogCreateManyInput = {
     id?: string
     actorId?: string | null
-    orgId: string
+    orgId?: string | null
     action: string
     entityType: string
     entityId?: string | null
@@ -29592,7 +32451,7 @@ export namespace Prisma {
   export type AuditLogUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     actorId?: NullableStringFieldUpdateOperationsInput | string | null
-    orgId?: StringFieldUpdateOperationsInput | string
+    orgId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: StringFieldUpdateOperationsInput | string
     entityType?: StringFieldUpdateOperationsInput | string
     entityId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -30124,97 +32983,235 @@ export namespace Prisma {
 
   export type OpportunityRequirementCreateInput = {
     id?: string
-    skill: string
     level?: $Enums.RequirementLevel
     opportunity: VolunteerOpportunityCreateNestedOneWithoutRequirementsInput
+    skill?: SkillCreateNestedOneWithoutRequirementsInput
+    family?: SkillFamilyCreateNestedOneWithoutRequirementsInput
   }
 
   export type OpportunityRequirementUncheckedCreateInput = {
     id?: string
     opportunityId: string
-    skill: string
+    skillId?: string | null
+    familyId?: string | null
     level?: $Enums.RequirementLevel
   }
 
   export type OpportunityRequirementUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
     level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
     opportunity?: VolunteerOpportunityUpdateOneRequiredWithoutRequirementsNestedInput
+    skill?: SkillUpdateOneWithoutRequirementsNestedInput
+    family?: SkillFamilyUpdateOneWithoutRequirementsNestedInput
   }
 
   export type OpportunityRequirementUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     opportunityId?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
+    skillId?: NullableStringFieldUpdateOperationsInput | string | null
+    familyId?: NullableStringFieldUpdateOperationsInput | string | null
     level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
   }
 
   export type OpportunityRequirementCreateManyInput = {
     id?: string
     opportunityId: string
-    skill: string
+    skillId?: string | null
+    familyId?: string | null
     level?: $Enums.RequirementLevel
   }
 
   export type OpportunityRequirementUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
     level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
   }
 
   export type OpportunityRequirementUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     opportunityId?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
+    skillId?: NullableStringFieldUpdateOperationsInput | string | null
+    familyId?: NullableStringFieldUpdateOperationsInput | string | null
     level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+  }
+
+  export type SkillFamilyCreateInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    skills?: SkillCreateNestedManyWithoutFamilyInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutFamilyInput
+  }
+
+  export type SkillFamilyUncheckedCreateInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    skills?: SkillUncheckedCreateNestedManyWithoutFamilyInput
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutFamilyInput
+  }
+
+  export type SkillFamilyUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    skills?: SkillUpdateManyWithoutFamilyNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutFamilyNestedInput
+  }
+
+  export type SkillFamilyUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    skills?: SkillUncheckedUpdateManyWithoutFamilyNestedInput
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutFamilyNestedInput
+  }
+
+  export type SkillFamilyCreateManyInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SkillFamilyUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SkillFamilyUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SkillCreateInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    family: SkillFamilyCreateNestedOneWithoutSkillsInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutSkillInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutSkillInput
+  }
+
+  export type SkillUncheckedCreateInput = {
+    id?: string
+    name: string
+    slug: string
+    familyId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutSkillInput
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutSkillInput
+  }
+
+  export type SkillUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    family?: SkillFamilyUpdateOneRequiredWithoutSkillsNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutSkillNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutSkillNestedInput
+  }
+
+  export type SkillUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    familyId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutSkillNestedInput
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutSkillNestedInput
+  }
+
+  export type SkillCreateManyInput = {
+    id?: string
+    name: string
+    slug: string
+    familyId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SkillUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SkillUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    familyId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type VolunteerSkillCreateInput = {
     id?: string
-    skill: string
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutVolunteerSkillsInput
+    skill: SkillCreateNestedOneWithoutVolunteerSkillsInput
   }
 
   export type VolunteerSkillUncheckedCreateInput = {
     id?: string
     userId: string
-    skill: string
+    skillId: string
     createdAt?: Date | string
   }
 
   export type VolunteerSkillUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutVolunteerSkillsNestedInput
+    skill?: SkillUpdateOneRequiredWithoutVolunteerSkillsNestedInput
   }
 
   export type VolunteerSkillUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
+    skillId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type VolunteerSkillCreateManyInput = {
     id?: string
     userId: string
-    skill: string
+    skillId: string
     createdAt?: Date | string
   }
 
   export type VolunteerSkillUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type VolunteerSkillUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
+    skillId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31701,29 +34698,37 @@ export namespace Prisma {
     not?: NestedEnumRequirementLevelFilter<$PrismaModel> | $Enums.RequirementLevel
   }
 
-  export type OpportunityRequirementOpportunityIdSkillCompoundUniqueInput = {
-    opportunityId: string
-    skill: string
+  export type SkillNullableScalarRelationFilter = {
+    is?: SkillWhereInput | null
+    isNot?: SkillWhereInput | null
+  }
+
+  export type SkillFamilyNullableScalarRelationFilter = {
+    is?: SkillFamilyWhereInput | null
+    isNot?: SkillFamilyWhereInput | null
   }
 
   export type OpportunityRequirementCountOrderByAggregateInput = {
     id?: SortOrder
     opportunityId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrder
+    familyId?: SortOrder
     level?: SortOrder
   }
 
   export type OpportunityRequirementMaxOrderByAggregateInput = {
     id?: SortOrder
     opportunityId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrder
+    familyId?: SortOrder
     level?: SortOrder
   }
 
   export type OpportunityRequirementMinOrderByAggregateInput = {
     id?: SortOrder
     opportunityId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrder
+    familyId?: SortOrder
     level?: SortOrder
   }
 
@@ -31737,29 +34742,100 @@ export namespace Prisma {
     _max?: NestedEnumRequirementLevelFilter<$PrismaModel>
   }
 
-  export type VolunteerSkillUserIdSkillCompoundUniqueInput = {
+  export type SkillListRelationFilter = {
+    every?: SkillWhereInput
+    some?: SkillWhereInput
+    none?: SkillWhereInput
+  }
+
+  export type SkillOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SkillFamilyCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SkillFamilyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SkillFamilyMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SkillFamilyScalarRelationFilter = {
+    is?: SkillFamilyWhereInput
+    isNot?: SkillFamilyWhereInput
+  }
+
+  export type SkillCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    familyId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SkillMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    familyId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SkillMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    slug?: SortOrder
+    familyId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SkillScalarRelationFilter = {
+    is?: SkillWhereInput
+    isNot?: SkillWhereInput
+  }
+
+  export type VolunteerSkillUserIdSkillIdCompoundUniqueInput = {
     userId: string
-    skill: string
+    skillId: string
   }
 
   export type VolunteerSkillCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrder
     createdAt?: SortOrder
   }
 
   export type VolunteerSkillMaxOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrder
     createdAt?: SortOrder
   }
 
   export type VolunteerSkillMinOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
-    skill?: SortOrder
+    skillId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -32960,10 +36036,12 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
-  export type OrganizationUpdateOneRequiredWithoutAuditLogsNestedInput = {
+  export type OrganizationUpdateOneWithoutAuditLogsNestedInput = {
     create?: XOR<OrganizationCreateWithoutAuditLogsInput, OrganizationUncheckedCreateWithoutAuditLogsInput>
     connectOrCreate?: OrganizationCreateOrConnectWithoutAuditLogsInput
     upsert?: OrganizationUpsertWithoutAuditLogsInput
+    disconnect?: OrganizationWhereInput | boolean
+    delete?: OrganizationWhereInput | boolean
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutAuditLogsInput, OrganizationUpdateWithoutAuditLogsInput>, OrganizationUncheckedUpdateWithoutAuditLogsInput>
   }
@@ -33360,6 +36438,18 @@ export namespace Prisma {
     connect?: VolunteerOpportunityWhereUniqueInput
   }
 
+  export type SkillCreateNestedOneWithoutRequirementsInput = {
+    create?: XOR<SkillCreateWithoutRequirementsInput, SkillUncheckedCreateWithoutRequirementsInput>
+    connectOrCreate?: SkillCreateOrConnectWithoutRequirementsInput
+    connect?: SkillWhereUniqueInput
+  }
+
+  export type SkillFamilyCreateNestedOneWithoutRequirementsInput = {
+    create?: XOR<SkillFamilyCreateWithoutRequirementsInput, SkillFamilyUncheckedCreateWithoutRequirementsInput>
+    connectOrCreate?: SkillFamilyCreateOrConnectWithoutRequirementsInput
+    connect?: SkillFamilyWhereUniqueInput
+  }
+
   export type EnumRequirementLevelFieldUpdateOperationsInput = {
     set?: $Enums.RequirementLevel
   }
@@ -33372,10 +36462,218 @@ export namespace Prisma {
     update?: XOR<XOR<VolunteerOpportunityUpdateToOneWithWhereWithoutRequirementsInput, VolunteerOpportunityUpdateWithoutRequirementsInput>, VolunteerOpportunityUncheckedUpdateWithoutRequirementsInput>
   }
 
+  export type SkillUpdateOneWithoutRequirementsNestedInput = {
+    create?: XOR<SkillCreateWithoutRequirementsInput, SkillUncheckedCreateWithoutRequirementsInput>
+    connectOrCreate?: SkillCreateOrConnectWithoutRequirementsInput
+    upsert?: SkillUpsertWithoutRequirementsInput
+    disconnect?: SkillWhereInput | boolean
+    delete?: SkillWhereInput | boolean
+    connect?: SkillWhereUniqueInput
+    update?: XOR<XOR<SkillUpdateToOneWithWhereWithoutRequirementsInput, SkillUpdateWithoutRequirementsInput>, SkillUncheckedUpdateWithoutRequirementsInput>
+  }
+
+  export type SkillFamilyUpdateOneWithoutRequirementsNestedInput = {
+    create?: XOR<SkillFamilyCreateWithoutRequirementsInput, SkillFamilyUncheckedCreateWithoutRequirementsInput>
+    connectOrCreate?: SkillFamilyCreateOrConnectWithoutRequirementsInput
+    upsert?: SkillFamilyUpsertWithoutRequirementsInput
+    disconnect?: SkillFamilyWhereInput | boolean
+    delete?: SkillFamilyWhereInput | boolean
+    connect?: SkillFamilyWhereUniqueInput
+    update?: XOR<XOR<SkillFamilyUpdateToOneWithWhereWithoutRequirementsInput, SkillFamilyUpdateWithoutRequirementsInput>, SkillFamilyUncheckedUpdateWithoutRequirementsInput>
+  }
+
+  export type SkillCreateNestedManyWithoutFamilyInput = {
+    create?: XOR<SkillCreateWithoutFamilyInput, SkillUncheckedCreateWithoutFamilyInput> | SkillCreateWithoutFamilyInput[] | SkillUncheckedCreateWithoutFamilyInput[]
+    connectOrCreate?: SkillCreateOrConnectWithoutFamilyInput | SkillCreateOrConnectWithoutFamilyInput[]
+    createMany?: SkillCreateManyFamilyInputEnvelope
+    connect?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+  }
+
+  export type OpportunityRequirementCreateNestedManyWithoutFamilyInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutFamilyInput, OpportunityRequirementUncheckedCreateWithoutFamilyInput> | OpportunityRequirementCreateWithoutFamilyInput[] | OpportunityRequirementUncheckedCreateWithoutFamilyInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutFamilyInput | OpportunityRequirementCreateOrConnectWithoutFamilyInput[]
+    createMany?: OpportunityRequirementCreateManyFamilyInputEnvelope
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+  }
+
+  export type SkillUncheckedCreateNestedManyWithoutFamilyInput = {
+    create?: XOR<SkillCreateWithoutFamilyInput, SkillUncheckedCreateWithoutFamilyInput> | SkillCreateWithoutFamilyInput[] | SkillUncheckedCreateWithoutFamilyInput[]
+    connectOrCreate?: SkillCreateOrConnectWithoutFamilyInput | SkillCreateOrConnectWithoutFamilyInput[]
+    createMany?: SkillCreateManyFamilyInputEnvelope
+    connect?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+  }
+
+  export type OpportunityRequirementUncheckedCreateNestedManyWithoutFamilyInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutFamilyInput, OpportunityRequirementUncheckedCreateWithoutFamilyInput> | OpportunityRequirementCreateWithoutFamilyInput[] | OpportunityRequirementUncheckedCreateWithoutFamilyInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutFamilyInput | OpportunityRequirementCreateOrConnectWithoutFamilyInput[]
+    createMany?: OpportunityRequirementCreateManyFamilyInputEnvelope
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+  }
+
+  export type SkillUpdateManyWithoutFamilyNestedInput = {
+    create?: XOR<SkillCreateWithoutFamilyInput, SkillUncheckedCreateWithoutFamilyInput> | SkillCreateWithoutFamilyInput[] | SkillUncheckedCreateWithoutFamilyInput[]
+    connectOrCreate?: SkillCreateOrConnectWithoutFamilyInput | SkillCreateOrConnectWithoutFamilyInput[]
+    upsert?: SkillUpsertWithWhereUniqueWithoutFamilyInput | SkillUpsertWithWhereUniqueWithoutFamilyInput[]
+    createMany?: SkillCreateManyFamilyInputEnvelope
+    set?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+    disconnect?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+    delete?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+    connect?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+    update?: SkillUpdateWithWhereUniqueWithoutFamilyInput | SkillUpdateWithWhereUniqueWithoutFamilyInput[]
+    updateMany?: SkillUpdateManyWithWhereWithoutFamilyInput | SkillUpdateManyWithWhereWithoutFamilyInput[]
+    deleteMany?: SkillScalarWhereInput | SkillScalarWhereInput[]
+  }
+
+  export type OpportunityRequirementUpdateManyWithoutFamilyNestedInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutFamilyInput, OpportunityRequirementUncheckedCreateWithoutFamilyInput> | OpportunityRequirementCreateWithoutFamilyInput[] | OpportunityRequirementUncheckedCreateWithoutFamilyInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutFamilyInput | OpportunityRequirementCreateOrConnectWithoutFamilyInput[]
+    upsert?: OpportunityRequirementUpsertWithWhereUniqueWithoutFamilyInput | OpportunityRequirementUpsertWithWhereUniqueWithoutFamilyInput[]
+    createMany?: OpportunityRequirementCreateManyFamilyInputEnvelope
+    set?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    disconnect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    delete?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    update?: OpportunityRequirementUpdateWithWhereUniqueWithoutFamilyInput | OpportunityRequirementUpdateWithWhereUniqueWithoutFamilyInput[]
+    updateMany?: OpportunityRequirementUpdateManyWithWhereWithoutFamilyInput | OpportunityRequirementUpdateManyWithWhereWithoutFamilyInput[]
+    deleteMany?: OpportunityRequirementScalarWhereInput | OpportunityRequirementScalarWhereInput[]
+  }
+
+  export type SkillUncheckedUpdateManyWithoutFamilyNestedInput = {
+    create?: XOR<SkillCreateWithoutFamilyInput, SkillUncheckedCreateWithoutFamilyInput> | SkillCreateWithoutFamilyInput[] | SkillUncheckedCreateWithoutFamilyInput[]
+    connectOrCreate?: SkillCreateOrConnectWithoutFamilyInput | SkillCreateOrConnectWithoutFamilyInput[]
+    upsert?: SkillUpsertWithWhereUniqueWithoutFamilyInput | SkillUpsertWithWhereUniqueWithoutFamilyInput[]
+    createMany?: SkillCreateManyFamilyInputEnvelope
+    set?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+    disconnect?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+    delete?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+    connect?: SkillWhereUniqueInput | SkillWhereUniqueInput[]
+    update?: SkillUpdateWithWhereUniqueWithoutFamilyInput | SkillUpdateWithWhereUniqueWithoutFamilyInput[]
+    updateMany?: SkillUpdateManyWithWhereWithoutFamilyInput | SkillUpdateManyWithWhereWithoutFamilyInput[]
+    deleteMany?: SkillScalarWhereInput | SkillScalarWhereInput[]
+  }
+
+  export type OpportunityRequirementUncheckedUpdateManyWithoutFamilyNestedInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutFamilyInput, OpportunityRequirementUncheckedCreateWithoutFamilyInput> | OpportunityRequirementCreateWithoutFamilyInput[] | OpportunityRequirementUncheckedCreateWithoutFamilyInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutFamilyInput | OpportunityRequirementCreateOrConnectWithoutFamilyInput[]
+    upsert?: OpportunityRequirementUpsertWithWhereUniqueWithoutFamilyInput | OpportunityRequirementUpsertWithWhereUniqueWithoutFamilyInput[]
+    createMany?: OpportunityRequirementCreateManyFamilyInputEnvelope
+    set?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    disconnect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    delete?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    update?: OpportunityRequirementUpdateWithWhereUniqueWithoutFamilyInput | OpportunityRequirementUpdateWithWhereUniqueWithoutFamilyInput[]
+    updateMany?: OpportunityRequirementUpdateManyWithWhereWithoutFamilyInput | OpportunityRequirementUpdateManyWithWhereWithoutFamilyInput[]
+    deleteMany?: OpportunityRequirementScalarWhereInput | OpportunityRequirementScalarWhereInput[]
+  }
+
+  export type SkillFamilyCreateNestedOneWithoutSkillsInput = {
+    create?: XOR<SkillFamilyCreateWithoutSkillsInput, SkillFamilyUncheckedCreateWithoutSkillsInput>
+    connectOrCreate?: SkillFamilyCreateOrConnectWithoutSkillsInput
+    connect?: SkillFamilyWhereUniqueInput
+  }
+
+  export type VolunteerSkillCreateNestedManyWithoutSkillInput = {
+    create?: XOR<VolunteerSkillCreateWithoutSkillInput, VolunteerSkillUncheckedCreateWithoutSkillInput> | VolunteerSkillCreateWithoutSkillInput[] | VolunteerSkillUncheckedCreateWithoutSkillInput[]
+    connectOrCreate?: VolunteerSkillCreateOrConnectWithoutSkillInput | VolunteerSkillCreateOrConnectWithoutSkillInput[]
+    createMany?: VolunteerSkillCreateManySkillInputEnvelope
+    connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+  }
+
+  export type OpportunityRequirementCreateNestedManyWithoutSkillInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutSkillInput, OpportunityRequirementUncheckedCreateWithoutSkillInput> | OpportunityRequirementCreateWithoutSkillInput[] | OpportunityRequirementUncheckedCreateWithoutSkillInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutSkillInput | OpportunityRequirementCreateOrConnectWithoutSkillInput[]
+    createMany?: OpportunityRequirementCreateManySkillInputEnvelope
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+  }
+
+  export type VolunteerSkillUncheckedCreateNestedManyWithoutSkillInput = {
+    create?: XOR<VolunteerSkillCreateWithoutSkillInput, VolunteerSkillUncheckedCreateWithoutSkillInput> | VolunteerSkillCreateWithoutSkillInput[] | VolunteerSkillUncheckedCreateWithoutSkillInput[]
+    connectOrCreate?: VolunteerSkillCreateOrConnectWithoutSkillInput | VolunteerSkillCreateOrConnectWithoutSkillInput[]
+    createMany?: VolunteerSkillCreateManySkillInputEnvelope
+    connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+  }
+
+  export type OpportunityRequirementUncheckedCreateNestedManyWithoutSkillInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutSkillInput, OpportunityRequirementUncheckedCreateWithoutSkillInput> | OpportunityRequirementCreateWithoutSkillInput[] | OpportunityRequirementUncheckedCreateWithoutSkillInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutSkillInput | OpportunityRequirementCreateOrConnectWithoutSkillInput[]
+    createMany?: OpportunityRequirementCreateManySkillInputEnvelope
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+  }
+
+  export type SkillFamilyUpdateOneRequiredWithoutSkillsNestedInput = {
+    create?: XOR<SkillFamilyCreateWithoutSkillsInput, SkillFamilyUncheckedCreateWithoutSkillsInput>
+    connectOrCreate?: SkillFamilyCreateOrConnectWithoutSkillsInput
+    upsert?: SkillFamilyUpsertWithoutSkillsInput
+    connect?: SkillFamilyWhereUniqueInput
+    update?: XOR<XOR<SkillFamilyUpdateToOneWithWhereWithoutSkillsInput, SkillFamilyUpdateWithoutSkillsInput>, SkillFamilyUncheckedUpdateWithoutSkillsInput>
+  }
+
+  export type VolunteerSkillUpdateManyWithoutSkillNestedInput = {
+    create?: XOR<VolunteerSkillCreateWithoutSkillInput, VolunteerSkillUncheckedCreateWithoutSkillInput> | VolunteerSkillCreateWithoutSkillInput[] | VolunteerSkillUncheckedCreateWithoutSkillInput[]
+    connectOrCreate?: VolunteerSkillCreateOrConnectWithoutSkillInput | VolunteerSkillCreateOrConnectWithoutSkillInput[]
+    upsert?: VolunteerSkillUpsertWithWhereUniqueWithoutSkillInput | VolunteerSkillUpsertWithWhereUniqueWithoutSkillInput[]
+    createMany?: VolunteerSkillCreateManySkillInputEnvelope
+    set?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    disconnect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    delete?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    update?: VolunteerSkillUpdateWithWhereUniqueWithoutSkillInput | VolunteerSkillUpdateWithWhereUniqueWithoutSkillInput[]
+    updateMany?: VolunteerSkillUpdateManyWithWhereWithoutSkillInput | VolunteerSkillUpdateManyWithWhereWithoutSkillInput[]
+    deleteMany?: VolunteerSkillScalarWhereInput | VolunteerSkillScalarWhereInput[]
+  }
+
+  export type OpportunityRequirementUpdateManyWithoutSkillNestedInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutSkillInput, OpportunityRequirementUncheckedCreateWithoutSkillInput> | OpportunityRequirementCreateWithoutSkillInput[] | OpportunityRequirementUncheckedCreateWithoutSkillInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutSkillInput | OpportunityRequirementCreateOrConnectWithoutSkillInput[]
+    upsert?: OpportunityRequirementUpsertWithWhereUniqueWithoutSkillInput | OpportunityRequirementUpsertWithWhereUniqueWithoutSkillInput[]
+    createMany?: OpportunityRequirementCreateManySkillInputEnvelope
+    set?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    disconnect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    delete?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    update?: OpportunityRequirementUpdateWithWhereUniqueWithoutSkillInput | OpportunityRequirementUpdateWithWhereUniqueWithoutSkillInput[]
+    updateMany?: OpportunityRequirementUpdateManyWithWhereWithoutSkillInput | OpportunityRequirementUpdateManyWithWhereWithoutSkillInput[]
+    deleteMany?: OpportunityRequirementScalarWhereInput | OpportunityRequirementScalarWhereInput[]
+  }
+
+  export type VolunteerSkillUncheckedUpdateManyWithoutSkillNestedInput = {
+    create?: XOR<VolunteerSkillCreateWithoutSkillInput, VolunteerSkillUncheckedCreateWithoutSkillInput> | VolunteerSkillCreateWithoutSkillInput[] | VolunteerSkillUncheckedCreateWithoutSkillInput[]
+    connectOrCreate?: VolunteerSkillCreateOrConnectWithoutSkillInput | VolunteerSkillCreateOrConnectWithoutSkillInput[]
+    upsert?: VolunteerSkillUpsertWithWhereUniqueWithoutSkillInput | VolunteerSkillUpsertWithWhereUniqueWithoutSkillInput[]
+    createMany?: VolunteerSkillCreateManySkillInputEnvelope
+    set?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    disconnect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    delete?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    connect?: VolunteerSkillWhereUniqueInput | VolunteerSkillWhereUniqueInput[]
+    update?: VolunteerSkillUpdateWithWhereUniqueWithoutSkillInput | VolunteerSkillUpdateWithWhereUniqueWithoutSkillInput[]
+    updateMany?: VolunteerSkillUpdateManyWithWhereWithoutSkillInput | VolunteerSkillUpdateManyWithWhereWithoutSkillInput[]
+    deleteMany?: VolunteerSkillScalarWhereInput | VolunteerSkillScalarWhereInput[]
+  }
+
+  export type OpportunityRequirementUncheckedUpdateManyWithoutSkillNestedInput = {
+    create?: XOR<OpportunityRequirementCreateWithoutSkillInput, OpportunityRequirementUncheckedCreateWithoutSkillInput> | OpportunityRequirementCreateWithoutSkillInput[] | OpportunityRequirementUncheckedCreateWithoutSkillInput[]
+    connectOrCreate?: OpportunityRequirementCreateOrConnectWithoutSkillInput | OpportunityRequirementCreateOrConnectWithoutSkillInput[]
+    upsert?: OpportunityRequirementUpsertWithWhereUniqueWithoutSkillInput | OpportunityRequirementUpsertWithWhereUniqueWithoutSkillInput[]
+    createMany?: OpportunityRequirementCreateManySkillInputEnvelope
+    set?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    disconnect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    delete?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    connect?: OpportunityRequirementWhereUniqueInput | OpportunityRequirementWhereUniqueInput[]
+    update?: OpportunityRequirementUpdateWithWhereUniqueWithoutSkillInput | OpportunityRequirementUpdateWithWhereUniqueWithoutSkillInput[]
+    updateMany?: OpportunityRequirementUpdateManyWithWhereWithoutSkillInput | OpportunityRequirementUpdateManyWithWhereWithoutSkillInput[]
+    deleteMany?: OpportunityRequirementScalarWhereInput | OpportunityRequirementScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutVolunteerSkillsInput = {
     create?: XOR<UserCreateWithoutVolunteerSkillsInput, UserUncheckedCreateWithoutVolunteerSkillsInput>
     connectOrCreate?: UserCreateOrConnectWithoutVolunteerSkillsInput
     connect?: UserWhereUniqueInput
+  }
+
+  export type SkillCreateNestedOneWithoutVolunteerSkillsInput = {
+    create?: XOR<SkillCreateWithoutVolunteerSkillsInput, SkillUncheckedCreateWithoutVolunteerSkillsInput>
+    connectOrCreate?: SkillCreateOrConnectWithoutVolunteerSkillsInput
+    connect?: SkillWhereUniqueInput
   }
 
   export type UserUpdateOneRequiredWithoutVolunteerSkillsNestedInput = {
@@ -33384,6 +36682,14 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutVolunteerSkillsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutVolunteerSkillsInput, UserUpdateWithoutVolunteerSkillsInput>, UserUncheckedUpdateWithoutVolunteerSkillsInput>
+  }
+
+  export type SkillUpdateOneRequiredWithoutVolunteerSkillsNestedInput = {
+    create?: XOR<SkillCreateWithoutVolunteerSkillsInput, SkillUncheckedCreateWithoutVolunteerSkillsInput>
+    connectOrCreate?: SkillCreateOrConnectWithoutVolunteerSkillsInput
+    upsert?: SkillUpsertWithoutVolunteerSkillsInput
+    connect?: SkillWhereUniqueInput
+    update?: XOR<XOR<SkillUpdateToOneWithWhereWithoutVolunteerSkillsInput, SkillUpdateWithoutVolunteerSkillsInput>, SkillUncheckedUpdateWithoutVolunteerSkillsInput>
   }
 
   export type VolunteerProfileCreateinterestsInput = {
@@ -34125,12 +37431,12 @@ export namespace Prisma {
     entityId?: string | null
     metadata?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
-    organization: OrganizationCreateNestedOneWithoutAuditLogsInput
+    organization?: OrganizationCreateNestedOneWithoutAuditLogsInput
   }
 
   export type AuditLogUncheckedCreateWithoutActorInput = {
     id?: string
-    orgId: string
+    orgId?: string | null
     action: string
     entityType: string
     entityId?: string | null
@@ -34184,13 +37490,13 @@ export namespace Prisma {
 
   export type VolunteerSkillCreateWithoutUserInput = {
     id?: string
-    skill: string
     createdAt?: Date | string
+    skill: SkillCreateNestedOneWithoutVolunteerSkillsInput
   }
 
   export type VolunteerSkillUncheckedCreateWithoutUserInput = {
     id?: string
-    skill: string
+    skillId: string
     createdAt?: Date | string
   }
 
@@ -34413,7 +37719,7 @@ export namespace Prisma {
     NOT?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
     id?: StringFilter<"AuditLog"> | string
     actorId?: StringNullableFilter<"AuditLog"> | string | null
-    orgId?: StringFilter<"AuditLog"> | string
+    orgId?: StringNullableFilter<"AuditLog"> | string | null
     action?: StringFilter<"AuditLog"> | string
     entityType?: StringFilter<"AuditLog"> | string
     entityId?: StringNullableFilter<"AuditLog"> | string | null
@@ -34474,7 +37780,7 @@ export namespace Prisma {
     NOT?: VolunteerSkillScalarWhereInput | VolunteerSkillScalarWhereInput[]
     id?: StringFilter<"VolunteerSkill"> | string
     userId?: StringFilter<"VolunteerSkill"> | string
-    skill?: StringFilter<"VolunteerSkill"> | string
+    skillId?: StringFilter<"VolunteerSkill"> | string
     createdAt?: DateTimeFilter<"VolunteerSkill"> | Date | string
   }
 
@@ -36441,13 +39747,15 @@ export namespace Prisma {
 
   export type OpportunityRequirementCreateWithoutOpportunityInput = {
     id?: string
-    skill: string
     level?: $Enums.RequirementLevel
+    skill?: SkillCreateNestedOneWithoutRequirementsInput
+    family?: SkillFamilyCreateNestedOneWithoutRequirementsInput
   }
 
   export type OpportunityRequirementUncheckedCreateWithoutOpportunityInput = {
     id?: string
-    skill: string
+    skillId?: string | null
+    familyId?: string | null
     level?: $Enums.RequirementLevel
   }
 
@@ -36629,7 +39937,8 @@ export namespace Prisma {
     NOT?: OpportunityRequirementScalarWhereInput | OpportunityRequirementScalarWhereInput[]
     id?: StringFilter<"OpportunityRequirement"> | string
     opportunityId?: StringFilter<"OpportunityRequirement"> | string
-    skill?: StringFilter<"OpportunityRequirement"> | string
+    skillId?: StringNullableFilter<"OpportunityRequirement"> | string | null
+    familyId?: StringNullableFilter<"OpportunityRequirement"> | string | null
     level?: EnumRequirementLevelFilter<"OpportunityRequirement"> | $Enums.RequirementLevel
   }
 
@@ -36800,6 +40109,54 @@ export namespace Prisma {
     create: XOR<VolunteerOpportunityCreateWithoutRequirementsInput, VolunteerOpportunityUncheckedCreateWithoutRequirementsInput>
   }
 
+  export type SkillCreateWithoutRequirementsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    family: SkillFamilyCreateNestedOneWithoutSkillsInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutSkillInput
+  }
+
+  export type SkillUncheckedCreateWithoutRequirementsInput = {
+    id?: string
+    name: string
+    slug: string
+    familyId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutSkillInput
+  }
+
+  export type SkillCreateOrConnectWithoutRequirementsInput = {
+    where: SkillWhereUniqueInput
+    create: XOR<SkillCreateWithoutRequirementsInput, SkillUncheckedCreateWithoutRequirementsInput>
+  }
+
+  export type SkillFamilyCreateWithoutRequirementsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    skills?: SkillCreateNestedManyWithoutFamilyInput
+  }
+
+  export type SkillFamilyUncheckedCreateWithoutRequirementsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    skills?: SkillUncheckedCreateNestedManyWithoutFamilyInput
+  }
+
+  export type SkillFamilyCreateOrConnectWithoutRequirementsInput = {
+    where: SkillFamilyWhereUniqueInput
+    create: XOR<SkillFamilyCreateWithoutRequirementsInput, SkillFamilyUncheckedCreateWithoutRequirementsInput>
+  }
+
   export type VolunteerOpportunityUpsertWithoutRequirementsInput = {
     update: XOR<VolunteerOpportunityUpdateWithoutRequirementsInput, VolunteerOpportunityUncheckedUpdateWithoutRequirementsInput>
     create: XOR<VolunteerOpportunityCreateWithoutRequirementsInput, VolunteerOpportunityUncheckedCreateWithoutRequirementsInput>
@@ -36849,6 +40206,294 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
+  export type SkillUpsertWithoutRequirementsInput = {
+    update: XOR<SkillUpdateWithoutRequirementsInput, SkillUncheckedUpdateWithoutRequirementsInput>
+    create: XOR<SkillCreateWithoutRequirementsInput, SkillUncheckedCreateWithoutRequirementsInput>
+    where?: SkillWhereInput
+  }
+
+  export type SkillUpdateToOneWithWhereWithoutRequirementsInput = {
+    where?: SkillWhereInput
+    data: XOR<SkillUpdateWithoutRequirementsInput, SkillUncheckedUpdateWithoutRequirementsInput>
+  }
+
+  export type SkillUpdateWithoutRequirementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    family?: SkillFamilyUpdateOneRequiredWithoutSkillsNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutSkillNestedInput
+  }
+
+  export type SkillUncheckedUpdateWithoutRequirementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    familyId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutSkillNestedInput
+  }
+
+  export type SkillFamilyUpsertWithoutRequirementsInput = {
+    update: XOR<SkillFamilyUpdateWithoutRequirementsInput, SkillFamilyUncheckedUpdateWithoutRequirementsInput>
+    create: XOR<SkillFamilyCreateWithoutRequirementsInput, SkillFamilyUncheckedCreateWithoutRequirementsInput>
+    where?: SkillFamilyWhereInput
+  }
+
+  export type SkillFamilyUpdateToOneWithWhereWithoutRequirementsInput = {
+    where?: SkillFamilyWhereInput
+    data: XOR<SkillFamilyUpdateWithoutRequirementsInput, SkillFamilyUncheckedUpdateWithoutRequirementsInput>
+  }
+
+  export type SkillFamilyUpdateWithoutRequirementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    skills?: SkillUpdateManyWithoutFamilyNestedInput
+  }
+
+  export type SkillFamilyUncheckedUpdateWithoutRequirementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    skills?: SkillUncheckedUpdateManyWithoutFamilyNestedInput
+  }
+
+  export type SkillCreateWithoutFamilyInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutSkillInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutSkillInput
+  }
+
+  export type SkillUncheckedCreateWithoutFamilyInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutSkillInput
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutSkillInput
+  }
+
+  export type SkillCreateOrConnectWithoutFamilyInput = {
+    where: SkillWhereUniqueInput
+    create: XOR<SkillCreateWithoutFamilyInput, SkillUncheckedCreateWithoutFamilyInput>
+  }
+
+  export type SkillCreateManyFamilyInputEnvelope = {
+    data: SkillCreateManyFamilyInput | SkillCreateManyFamilyInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type OpportunityRequirementCreateWithoutFamilyInput = {
+    id?: string
+    level?: $Enums.RequirementLevel
+    opportunity: VolunteerOpportunityCreateNestedOneWithoutRequirementsInput
+    skill?: SkillCreateNestedOneWithoutRequirementsInput
+  }
+
+  export type OpportunityRequirementUncheckedCreateWithoutFamilyInput = {
+    id?: string
+    opportunityId: string
+    skillId?: string | null
+    level?: $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementCreateOrConnectWithoutFamilyInput = {
+    where: OpportunityRequirementWhereUniqueInput
+    create: XOR<OpportunityRequirementCreateWithoutFamilyInput, OpportunityRequirementUncheckedCreateWithoutFamilyInput>
+  }
+
+  export type OpportunityRequirementCreateManyFamilyInputEnvelope = {
+    data: OpportunityRequirementCreateManyFamilyInput | OpportunityRequirementCreateManyFamilyInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SkillUpsertWithWhereUniqueWithoutFamilyInput = {
+    where: SkillWhereUniqueInput
+    update: XOR<SkillUpdateWithoutFamilyInput, SkillUncheckedUpdateWithoutFamilyInput>
+    create: XOR<SkillCreateWithoutFamilyInput, SkillUncheckedCreateWithoutFamilyInput>
+  }
+
+  export type SkillUpdateWithWhereUniqueWithoutFamilyInput = {
+    where: SkillWhereUniqueInput
+    data: XOR<SkillUpdateWithoutFamilyInput, SkillUncheckedUpdateWithoutFamilyInput>
+  }
+
+  export type SkillUpdateManyWithWhereWithoutFamilyInput = {
+    where: SkillScalarWhereInput
+    data: XOR<SkillUpdateManyMutationInput, SkillUncheckedUpdateManyWithoutFamilyInput>
+  }
+
+  export type SkillScalarWhereInput = {
+    AND?: SkillScalarWhereInput | SkillScalarWhereInput[]
+    OR?: SkillScalarWhereInput[]
+    NOT?: SkillScalarWhereInput | SkillScalarWhereInput[]
+    id?: StringFilter<"Skill"> | string
+    name?: StringFilter<"Skill"> | string
+    slug?: StringFilter<"Skill"> | string
+    familyId?: StringFilter<"Skill"> | string
+    createdAt?: DateTimeFilter<"Skill"> | Date | string
+    updatedAt?: DateTimeFilter<"Skill"> | Date | string
+  }
+
+  export type OpportunityRequirementUpsertWithWhereUniqueWithoutFamilyInput = {
+    where: OpportunityRequirementWhereUniqueInput
+    update: XOR<OpportunityRequirementUpdateWithoutFamilyInput, OpportunityRequirementUncheckedUpdateWithoutFamilyInput>
+    create: XOR<OpportunityRequirementCreateWithoutFamilyInput, OpportunityRequirementUncheckedCreateWithoutFamilyInput>
+  }
+
+  export type OpportunityRequirementUpdateWithWhereUniqueWithoutFamilyInput = {
+    where: OpportunityRequirementWhereUniqueInput
+    data: XOR<OpportunityRequirementUpdateWithoutFamilyInput, OpportunityRequirementUncheckedUpdateWithoutFamilyInput>
+  }
+
+  export type OpportunityRequirementUpdateManyWithWhereWithoutFamilyInput = {
+    where: OpportunityRequirementScalarWhereInput
+    data: XOR<OpportunityRequirementUpdateManyMutationInput, OpportunityRequirementUncheckedUpdateManyWithoutFamilyInput>
+  }
+
+  export type SkillFamilyCreateWithoutSkillsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    requirements?: OpportunityRequirementCreateNestedManyWithoutFamilyInput
+  }
+
+  export type SkillFamilyUncheckedCreateWithoutSkillsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutFamilyInput
+  }
+
+  export type SkillFamilyCreateOrConnectWithoutSkillsInput = {
+    where: SkillFamilyWhereUniqueInput
+    create: XOR<SkillFamilyCreateWithoutSkillsInput, SkillFamilyUncheckedCreateWithoutSkillsInput>
+  }
+
+  export type VolunteerSkillCreateWithoutSkillInput = {
+    id?: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutVolunteerSkillsInput
+  }
+
+  export type VolunteerSkillUncheckedCreateWithoutSkillInput = {
+    id?: string
+    userId: string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerSkillCreateOrConnectWithoutSkillInput = {
+    where: VolunteerSkillWhereUniqueInput
+    create: XOR<VolunteerSkillCreateWithoutSkillInput, VolunteerSkillUncheckedCreateWithoutSkillInput>
+  }
+
+  export type VolunteerSkillCreateManySkillInputEnvelope = {
+    data: VolunteerSkillCreateManySkillInput | VolunteerSkillCreateManySkillInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type OpportunityRequirementCreateWithoutSkillInput = {
+    id?: string
+    level?: $Enums.RequirementLevel
+    opportunity: VolunteerOpportunityCreateNestedOneWithoutRequirementsInput
+    family?: SkillFamilyCreateNestedOneWithoutRequirementsInput
+  }
+
+  export type OpportunityRequirementUncheckedCreateWithoutSkillInput = {
+    id?: string
+    opportunityId: string
+    familyId?: string | null
+    level?: $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementCreateOrConnectWithoutSkillInput = {
+    where: OpportunityRequirementWhereUniqueInput
+    create: XOR<OpportunityRequirementCreateWithoutSkillInput, OpportunityRequirementUncheckedCreateWithoutSkillInput>
+  }
+
+  export type OpportunityRequirementCreateManySkillInputEnvelope = {
+    data: OpportunityRequirementCreateManySkillInput | OpportunityRequirementCreateManySkillInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SkillFamilyUpsertWithoutSkillsInput = {
+    update: XOR<SkillFamilyUpdateWithoutSkillsInput, SkillFamilyUncheckedUpdateWithoutSkillsInput>
+    create: XOR<SkillFamilyCreateWithoutSkillsInput, SkillFamilyUncheckedCreateWithoutSkillsInput>
+    where?: SkillFamilyWhereInput
+  }
+
+  export type SkillFamilyUpdateToOneWithWhereWithoutSkillsInput = {
+    where?: SkillFamilyWhereInput
+    data: XOR<SkillFamilyUpdateWithoutSkillsInput, SkillFamilyUncheckedUpdateWithoutSkillsInput>
+  }
+
+  export type SkillFamilyUpdateWithoutSkillsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    requirements?: OpportunityRequirementUpdateManyWithoutFamilyNestedInput
+  }
+
+  export type SkillFamilyUncheckedUpdateWithoutSkillsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutFamilyNestedInput
+  }
+
+  export type VolunteerSkillUpsertWithWhereUniqueWithoutSkillInput = {
+    where: VolunteerSkillWhereUniqueInput
+    update: XOR<VolunteerSkillUpdateWithoutSkillInput, VolunteerSkillUncheckedUpdateWithoutSkillInput>
+    create: XOR<VolunteerSkillCreateWithoutSkillInput, VolunteerSkillUncheckedCreateWithoutSkillInput>
+  }
+
+  export type VolunteerSkillUpdateWithWhereUniqueWithoutSkillInput = {
+    where: VolunteerSkillWhereUniqueInput
+    data: XOR<VolunteerSkillUpdateWithoutSkillInput, VolunteerSkillUncheckedUpdateWithoutSkillInput>
+  }
+
+  export type VolunteerSkillUpdateManyWithWhereWithoutSkillInput = {
+    where: VolunteerSkillScalarWhereInput
+    data: XOR<VolunteerSkillUpdateManyMutationInput, VolunteerSkillUncheckedUpdateManyWithoutSkillInput>
+  }
+
+  export type OpportunityRequirementUpsertWithWhereUniqueWithoutSkillInput = {
+    where: OpportunityRequirementWhereUniqueInput
+    update: XOR<OpportunityRequirementUpdateWithoutSkillInput, OpportunityRequirementUncheckedUpdateWithoutSkillInput>
+    create: XOR<OpportunityRequirementCreateWithoutSkillInput, OpportunityRequirementUncheckedCreateWithoutSkillInput>
+  }
+
+  export type OpportunityRequirementUpdateWithWhereUniqueWithoutSkillInput = {
+    where: OpportunityRequirementWhereUniqueInput
+    data: XOR<OpportunityRequirementUpdateWithoutSkillInput, OpportunityRequirementUncheckedUpdateWithoutSkillInput>
+  }
+
+  export type OpportunityRequirementUpdateManyWithWhereWithoutSkillInput = {
+    where: OpportunityRequirementScalarWhereInput
+    data: XOR<OpportunityRequirementUpdateManyMutationInput, OpportunityRequirementUncheckedUpdateManyWithoutSkillInput>
+  }
+
   export type UserCreateWithoutVolunteerSkillsInput = {
     id?: string
     name?: string | null
@@ -36888,6 +40533,31 @@ export namespace Prisma {
   export type UserCreateOrConnectWithoutVolunteerSkillsInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutVolunteerSkillsInput, UserUncheckedCreateWithoutVolunteerSkillsInput>
+  }
+
+  export type SkillCreateWithoutVolunteerSkillsInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    family: SkillFamilyCreateNestedOneWithoutSkillsInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutSkillInput
+  }
+
+  export type SkillUncheckedCreateWithoutVolunteerSkillsInput = {
+    id?: string
+    name: string
+    slug: string
+    familyId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutSkillInput
+  }
+
+  export type SkillCreateOrConnectWithoutVolunteerSkillsInput = {
+    where: SkillWhereUniqueInput
+    create: XOR<SkillCreateWithoutVolunteerSkillsInput, SkillUncheckedCreateWithoutVolunteerSkillsInput>
   }
 
   export type UserUpsertWithoutVolunteerSkillsInput = {
@@ -36935,6 +40605,37 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type SkillUpsertWithoutVolunteerSkillsInput = {
+    update: XOR<SkillUpdateWithoutVolunteerSkillsInput, SkillUncheckedUpdateWithoutVolunteerSkillsInput>
+    create: XOR<SkillCreateWithoutVolunteerSkillsInput, SkillUncheckedCreateWithoutVolunteerSkillsInput>
+    where?: SkillWhereInput
+  }
+
+  export type SkillUpdateToOneWithWhereWithoutVolunteerSkillsInput = {
+    where?: SkillWhereInput
+    data: XOR<SkillUpdateWithoutVolunteerSkillsInput, SkillUncheckedUpdateWithoutVolunteerSkillsInput>
+  }
+
+  export type SkillUpdateWithoutVolunteerSkillsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    family?: SkillFamilyUpdateOneRequiredWithoutSkillsNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutSkillNestedInput
+  }
+
+  export type SkillUncheckedUpdateWithoutVolunteerSkillsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    familyId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutSkillNestedInput
   }
 
   export type UserCreateWithoutProfileInput = {
@@ -37617,7 +41318,7 @@ export namespace Prisma {
 
   export type AuditLogCreateManyActorInput = {
     id?: string
-    orgId: string
+    orgId?: string | null
     action: string
     entityType: string
     entityId?: string | null
@@ -37638,7 +41339,7 @@ export namespace Prisma {
 
   export type VolunteerSkillCreateManyUserInput = {
     id?: string
-    skill: string
+    skillId: string
     createdAt?: Date | string
   }
 
@@ -37761,12 +41462,12 @@ export namespace Prisma {
     entityId?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    organization?: OrganizationUpdateOneRequiredWithoutAuditLogsNestedInput
+    organization?: OrganizationUpdateOneWithoutAuditLogsNestedInput
   }
 
   export type AuditLogUncheckedUpdateWithoutActorInput = {
     id?: StringFieldUpdateOperationsInput | string
-    orgId?: StringFieldUpdateOperationsInput | string
+    orgId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: StringFieldUpdateOperationsInput | string
     entityType?: StringFieldUpdateOperationsInput | string
     entityId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37776,7 +41477,7 @@ export namespace Prisma {
 
   export type AuditLogUncheckedUpdateManyWithoutActorInput = {
     id?: StringFieldUpdateOperationsInput | string
-    orgId?: StringFieldUpdateOperationsInput | string
+    orgId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: StringFieldUpdateOperationsInput | string
     entityType?: StringFieldUpdateOperationsInput | string
     entityId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37821,19 +41522,19 @@ export namespace Prisma {
 
   export type VolunteerSkillUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    skill?: SkillUpdateOneRequiredWithoutVolunteerSkillsNestedInput
   }
 
   export type VolunteerSkillUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
+    skillId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type VolunteerSkillUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
+    skillId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -38382,7 +42083,8 @@ export namespace Prisma {
 
   export type OpportunityRequirementCreateManyOpportunityInput = {
     id?: string
-    skill: string
+    skillId?: string | null
+    familyId?: string | null
     level?: $Enums.RequirementLevel
   }
 
@@ -38429,19 +42131,22 @@ export namespace Prisma {
 
   export type OpportunityRequirementUpdateWithoutOpportunityInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
     level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+    skill?: SkillUpdateOneWithoutRequirementsNestedInput
+    family?: SkillFamilyUpdateOneWithoutRequirementsNestedInput
   }
 
   export type OpportunityRequirementUncheckedUpdateWithoutOpportunityInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
+    skillId?: NullableStringFieldUpdateOperationsInput | string | null
+    familyId?: NullableStringFieldUpdateOperationsInput | string | null
     level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
   }
 
   export type OpportunityRequirementUncheckedUpdateManyWithoutOpportunityInput = {
     id?: StringFieldUpdateOperationsInput | string
-    skill?: StringFieldUpdateOperationsInput | string
+    skillId?: NullableStringFieldUpdateOperationsInput | string | null
+    familyId?: NullableStringFieldUpdateOperationsInput | string | null
     level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
   }
 
@@ -38525,6 +42230,122 @@ export namespace Prisma {
     status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SkillCreateManyFamilyInput = {
+    id?: string
+    name: string
+    slug: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OpportunityRequirementCreateManyFamilyInput = {
+    id?: string
+    opportunityId: string
+    skillId?: string | null
+    level?: $Enums.RequirementLevel
+  }
+
+  export type SkillUpdateWithoutFamilyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutSkillNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutSkillNestedInput
+  }
+
+  export type SkillUncheckedUpdateWithoutFamilyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutSkillNestedInput
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutSkillNestedInput
+  }
+
+  export type SkillUncheckedUpdateManyWithoutFamilyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OpportunityRequirementUpdateWithoutFamilyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+    opportunity?: VolunteerOpportunityUpdateOneRequiredWithoutRequirementsNestedInput
+    skill?: SkillUpdateOneWithoutRequirementsNestedInput
+  }
+
+  export type OpportunityRequirementUncheckedUpdateWithoutFamilyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    skillId?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementUncheckedUpdateManyWithoutFamilyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    skillId?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+  }
+
+  export type VolunteerSkillCreateManySkillInput = {
+    id?: string
+    userId: string
+    createdAt?: Date | string
+  }
+
+  export type OpportunityRequirementCreateManySkillInput = {
+    id?: string
+    opportunityId: string
+    familyId?: string | null
+    level?: $Enums.RequirementLevel
+  }
+
+  export type VolunteerSkillUpdateWithoutSkillInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutVolunteerSkillsNestedInput
+  }
+
+  export type VolunteerSkillUncheckedUpdateWithoutSkillInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerSkillUncheckedUpdateManyWithoutSkillInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OpportunityRequirementUpdateWithoutSkillInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+    opportunity?: VolunteerOpportunityUpdateOneRequiredWithoutRequirementsNestedInput
+    family?: SkillFamilyUpdateOneWithoutRequirementsNestedInput
+  }
+
+  export type OpportunityRequirementUncheckedUpdateWithoutSkillInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    familyId?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+  }
+
+  export type OpportunityRequirementUncheckedUpdateManyWithoutSkillInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    familyId?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
   }
 
   export type ShiftSignupCreateManyShiftInput = {

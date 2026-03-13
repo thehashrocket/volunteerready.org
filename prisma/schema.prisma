@@ -121,15 +121,15 @@ model OrganizationMember {
 model AuditLog {
   id         String   @id @default(cuid())
   actorId    String?
-  orgId      String
+  orgId      String?
   action     String
   entityType String
   entityId   String?
   metadata   Json?
   createdAt  DateTime @default(now())
 
-  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  actor        User?        @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actor        User?         @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
 }
 
 model FeatureFlag {
@@ -287,25 +287,55 @@ model OpportunityTag {
 }
 
 model OpportunityRequirement {
-  id            String               @id @default(cuid())
+  id            String           @id @default(cuid())
   opportunityId String
-  skill         String
-  level         RequirementLevel     @default(REQUIRED)
+  skillId       String?
+  familyId      String?
+  level         RequirementLevel @default(REQUIRED)
 
   opportunity VolunteerOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  skill       Skill?               @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  family      SkillFamily?         @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
-  @@unique([opportunityId, skill])
+  // Partial unique indexes added via raw SQL in migration (nullable FKs)
   @@index([opportunityId])
+  @@index([skillId])
+  @@index([familyId])
+}
+
+model SkillFamily {
+  id           String                   @id @default(cuid())
+  name         String                   @unique
+  slug         String                   @unique
+  skills       Skill[]
+  requirements OpportunityRequirement[]
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+}
+
+model Skill {
+  id              String                   @id @default(cuid())
+  name            String                   @unique
+  slug            String                   @unique
+  familyId        String
+  family          SkillFamily              @relation(fields: [familyId], references: [id])
+  volunteerSkills VolunteerSkill[]
+  requirements    OpportunityRequirement[]
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  @@index([familyId])
 }
 
 model VolunteerSkill {
   id        String   @id @default(cuid())
   userId    String
-  skill     String
+  skillId   String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Restrict)
   createdAt DateTime @default(now())
 
-  @@unique([userId, skill])
+  @@unique([userId, skillId])
   @@index([userId])
 }
 

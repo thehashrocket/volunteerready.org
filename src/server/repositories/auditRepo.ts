@@ -2,7 +2,7 @@ import type { Prisma, PrismaClient } from '@/prisma/generated/client';
 import { prisma } from './prisma';
 
 export type AuditLogInput = {
-	orgId: string;
+	orgId?: string | null;
 	actorId?: string | null;
 	action: string;
 	entityType: string;

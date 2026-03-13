@@ -34,10 +34,18 @@ const opportunityInput = z.object({
 	tags: z.array(z.string().min(1).max(50)).max(10).default([]),
 	requirements: z
 		.array(
-			z.object({
-				skill: z.string().min(1).max(100),
-				level: z.nativeEnum(RequirementLevel),
-			}),
+			z.union([
+				z.object({
+					skillId: z.string().cuid(),
+					familyId: z.undefined(),
+					level: z.nativeEnum(RequirementLevel),
+				}),
+				z.object({
+					familyId: z.string().cuid(),
+					skillId: z.undefined(),
+					level: z.nativeEnum(RequirementLevel),
+				}),
+			]),
 		)
 		.max(20)
 		.default([]),

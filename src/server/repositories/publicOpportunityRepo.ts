@@ -1,6 +1,21 @@
 import { OpportunityStatus } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
+const requirementSelect = {
+	id: true,
+	skillId: true,
+	familyId: true,
+	level: true,
+	skill: { select: { id: true, name: true } },
+	family: {
+		select: {
+			id: true,
+			name: true,
+			skills: { select: { id: true } },
+		},
+	},
+} as const;
+
 export async function getPublishedOpportunityById(
 	orgSlug: string,
 	opportunityId: string,
@@ -50,7 +65,7 @@ export async function listPublishedOpportunities(orgSlug: string) {
 			commitmentHours: true,
 			capacity: true,
 			tags: { select: { id: true, name: true } },
-			requirements: { select: { id: true, skill: true, level: true } },
+			requirements: { select: requirementSelect },
 		},
 		orderBy: { createdAt: 'desc' },
 	});
@@ -76,7 +91,7 @@ export async function listAllPublishedOpportunities() {
 			commitmentHours: true,
 			capacity: true,
 			tags: { select: { id: true, name: true } },
-			requirements: { select: { id: true, skill: true, level: true } },
+			requirements: { select: requirementSelect },
 			organization: { select: { id: true, name: true, slug: true } },
 		},
 		orderBy: { createdAt: 'desc' },

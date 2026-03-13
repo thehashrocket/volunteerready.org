@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.4.2
- * Query Engine version: 94a226be1cf2967af2541cca5529f0f7ba866919
+ * Prisma Client JS version: 7.5.0
+ * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
  */
 Prisma.prismaVersion = {
-  client: "7.4.2",
-  engine: "94a226be1cf2967af2541cca5529f0f7ba866919"
+  client: "7.5.0",
+  engine: "280c870be64f457428992c43c1f6d557fab6e29e"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -273,14 +273,32 @@ exports.Prisma.OpportunityTagScalarFieldEnum = {
 exports.Prisma.OpportunityRequirementScalarFieldEnum = {
   id: 'id',
   opportunityId: 'opportunityId',
-  skill: 'skill',
+  skillId: 'skillId',
+  familyId: 'familyId',
   level: 'level'
+};
+
+exports.Prisma.SkillFamilyScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SkillScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  familyId: 'familyId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.VolunteerSkillScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  skill: 'skill',
+  skillId: 'skillId',
   createdAt: 'createdAt'
 };
 
@@ -466,6 +484,8 @@ exports.Prisma.ModelName = {
   VolunteerOpportunity: 'VolunteerOpportunity',
   OpportunityTag: 'OpportunityTag',
   OpportunityRequirement: 'OpportunityRequirement',
+  SkillFamily: 'SkillFamily',
+  Skill: 'Skill',
   VolunteerSkill: 'VolunteerSkill',
   VolunteerProfile: 'VolunteerProfile',
   VolunteerCredential: 'VolunteerCredential',

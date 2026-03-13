@@ -4,6 +4,21 @@ import type {
 } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
+const requirementSelect = {
+	id: true,
+	skillId: true,
+	familyId: true,
+	level: true,
+	skill: { select: { id: true, name: true } },
+	family: {
+		select: {
+			id: true,
+			name: true,
+			skills: { select: { id: true } },
+		},
+	},
+} as const;
+
 const opportunitySelect = {
 	id: true,
 	title: true,
@@ -18,7 +33,7 @@ const opportunitySelect = {
 	createdAt: true,
 	updatedAt: true,
 	tags: { select: { id: true, name: true } },
-	requirements: { select: { id: true, skill: true, level: true } },
+	requirements: { select: requirementSelect },
 } as const;
 
 export async function listOpportunities(
@@ -65,7 +80,7 @@ export async function createOpportunity(input: {
 	commitmentHours?: number | null;
 	capacity?: number | null;
 	tags: string[];
-	requirements: { skill: string; level: RequirementLevel }[];
+	requirements: { skillId?: string; familyId?: string; level: RequirementLevel }[];
 }) {
 	const { tags, requirements, ...data } = input;
 	return prisma.volunteerOpportunity.create({
@@ -73,11 +88,22 @@ export async function createOpportunity(input: {
 			...data,
 			tags: { create: tags.map((name) => ({ name })) },
 			requirements: {
-				create: requirements.map((r) => ({ skill: r.skill, level: r.level })),
+				create: requirements.map((r) => ({
+					skillId: r.skillId ?? null,
+					familyId: r.familyId ?? null,
+					level: r.level,
+				})),
 			},
 		},
 		select: opportunitySelect,
 	});
+}
+
+/** Composite key for deduplicating requirements in diff logic. */
+function reqKey(r: { skillId?: string | null; familyId?: string | null }) {
+	if (r.skillId) return `skill:${r.skillId}`;
+	if (r.familyId) return `family:${r.familyId}`;
+	return 'unknown';
 }
 
 export async function updateOpportunity(
@@ -93,7 +119,7 @@ export async function updateOpportunity(
 		commitmentHours?: number | null;
 		capacity?: number | null;
 		tags?: string[];
-		requirements?: { skill: string; level: RequirementLevel }[];
+		requirements?: { skillId?: string; familyId?: string; level: RequirementLevel }[];
 	},
 ) {
 	const { tags, requirements, ...data } = input;
@@ -116,7 +142,7 @@ export async function updateOpportunity(
 				});
 			}
 
-			// Create new tags (existing ones are unchanged, no upsert needed)
+			// Create new tags
 			const toCreate = tags.filter((name) => !existingNames.has(name));
 			if (toCreate.length > 0) {
 				await tx.opportunityTag.createMany({
@@ -129,25 +155,31 @@ export async function updateOpportunity(
 		if (requirements !== undefined) {
 			const existing = await tx.opportunityRequirement.findMany({
 				where: { opportunityId: id },
-				select: { id: true, skill: true, level: true },
+				select: { id: true, skillId: true, familyId: true, level: true },
 			});
-			const existingBySkill = new Map(existing.map((r) => [r.skill, r]));
-			const desiredSkills = new Set(requirements.map((r) => r.skill));
+			const existingByKey = new Map(existing.map((r) => [reqKey(r), r]));
+			const desiredKeys = new Set(requirements.map(reqKey));
 
 			// Delete removed requirements
-			const toDelete = existing.filter((r) => !desiredSkills.has(r.skill));
+			const toDelete = existing.filter((r) => !desiredKeys.has(reqKey(r)));
 			if (toDelete.length > 0) {
 				await tx.opportunityRequirement.deleteMany({
 					where: { id: { in: toDelete.map((r) => r.id) } },
 				});
 			}
 
-			// Upsert: update changed levels, create new skills
+			// Upsert: update changed levels, create new requirements
 			for (const req of requirements) {
-				const prev = existingBySkill.get(req.skill);
+				const key = reqKey(req);
+				const prev = existingByKey.get(key);
 				if (!prev) {
 					await tx.opportunityRequirement.create({
-						data: { opportunityId: id, skill: req.skill, level: req.level },
+						data: {
+							opportunityId: id,
+							skillId: req.skillId ?? null,
+							familyId: req.familyId ?? null,
+							level: req.level,
+						},
 					});
 				} else if (prev.level !== req.level) {
 					await tx.opportunityRequirement.update({
@@ -155,7 +187,6 @@ export async function updateOpportunity(
 						data: { level: req.level },
 					});
 				}
-				// If skill exists with same level — no-op
 			}
 		}
 

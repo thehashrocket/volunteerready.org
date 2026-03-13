@@ -3,14 +3,22 @@ import { prisma } from './prisma';
 
 type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 
-/** Get all skill names for a user. */
-export async function getSkillsForUser(userId: string): Promise<string[]> {
-	const rows = await prisma.volunteerSkill.findMany({
+/** Get all skills for a user, with name and family context. */
+export async function getSkillsForUser(userId: string) {
+	return prisma.volunteerSkill.findMany({
 		where: { userId },
-		select: { skill: true },
-		orderBy: { skill: 'asc' },
+		select: {
+			skillId: true,
+			skill: {
+				select: {
+					id: true,
+					name: true,
+					family: { select: { id: true, name: true } },
+				},
+			},
+		},
+		orderBy: { skill: { name: 'asc' } },
 	});
-	return rows.map((r) => r.skill);
 }
 
 /**
@@ -20,29 +28,18 @@ export async function getSkillsForUser(userId: string): Promise<string[]> {
 export async function setSkillsForUser(
 	tx: TxClient,
 	userId: string,
-	skills: string[],
+	skillIds: string[],
 ): Promise<void> {
 	const existing = await tx.volunteerSkill.findMany({
 		where: { userId },
-		select: { id: true, skill: true },
+		select: { id: true, skillId: true },
 	});
 
-	const existingSet = new Set(existing.map((s) => s.skill.toLowerCase()));
-	const desiredSet = new Set(skills.map((s) => s.trim().toLowerCase()));
-
-	// Normalize desired skills (preserve original casing of first occurrence)
-	const normalizedSkills = new Map<string, string>();
-	for (const s of skills) {
-		const key = s.trim().toLowerCase();
-		if (!normalizedSkills.has(key)) {
-			normalizedSkills.set(key, s.trim());
-		}
-	}
+	const existingSet = new Set(existing.map((s) => s.skillId));
+	const desiredSet = new Set(skillIds);
 
 	// Delete removed skills
-	const toDelete = existing.filter(
-		(s) => !desiredSet.has(s.skill.toLowerCase()),
-	);
+	const toDelete = existing.filter((s) => !desiredSet.has(s.skillId));
 	if (toDelete.length > 0) {
 		await tx.volunteerSkill.deleteMany({
 			where: { id: { in: toDelete.map((s) => s.id) } },
@@ -50,12 +47,10 @@ export async function setSkillsForUser(
 	}
 
 	// Create new skills
-	const toCreate = [...normalizedSkills.entries()].filter(
-		([key]) => !existingSet.has(key),
-	);
+	const toCreate = skillIds.filter((id) => !existingSet.has(id));
 	if (toCreate.length > 0) {
 		await tx.volunteerSkill.createMany({
-			data: toCreate.map(([, skill]) => ({ userId, skill })),
+			data: toCreate.map((skillId) => ({ userId, skillId })),
 		});
 	}
 }

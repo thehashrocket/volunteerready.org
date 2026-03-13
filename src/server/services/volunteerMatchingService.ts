@@ -1,5 +1,6 @@
 import type {
 	MatchResult,
+	OpportunityRequirement,
 	OpportunityRequirementSet,
 } from '@/server/domain/volunteer-matching';
 import {
@@ -19,19 +20,44 @@ import {
 /**
  * Replace a volunteer's skill list, with audit logging.
  */
-export async function updateVolunteerSkills(userId: string, skills: string[]) {
+export async function updateVolunteerSkills(userId: string, skillIds: string[]) {
 	await prisma.$transaction(async (tx) => {
-		await setSkillsForUser(tx, userId, skills);
+		await setSkillsForUser(tx, userId, skillIds);
 		await writeAuditLogTx(tx, {
-			// Skills are cross-org; use a sentinel orgId for the audit log
-			orgId: 'SYSTEM',
 			actorId: userId,
 			action: 'VOLUNTEER_SKILLS_UPDATED',
 			entityType: 'User',
 			entityId: userId,
-			metadata: { skillCount: skills.length },
+			metadata: { skillCount: skillIds.length },
 		});
 	});
+}
+
+/** Convert a repository requirement row to domain OpportunityRequirement. */
+function toRequirement(r: {
+	skillId: string | null;
+	familyId: string | null;
+	level: 'REQUIRED' | 'PREFERRED';
+	skill: { id: string; name: string } | null;
+	family: { id: string; name: string; skills: { id: string }[] } | null;
+}): OpportunityRequirement {
+	if (r.skillId && r.skill) {
+		return {
+			skillId: r.skillId,
+			level: r.level,
+			label: r.skill.name,
+		};
+	}
+	if (r.familyId && r.family) {
+		return {
+			familyId: r.familyId,
+			familySkillIds: r.family.skills.map((s) => s.id),
+			level: r.level,
+			label: r.family.name,
+		};
+	}
+	// Fallback: no match possible
+	return { level: r.level, label: '(unknown)' };
 }
 
 /**
@@ -39,23 +65,22 @@ export async function updateVolunteerSkills(userId: string, skills: string[]) {
  * Returns opportunities sorted by match quality.
  */
 export async function getMatchedOpportunities(userId: string, orgSlug: string) {
-	const [skills, listing] = await Promise.all([
+	const [userSkills, listing] = await Promise.all([
 		getSkillsForUser(userId),
 		listPublishedOpportunities(orgSlug),
 	]);
 
 	if (!listing) return null;
 
+	const skillIds = userSkills.map((s) => s.skillId);
+
 	const requirementSets: OpportunityRequirementSet[] =
 		listing.opportunities.map((opp) => ({
 			opportunityId: opp.id,
-			requirements: opp.requirements.map((r) => ({
-				skill: r.skill,
-				level: r.level,
-			})),
+			requirements: opp.requirements.map(toRequirement),
 		}));
 
-	const ranked = rankOpportunities({ skills }, requirementSets);
+	const ranked = rankOpportunities({ skillIds }, requirementSets);
 
 	// Build a lookup for match results
 	const scoreMap = new Map(ranked.map((r) => [r.opportunityId, r]));
@@ -92,20 +117,17 @@ export async function scoreApplicationsForOpportunity(
 
 	const requirementSet: OpportunityRequirementSet = {
 		opportunityId,
-		requirements: opportunity.requirements.map((r) => ({
-			skill: r.skill,
-			level: r.level,
-		})),
+		requirements: opportunity.requirements.map(toRequirement),
 	};
 
 	return applications.map((app) => {
 		if (!app.submittedByUserId || !app.submittedByUser) {
 			return { applicationId: app.id, matchResult: null };
 		}
-		const skills = app.submittedByUser.volunteerSkills.map((s) => s.skill);
+		const skillIds = app.submittedByUser.volunteerSkills.map((s) => s.skillId);
 		return {
 			applicationId: app.id,
-			matchResult: scoreOpportunity({ skills }, requirementSet),
+			matchResult: scoreOpportunity({ skillIds }, requirementSet),
 		};
 	});
 }

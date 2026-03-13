@@ -51,7 +51,10 @@ type Opportunity = {
 	tags: { id: string; name: string }[];
 	requirements: {
 		id: string;
-		skill: string;
+		skillId: string | null;
+		familyId: string | null;
+		skill: { id: string; name: string } | null;
+		family: { id: string; name: string; skills: { id: string }[] } | null;
 		level: 'REQUIRED' | 'PREFERRED';
 	}[];
 };

@@ -1,10 +1,11 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/page-header';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
 	Card,
@@ -13,84 +14,99 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from '@/components/ui/command';
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
-// Skill chip-input (reuses the pattern from OpportunityDialog TagInput)
+// Skill combobox
 // ---------------------------------------------------------------------------
 
-function SkillInput({
-	skills,
-	onChange,
+interface SkillOption {
+	id: string;
+	name: string;
+	familyId: string;
+	familyName: string;
+}
+
+function SkillCombobox({
+	selectedIds,
+	options,
+	onToggle,
 }: {
-	skills: string[];
-	onChange: (skills: string[]) => void;
+	selectedIds: Set<string>;
+	options: SkillOption[];
+	onToggle: (id: string) => void;
 }) {
-	const [input, setInput] = useState('');
-	const inputRef = useRef<HTMLInputElement>(null);
+	const [open, setOpen] = useState(false);
 
-	function addSkill(value: string) {
-		const trimmed = value.trim().replace(/,+$/, '');
-		if (!trimmed) return;
-		// Deduplicate case-insensitively
-		if (skills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) return;
-		if (skills.length >= 50) return;
-		onChange([...skills, trimmed]);
-		setInput('');
-	}
-
-	function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-		if (e.key === 'Enter' || e.key === ',') {
-			e.preventDefault();
-			addSkill(input);
-		} else if (e.key === 'Backspace' && !input && skills.length > 0) {
-			onChange(skills.slice(0, -1));
+	// Group options by family for display
+	const families = new Map<string, { name: string; skills: SkillOption[] }>();
+	for (const opt of options) {
+		if (!families.has(opt.familyId)) {
+			families.set(opt.familyId, { name: opt.familyName, skills: [] });
 		}
+		families.get(opt.familyId)!.skills.push(opt);
 	}
 
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: click-to-focus wrapper for chip input
-		<div
-			className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm cursor-text"
-			onClick={() => inputRef.current?.focus()}
-			onKeyDown={() => inputRef.current?.focus()}
-		>
-			{skills.map((skill) => (
-				<span
-					key={skill}
-					className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger asChild>
+				<Button
+					variant="outline"
+					role="combobox"
+					aria-expanded={open}
+					className="w-full justify-between text-muted-foreground"
 				>
-					{skill}
-					<button
-						type="button"
-						onClick={(e) => {
-							e.stopPropagation();
-							onChange(skills.filter((s) => s !== skill));
-						}}
-						className="text-primary/60 hover:text-primary"
-					>
-						<X className="h-3 w-3" />
-					</button>
-				</span>
-			))}
-			<input
-				ref={inputRef}
-				value={input}
-				onChange={(e) => {
-					const val = e.target.value;
-					if (val.endsWith(',')) {
-						addSkill(val);
-					} else {
-						setInput(val);
-					}
-				}}
-				onKeyDown={handleKeyDown}
-				onBlur={() => addSkill(input)}
-				placeholder={skills.length === 0 ? 'Type a skill and press Enter…' : ''}
-				className="flex-1 min-w-[8rem] bg-transparent outline-none placeholder:text-muted-foreground"
-			/>
-		</div>
+					Add a skill…
+					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent className="w-[400px] p-0" align="start">
+				<Command>
+					<CommandInput placeholder="Search skills…" />
+					<CommandList>
+						<CommandEmpty>No skills found.</CommandEmpty>
+						{[...families.entries()].map(([familyId, family]) => (
+							<CommandGroup key={familyId} heading={family.name}>
+								{family.skills.map((skill) => (
+									<CommandItem
+										key={skill.id}
+										value={`${skill.familyName} ${skill.name}`}
+										onSelect={() => {
+											onToggle(skill.id);
+										}}
+									>
+										<Check
+											className={cn(
+												'mr-2 h-4 w-4',
+												selectedIds.has(skill.id)
+													? 'opacity-100'
+													: 'opacity-0',
+											)}
+										/>
+										{skill.name}
+									</CommandItem>
+								))}
+							</CommandGroup>
+						))}
+					</CommandList>
+				</Command>
+			</PopoverContent>
+		</Popover>
 	);
 }
 
@@ -101,41 +117,75 @@ function SkillInput({
 export default function MySkillsPage() {
 	const qc = useQueryClient();
 
-	const query = trpc.matching.getMySkills.useQuery();
-	const [localSkills, setLocalSkills] = useState<string[] | null>(null);
+	const catalogQuery = trpc.matching.getSkillCatalog.useQuery();
+	const mySkillsQuery = trpc.matching.getMySkills.useQuery();
 
-	// Sync server data into local state once loaded
-	const skills = localSkills ?? query.data ?? [];
+	// Local state: null = unedited (use server data), otherwise user's working set
+	const [localIds, setLocalIds] = useState<string[] | null>(null);
+
+	const isLoading = catalogQuery.isLoading || mySkillsQuery.isLoading;
+	const isError = catalogQuery.isError || mySkillsQuery.isError;
+
+	// Flatten catalog into skill options for the combobox
+	const options: SkillOption[] = (catalogQuery.data ?? []).flatMap((family) =>
+		family.skills.map((s) => ({
+			id: s.id,
+			name: s.name,
+			familyId: family.id,
+			familyName: family.name,
+		})),
+	);
+	const optionMap = new Map(options.map((o) => [o.id, o]));
+
+	// Current selected IDs (local override or server)
+	const serverIds = (mySkillsQuery.data ?? []).map((s) => s.skillId);
+	const currentIds = localIds ?? serverIds;
+	const selectedSet = new Set(currentIds);
+
 	const isDirty =
-		localSkills !== null &&
-		JSON.stringify(localSkills) !== JSON.stringify(query.data ?? []);
+		localIds !== null &&
+		JSON.stringify([...localIds].sort()) !== JSON.stringify([...serverIds].sort());
 
 	const mutation = trpc.matching.updateMySkills.useMutation({
 		onSuccess: async () => {
 			toast.success('Skills saved.');
 			await qc.invalidateQueries();
-			setLocalSkills(null);
+			setLocalIds(null);
 		},
 		onError: (err) => {
 			toast.error(err.message ?? 'Failed to save skills.');
 		},
 	});
 
+	function toggleSkill(skillId: string) {
+		const next = new Set(currentIds);
+		if (next.has(skillId)) {
+			next.delete(skillId);
+		} else {
+			if (next.size >= 50) {
+				toast.error('Maximum 50 skills.');
+				return;
+			}
+			next.add(skillId);
+		}
+		setLocalIds([...next]);
+	}
+
+	function removeSkill(skillId: string) {
+		setLocalIds(currentIds.filter((id) => id !== skillId));
+	}
+
 	function handleSave() {
-		if (!localSkills) return;
-		mutation.mutate({ skills: localSkills });
+		if (!localIds) return;
+		mutation.mutate({ skillIds: localIds });
 	}
 
-	function handleReset() {
-		setLocalSkills(null);
-	}
-
-	if (query.isLoading) {
+	if (isLoading) {
 		return (
 			<div className="mx-auto max-w-xl space-y-6">
 				<PageHeader
 					title="My Skills"
-					description="Add skills to get matched with volunteer opportunities."
+					description="Select skills to get matched with volunteer opportunities."
 				/>
 				<Card>
 					<CardContent className="space-y-2 pt-6">
@@ -148,17 +198,24 @@ export default function MySkillsPage() {
 		);
 	}
 
-	if (query.isError) {
+	if (isError) {
 		return (
 			<div className="mx-auto max-w-xl space-y-6">
 				<PageHeader
 					title="My Skills"
-					description="Add skills to get matched with volunteer opportunities."
+					description="Select skills to get matched with volunteer opportunities."
 				/>
 				<Card>
 					<CardContent className="space-y-4 py-8 text-center">
-						<p className="text-sm text-destructive">{query.error.message}</p>
-						<Button variant="outline" size="sm" onClick={() => query.refetch()}>
+						<p className="text-sm text-destructive">Failed to load skills.</p>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								void catalogQuery.refetch();
+								void mySkillsQuery.refetch();
+							}}
+						>
 							Try again
 						</Button>
 					</CardContent>
@@ -171,25 +228,55 @@ export default function MySkillsPage() {
 		<div className="mx-auto max-w-xl space-y-6">
 			<PageHeader
 				title="My Skills"
-				description="Add skills to get matched with volunteer opportunities."
+				description="Select skills to get matched with volunteer opportunities."
 			/>
 
 			<Card>
 				<CardHeader>
 					<CardTitle>Skills</CardTitle>
 					<CardDescription>
-						Type a skill and press Enter or comma to add it. These are matched
-						against opportunity requirements to show you the best fits.
+						Search and select skills from the catalog. These are matched against
+						opportunity requirements to show you the best fits.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<SkillInput
-						skills={skills}
-						onChange={(next) => setLocalSkills(next)}
+					<SkillCombobox
+						selectedIds={selectedSet}
+						options={options}
+						onToggle={toggleSkill}
 					/>
 
+					{currentIds.length > 0 && (
+						<div className="flex flex-wrap gap-2">
+							{currentIds.map((id) => {
+								const opt = optionMap.get(id);
+								if (!opt) return null;
+								return (
+									<Badge
+										key={id}
+										variant="secondary"
+										className="flex items-center gap-1 pr-1"
+									>
+										<span>{opt.name}</span>
+										<span className="text-muted-foreground">·</span>
+										<span className="text-muted-foreground text-xs">
+											{opt.familyName}
+										</span>
+										<button
+											type="button"
+											onClick={() => removeSkill(id)}
+											className="ml-1 rounded-full text-muted-foreground hover:text-foreground"
+										>
+											<X className="h-3 w-3" />
+										</button>
+									</Badge>
+								);
+							})}
+						</div>
+					)}
+
 					<p className="text-xs text-muted-foreground">
-						{skills.length}/50 skills
+						{currentIds.length}/50 skills
 					</p>
 
 					<div className="flex items-center gap-2">
@@ -200,7 +287,7 @@ export default function MySkillsPage() {
 							{mutation.isPending ? 'Saving…' : 'Save skills'}
 						</Button>
 						{isDirty && (
-							<Button variant="ghost" onClick={handleReset}>
+							<Button variant="ghost" onClick={() => setLocalIds(null)}>
 								Reset
 							</Button>
 						)}
