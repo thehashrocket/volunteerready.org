@@ -116,6 +116,25 @@ docs/
 - `docs/SYSTEM_DIAGRAM.md` — Mermaid diagrams of system architecture
 - `docs/ROADMAP.md` — phased development plan
 
+## gstack
+
+### Setup (one-time per machine)
+```bash
+git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup
+```
+
+Use the `/browse` skill from gstack for all web browsing. **Never use `mcp__claude-in-chrome__*` tools.**
+
+Available gstack skills:
+- `/plan-ceo-review` — CEO-level plan review
+- `/plan-eng-review` — Engineering-level plan review
+- `/review` — Code review
+- `/ship` — Ship a feature
+- `/browse` — Web browsing (use this instead of Chrome MCP tools)
+- `/qa` — QA testing
+- `/setup-browser-cookies` — Set up browser cookies
+- `/retro` — Retrospective
+
 ## LLMs documentation
 
 - Prisma 7.2.0: <https://www.prisma.io/llms.txt>
