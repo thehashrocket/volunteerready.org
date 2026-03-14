@@ -81,12 +81,14 @@ describe('scoreOpportunity', () => {
 		expect(result.matchedPreferred).toEqual(['CSS']);
 	});
 
-	it('matches skills case-insensitively', () => {
+	it('matches skills by exact ID (IDs are case-sensitive)', () => {
+		// Skill matching uses exact Set membership on skill IDs (CUIDs in production).
+		// Two skills with the same human name but different-cased IDs do NOT match.
 		const result = scoreOpportunity(
-			volunteer(['javascript', 'REACT']),
+			volunteer(['skill-js', 'skill-react']),
 			opportunity('opp-4', [
-				{ skill: 'JavaScript', level: 'REQUIRED' },
-				{ skill: 'react', level: 'REQUIRED' },
+				{ skill: 'skill-js', level: 'REQUIRED' },
+				{ skill: 'skill-react', level: 'REQUIRED' },
 			]),
 		);
 
@@ -94,14 +96,15 @@ describe('scoreOpportunity', () => {
 		expect(result.matchType).toBe('PERFECT');
 	});
 
-	it('handles whitespace in skill names', () => {
+	it('does not match skills with different IDs', () => {
+		// Demonstrates that matching is exact: 'skill-js' ≠ 'skill-JS'
 		const result = scoreOpportunity(
-			volunteer([' JavaScript ', 'React']),
-			opportunity('opp-5', [{ skill: 'javascript', level: 'REQUIRED' }]),
+			volunteer(['skill-JS']),
+			opportunity('opp-5', [{ skill: 'skill-js', level: 'REQUIRED' }]),
 		);
 
-		expect(result.score).toBe(100);
-		expect(result.matchType).toBe('PERFECT');
+		expect(result.score).toBe(0);
+		expect(result.matchType).toBe('NONE');
 	});
 
 	it('returns PERFECT (100) when opportunity has no requirements', () => {
