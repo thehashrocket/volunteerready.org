@@ -249,7 +249,7 @@ export async function inviteCompanyMember(opts: {
       <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height: 1.4">
         <p>You've been invited to join <strong>${company.name}</strong> as <strong>${opts.role}</strong>.</p>
         <p><a href="${opts.baseUrl}/invite/company/${rawToken}">Accept invitation</a></p>
-        <p>This invitation expires in 48 hours. If you didn't expect this, you can ignore this email.</p>
+        <p>This invitation expires in ${INVITE_EXPIRY_HOURS} hours. If you didn't expect this, you can ignore this email.</p>
       </div>
     `,
 	});

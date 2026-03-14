@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import Stripe from 'stripe';
 import type { PlanTier, Prisma } from '@/prisma/generated/client';
 import { writeAuditLogTx } from '../repositories/auditRepo';
@@ -142,7 +143,11 @@ export async function createBillingPortalSession(opts: {
 	});
 
 	if (!org.stripeCustomerId) {
-		throw new Error('Organization does not have a Stripe customer yet.');
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message:
+				'No billing account set up yet. Please start a subscription first.',
+		});
 	}
 
 	const session = await getStripe().billingPortal.sessions.create({
