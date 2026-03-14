@@ -115,13 +115,11 @@ docs/
 - `docs/REQUEST_FLOW.md` — how data flows through the system
 - `docs/SYSTEM_DIAGRAM.md` — Mermaid diagrams of system architecture
 - `docs/ROADMAP.md` — phased development plan
+- `docs/TODOS.md` - todos for the current project
 
 ## gstack
 
-### Setup (one-time per machine)
-```bash
-git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup
-```
+gstack is checked into this repo at `.claude/skills/gstack`. No global install needed — teammates get it automatically.
 
 Use the `/browse` skill from gstack for all web browsing. **Never use `mcp__claude-in-chrome__*` tools.**
 
@@ -134,6 +132,12 @@ Available gstack skills:
 - `/qa` — QA testing
 - `/setup-browser-cookies` — Set up browser cookies
 - `/retro` — Retrospective
+
+If gstack skills aren't working, run:
+```bash
+cd .claude/skills/gstack && ./setup
+```
+This builds the binary and registers the skills.
 
 ## LLMs documentation
 

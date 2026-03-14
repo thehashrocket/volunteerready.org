@@ -2,8 +2,10 @@
 
 import {
 	Briefcase,
+	Building2,
 	Calendar,
 	ClipboardList,
+	CreditCard,
 	FileText,
 	LayoutDashboard,
 	Search,
@@ -38,6 +40,11 @@ const STAFF_NAV: NavItem[] = [
 	{ label: 'Shifts', href: '/app/shifts', icon: Calendar },
 	{ label: 'Team', href: '/app/settings/team', icon: Users },
 	{ label: 'Settings', href: '/app/credentials', icon: Settings },
+	{ label: 'Billing', href: '/app/billing', icon: CreditCard },
+];
+
+const COMPANY_NAV: NavItem[] = [
+	{ label: 'Company', href: '/app/company', icon: Building2 },
 ];
 
 function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
@@ -65,9 +72,10 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 
 interface AppSidebarProps {
 	hasOrg: boolean;
+	hasCompany: boolean;
 }
 
-export function AppSidebar({ hasOrg }: AppSidebarProps) {
+export function AppSidebar({ hasOrg, hasCompany }: AppSidebarProps) {
 	const pathname = usePathname();
 
 	return (
@@ -88,6 +96,19 @@ export function AppSidebar({ hasOrg }: AppSidebarProps) {
 						Organization
 					</p>
 					{STAFF_NAV.map((item) => (
+						<NavLink key={item.href} item={item} pathname={pathname} />
+					))}
+				</>
+			)}
+
+			{/* Company section only shows when user belongs to a company */}
+			{hasCompany && (
+				<>
+					<div className="my-3 border-t" />
+					<p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+						Company
+					</p>
+					{COMPANY_NAV.map((item) => (
 						<NavLink key={item.href} item={item} pathname={pathname} />
 					))}
 				</>
