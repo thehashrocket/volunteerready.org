@@ -16,6 +16,7 @@ model User {
   accounts              Account[]
   sessions              Session[]
   memberships           OrganizationMember[]
+  companyMemberships    CompanyMember[]
   auditLogs             AuditLog[]             @relation("AuditActor")
   submittedApplications VolunteerApplication[] @relation("SubmittedApplications")
   volunteerSkills       VolunteerSkill[]
@@ -57,11 +58,16 @@ model Session {
   currentOrgId String?
   currentOrg   Organization? @relation(fields: [currentOrgId], references: [id], onDelete: SetNull)
 
+  // ✅ Persist selected company in DB session
+  currentCompanyId String?
+  currentCompany   CompanyAccount? @relation(fields: [currentCompanyId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([currentOrgId])
+  @@index([currentCompanyId])
 }
 
 model VerificationToken {
@@ -86,21 +92,26 @@ model ApplicationStatusToken {
 }
 
 model Organization {
-  id                String                   @id @default(cuid())
-  name              String
-  slug              String                   @unique
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
-  members           OrganizationMember[]
-  auditLogs         AuditLog[]
-  featureFlags      FeatureFlag[]
-  applications      VolunteerApplication[]
-  screenerQuestions ScreenerQuestion[]
-  sessions          Session[] // optional backrelation
-  invitations       OrganizationInvitation[]
-  opportunities     VolunteerOpportunity[]
-  credentials       VolunteerCredential[]
-  shifts            Shift[]
+  id                   String                   @id @default(cuid())
+  name                 String
+  slug                 String                   @unique
+  planTier             PlanTier                 @default(FREE)
+  stripeCustomerId     String?                  @unique
+  stripeSubscriptionId String?                  @unique
+  trialEndsAt          DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  members              OrganizationMember[]
+  auditLogs            AuditLog[]
+  featureFlags         FeatureFlag[]
+  applications         VolunteerApplication[]
+  screenerQuestions    ScreenerQuestion[]
+  sessions             Session[] // optional backrelation
+  invitations          OrganizationInvitation[]
+  opportunities        VolunteerOpportunity[]
+  credentials          VolunteerCredential[]
+  shifts               Shift[]
+  companyLinks         CompanyNonprofitLink[]
 }
 
 model OrganizationMember {
@@ -122,14 +133,16 @@ model AuditLog {
   id         String   @id @default(cuid())
   actorId    String?
   orgId      String?
+  companyId  String?
   action     String
   entityType String
   entityId   String?
   metadata   Json?
   createdAt  DateTime @default(now())
 
-  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  actor        User?         @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  organization   Organization?   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  companyAccount CompanyAccount? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  actor          User?           @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
 }
 
 model FeatureFlag {
@@ -463,4 +476,98 @@ enum SignupStatus {
   CANCELLED
   NO_SHOW
   ATTENDED
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6A — Employer Accounts & Billing
+// ---------------------------------------------------------------------------
+
+enum PlanTier {
+  FREE
+  STARTER
+  PRO
+}
+
+enum CompanyMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum CompanyNonprofitLinkStatus {
+  ACTIVE
+  PAUSED
+}
+
+model CompanyAccount {
+  id                   String                 @id @default(cuid())
+  name                 String
+  slug                 String                 @unique
+  stripeCustomerId     String?                @unique
+  stripeSubscriptionId String?                @unique
+  planTier             PlanTier               @default(FREE)
+  trialEndsAt          DateTime?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  members              CompanyMember[]
+  invitations          CompanyInvitation[]
+  nonprofitLinks       CompanyNonprofitLink[]
+  sessions             Session[]
+  auditLogs            AuditLog[]
+}
+
+model CompanyMember {
+  id        String            @id @default(cuid())
+  companyId String
+  userId    String
+  role      CompanyMemberRole @default(MEMBER)
+  createdAt DateTime          @default(now())
+
+  company CompanyAccount @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([companyId])
+  @@index([userId])
+}
+
+model CompanyInvitation {
+  id        String            @id @default(cuid())
+  companyId String
+  email     String
+  role      CompanyMemberRole @default(MEMBER)
+  tokenHash String            @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime          @default(now())
+
+  company CompanyAccount @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([companyId])
+  @@index([expiresAt])
+}
+
+model CompanyNonprofitLink {
+  id        String                     @id @default(cuid())
+  companyId String
+  orgId     String
+  status    CompanyNonprofitLinkStatus @default(ACTIVE)
+  createdAt DateTime                   @default(now())
+  updatedAt DateTime                   @updatedAt
+
+  company CompanyAccount @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  org     Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, orgId])
+  @@index([companyId])
+  @@index([orgId])
+}
+
+model StripeWebhookEvent {
+  id          String   @id @default(cuid())
+  stripeId    String   @unique // evt_... — idempotency key; UNIQUE constraint is the safety net
+  type        String
+  processedAt DateTime @default(now())
+  payload     Json
 }

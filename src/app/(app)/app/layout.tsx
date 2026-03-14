@@ -37,12 +37,18 @@ export default async function AppLayout({
 		: 0;
 	const hasOrg = memberCount > 0;
 
+	// hasCompany derived from session — no extra DB query
+	const sessionExt = session as
+		| (typeof session & { companyId?: string | null })
+		| null;
+	const hasCompany = !!sessionExt?.companyId;
+
 	if (!isExempt && !hasOrg) {
 		redirect('/app/browse');
 	}
 
 	return (
-		<AppShell hasOrg={hasOrg}>
+		<AppShell hasOrg={hasOrg} hasCompany={hasCompany}>
 			<AuthFeedback />
 			{children}
 		</AppShell>

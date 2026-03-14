@@ -3,6 +3,7 @@ import { prisma } from './prisma';
 
 export type AuditLogInput = {
 	orgId?: string | null;
+	companyId?: string | null;
 	actorId?: string | null;
 	action: string;
 	entityType: string;
@@ -19,7 +20,8 @@ type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 function buildAuditCreate(input: AuditLogInput) {
 	return {
 		data: {
-			orgId: input.orgId,
+			orgId: input.orgId ?? null,
+			companyId: input.companyId ?? null,
 			actorId: input.actorId ?? null,
 			action: input.action,
 			entityType: input.entityType,

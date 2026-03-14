@@ -119,7 +119,11 @@ async function upsertProfile(
 // Skill catalog (SkillFamily + Skill)
 // ---------------------------------------------------------------------------
 
-type SkillFamilyDef = { name: string; slug: string; skills: { name: string; slug: string }[] };
+type SkillFamilyDef = {
+	name: string;
+	slug: string;
+	skills: { name: string; slug: string }[];
+};
 
 const SKILL_CATALOG: SkillFamilyDef[] = [
 	{
@@ -253,7 +257,10 @@ const SKILL_CATALOG: SkillFamilyDef[] = [
 			{ name: 'Cat Socialization', slug: 'cat-socialization' },
 			{ name: 'Wildlife Rehabilitation', slug: 'wildlife-rehabilitation' },
 			{ name: 'Veterinary Assistance', slug: 'veterinary-assistance' },
-			{ name: 'Animal Behavior Assessment', slug: 'animal-behavior-assessment' },
+			{
+				name: 'Animal Behavior Assessment',
+				slug: 'animal-behavior-assessment',
+			},
 			{ name: 'Foster Care (Animals)', slug: 'foster-care-animals' },
 			{ name: 'Kennel Management', slug: 'kennel-management' },
 			{ name: 'Animal Transport', slug: 'animal-transport' },
@@ -283,7 +290,11 @@ async function seedSkillCatalog(): Promise<{
 			const skill = await prisma.skill.upsert({
 				where: { slug: skillDef.slug },
 				update: { name: skillDef.name, familyId: family.id },
-				create: { name: skillDef.name, slug: skillDef.slug, familyId: family.id },
+				create: {
+					name: skillDef.name,
+					slug: skillDef.slug,
+					familyId: family.id,
+				},
 				select: { id: true, slug: true },
 			});
 			skillBySlug.set(skill.slug, skill.id);
@@ -293,7 +304,11 @@ async function seedSkillCatalog(): Promise<{
 	return { skillBySlug, familyBySlug };
 }
 
-async function upsertSkills(userId: string, skillSlugs: string[], skillBySlug: Map<string, string>) {
+async function upsertSkills(
+	userId: string,
+	skillSlugs: string[],
+	skillBySlug: Map<string, string>,
+) {
 	for (const slug of skillSlugs) {
 		const skillId = skillBySlug.get(slug);
 		if (!skillId) {
@@ -348,7 +363,9 @@ async function getQuestionsByKey(orgId: string, keys: string[]) {
 	const map = new Map(questions.map((q) => [q.key, q.id]));
 	const missing = keys.filter((k) => !map.has(k));
 	if (missing.length > 0) {
-		throw new Error(`Missing screener questions for keys: ${missing.join(', ')}`);
+		throw new Error(
+			`Missing screener questions for keys: ${missing.join(', ')}`,
+		);
 	}
 	return map;
 }
@@ -411,7 +428,9 @@ async function main() {
 	// =========================================================================
 	console.log('🎯 Seeding skill catalog...');
 	const { skillBySlug, familyBySlug } = await seedSkillCatalog();
-	console.log(`   ${skillBySlug.size} skills seeded across ${familyBySlug.size} families\n`);
+	console.log(
+		`   ${skillBySlug.size} skills seeded across ${familyBySlug.size} families\n`,
+	);
 
 	// =========================================================================
 	// 1. Organizations
@@ -465,10 +484,7 @@ async function main() {
 		'Priya Patel',
 		'https://i.pravatar.cc/150?u=priya',
 	);
-	const tom = await upsertUser(
-		'tom.wright@helpinghands.org',
-		'Tom Wright',
-	);
+	const tom = await upsertUser('tom.wright@helpinghands.org', 'Tom Wright');
 
 	await upsertMember(helpingHands.id, sarah.id, Role.OWNER);
 	await upsertMember(helpingHands.id, marcus.id, Role.ADMIN);
@@ -481,10 +497,7 @@ async function main() {
 		'Elena Vasquez',
 		'https://i.pravatar.cc/150?u=elena',
 	);
-	const james = await upsertUser(
-		'james.ko@greencityparks.org',
-		'James Ko',
-	);
+	const james = await upsertUser('james.ko@greencityparks.org', 'James Ko');
 
 	await upsertMember(greenCity.id, elena.id, Role.OWNER);
 	await upsertMember(greenCity.id, james.id, Role.STAFF);
@@ -509,19 +522,48 @@ async function main() {
 	// =========================================================================
 	console.log('🙋 Creating volunteers...');
 
-	const vol1 = await upsertUser('alex.rivera@gmail.com', 'Alex Rivera', 'https://i.pravatar.cc/150?u=alex');
-	const vol2 = await upsertUser('jordan.lee@outlook.com', 'Jordan Lee', 'https://i.pravatar.cc/150?u=jordan');
-	const vol3 = await upsertUser('maya.thompson@yahoo.com', 'Maya Thompson', 'https://i.pravatar.cc/150?u=maya');
+	const vol1 = await upsertUser(
+		'alex.rivera@gmail.com',
+		'Alex Rivera',
+		'https://i.pravatar.cc/150?u=alex',
+	);
+	const vol2 = await upsertUser(
+		'jordan.lee@outlook.com',
+		'Jordan Lee',
+		'https://i.pravatar.cc/150?u=jordan',
+	);
+	const vol3 = await upsertUser(
+		'maya.thompson@yahoo.com',
+		'Maya Thompson',
+		'https://i.pravatar.cc/150?u=maya',
+	);
 	const vol4 = await upsertUser('sam.nguyen@gmail.com', 'Sam Nguyen');
-	const vol5 = await upsertUser('olivia.martinez@gmail.com', 'Olivia Martinez', 'https://i.pravatar.cc/150?u=olivia');
+	const vol5 = await upsertUser(
+		'olivia.martinez@gmail.com',
+		'Olivia Martinez',
+		'https://i.pravatar.cc/150?u=olivia',
+	);
 	const vol6 = await upsertUser('liam.chen@proton.me', 'Liam Chen');
-	const vol7 = await upsertUser('ava.jackson@gmail.com', 'Ava Jackson', 'https://i.pravatar.cc/150?u=ava');
+	const vol7 = await upsertUser(
+		'ava.jackson@gmail.com',
+		'Ava Jackson',
+		'https://i.pravatar.cc/150?u=ava',
+	);
+	// biome-ignore lint/correctness/noUnusedVariables: seeded for data completeness
 	const vol8 = await upsertUser('noah.williams@outlook.com', 'Noah Williams');
-	const vol9 = await upsertUser('emma.garcia@gmail.com', 'Emma Garcia', 'https://i.pravatar.cc/150?u=emma');
+	const vol9 = await upsertUser(
+		'emma.garcia@gmail.com',
+		'Emma Garcia',
+		'https://i.pravatar.cc/150?u=emma',
+	);
+	// biome-ignore lint/correctness/noUnusedVariables: seeded for data completeness
 	const vol10 = await upsertUser('ethan.brown@yahoo.com', 'Ethan Brown');
 
 	// Keep the legacy dev volunteer
-	const devVol = await upsertUser('volunteer@volunteermatch.local', 'Dev Volunteer');
+	const devVol = await upsertUser(
+		'volunteer@volunteermatch.local',
+		'Dev Volunteer',
+	);
 
 	// =========================================================================
 	// 5. Volunteer profiles (varying completeness)
@@ -603,12 +645,32 @@ async function main() {
 	// =========================================================================
 	console.log('🛠️  Adding volunteer skills...');
 
-	await upsertSkills(vol1.id, ['event-planning', 'public-speaking', 'first-aid-cpr', 'spanish'], skillBySlug);
-	await upsertSkills(vol2.id, ['javascript', 'teaching', 'python'], skillBySlug);
-	await upsertSkills(vol3.id, ['community-outreach', 'grant-writing'], skillBySlug);
+	await upsertSkills(
+		vol1.id,
+		['event-planning', 'public-speaking', 'first-aid-cpr', 'spanish'],
+		skillBySlug,
+	);
+	await upsertSkills(
+		vol2.id,
+		['javascript', 'teaching', 'python'],
+		skillBySlug,
+	);
+	await upsertSkills(
+		vol3.id,
+		['community-outreach', 'grant-writing'],
+		skillBySlug,
+	);
 	await upsertSkills(vol4.id, ['volunteer-coordination'], skillBySlug);
-	await upsertSkills(vol5.id, ['first-aid-cpr', 'spanish', 'patient-care', 'teaching'], skillBySlug);
-	await upsertSkills(vol7.id, ['photography', 'videography', 'graphic-design', 'social-media-management'], skillBySlug);
+	await upsertSkills(
+		vol5.id,
+		['first-aid-cpr', 'spanish', 'patient-care', 'teaching'],
+		skillBySlug,
+	);
+	await upsertSkills(
+		vol7.id,
+		['photography', 'videography', 'graphic-design', 'social-media-management'],
+		skillBySlug,
+	);
 	await upsertSkills(vol9.id, ['tutoring', 'copywriting'], skillBySlug);
 
 	// =========================================================================
@@ -668,7 +730,11 @@ async function main() {
 			isActive: true,
 			configJson: {
 				required: true,
-				options: ['None — this is my first time', 'Some experience (1–2 years)', 'Experienced (3+ years)'],
+				options: [
+					'None — this is my first time',
+					'Some experience (1–2 years)',
+					'Experienced (3+ years)',
+				],
 			},
 		},
 		{
@@ -687,7 +753,14 @@ async function main() {
 			isActive: true,
 			configJson: {
 				required: false,
-				options: ['First Aid/CPR', 'Food Handling', 'Driving', 'Teaching/Tutoring', 'Construction/Repair', 'Language Translation'],
+				options: [
+					'First Aid/CPR',
+					'Food Handling',
+					'Driving',
+					'Teaching/Tutoring',
+					'Construction/Repair',
+					'Language Translation',
+				],
 			},
 		},
 	];
@@ -711,7 +784,8 @@ async function main() {
 		},
 		{
 			key: 'physical_activity',
-			prompt: 'Can you perform moderate physical activity outdoors for up to 4 hours?',
+			prompt:
+				'Can you perform moderate physical activity outdoors for up to 4 hours?',
 			type: 'BOOLEAN',
 			order: 20,
 			isActive: true,
@@ -725,7 +799,13 @@ async function main() {
 			isActive: true,
 			configJson: {
 				required: true,
-				options: ['Trail maintenance', 'Planting & gardening', 'Guided tours', 'Wildlife monitoring', 'Event setup'],
+				options: [
+					'Trail maintenance',
+					'Planting & gardening',
+					'Guided tours',
+					'Wildlife monitoring',
+					'Event setup',
+				],
 			},
 		},
 		{
@@ -757,7 +837,8 @@ async function main() {
 		},
 		{
 			key: 'background_check_consent',
-			prompt: 'Do you consent to an enhanced background check (required for working with minors)?',
+			prompt:
+				'Do you consent to an enhanced background check (required for working with minors)?',
 			type: 'BOOLEAN',
 			order: 20,
 			isActive: true,
@@ -777,7 +858,11 @@ async function main() {
 			isActive: true,
 			configJson: {
 				required: true,
-				options: ['No experience', 'Informal (coaching, tutoring)', 'Professional (teaching, counseling)'],
+				options: [
+					'No experience',
+					'Informal (coaching, tutoring)',
+					'Professional (teaching, counseling)',
+				],
 			},
 		},
 		{
@@ -813,23 +898,43 @@ async function main() {
 			type: 'BOOLEAN',
 			order: 10,
 			isActive: true,
-			configJson: { required: true, rules: { disqualifierRule: { operator: 'equals', value: false }, reason: 'Must be 18+.' } },
+			configJson: {
+				required: true,
+				rules: {
+					disqualifierRule: { operator: 'equals', value: false },
+					reason: 'Must be 18+.',
+				},
+			},
 		},
 		{
 			key: 'reliable_transportation',
-			prompt: 'Do you have reliable transportation to get to the rescue location?',
+			prompt:
+				'Do you have reliable transportation to get to the rescue location?',
 			type: 'BOOLEAN',
 			order: 20,
 			isActive: true,
-			configJson: { required: true, rules: { disqualifierRule: { operator: 'equals', value: false }, reason: 'Reliable transportation is required.' } },
+			configJson: {
+				required: true,
+				rules: {
+					disqualifierRule: { operator: 'equals', value: false },
+					reason: 'Reliable transportation is required.',
+				},
+			},
 		},
 		{
 			key: 'follow_instructions',
-			prompt: 'Can you follow written and verbal instructions exactly (including safety protocols)?',
+			prompt:
+				'Can you follow written and verbal instructions exactly (including safety protocols)?',
 			type: 'BOOLEAN',
 			order: 30,
 			isActive: true,
-			configJson: { required: true, rules: { disqualifierRule: { operator: 'equals', value: false }, reason: 'Safety requires strict instruction-following.' } },
+			configJson: {
+				required: true,
+				rules: {
+					disqualifierRule: { operator: 'equals', value: false },
+					reason: 'Safety requires strict instruction-following.',
+				},
+			},
 		},
 		{
 			key: 'lift_30_lbs',
@@ -837,23 +942,54 @@ async function main() {
 			type: 'BOOLEAN',
 			order: 40,
 			isActive: true,
-			configJson: { required: true, rules: { disqualifierRule: { operator: 'equals', value: false }, reason: 'This role requires lifting up to 30 lbs.' } },
+			configJson: {
+				required: true,
+				rules: {
+					disqualifierRule: { operator: 'equals', value: false },
+					reason: 'This role requires lifting up to 30 lbs.',
+				},
+			},
 		},
 		{
 			key: 'allergies',
-			prompt: 'Do you have allergies to cats or dogs that would limit volunteering?',
+			prompt:
+				'Do you have allergies to cats or dogs that would limit volunteering?',
 			type: 'SINGLE_CHOICE',
 			order: 50,
 			isActive: true,
-			configJson: { required: true, options: ['No allergies', 'Mild allergies (manageable)', 'Severe allergies'], rules: { reviewIf: { operator: 'equals', value: 'Severe allergies' }, reason: 'May require role adjustments or accommodation.' } },
+			configJson: {
+				required: true,
+				options: [
+					'No allergies',
+					'Mild allergies (manageable)',
+					'Severe allergies',
+				],
+				rules: {
+					reviewIf: { operator: 'equals', value: 'Severe allergies' },
+					reason: 'May require role adjustments or accommodation.',
+				},
+			},
 		},
 		{
 			key: 'comfort_reactive_animals',
-			prompt: 'How comfortable are you working around anxious or reactive animals?',
+			prompt:
+				'How comfortable are you working around anxious or reactive animals?',
 			type: 'SINGLE_CHOICE',
 			order: 60,
 			isActive: true,
-			configJson: { required: true, options: ['Not comfortable', 'Somewhat comfortable', 'Comfortable', 'Very comfortable'], rules: { reviewIf: { operator: 'equals', value: 'Not comfortable' }, reason: 'May be better suited to non-handling roles initially.' } },
+			configJson: {
+				required: true,
+				options: [
+					'Not comfortable',
+					'Somewhat comfortable',
+					'Comfortable',
+					'Very comfortable',
+				],
+				rules: {
+					reviewIf: { operator: 'equals', value: 'Not comfortable' },
+					reason: 'May be better suited to non-handling roles initially.',
+				},
+			},
 		},
 		{
 			key: 'why_volunteer',
@@ -869,7 +1005,13 @@ async function main() {
 			type: 'BOOLEAN',
 			order: 80,
 			isActive: true,
-			configJson: { required: true, rules: { disqualifierRule: { operator: 'equals', value: false }, reason: 'Cannot proceed without this attestation.' } },
+			configJson: {
+				required: true,
+				rules: {
+					disqualifierRule: { operator: 'equals', value: false },
+					reason: 'Cannot proceed without this attestation.',
+				},
+			},
 		},
 	];
 	await upsertQuestions(devOrg.id, devQuestions);
@@ -893,7 +1035,11 @@ async function main() {
 		commitmentHours?: number;
 		capacity?: number;
 		tags?: string[];
-		requirements?: Array<{ skillId?: string; familyId?: string; level: RequirementLevel }>;
+		requirements?: Array<{
+			skillId?: string;
+			familyId?: string;
+			level: RequirementLevel;
+		}>;
 	}) {
 		const existing = await prisma.volunteerOpportunity.findFirst({
 			where: { orgId: data.orgId, title: data.title },
@@ -944,14 +1090,17 @@ async function main() {
 	}
 
 	// Skill ID helpers (non-null assertions are safe — catalog was just seeded)
+	// biome-ignore lint/style/noNonNullAssertion: catalog was just seeded above, get() will always return a value
 	const s = (slug: string) => skillBySlug.get(slug)!;
+	// biome-ignore lint/style/noNonNullAssertion: catalog was just seeded above, get() will always return a value
 	const f = (slug: string) => familyBySlug.get(slug)!;
 
 	// Helping Hands opportunities
 	const hhFoodBank = await createOpportunityIfNotExists({
 		orgId: helpingHands.id,
 		title: 'Community Food Bank — Weekly Sorting',
-		description: 'Help sort and distribute donated food items at our downtown warehouse every Saturday morning. Great for groups and individuals alike.',
+		description:
+			'Help sort and distribute donated food items at our downtown warehouse every Saturday morning. Great for groups and individuals alike.',
 		status: 'PUBLISHED',
 		location: '1200 Main St, Portland, OR 97201',
 		startDate: daysFromNow(3),
@@ -967,7 +1116,8 @@ async function main() {
 	const hhTutoring = await createOpportunityIfNotExists({
 		orgId: helpingHands.id,
 		title: 'After-School Tutoring Program',
-		description: 'Tutor K-8 students in reading and math at partner schools across the metro area. Training provided. Background check required.',
+		description:
+			'Tutor K-8 students in reading and math at partner schools across the metro area. Training provided. Background check required.',
 		status: 'PUBLISHED',
 		location: 'Various schools — Portland metro',
 		startDate: daysFromNow(7),
@@ -984,7 +1134,8 @@ async function main() {
 	const hhMealDelivery = await createOpportunityIfNotExists({
 		orgId: helpingHands.id,
 		title: 'Meals on Wheels Delivery Driver',
-		description: 'Deliver hot meals to homebound seniors on weekday mornings. Must have a valid license and reliable vehicle.',
+		description:
+			'Deliver hot meals to homebound seniors on weekday mornings. Must have a valid license and reliable vehicle.',
 		status: 'PUBLISHED',
 		location: 'Portland metro area',
 		startDate: daysFromNow(1),
@@ -1001,7 +1152,8 @@ async function main() {
 	const hhWebsite = await createOpportunityIfNotExists({
 		orgId: helpingHands.id,
 		title: 'Website Redesign Project',
-		description: 'Help redesign our nonprofit website. Remote-friendly, looking for web developers and designers.',
+		description:
+			'Help redesign our nonprofit website. Remote-friendly, looking for web developers and designers.',
 		status: 'DRAFT',
 		isRemote: true,
 		commitmentHours: 10,
@@ -1016,7 +1168,8 @@ async function main() {
 	const hhGala = await createOpportunityIfNotExists({
 		orgId: helpingHands.id,
 		title: 'Annual Fundraiser Gala — Event Volunteers',
-		description: 'Help set up, run, and tear down our annual fundraiser gala. One-time commitment on April 15th.',
+		description:
+			'Help set up, run, and tear down our annual fundraiser gala. One-time commitment on April 15th.',
 		status: 'PUBLISHED',
 		location: 'Portland Convention Center',
 		startDate: daysFromNow(35),
@@ -1034,7 +1187,8 @@ async function main() {
 	const gcTrail = await createOpportunityIfNotExists({
 		orgId: greenCity.id,
 		title: 'Spring Trail Restoration',
-		description: 'Join us for hands-on trail work including erosion repair, bridge building, and signage installation across 12 miles of trails.',
+		description:
+			'Join us for hands-on trail work including erosion repair, bridge building, and signage installation across 12 miles of trails.',
 		status: 'PUBLISHED',
 		location: 'Forest Park, Portland, OR',
 		startDate: daysFromNow(10),
@@ -1044,25 +1198,26 @@ async function main() {
 		tags: ['outdoors', 'trails', 'conservation'],
 	});
 
+	// biome-ignore lint/correctness/noUnusedVariables: seeded for data completeness
 	const gcGarden = await createOpportunityIfNotExists({
 		orgId: greenCity.id,
 		title: 'Community Garden Coordinator',
-		description: 'Lead a team of volunteers at the Riverside Community Garden. Manage planting schedules, tool inventory, and plot assignments.',
+		description:
+			'Lead a team of volunteers at the Riverside Community Garden. Manage planting schedules, tool inventory, and plot assignments.',
 		status: 'PUBLISHED',
 		location: 'Riverside Park, Portland, OR',
 		startDate: daysFromNow(5),
 		endDate: daysFromNow(120),
 		commitmentHours: 8,
 		tags: ['gardening', 'leadership', 'community'],
-		requirements: [
-			{ skillId: s('volunteer-coordination'), level: 'REQUIRED' },
-		],
+		requirements: [{ skillId: s('volunteer-coordination'), level: 'REQUIRED' }],
 	});
 
 	const gcWildlife = await createOpportunityIfNotExists({
 		orgId: greenCity.id,
 		title: 'Bird Census & Wildlife Monitoring',
-		description: 'Monthly bird counts and wildlife observation walks. Training provided by local Audubon chapter.',
+		description:
+			'Monthly bird counts and wildlife observation walks. Training provided by local Audubon chapter.',
 		status: 'PUBLISHED',
 		isRemote: false,
 		location: 'Various parks',
@@ -1076,10 +1231,12 @@ async function main() {
 		],
 	});
 
+	// biome-ignore lint/correctness/noUnusedVariables: seeded for data completeness
 	const gcClosed = await createOpportunityIfNotExists({
 		orgId: greenCity.id,
 		title: 'Winter Cleanup 2025',
-		description: 'Annual winter cleanup — this event has concluded. Thanks to all 50 volunteers who participated!',
+		description:
+			'Annual winter cleanup — this event has concluded. Thanks to all 50 volunteers who participated!',
 		status: 'CLOSED',
 		location: 'Forest Park',
 		startDate: daysAgo(90),
@@ -1093,7 +1250,8 @@ async function main() {
 	const yfMentor = await createOpportunityIfNotExists({
 		orgId: youthFutures.id,
 		title: 'One-on-One Youth Mentor',
-		description: 'Be matched with a young person (ages 12–17) and meet weekly for academic support, career exploration, and personal development.',
+		description:
+			'Be matched with a young person (ages 12–17) and meet weekly for academic support, career exploration, and personal development.',
 		status: 'PUBLISHED',
 		location: 'Various community centers — Portland',
 		startDate: daysFromNow(14),
@@ -1115,7 +1273,7 @@ async function main() {
 	// Helping Hands applications
 	await createApplicationIfNotExists({
 		orgId: helpingHands.id,
-		submittedByEmail: vol1.email!,
+		submittedByEmail: vol1.email ?? '',
 		submittedByUserId: vol1.id,
 		opportunityId: hhFoodBank.id,
 		status: 'APPROVED',
@@ -1126,14 +1284,21 @@ async function main() {
 			{ questionKey: 'background_check_consent', value: true },
 			{ questionKey: 'hours_per_week', value: 8 },
 			{ questionKey: 'experience_level', value: 'Experienced (3+ years)' },
-			{ questionKey: 'why_volunteer', value: 'I have been volunteering for years in food security. I want to contribute my organizational skills to the food bank.' },
-			{ questionKey: 'special_skills', value: ['First Aid/CPR', 'Food Handling', 'Driving'] },
+			{
+				questionKey: 'why_volunteer',
+				value:
+					'I have been volunteering for years in food security. I want to contribute my organizational skills to the food bank.',
+			},
+			{
+				questionKey: 'special_skills',
+				value: ['First Aid/CPR', 'Food Handling', 'Driving'],
+			},
 		],
 	});
 
 	await createApplicationIfNotExists({
 		orgId: helpingHands.id,
-		submittedByEmail: vol2.email!,
+		submittedByEmail: vol2.email ?? '',
 		submittedByUserId: vol2.id,
 		opportunityId: hhWebsite.id,
 		status: 'SUBMITTED',
@@ -1144,14 +1309,18 @@ async function main() {
 			{ questionKey: 'background_check_consent', value: true },
 			{ questionKey: 'hours_per_week', value: 10 },
 			{ questionKey: 'experience_level', value: 'Some experience (1–2 years)' },
-			{ questionKey: 'why_volunteer', value: 'I am a web developer and would love to help redesign your site pro bono.' },
+			{
+				questionKey: 'why_volunteer',
+				value:
+					'I am a web developer and would love to help redesign your site pro bono.',
+			},
 			{ questionKey: 'special_skills', value: [] },
 		],
 	});
 
 	await createApplicationIfNotExists({
 		orgId: helpingHands.id,
-		submittedByEmail: vol5.email!,
+		submittedByEmail: vol5.email ?? '',
 		submittedByUserId: vol5.id,
 		opportunityId: hhMealDelivery.id,
 		status: 'APPROVED',
@@ -1162,24 +1331,42 @@ async function main() {
 			{ questionKey: 'background_check_consent', value: true },
 			{ questionKey: 'hours_per_week', value: 12 },
 			{ questionKey: 'experience_level', value: 'Experienced (3+ years)' },
-			{ questionKey: 'why_volunteer', value: 'As a retired nurse, I care deeply about seniors. I am bilingual and can help Spanish-speaking clients.' },
-			{ questionKey: 'special_skills', value: ['First Aid/CPR', 'Driving', 'Language Translation'] },
+			{
+				questionKey: 'why_volunteer',
+				value:
+					'As a retired nurse, I care deeply about seniors. I am bilingual and can help Spanish-speaking clients.',
+			},
+			{
+				questionKey: 'special_skills',
+				value: ['First Aid/CPR', 'Driving', 'Language Translation'],
+			},
 		],
 	});
 
 	await createApplicationIfNotExists({
 		orgId: helpingHands.id,
-		submittedByEmail: vol9.email!,
+		submittedByEmail: vol9.email ?? '',
 		submittedByUserId: vol9.id,
 		status: 'REVIEW',
 		screeningStatus: 'REVIEW',
-		screeningReasons: [{ code: 'LOW_HOURS', message: 'Less than 4 hours/week may not meet minimum requirements.' }],
+		screeningReasons: [
+			{
+				code: 'LOW_HOURS',
+				message: 'Less than 4 hours/week may not meet minimum requirements.',
+			},
+		],
 		answers: [
 			{ questionKey: 'age_18_plus', value: true },
 			{ questionKey: 'background_check_consent', value: true },
 			{ questionKey: 'hours_per_week', value: 2 },
-			{ questionKey: 'experience_level', value: 'None — this is my first time' },
-			{ questionKey: 'why_volunteer', value: 'I want to give back to my community while in college.' },
+			{
+				questionKey: 'experience_level',
+				value: 'None — this is my first time',
+			},
+			{
+				questionKey: 'why_volunteer',
+				value: 'I want to give back to my community while in college.',
+			},
 			{ questionKey: 'special_skills', value: ['Teaching/Tutoring'] },
 		],
 	});
@@ -1189,13 +1376,21 @@ async function main() {
 		submittedByEmail: 'underage-applicant@example.com',
 		status: 'REJECTED',
 		screeningStatus: 'FAIL',
-		screeningReasons: [{ code: 'UNDER_18', message: 'Must be 18 years or older.' }],
+		screeningReasons: [
+			{ code: 'UNDER_18', message: 'Must be 18 years or older.' },
+		],
 		answers: [
 			{ questionKey: 'age_18_plus', value: false },
 			{ questionKey: 'background_check_consent', value: true },
 			{ questionKey: 'hours_per_week', value: 5 },
-			{ questionKey: 'experience_level', value: 'None — this is my first time' },
-			{ questionKey: 'why_volunteer', value: 'I need volunteer hours for school.' },
+			{
+				questionKey: 'experience_level',
+				value: 'None — this is my first time',
+			},
+			{
+				questionKey: 'why_volunteer',
+				value: 'I need volunteer hours for school.',
+			},
 			{ questionKey: 'special_skills', value: [] },
 		],
 	});
@@ -1203,7 +1398,7 @@ async function main() {
 	// Green City Parks applications
 	await createApplicationIfNotExists({
 		orgId: greenCity.id,
-		submittedByEmail: vol3.email!,
+		submittedByEmail: vol3.email ?? '',
 		submittedByUserId: vol3.id,
 		opportunityId: gcWildlife.id,
 		status: 'APPROVED',
@@ -1212,14 +1407,21 @@ async function main() {
 		answers: [
 			{ questionKey: 'age_16_plus', value: true },
 			{ questionKey: 'physical_activity', value: true },
-			{ questionKey: 'interests', value: ['Wildlife monitoring', 'Trail maintenance'] },
-			{ questionKey: 'why_parks', value: 'I am studying environmental science and want hands-on conservation experience.' },
+			{
+				questionKey: 'interests',
+				value: ['Wildlife monitoring', 'Trail maintenance'],
+			},
+			{
+				questionKey: 'why_parks',
+				value:
+					'I am studying environmental science and want hands-on conservation experience.',
+			},
 		],
 	});
 
 	await createApplicationIfNotExists({
 		orgId: greenCity.id,
-		submittedByEmail: vol4.email!,
+		submittedByEmail: vol4.email ?? '',
 		submittedByUserId: vol4.id,
 		opportunityId: gcTrail.id,
 		status: 'SUBMITTED',
@@ -1229,14 +1431,17 @@ async function main() {
 			{ questionKey: 'age_16_plus', value: true },
 			{ questionKey: 'physical_activity', value: true },
 			{ questionKey: 'interests', value: ['Trail maintenance'] },
-			{ questionKey: 'why_parks', value: 'I enjoy being outdoors and working with my hands.' },
+			{
+				questionKey: 'why_parks',
+				value: 'I enjoy being outdoors and working with my hands.',
+			},
 		],
 	});
 
 	// Youth Futures applications
 	await createApplicationIfNotExists({
 		orgId: youthFutures.id,
-		submittedByEmail: vol5.email!,
+		submittedByEmail: vol5.email ?? '',
 		submittedByUserId: vol5.id,
 		opportunityId: yfMentor.id,
 		status: 'SUBMITTED',
@@ -1245,25 +1450,40 @@ async function main() {
 		answers: [
 			{ questionKey: 'age_21_plus', value: true },
 			{ questionKey: 'background_check_consent', value: true },
-			{ questionKey: 'mentor_experience', value: 'Professional (teaching, counseling)' },
+			{
+				questionKey: 'mentor_experience',
+				value: 'Professional (teaching, counseling)',
+			},
 			{ questionKey: 'commitment_months', value: 12 },
-			{ questionKey: 'personal_statement', value: 'I spent 30 years as a pediatric nurse. Now retired, I want to mentor young people who need guidance navigating career choices and personal challenges.' },
+			{
+				questionKey: 'personal_statement',
+				value:
+					'I spent 30 years as a pediatric nurse. Now retired, I want to mentor young people who need guidance navigating career choices and personal challenges.',
+			},
 		],
 	});
 
 	await createApplicationIfNotExists({
 		orgId: youthFutures.id,
-		submittedByEmail: vol6.email!,
+		submittedByEmail: vol6.email ?? '',
 		submittedByUserId: vol6.id,
 		status: 'REVIEW',
 		screeningStatus: 'REVIEW',
-		screeningReasons: [{ code: 'SHORT_COMMITMENT', message: 'Program ideally requires 6+ month commitment.' }],
+		screeningReasons: [
+			{
+				code: 'SHORT_COMMITMENT',
+				message: 'Program ideally requires 6+ month commitment.',
+			},
+		],
 		answers: [
 			{ questionKey: 'age_21_plus', value: true },
 			{ questionKey: 'background_check_consent', value: true },
 			{ questionKey: 'mentor_experience', value: 'No experience' },
 			{ questionKey: 'commitment_months', value: 3 },
-			{ questionKey: 'personal_statement', value: 'I want to try mentoring and see if it is a good fit for me.' },
+			{
+				questionKey: 'personal_statement',
+				value: 'I want to try mentoring and see if it is a good fit for me.',
+			},
 		],
 	});
 
@@ -1282,7 +1502,11 @@ async function main() {
 			{ questionKey: 'lift_30_lbs', value: true },
 			{ questionKey: 'allergies', value: 'No allergies' },
 			{ questionKey: 'comfort_reactive_animals', value: 'Comfortable' },
-			{ questionKey: 'why_volunteer', value: 'I love animals and I am consistent. Happy to start with cleaning, feeding, and basic support tasks.' },
+			{
+				questionKey: 'why_volunteer',
+				value:
+					'I love animals and I am consistent. Happy to start with cleaning, feeding, and basic support tasks.',
+			},
 			{ questionKey: 'attest_no_abuse', value: true },
 		],
 	});
@@ -1293,8 +1517,15 @@ async function main() {
 		status: 'REVIEW',
 		screeningStatus: 'REVIEW',
 		screeningReasons: [
-			{ code: 'ALLERGIES_SEVERE', message: 'Severe allergies may require role adjustments.' },
-			{ code: 'REACTIVE_COMFORT_LOW', message: 'Not comfortable with reactive animals; consider non-handling roles.' },
+			{
+				code: 'ALLERGIES_SEVERE',
+				message: 'Severe allergies may require role adjustments.',
+			},
+			{
+				code: 'REACTIVE_COMFORT_LOW',
+				message:
+					'Not comfortable with reactive animals; consider non-handling roles.',
+			},
 		],
 		answers: [
 			{ questionKey: 'age_18_plus', value: true },
@@ -1303,7 +1534,11 @@ async function main() {
 			{ questionKey: 'lift_30_lbs', value: true },
 			{ questionKey: 'allergies', value: 'Severe allergies' },
 			{ questionKey: 'comfort_reactive_animals', value: 'Not comfortable' },
-			{ questionKey: 'why_volunteer', value: 'I want to help but I am new. I am open to admin tasks, laundry, food prep, and cleaning.' },
+			{
+				questionKey: 'why_volunteer',
+				value:
+					'I want to help but I am new. I am open to admin tasks, laundry, food prep, and cleaning.',
+			},
 			{ questionKey: 'attest_no_abuse', value: true },
 		],
 	});
@@ -1313,15 +1548,23 @@ async function main() {
 		submittedByEmail: 'sample-fail@volunteermatch.local',
 		status: 'REJECTED',
 		screeningStatus: 'FAIL',
-		screeningReasons: [{ code: 'UNDER_18', message: 'Must be 18 years or older.' }],
+		screeningReasons: [
+			{ code: 'UNDER_18', message: 'Must be 18 years or older.' },
+		],
 		answers: [
 			{ questionKey: 'age_18_plus', value: false },
 			{ questionKey: 'reliable_transportation', value: true },
 			{ questionKey: 'follow_instructions', value: true },
 			{ questionKey: 'lift_30_lbs', value: true },
 			{ questionKey: 'allergies', value: 'No allergies' },
-			{ questionKey: 'comfort_reactive_animals', value: 'Somewhat comfortable' },
-			{ questionKey: 'why_volunteer', value: 'I need volunteer hours for school.' },
+			{
+				questionKey: 'comfort_reactive_animals',
+				value: 'Somewhat comfortable',
+			},
+			{
+				questionKey: 'why_volunteer',
+				value: 'I need volunteer hours for school.',
+			},
 			{ questionKey: 'attest_no_abuse', value: true },
 		],
 	});
@@ -1344,7 +1587,11 @@ async function main() {
 		status: ShiftStatus;
 	}) {
 		const existing = await prisma.shift.findFirst({
-			where: { orgId: data.orgId, title: data.title, startTime: data.startTime },
+			where: {
+				orgId: data.orgId,
+				title: data.title,
+				startTime: data.startTime,
+			},
 			select: { id: true },
 		});
 		if (existing) return existing;
@@ -1481,7 +1728,12 @@ async function main() {
 	await createSignupIfNotExists(tutoringShift.id, vol2.id, 'CONFIRMED');
 	await createSignupIfNotExists(tutoringShift.id, vol5.id, 'CONFIRMED');
 	await createSignupIfNotExists(galaSetup.id, vol1.id, 'CONFIRMED');
-	await createSignupIfNotExists(galaSetup.id, vol7.id, 'CONFIRMED', 'Happy to photograph the event too!');
+	await createSignupIfNotExists(
+		galaSetup.id,
+		vol7.id,
+		'CONFIRMED',
+		'Happy to photograph the event too!',
+	);
 	await createSignupIfNotExists(trailDay.id, vol3.id, 'CONFIRMED');
 	await createSignupIfNotExists(trailDay.id, vol4.id, 'CONFIRMED');
 
@@ -1494,7 +1746,12 @@ async function main() {
 	await createSignupIfNotExists(fullShift.id, vol5.id, 'CONFIRMED');
 
 	// Cancelled signups
-	await createSignupIfNotExists(cancelledShift.id, vol5.id, 'CANCELLED', 'Shift cancelled due to weather.');
+	await createSignupIfNotExists(
+		cancelledShift.id,
+		vol5.id,
+		'CANCELLED',
+		'Shift cancelled due to weather.',
+	);
 
 	// =========================================================================
 	// 11. Credentials
@@ -1502,45 +1759,92 @@ async function main() {
 	console.log('🏅 Creating credentials...');
 
 	// Alex — fully verified at Helping Hands
-	await upsertCredential(vol1.id, helpingHands.id, 'BACKGROUND_CHECK', 'VERIFIED', {
-		issuedAt: daysAgo(60),
-		expiresAt: daysFromNow(305),
-		notes: 'Cleared — no issues.',
-	});
-	await upsertCredential(vol1.id, helpingHands.id, 'ORIENTATION_COMPLETE', 'VERIFIED', {
-		issuedAt: daysAgo(55),
-	});
-	await upsertCredential(vol1.id, helpingHands.id, 'TRAINING_COMPLETE', 'VERIFIED', {
-		issuedAt: daysAgo(50),
-	});
+	await upsertCredential(
+		vol1.id,
+		helpingHands.id,
+		'BACKGROUND_CHECK',
+		'VERIFIED',
+		{
+			issuedAt: daysAgo(60),
+			expiresAt: daysFromNow(305),
+			notes: 'Cleared — no issues.',
+		},
+	);
+	await upsertCredential(
+		vol1.id,
+		helpingHands.id,
+		'ORIENTATION_COMPLETE',
+		'VERIFIED',
+		{
+			issuedAt: daysAgo(55),
+		},
+	);
+	await upsertCredential(
+		vol1.id,
+		helpingHands.id,
+		'TRAINING_COMPLETE',
+		'VERIFIED',
+		{
+			issuedAt: daysAgo(50),
+		},
+	);
 
 	// Olivia — background check verified, training pending
-	await upsertCredential(vol5.id, helpingHands.id, 'BACKGROUND_CHECK', 'VERIFIED', {
-		issuedAt: daysAgo(30),
-		expiresAt: daysFromNow(335),
-	});
-	await upsertCredential(vol5.id, helpingHands.id, 'TRAINING_COMPLETE', 'PENDING');
+	await upsertCredential(
+		vol5.id,
+		helpingHands.id,
+		'BACKGROUND_CHECK',
+		'VERIFIED',
+		{
+			issuedAt: daysAgo(30),
+			expiresAt: daysFromNow(335),
+		},
+	);
+	await upsertCredential(
+		vol5.id,
+		helpingHands.id,
+		'TRAINING_COMPLETE',
+		'PENDING',
+	);
 	await upsertCredential(vol5.id, helpingHands.id, 'ID_VERIFIED', 'VERIFIED', {
 		issuedAt: daysAgo(28),
 	});
 
 	// Maya — verified at Green City Parks
-	await upsertCredential(vol3.id, greenCity.id, 'ORIENTATION_COMPLETE', 'VERIFIED', {
-		issuedAt: daysAgo(45),
-	});
+	await upsertCredential(
+		vol3.id,
+		greenCity.id,
+		'ORIENTATION_COMPLETE',
+		'VERIFIED',
+		{
+			issuedAt: daysAgo(45),
+		},
+	);
 
 	// Jordan — expired credential
-	await upsertCredential(vol2.id, helpingHands.id, 'BACKGROUND_CHECK', 'EXPIRED', {
-		issuedAt: daysAgo(400),
-		expiresAt: daysAgo(35),
-		notes: 'Needs renewal.',
-	});
+	await upsertCredential(
+		vol2.id,
+		helpingHands.id,
+		'BACKGROUND_CHECK',
+		'EXPIRED',
+		{
+			issuedAt: daysAgo(400),
+			expiresAt: daysAgo(35),
+			notes: 'Needs renewal.',
+		},
+	);
 
 	// Ava — reference check revoked
-	await upsertCredential(vol7.id, helpingHands.id, 'REFERENCE_CHECK', 'REVOKED', {
-		issuedAt: daysAgo(90),
-		notes: 'Reference could not be contacted.',
-	});
+	await upsertCredential(
+		vol7.id,
+		helpingHands.id,
+		'REFERENCE_CHECK',
+		'REVOKED',
+		{
+			issuedAt: daysAgo(90),
+			notes: 'Reference could not be contacted.',
+		},
+	);
 
 	// =========================================================================
 	// 12. Audit log entries (a few realistic ones)
@@ -1548,12 +1852,54 @@ async function main() {
 	console.log('📜 Creating audit log entries...');
 
 	const auditEntries = [
-		{ actorId: sarah.id, orgId: helpingHands.id, action: 'application.approved', entityType: 'VolunteerApplication', entityId: null, metadata: { email: vol1.email } },
-		{ actorId: sarah.id, orgId: helpingHands.id, action: 'opportunity.created', entityType: 'VolunteerOpportunity', entityId: hhFoodBank.id, metadata: { title: 'Community Food Bank — Weekly Sorting' } },
-		{ actorId: marcus.id, orgId: helpingHands.id, action: 'shift.created', entityType: 'Shift', entityId: satFoodBank.id, metadata: { title: 'Saturday Food Sort — Morning' } },
-		{ actorId: elena.id, orgId: greenCity.id, action: 'application.approved', entityType: 'VolunteerApplication', entityId: null, metadata: { email: vol3.email } },
-		{ actorId: elena.id, orgId: greenCity.id, action: 'opportunity.created', entityType: 'VolunteerOpportunity', entityId: gcTrail.id, metadata: { title: 'Spring Trail Restoration' } },
-		{ actorId: diana.id, orgId: youthFutures.id, action: 'opportunity.created', entityType: 'VolunteerOpportunity', entityId: yfMentor.id, metadata: { title: 'One-on-One Youth Mentor' } },
+		{
+			actorId: sarah.id,
+			orgId: helpingHands.id,
+			action: 'application.approved',
+			entityType: 'VolunteerApplication',
+			entityId: null,
+			metadata: { email: vol1.email },
+		},
+		{
+			actorId: sarah.id,
+			orgId: helpingHands.id,
+			action: 'opportunity.created',
+			entityType: 'VolunteerOpportunity',
+			entityId: hhFoodBank.id,
+			metadata: { title: 'Community Food Bank — Weekly Sorting' },
+		},
+		{
+			actorId: marcus.id,
+			orgId: helpingHands.id,
+			action: 'shift.created',
+			entityType: 'Shift',
+			entityId: satFoodBank.id,
+			metadata: { title: 'Saturday Food Sort — Morning' },
+		},
+		{
+			actorId: elena.id,
+			orgId: greenCity.id,
+			action: 'application.approved',
+			entityType: 'VolunteerApplication',
+			entityId: null,
+			metadata: { email: vol3.email },
+		},
+		{
+			actorId: elena.id,
+			orgId: greenCity.id,
+			action: 'opportunity.created',
+			entityType: 'VolunteerOpportunity',
+			entityId: gcTrail.id,
+			metadata: { title: 'Spring Trail Restoration' },
+		},
+		{
+			actorId: diana.id,
+			orgId: youthFutures.id,
+			action: 'opportunity.created',
+			entityType: 'VolunteerOpportunity',
+			entityId: yfMentor.id,
+			metadata: { title: 'One-on-One Youth Mentor' },
+		},
 	];
 
 	for (const entry of auditEntries) {
@@ -1575,32 +1921,42 @@ async function main() {
 	console.log('✉️  Creating organization invitations...');
 
 	// Pending invite
-	await prisma.organizationInvitation.create({
-		data: {
-			orgId: helpingHands.id,
-			email: 'newstaff@helpinghands.org',
-			role: Role.STAFF,
-			tokenHash: 'seed-invite-token-pending-hh',
-			expiresAt: daysFromNow(7),
-		},
-	}).catch(() => { /* ignore duplicate */ });
+	await prisma.organizationInvitation
+		.create({
+			data: {
+				orgId: helpingHands.id,
+				email: 'newstaff@helpinghands.org',
+				role: Role.STAFF,
+				tokenHash: 'seed-invite-token-pending-hh',
+				expiresAt: daysFromNow(7),
+			},
+		})
+		.catch(() => {
+			/* ignore duplicate */
+		});
 
 	// Expired invite
-	await prisma.organizationInvitation.create({
-		data: {
-			orgId: greenCity.id,
-			email: 'expired-invite@greencityparks.org',
-			role: Role.STAFF,
-			tokenHash: 'seed-invite-token-expired-gc',
-			expiresAt: daysAgo(5),
-		},
-	}).catch(() => { /* ignore duplicate */ });
+	await prisma.organizationInvitation
+		.create({
+			data: {
+				orgId: greenCity.id,
+				email: 'expired-invite@greencityparks.org',
+				role: Role.STAFF,
+				tokenHash: 'seed-invite-token-expired-gc',
+				expiresAt: daysAgo(5),
+			},
+		})
+		.catch(() => {
+			/* ignore duplicate */
+		});
 
 	// =========================================================================
 	// Done!
 	// =========================================================================
 	console.log('\n✅ Seed complete!');
-	console.log('   Organizations: 4 (Helping Hands, Green City Parks, Youth Futures, Dev Org)');
+	console.log(
+		'   Organizations: 4 (Helping Hands, Green City Parks, Youth Futures, Dev Org)',
+	);
 	console.log('   Staff users: 9');
 	console.log('   Pure volunteers: 10');
 	console.log('   Opportunities: 10');

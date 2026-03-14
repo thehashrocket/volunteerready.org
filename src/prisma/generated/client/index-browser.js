@@ -151,6 +151,7 @@ exports.Prisma.SessionScalarFieldEnum = {
   userId: 'userId',
   expires: 'expires',
   currentOrgId: 'currentOrgId',
+  currentCompanyId: 'currentCompanyId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -174,6 +175,10 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   id: 'id',
   name: 'name',
   slug: 'slug',
+  planTier: 'planTier',
+  stripeCustomerId: 'stripeCustomerId',
+  stripeSubscriptionId: 'stripeSubscriptionId',
+  trialEndsAt: 'trialEndsAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -190,6 +195,7 @@ exports.Prisma.AuditLogScalarFieldEnum = {
   id: 'id',
   actorId: 'actorId',
   orgId: 'orgId',
+  companyId: 'companyId',
   action: 'action',
   entityType: 'entityType',
   entityId: 'entityId',
@@ -357,6 +363,54 @@ exports.Prisma.ShiftSignupScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.CompanyAccountScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  stripeCustomerId: 'stripeCustomerId',
+  stripeSubscriptionId: 'stripeSubscriptionId',
+  planTier: 'planTier',
+  trialEndsAt: 'trialEndsAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CompanyMemberScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  userId: 'userId',
+  role: 'role',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CompanyInvitationScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  email: 'email',
+  role: 'role',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CompanyNonprofitLinkScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  orgId: 'orgId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StripeWebhookEventScalarFieldEnum = {
+  id: 'id',
+  stripeId: 'stripeId',
+  type: 'type',
+  processedAt: 'processedAt',
+  payload: 'payload'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -386,6 +440,12 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
+exports.PlanTier = exports.$Enums.PlanTier = {
+  FREE: 'FREE',
+  STARTER: 'STARTER',
+  PRO: 'PRO'
+};
+
 exports.Role = exports.$Enums.Role = {
   OWNER: 'OWNER',
   ADMIN: 'ADMIN',
@@ -467,6 +527,17 @@ exports.SignupStatus = exports.$Enums.SignupStatus = {
   ATTENDED: 'ATTENDED'
 };
 
+exports.CompanyMemberRole = exports.$Enums.CompanyMemberRole = {
+  OWNER: 'OWNER',
+  ADMIN: 'ADMIN',
+  MEMBER: 'MEMBER'
+};
+
+exports.CompanyNonprofitLinkStatus = exports.$Enums.CompanyNonprofitLinkStatus = {
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -490,7 +561,12 @@ exports.Prisma.ModelName = {
   VolunteerProfile: 'VolunteerProfile',
   VolunteerCredential: 'VolunteerCredential',
   Shift: 'Shift',
-  ShiftSignup: 'ShiftSignup'
+  ShiftSignup: 'ShiftSignup',
+  CompanyAccount: 'CompanyAccount',
+  CompanyMember: 'CompanyMember',
+  CompanyInvitation: 'CompanyInvitation',
+  CompanyNonprofitLink: 'CompanyNonprofitLink',
+  StripeWebhookEvent: 'StripeWebhookEvent'
 };
 
 /**
