@@ -10,15 +10,22 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function volunteer(skills: string[]): VolunteerSkillSet {
-	return { skills };
+function volunteer(skillIds: string[]): VolunteerSkillSet {
+	return { skillIds };
 }
 
 function opportunity(
 	id: string,
 	requirements: { skill: string; level: 'REQUIRED' | 'PREFERRED' }[],
 ): OpportunityRequirementSet {
-	return { opportunityId: id, requirements };
+	return {
+		opportunityId: id,
+		requirements: requirements.map((r) => ({
+			skillId: r.skill,
+			level: r.level,
+			label: r.skill,
+		})),
+	};
 }
 
 // ---------------------------------------------------------------------------
