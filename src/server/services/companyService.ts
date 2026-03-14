@@ -309,25 +309,37 @@ export async function acceptCompanyInvite(opts: {
 		return { companyId: invitation.companyId, alreadyMember: true };
 	}
 
-	await prisma.$transaction(async (tx) => {
-		await markCompanyInvitationUsedTx(tx, invitation.id);
+	try {
+		await prisma.$transaction(async (tx) => {
+			await markCompanyInvitationUsedTx(tx, invitation.id);
 
-		await tx.companyMember.create({
-			data: {
+			await tx.companyMember.create({
+				data: {
+					companyId: invitation.companyId,
+					userId: opts.userId,
+					role: invitation.role,
+				},
+			});
+
+			await writeAuditLogTx(tx, {
 				companyId: invitation.companyId,
-				userId: opts.userId,
-				role: invitation.role,
-			},
+				actorId: opts.userId,
+				action: 'COMPANY_MEMBER_ADDED',
+				entityType: 'CompanyMember',
+				metadata: { email: opts.userEmail, role: invitation.role },
+			});
 		});
-
-		await writeAuditLogTx(tx, {
-			companyId: invitation.companyId,
-			actorId: opts.userId,
-			action: 'COMPANY_MEMBER_ADDED',
-			entityType: 'CompanyMember',
-			metadata: { email: opts.userEmail, role: invitation.role },
-		});
-	});
+	} catch (err) {
+		// P2002 on CompanyMember(companyId, userId) means a concurrent request
+		// already accepted this invite — treat as "already a member".
+		if (
+			err instanceof Prisma.PrismaClientKnownRequestError &&
+			err.code === 'P2002'
+		) {
+			return { companyId: invitation.companyId, alreadyMember: true };
+		}
+		throw err;
+	}
 
 	return { companyId: invitation.companyId, alreadyMember: false };
 }
