@@ -24,7 +24,7 @@ cause the webhook to return 5xx — wrap in a try/catch and log the failure sepa
 **Pros:** High perceived professionalism; no new infrastructure needed (Resend already wired up).
 **Cons:** Adds email complexity to the webhook handler; template needs design.
 
-**Effort:** S | **Priority:** P2 | **Depends on:** 6A Stripe billing shipped
+**Effort:** S | **Priority:** P2 | **Depends on:** ✅ 6A Stripe billing shipped
 
 ---
 
@@ -46,7 +46,7 @@ on the client side (no DB calls).
 **Pros:** Converts blocked users to upgrade candidates; makes the plan tier system visible.
 **Cons:** Requires UI audit of all gated features; `PlanGate` adds a tRPC call to those pages.
 
-**Effort:** M | **Priority:** P2 | **Depends on:** 6A planTierProcedure + billing UI shipped
+**Effort:** M | **Priority:** P2 | **Depends on:** ✅ 6A planTierProcedure + billing UI shipped
 
 ---
 
@@ -69,7 +69,7 @@ stores `eventId`, `type`, and `processedAt`.
 **Cons:** Additional complexity; Stripe dashboard already shows failed webhooks for
 manual recovery, which is acceptable at Phase 6 scale.
 
-**Effort:** M | **Priority:** P2 | **Depends on:** 6A Stripe integration shipped
+**Effort:** M | **Priority:** P2 | **Depends on:** ✅ 6A Stripe integration shipped
 
 ---
 
@@ -218,7 +218,7 @@ is sufficient.
 **Pros:** Unlocks power users who manage both nonprofit and corporate accounts.
 **Cons:** UI complexity; most users will only ever have one context.
 
-**Effort:** M | **Priority:** P2 | **Depends on:** 6A CompanyAccount shipped
+**Effort:** M | **Priority:** P2 | **Depends on:** ✅ 6A CompanyAccount shipped
 
 ### [P1] ESG Report PDF Export
 

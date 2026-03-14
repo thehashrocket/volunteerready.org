@@ -77,7 +77,7 @@ Completed capabilities:
 - ✅ Opportunity skill requirements with REQUIRED/PREFERRED levels (demand side)
 - ✅ Requirements displayed on public opportunity listing cards
 - ✅ Volunteer skill profiles (supply side) — self-service skill management at `/app/my-skills`
-- ✅ Pure matching/scoring domain logic — case-insensitive skill comparison, 0–100 scoring
+- ✅ Pure matching/scoring domain logic — exact skill ID matching (Set membership on CUIDs), 0–100 scoring
 - ✅ Match scoring algorithm: REQUIRED skills gate (missing → 0), PREFERRED skills add bonus (50 base + 50 × preferred ratio)
 - ✅ Match types: PERFECT (100), PARTIAL (50–99), NONE (0)
 - ✅ Personalized opportunity recommendations via tRPC `matching.getRecommendations`
@@ -166,27 +166,39 @@ The product is already differentiated on screening and credentialing. This phase
 problem — pricing clarity, a new corporate buyer segment, and the network effects that come from
 portable volunteer identity.
 
-## 6A — Employer Accounts & Billing
+## 6A — Employer Accounts & Billing ✅ Complete
 
-- Corporate account type (`CompanyAccount`) — separate from nonprofit orgs, with its own auth
-  flow, member roster, and subscription
-- `CompanyMember` roles: OWNER / ADMIN / MEMBER
-- `CompanyNonprofitLink` — companies fund/sponsor nonprofit org access
-- Public `/pricing` page with nonprofit tiers (Free / Starter / Pro) and corporate pricing
-- Stripe billing integration — subscription creation, plan tier updates, webhook handling
-- `planTierProcedure` tRPC middleware — gates features by `org.planTier`; modeled after
-  existing `staffProcedure`
-- Stripe webhook idempotency — `StripeWebhookEvent` table prevents double-processing on retries
-- Trial-to-paid conversion flow for nonprofits
+Completed capabilities:
+
+- ✅ `CompanyAccount` — corporate account type with `slug`, separate from nonprofit orgs
+- ✅ `CompanyMember` roles: OWNER / ADMIN / MEMBER; `companyProcedure` / `companyAdminProcedure` tRPC middleware
+- ✅ `CompanyNonprofitLink` — companies sponsor nonprofit orgs (ACTIVE / PAUSED status)
+- ✅ Company creation flow (`/app/company/new`) with slug generation and P2002 guard
+- ✅ `CompanySwitcher` UI component — mirrors `OrgSwitcher`; renders in app shell
+- ✅ Company dashboard (`/app/company/[companyId]`) — linked nonprofits list, team member management
+- ✅ Company invite flow — email-based invitations with SHA-256 token hashing, 48-hour expiry, concurrent-accept safety
+- ✅ Company invite acceptance (`/invite/company/[token]`) — public route, P2002 → `{ alreadyMember: true }`
+- ✅ `Session.currentCompanyId` — mirrors existing `currentOrgId` pattern; single DB query in auth callback
+- ✅ `PlanTier` (FREE / STARTER / PRO) on `Organization`; `planTierProcedure` factory gates tRPC procedures
+- ✅ Pure domain functions: `getPlanLimits`, `assertPlanAtLeast`, `isWithinTrial`
+- ✅ Stripe billing — `createCheckoutSession`, `createBillingPortalSession` (throws `TRPCError BAD_REQUEST` if no customer)
+- ✅ Stripe webhook handler (`/api/stripe/webhook`) — 3-way error routing: 400 bad sig / 200 duplicate / 500 retry
+- ✅ `StripeWebhookEvent` idempotency table — `stripeId UNIQUE` prevents double-processing
+- ✅ Public `/pricing` page — nonprofit tier cards with feature limits from domain layer
+- ✅ `/app/billing` — nonprofit billing management: plan badge, trial countdown, Stripe Portal link
+- ✅ `companyId` on `AuditLog` — queryable company audit history
+- ✅ NextAuth v4 session callback fix — `cookies()` fallback + DB-query fallback for `orgId`/`companyId` on all request types
 
 Key entities added:
 
 - CompanyAccount
 - CompanyMember (role: OWNER / ADMIN / MEMBER)
+- CompanyInvitation (tokenHash, expiresAt, usedAt)
 - CompanyNonprofitLink (status: ACTIVE / PAUSED)
-- StripeWebhookEvent (idempotency log)
-- Organization gains: `planTier` (FREE / STARTER / PRO), `stripeCustomerId`,
-  `stripeSubscriptionId`
+- StripeWebhookEvent (stripeId unique, idempotency log)
+- Organization gains: `planTier` (FREE / STARTER / PRO), `stripeCustomerId`, `stripeSubscriptionId`, `trialEndsAt`
+- Session gains: `currentCompanyId`
+- AuditLog gains: `companyId`
 
 ## 6B — Background Check Integration
 
