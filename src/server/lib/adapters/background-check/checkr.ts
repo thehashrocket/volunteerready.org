@@ -115,7 +115,8 @@ class CheckrAdapter implements BackgroundCheckAdapter {
 
 	private get clientSecret(): string {
 		const secret = process.env.CHECKR_CLIENT_SECRET;
-		if (!secret) throw new CheckrSignatureError('CHECKR_CLIENT_SECRET is not set');
+		if (!secret)
+			throw new CheckrSignatureError('CHECKR_CLIENT_SECRET is not set');
 		return secret;
 	}
 
