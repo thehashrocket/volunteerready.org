@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+	canFinalizeAdverseAction,
+	canResolveFcra,
+	canSendPreAdverseNotice,
+	FCRA_WAITING_PERIOD_DAYS,
 	isTerminalStatus,
+	isWaitingPeriodElapsed,
 	mapCheckrResultToStatus,
 	sanitizeCheckrPayload,
 	shouldAutoIssueCredential,
+	waitingPeriodDaysRemaining,
 } from '../background-check';
 
 // ---------------------------------------------------------------------------
@@ -89,6 +95,120 @@ describe('shouldAutoIssueCredential', () => {
 
 	it('returns false for PENDING', () => {
 		expect(shouldAutoIssueCredential('PENDING')).toBe(false);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// FCRA state machine guards
+// ---------------------------------------------------------------------------
+
+describe('canSendPreAdverseNotice', () => {
+	it('returns true for NONE', () => {
+		expect(canSendPreAdverseNotice('NONE')).toBe(true);
+	});
+
+	it('returns false for PRE_ADVERSE_SENT', () => {
+		expect(canSendPreAdverseNotice('PRE_ADVERSE_SENT')).toBe(false);
+	});
+
+	it('returns false for ADVERSE_ACTION_SENT', () => {
+		expect(canSendPreAdverseNotice('ADVERSE_ACTION_SENT')).toBe(false);
+	});
+
+	it('returns false for RESOLVED', () => {
+		expect(canSendPreAdverseNotice('RESOLVED')).toBe(false);
+	});
+});
+
+describe('canFinalizeAdverseAction', () => {
+	it('returns true for PRE_ADVERSE_SENT', () => {
+		expect(canFinalizeAdverseAction('PRE_ADVERSE_SENT')).toBe(true);
+	});
+
+	it('returns false for NONE', () => {
+		expect(canFinalizeAdverseAction('NONE')).toBe(false);
+	});
+
+	it('returns false for ADVERSE_ACTION_SENT', () => {
+		expect(canFinalizeAdverseAction('ADVERSE_ACTION_SENT')).toBe(false);
+	});
+
+	it('returns false for RESOLVED', () => {
+		expect(canFinalizeAdverseAction('RESOLVED')).toBe(false);
+	});
+});
+
+describe('canResolveFcra', () => {
+	it('returns true for NONE', () => {
+		expect(canResolveFcra('NONE')).toBe(true);
+	});
+
+	it('returns true for PRE_ADVERSE_SENT', () => {
+		expect(canResolveFcra('PRE_ADVERSE_SENT')).toBe(true);
+	});
+
+	it('returns false for ADVERSE_ACTION_SENT', () => {
+		expect(canResolveFcra('ADVERSE_ACTION_SENT')).toBe(false);
+	});
+
+	it('returns false for RESOLVED', () => {
+		expect(canResolveFcra('RESOLVED')).toBe(false);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// FCRA waiting period
+// ---------------------------------------------------------------------------
+
+describe('isWaitingPeriodElapsed', () => {
+	it('returns false before waiting period (4 days 23 hours)', () => {
+		const sentAt = new Date('2026-03-10T12:00:00Z');
+		const now = new Date('2026-03-15T11:00:00Z'); // 4d 23h
+		expect(isWaitingPeriodElapsed(sentAt, now)).toBe(false);
+	});
+
+	it('returns true at exactly 5 days', () => {
+		const sentAt = new Date('2026-03-10T12:00:00Z');
+		const now = new Date('2026-03-15T12:00:00Z'); // exactly 5d
+		expect(isWaitingPeriodElapsed(sentAt, now)).toBe(true);
+	});
+
+	it('returns true after 6 days', () => {
+		const sentAt = new Date('2026-03-10T12:00:00Z');
+		const now = new Date('2026-03-16T12:00:00Z'); // 6d
+		expect(isWaitingPeriodElapsed(sentAt, now)).toBe(true);
+	});
+
+	it('returns false for same timestamp', () => {
+		const sentAt = new Date('2026-03-10T12:00:00Z');
+		expect(isWaitingPeriodElapsed(sentAt, sentAt)).toBe(false);
+	});
+});
+
+describe('waitingPeriodDaysRemaining', () => {
+	it('returns days remaining when period not elapsed', () => {
+		const sentAt = new Date('2026-03-10T12:00:00Z');
+		const now = new Date('2026-03-13T12:00:00Z'); // 3d elapsed
+		expect(waitingPeriodDaysRemaining(sentAt, now)).toBe(2);
+	});
+
+	it('returns 0 when period has elapsed', () => {
+		const sentAt = new Date('2026-03-10T12:00:00Z');
+		const now = new Date('2026-03-16T12:00:00Z'); // 6d elapsed
+		expect(waitingPeriodDaysRemaining(sentAt, now)).toBe(0);
+	});
+
+	it('returns 5 at the start', () => {
+		const sentAt = new Date('2026-03-10T12:00:00Z');
+		expect(waitingPeriodDaysRemaining(sentAt, sentAt)).toBe(
+			FCRA_WAITING_PERIOD_DAYS,
+		);
+	});
+
+	it('rounds up partial days', () => {
+		const sentAt = new Date('2026-03-10T12:00:00Z');
+		const now = new Date('2026-03-13T13:00:00Z'); // 3d 1h elapsed → 2 remaining (ceil)
+		expect(waitingPeriodDaysRemaining(sentAt, now)).toBe(2);
 	});
 });
 

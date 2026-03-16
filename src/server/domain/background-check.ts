@@ -4,7 +4,7 @@
  * NO framework imports. No Prisma. No tRPC. Pure functions only.
  * Follow volunteer-profile.ts pattern.
  *
- * State machine:
+ * Background check status state machine:
  *
  *          initiate         webhook:clear
  *  ──────► PENDING ──────────────────────────► COMPLETE (terminal)
@@ -19,9 +19,25 @@
  *
  *          PENDING ──► webhook:adverse/suspended/dispute ──► FAILED (terminal)
  *          PENDING ──► staff cancel ──────────────────────► CANCELLED (terminal)
- *          CONSIDER ──► staff cancel ───────────────────── ► CANCELLED (terminal)
+ *          CONSIDER ──► staff cancel ─────────────────────► CANCELLED (terminal)
+ *          CONSIDER ──► FCRA adverse action finalized ────► FAILED (terminal)
  *
  *  RULE: Terminal status checks ignore subsequent webhooks (logged, not acted on).
+ *
+ * FCRA adverse action state machine (nested within CONSIDER status):
+ *
+ *      fcraStatus transitions (only meaningful when status=CONSIDER):
+ *
+ *      NONE ──────────────────────────► RESOLVED (staff issues credential directly)
+ *        │                                  ▲
+ *        ▼                                  │
+ *      PRE_ADVERSE_SENT ───────────────► RESOLVED (staff issues credential during wait)
+ *        │
+ *        ▼ (after ≥ FCRA_WAITING_PERIOD_DAYS)
+ *      ADVERSE_ACTION_SENT (terminal — status also moves to FAILED)
+ *
+ *  At any point: staff can CANCEL the check (status→CANCELLED, fcraStatus irrelevant).
+ *  RESOLVED and ADVERSE_ACTION_SENT are terminal fcraStatus values.
  */
 
 export type BackgroundCheckStatus =
@@ -32,6 +48,23 @@ export type BackgroundCheckStatus =
 	| 'CANCELLED';
 
 export type BackgroundCheckProvider = 'CHECKR' | 'STERLING';
+
+export type FcraStatus =
+	| 'NONE'
+	| 'PRE_ADVERSE_SENT'
+	| 'ADVERSE_ACTION_SENT'
+	| 'RESOLVED';
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/**
+ * FCRA "reasonable" waiting period in calendar days.
+ * Industry standard is 5 days. Some jurisdictions require business days;
+ * see docs/TODOS.md [P3] for configurable waiting period.
+ */
+export const FCRA_WAITING_PERIOD_DAYS = 5;
 
 // ---------------------------------------------------------------------------
 // Status mapping — Checkr result string → internal status
@@ -81,6 +114,57 @@ export function shouldAutoIssueCredential(
 	status: BackgroundCheckStatus,
 ): boolean {
 	return status === 'COMPLETE';
+}
+
+// ---------------------------------------------------------------------------
+// FCRA state machine guards
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns true if a pre-adverse action notice can be sent.
+ * Only allowed when fcraStatus is NONE (notice has not been sent yet).
+ */
+export function canSendPreAdverseNotice(fcraStatus: FcraStatus): boolean {
+	return fcraStatus === 'NONE';
+}
+
+/**
+ * Returns true if the adverse action can be finalized.
+ * Only allowed after the pre-adverse notice has been sent.
+ */
+export function canFinalizeAdverseAction(fcraStatus: FcraStatus): boolean {
+	return fcraStatus === 'PRE_ADVERSE_SENT';
+}
+
+/**
+ * Returns true if the FCRA process can be resolved favorably
+ * (e.g., staff issues a credential during the waiting period).
+ * Allowed from NONE (no adverse process started) or PRE_ADVERSE_SENT
+ * (during the waiting period).
+ */
+export function canResolveFcra(fcraStatus: FcraStatus): boolean {
+	return fcraStatus === 'NONE' || fcraStatus === 'PRE_ADVERSE_SENT';
+}
+
+/**
+ * Returns true if the FCRA waiting period has elapsed since the
+ * pre-adverse notice was sent. Uses calendar days.
+ */
+export function isWaitingPeriodElapsed(sentAt: Date, now: Date): boolean {
+	const diffMs = now.getTime() - sentAt.getTime();
+	const diffDays = diffMs / (1000 * 60 * 60 * 24);
+	return diffDays >= FCRA_WAITING_PERIOD_DAYS;
+}
+
+/**
+ * Returns the number of full days remaining in the waiting period.
+ * Returns 0 if the period has elapsed.
+ */
+export function waitingPeriodDaysRemaining(sentAt: Date, now: Date): number {
+	const diffMs = now.getTime() - sentAt.getTime();
+	const diffDays = diffMs / (1000 * 60 * 60 * 24);
+	const remaining = FCRA_WAITING_PERIOD_DAYS - diffDays;
+	return remaining > 0 ? Math.ceil(remaining) : 0;
 }
 
 // ---------------------------------------------------------------------------
