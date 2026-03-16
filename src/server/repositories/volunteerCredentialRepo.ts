@@ -30,6 +30,21 @@ export async function getCredentialsByUserAndOrg(
 	});
 }
 
+/**
+ * Find a single credential by user, org, and type using the @@unique index.
+ * O(1) lookup — prefer over getCredentialsByUserAndOrg when you only need one type.
+ */
+export async function findCredentialByUserOrgType(
+	userId: string,
+	orgId: string,
+	type: CredentialType,
+) {
+	return prisma.volunteerCredential.findUnique({
+		where: { userId_orgId_type: { userId, orgId, type } },
+		select: { id: true, status: true },
+	});
+}
+
 /** Get credentials for all volunteers in an org (staff view). */
 export async function getCredentialsByOrg(orgId: string) {
 	return prisma.volunteerCredential.findMany({
