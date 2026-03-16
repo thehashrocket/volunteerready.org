@@ -497,6 +497,8 @@ function CheckrConnectCard() {
 		oauthUrlQ.refetch().then((result) => {
 			if (result.data?.url) {
 				window.location.href = result.data.url;
+			} else if (result.error) {
+				toast.error('Failed to initiate Checkr connection. Please try again.');
 			}
 		});
 	}
