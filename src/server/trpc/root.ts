@@ -1,5 +1,6 @@
 import { createTRPCRouter } from '@/server/trpc/init';
 import { authRouter } from '@/server/trpc/routers/auth';
+import { backgroundChecksRouter } from '@/server/trpc/routers/background-checks';
 import { billingRouter } from '@/server/trpc/routers/billing';
 import { companyRouter } from '@/server/trpc/routers/company';
 import { credentialsRouter } from '@/server/trpc/routers/credentials';
@@ -16,6 +17,7 @@ import { statusRouter } from '@/server/trpc/routers/status';
 
 export const appRouter = createTRPCRouter({
 	auth: authRouter,
+	backgroundChecks: backgroundChecksRouter,
 	billing: billingRouter,
 	company: companyRouter,
 	credentials: credentialsRouter,
