@@ -11,7 +11,19 @@ allowed-tools:
   - Bash
   - Read
   - Write
+  - AskUserQuestion
 ---
+<!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
+<!-- Regenerate: bun run gen:skill-docs -->
+
+## Update Check (run first)
+
+```bash
+_UPD=$(~/.claude/skills/gstack/bin/gstack-update-check 2>/dev/null || .claude/skills/gstack/bin/gstack-update-check 2>/dev/null || true)
+[ -n "$_UPD" ] && echo "$_UPD" || true
+```
+
+If output shows `UPGRADE_AVAILABLE <old> <new>`: read `~/.claude/skills/gstack/gstack-upgrade/SKILL.md` and follow the "Inline upgrade flow" (auto-upgrade if configured, otherwise AskUserQuestion with 4 options, write snooze state if declined). If `JUST_UPGRADED <from> <to>`: tell user "Running gstack v{to} (just updated!)" and continue.
 
 # /qa: Systematic QA Testing
 
@@ -33,19 +45,24 @@ You are a QA engineer. Test web applications like a real user — click everythi
 
 **Find the browse binary:**
 
+## SETUP (run this check BEFORE any browse command)
+
 ```bash
-BROWSE_OUTPUT=$(browse/bin/find-browse 2>/dev/null || ~/.claude/skills/gstack/browse/bin/find-browse 2>/dev/null)
-B=$(echo "$BROWSE_OUTPUT" | head -1)
-META=$(echo "$BROWSE_OUTPUT" | grep "^META:" || true)
-if [ -z "$B" ]; then
-  echo "ERROR: browse binary not found"
-  exit 1
+_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+B=""
+[ -n "$_ROOT" ] && [ -x "$_ROOT/.claude/skills/gstack/browse/dist/browse" ] && B="$_ROOT/.claude/skills/gstack/browse/dist/browse"
+[ -z "$B" ] && B=~/.claude/skills/gstack/browse/dist/browse
+if [ -x "$B" ]; then
+  echo "READY: $B"
+else
+  echo "NEEDS_SETUP"
 fi
-echo "READY: $B"
-[ -n "$META" ] && echo "$META"
 ```
 
-If you see `META:UPDATE_AVAILABLE`: tell the user an update is available, STOP and wait for approval, then run the command from the META payload and re-run the setup check.
+If `NEEDS_SETUP`:
+1. Tell the user: "gstack browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
+2. Run: `cd <SKILL_DIR> && ./setup`
+3. If `bun` is not installed: `curl -fsSL https://bun.sh/install | bash`
 
 **Create output directories:**
 
@@ -93,7 +110,9 @@ This is the **primary mode** for developers verifying their work. When the user 
 
 5. **Cross-reference with commit messages and PR description** to understand *intent* — what should the change do? Verify it actually does that.
 
-6. **Report findings** scoped to the branch changes:
+6. **Check TODOS.md** (if it exists) for known bugs or issues related to the changed files. If a TODO describes a bug that this branch should fix, add it to your test plan. If you find a new bug during QA that isn't in TODOS.md, note it in the report.
+
+7. **Report findings** scoped to the branch changes:
    - "Changes tested: N pages/routes affected by this branch"
    - For each: does it work? Screenshot evidence.
    - Any regressions on adjacent pages?

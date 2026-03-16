@@ -1,5 +1,82 @@
 # Changelog
 
+## 0.3.9 — 2026-03-15
+
+### Added
+- **`bin/gstack-config` CLI** — simple get/set/list interface for `~/.gstack/config.yaml`. Used by update-check and upgrade skill for persistent settings (auto_upgrade, update_check).
+- **Smart update check** — 12h cache TTL (was 24h), exponential snooze backoff (24h → 48h → 1 week) when user declines upgrades, `update_check: false` config option to disable checks entirely. Snooze resets when a new version is released.
+- **Auto-upgrade mode** — set `auto_upgrade: true` in config or `GSTACK_AUTO_UPGRADE=1` env var to skip the upgrade prompt and update automatically.
+- **4-option upgrade prompt** — "Yes, upgrade now", "Always keep me up to date", "Not now" (snooze), "Never ask again" (disable).
+- **Vendored copy sync** — `/gstack-upgrade` now detects and updates local vendored copies in the current project after upgrading the primary install.
+- 25 new tests: 11 for gstack-config CLI, 14 for snooze/config paths in update-check.
+
+### Changed
+- README upgrade/troubleshooting sections simplified to reference `/gstack-upgrade` instead of long paste commands.
+- Upgrade skill template bumped to v1.1.0 with `Write` tool permission for config editing.
+- All SKILL.md preambles updated with new upgrade flow description.
+
+## 0.3.8 — 2026-03-14
+
+### Added
+- **TODOS.md as single source of truth** — merged `TODO.md` (roadmap) and `TODOS.md` (near-term) into one file organized by skill/component with P0-P4 priority ordering and a Completed section.
+- **`/ship` Step 5.5: TODOS.md management** — auto-detects completed items from the diff, marks them done with version annotations, offers to create/reorganize TODOS.md if missing or unstructured.
+- **Cross-skill TODOS awareness** — `/plan-ceo-review`, `/plan-eng-review`, `/retro`, `/review`, and `/qa` now read TODOS.md for project context. `/retro` adds Backlog Health metric (open counts, P0/P1 items, churn).
+- **Shared `review/TODOS-format.md`** — canonical TODO item format referenced by `/ship` and `/plan-ceo-review` to prevent format drift (DRY).
+- **Greptile 2-tier reply system** — Tier 1 (friendly, inline diff + explanation) for first responses; Tier 2 (firm, full evidence chain + re-rank request) when Greptile re-flags after a prior reply.
+- **Greptile reply templates** — structured templates in `greptile-triage.md` for fixes (inline diff), already-fixed (what was done), and false positives (evidence + suggested re-rank). Replaces vague one-line replies.
+- **Greptile escalation detection** — explicit algorithm to detect prior GStack replies on comment threads and auto-escalate to Tier 2.
+- **Greptile severity re-ranking** — replies now include `**Suggested re-rank:**` when Greptile miscategorizes issue severity.
+- Static validation tests for `TODOS-format.md` references across skills.
+
+### Fixed
+- **`.gitignore` append failures silently swallowed** — `ensureStateDir()` bare `catch {}` replaced with ENOENT-only silence; non-ENOENT errors (EACCES, ENOSPC) logged to `.gstack/browse-server.log`.
+
+### Changed
+- `TODO.md` deleted — all items merged into `TODOS.md`.
+- `/ship` Step 3.75 and `/review` Step 5 now reference reply templates and escalation detection from `greptile-triage.md`.
+- `/ship` Step 6 commit ordering includes TODOS.md in the final commit alongside VERSION + CHANGELOG.
+- `/ship` Step 8 PR body includes TODOS section.
+
+## 0.3.7 — 2026-03-14
+
+### Added
+- **Screenshot element/region clipping** — `screenshot` command now supports element crop via CSS selector or @ref (`screenshot "#hero" out.png`, `screenshot @e3 out.png`), region clip (`screenshot --clip x,y,w,h out.png`), and viewport-only mode (`screenshot --viewport out.png`). Uses Playwright's native `locator.screenshot()` and `page.screenshot({ clip })`. Full page remains the default.
+- 10 new tests covering all screenshot modes (viewport, CSS, @ref, clip) and error paths (unknown flag, mutual exclusion, invalid coords, path validation, nonexistent selector).
+
+## 0.3.6 — 2026-03-14
+
+### Added
+- **E2E observability** — heartbeat file (`~/.gstack-dev/e2e-live.json`), per-run log directory (`~/.gstack-dev/e2e-runs/{runId}/`), progress.log, per-test NDJSON transcripts, persistent failure transcripts. All I/O non-fatal.
+- **`bun run eval:watch`** — live terminal dashboard reads heartbeat + partial eval file every 1s. Shows completed tests, current test with turn/tool info, stale detection (>10min), `--tail` for progress.log.
+- **Incremental eval saves** — `savePartial()` writes `_partial-e2e.json` after each test completes. Crash-resilient: partial results survive killed runs. Never cleaned up.
+- **Machine-readable diagnostics** — `exit_reason`, `timeout_at_turn`, `last_tool_call` fields in eval JSON. Enables `jq` queries for automated fix loops.
+- **API connectivity pre-check** — E2E suite throws immediately on ConnectionRefused before burning test budget.
+- **`is_error` detection** — `claude -p` can return `subtype: "success"` with `is_error: true` on API failures. Now correctly classified as `error_api`.
+- **Stream-json NDJSON parser** — `parseNDJSON()` pure function for real-time E2E progress from `claude -p --output-format stream-json --verbose`.
+- **Eval persistence** — results saved to `~/.gstack-dev/evals/` with auto-comparison against previous run.
+- **Eval CLI tools** — `eval:list`, `eval:compare`, `eval:summary` for inspecting eval history.
+- **All 9 skills converted to `.tmpl` templates** — plan-ceo-review, plan-eng-review, retro, review, ship now use `{{UPDATE_CHECK}}` placeholder. Single source of truth for update check preamble.
+- **3-tier eval suite** — Tier 1: static validation (free), Tier 2: E2E via `claude -p` (~$3.85/run), Tier 3: LLM-as-judge (~$0.15/run). Gated by `EVALS=1`.
+- **Planted-bug outcome testing** — eval fixtures with known bugs, LLM judge scores detection.
+- 15 observability unit tests covering heartbeat schema, progress.log format, NDJSON naming, savePartial, finalize, watcher rendering, stale detection, non-fatal I/O.
+- E2E tests for plan-ceo-review, plan-eng-review, retro skills.
+- Update-check exit code regression tests.
+- `test/helpers/skill-parser.ts` — `getRemoteSlug()` for git remote detection.
+
+### Fixed
+- **Browse binary discovery broken for agents** — replaced `find-browse` indirection with explicit `browse/dist/browse` path in SKILL.md setup blocks.
+- **Update check exit code 1 misleading agents** — added `|| true` to prevent non-zero exit when no update available.
+- **browse/SKILL.md missing setup block** — added `{{BROWSE_SETUP}}` placeholder.
+- **plan-ceo-review timeout** — init git repo in test dir, skip codebase exploration, bump timeout to 420s.
+- Planted-bug eval reliability — simplified prompts, lowered detection baselines, resilient to max_turns flakes.
+
+### Changed
+- **Template system expanded** — `{{UPDATE_CHECK}}` and `{{BROWSE_SETUP}}` placeholders in `gen-skill-docs.ts`. All browse-using skills generate from single source of truth.
+- Enriched 14 command descriptions with specific arg formats, valid values, error behavior, and return types.
+- Setup block checks workspace-local path first (for development), falls back to global install.
+- LLM eval judge upgraded from Haiku to Sonnet 4.6.
+- `generateHelpText()` auto-generated from COMMAND_DESCRIPTIONS (replaces hand-maintained help text).
+
 ## 0.3.3 — 2026-03-13
 
 ### Added

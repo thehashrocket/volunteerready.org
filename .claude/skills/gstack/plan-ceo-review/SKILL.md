@@ -13,6 +13,17 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 ---
+<!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
+<!-- Regenerate: bun run gen:skill-docs -->
+
+## Update Check (run first)
+
+```bash
+_UPD=$(~/.claude/skills/gstack/bin/gstack-update-check 2>/dev/null || .claude/skills/gstack/bin/gstack-update-check 2>/dev/null || true)
+[ -n "$_UPD" ] && echo "$_UPD" || true
+```
+
+If output shows `UPGRADE_AVAILABLE <old> <new>`: read `~/.claude/skills/gstack/gstack-upgrade/SKILL.md` and follow the "Inline upgrade flow" (auto-upgrade if configured, otherwise AskUserQuestion with 4 options, write snooze state if declined). If `JUST_UPGRADED <from> <to>`: tell user "Running gstack v{to} (just updated!)" and continue.
 
 # Mega Plan Review Mode
 
@@ -63,7 +74,13 @@ git stash list                                 # Any stashed work
 grep -r "TODO\|FIXME\|HACK\|XXX" --include="*.rb" --include="*.js" -l
 find . -name "*.rb" -newer Gemfile.lock | head -20  # Recently touched files
 ```
-Then read CLAUDE.md, TODOS.md, and any existing architecture docs. Map:
+Then read CLAUDE.md, TODOS.md, and any existing architecture docs. When reading TODOS.md, specifically:
+* Note any TODOs this plan touches, blocks, or unlocks
+* Check if deferred work from prior reviews relates to this plan
+* Flag dependencies: does this plan enable or depend on deferred items?
+* Map known pain points (from TODOS) to this plan's scope
+
+Map:
 * What is the current system state?
 * What is already in flight (other open PRs, branches, stashed changes)?
 * What are the existing known pain points most relevant to this plan?
@@ -382,7 +399,7 @@ Complete table of every method that can fail, every exception class, rescued sta
 Any row with RESCUED=N, TEST=N, USER SEES=Silent → **CRITICAL GAP**.
 
 ### TODOS.md updates
-Present each potential TODO as its own individual AskUserQuestion. Never batch TODOs — one per question. Never silently skip this step.
+Present each potential TODO as its own individual AskUserQuestion. Never batch TODOs — one per question. Never silently skip this step. Follow the format in `.claude/skills/review/TODOS-format.md`.
 
 For each TODO, describe:
 * **What:** One-line description of the work.
