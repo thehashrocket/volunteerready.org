@@ -5,16 +5,18 @@ All notable changes to this project will be documented in this file.
 ## [0.2.3] - 2026-03-16
 
 ### Added
-- **FCRA adverse action workflow** — full pre-adverse notice → 5-day waiting period → adverse action notice flow for CONSIDER background check results, with volunteer-facing emails containing FCRA-required rights information and FTC PDF link
-- **`FcraStatus` enum** — state machine (NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED) with pure domain guards and waiting period helpers
-- **3 new tRPC mutations** — `sendPreAdverseNotice`, `finalizeAdverseAction`, `resolveFcra` (all staffProcedure) with IDOR guards, status guards, and audit logging
-- **FCRA column + action buttons** on Background Check Requests table — Pre-Adverse Notice, Finalize Adverse Action, and Issue Credential (with automatic FCRA resolution) buttons on CONSIDER rows
-- **AES-256-GCM token encryption** — Checkr OAuth access tokens encrypted at rest via `src/server/lib/crypto.ts`; `tryDecrypt()` supports zero-downtime migration from plaintext
-- **Shared Resend email client** — lazy-initialized singleton in `src/server/lib/resend.ts` replacing 7 separate `new Resend()` calls; avoids build-time errors when API key is absent
-- **Atomic FCRA status transitions** — `updateMany` with compound WHERE guards prevent duplicate FCRA notices from concurrent requests
+- **FCRA adverse action workflow** — staff can now send pre-adverse notices, wait the required 5-day period, and finalize adverse actions for CONSIDER background check results. Volunteers receive legally-compliant emails with their FCRA rights and Checkr contact info
+- **FCRA action buttons** on the background check table — one-click Pre-Adverse Notice, Finalize Adverse Action, and Issue Credential buttons appear on CONSIDER rows based on the current FCRA state
+- **Checkr token encryption** — OAuth access tokens are now encrypted at rest using AES-256-GCM. Existing plaintext tokens are decrypted transparently (zero-downtime migration)
+- **Shared email client** — all email sending now uses a single lazy-initialized Resend instance, fixing build-time errors when the API key isn't configured
 
 ### Fixed
-- Race condition on FCRA status transitions — atomic WHERE guards on all 3 FCRA service methods prevent duplicate legally-significant emails
+- Concurrent FCRA actions can no longer send duplicate legally-significant emails — all status transitions use atomic database guards
+
+### For contributors
+- `FcraStatus` state machine: NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED (see `src/server/domain/background-check.ts`)
+- Encryption utilities: `encrypt()`, `decrypt()`, `tryDecrypt()` in `src/server/lib/crypto.ts`
+- New env var required: `CHECKR_TOKEN_ENCRYPTION_KEY` (64 hex chars / 32 bytes)
 
 ## [0.2.2] - 2026-03-16
 
