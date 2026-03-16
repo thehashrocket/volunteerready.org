@@ -153,6 +153,16 @@ export type CompanyNonprofitLink = $Result.DefaultSelection<Prisma.$CompanyNonpr
  * 
  */
 export type StripeWebhookEvent = $Result.DefaultSelection<Prisma.$StripeWebhookEventPayload>
+/**
+ * Model BackgroundCheckRequest
+ * 
+ */
+export type BackgroundCheckRequest = $Result.DefaultSelection<Prisma.$BackgroundCheckRequestPayload>
+/**
+ * Model CheckrWebhookEvent
+ * 
+ */
+export type CheckrWebhookEvent = $Result.DefaultSelection<Prisma.$CheckrWebhookEventPayload>
 
 /**
  * Enums
@@ -300,6 +310,25 @@ export const CompanyNonprofitLinkStatus: {
 
 export type CompanyNonprofitLinkStatus = (typeof CompanyNonprofitLinkStatus)[keyof typeof CompanyNonprofitLinkStatus]
 
+
+export const BackgroundCheckProvider: {
+  CHECKR: 'CHECKR',
+  STERLING: 'STERLING'
+};
+
+export type BackgroundCheckProvider = (typeof BackgroundCheckProvider)[keyof typeof BackgroundCheckProvider]
+
+
+export const BackgroundCheckStatus: {
+  PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  CONSIDER: 'CONSIDER',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+export type BackgroundCheckStatus = (typeof BackgroundCheckStatus)[keyof typeof BackgroundCheckStatus]
+
 }
 
 export type ApplicationStatus = $Enums.ApplicationStatus
@@ -361,6 +390,14 @@ export const CompanyMemberRole: typeof $Enums.CompanyMemberRole
 export type CompanyNonprofitLinkStatus = $Enums.CompanyNonprofitLinkStatus
 
 export const CompanyNonprofitLinkStatus: typeof $Enums.CompanyNonprofitLinkStatus
+
+export type BackgroundCheckProvider = $Enums.BackgroundCheckProvider
+
+export const BackgroundCheckProvider: typeof $Enums.BackgroundCheckProvider
+
+export type BackgroundCheckStatus = $Enums.BackgroundCheckStatus
+
+export const BackgroundCheckStatus: typeof $Enums.BackgroundCheckStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -762,6 +799,26 @@ export class PrismaClient<
     * ```
     */
   get stripeWebhookEvent(): Prisma.StripeWebhookEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.backgroundCheckRequest`: Exposes CRUD operations for the **BackgroundCheckRequest** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BackgroundCheckRequests
+    * const backgroundCheckRequests = await prisma.backgroundCheckRequest.findMany()
+    * ```
+    */
+  get backgroundCheckRequest(): Prisma.BackgroundCheckRequestDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.checkrWebhookEvent`: Exposes CRUD operations for the **CheckrWebhookEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CheckrWebhookEvents
+    * const checkrWebhookEvents = await prisma.checkrWebhookEvent.findMany()
+    * ```
+    */
+  get checkrWebhookEvent(): Prisma.CheckrWebhookEventDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1223,7 +1280,9 @@ export namespace Prisma {
     CompanyMember: 'CompanyMember',
     CompanyInvitation: 'CompanyInvitation',
     CompanyNonprofitLink: 'CompanyNonprofitLink',
-    StripeWebhookEvent: 'StripeWebhookEvent'
+    StripeWebhookEvent: 'StripeWebhookEvent',
+    BackgroundCheckRequest: 'BackgroundCheckRequest',
+    CheckrWebhookEvent: 'CheckrWebhookEvent'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1239,7 +1298,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent" | "backgroundCheckRequest" | "checkrWebhookEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3315,6 +3374,154 @@ export namespace Prisma {
           }
         }
       }
+      BackgroundCheckRequest: {
+        payload: Prisma.$BackgroundCheckRequestPayload<ExtArgs>
+        fields: Prisma.BackgroundCheckRequestFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BackgroundCheckRequestFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BackgroundCheckRequestFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload>
+          }
+          findFirst: {
+            args: Prisma.BackgroundCheckRequestFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BackgroundCheckRequestFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload>
+          }
+          findMany: {
+            args: Prisma.BackgroundCheckRequestFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload>[]
+          }
+          create: {
+            args: Prisma.BackgroundCheckRequestCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload>
+          }
+          createMany: {
+            args: Prisma.BackgroundCheckRequestCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BackgroundCheckRequestCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload>[]
+          }
+          delete: {
+            args: Prisma.BackgroundCheckRequestDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload>
+          }
+          update: {
+            args: Prisma.BackgroundCheckRequestUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload>
+          }
+          deleteMany: {
+            args: Prisma.BackgroundCheckRequestDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BackgroundCheckRequestUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BackgroundCheckRequestUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload>[]
+          }
+          upsert: {
+            args: Prisma.BackgroundCheckRequestUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackgroundCheckRequestPayload>
+          }
+          aggregate: {
+            args: Prisma.BackgroundCheckRequestAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBackgroundCheckRequest>
+          }
+          groupBy: {
+            args: Prisma.BackgroundCheckRequestGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BackgroundCheckRequestGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BackgroundCheckRequestCountArgs<ExtArgs>
+            result: $Utils.Optional<BackgroundCheckRequestCountAggregateOutputType> | number
+          }
+        }
+      }
+      CheckrWebhookEvent: {
+        payload: Prisma.$CheckrWebhookEventPayload<ExtArgs>
+        fields: Prisma.CheckrWebhookEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CheckrWebhookEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CheckrWebhookEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload>
+          }
+          findFirst: {
+            args: Prisma.CheckrWebhookEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CheckrWebhookEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload>
+          }
+          findMany: {
+            args: Prisma.CheckrWebhookEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload>[]
+          }
+          create: {
+            args: Prisma.CheckrWebhookEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload>
+          }
+          createMany: {
+            args: Prisma.CheckrWebhookEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CheckrWebhookEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload>[]
+          }
+          delete: {
+            args: Prisma.CheckrWebhookEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload>
+          }
+          update: {
+            args: Prisma.CheckrWebhookEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.CheckrWebhookEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CheckrWebhookEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CheckrWebhookEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.CheckrWebhookEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CheckrWebhookEventPayload>
+          }
+          aggregate: {
+            args: Prisma.CheckrWebhookEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCheckrWebhookEvent>
+          }
+          groupBy: {
+            args: Prisma.CheckrWebhookEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CheckrWebhookEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CheckrWebhookEventCountArgs<ExtArgs>
+            result: $Utils.Optional<CheckrWebhookEventCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3451,6 +3658,8 @@ export namespace Prisma {
     companyInvitation?: CompanyInvitationOmit
     companyNonprofitLink?: CompanyNonprofitLinkOmit
     stripeWebhookEvent?: StripeWebhookEventOmit
+    backgroundCheckRequest?: BackgroundCheckRequestOmit
+    checkrWebhookEvent?: CheckrWebhookEventOmit
   }
 
   /* Types for Logging */
@@ -3540,6 +3749,7 @@ export namespace Prisma {
     volunteerSkills: number
     credentials: number
     shiftSignups: number
+    backgroundCheckRequests: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3552,6 +3762,7 @@ export namespace Prisma {
     volunteerSkills?: boolean | UserCountOutputTypeCountVolunteerSkillsArgs
     credentials?: boolean | UserCountOutputTypeCountCredentialsArgs
     shiftSignups?: boolean | UserCountOutputTypeCountShiftSignupsArgs
+    backgroundCheckRequests?: boolean | UserCountOutputTypeCountBackgroundCheckRequestsArgs
   }
 
   // Custom InputTypes
@@ -3628,6 +3839,13 @@ export namespace Prisma {
     where?: ShiftSignupWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountBackgroundCheckRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BackgroundCheckRequestWhereInput
+  }
+
 
   /**
    * Count Type OrganizationCountOutputType
@@ -3645,6 +3863,7 @@ export namespace Prisma {
     credentials: number
     shifts: number
     companyLinks: number
+    backgroundCheckRequests: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3659,6 +3878,7 @@ export namespace Prisma {
     credentials?: boolean | OrganizationCountOutputTypeCountCredentialsArgs
     shifts?: boolean | OrganizationCountOutputTypeCountShiftsArgs
     companyLinks?: boolean | OrganizationCountOutputTypeCountCompanyLinksArgs
+    backgroundCheckRequests?: boolean | OrganizationCountOutputTypeCountBackgroundCheckRequestsArgs
   }
 
   // Custom InputTypes
@@ -3747,6 +3967,13 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountCompanyLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CompanyNonprofitLinkWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountBackgroundCheckRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BackgroundCheckRequestWhereInput
   }
 
 
@@ -4211,6 +4438,7 @@ export namespace Prisma {
     profile?: boolean | User$profileArgs<ExtArgs>
     credentials?: boolean | User$credentialsArgs<ExtArgs>
     shiftSignups?: boolean | User$shiftSignupsArgs<ExtArgs>
+    backgroundCheckRequests?: boolean | User$backgroundCheckRequestsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -4256,6 +4484,7 @@ export namespace Prisma {
     profile?: boolean | User$profileArgs<ExtArgs>
     credentials?: boolean | User$credentialsArgs<ExtArgs>
     shiftSignups?: boolean | User$shiftSignupsArgs<ExtArgs>
+    backgroundCheckRequests?: boolean | User$backgroundCheckRequestsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4274,6 +4503,7 @@ export namespace Prisma {
       profile: Prisma.$VolunteerProfilePayload<ExtArgs> | null
       credentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
       shiftSignups: Prisma.$ShiftSignupPayload<ExtArgs>[]
+      backgroundCheckRequests: Prisma.$BackgroundCheckRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4687,6 +4917,7 @@ export namespace Prisma {
     profile<T extends User$profileArgs<ExtArgs> = {}>(args?: Subset<T, User$profileArgs<ExtArgs>>): Prisma__VolunteerProfileClient<$Result.GetResult<Prisma.$VolunteerProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     credentials<T extends User$credentialsArgs<ExtArgs> = {}>(args?: Subset<T, User$credentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     shiftSignups<T extends User$shiftSignupsArgs<ExtArgs> = {}>(args?: Subset<T, User$shiftSignupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    backgroundCheckRequests<T extends User$backgroundCheckRequestsArgs<ExtArgs> = {}>(args?: Subset<T, User$backgroundCheckRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5348,6 +5579,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ShiftSignupScalarFieldEnum | ShiftSignupScalarFieldEnum[]
+  }
+
+  /**
+   * User.backgroundCheckRequests
+   */
+  export type User$backgroundCheckRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    where?: BackgroundCheckRequestWhereInput
+    orderBy?: BackgroundCheckRequestOrderByWithRelationInput | BackgroundCheckRequestOrderByWithRelationInput[]
+    cursor?: BackgroundCheckRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BackgroundCheckRequestScalarFieldEnum | BackgroundCheckRequestScalarFieldEnum[]
   }
 
   /**
@@ -9718,6 +9973,8 @@ export namespace Prisma {
     stripeCustomerId: string | null
     stripeSubscriptionId: string | null
     trialEndsAt: Date | null
+    checkrAccessToken: string | null
+    checkrAccountId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -9730,6 +9987,8 @@ export namespace Prisma {
     stripeCustomerId: string | null
     stripeSubscriptionId: string | null
     trialEndsAt: Date | null
+    checkrAccessToken: string | null
+    checkrAccountId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -9742,6 +10001,8 @@ export namespace Prisma {
     stripeCustomerId: number
     stripeSubscriptionId: number
     trialEndsAt: number
+    checkrAccessToken: number
+    checkrAccountId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -9756,6 +10017,8 @@ export namespace Prisma {
     stripeCustomerId?: true
     stripeSubscriptionId?: true
     trialEndsAt?: true
+    checkrAccessToken?: true
+    checkrAccountId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -9768,6 +10031,8 @@ export namespace Prisma {
     stripeCustomerId?: true
     stripeSubscriptionId?: true
     trialEndsAt?: true
+    checkrAccessToken?: true
+    checkrAccountId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -9780,6 +10045,8 @@ export namespace Prisma {
     stripeCustomerId?: true
     stripeSubscriptionId?: true
     trialEndsAt?: true
+    checkrAccessToken?: true
+    checkrAccountId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -9865,6 +10132,8 @@ export namespace Prisma {
     stripeCustomerId: string | null
     stripeSubscriptionId: string | null
     trialEndsAt: Date | null
+    checkrAccessToken: string | null
+    checkrAccountId: string | null
     createdAt: Date
     updatedAt: Date
     _count: OrganizationCountAggregateOutputType | null
@@ -9894,6 +10163,8 @@ export namespace Prisma {
     stripeCustomerId?: boolean
     stripeSubscriptionId?: boolean
     trialEndsAt?: boolean
+    checkrAccessToken?: boolean
+    checkrAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     members?: boolean | Organization$membersArgs<ExtArgs>
@@ -9907,6 +10178,7 @@ export namespace Prisma {
     credentials?: boolean | Organization$credentialsArgs<ExtArgs>
     shifts?: boolean | Organization$shiftsArgs<ExtArgs>
     companyLinks?: boolean | Organization$companyLinksArgs<ExtArgs>
+    backgroundCheckRequests?: boolean | Organization$backgroundCheckRequestsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -9918,6 +10190,8 @@ export namespace Prisma {
     stripeCustomerId?: boolean
     stripeSubscriptionId?: boolean
     trialEndsAt?: boolean
+    checkrAccessToken?: boolean
+    checkrAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["organization"]>
@@ -9930,6 +10204,8 @@ export namespace Prisma {
     stripeCustomerId?: boolean
     stripeSubscriptionId?: boolean
     trialEndsAt?: boolean
+    checkrAccessToken?: boolean
+    checkrAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["organization"]>
@@ -9942,11 +10218,13 @@ export namespace Prisma {
     stripeCustomerId?: boolean
     stripeSubscriptionId?: boolean
     trialEndsAt?: boolean
+    checkrAccessToken?: boolean
+    checkrAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "planTier" | "stripeCustomerId" | "stripeSubscriptionId" | "trialEndsAt" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
+  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "planTier" | "stripeCustomerId" | "stripeSubscriptionId" | "trialEndsAt" | "checkrAccessToken" | "checkrAccountId" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
   export type OrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     members?: boolean | Organization$membersArgs<ExtArgs>
     auditLogs?: boolean | Organization$auditLogsArgs<ExtArgs>
@@ -9959,6 +10237,7 @@ export namespace Prisma {
     credentials?: boolean | Organization$credentialsArgs<ExtArgs>
     shifts?: boolean | Organization$shiftsArgs<ExtArgs>
     companyLinks?: boolean | Organization$companyLinksArgs<ExtArgs>
+    backgroundCheckRequests?: boolean | Organization$backgroundCheckRequestsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -9978,6 +10257,7 @@ export namespace Prisma {
       credentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
       shifts: Prisma.$ShiftPayload<ExtArgs>[]
       companyLinks: Prisma.$CompanyNonprofitLinkPayload<ExtArgs>[]
+      backgroundCheckRequests: Prisma.$BackgroundCheckRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -9987,6 +10267,8 @@ export namespace Prisma {
       stripeCustomerId: string | null
       stripeSubscriptionId: string | null
       trialEndsAt: Date | null
+      checkrAccessToken: string | null
+      checkrAccountId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["organization"]>
@@ -10394,6 +10676,7 @@ export namespace Prisma {
     credentials<T extends Organization$credentialsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$credentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     shifts<T extends Organization$shiftsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     companyLinks<T extends Organization$companyLinksArgs<ExtArgs> = {}>(args?: Subset<T, Organization$companyLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyNonprofitLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    backgroundCheckRequests<T extends Organization$backgroundCheckRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$backgroundCheckRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -10430,6 +10713,8 @@ export namespace Prisma {
     readonly stripeCustomerId: FieldRef<"Organization", 'String'>
     readonly stripeSubscriptionId: FieldRef<"Organization", 'String'>
     readonly trialEndsAt: FieldRef<"Organization", 'DateTime'>
+    readonly checkrAccessToken: FieldRef<"Organization", 'String'>
+    readonly checkrAccountId: FieldRef<"Organization", 'String'>
     readonly createdAt: FieldRef<"Organization", 'DateTime'>
     readonly updatedAt: FieldRef<"Organization", 'DateTime'>
   }
@@ -11086,6 +11371,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: CompanyNonprofitLinkScalarFieldEnum | CompanyNonprofitLinkScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.backgroundCheckRequests
+   */
+  export type Organization$backgroundCheckRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    where?: BackgroundCheckRequestWhereInput
+    orderBy?: BackgroundCheckRequestOrderByWithRelationInput | BackgroundCheckRequestOrderByWithRelationInput[]
+    cursor?: BackgroundCheckRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BackgroundCheckRequestScalarFieldEnum | BackgroundCheckRequestScalarFieldEnum[]
   }
 
   /**
@@ -27054,6 +27363,7 @@ export namespace Prisma {
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    backgroundCheckRequest?: boolean | VolunteerCredential$backgroundCheckRequestArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerCredential"]>
 
   export type VolunteerCredentialSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -27106,6 +27416,7 @@ export namespace Prisma {
   export type VolunteerCredentialInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    backgroundCheckRequest?: boolean | VolunteerCredential$backgroundCheckRequestArgs<ExtArgs>
   }
   export type VolunteerCredentialIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -27121,6 +27432,7 @@ export namespace Prisma {
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
       organization: Prisma.$OrganizationPayload<ExtArgs>
+      backgroundCheckRequest: Prisma.$BackgroundCheckRequestPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -27530,6 +27842,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    backgroundCheckRequest<T extends VolunteerCredential$backgroundCheckRequestArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerCredential$backgroundCheckRequestArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -27968,6 +28281,25 @@ export namespace Prisma {
      * Limit how many VolunteerCredentials to delete.
      */
     limit?: number
+  }
+
+  /**
+   * VolunteerCredential.backgroundCheckRequest
+   */
+  export type VolunteerCredential$backgroundCheckRequestArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    where?: BackgroundCheckRequestWhereInput
   }
 
   /**
@@ -35837,6 +36169,2161 @@ export namespace Prisma {
 
 
   /**
+   * Model BackgroundCheckRequest
+   */
+
+  export type AggregateBackgroundCheckRequest = {
+    _count: BackgroundCheckRequestCountAggregateOutputType | null
+    _min: BackgroundCheckRequestMinAggregateOutputType | null
+    _max: BackgroundCheckRequestMaxAggregateOutputType | null
+  }
+
+  export type BackgroundCheckRequestMinAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    userId: string | null
+    provider: $Enums.BackgroundCheckProvider | null
+    externalId: string | null
+    status: $Enums.BackgroundCheckStatus | null
+    credentialId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BackgroundCheckRequestMaxAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    userId: string | null
+    provider: $Enums.BackgroundCheckProvider | null
+    externalId: string | null
+    status: $Enums.BackgroundCheckStatus | null
+    credentialId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BackgroundCheckRequestCountAggregateOutputType = {
+    id: number
+    orgId: number
+    userId: number
+    provider: number
+    externalId: number
+    status: number
+    webhookPayload: number
+    credentialId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BackgroundCheckRequestMinAggregateInputType = {
+    id?: true
+    orgId?: true
+    userId?: true
+    provider?: true
+    externalId?: true
+    status?: true
+    credentialId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BackgroundCheckRequestMaxAggregateInputType = {
+    id?: true
+    orgId?: true
+    userId?: true
+    provider?: true
+    externalId?: true
+    status?: true
+    credentialId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BackgroundCheckRequestCountAggregateInputType = {
+    id?: true
+    orgId?: true
+    userId?: true
+    provider?: true
+    externalId?: true
+    status?: true
+    webhookPayload?: true
+    credentialId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BackgroundCheckRequestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BackgroundCheckRequest to aggregate.
+     */
+    where?: BackgroundCheckRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BackgroundCheckRequests to fetch.
+     */
+    orderBy?: BackgroundCheckRequestOrderByWithRelationInput | BackgroundCheckRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BackgroundCheckRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BackgroundCheckRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BackgroundCheckRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BackgroundCheckRequests
+    **/
+    _count?: true | BackgroundCheckRequestCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BackgroundCheckRequestMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BackgroundCheckRequestMaxAggregateInputType
+  }
+
+  export type GetBackgroundCheckRequestAggregateType<T extends BackgroundCheckRequestAggregateArgs> = {
+        [P in keyof T & keyof AggregateBackgroundCheckRequest]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBackgroundCheckRequest[P]>
+      : GetScalarType<T[P], AggregateBackgroundCheckRequest[P]>
+  }
+
+
+
+
+  export type BackgroundCheckRequestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BackgroundCheckRequestWhereInput
+    orderBy?: BackgroundCheckRequestOrderByWithAggregationInput | BackgroundCheckRequestOrderByWithAggregationInput[]
+    by: BackgroundCheckRequestScalarFieldEnum[] | BackgroundCheckRequestScalarFieldEnum
+    having?: BackgroundCheckRequestScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BackgroundCheckRequestCountAggregateInputType | true
+    _min?: BackgroundCheckRequestMinAggregateInputType
+    _max?: BackgroundCheckRequestMaxAggregateInputType
+  }
+
+  export type BackgroundCheckRequestGroupByOutputType = {
+    id: string
+    orgId: string
+    userId: string
+    provider: $Enums.BackgroundCheckProvider
+    externalId: string
+    status: $Enums.BackgroundCheckStatus
+    webhookPayload: JsonValue | null
+    credentialId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: BackgroundCheckRequestCountAggregateOutputType | null
+    _min: BackgroundCheckRequestMinAggregateOutputType | null
+    _max: BackgroundCheckRequestMaxAggregateOutputType | null
+  }
+
+  type GetBackgroundCheckRequestGroupByPayload<T extends BackgroundCheckRequestGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BackgroundCheckRequestGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BackgroundCheckRequestGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BackgroundCheckRequestGroupByOutputType[P]>
+            : GetScalarType<T[P], BackgroundCheckRequestGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BackgroundCheckRequestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    userId?: boolean
+    provider?: boolean
+    externalId?: boolean
+    status?: boolean
+    webhookPayload?: boolean
+    credentialId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    credential?: boolean | BackgroundCheckRequest$credentialArgs<ExtArgs>
+  }, ExtArgs["result"]["backgroundCheckRequest"]>
+
+  export type BackgroundCheckRequestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    userId?: boolean
+    provider?: boolean
+    externalId?: boolean
+    status?: boolean
+    webhookPayload?: boolean
+    credentialId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    credential?: boolean | BackgroundCheckRequest$credentialArgs<ExtArgs>
+  }, ExtArgs["result"]["backgroundCheckRequest"]>
+
+  export type BackgroundCheckRequestSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    userId?: boolean
+    provider?: boolean
+    externalId?: boolean
+    status?: boolean
+    webhookPayload?: boolean
+    credentialId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    credential?: boolean | BackgroundCheckRequest$credentialArgs<ExtArgs>
+  }, ExtArgs["result"]["backgroundCheckRequest"]>
+
+  export type BackgroundCheckRequestSelectScalar = {
+    id?: boolean
+    orgId?: boolean
+    userId?: boolean
+    provider?: boolean
+    externalId?: boolean
+    status?: boolean
+    webhookPayload?: boolean
+    credentialId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type BackgroundCheckRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "userId" | "provider" | "externalId" | "status" | "webhookPayload" | "credentialId" | "createdAt" | "updatedAt", ExtArgs["result"]["backgroundCheckRequest"]>
+  export type BackgroundCheckRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    credential?: boolean | BackgroundCheckRequest$credentialArgs<ExtArgs>
+  }
+  export type BackgroundCheckRequestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    credential?: boolean | BackgroundCheckRequest$credentialArgs<ExtArgs>
+  }
+  export type BackgroundCheckRequestIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    credential?: boolean | BackgroundCheckRequest$credentialArgs<ExtArgs>
+  }
+
+  export type $BackgroundCheckRequestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BackgroundCheckRequest"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+      credential: Prisma.$VolunteerCredentialPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orgId: string
+      userId: string
+      provider: $Enums.BackgroundCheckProvider
+      externalId: string
+      status: $Enums.BackgroundCheckStatus
+      webhookPayload: Prisma.JsonValue | null
+      credentialId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["backgroundCheckRequest"]>
+    composites: {}
+  }
+
+  type BackgroundCheckRequestGetPayload<S extends boolean | null | undefined | BackgroundCheckRequestDefaultArgs> = $Result.GetResult<Prisma.$BackgroundCheckRequestPayload, S>
+
+  type BackgroundCheckRequestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BackgroundCheckRequestFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BackgroundCheckRequestCountAggregateInputType | true
+    }
+
+  export interface BackgroundCheckRequestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BackgroundCheckRequest'], meta: { name: 'BackgroundCheckRequest' } }
+    /**
+     * Find zero or one BackgroundCheckRequest that matches the filter.
+     * @param {BackgroundCheckRequestFindUniqueArgs} args - Arguments to find a BackgroundCheckRequest
+     * @example
+     * // Get one BackgroundCheckRequest
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BackgroundCheckRequestFindUniqueArgs>(args: SelectSubset<T, BackgroundCheckRequestFindUniqueArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BackgroundCheckRequest that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BackgroundCheckRequestFindUniqueOrThrowArgs} args - Arguments to find a BackgroundCheckRequest
+     * @example
+     * // Get one BackgroundCheckRequest
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BackgroundCheckRequestFindUniqueOrThrowArgs>(args: SelectSubset<T, BackgroundCheckRequestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BackgroundCheckRequest that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackgroundCheckRequestFindFirstArgs} args - Arguments to find a BackgroundCheckRequest
+     * @example
+     * // Get one BackgroundCheckRequest
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BackgroundCheckRequestFindFirstArgs>(args?: SelectSubset<T, BackgroundCheckRequestFindFirstArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BackgroundCheckRequest that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackgroundCheckRequestFindFirstOrThrowArgs} args - Arguments to find a BackgroundCheckRequest
+     * @example
+     * // Get one BackgroundCheckRequest
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BackgroundCheckRequestFindFirstOrThrowArgs>(args?: SelectSubset<T, BackgroundCheckRequestFindFirstOrThrowArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BackgroundCheckRequests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackgroundCheckRequestFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BackgroundCheckRequests
+     * const backgroundCheckRequests = await prisma.backgroundCheckRequest.findMany()
+     * 
+     * // Get first 10 BackgroundCheckRequests
+     * const backgroundCheckRequests = await prisma.backgroundCheckRequest.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const backgroundCheckRequestWithIdOnly = await prisma.backgroundCheckRequest.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BackgroundCheckRequestFindManyArgs>(args?: SelectSubset<T, BackgroundCheckRequestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BackgroundCheckRequest.
+     * @param {BackgroundCheckRequestCreateArgs} args - Arguments to create a BackgroundCheckRequest.
+     * @example
+     * // Create one BackgroundCheckRequest
+     * const BackgroundCheckRequest = await prisma.backgroundCheckRequest.create({
+     *   data: {
+     *     // ... data to create a BackgroundCheckRequest
+     *   }
+     * })
+     * 
+     */
+    create<T extends BackgroundCheckRequestCreateArgs>(args: SelectSubset<T, BackgroundCheckRequestCreateArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BackgroundCheckRequests.
+     * @param {BackgroundCheckRequestCreateManyArgs} args - Arguments to create many BackgroundCheckRequests.
+     * @example
+     * // Create many BackgroundCheckRequests
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BackgroundCheckRequestCreateManyArgs>(args?: SelectSubset<T, BackgroundCheckRequestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BackgroundCheckRequests and returns the data saved in the database.
+     * @param {BackgroundCheckRequestCreateManyAndReturnArgs} args - Arguments to create many BackgroundCheckRequests.
+     * @example
+     * // Create many BackgroundCheckRequests
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BackgroundCheckRequests and only return the `id`
+     * const backgroundCheckRequestWithIdOnly = await prisma.backgroundCheckRequest.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BackgroundCheckRequestCreateManyAndReturnArgs>(args?: SelectSubset<T, BackgroundCheckRequestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BackgroundCheckRequest.
+     * @param {BackgroundCheckRequestDeleteArgs} args - Arguments to delete one BackgroundCheckRequest.
+     * @example
+     * // Delete one BackgroundCheckRequest
+     * const BackgroundCheckRequest = await prisma.backgroundCheckRequest.delete({
+     *   where: {
+     *     // ... filter to delete one BackgroundCheckRequest
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BackgroundCheckRequestDeleteArgs>(args: SelectSubset<T, BackgroundCheckRequestDeleteArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BackgroundCheckRequest.
+     * @param {BackgroundCheckRequestUpdateArgs} args - Arguments to update one BackgroundCheckRequest.
+     * @example
+     * // Update one BackgroundCheckRequest
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BackgroundCheckRequestUpdateArgs>(args: SelectSubset<T, BackgroundCheckRequestUpdateArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BackgroundCheckRequests.
+     * @param {BackgroundCheckRequestDeleteManyArgs} args - Arguments to filter BackgroundCheckRequests to delete.
+     * @example
+     * // Delete a few BackgroundCheckRequests
+     * const { count } = await prisma.backgroundCheckRequest.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BackgroundCheckRequestDeleteManyArgs>(args?: SelectSubset<T, BackgroundCheckRequestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BackgroundCheckRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackgroundCheckRequestUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BackgroundCheckRequests
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BackgroundCheckRequestUpdateManyArgs>(args: SelectSubset<T, BackgroundCheckRequestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BackgroundCheckRequests and returns the data updated in the database.
+     * @param {BackgroundCheckRequestUpdateManyAndReturnArgs} args - Arguments to update many BackgroundCheckRequests.
+     * @example
+     * // Update many BackgroundCheckRequests
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BackgroundCheckRequests and only return the `id`
+     * const backgroundCheckRequestWithIdOnly = await prisma.backgroundCheckRequest.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BackgroundCheckRequestUpdateManyAndReturnArgs>(args: SelectSubset<T, BackgroundCheckRequestUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BackgroundCheckRequest.
+     * @param {BackgroundCheckRequestUpsertArgs} args - Arguments to update or create a BackgroundCheckRequest.
+     * @example
+     * // Update or create a BackgroundCheckRequest
+     * const backgroundCheckRequest = await prisma.backgroundCheckRequest.upsert({
+     *   create: {
+     *     // ... data to create a BackgroundCheckRequest
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BackgroundCheckRequest we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BackgroundCheckRequestUpsertArgs>(args: SelectSubset<T, BackgroundCheckRequestUpsertArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BackgroundCheckRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackgroundCheckRequestCountArgs} args - Arguments to filter BackgroundCheckRequests to count.
+     * @example
+     * // Count the number of BackgroundCheckRequests
+     * const count = await prisma.backgroundCheckRequest.count({
+     *   where: {
+     *     // ... the filter for the BackgroundCheckRequests we want to count
+     *   }
+     * })
+    **/
+    count<T extends BackgroundCheckRequestCountArgs>(
+      args?: Subset<T, BackgroundCheckRequestCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BackgroundCheckRequestCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BackgroundCheckRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackgroundCheckRequestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BackgroundCheckRequestAggregateArgs>(args: Subset<T, BackgroundCheckRequestAggregateArgs>): Prisma.PrismaPromise<GetBackgroundCheckRequestAggregateType<T>>
+
+    /**
+     * Group by BackgroundCheckRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackgroundCheckRequestGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BackgroundCheckRequestGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BackgroundCheckRequestGroupByArgs['orderBy'] }
+        : { orderBy?: BackgroundCheckRequestGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BackgroundCheckRequestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBackgroundCheckRequestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BackgroundCheckRequest model
+   */
+  readonly fields: BackgroundCheckRequestFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BackgroundCheckRequest.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BackgroundCheckRequestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    credential<T extends BackgroundCheckRequest$credentialArgs<ExtArgs> = {}>(args?: Subset<T, BackgroundCheckRequest$credentialArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BackgroundCheckRequest model
+   */
+  interface BackgroundCheckRequestFieldRefs {
+    readonly id: FieldRef<"BackgroundCheckRequest", 'String'>
+    readonly orgId: FieldRef<"BackgroundCheckRequest", 'String'>
+    readonly userId: FieldRef<"BackgroundCheckRequest", 'String'>
+    readonly provider: FieldRef<"BackgroundCheckRequest", 'BackgroundCheckProvider'>
+    readonly externalId: FieldRef<"BackgroundCheckRequest", 'String'>
+    readonly status: FieldRef<"BackgroundCheckRequest", 'BackgroundCheckStatus'>
+    readonly webhookPayload: FieldRef<"BackgroundCheckRequest", 'Json'>
+    readonly credentialId: FieldRef<"BackgroundCheckRequest", 'String'>
+    readonly createdAt: FieldRef<"BackgroundCheckRequest", 'DateTime'>
+    readonly updatedAt: FieldRef<"BackgroundCheckRequest", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BackgroundCheckRequest findUnique
+   */
+  export type BackgroundCheckRequestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which BackgroundCheckRequest to fetch.
+     */
+    where: BackgroundCheckRequestWhereUniqueInput
+  }
+
+  /**
+   * BackgroundCheckRequest findUniqueOrThrow
+   */
+  export type BackgroundCheckRequestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which BackgroundCheckRequest to fetch.
+     */
+    where: BackgroundCheckRequestWhereUniqueInput
+  }
+
+  /**
+   * BackgroundCheckRequest findFirst
+   */
+  export type BackgroundCheckRequestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which BackgroundCheckRequest to fetch.
+     */
+    where?: BackgroundCheckRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BackgroundCheckRequests to fetch.
+     */
+    orderBy?: BackgroundCheckRequestOrderByWithRelationInput | BackgroundCheckRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BackgroundCheckRequests.
+     */
+    cursor?: BackgroundCheckRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BackgroundCheckRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BackgroundCheckRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BackgroundCheckRequests.
+     */
+    distinct?: BackgroundCheckRequestScalarFieldEnum | BackgroundCheckRequestScalarFieldEnum[]
+  }
+
+  /**
+   * BackgroundCheckRequest findFirstOrThrow
+   */
+  export type BackgroundCheckRequestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which BackgroundCheckRequest to fetch.
+     */
+    where?: BackgroundCheckRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BackgroundCheckRequests to fetch.
+     */
+    orderBy?: BackgroundCheckRequestOrderByWithRelationInput | BackgroundCheckRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BackgroundCheckRequests.
+     */
+    cursor?: BackgroundCheckRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BackgroundCheckRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BackgroundCheckRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BackgroundCheckRequests.
+     */
+    distinct?: BackgroundCheckRequestScalarFieldEnum | BackgroundCheckRequestScalarFieldEnum[]
+  }
+
+  /**
+   * BackgroundCheckRequest findMany
+   */
+  export type BackgroundCheckRequestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which BackgroundCheckRequests to fetch.
+     */
+    where?: BackgroundCheckRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BackgroundCheckRequests to fetch.
+     */
+    orderBy?: BackgroundCheckRequestOrderByWithRelationInput | BackgroundCheckRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BackgroundCheckRequests.
+     */
+    cursor?: BackgroundCheckRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BackgroundCheckRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BackgroundCheckRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BackgroundCheckRequests.
+     */
+    distinct?: BackgroundCheckRequestScalarFieldEnum | BackgroundCheckRequestScalarFieldEnum[]
+  }
+
+  /**
+   * BackgroundCheckRequest create
+   */
+  export type BackgroundCheckRequestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BackgroundCheckRequest.
+     */
+    data: XOR<BackgroundCheckRequestCreateInput, BackgroundCheckRequestUncheckedCreateInput>
+  }
+
+  /**
+   * BackgroundCheckRequest createMany
+   */
+  export type BackgroundCheckRequestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BackgroundCheckRequests.
+     */
+    data: BackgroundCheckRequestCreateManyInput | BackgroundCheckRequestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BackgroundCheckRequest createManyAndReturn
+   */
+  export type BackgroundCheckRequestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * The data used to create many BackgroundCheckRequests.
+     */
+    data: BackgroundCheckRequestCreateManyInput | BackgroundCheckRequestCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BackgroundCheckRequest update
+   */
+  export type BackgroundCheckRequestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BackgroundCheckRequest.
+     */
+    data: XOR<BackgroundCheckRequestUpdateInput, BackgroundCheckRequestUncheckedUpdateInput>
+    /**
+     * Choose, which BackgroundCheckRequest to update.
+     */
+    where: BackgroundCheckRequestWhereUniqueInput
+  }
+
+  /**
+   * BackgroundCheckRequest updateMany
+   */
+  export type BackgroundCheckRequestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BackgroundCheckRequests.
+     */
+    data: XOR<BackgroundCheckRequestUpdateManyMutationInput, BackgroundCheckRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which BackgroundCheckRequests to update
+     */
+    where?: BackgroundCheckRequestWhereInput
+    /**
+     * Limit how many BackgroundCheckRequests to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BackgroundCheckRequest updateManyAndReturn
+   */
+  export type BackgroundCheckRequestUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * The data used to update BackgroundCheckRequests.
+     */
+    data: XOR<BackgroundCheckRequestUpdateManyMutationInput, BackgroundCheckRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which BackgroundCheckRequests to update
+     */
+    where?: BackgroundCheckRequestWhereInput
+    /**
+     * Limit how many BackgroundCheckRequests to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BackgroundCheckRequest upsert
+   */
+  export type BackgroundCheckRequestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BackgroundCheckRequest to update in case it exists.
+     */
+    where: BackgroundCheckRequestWhereUniqueInput
+    /**
+     * In case the BackgroundCheckRequest found by the `where` argument doesn't exist, create a new BackgroundCheckRequest with this data.
+     */
+    create: XOR<BackgroundCheckRequestCreateInput, BackgroundCheckRequestUncheckedCreateInput>
+    /**
+     * In case the BackgroundCheckRequest was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BackgroundCheckRequestUpdateInput, BackgroundCheckRequestUncheckedUpdateInput>
+  }
+
+  /**
+   * BackgroundCheckRequest delete
+   */
+  export type BackgroundCheckRequestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+    /**
+     * Filter which BackgroundCheckRequest to delete.
+     */
+    where: BackgroundCheckRequestWhereUniqueInput
+  }
+
+  /**
+   * BackgroundCheckRequest deleteMany
+   */
+  export type BackgroundCheckRequestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BackgroundCheckRequests to delete
+     */
+    where?: BackgroundCheckRequestWhereInput
+    /**
+     * Limit how many BackgroundCheckRequests to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BackgroundCheckRequest.credential
+   */
+  export type BackgroundCheckRequest$credentialArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    where?: VolunteerCredentialWhereInput
+  }
+
+  /**
+   * BackgroundCheckRequest without action
+   */
+  export type BackgroundCheckRequestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackgroundCheckRequest
+     */
+    select?: BackgroundCheckRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BackgroundCheckRequest
+     */
+    omit?: BackgroundCheckRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackgroundCheckRequestInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CheckrWebhookEvent
+   */
+
+  export type AggregateCheckrWebhookEvent = {
+    _count: CheckrWebhookEventCountAggregateOutputType | null
+    _min: CheckrWebhookEventMinAggregateOutputType | null
+    _max: CheckrWebhookEventMaxAggregateOutputType | null
+  }
+
+  export type CheckrWebhookEventMinAggregateOutputType = {
+    id: string | null
+    checkrId: string | null
+    type: string | null
+    processedAt: Date | null
+  }
+
+  export type CheckrWebhookEventMaxAggregateOutputType = {
+    id: string | null
+    checkrId: string | null
+    type: string | null
+    processedAt: Date | null
+  }
+
+  export type CheckrWebhookEventCountAggregateOutputType = {
+    id: number
+    checkrId: number
+    type: number
+    processedAt: number
+    payload: number
+    _all: number
+  }
+
+
+  export type CheckrWebhookEventMinAggregateInputType = {
+    id?: true
+    checkrId?: true
+    type?: true
+    processedAt?: true
+  }
+
+  export type CheckrWebhookEventMaxAggregateInputType = {
+    id?: true
+    checkrId?: true
+    type?: true
+    processedAt?: true
+  }
+
+  export type CheckrWebhookEventCountAggregateInputType = {
+    id?: true
+    checkrId?: true
+    type?: true
+    processedAt?: true
+    payload?: true
+    _all?: true
+  }
+
+  export type CheckrWebhookEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CheckrWebhookEvent to aggregate.
+     */
+    where?: CheckrWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CheckrWebhookEvents to fetch.
+     */
+    orderBy?: CheckrWebhookEventOrderByWithRelationInput | CheckrWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CheckrWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CheckrWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CheckrWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CheckrWebhookEvents
+    **/
+    _count?: true | CheckrWebhookEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CheckrWebhookEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CheckrWebhookEventMaxAggregateInputType
+  }
+
+  export type GetCheckrWebhookEventAggregateType<T extends CheckrWebhookEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateCheckrWebhookEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCheckrWebhookEvent[P]>
+      : GetScalarType<T[P], AggregateCheckrWebhookEvent[P]>
+  }
+
+
+
+
+  export type CheckrWebhookEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CheckrWebhookEventWhereInput
+    orderBy?: CheckrWebhookEventOrderByWithAggregationInput | CheckrWebhookEventOrderByWithAggregationInput[]
+    by: CheckrWebhookEventScalarFieldEnum[] | CheckrWebhookEventScalarFieldEnum
+    having?: CheckrWebhookEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CheckrWebhookEventCountAggregateInputType | true
+    _min?: CheckrWebhookEventMinAggregateInputType
+    _max?: CheckrWebhookEventMaxAggregateInputType
+  }
+
+  export type CheckrWebhookEventGroupByOutputType = {
+    id: string
+    checkrId: string
+    type: string
+    processedAt: Date
+    payload: JsonValue
+    _count: CheckrWebhookEventCountAggregateOutputType | null
+    _min: CheckrWebhookEventMinAggregateOutputType | null
+    _max: CheckrWebhookEventMaxAggregateOutputType | null
+  }
+
+  type GetCheckrWebhookEventGroupByPayload<T extends CheckrWebhookEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CheckrWebhookEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CheckrWebhookEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CheckrWebhookEventGroupByOutputType[P]>
+            : GetScalarType<T[P], CheckrWebhookEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CheckrWebhookEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    checkrId?: boolean
+    type?: boolean
+    processedAt?: boolean
+    payload?: boolean
+  }, ExtArgs["result"]["checkrWebhookEvent"]>
+
+  export type CheckrWebhookEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    checkrId?: boolean
+    type?: boolean
+    processedAt?: boolean
+    payload?: boolean
+  }, ExtArgs["result"]["checkrWebhookEvent"]>
+
+  export type CheckrWebhookEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    checkrId?: boolean
+    type?: boolean
+    processedAt?: boolean
+    payload?: boolean
+  }, ExtArgs["result"]["checkrWebhookEvent"]>
+
+  export type CheckrWebhookEventSelectScalar = {
+    id?: boolean
+    checkrId?: boolean
+    type?: boolean
+    processedAt?: boolean
+    payload?: boolean
+  }
+
+  export type CheckrWebhookEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "checkrId" | "type" | "processedAt" | "payload", ExtArgs["result"]["checkrWebhookEvent"]>
+
+  export type $CheckrWebhookEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CheckrWebhookEvent"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      checkrId: string
+      type: string
+      processedAt: Date
+      payload: Prisma.JsonValue
+    }, ExtArgs["result"]["checkrWebhookEvent"]>
+    composites: {}
+  }
+
+  type CheckrWebhookEventGetPayload<S extends boolean | null | undefined | CheckrWebhookEventDefaultArgs> = $Result.GetResult<Prisma.$CheckrWebhookEventPayload, S>
+
+  type CheckrWebhookEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CheckrWebhookEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CheckrWebhookEventCountAggregateInputType | true
+    }
+
+  export interface CheckrWebhookEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CheckrWebhookEvent'], meta: { name: 'CheckrWebhookEvent' } }
+    /**
+     * Find zero or one CheckrWebhookEvent that matches the filter.
+     * @param {CheckrWebhookEventFindUniqueArgs} args - Arguments to find a CheckrWebhookEvent
+     * @example
+     * // Get one CheckrWebhookEvent
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CheckrWebhookEventFindUniqueArgs>(args: SelectSubset<T, CheckrWebhookEventFindUniqueArgs<ExtArgs>>): Prisma__CheckrWebhookEventClient<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CheckrWebhookEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CheckrWebhookEventFindUniqueOrThrowArgs} args - Arguments to find a CheckrWebhookEvent
+     * @example
+     * // Get one CheckrWebhookEvent
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CheckrWebhookEventFindUniqueOrThrowArgs>(args: SelectSubset<T, CheckrWebhookEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CheckrWebhookEventClient<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CheckrWebhookEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CheckrWebhookEventFindFirstArgs} args - Arguments to find a CheckrWebhookEvent
+     * @example
+     * // Get one CheckrWebhookEvent
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CheckrWebhookEventFindFirstArgs>(args?: SelectSubset<T, CheckrWebhookEventFindFirstArgs<ExtArgs>>): Prisma__CheckrWebhookEventClient<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CheckrWebhookEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CheckrWebhookEventFindFirstOrThrowArgs} args - Arguments to find a CheckrWebhookEvent
+     * @example
+     * // Get one CheckrWebhookEvent
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CheckrWebhookEventFindFirstOrThrowArgs>(args?: SelectSubset<T, CheckrWebhookEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__CheckrWebhookEventClient<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CheckrWebhookEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CheckrWebhookEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CheckrWebhookEvents
+     * const checkrWebhookEvents = await prisma.checkrWebhookEvent.findMany()
+     * 
+     * // Get first 10 CheckrWebhookEvents
+     * const checkrWebhookEvents = await prisma.checkrWebhookEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const checkrWebhookEventWithIdOnly = await prisma.checkrWebhookEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CheckrWebhookEventFindManyArgs>(args?: SelectSubset<T, CheckrWebhookEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CheckrWebhookEvent.
+     * @param {CheckrWebhookEventCreateArgs} args - Arguments to create a CheckrWebhookEvent.
+     * @example
+     * // Create one CheckrWebhookEvent
+     * const CheckrWebhookEvent = await prisma.checkrWebhookEvent.create({
+     *   data: {
+     *     // ... data to create a CheckrWebhookEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends CheckrWebhookEventCreateArgs>(args: SelectSubset<T, CheckrWebhookEventCreateArgs<ExtArgs>>): Prisma__CheckrWebhookEventClient<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CheckrWebhookEvents.
+     * @param {CheckrWebhookEventCreateManyArgs} args - Arguments to create many CheckrWebhookEvents.
+     * @example
+     * // Create many CheckrWebhookEvents
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CheckrWebhookEventCreateManyArgs>(args?: SelectSubset<T, CheckrWebhookEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CheckrWebhookEvents and returns the data saved in the database.
+     * @param {CheckrWebhookEventCreateManyAndReturnArgs} args - Arguments to create many CheckrWebhookEvents.
+     * @example
+     * // Create many CheckrWebhookEvents
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CheckrWebhookEvents and only return the `id`
+     * const checkrWebhookEventWithIdOnly = await prisma.checkrWebhookEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CheckrWebhookEventCreateManyAndReturnArgs>(args?: SelectSubset<T, CheckrWebhookEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CheckrWebhookEvent.
+     * @param {CheckrWebhookEventDeleteArgs} args - Arguments to delete one CheckrWebhookEvent.
+     * @example
+     * // Delete one CheckrWebhookEvent
+     * const CheckrWebhookEvent = await prisma.checkrWebhookEvent.delete({
+     *   where: {
+     *     // ... filter to delete one CheckrWebhookEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CheckrWebhookEventDeleteArgs>(args: SelectSubset<T, CheckrWebhookEventDeleteArgs<ExtArgs>>): Prisma__CheckrWebhookEventClient<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CheckrWebhookEvent.
+     * @param {CheckrWebhookEventUpdateArgs} args - Arguments to update one CheckrWebhookEvent.
+     * @example
+     * // Update one CheckrWebhookEvent
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CheckrWebhookEventUpdateArgs>(args: SelectSubset<T, CheckrWebhookEventUpdateArgs<ExtArgs>>): Prisma__CheckrWebhookEventClient<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CheckrWebhookEvents.
+     * @param {CheckrWebhookEventDeleteManyArgs} args - Arguments to filter CheckrWebhookEvents to delete.
+     * @example
+     * // Delete a few CheckrWebhookEvents
+     * const { count } = await prisma.checkrWebhookEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CheckrWebhookEventDeleteManyArgs>(args?: SelectSubset<T, CheckrWebhookEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CheckrWebhookEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CheckrWebhookEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CheckrWebhookEvents
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CheckrWebhookEventUpdateManyArgs>(args: SelectSubset<T, CheckrWebhookEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CheckrWebhookEvents and returns the data updated in the database.
+     * @param {CheckrWebhookEventUpdateManyAndReturnArgs} args - Arguments to update many CheckrWebhookEvents.
+     * @example
+     * // Update many CheckrWebhookEvents
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CheckrWebhookEvents and only return the `id`
+     * const checkrWebhookEventWithIdOnly = await prisma.checkrWebhookEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CheckrWebhookEventUpdateManyAndReturnArgs>(args: SelectSubset<T, CheckrWebhookEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CheckrWebhookEvent.
+     * @param {CheckrWebhookEventUpsertArgs} args - Arguments to update or create a CheckrWebhookEvent.
+     * @example
+     * // Update or create a CheckrWebhookEvent
+     * const checkrWebhookEvent = await prisma.checkrWebhookEvent.upsert({
+     *   create: {
+     *     // ... data to create a CheckrWebhookEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CheckrWebhookEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CheckrWebhookEventUpsertArgs>(args: SelectSubset<T, CheckrWebhookEventUpsertArgs<ExtArgs>>): Prisma__CheckrWebhookEventClient<$Result.GetResult<Prisma.$CheckrWebhookEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CheckrWebhookEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CheckrWebhookEventCountArgs} args - Arguments to filter CheckrWebhookEvents to count.
+     * @example
+     * // Count the number of CheckrWebhookEvents
+     * const count = await prisma.checkrWebhookEvent.count({
+     *   where: {
+     *     // ... the filter for the CheckrWebhookEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends CheckrWebhookEventCountArgs>(
+      args?: Subset<T, CheckrWebhookEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CheckrWebhookEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CheckrWebhookEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CheckrWebhookEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CheckrWebhookEventAggregateArgs>(args: Subset<T, CheckrWebhookEventAggregateArgs>): Prisma.PrismaPromise<GetCheckrWebhookEventAggregateType<T>>
+
+    /**
+     * Group by CheckrWebhookEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CheckrWebhookEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CheckrWebhookEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CheckrWebhookEventGroupByArgs['orderBy'] }
+        : { orderBy?: CheckrWebhookEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CheckrWebhookEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCheckrWebhookEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CheckrWebhookEvent model
+   */
+  readonly fields: CheckrWebhookEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CheckrWebhookEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CheckrWebhookEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CheckrWebhookEvent model
+   */
+  interface CheckrWebhookEventFieldRefs {
+    readonly id: FieldRef<"CheckrWebhookEvent", 'String'>
+    readonly checkrId: FieldRef<"CheckrWebhookEvent", 'String'>
+    readonly type: FieldRef<"CheckrWebhookEvent", 'String'>
+    readonly processedAt: FieldRef<"CheckrWebhookEvent", 'DateTime'>
+    readonly payload: FieldRef<"CheckrWebhookEvent", 'Json'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CheckrWebhookEvent findUnique
+   */
+  export type CheckrWebhookEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which CheckrWebhookEvent to fetch.
+     */
+    where: CheckrWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * CheckrWebhookEvent findUniqueOrThrow
+   */
+  export type CheckrWebhookEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which CheckrWebhookEvent to fetch.
+     */
+    where: CheckrWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * CheckrWebhookEvent findFirst
+   */
+  export type CheckrWebhookEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which CheckrWebhookEvent to fetch.
+     */
+    where?: CheckrWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CheckrWebhookEvents to fetch.
+     */
+    orderBy?: CheckrWebhookEventOrderByWithRelationInput | CheckrWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CheckrWebhookEvents.
+     */
+    cursor?: CheckrWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CheckrWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CheckrWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CheckrWebhookEvents.
+     */
+    distinct?: CheckrWebhookEventScalarFieldEnum | CheckrWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * CheckrWebhookEvent findFirstOrThrow
+   */
+  export type CheckrWebhookEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which CheckrWebhookEvent to fetch.
+     */
+    where?: CheckrWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CheckrWebhookEvents to fetch.
+     */
+    orderBy?: CheckrWebhookEventOrderByWithRelationInput | CheckrWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CheckrWebhookEvents.
+     */
+    cursor?: CheckrWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CheckrWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CheckrWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CheckrWebhookEvents.
+     */
+    distinct?: CheckrWebhookEventScalarFieldEnum | CheckrWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * CheckrWebhookEvent findMany
+   */
+  export type CheckrWebhookEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which CheckrWebhookEvents to fetch.
+     */
+    where?: CheckrWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CheckrWebhookEvents to fetch.
+     */
+    orderBy?: CheckrWebhookEventOrderByWithRelationInput | CheckrWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CheckrWebhookEvents.
+     */
+    cursor?: CheckrWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CheckrWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CheckrWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CheckrWebhookEvents.
+     */
+    distinct?: CheckrWebhookEventScalarFieldEnum | CheckrWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * CheckrWebhookEvent create
+   */
+  export type CheckrWebhookEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * The data needed to create a CheckrWebhookEvent.
+     */
+    data: XOR<CheckrWebhookEventCreateInput, CheckrWebhookEventUncheckedCreateInput>
+  }
+
+  /**
+   * CheckrWebhookEvent createMany
+   */
+  export type CheckrWebhookEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CheckrWebhookEvents.
+     */
+    data: CheckrWebhookEventCreateManyInput | CheckrWebhookEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CheckrWebhookEvent createManyAndReturn
+   */
+  export type CheckrWebhookEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many CheckrWebhookEvents.
+     */
+    data: CheckrWebhookEventCreateManyInput | CheckrWebhookEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CheckrWebhookEvent update
+   */
+  export type CheckrWebhookEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * The data needed to update a CheckrWebhookEvent.
+     */
+    data: XOR<CheckrWebhookEventUpdateInput, CheckrWebhookEventUncheckedUpdateInput>
+    /**
+     * Choose, which CheckrWebhookEvent to update.
+     */
+    where: CheckrWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * CheckrWebhookEvent updateMany
+   */
+  export type CheckrWebhookEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CheckrWebhookEvents.
+     */
+    data: XOR<CheckrWebhookEventUpdateManyMutationInput, CheckrWebhookEventUncheckedUpdateManyInput>
+    /**
+     * Filter which CheckrWebhookEvents to update
+     */
+    where?: CheckrWebhookEventWhereInput
+    /**
+     * Limit how many CheckrWebhookEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CheckrWebhookEvent updateManyAndReturn
+   */
+  export type CheckrWebhookEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * The data used to update CheckrWebhookEvents.
+     */
+    data: XOR<CheckrWebhookEventUpdateManyMutationInput, CheckrWebhookEventUncheckedUpdateManyInput>
+    /**
+     * Filter which CheckrWebhookEvents to update
+     */
+    where?: CheckrWebhookEventWhereInput
+    /**
+     * Limit how many CheckrWebhookEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CheckrWebhookEvent upsert
+   */
+  export type CheckrWebhookEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * The filter to search for the CheckrWebhookEvent to update in case it exists.
+     */
+    where: CheckrWebhookEventWhereUniqueInput
+    /**
+     * In case the CheckrWebhookEvent found by the `where` argument doesn't exist, create a new CheckrWebhookEvent with this data.
+     */
+    create: XOR<CheckrWebhookEventCreateInput, CheckrWebhookEventUncheckedCreateInput>
+    /**
+     * In case the CheckrWebhookEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CheckrWebhookEventUpdateInput, CheckrWebhookEventUncheckedUpdateInput>
+  }
+
+  /**
+   * CheckrWebhookEvent delete
+   */
+  export type CheckrWebhookEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter which CheckrWebhookEvent to delete.
+     */
+    where: CheckrWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * CheckrWebhookEvent deleteMany
+   */
+  export type CheckrWebhookEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CheckrWebhookEvents to delete
+     */
+    where?: CheckrWebhookEventWhereInput
+    /**
+     * Limit how many CheckrWebhookEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CheckrWebhookEvent without action
+   */
+  export type CheckrWebhookEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CheckrWebhookEvent
+     */
+    select?: CheckrWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CheckrWebhookEvent
+     */
+    omit?: CheckrWebhookEventOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -35924,6 +38411,8 @@ export namespace Prisma {
     stripeCustomerId: 'stripeCustomerId',
     stripeSubscriptionId: 'stripeSubscriptionId',
     trialEndsAt: 'trialEndsAt',
+    checkrAccessToken: 'checkrAccessToken',
+    checkrAccountId: 'checkrAccountId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -36223,6 +38712,33 @@ export namespace Prisma {
   };
 
   export type StripeWebhookEventScalarFieldEnum = (typeof StripeWebhookEventScalarFieldEnum)[keyof typeof StripeWebhookEventScalarFieldEnum]
+
+
+  export const BackgroundCheckRequestScalarFieldEnum: {
+    id: 'id',
+    orgId: 'orgId',
+    userId: 'userId',
+    provider: 'provider',
+    externalId: 'externalId',
+    status: 'status',
+    webhookPayload: 'webhookPayload',
+    credentialId: 'credentialId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BackgroundCheckRequestScalarFieldEnum = (typeof BackgroundCheckRequestScalarFieldEnum)[keyof typeof BackgroundCheckRequestScalarFieldEnum]
+
+
+  export const CheckrWebhookEventScalarFieldEnum: {
+    id: 'id',
+    checkrId: 'checkrId',
+    type: 'type',
+    processedAt: 'processedAt',
+    payload: 'payload'
+  };
+
+  export type CheckrWebhookEventScalarFieldEnum = (typeof CheckrWebhookEventScalarFieldEnum)[keyof typeof CheckrWebhookEventScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -36563,6 +39079,34 @@ export namespace Prisma {
    */
   export type ListEnumCompanyNonprofitLinkStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanyNonprofitLinkStatus[]'>
     
+
+
+  /**
+   * Reference to a field of type 'BackgroundCheckProvider'
+   */
+  export type EnumBackgroundCheckProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BackgroundCheckProvider'>
+    
+
+
+  /**
+   * Reference to a field of type 'BackgroundCheckProvider[]'
+   */
+  export type ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BackgroundCheckProvider[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'BackgroundCheckStatus'
+   */
+  export type EnumBackgroundCheckStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BackgroundCheckStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'BackgroundCheckStatus[]'
+   */
+  export type ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BackgroundCheckStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -36589,6 +39133,7 @@ export namespace Prisma {
     profile?: XOR<VolunteerProfileNullableScalarRelationFilter, VolunteerProfileWhereInput> | null
     credentials?: VolunteerCredentialListRelationFilter
     shiftSignups?: ShiftSignupListRelationFilter
+    backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -36609,6 +39154,7 @@ export namespace Prisma {
     profile?: VolunteerProfileOrderByWithRelationInput
     credentials?: VolunteerCredentialOrderByRelationAggregateInput
     shiftSignups?: ShiftSignupOrderByRelationAggregateInput
+    backgroundCheckRequests?: BackgroundCheckRequestOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -36632,6 +39178,7 @@ export namespace Prisma {
     profile?: XOR<VolunteerProfileNullableScalarRelationFilter, VolunteerProfileWhereInput> | null
     credentials?: VolunteerCredentialListRelationFilter
     shiftSignups?: ShiftSignupListRelationFilter
+    backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -36940,6 +39487,8 @@ export namespace Prisma {
     stripeCustomerId?: StringNullableFilter<"Organization"> | string | null
     stripeSubscriptionId?: StringNullableFilter<"Organization"> | string | null
     trialEndsAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
+    checkrAccessToken?: StringNullableFilter<"Organization"> | string | null
+    checkrAccountId?: StringNullableFilter<"Organization"> | string | null
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
     members?: OrganizationMemberListRelationFilter
@@ -36953,6 +39502,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialListRelationFilter
     shifts?: ShiftListRelationFilter
     companyLinks?: CompanyNonprofitLinkListRelationFilter
+    backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -36963,6 +39513,8 @@ export namespace Prisma {
     stripeCustomerId?: SortOrderInput | SortOrder
     stripeSubscriptionId?: SortOrderInput | SortOrder
     trialEndsAt?: SortOrderInput | SortOrder
+    checkrAccessToken?: SortOrderInput | SortOrder
+    checkrAccountId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     members?: OrganizationMemberOrderByRelationAggregateInput
@@ -36976,6 +39528,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialOrderByRelationAggregateInput
     shifts?: ShiftOrderByRelationAggregateInput
     companyLinks?: CompanyNonprofitLinkOrderByRelationAggregateInput
+    backgroundCheckRequests?: BackgroundCheckRequestOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -36983,12 +39536,14 @@ export namespace Prisma {
     slug?: string
     stripeCustomerId?: string
     stripeSubscriptionId?: string
+    checkrAccountId?: string
     AND?: OrganizationWhereInput | OrganizationWhereInput[]
     OR?: OrganizationWhereInput[]
     NOT?: OrganizationWhereInput | OrganizationWhereInput[]
     name?: StringFilter<"Organization"> | string
     planTier?: EnumPlanTierFilter<"Organization"> | $Enums.PlanTier
     trialEndsAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
+    checkrAccessToken?: StringNullableFilter<"Organization"> | string | null
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
     members?: OrganizationMemberListRelationFilter
@@ -37002,7 +39557,8 @@ export namespace Prisma {
     credentials?: VolunteerCredentialListRelationFilter
     shifts?: ShiftListRelationFilter
     companyLinks?: CompanyNonprofitLinkListRelationFilter
-  }, "id" | "slug" | "stripeCustomerId" | "stripeSubscriptionId">
+    backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
+  }, "id" | "slug" | "stripeCustomerId" | "stripeSubscriptionId" | "checkrAccountId">
 
   export type OrganizationOrderByWithAggregationInput = {
     id?: SortOrder
@@ -37012,6 +39568,8 @@ export namespace Prisma {
     stripeCustomerId?: SortOrderInput | SortOrder
     stripeSubscriptionId?: SortOrderInput | SortOrder
     trialEndsAt?: SortOrderInput | SortOrder
+    checkrAccessToken?: SortOrderInput | SortOrder
+    checkrAccountId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: OrganizationCountOrderByAggregateInput
@@ -37030,6 +39588,8 @@ export namespace Prisma {
     stripeCustomerId?: StringNullableWithAggregatesFilter<"Organization"> | string | null
     stripeSubscriptionId?: StringNullableWithAggregatesFilter<"Organization"> | string | null
     trialEndsAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
+    checkrAccessToken?: StringNullableWithAggregatesFilter<"Organization"> | string | null
+    checkrAccountId?: StringNullableWithAggregatesFilter<"Organization"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Organization"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Organization"> | Date | string
   }
@@ -38018,6 +40578,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    backgroundCheckRequest?: XOR<BackgroundCheckRequestNullableScalarRelationFilter, BackgroundCheckRequestWhereInput> | null
   }
 
   export type VolunteerCredentialOrderByWithRelationInput = {
@@ -38034,6 +40595,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
     organization?: OrganizationOrderByWithRelationInput
+    backgroundCheckRequest?: BackgroundCheckRequestOrderByWithRelationInput
   }
 
   export type VolunteerCredentialWhereUniqueInput = Prisma.AtLeast<{
@@ -38054,6 +40616,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    backgroundCheckRequest?: XOR<BackgroundCheckRequestNullableScalarRelationFilter, BackgroundCheckRequestWhereInput> | null
   }, "id" | "userId_orgId_type">
 
   export type VolunteerCredentialOrderByWithAggregationInput = {
@@ -38594,6 +41157,144 @@ export namespace Prisma {
     payload?: JsonWithAggregatesFilter<"StripeWebhookEvent">
   }
 
+  export type BackgroundCheckRequestWhereInput = {
+    AND?: BackgroundCheckRequestWhereInput | BackgroundCheckRequestWhereInput[]
+    OR?: BackgroundCheckRequestWhereInput[]
+    NOT?: BackgroundCheckRequestWhereInput | BackgroundCheckRequestWhereInput[]
+    id?: StringFilter<"BackgroundCheckRequest"> | string
+    orgId?: StringFilter<"BackgroundCheckRequest"> | string
+    userId?: StringFilter<"BackgroundCheckRequest"> | string
+    provider?: EnumBackgroundCheckProviderFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckProvider
+    externalId?: StringFilter<"BackgroundCheckRequest"> | string
+    status?: EnumBackgroundCheckStatusFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckStatus
+    webhookPayload?: JsonNullableFilter<"BackgroundCheckRequest">
+    credentialId?: StringNullableFilter<"BackgroundCheckRequest"> | string | null
+    createdAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
+    updatedAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    credential?: XOR<VolunteerCredentialNullableScalarRelationFilter, VolunteerCredentialWhereInput> | null
+  }
+
+  export type BackgroundCheckRequestOrderByWithRelationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    userId?: SortOrder
+    provider?: SortOrder
+    externalId?: SortOrder
+    status?: SortOrder
+    webhookPayload?: SortOrderInput | SortOrder
+    credentialId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+    credential?: VolunteerCredentialOrderByWithRelationInput
+  }
+
+  export type BackgroundCheckRequestWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    externalId?: string
+    credentialId?: string
+    AND?: BackgroundCheckRequestWhereInput | BackgroundCheckRequestWhereInput[]
+    OR?: BackgroundCheckRequestWhereInput[]
+    NOT?: BackgroundCheckRequestWhereInput | BackgroundCheckRequestWhereInput[]
+    orgId?: StringFilter<"BackgroundCheckRequest"> | string
+    userId?: StringFilter<"BackgroundCheckRequest"> | string
+    provider?: EnumBackgroundCheckProviderFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckProvider
+    status?: EnumBackgroundCheckStatusFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckStatus
+    webhookPayload?: JsonNullableFilter<"BackgroundCheckRequest">
+    createdAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
+    updatedAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    credential?: XOR<VolunteerCredentialNullableScalarRelationFilter, VolunteerCredentialWhereInput> | null
+  }, "id" | "externalId" | "credentialId">
+
+  export type BackgroundCheckRequestOrderByWithAggregationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    userId?: SortOrder
+    provider?: SortOrder
+    externalId?: SortOrder
+    status?: SortOrder
+    webhookPayload?: SortOrderInput | SortOrder
+    credentialId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BackgroundCheckRequestCountOrderByAggregateInput
+    _max?: BackgroundCheckRequestMaxOrderByAggregateInput
+    _min?: BackgroundCheckRequestMinOrderByAggregateInput
+  }
+
+  export type BackgroundCheckRequestScalarWhereWithAggregatesInput = {
+    AND?: BackgroundCheckRequestScalarWhereWithAggregatesInput | BackgroundCheckRequestScalarWhereWithAggregatesInput[]
+    OR?: BackgroundCheckRequestScalarWhereWithAggregatesInput[]
+    NOT?: BackgroundCheckRequestScalarWhereWithAggregatesInput | BackgroundCheckRequestScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BackgroundCheckRequest"> | string
+    orgId?: StringWithAggregatesFilter<"BackgroundCheckRequest"> | string
+    userId?: StringWithAggregatesFilter<"BackgroundCheckRequest"> | string
+    provider?: EnumBackgroundCheckProviderWithAggregatesFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckProvider
+    externalId?: StringWithAggregatesFilter<"BackgroundCheckRequest"> | string
+    status?: EnumBackgroundCheckStatusWithAggregatesFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckStatus
+    webhookPayload?: JsonNullableWithAggregatesFilter<"BackgroundCheckRequest">
+    credentialId?: StringNullableWithAggregatesFilter<"BackgroundCheckRequest"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"BackgroundCheckRequest"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BackgroundCheckRequest"> | Date | string
+  }
+
+  export type CheckrWebhookEventWhereInput = {
+    AND?: CheckrWebhookEventWhereInput | CheckrWebhookEventWhereInput[]
+    OR?: CheckrWebhookEventWhereInput[]
+    NOT?: CheckrWebhookEventWhereInput | CheckrWebhookEventWhereInput[]
+    id?: StringFilter<"CheckrWebhookEvent"> | string
+    checkrId?: StringFilter<"CheckrWebhookEvent"> | string
+    type?: StringFilter<"CheckrWebhookEvent"> | string
+    processedAt?: DateTimeFilter<"CheckrWebhookEvent"> | Date | string
+    payload?: JsonFilter<"CheckrWebhookEvent">
+  }
+
+  export type CheckrWebhookEventOrderByWithRelationInput = {
+    id?: SortOrder
+    checkrId?: SortOrder
+    type?: SortOrder
+    processedAt?: SortOrder
+    payload?: SortOrder
+  }
+
+  export type CheckrWebhookEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    checkrId?: string
+    AND?: CheckrWebhookEventWhereInput | CheckrWebhookEventWhereInput[]
+    OR?: CheckrWebhookEventWhereInput[]
+    NOT?: CheckrWebhookEventWhereInput | CheckrWebhookEventWhereInput[]
+    type?: StringFilter<"CheckrWebhookEvent"> | string
+    processedAt?: DateTimeFilter<"CheckrWebhookEvent"> | Date | string
+    payload?: JsonFilter<"CheckrWebhookEvent">
+  }, "id" | "checkrId">
+
+  export type CheckrWebhookEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    checkrId?: SortOrder
+    type?: SortOrder
+    processedAt?: SortOrder
+    payload?: SortOrder
+    _count?: CheckrWebhookEventCountOrderByAggregateInput
+    _max?: CheckrWebhookEventMaxOrderByAggregateInput
+    _min?: CheckrWebhookEventMinOrderByAggregateInput
+  }
+
+  export type CheckrWebhookEventScalarWhereWithAggregatesInput = {
+    AND?: CheckrWebhookEventScalarWhereWithAggregatesInput | CheckrWebhookEventScalarWhereWithAggregatesInput[]
+    OR?: CheckrWebhookEventScalarWhereWithAggregatesInput[]
+    NOT?: CheckrWebhookEventScalarWhereWithAggregatesInput | CheckrWebhookEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CheckrWebhookEvent"> | string
+    checkrId?: StringWithAggregatesFilter<"CheckrWebhookEvent"> | string
+    type?: StringWithAggregatesFilter<"CheckrWebhookEvent"> | string
+    processedAt?: DateTimeWithAggregatesFilter<"CheckrWebhookEvent"> | Date | string
+    payload?: JsonWithAggregatesFilter<"CheckrWebhookEvent">
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -38612,6 +41313,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -38632,6 +41334,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -38652,6 +41355,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -38672,6 +41376,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -38995,6 +41700,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -39008,6 +41715,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -39018,6 +41726,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -39031,6 +41741,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -39041,6 +41752,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -39054,6 +41767,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -39064,6 +41778,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -39077,6 +41793,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -39087,6 +41804,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -39099,6 +41818,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -39111,6 +41832,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -40122,6 +42845,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutCredentialsInput
     organization: OrganizationCreateNestedOneWithoutCredentialsInput
+    backgroundCheckRequest?: BackgroundCheckRequestCreateNestedOneWithoutCredentialInput
   }
 
   export type VolunteerCredentialUncheckedCreateInput = {
@@ -40136,6 +42860,7 @@ export namespace Prisma {
     issuedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput
   }
 
   export type VolunteerCredentialUpdateInput = {
@@ -40150,6 +42875,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
     organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+    backgroundCheckRequest?: BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateInput = {
@@ -40164,6 +42890,7 @@ export namespace Prisma {
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialCreateManyInput = {
@@ -40739,6 +43466,150 @@ export namespace Prisma {
     payload?: JsonNullValueInput | InputJsonValue
   }
 
+  export type BackgroundCheckRequestCreateInput = {
+    id?: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutBackgroundCheckRequestsInput
+    user: UserCreateNestedOneWithoutBackgroundCheckRequestsInput
+    credential?: VolunteerCredentialCreateNestedOneWithoutBackgroundCheckRequestInput
+  }
+
+  export type BackgroundCheckRequestUncheckedCreateInput = {
+    id?: string
+    orgId: string
+    userId: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BackgroundCheckRequestUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
+    user?: UserUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
+    credential?: VolunteerCredentialUpdateOneWithoutBackgroundCheckRequestNestedInput
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackgroundCheckRequestCreateManyInput = {
+    id?: string
+    orgId: string
+    userId: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BackgroundCheckRequestUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CheckrWebhookEventCreateInput = {
+    id?: string
+    checkrId: string
+    type: string
+    processedAt?: Date | string
+    payload: JsonNullValueInput | InputJsonValue
+  }
+
+  export type CheckrWebhookEventUncheckedCreateInput = {
+    id?: string
+    checkrId: string
+    type: string
+    processedAt?: Date | string
+    payload: JsonNullValueInput | InputJsonValue
+  }
+
+  export type CheckrWebhookEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    checkrId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    processedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: JsonNullValueInput | InputJsonValue
+  }
+
+  export type CheckrWebhookEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    checkrId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    processedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: JsonNullValueInput | InputJsonValue
+  }
+
+  export type CheckrWebhookEventCreateManyInput = {
+    id?: string
+    checkrId: string
+    type: string
+    processedAt?: Date | string
+    payload: JsonNullValueInput | InputJsonValue
+  }
+
+  export type CheckrWebhookEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    checkrId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    processedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: JsonNullValueInput | InputJsonValue
+  }
+
+  export type CheckrWebhookEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    checkrId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    processedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: JsonNullValueInput | InputJsonValue
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -40850,6 +43721,12 @@ export namespace Prisma {
     none?: ShiftSignupWhereInput
   }
 
+  export type BackgroundCheckRequestListRelationFilter = {
+    every?: BackgroundCheckRequestWhereInput
+    some?: BackgroundCheckRequestWhereInput
+    none?: BackgroundCheckRequestWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -40888,6 +43765,10 @@ export namespace Prisma {
   }
 
   export type ShiftSignupOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BackgroundCheckRequestOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -41243,6 +44124,8 @@ export namespace Prisma {
     stripeCustomerId?: SortOrder
     stripeSubscriptionId?: SortOrder
     trialEndsAt?: SortOrder
+    checkrAccessToken?: SortOrder
+    checkrAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -41255,6 +44138,8 @@ export namespace Prisma {
     stripeCustomerId?: SortOrder
     stripeSubscriptionId?: SortOrder
     trialEndsAt?: SortOrder
+    checkrAccessToken?: SortOrder
+    checkrAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -41267,6 +44152,8 @@ export namespace Prisma {
     stripeCustomerId?: SortOrder
     stripeSubscriptionId?: SortOrder
     trialEndsAt?: SortOrder
+    checkrAccessToken?: SortOrder
+    checkrAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -42140,6 +45027,11 @@ export namespace Prisma {
     not?: NestedEnumCredentialStatusFilter<$PrismaModel> | $Enums.CredentialStatus
   }
 
+  export type BackgroundCheckRequestNullableScalarRelationFilter = {
+    is?: BackgroundCheckRequestWhereInput | null
+    isNot?: BackgroundCheckRequestWhereInput | null
+  }
+
   export type VolunteerCredentialUserIdOrgIdTypeCompoundUniqueInput = {
     userId: string
     orgId: string
@@ -42539,6 +45431,104 @@ export namespace Prisma {
     processedAt?: SortOrder
   }
 
+  export type EnumBackgroundCheckProviderFilter<$PrismaModel = never> = {
+    equals?: $Enums.BackgroundCheckProvider | EnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    in?: $Enums.BackgroundCheckProvider[] | ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BackgroundCheckProvider[] | ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    not?: NestedEnumBackgroundCheckProviderFilter<$PrismaModel> | $Enums.BackgroundCheckProvider
+  }
+
+  export type EnumBackgroundCheckStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BackgroundCheckStatus | EnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BackgroundCheckStatus[] | ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BackgroundCheckStatus[] | ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel> | $Enums.BackgroundCheckStatus
+  }
+
+  export type VolunteerCredentialNullableScalarRelationFilter = {
+    is?: VolunteerCredentialWhereInput | null
+    isNot?: VolunteerCredentialWhereInput | null
+  }
+
+  export type BackgroundCheckRequestCountOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    userId?: SortOrder
+    provider?: SortOrder
+    externalId?: SortOrder
+    status?: SortOrder
+    webhookPayload?: SortOrder
+    credentialId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BackgroundCheckRequestMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    userId?: SortOrder
+    provider?: SortOrder
+    externalId?: SortOrder
+    status?: SortOrder
+    credentialId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BackgroundCheckRequestMinOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    userId?: SortOrder
+    provider?: SortOrder
+    externalId?: SortOrder
+    status?: SortOrder
+    credentialId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumBackgroundCheckProviderWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BackgroundCheckProvider | EnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    in?: $Enums.BackgroundCheckProvider[] | ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BackgroundCheckProvider[] | ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    not?: NestedEnumBackgroundCheckProviderWithAggregatesFilter<$PrismaModel> | $Enums.BackgroundCheckProvider
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBackgroundCheckProviderFilter<$PrismaModel>
+    _max?: NestedEnumBackgroundCheckProviderFilter<$PrismaModel>
+  }
+
+  export type EnumBackgroundCheckStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BackgroundCheckStatus | EnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BackgroundCheckStatus[] | ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BackgroundCheckStatus[] | ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBackgroundCheckStatusWithAggregatesFilter<$PrismaModel> | $Enums.BackgroundCheckStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel>
+    _max?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel>
+  }
+
+  export type CheckrWebhookEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    checkrId?: SortOrder
+    type?: SortOrder
+    processedAt?: SortOrder
+    payload?: SortOrder
+  }
+
+  export type CheckrWebhookEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    checkrId?: SortOrder
+    type?: SortOrder
+    processedAt?: SortOrder
+  }
+
+  export type CheckrWebhookEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    checkrId?: SortOrder
+    type?: SortOrder
+    processedAt?: SortOrder
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -42608,6 +45598,13 @@ export namespace Prisma {
     connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
   }
 
+  export type BackgroundCheckRequestCreateNestedManyWithoutUserInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutUserInput, BackgroundCheckRequestUncheckedCreateWithoutUserInput> | BackgroundCheckRequestCreateWithoutUserInput[] | BackgroundCheckRequestUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutUserInput | BackgroundCheckRequestCreateOrConnectWithoutUserInput[]
+    createMany?: BackgroundCheckRequestCreateManyUserInputEnvelope
+    connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -42675,6 +45672,13 @@ export namespace Prisma {
     connectOrCreate?: ShiftSignupCreateOrConnectWithoutUserInput | ShiftSignupCreateOrConnectWithoutUserInput[]
     createMany?: ShiftSignupCreateManyUserInputEnvelope
     connect?: ShiftSignupWhereUniqueInput | ShiftSignupWhereUniqueInput[]
+  }
+
+  export type BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutUserInput, BackgroundCheckRequestUncheckedCreateWithoutUserInput> | BackgroundCheckRequestCreateWithoutUserInput[] | BackgroundCheckRequestUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutUserInput | BackgroundCheckRequestCreateOrConnectWithoutUserInput[]
+    createMany?: BackgroundCheckRequestCreateManyUserInputEnvelope
+    connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -42829,6 +45833,20 @@ export namespace Prisma {
     deleteMany?: ShiftSignupScalarWhereInput | ShiftSignupScalarWhereInput[]
   }
 
+  export type BackgroundCheckRequestUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutUserInput, BackgroundCheckRequestUncheckedCreateWithoutUserInput> | BackgroundCheckRequestCreateWithoutUserInput[] | BackgroundCheckRequestUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutUserInput | BackgroundCheckRequestCreateOrConnectWithoutUserInput[]
+    upsert?: BackgroundCheckRequestUpsertWithWhereUniqueWithoutUserInput | BackgroundCheckRequestUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BackgroundCheckRequestCreateManyUserInputEnvelope
+    set?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    disconnect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    delete?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    update?: BackgroundCheckRequestUpdateWithWhereUniqueWithoutUserInput | BackgroundCheckRequestUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BackgroundCheckRequestUpdateManyWithWhereWithoutUserInput | BackgroundCheckRequestUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -42963,6 +45981,20 @@ export namespace Prisma {
     update?: ShiftSignupUpdateWithWhereUniqueWithoutUserInput | ShiftSignupUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: ShiftSignupUpdateManyWithWhereWithoutUserInput | ShiftSignupUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: ShiftSignupScalarWhereInput | ShiftSignupScalarWhereInput[]
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutUserInput, BackgroundCheckRequestUncheckedCreateWithoutUserInput> | BackgroundCheckRequestCreateWithoutUserInput[] | BackgroundCheckRequestUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutUserInput | BackgroundCheckRequestCreateOrConnectWithoutUserInput[]
+    upsert?: BackgroundCheckRequestUpsertWithWhereUniqueWithoutUserInput | BackgroundCheckRequestUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BackgroundCheckRequestCreateManyUserInputEnvelope
+    set?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    disconnect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    delete?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    update?: BackgroundCheckRequestUpdateWithWhereUniqueWithoutUserInput | BackgroundCheckRequestUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BackgroundCheckRequestUpdateManyWithWhereWithoutUserInput | BackgroundCheckRequestUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutAccountsInput = {
@@ -43110,6 +46142,13 @@ export namespace Prisma {
     connect?: CompanyNonprofitLinkWhereUniqueInput | CompanyNonprofitLinkWhereUniqueInput[]
   }
 
+  export type BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutOrganizationInput, BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput> | BackgroundCheckRequestCreateWithoutOrganizationInput[] | BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput | BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput[]
+    createMany?: BackgroundCheckRequestCreateManyOrganizationInputEnvelope
+    connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+  }
+
   export type OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -43185,6 +46224,13 @@ export namespace Prisma {
     connectOrCreate?: CompanyNonprofitLinkCreateOrConnectWithoutOrgInput | CompanyNonprofitLinkCreateOrConnectWithoutOrgInput[]
     createMany?: CompanyNonprofitLinkCreateManyOrgInputEnvelope
     connect?: CompanyNonprofitLinkWhereUniqueInput | CompanyNonprofitLinkWhereUniqueInput[]
+  }
+
+  export type BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutOrganizationInput, BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput> | BackgroundCheckRequestCreateWithoutOrganizationInput[] | BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput | BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput[]
+    createMany?: BackgroundCheckRequestCreateManyOrganizationInputEnvelope
+    connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
   }
 
   export type EnumPlanTierFieldUpdateOperationsInput = {
@@ -43345,6 +46391,20 @@ export namespace Prisma {
     deleteMany?: CompanyNonprofitLinkScalarWhereInput | CompanyNonprofitLinkScalarWhereInput[]
   }
 
+  export type BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutOrganizationInput, BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput> | BackgroundCheckRequestCreateWithoutOrganizationInput[] | BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput | BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput[]
+    upsert?: BackgroundCheckRequestUpsertWithWhereUniqueWithoutOrganizationInput | BackgroundCheckRequestUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: BackgroundCheckRequestCreateManyOrganizationInputEnvelope
+    set?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    disconnect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    delete?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    update?: BackgroundCheckRequestUpdateWithWhereUniqueWithoutOrganizationInput | BackgroundCheckRequestUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: BackgroundCheckRequestUpdateManyWithWhereWithoutOrganizationInput | BackgroundCheckRequestUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
+  }
+
   export type OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -43497,6 +46557,20 @@ export namespace Prisma {
     update?: CompanyNonprofitLinkUpdateWithWhereUniqueWithoutOrgInput | CompanyNonprofitLinkUpdateWithWhereUniqueWithoutOrgInput[]
     updateMany?: CompanyNonprofitLinkUpdateManyWithWhereWithoutOrgInput | CompanyNonprofitLinkUpdateManyWithWhereWithoutOrgInput[]
     deleteMany?: CompanyNonprofitLinkScalarWhereInput | CompanyNonprofitLinkScalarWhereInput[]
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutOrganizationInput, BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput> | BackgroundCheckRequestCreateWithoutOrganizationInput[] | BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput | BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput[]
+    upsert?: BackgroundCheckRequestUpsertWithWhereUniqueWithoutOrganizationInput | BackgroundCheckRequestUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: BackgroundCheckRequestCreateManyOrganizationInputEnvelope
+    set?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    disconnect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    delete?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+    update?: BackgroundCheckRequestUpdateWithWhereUniqueWithoutOrganizationInput | BackgroundCheckRequestUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: BackgroundCheckRequestUpdateManyWithWhereWithoutOrganizationInput | BackgroundCheckRequestUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutMembersInput = {
@@ -44258,6 +47332,18 @@ export namespace Prisma {
     connect?: OrganizationWhereUniqueInput
   }
 
+  export type BackgroundCheckRequestCreateNestedOneWithoutCredentialInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutCredentialInput
+    connect?: BackgroundCheckRequestWhereUniqueInput
+  }
+
+  export type BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutCredentialInput
+    connect?: BackgroundCheckRequestWhereUniqueInput
+  }
+
   export type EnumCredentialTypeFieldUpdateOperationsInput = {
     set?: $Enums.CredentialType
   }
@@ -44280,6 +47366,26 @@ export namespace Prisma {
     upsert?: OrganizationUpsertWithoutCredentialsInput
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutCredentialsInput, OrganizationUpdateWithoutCredentialsInput>, OrganizationUncheckedUpdateWithoutCredentialsInput>
+  }
+
+  export type BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutCredentialInput
+    upsert?: BackgroundCheckRequestUpsertWithoutCredentialInput
+    disconnect?: BackgroundCheckRequestWhereInput | boolean
+    delete?: BackgroundCheckRequestWhereInput | boolean
+    connect?: BackgroundCheckRequestWhereUniqueInput
+    update?: XOR<XOR<BackgroundCheckRequestUpdateToOneWithWhereWithoutCredentialInput, BackgroundCheckRequestUpdateWithoutCredentialInput>, BackgroundCheckRequestUncheckedUpdateWithoutCredentialInput>
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput = {
+    create?: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
+    connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutCredentialInput
+    upsert?: BackgroundCheckRequestUpsertWithoutCredentialInput
+    disconnect?: BackgroundCheckRequestWhereInput | boolean
+    delete?: BackgroundCheckRequestWhereInput | boolean
+    connect?: BackgroundCheckRequestWhereUniqueInput
+    update?: XOR<XOR<BackgroundCheckRequestUpdateToOneWithWhereWithoutCredentialInput, BackgroundCheckRequestUpdateWithoutCredentialInput>, BackgroundCheckRequestUncheckedUpdateWithoutCredentialInput>
   }
 
   export type OrganizationCreateNestedOneWithoutShiftsInput = {
@@ -44676,6 +47782,58 @@ export namespace Prisma {
     upsert?: OrganizationUpsertWithoutCompanyLinksInput
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutCompanyLinksInput, OrganizationUpdateWithoutCompanyLinksInput>, OrganizationUncheckedUpdateWithoutCompanyLinksInput>
+  }
+
+  export type OrganizationCreateNestedOneWithoutBackgroundCheckRequestsInput = {
+    create?: XOR<OrganizationCreateWithoutBackgroundCheckRequestsInput, OrganizationUncheckedCreateWithoutBackgroundCheckRequestsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutBackgroundCheckRequestsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutBackgroundCheckRequestsInput = {
+    create?: XOR<UserCreateWithoutBackgroundCheckRequestsInput, UserUncheckedCreateWithoutBackgroundCheckRequestsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBackgroundCheckRequestsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type VolunteerCredentialCreateNestedOneWithoutBackgroundCheckRequestInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutBackgroundCheckRequestInput, VolunteerCredentialUncheckedCreateWithoutBackgroundCheckRequestInput>
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutBackgroundCheckRequestInput
+    connect?: VolunteerCredentialWhereUniqueInput
+  }
+
+  export type EnumBackgroundCheckProviderFieldUpdateOperationsInput = {
+    set?: $Enums.BackgroundCheckProvider
+  }
+
+  export type EnumBackgroundCheckStatusFieldUpdateOperationsInput = {
+    set?: $Enums.BackgroundCheckStatus
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutBackgroundCheckRequestsInput, OrganizationUncheckedCreateWithoutBackgroundCheckRequestsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutBackgroundCheckRequestsInput
+    upsert?: OrganizationUpsertWithoutBackgroundCheckRequestsInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutBackgroundCheckRequestsInput, OrganizationUpdateWithoutBackgroundCheckRequestsInput>, OrganizationUncheckedUpdateWithoutBackgroundCheckRequestsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput = {
+    create?: XOR<UserCreateWithoutBackgroundCheckRequestsInput, UserUncheckedCreateWithoutBackgroundCheckRequestsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBackgroundCheckRequestsInput
+    upsert?: UserUpsertWithoutBackgroundCheckRequestsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBackgroundCheckRequestsInput, UserUpdateWithoutBackgroundCheckRequestsInput>, UserUncheckedUpdateWithoutBackgroundCheckRequestsInput>
+  }
+
+  export type VolunteerCredentialUpdateOneWithoutBackgroundCheckRequestNestedInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutBackgroundCheckRequestInput, VolunteerCredentialUncheckedCreateWithoutBackgroundCheckRequestInput>
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutBackgroundCheckRequestInput
+    upsert?: VolunteerCredentialUpsertWithoutBackgroundCheckRequestInput
+    disconnect?: VolunteerCredentialWhereInput | boolean
+    delete?: VolunteerCredentialWhereInput | boolean
+    connect?: VolunteerCredentialWhereUniqueInput
+    update?: XOR<XOR<VolunteerCredentialUpdateToOneWithWhereWithoutBackgroundCheckRequestInput, VolunteerCredentialUpdateWithoutBackgroundCheckRequestInput>, VolunteerCredentialUncheckedUpdateWithoutBackgroundCheckRequestInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -45196,6 +48354,40 @@ export namespace Prisma {
     _max?: NestedEnumCompanyNonprofitLinkStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumBackgroundCheckProviderFilter<$PrismaModel = never> = {
+    equals?: $Enums.BackgroundCheckProvider | EnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    in?: $Enums.BackgroundCheckProvider[] | ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BackgroundCheckProvider[] | ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    not?: NestedEnumBackgroundCheckProviderFilter<$PrismaModel> | $Enums.BackgroundCheckProvider
+  }
+
+  export type NestedEnumBackgroundCheckStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BackgroundCheckStatus | EnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BackgroundCheckStatus[] | ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BackgroundCheckStatus[] | ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel> | $Enums.BackgroundCheckStatus
+  }
+
+  export type NestedEnumBackgroundCheckProviderWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BackgroundCheckProvider | EnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    in?: $Enums.BackgroundCheckProvider[] | ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BackgroundCheckProvider[] | ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
+    not?: NestedEnumBackgroundCheckProviderWithAggregatesFilter<$PrismaModel> | $Enums.BackgroundCheckProvider
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBackgroundCheckProviderFilter<$PrismaModel>
+    _max?: NestedEnumBackgroundCheckProviderFilter<$PrismaModel>
+  }
+
+  export type NestedEnumBackgroundCheckStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BackgroundCheckStatus | EnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BackgroundCheckStatus[] | ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BackgroundCheckStatus[] | ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBackgroundCheckStatusWithAggregatesFilter<$PrismaModel> | $Enums.BackgroundCheckStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel>
+    _max?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel>
+  }
+
   export type AccountCreateWithoutUserInput = {
     id?: string
     type: string
@@ -45444,6 +48636,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutCredentialsInput
+    backgroundCheckRequest?: BackgroundCheckRequestCreateNestedOneWithoutCredentialInput
   }
 
   export type VolunteerCredentialUncheckedCreateWithoutUserInput = {
@@ -45457,6 +48650,7 @@ export namespace Prisma {
     issuedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput
   }
 
   export type VolunteerCredentialCreateOrConnectWithoutUserInput = {
@@ -45494,6 +48688,40 @@ export namespace Prisma {
 
   export type ShiftSignupCreateManyUserInputEnvelope = {
     data: ShiftSignupCreateManyUserInput | ShiftSignupCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BackgroundCheckRequestCreateWithoutUserInput = {
+    id?: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutBackgroundCheckRequestsInput
+    credential?: VolunteerCredentialCreateNestedOneWithoutBackgroundCheckRequestInput
+  }
+
+  export type BackgroundCheckRequestUncheckedCreateWithoutUserInput = {
+    id?: string
+    orgId: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BackgroundCheckRequestCreateOrConnectWithoutUserInput = {
+    where: BackgroundCheckRequestWhereUniqueInput
+    create: XOR<BackgroundCheckRequestCreateWithoutUserInput, BackgroundCheckRequestUncheckedCreateWithoutUserInput>
+  }
+
+  export type BackgroundCheckRequestCreateManyUserInputEnvelope = {
+    data: BackgroundCheckRequestCreateManyUserInput | BackgroundCheckRequestCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -45804,6 +49032,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ShiftSignup"> | Date | string
   }
 
+  export type BackgroundCheckRequestUpsertWithWhereUniqueWithoutUserInput = {
+    where: BackgroundCheckRequestWhereUniqueInput
+    update: XOR<BackgroundCheckRequestUpdateWithoutUserInput, BackgroundCheckRequestUncheckedUpdateWithoutUserInput>
+    create: XOR<BackgroundCheckRequestCreateWithoutUserInput, BackgroundCheckRequestUncheckedCreateWithoutUserInput>
+  }
+
+  export type BackgroundCheckRequestUpdateWithWhereUniqueWithoutUserInput = {
+    where: BackgroundCheckRequestWhereUniqueInput
+    data: XOR<BackgroundCheckRequestUpdateWithoutUserInput, BackgroundCheckRequestUncheckedUpdateWithoutUserInput>
+  }
+
+  export type BackgroundCheckRequestUpdateManyWithWhereWithoutUserInput = {
+    where: BackgroundCheckRequestScalarWhereInput
+    data: XOR<BackgroundCheckRequestUpdateManyMutationInput, BackgroundCheckRequestUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type BackgroundCheckRequestScalarWhereInput = {
+    AND?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
+    OR?: BackgroundCheckRequestScalarWhereInput[]
+    NOT?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
+    id?: StringFilter<"BackgroundCheckRequest"> | string
+    orgId?: StringFilter<"BackgroundCheckRequest"> | string
+    userId?: StringFilter<"BackgroundCheckRequest"> | string
+    provider?: EnumBackgroundCheckProviderFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckProvider
+    externalId?: StringFilter<"BackgroundCheckRequest"> | string
+    status?: EnumBackgroundCheckStatusFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckStatus
+    webhookPayload?: JsonNullableFilter<"BackgroundCheckRequest">
+    credentialId?: StringNullableFilter<"BackgroundCheckRequest"> | string | null
+    createdAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
+    updatedAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
+  }
+
   export type UserCreateWithoutAccountsInput = {
     id?: string
     name?: string | null
@@ -45821,6 +49081,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -45840,6 +49101,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -45875,6 +49137,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -45894,6 +49157,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -45913,6 +49177,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -45932,6 +49197,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -45947,6 +49213,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -45959,6 +49227,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSessionsInput = {
@@ -45969,6 +49238,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -45981,6 +49252,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSessionsInput = {
@@ -46053,6 +49325,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -46072,6 +49345,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutSessionsInput = {
@@ -46093,6 +49367,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -46105,6 +49381,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSessionsInput = {
@@ -46115,6 +49392,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -46127,6 +49406,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type CompanyAccountUpsertWithoutSessionsInput = {
@@ -46439,6 +49719,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutCredentialsInput
+    backgroundCheckRequest?: BackgroundCheckRequestCreateNestedOneWithoutCredentialInput
   }
 
   export type VolunteerCredentialUncheckedCreateWithoutOrganizationInput = {
@@ -46452,6 +49733,7 @@ export namespace Prisma {
     issuedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput
   }
 
   export type VolunteerCredentialCreateOrConnectWithoutOrganizationInput = {
@@ -46529,6 +49811,40 @@ export namespace Prisma {
 
   export type CompanyNonprofitLinkCreateManyOrgInputEnvelope = {
     data: CompanyNonprofitLinkCreateManyOrgInput | CompanyNonprofitLinkCreateManyOrgInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BackgroundCheckRequestCreateWithoutOrganizationInput = {
+    id?: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutBackgroundCheckRequestsInput
+    credential?: VolunteerCredentialCreateNestedOneWithoutBackgroundCheckRequestInput
+  }
+
+  export type BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    userId: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput = {
+    where: BackgroundCheckRequestWhereUniqueInput
+    create: XOR<BackgroundCheckRequestCreateWithoutOrganizationInput, BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type BackgroundCheckRequestCreateManyOrganizationInputEnvelope = {
+    data: BackgroundCheckRequestCreateManyOrganizationInput | BackgroundCheckRequestCreateManyOrganizationInput[]
     skipDuplicates?: boolean
   }
 
@@ -46799,6 +50115,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CompanyNonprofitLink"> | Date | string
   }
 
+  export type BackgroundCheckRequestUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: BackgroundCheckRequestWhereUniqueInput
+    update: XOR<BackgroundCheckRequestUpdateWithoutOrganizationInput, BackgroundCheckRequestUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<BackgroundCheckRequestCreateWithoutOrganizationInput, BackgroundCheckRequestUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type BackgroundCheckRequestUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: BackgroundCheckRequestWhereUniqueInput
+    data: XOR<BackgroundCheckRequestUpdateWithoutOrganizationInput, BackgroundCheckRequestUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type BackgroundCheckRequestUpdateManyWithWhereWithoutOrganizationInput = {
+    where: BackgroundCheckRequestScalarWhereInput
+    data: XOR<BackgroundCheckRequestUpdateManyMutationInput, BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
   export type OrganizationCreateWithoutMembersInput = {
     id?: string
     name: string
@@ -46807,6 +50139,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
@@ -46819,6 +50153,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -46829,6 +50164,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
@@ -46841,6 +50178,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -46865,6 +50203,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -46884,6 +50223,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -46910,6 +50250,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
@@ -46922,6 +50264,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -46932,6 +50275,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -46944,6 +50289,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutMembershipsInput = {
@@ -46974,6 +50320,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -46993,6 +50340,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -47003,6 +50351,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -47015,6 +50365,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
@@ -47025,6 +50376,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -47037,6 +50390,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutAuditLogsInput = {
@@ -47098,6 +50452,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -47117,6 +50472,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -47143,6 +50499,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -47155,6 +50513,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
@@ -47165,6 +50524,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -47177,6 +50538,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type CompanyAccountUpsertWithoutAuditLogsInput = {
@@ -47250,6 +50612,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -47269,6 +50632,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutFeatureFlagsInput = {
@@ -47279,6 +50643,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -47291,6 +50657,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutFeatureFlagsInput = {
@@ -47301,6 +50668,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -47313,6 +50682,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutFeatureFlagsInput = {
@@ -47339,6 +50709,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -47351,6 +50723,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutFeatureFlagsInput = {
@@ -47361,6 +50734,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -47373,6 +50748,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutApplicationsInput = {
@@ -47383,6 +50759,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -47395,6 +50773,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutApplicationsInput = {
@@ -47405,6 +50784,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -47417,6 +50798,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutApplicationsInput = {
@@ -47484,6 +50866,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSubmittedApplicationsInput = {
@@ -47503,6 +50886,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSubmittedApplicationsInput = {
@@ -47551,6 +50935,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -47563,6 +50949,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutApplicationsInput = {
@@ -47573,6 +50960,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -47585,6 +50974,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutApplicationsInput = {
@@ -47664,6 +51054,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubmittedApplicationsInput = {
@@ -47683,6 +51074,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type VolunteerAnswerUpsertWithWhereUniqueWithoutApplicationInput = {
@@ -47783,6 +51175,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -47795,6 +51189,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutScreenerQuestionsInput = {
@@ -47805,6 +51200,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -47817,6 +51214,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutScreenerQuestionsInput = {
@@ -47843,6 +51241,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -47855,6 +51255,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutScreenerQuestionsInput = {
@@ -47865,6 +51266,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -47877,6 +51280,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutInvitationsInput = {
@@ -47887,6 +51291,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -47899,6 +51305,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -47909,6 +51316,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -47921,6 +51330,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -47947,6 +51357,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -47959,6 +51371,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -47969,6 +51382,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -47981,6 +51396,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutOpportunitiesInput = {
@@ -47991,6 +51407,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -48003,6 +51421,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutOpportunitiesInput = {
@@ -48013,6 +51432,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -48025,6 +51446,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutOpportunitiesInput = {
@@ -48171,6 +51593,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -48183,6 +51607,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutOpportunitiesInput = {
@@ -48193,6 +51618,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -48205,6 +51632,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OpportunityTagUpsertWithWhereUniqueWithoutOpportunityInput = {
@@ -48828,6 +52256,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutVolunteerSkillsInput = {
@@ -48847,6 +52276,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutVolunteerSkillsInput = {
@@ -48907,6 +52337,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutVolunteerSkillsInput = {
@@ -48926,6 +52357,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type SkillUpsertWithoutVolunteerSkillsInput = {
@@ -48976,6 +52408,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutProfileInput = {
@@ -48995,6 +52428,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutProfileInput = {
@@ -49030,6 +52464,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProfileInput = {
@@ -49049,6 +52484,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutCredentialsInput = {
@@ -49068,6 +52504,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCredentialsInput = {
@@ -49087,6 +52524,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCredentialsInput = {
@@ -49102,6 +52540,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -49114,6 +52554,7 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCredentialsInput = {
@@ -49124,6 +52565,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -49136,11 +52579,41 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCredentialsInput = {
     where: OrganizationWhereUniqueInput
     create: XOR<OrganizationCreateWithoutCredentialsInput, OrganizationUncheckedCreateWithoutCredentialsInput>
+  }
+
+  export type BackgroundCheckRequestCreateWithoutCredentialInput = {
+    id?: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutBackgroundCheckRequestsInput
+    user: UserCreateNestedOneWithoutBackgroundCheckRequestsInput
+  }
+
+  export type BackgroundCheckRequestUncheckedCreateWithoutCredentialInput = {
+    id?: string
+    orgId: string
+    userId: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BackgroundCheckRequestCreateOrConnectWithoutCredentialInput = {
+    where: BackgroundCheckRequestWhereUniqueInput
+    create: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
   }
 
   export type UserUpsertWithoutCredentialsInput = {
@@ -49171,6 +52644,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCredentialsInput = {
@@ -49190,6 +52664,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutCredentialsInput = {
@@ -49211,6 +52686,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -49223,6 +52700,7 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCredentialsInput = {
@@ -49233,6 +52711,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -49245,6 +52725,42 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type BackgroundCheckRequestUpsertWithoutCredentialInput = {
+    update: XOR<BackgroundCheckRequestUpdateWithoutCredentialInput, BackgroundCheckRequestUncheckedUpdateWithoutCredentialInput>
+    create: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
+    where?: BackgroundCheckRequestWhereInput
+  }
+
+  export type BackgroundCheckRequestUpdateToOneWithWhereWithoutCredentialInput = {
+    where?: BackgroundCheckRequestWhereInput
+    data: XOR<BackgroundCheckRequestUpdateWithoutCredentialInput, BackgroundCheckRequestUncheckedUpdateWithoutCredentialInput>
+  }
+
+  export type BackgroundCheckRequestUpdateWithoutCredentialInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
+    user?: UserUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateWithoutCredentialInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrganizationCreateWithoutShiftsInput = {
@@ -49255,6 +52771,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -49267,6 +52785,7 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutShiftsInput = {
@@ -49277,6 +52796,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -49289,6 +52810,7 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutShiftsInput = {
@@ -49386,6 +52908,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -49398,6 +52922,7 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutShiftsInput = {
@@ -49408,6 +52933,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -49420,6 +52947,7 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutShiftsInput = {
@@ -49541,6 +53069,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutShiftSignupsInput = {
@@ -49560,6 +53089,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutShiftSignupsInput = {
@@ -49638,6 +53168,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutShiftSignupsInput = {
@@ -49657,6 +53188,7 @@ export namespace Prisma {
     volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CompanyMemberCreateWithoutCompanyInput = {
@@ -49949,6 +53481,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCompanyMembershipsInput = {
@@ -49968,6 +53501,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCompanyMembershipsInput = {
@@ -50046,6 +53580,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCompanyMembershipsInput = {
@@ -50065,6 +53600,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CompanyAccountCreateWithoutInvitationsInput = {
@@ -50192,6 +53728,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -50204,6 +53742,7 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCompanyLinksInput = {
@@ -50214,6 +53753,8 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     stripeSubscriptionId?: string | null
     trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -50226,6 +53767,7 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCompanyLinksInput = {
@@ -50295,6 +53837,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -50307,6 +53851,7 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCompanyLinksInput = {
@@ -50317,6 +53862,8 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -50329,6 +53876,291 @@ export namespace Prisma {
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationCreateWithoutBackgroundCheckRequestsInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutBackgroundCheckRequestsInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagUncheckedCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutBackgroundCheckRequestsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutBackgroundCheckRequestsInput, OrganizationUncheckedCreateWithoutBackgroundCheckRequestsInput>
+  }
+
+  export type UserCreateWithoutBackgroundCheckRequestsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutBackgroundCheckRequestsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutBackgroundCheckRequestsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutBackgroundCheckRequestsInput, UserUncheckedCreateWithoutBackgroundCheckRequestsInput>
+  }
+
+  export type VolunteerCredentialCreateWithoutBackgroundCheckRequestInput = {
+    id?: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCredentialsInput
+    organization: OrganizationCreateNestedOneWithoutCredentialsInput
+  }
+
+  export type VolunteerCredentialUncheckedCreateWithoutBackgroundCheckRequestInput = {
+    id?: string
+    userId: string
+    orgId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerCredentialCreateOrConnectWithoutBackgroundCheckRequestInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    create: XOR<VolunteerCredentialCreateWithoutBackgroundCheckRequestInput, VolunteerCredentialUncheckedCreateWithoutBackgroundCheckRequestInput>
+  }
+
+  export type OrganizationUpsertWithoutBackgroundCheckRequestsInput = {
+    update: XOR<OrganizationUpdateWithoutBackgroundCheckRequestsInput, OrganizationUncheckedUpdateWithoutBackgroundCheckRequestsInput>
+    create: XOR<OrganizationCreateWithoutBackgroundCheckRequestsInput, OrganizationUncheckedCreateWithoutBackgroundCheckRequestsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutBackgroundCheckRequestsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutBackgroundCheckRequestsInput, OrganizationUncheckedUpdateWithoutBackgroundCheckRequestsInput>
+  }
+
+  export type OrganizationUpdateWithoutBackgroundCheckRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutBackgroundCheckRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUncheckedUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+  }
+
+  export type UserUpsertWithoutBackgroundCheckRequestsInput = {
+    update: XOR<UserUpdateWithoutBackgroundCheckRequestsInput, UserUncheckedUpdateWithoutBackgroundCheckRequestsInput>
+    create: XOR<UserCreateWithoutBackgroundCheckRequestsInput, UserUncheckedCreateWithoutBackgroundCheckRequestsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutBackgroundCheckRequestsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutBackgroundCheckRequestsInput, UserUncheckedUpdateWithoutBackgroundCheckRequestsInput>
+  }
+
+  export type UserUpdateWithoutBackgroundCheckRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutBackgroundCheckRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type VolunteerCredentialUpsertWithoutBackgroundCheckRequestInput = {
+    update: XOR<VolunteerCredentialUpdateWithoutBackgroundCheckRequestInput, VolunteerCredentialUncheckedUpdateWithoutBackgroundCheckRequestInput>
+    create: XOR<VolunteerCredentialCreateWithoutBackgroundCheckRequestInput, VolunteerCredentialUncheckedCreateWithoutBackgroundCheckRequestInput>
+    where?: VolunteerCredentialWhereInput
+  }
+
+  export type VolunteerCredentialUpdateToOneWithWhereWithoutBackgroundCheckRequestInput = {
+    where?: VolunteerCredentialWhereInput
+    data: XOR<VolunteerCredentialUpdateWithoutBackgroundCheckRequestInput, VolunteerCredentialUncheckedUpdateWithoutBackgroundCheckRequestInput>
+  }
+
+  export type VolunteerCredentialUpdateWithoutBackgroundCheckRequestInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
+    organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+  }
+
+  export type VolunteerCredentialUncheckedUpdateWithoutBackgroundCheckRequestInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AccountCreateManyUserInput = {
@@ -50415,6 +54247,18 @@ export namespace Prisma {
     shiftId: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BackgroundCheckRequestCreateManyUserInput = {
+    id?: string
+    orgId: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -50630,6 +54474,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+    backgroundCheckRequest?: BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateWithoutUserInput = {
@@ -50643,6 +54488,7 @@ export namespace Prisma {
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateManyWithoutUserInput = {
@@ -50681,6 +54527,42 @@ export namespace Prisma {
     shiftId?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackgroundCheckRequestUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
+    credential?: VolunteerCredentialUpdateOneWithoutBackgroundCheckRequestNestedInput
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -50800,6 +54682,18 @@ export namespace Prisma {
     id?: string
     companyId: string
     status?: $Enums.CompanyNonprofitLinkStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BackgroundCheckRequestCreateManyOrganizationInput = {
+    id?: string
+    userId: string
+    provider?: $Enums.BackgroundCheckProvider
+    externalId: string
+    status?: $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -51074,6 +54968,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
+    backgroundCheckRequest?: BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateWithoutOrganizationInput = {
@@ -51087,6 +54982,7 @@ export namespace Prisma {
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateManyWithoutOrganizationInput = {
@@ -51169,6 +55065,42 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     companyId?: StringFieldUpdateOperationsInput | string
     status?: EnumCompanyNonprofitLinkStatusFieldUpdateOperationsInput | $Enums.CompanyNonprofitLinkStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackgroundCheckRequestUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
+    credential?: VolunteerCredentialUpdateOneWithoutBackgroundCheckRequestNestedInput
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    provider?: EnumBackgroundCheckProviderFieldUpdateOperationsInput | $Enums.BackgroundCheckProvider
+    externalId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
+    webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    credentialId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

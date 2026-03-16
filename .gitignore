@@ -50,10 +50,16 @@ docs/.vitepress/dist
 .vscode
 .idea
 
-# AI tooling
-.claude
+# AI tooling — ignore everything except gstack skill
+.claude/*
+!.claude/skills
+.claude/skills/*
+!.claude/skills/gstack
+.claude/skills/gstack/node_modules
+.claude/skills/gstack/bin
 VolunteerReady_Action_Plan.docx
 
 # prisma
 prisma/dev.db
 prisma/dev.db-journal
+.gstack/

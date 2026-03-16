@@ -132,6 +132,7 @@ Available gstack skills:
 - `/qa` — QA testing
 - `/setup-browser-cookies` — Set up browser cookies
 - `/retro` — Retrospective
+- `/gstack-upgrade` — Upgrade gstack to the latest version
 
 If gstack skills aren't working, run:
 ```bash

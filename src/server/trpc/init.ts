@@ -93,7 +93,7 @@ export const t = initTRPC
 		transformer: superjson,
 	});
 
-const roleRank: Record<Role, number> = {
+export const roleRank: Record<Role, number> = {
 	READONLY: 0,
 	STAFF: 1,
 	ADMIN: 2,

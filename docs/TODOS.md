@@ -5,6 +5,93 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Background Check Integration (Phase 6B)
+
+### [P1] FCRA Adverse Action Notices
+
+**What:** Implement pre-adverse and adverse action notice workflow per FCRA requirements.
+
+**Why:** Legally required before a background check result can negatively affect a volunteer's
+placement in most US states. Shipping Phase 6B without this means orgs cannot legally act on
+CONSIDER or adverse results until this is implemented.
+
+**Context:** When `BackgroundCheckRequest.status = CONSIDER` or `FAILED`, FCRA requires:
+(1) Pre-adverse action notice (email to volunteer explaining the result and their rights),
+(2) reasonable waiting period (typically 5–10 days), (3) adverse action notice if decision stands.
+Checkr provides templated notices via their API at `POST /v1/adverse_actions`. The
+`BackgroundCheckRequest` entity needs `praeNoticeSentAt`, `adverseActionAt`, and `fcraStatus`
+fields. The `sendBackgroundCheckConsiderEmail` in `src/server/repositories/sendBackgroundCheckEmail.ts`
+currently sends a staff notification — it needs a companion volunteer-facing notice.
+
+**Pros:** Legal compliance; prevents liability exposure for orgs using the platform.
+**Cons:** Adds complexity to the webhook handler and requires UI to track FCRA notice state.
+
+**Effort:** L | **Priority:** P1 | **Depends on:** ✅ Phase 6B background check integration shipped
+
+---
+
+### [P2] CONSIDER State Review UI Action
+
+**What:** "Review" button on CONSIDER rows in the Background Check Requests table that
+pre-fills the existing `IssueCredentialDialog` with the volunteer's userId and
+`type=BACKGROUND_CHECK`.
+
+**Why:** Staff currently must navigate to the credential issue dialog separately. A contextual
+action on the CONSIDER row removes friction for the most common post-check workflow.
+
+**Context:** The `BackgroundCheckRequestsTable` in `src/app/(app)/app/credentials/page.tsx`
+already renders `IssueCredentialDialog` for CONSIDER rows but wrapped as a trigger — the
+current implementation opens the dialog inline. This TODO tracks making the UX more prominent
+(e.g., a dedicated "Review & Issue" action that pre-populates all fields and focuses the modal).
+No new backend code needed — `credentials.issue` tRPC mutation already exists.
+
+**Effort:** S | **Priority:** P2 | **Depends on:** ✅ Phase 6B UI shipped
+
+---
+
+### [P3] Checkr Candidate ID Storage for Re-Screening
+
+**What:** Store encrypted Checkr candidate ID on `BackgroundCheckRequest` to enable re-screening
+without re-collecting SSN/DOB.
+
+**Why:** Annual background check renewal is common for ongoing volunteers. Currently, each renewal
+requires staff to re-collect PII. Storing the candidate ID (not PII itself) enables one-click
+re-screening.
+
+**Context:** In Phase 6B, `candidateId` is discarded after `initiateCheck()` in
+`src/server/lib/adapters/background-check/checkr.ts` (see the NOTE in that file's header).
+Storing it requires encrypted storage (AES-256 at application layer, or Postgres pgcrypto).
+The `BackgroundCheckRequest` entity gains a `candidateIdEncrypted` field. A new
+`recheckVolunteer(requestId)` service function calls `POST /v1/reports` with the stored
+candidate ID — no PII re-entry. Also needs a Sterling adapter implementation for that provider.
+
+**Effort:** M | **Priority:** P3 | **Depends on:** ✅ Phase 6B shipped, encryption infrastructure decision
+
+---
+
+### [P2] Encrypt Checkr OAuth Access Tokens at Rest
+
+**What:** Encrypt `Organization.checkrAccessToken` before writing to DB and decrypt on read.
+
+**Why:** OAuth access tokens are secrets with API-level permissions. Storing them in plaintext
+means a DB dump or SQL injection exposes all per-org Checkr access. Defense-in-depth best practice
+is to encrypt secrets at the application layer.
+
+**Context:** `checkrAccessToken` was added in the `20260316050000_phase_6b_checkr_partner_oauth`
+migration. Currently stored as plaintext `String?`. The encryption/decryption logic should live in
+a new `src/server/lib/crypto.ts` utility (AES-256-GCM with a `CHECKR_TOKEN_ENCRYPTION_KEY` env var).
+The two DB access points are `connectCheckrAccount` (write) and `getOrgCheckrToken` (read) in
+`src/server/services/backgroundCheckService.ts` — add encrypt/decrypt calls at those sites only.
+Do NOT encrypt `checkrAccountId` — it is a non-secret identifier.
+
+**Pros:** Eliminates plaintext token exposure from DB breach or log leak.
+**Cons:** Adds key rotation complexity; losing `CHECKR_TOKEN_ENCRYPTION_KEY` renders all tokens
+unreadable (requires re-connect flow for all orgs).
+
+**Effort:** S | **Priority:** P2 | **Depends on:** ✅ Phase 6B Partner API OAuth shipped
+
+---
+
 ## Billing & Payments
 
 ### [P2] Plan Upgrade Confirmation Email
