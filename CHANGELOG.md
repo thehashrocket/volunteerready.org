@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] - 2026-03-16
+
+### Added
+- **FCRA adverse action workflow** — full pre-adverse notice → 5-day waiting period → adverse action notice flow for CONSIDER background check results, with volunteer-facing emails containing FCRA-required rights information and FTC PDF link
+- **`FcraStatus` enum** — state machine (NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED) with pure domain guards and waiting period helpers
+- **3 new tRPC mutations** — `sendPreAdverseNotice`, `finalizeAdverseAction`, `resolveFcra` (all staffProcedure) with IDOR guards, status guards, and audit logging
+- **FCRA column + action buttons** on Background Check Requests table — Pre-Adverse Notice, Finalize Adverse Action, and Issue Credential (with automatic FCRA resolution) buttons on CONSIDER rows
+- **AES-256-GCM token encryption** — Checkr OAuth access tokens encrypted at rest via `src/server/lib/crypto.ts`; `tryDecrypt()` supports zero-downtime migration from plaintext
+- **Shared Resend email client** — lazy-initialized singleton in `src/server/lib/resend.ts` replacing 7 separate `new Resend()` calls; avoids build-time errors when API key is absent
+- **Atomic FCRA status transitions** — `updateMany` with compound WHERE guards prevent duplicate FCRA notices from concurrent requests
+
+### Fixed
+- Race condition on FCRA status transitions — atomic WHERE guards on all 3 FCRA service methods prevent duplicate legally-significant emails
+
 ## [0.2.2] - 2026-03-16
 
 ### Fixed
