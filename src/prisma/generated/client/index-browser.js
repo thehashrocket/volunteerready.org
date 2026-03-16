@@ -422,6 +422,9 @@ exports.Prisma.BackgroundCheckRequestScalarFieldEnum = {
   status: 'status',
   webhookPayload: 'webhookPayload',
   credentialId: 'credentialId',
+  fcraStatus: 'fcraStatus',
+  preAdverseNoticeSentAt: 'preAdverseNoticeSentAt',
+  adverseActionAt: 'adverseActionAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -572,6 +575,13 @@ exports.BackgroundCheckStatus = exports.$Enums.BackgroundCheckStatus = {
   CONSIDER: 'CONSIDER',
   FAILED: 'FAILED',
   CANCELLED: 'CANCELLED'
+};
+
+exports.FcraStatus = exports.$Enums.FcraStatus = {
+  NONE: 'NONE',
+  PRE_ADVERSE_SENT: 'PRE_ADVERSE_SENT',
+  ADVERSE_ACTION_SENT: 'ADVERSE_ACTION_SENT',
+  RESOLVED: 'RESOLVED'
 };
 
 exports.Prisma.ModelName = {
