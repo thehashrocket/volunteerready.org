@@ -6,9 +6,12 @@ The system is being built as the foundation for a larger VolunteerMatch-style ec
 
 - publish volunteer opportunities
 - screen and onboard volunteers
-- manage organizational members
-- track volunteer activity
-- integrate with future tools like grants, events, and nonprofit operations
+- match volunteers to opportunities using skills
+- manage shifts and attendance
+- issue and verify portable credentials
+- integrate background checks (Checkr)
+- manage organizational members and billing
+- support corporate CSR / employer volunteer programs
 
 The platform is intentionally designed as a modular nonprofit infrastructure layer, not just a form builder.
 
@@ -20,15 +23,19 @@ VolunteerReady aims to become a central operating system for nonprofit volunteer
 
 Long-term goals include:
 
-- Volunteer discovery and matching
-- Volunteer screening and onboarding
-- Organization management
-- Volunteer activity tracking
-- Grant opportunity integration
-- Cross-organization volunteer identity
-- Nonprofit analytics and reporting
+- Volunteer discovery and matching (shipped)
+- Volunteer screening and onboarding (shipped)
+- Organization management (shipped)
+- Volunteer activity tracking via shifts (shipped)
+- Portable volunteer credentials (shipped)
+- Background check integration (shipped)
+- Corporate CSR / employer accounts (shipped)
+- Billing and plan tiers (shipped)
+- Cross-organization volunteer identity (in progress)
+- Grant opportunity integration (planned)
+- Nonprofit analytics and reporting (planned)
 
-The current system implements the core primitives required to support this ecosystem.
+The current system implements Phases 1 through 6B. See `docs/ROADMAP.md` for the full plan.
 
 ---
 
@@ -40,12 +47,16 @@ An organization is the top-level tenant in the system.
 
 Each organization has:
 
-- members
+- members (with roles)
 - volunteers
 - screening questions
 - volunteer applications
+- volunteer opportunities
+- shifts
+- credentials
 - feature flags
 - audit logs
+- plan tier (FREE / STARTER / PRO)
 
 Organizations are fully isolated from each other.
 
@@ -72,15 +83,11 @@ Users may belong to multiple organizations.
 
 Represents a volunteer submission to an organization.
 
-Applications are composed of answers to screening questions.
+Applications are composed of answers to screening questions and may be linked to a specific opportunity.
 
----
+Status lifecycle: SUBMITTED -> REVIEW -> APPROVED / REJECTED
 
-## VolunteerAnswer
-
-Represents an answer to a `ScreenerQuestion`.
-
-Answers are tied to a specific `VolunteerApplication`.
+Screening result: PASS / REVIEW / FAIL (auto-evaluated by disqualifier and review rules)
 
 ---
 
@@ -88,7 +95,93 @@ Answers are tied to a specific `VolunteerApplication`.
 
 Questions configured by organizations to screen volunteers.
 
-Each organization controls its own screening questions.
+Each organization controls its own screening questions. Types: TEXT, SINGLE_CHOICE, MULTI_CHOICE, BOOLEAN, NUMBER.
+
+Questions support disqualifier rules (auto-reject) and review rules (flag for manual review).
+
+---
+
+## VolunteerOpportunity
+
+A volunteer position published by an organization.
+
+Status lifecycle: DRAFT -> PUBLISHED -> CLOSED
+
+Opportunities include location, dates, commitment hours, capacity, tags, and skill requirements (REQUIRED / PREFERRED).
+
+---
+
+## VolunteerProfile
+
+Cross-org volunteer identity (1:1 with User).
+
+Includes bio, phone, location, availability preferences, interest tags, and visibility controls (PUBLIC / ORGS_ONLY / PRIVATE).
+
+Profile completeness is scored 0-100.
+
+---
+
+## VolunteerCredential
+
+Org-scoped verification badges for volunteers.
+
+Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE
+
+Status lifecycle: PENDING -> VERIFIED -> EXPIRED / REVOKED
+
+Unique per user + org + type.
+
+---
+
+## Shift
+
+Org-scoped volunteer time block with capacity and optional opportunity link.
+
+Status lifecycle: OPEN -> FULL (auto at capacity) -> COMPLETED / CANCELLED
+
+Volunteers sign up for shifts. Signup status: CONFIRMED -> ATTENDED / NO_SHOW / CANCELLED
+
+Time overlap detection prevents double-booking.
+
+---
+
+## BackgroundCheckRequest
+
+Tracks a background check initiated by org staff for a volunteer.
+
+Status lifecycle: PENDING -> COMPLETE / CONSIDER / FAILED / CANCELLED
+
+FCRA adverse action workflow: NONE -> PRE_ADVERSE_SENT -> ADVERSE_ACTION_SENT / RESOLVED
+
+PII (SSN, DOB) is never stored. Provider tokens are encrypted at rest (AES-256-GCM).
+
+---
+
+## CompanyAccount
+
+Corporate employer account for CSR / employee volunteer programs.
+
+Companies can sponsor nonprofit organizations (CompanyNonprofitLink) and manage team members with roles (OWNER / ADMIN / MEMBER).
+
+---
+
+## Billing & Plan Tiers
+
+Organizations have a plan tier: FREE / STARTER / PRO.
+
+Billing is managed via Stripe (checkout sessions, billing portal, webhook processing).
+
+Plan enforcement is server-side only via `planTierProcedure`.
+
+---
+
+## AuditLog
+
+Append-only log of organization and company actions.
+
+Used for traceability and compliance.
+
+Audit logs cannot be edited or deleted. All DB writes go through services so audit logging is automatic.
 
 ---
 
@@ -100,34 +193,31 @@ Used to enable or disable experimental or premium functionality.
 
 ---
 
-## AuditLog
-
-Append-only log of organization actions.
-
-Used for traceability and compliance.
-
-Audit logs cannot be edited or deleted.
-
----
-
 # Architecture
 
 ## Tech Stack
 
-- Next.js (App Router)
+- Next.js 16 (App Router)
 - React 19
-- Prisma ORM
+- TypeScript 5.9
+- Prisma 7 ORM
 - PostgreSQL
 - NextAuth (Auth.js)
 - tRPC v11
-- Tailwind CSS
-- shadcn/ui
-- Biome
+- Zod (shared validation)
+- Tailwind CSS + shadcn/ui
+- react-hook-form
+- Stripe (billing)
+- Resend (transactional email)
+- Checkr (background checks)
+- Vitest (testing)
+- Biome (linting/formatting)
 
 ---
 
 # Repository Structure
 
+```
 src/
  ├─ app/                # Next.js routes and page composition
  ├─ components/         # Reusable UI components
@@ -135,7 +225,15 @@ src/
      ├─ domain/         # Domain types, invariants, pure functions
      ├─ repositories/   # Database access layer (Prisma only)
      ├─ services/       # Business logic and workflows
-     └─ trpc/           # API routers and procedures
+     ├─ trpc/           # API routers and procedures
+     └─ lib/            # Shared utilities and adapters (crypto, email, Checkr)
+
+prisma/
+ ├─ schema.prisma       # Database schema (source of truth)
+ └─ seed.ts             # Development seed data
+
+docs/                   # VitePress documentation site
+```
 
 ---
 
@@ -143,32 +241,63 @@ src/
 
 ## Install dependencies
 
+```bash
 pnpm install
+```
 
 ## Start development server
 
+```bash
 pnpm dev
+```
 
-Health endpoint:
+Health endpoint: http://localhost:3005/health
 
-http://localhost:3005/health
+## Other commands
+
+```bash
+pnpm build          # Production build
+pnpm start          # Production server
+pnpm lint           # Biome lint
+pnpm format         # Biome format
+pnpm test           # Vitest (run once)
+pnpm check          # typecheck + lint + test
+```
 
 ---
 
 # Environment Variables
 
+```
+# Database
 DATABASE_URL
+
+# NextAuth
 NEXTAUTH_URL
 NEXTAUTH_SECRET
 GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET
+
+# Email
 RESEND_API_KEY
 RESEND_FROM_EMAIL
 EMAIL_FROM
+NEXT_PUBLIC_APP_URL
+
+# Stripe (billing)
+STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET
+STRIPE_PRICE_ID_STARTER
+STRIPE_PRICE_ID_PRO
+
+# Checkr (background checks)
 CHECKR_CLIENT_ID
 CHECKR_CLIENT_SECRET
 CHECKR_DEFAULT_PACKAGE
 CHECKR_TOKEN_ENCRYPTION_KEY
+```
+
+See `.env.example` for safe defaults.
 
 ---
 
@@ -176,15 +305,39 @@ CHECKR_TOKEN_ENCRYPTION_KEY
 
 PostgreSQL is used as the primary database.
 
-Prisma is the ORM.
+Prisma is the ORM. Client is generated to `src/prisma/generated/client`.
 
 Apply migrations:
 
+```bash
 pnpm prisma migrate deploy
+```
 
 Seed development data:
 
+```bash
 pnpm prisma db seed
+```
+
+---
+
+# Roadmap Status
+
+| Phase | Name | Status |
+|-------|------|--------|
+| 1 | Volunteer Screening | Complete |
+| 2 | Volunteer Opportunities | Complete |
+| 3 | Matching Engine | Complete |
+| 4 | Volunteer Profiles & Credentials | Complete |
+| 5 | Scheduling & Shifts | Complete |
+| 6A | Employer Accounts & Billing | Complete |
+| 6B | Background Check Integration | Complete |
+| 6C | Portable Credential Sharing | Planned |
+| 6D | Corporate ESG Reporting | Planned |
+| 6E | Mobile PWA | Planned |
+| 7 | Network Growth & Volunteer Identity | Planned |
+
+See `docs/ROADMAP.md` for full detail.
 
 ---
 
@@ -192,12 +345,12 @@ pnpm prisma db seed
 
 VolunteerReady aims to become the infrastructure layer for nonprofit volunteer engagement.
 
-The platform will eventually connect:
+The platform connects:
 
-- volunteers
-- nonprofits
-- opportunities
-- grants
-- events
+- volunteers (portable verified identity)
+- nonprofits (full workflow from application through credentialing)
+- corporate employers (CSR programs and ESG reporting)
+- background check providers (integrated, not bolted on)
+- grants and events (planned)
 
 into a unified ecosystem.

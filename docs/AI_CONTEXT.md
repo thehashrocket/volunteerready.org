@@ -17,7 +17,7 @@ VolunteerReady is a **multi-tenant SaaS platform** that helps nonprofit organiza
 |---|---|
 | Framework | Next.js 16 (App Router), React 19 |
 | Language | TypeScript 5.9 (strict mode) |
-| Database | PostgreSQL via Prisma 7.3 |
+| Database | PostgreSQL via Prisma 7.5 |
 | API | tRPC v11 (superjson serialization) |
 | Auth | NextAuth 4 with database sessions (Google OAuth + email magic links via Resend) |
 | Validation | Zod 4 (shared schemas between client and server) |
@@ -195,6 +195,8 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `profile` | getMyProfile, updateMyProfile, getMyStats |
 | `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail |
 | `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |
+| `billing` | createCheckoutSession, createBillingPortalSession, getBillingStatus |
+| `company` | create, list, switchCompany, inviteMember, listMembers, linkNonprofit |
 | `status` | public token-based status lookups |
 
 ---

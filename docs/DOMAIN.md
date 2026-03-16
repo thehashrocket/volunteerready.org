@@ -20,6 +20,8 @@ Users may:
 - belong to multiple organizations
 - apply as volunteers
 - manage organizations depending on role
+- have a cross-org volunteer profile
+- hold org-scoped credentials
 
 Users are global identities.
 
@@ -35,9 +37,14 @@ Examples:
 
 - screening questions
 - volunteer applications
+- volunteer opportunities
+- shifts
+- credentials
 - organization members
 - feature flags
 - audit logs
+
+Organizations have a plan tier (FREE / STARTER / PRO) and optional Stripe billing.
 
 Important rule:
 
@@ -68,17 +75,13 @@ Constraint:
 
 Represents a volunteer submitting an application to an organization.
 
-An application contains answers to screener questions.
+An application contains answers to screener questions and may be linked to a VolunteerOpportunity.
 
 Applications are organization-scoped.
 
-Possible future states:
+Status: SUBMITTED | REVIEW | APPROVED | REJECTED
 
-- submitted
-- under_review
-- accepted
-- rejected
-- withdrawn
+Screening result: PASS | REVIEW | FAIL (auto-evaluated from disqualifier and review rules)
 
 ---
 
@@ -91,53 +94,121 @@ Each answer belongs to:
 - a `VolunteerApplication`
 - a `ScreenerQuestion`
 
+Values are stored as JSON to support any question type.
+
 ---
 
 ## ScreenerQuestion
 
 Questions configured by an organization to screen volunteers.
 
-Examples:
+Types: TEXT | SINGLE_CHOICE | MULTI_CHOICE | BOOLEAN | NUMBER
 
-- "Do you have experience working with children?"
-- "Are you available on weekends?"
-- "Have you passed a background check?"
+Questions support:
+
+- Disqualifier rules — matched answer auto-rejects (FAIL)
+- Review rules — matched answer flags for manual review (REVIEW)
+- Rule operators: equals, includes, lt, lte, gt, gte
 
 Questions are organization-specific.
 
 ---
 
-## FeatureFlag
+## VolunteerOpportunity
 
-Per-organization configuration toggle.
+A volunteer position published by an organization.
 
-Allows features to be:
+Status lifecycle: DRAFT -> PUBLISHED -> CLOSED
 
-- enabled gradually
-- tested safely
-- rolled out per organization
+Key fields: title, description, location, remote flag, start/end dates, commitment hours, capacity.
 
-Constraint:
-
-(orgId, key) must be unique.
+Opportunities have tags (free-text, up to 10) and skill requirements (REQUIRED / PREFERRED).
 
 ---
 
-## AuditLog
+## OpportunityTag
 
-Append-only record of organization activity.
+Free-text tag associated with a VolunteerOpportunity.
 
-Examples:
+Up to 10 per opportunity.
 
-- volunteer application submitted
-- screener question created
-- member role changed
+---
 
-Rules:
+## OpportunityRequirement
 
-- audit logs cannot be edited
-- audit logs cannot be deleted
-- logs should record important actions
+Skill requirement for a VolunteerOpportunity.
+
+Level: REQUIRED | PREFERRED
+
+Links to a Skill from the global catalog.
+
+---
+
+## Skill
+
+Entry in the global skill catalog.
+
+Belongs to a SkillFamily (grouping like "Teaching", "Technical").
+
+Referenced by OpportunityRequirement (demand side) and VolunteerSkill (supply side).
+
+---
+
+## VolunteerSkill
+
+Volunteer-to-skill association. Cross-org (tied to User, not Organization).
+
+Constraint: unique per (userId, skill).
+
+---
+
+## VolunteerProfile
+
+Cross-org volunteer identity, 1:1 with User.
+
+Fields: bio, phone, location (city/state/country), availability preferences, interest tags, visibility.
+
+Visibility: PUBLIC | ORGS_ONLY | PRIVATE
+
+Profile completeness scored 0-100 with levels: MINIMAL / BASIC / STRONG / COMPLETE.
+
+---
+
+## VolunteerCredential
+
+Org-scoped verification badge for a volunteer.
+
+Types: BACKGROUND_CHECK | TRAINING_COMPLETE | ID_VERIFIED | REFERENCE_CHECK | ORIENTATION_COMPLETE
+
+Status lifecycle: PENDING -> VERIFIED -> EXPIRED / REVOKED
+
+Constraint: unique per (userId, orgId, type).
+
+---
+
+## Shift
+
+Org-scoped volunteer time block.
+
+Status lifecycle: OPEN -> FULL (auto at capacity) -> COMPLETED / CANCELLED
+
+Key fields: title, description, start/end time, capacity, optional opportunity link.
+
+FULL auto-reverts to OPEN when a signup is cancelled.
+
+Time validation: end must be after start, max 24h duration.
+
+---
+
+## ShiftSignup
+
+Volunteer sign-up for a Shift.
+
+Status: CONFIRMED | CANCELLED | NO_SHOW | ATTENDED
+
+Constraint: unique per (shiftId, userId).
+
+Validated against: capacity limits, duplicate check, time overlap with other confirmed shifts.
 
 ---
 
@@ -147,9 +218,9 @@ Represents a background check initiated by org staff for a volunteer.
 
 Scoped to an organization (`orgId`) and linked to a user (`userId`).
 
-Status lifecycle: PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED
+Status lifecycle: PENDING -> COMPLETE / CONSIDER / FAILED / CANCELLED
 
-FCRA status lifecycle (nested within CONSIDER): NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED
+FCRA status lifecycle (nested within CONSIDER): NONE -> PRE_ADVERSE_SENT -> ADVERSE_ACTION_SENT / RESOLVED
 
 Key fields:
 
@@ -171,6 +242,103 @@ Rules:
 
 ---
 
+## CompanyAccount
+
+Corporate employer account for CSR / employee volunteer programs.
+
+Has its own plan tier and optional Stripe billing.
+
+Key fields: name, slug, stripeCustomerId.
+
+---
+
+## CompanyMember
+
+Join table connecting a User to a CompanyAccount.
+
+Roles: OWNER | ADMIN | MEMBER
+
+---
+
+## CompanyNonprofitLink
+
+Companies sponsor nonprofit organizations.
+
+Status: ACTIVE | PAUSED
+
+---
+
+## StripeWebhookEvent
+
+Idempotency table for Stripe webhook deduplication.
+
+Constraint: unique `stripeId`.
+
+---
+
+## CheckrWebhookEvent
+
+Idempotency table for Checkr webhook deduplication.
+
+Constraint: unique `checkrId`.
+
+---
+
+## FeatureFlag
+
+Per-organization configuration toggle.
+
+Allows features to be:
+
+- enabled gradually
+- tested safely
+- rolled out per organization
+
+Constraint:
+
+(orgId, key) must be unique.
+
+---
+
+## AuditLog
+
+Append-only record of organization and company activity.
+
+Tracks: actor, action, entity, orgId, companyId.
+
+Rules:
+
+- audit logs cannot be edited
+- audit logs cannot be deleted
+- all DB writes go through services so audit logging is automatic
+- uses `writeAuditLogTx(tx, input)` inside transactions for atomicity
+
+---
+
+## OrganizationInvitation
+
+Team invite token for nonprofit org members.
+
+Token is SHA-256 hashed before storage. Has expiry and used-at tracking.
+
+---
+
+## CompanyInvitation
+
+Team invite token for corporate members.
+
+Same pattern as OrganizationInvitation.
+
+---
+
+## ApplicationStatusToken
+
+Opaque token for public email-based application status lookups.
+
+Token is hashed before storage.
+
+---
+
 # Tenant Boundary
 
 The organization is the tenant boundary.
@@ -181,6 +349,7 @@ Rules:
 2. Queries must filter by `orgId`.
 3. Users may belong to multiple organizations.
 4. Authorization must check organization membership.
+5. Company-scoped records use `companyId` as the tenant boundary.
 
 ---
 
@@ -193,9 +362,21 @@ Use these terms consistently across the codebase:
 - VolunteerApplication
 - VolunteerAnswer
 - ScreenerQuestion
-- FeatureFlag
-- AuditLog
+- VolunteerOpportunity
+- OpportunityTag
+- OpportunityRequirement
+- Skill / SkillFamily
+- VolunteerSkill
+- VolunteerProfile
+- VolunteerCredential
+- Shift
+- ShiftSignup
 - BackgroundCheckRequest
 - FcraStatus
+- CompanyAccount
+- CompanyMember
+- CompanyNonprofitLink
+- FeatureFlag
+- AuditLog
 
 Do not introduce alternate terminology unless intentionally extending the model.

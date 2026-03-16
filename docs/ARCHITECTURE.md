@@ -2,7 +2,7 @@
 
 This document explains the architectural intent of the VolunteerReady platform for human developers and coding agents.
 
-VolunteerReady is being built as a multi-tenant nonprofit platform that will evolve into a VolunteerMatch-style ecosystem for organizations, volunteers, screening, onboarding, and future nonprofit operations tooling.
+VolunteerReady is a multi-tenant nonprofit platform that connects volunteers, nonprofits, and corporate employers. The tenant boundary is **Organization** for nonprofit data and **CompanyAccount** for corporate data.
 
 ---
 
@@ -10,14 +10,15 @@ VolunteerReady is being built as a multi-tenant nonprofit platform that will evo
 
 ## Multi-tenant first
 
-Every meaningful domain action must be scoped to an organization.
+Every meaningful domain action must be scoped to an organization (or company).
 
 Assumptions:
 
-- one user may belong to multiple organizations
+- one user may belong to multiple organizations and companies
 - each organization has isolated data
 - permissions are organization-specific
 - features may be enabled per organization
+- plan tier enforcement is server-side only
 
 If new code ignores `orgId`, it is probably wrong.
 
@@ -37,14 +38,24 @@ Each layer has a single responsibility:
 
 # Repository Structure
 
+```
 src/
- ├─ app/
- ├─ components/
+ ├─ app/                # Next.js App Router pages
+ ├─ components/         # Reusable UI components
  └─ server/
-     ├─ domain/
-     ├─ repositories/
-     ├─ services/
-     └─ trpc/
+     ├─ domain/         # Pure types, invariants, functions (no framework code)
+     ├─ repositories/   # Database access layer (Prisma only)
+     ├─ services/       # Business logic and workflows
+     ├─ trpc/           # API routers and procedures
+     └─ lib/            # Shared utilities and adapters
+         ├─ adapters/   # External service adapters (Checkr, etc.)
+         ├─ crypto.ts   # AES-256-GCM encryption for secrets at rest
+         └─ resend.ts   # Shared Resend email client (lazy singleton)
+
+prisma/
+ ├─ schema.prisma       # Database schema (source of truth)
+ └─ seed.ts             # Development seed data
+```
 
 ---
 
@@ -70,9 +81,18 @@ Contains:
 
 - domain types
 - invariants
-- pure functions
+- pure functions (scoring, validation, state machine guards)
 
 No framework or database logic.
+
+Key files:
+
+- `volunteer-screening.ts` — screening evaluation rules
+- `volunteer-matching.ts` — skill matching and scoring (0-100)
+- `volunteer-profile.ts` — profile completeness scoring
+- `shift.ts` — shift capacity, signup validation, attendance
+- `background-check.ts` — FCRA state machine, PII sanitization
+- `billing.ts` — plan tier limits, trial validation
 
 ---
 
@@ -90,9 +110,20 @@ Application workflows.
 
 Responsible for orchestrating repositories and enforcing business rules.
 
-Example:
+All DB writes go through services so audit logging is automatic.
 
-src/server/services/volunteer-screening.ts
+Key services:
+
+- `volunteerApplicationService.ts` — application submission and status
+- `volunteer-screening.ts` — screening evaluation
+- `volunteerMatchingService.ts` — skill matching and recommendations
+- `volunteerProfileService.ts` — profile management
+- `volunteerCredentialService.ts` — credential lifecycle
+- `shiftService.ts` — shift CRUD and status transitions
+- `shiftSignupService.ts` — signup with conflict detection and attendance
+- `backgroundCheckService.ts` — Checkr integration, FCRA workflow, token encryption
+- `billingService.ts` — Stripe integration, plan management
+- `companyService.ts` — corporate account management
 
 ---
 
@@ -106,28 +137,61 @@ Routers should stay thin.
 
 ---
 
+## src/server/lib
+
+Shared utilities and external service adapters.
+
+- `adapters/background-check/` — `BackgroundCheckAdapter` interface with `CheckrAdapter` implementation
+- `crypto.ts` — AES-256-GCM encrypt/decrypt for Checkr OAuth tokens
+- `resend.ts` — lazy-initialized Resend email client singleton
+
+---
+
 # Core Domain Model
 
 Entities:
 
-- Organization
-- OrganizationMember
+- User
+- Organization / OrganizationMember
+- VolunteerApplication / VolunteerAnswer
+- ScreenerQuestion
+- VolunteerOpportunity / OpportunityTag / OpportunityRequirement
+- Skill / SkillFamily / VolunteerSkill
+- VolunteerProfile
+- VolunteerCredential
+- Shift / ShiftSignup
+- BackgroundCheckRequest
+- CompanyAccount / CompanyMember / CompanyNonprofitLink
 - FeatureFlag
 - AuditLog
-- VolunteerApplication
-- VolunteerAnswer
-- ScreenerQuestion
 
 Relationship overview:
 
+```
 User
- └─ OrganizationMember
-      └─ Organization
-           ├─ FeatureFlag
-           ├─ AuditLog
-           ├─ ScreenerQuestion
-           └─ VolunteerApplication
-                 └─ VolunteerAnswer
+ ├─ OrganizationMember
+ │    └─ Organization
+ │         ├─ ScreenerQuestion
+ │         ├─ VolunteerApplication
+ │         │    └─ VolunteerAnswer
+ │         ├─ VolunteerOpportunity
+ │         │    ├─ OpportunityTag
+ │         │    └─ OpportunityRequirement
+ │         ├─ Shift
+ │         │    └─ ShiftSignup
+ │         ├─ VolunteerCredential
+ │         ├─ BackgroundCheckRequest
+ │         ├─ FeatureFlag
+ │         └─ AuditLog
+ ├─ CompanyMember
+ │    └─ CompanyAccount
+ │         └─ CompanyNonprofitLink
+ ├─ VolunteerProfile (cross-org, 1:1)
+ ├─ VolunteerSkill (cross-org)
+ └─ ShiftSignup
+```
+
+See `docs/DOMAIN.md` for canonical vocabulary.
 
 ---
 
@@ -136,27 +200,59 @@ User
 Authentication uses NextAuth with:
 
 - Google OAuth
-- Email magic links
+- Email magic links (via Resend)
+
+Database sessions (not JWT). Session stores `currentOrgId` and `currentCompanyId`.
 
 Flow:
 
 1. user visits /login
 2. authentication completes
-3. session created
+3. session created with org/company context
 4. user redirected to /app
 
 ---
 
 # Authorization
 
-tRPC procedure types:
+tRPC procedure types (defined in `src/server/trpc/init.ts`):
 
-- publicProcedure
-- protectedProcedure
-- orgProcedure
-- adminProcedure
+| Procedure | Requires | Context narrowing |
+|---|---|---|
+| `publicProcedure` | Nothing | — |
+| `protectedProcedure` | Authenticated user | — |
+| `orgProcedure` | Authenticated + org membership | `orgId: string` |
+| `staffProcedure` | STAFF, ADMIN, or OWNER role | `role: Role` |
+| `adminProcedure` | ADMIN or OWNER role | `role: Role` |
+| `companyProcedure` | Company membership | `companyId: string` |
+| `planTierProcedure(tier)` | Org plan at or above tier | — |
 
 Use the narrowest access level possible.
+
+Each middleware narrows the context type via `next({ ctx: { ... } })`, so downstream code can use `ctx.orgId` and `ctx.role` without non-null assertions.
+
+---
+
+# External Integrations
+
+## Stripe (Billing)
+
+- Checkout sessions and billing portal via tRPC
+- Webhook handler at `/api/stripe/webhook` (signature verification, idempotency via `StripeWebhookEvent`)
+- Plan tier updates on subscription events
+
+## Checkr (Background Checks)
+
+- OAuth flow for per-org Checkr account connection
+- Background check initiation via Checkr Partner API
+- Webhook handler at `/api/checkr/webhook` (signature verification, idempotency via `CheckrWebhookEvent`)
+- OAuth tokens encrypted at rest (AES-256-GCM)
+- FCRA adverse action email workflow
+
+## Resend (Email)
+
+- Transactional emails: invitations, status lookups, background check notifications, FCRA notices
+- Lazy-initialized singleton client
 
 ---
 
@@ -164,14 +260,16 @@ Use the narrowest access level possible.
 
 Typical request flow:
 
+```
 UI
  -> tRPC procedure
    -> service
      -> repositories
        -> Prisma/Postgres
-     -> audit log if needed
+     -> audit log (inside same transaction)
    -> response
  -> UI render
+```
 
 ---
 
@@ -183,18 +281,24 @@ UI
 4. Keep Prisma access inside repositories
 5. Prefer explicit naming
 6. Maintain domain vocabulary consistency
+7. All multi-step writes use `prisma.$transaction`
+8. Audit logs are written inside the same transaction via `writeAuditLogTx`
 
 ---
 
 # Development Commands
 
-pnpm install
-pnpm dev
-pnpm build
-pnpm start
+```bash
+pnpm install              # Install dependencies
+pnpm dev                  # Dev server (port 3005)
+pnpm build                # Production build
+pnpm start                # Production server
+pnpm lint                 # Biome lint
+pnpm format               # Biome format
+pnpm test                 # Vitest
+pnpm check                # typecheck + lint + test
 pnpm prisma migrate deploy
 pnpm prisma db seed
+```
 
-Health check:
-
-http://localhost:3005/health
+Health check: http://localhost:3005/health
