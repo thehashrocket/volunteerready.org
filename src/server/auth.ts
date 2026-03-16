@@ -3,9 +3,9 @@ import { cookies } from 'next/headers';
 import type { NextAuthOptions, Session } from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
-import { Resend } from 'resend';
 import { buildMagicLinkEmail } from '@/lib/email/auth';
 import type { CompanyMemberRole, Role } from '@/prisma/generated/client';
+import { getResend } from '@/server/lib/resend';
 import { prisma } from '@/server/repositories/prisma';
 
 /** Extended session returned by our callback (custom fields NextAuth doesn't type) */
@@ -20,7 +20,6 @@ type SessionWithExt = Session & {
 	user?: Session['user'] & { id?: string };
 };
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const emailFrom =
 	process.env.EMAIL_FROM ?? 'VolunteerMatch <no-reply@volunteeermatch.local>';
 
@@ -50,7 +49,7 @@ export const authOptions: NextAuthOptions = {
 			from: emailFrom,
 			sendVerificationRequest: async ({ identifier, url }) => {
 				const { subject, html } = buildMagicLinkEmail(url);
-				await resend.emails.send({
+				await getResend().emails.send({
 					from: emailFrom,
 					to: identifier,
 					subject,

@@ -1,6 +1,4 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getFromEmail, getResend } from '@/server/lib/resend';
 
 export async function sendInviteEmail(input: {
 	to: string;
@@ -8,10 +6,9 @@ export async function sendInviteEmail(input: {
 	inviteLink: string;
 	role: string;
 }) {
-	const from = process.env.RESEND_FROM_EMAIL;
-	if (!from) throw new Error('RESEND_FROM_EMAIL is not set');
+	const from = getFromEmail();
 
-	await resend.emails.send({
+	await getResend().emails.send({
 		from,
 		to: input.to,
 		subject: `You've been invited to join ${input.orgName} on VolunteerReady`,

@@ -1,9 +1,9 @@
 import crypto from 'node:crypto';
 import { TRPCError } from '@trpc/server';
-import { Resend } from 'resend';
 import { findUniqueSlug, generateSlug } from '@/lib/slug';
 import type { CompanyMemberRole } from '@/prisma/generated/client';
 import { Prisma } from '@/prisma/generated/client';
+import { getResend } from '../lib/resend';
 import { writeAuditLogTx } from '../repositories/auditRepo';
 import {
 	createCompanyInvitationTx,
@@ -18,8 +18,6 @@ import {
 	upsertNonprofitLinkTx,
 } from '../repositories/companyRepo';
 import { prisma } from '../repositories/prisma';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 function hashToken(token: string): string {
 	return crypto.createHash('sha256').update(token).digest('hex');
@@ -241,7 +239,7 @@ export async function inviteCompanyMember(opts: {
 	const from = process.env.RESEND_FROM_EMAIL;
 	if (!from) throw new Error('RESEND_FROM_EMAIL is not set');
 
-	await resend.emails.send({
+	await getResend().emails.send({
 		from,
 		to: opts.email,
 		subject: `You've been invited to join ${company.name} on VolunteerReady`,
