@@ -3,7 +3,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+	AlertTriangle,
 	CheckCircle2,
+	FileWarning,
 	Link2,
 	Link2Off,
 	Plus,
@@ -105,6 +107,22 @@ const bgCheckStatusVariant: Record<
 	CANCELLED: 'neutral',
 };
 
+const fcraStatusLabel: Record<string, string> = {
+	NONE: '',
+	PRE_ADVERSE_SENT: 'Pre-Adverse Sent',
+	ADVERSE_ACTION_SENT: 'Adverse Action',
+	RESOLVED: 'Resolved',
+};
+
+const fcraStatusVariant: Record<
+	string,
+	'success' | 'warning' | 'neutral' | 'destructive'
+> = {
+	PRE_ADVERSE_SENT: 'warning',
+	ADVERSE_ACTION_SENT: 'destructive',
+	RESOLVED: 'success',
+};
+
 // ---------------------------------------------------------------------------
 // Issue Credential Dialog – react-hook-form + zod
 // ---------------------------------------------------------------------------
@@ -128,9 +146,11 @@ type IssueFormValues = z.infer<typeof issueSchema>;
 function IssueCredentialDialog({
 	defaultUserId,
 	defaultType,
+	onIssued,
 }: {
 	defaultUserId?: string;
 	defaultType?: CredentialType;
+	onIssued?: () => void;
 } = {}) {
 	const qc = useQueryClient();
 	const [open, setOpen] = useState(false);
@@ -152,6 +172,7 @@ function IssueCredentialDialog({
 			await qc.invalidateQueries();
 			setOpen(false);
 			form.reset();
+			onIssued?.();
 		},
 		onError: (err) => {
 			toast.error(err.message ?? 'Failed to issue credential.');
@@ -589,6 +610,40 @@ function BackgroundCheckRequestsTable() {
 		},
 	});
 
+	const preAdverseMutation =
+		trpc.backgroundChecks.sendPreAdverseNotice.useMutation({
+			onSuccess: async () => {
+				toast.success('Pre-adverse action notice sent to volunteer.');
+				await qc.invalidateQueries();
+			},
+			onError: (err) => {
+				toast.error(
+					err.message ?? 'Failed to send pre-adverse notice. Please retry.',
+				);
+			},
+		});
+
+	const adverseActionMutation =
+		trpc.backgroundChecks.finalizeAdverseAction.useMutation({
+			onSuccess: async () => {
+				toast.success('Adverse action finalized.');
+				await qc.invalidateQueries();
+			},
+			onError: (err) => {
+				toast.error(err.message ?? 'Failed to finalize adverse action.');
+			},
+		});
+
+	const resolveFcraMutation = trpc.backgroundChecks.resolveFcra.useMutation({
+		onSuccess: async () => {
+			toast.success('FCRA process resolved.');
+			await qc.invalidateQueries();
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to resolve FCRA status.');
+		},
+	});
+
 	if (query.isLoading) {
 		return (
 			<Card>
@@ -630,68 +685,128 @@ function BackgroundCheckRequestsTable() {
 						<TableRow>
 							<TableHead>Volunteer</TableHead>
 							<TableHead>Status</TableHead>
+							<TableHead>FCRA</TableHead>
 							<TableHead>Provider</TableHead>
 							<TableHead>Initiated</TableHead>
 							<TableHead className="text-right">Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{requests.map((req) => (
-							<TableRow key={req.id}>
-								<TableCell>
-									<div>
-										<p className="font-medium text-sm">
-											{req.user.name ?? 'Unknown'}
-										</p>
-										<p className="text-xs text-muted-foreground">
-											{req.user.email}
-										</p>
-									</div>
-								</TableCell>
-								<TableCell>
-									<Badge
-										variant={bgCheckStatusVariant[req.status] ?? 'outline'}
-									>
-										{req.status === 'CONSIDER' ? 'Needs Review' : req.status}
-									</Badge>
-								</TableCell>
-								<TableCell className="text-sm text-muted-foreground">
-									{req.provider}
-								</TableCell>
-								<TableCell className="text-sm text-muted-foreground">
-									{new Date(req.createdAt).toLocaleDateString()}
-								</TableCell>
-								<TableCell className="text-right">
-									<div className="flex justify-end gap-1">
-										{/* CONSIDER → open IssueCredentialDialog pre-filled */}
-										{req.status === 'CONSIDER' && (
-											<IssueCredentialDialog
-												defaultUserId={req.user.id}
-												defaultType="BACKGROUND_CHECK"
-											/>
+						{requests.map((req) => {
+							const fcra = req.fcraStatus ?? 'NONE';
+							const isConsider = req.status === 'CONSIDER';
+							const canSendPreAdverse = isConsider && fcra === 'NONE';
+							const canFinalize = isConsider && fcra === 'PRE_ADVERSE_SENT';
+							const canIssueCredential = isConsider;
+
+							return (
+								<TableRow key={req.id}>
+									<TableCell>
+										<div>
+											<p className="font-medium text-sm">
+												{req.user.name ?? 'Unknown'}
+											</p>
+											<p className="text-xs text-muted-foreground">
+												{req.user.email}
+											</p>
+										</div>
+									</TableCell>
+									<TableCell>
+										<Badge
+											variant={bgCheckStatusVariant[req.status] ?? 'outline'}
+										>
+											{req.status === 'CONSIDER' ? 'Needs Review' : req.status}
+										</Badge>
+									</TableCell>
+									<TableCell>
+										{fcra !== 'NONE' && (
+											<Badge variant={fcraStatusVariant[fcra] ?? 'outline'}>
+												{fcraStatusLabel[fcra] ?? fcra}
+											</Badge>
 										)}
-										{/* PENDING or CONSIDER → Cancel */}
-										{(req.status === 'PENDING' ||
-											req.status === 'CONSIDER') && (
-											<Button
-												size="sm"
-												variant="ghost"
-												className="text-destructive hover:text-destructive"
-												onClick={() =>
-													cancelMutation.mutate({
-														requestId: req.id,
-													})
-												}
-												disabled={cancelMutation.isPending}
-											>
-												<XCircle className="mr-1 h-4 w-4" />
-												Cancel
-											</Button>
-										)}
-									</div>
-								</TableCell>
-							</TableRow>
-						))}
+									</TableCell>
+									<TableCell className="text-sm text-muted-foreground">
+										{req.provider}
+									</TableCell>
+									<TableCell className="text-sm text-muted-foreground">
+										{new Date(req.createdAt).toLocaleDateString()}
+									</TableCell>
+									<TableCell className="text-right">
+										<div className="flex flex-wrap justify-end gap-1">
+											{/* CONSIDER + FCRA NONE → Send Pre-Adverse Notice */}
+											{canSendPreAdverse && (
+												<Button
+													size="sm"
+													variant="outline"
+													onClick={() =>
+														preAdverseMutation.mutate({
+															requestId: req.id,
+														})
+													}
+													disabled={preAdverseMutation.isPending}
+												>
+													<FileWarning className="mr-1 h-4 w-4" />
+													{preAdverseMutation.isPending
+														? 'Sending…'
+														: 'Pre-Adverse Notice'}
+												</Button>
+											)}
+
+											{/* CONSIDER + PRE_ADVERSE_SENT → Finalize Adverse Action */}
+											{canFinalize && (
+												<Button
+													size="sm"
+													variant="destructive"
+													onClick={() =>
+														adverseActionMutation.mutate({
+															requestId: req.id,
+														})
+													}
+													disabled={adverseActionMutation.isPending}
+												>
+													<AlertTriangle className="mr-1 h-4 w-4" />
+													{adverseActionMutation.isPending
+														? 'Finalizing…'
+														: 'Finalize Adverse Action'}
+												</Button>
+											)}
+
+											{/* CONSIDER → Issue Credential (resolves FCRA) */}
+											{canIssueCredential && (
+												<IssueCredentialDialog
+													defaultUserId={req.user.id}
+													defaultType="BACKGROUND_CHECK"
+													onIssued={() => {
+														resolveFcraMutation.mutate({
+															requestId: req.id,
+														});
+													}}
+												/>
+											)}
+
+											{/* PENDING or CONSIDER → Cancel */}
+											{(req.status === 'PENDING' ||
+												req.status === 'CONSIDER') && (
+												<Button
+													size="sm"
+													variant="ghost"
+													className="text-destructive hover:text-destructive"
+													onClick={() =>
+														cancelMutation.mutate({
+															requestId: req.id,
+														})
+													}
+													disabled={cancelMutation.isPending}
+												>
+													<XCircle className="mr-1 h-4 w-4" />
+													Cancel
+												</Button>
+											)}
+										</div>
+									</TableCell>
+								</TableRow>
+							);
+						})}
 					</TableBody>
 				</Table>
 			</CardContent>
