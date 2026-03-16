@@ -141,6 +141,36 @@ Rules:
 
 ---
 
+## BackgroundCheckRequest
+
+Represents a background check initiated by org staff for a volunteer.
+
+Scoped to an organization (`orgId`) and linked to a user (`userId`).
+
+Status lifecycle: PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED
+
+FCRA status lifecycle (nested within CONSIDER): NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED
+
+Key fields:
+
+- `provider` — background check provider (CHECKR / STERLING)
+- `externalId` — provider's report ID (unique, idempotency key)
+- `status` — overall check status
+- `fcraStatus` — FCRA adverse action workflow state
+- `preAdverseNoticeSentAt` — when pre-adverse notice was emailed to volunteer
+- `adverseActionAt` — when adverse action was finalized
+- `webhookPayload` — sanitized provider payload (no PII)
+- `credentialId` — linked credential if auto-issued on COMPLETE
+
+Rules:
+
+- Terminal statuses (COMPLETE, FAILED, CANCELLED) ignore subsequent webhooks
+- FCRA emails must succeed before DB state is updated (fail-loudly)
+- Status transitions use atomic WHERE guards to prevent concurrent duplicates
+- PII (SSN, DOB) is never stored — pass-through to provider only
+
+---
+
 # Tenant Boundary
 
 The organization is the tenant boundary.
@@ -165,5 +195,7 @@ Use these terms consistently across the codebase:
 - ScreenerQuestion
 - FeatureFlag
 - AuditLog
+- BackgroundCheckRequest
+- FcraStatus
 
 Do not introduce alternate terminology unless intentionally extending the model.

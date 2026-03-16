@@ -7,30 +7,19 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ## Background Check Integration (Phase 6B)
 
-### [P1] FCRA Adverse Action Notices
+### ~~[P1] FCRA Adverse Action Notices~~ ✅ Complete
 
-**What:** Implement pre-adverse and adverse action notice workflow per FCRA requirements.
+**Completed:** v0.2.3 (2026-03-16)
 
-**Why:** Legally required before a background check result can negatively affect a volunteer's
-placement in most US states. Shipping Phase 6B without this means orgs cannot legally act on
-CONSIDER or adverse results until this is implemented.
-
-**Context:** When `BackgroundCheckRequest.status = CONSIDER` or `FAILED`, FCRA requires:
-(1) Pre-adverse action notice (email to volunteer explaining the result and their rights),
-(2) reasonable waiting period (typically 5–10 days), (3) adverse action notice if decision stands.
-Checkr provides templated notices via their API at `POST /v1/adverse_actions`. The
-`BackgroundCheckRequest` entity needs `praeNoticeSentAt`, `adverseActionAt`, and `fcraStatus`
-fields. The `sendBackgroundCheckConsiderEmail` in `src/server/repositories/sendBackgroundCheckEmail.ts`
-currently sends a staff notification — it needs a companion volunteer-facing notice.
-
-**Pros:** Legal compliance; prevents liability exposure for orgs using the platform.
-**Cons:** Adds complexity to the webhook handler and requires UI to track FCRA notice state.
-
-**Effort:** L | **Priority:** P1 | **Depends on:** ✅ Phase 6B background check integration shipped
+Implemented in-app FCRA adverse action workflow: `FcraStatus` enum
+(NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED), domain guards,
+service methods (`sendPreAdverseNotice`, `finalizeAdverseAction`, `resolveFcra`),
+volunteer-facing email templates with FCRA-required content, 5-day waiting period
+enforcement, and staff UI buttons on CONSIDER rows.
 
 ---
 
-### [P2] CONSIDER State Review UI Action
+### [P2] CONSIDER State Review UI Action (partially superseded)
 
 **What:** "Review" button on CONSIDER rows in the Background Check Requests table that
 pre-fills the existing `IssueCredentialDialog` with the volunteer's userId and
@@ -44,6 +33,10 @@ already renders `IssueCredentialDialog` for CONSIDER rows but wrapped as a trigg
 current implementation opens the dialog inline. This TODO tracks making the UX more prominent
 (e.g., a dedicated "Review & Issue" action that pre-populates all fields and focuses the modal).
 No new backend code needed — `credentials.issue` tRPC mutation already exists.
+
+**Note:** Partially superseded by the FCRA adverse action buttons added in the token encryption +
+FCRA PR. CONSIDER rows now have "Pre-Adverse Notice", "Finalize Adverse Action", and "Issue
+Credential" action buttons. A further UX polish pass could still improve the pre-fill experience.
 
 **Effort:** S | **Priority:** P2 | **Depends on:** ✅ Phase 6B UI shipped
 
@@ -88,7 +81,46 @@ Do NOT encrypt `checkrAccountId` — it is a non-secret identifier.
 **Cons:** Adds key rotation complexity; losing `CHECKR_TOKEN_ENCRYPTION_KEY` renders all tokens
 unreadable (requires re-connect flow for all orgs).
 
-**Effort:** S | **Priority:** P2 | **Depends on:** ✅ Phase 6B Partner API OAuth shipped
+**Effort:** ~~S~~ | **Priority:** ~~P2~~ | ✅ **Completed:** v0.2.3 (2026-03-16)
+
+Token encryption implemented using AES-256-GCM in `src/server/lib/crypto.ts`.
+`connectCheckrAccount` encrypts on write; `getOrgCheckrToken` decrypts on read via
+`tryDecrypt` (graceful fallback for pre-existing plaintext tokens).
+
+---
+
+### [P3] Encryption Key Rotation for Checkr Tokens
+
+**What:** Build a key rotation mechanism — support two keys simultaneously (old + new),
+re-encrypt all tokens with the new key, then retire the old key.
+
+**Why:** If the encryption key is ever compromised, you need to rotate it without downtime.
+Currently there's no rotation path — losing the key renders all tokens unreadable (orgs must
+re-connect Checkr).
+
+**Context:** `src/server/lib/crypto.ts` currently reads a single key from
+`CHECKR_TOKEN_ENCRYPTION_KEY`. Rotation requires: (1) a `CHECKR_TOKEN_ENCRYPTION_KEY_OLD` env
+var, (2) `tryDecrypt` tries the new key first, falls back to old key, (3) a migration script
+re-encrypts all tokens with the new key, (4) remove old key env var.
+
+**Effort:** M | **Priority:** P3 | **Depends on:** ✅ Token encryption shipped
+
+---
+
+### [P3] FCRA Waiting Period Configuration
+
+**What:** Make the 5-day FCRA waiting period configurable per-org or per-state.
+
+**Why:** Some US states require different waiting periods (e.g., California requires 5 business
+days, which differs from 5 calendar days). As orgs in different jurisdictions onboard, the
+hardcoded 5 calendar days may need adjustment.
+
+**Context:** `FCRA_WAITING_PERIOD_DAYS = 5` is a constant in `src/server/domain/background-check.ts`.
+To make it configurable: (1) add a `fcraWaitingPeriodDays` field to `Organization`, (2) pass it
+into `isWaitingPeriodElapsed` and `waitingPeriodDaysRemaining`, (3) add an admin setting UI.
+Consider also a "business days" mode that excludes weekends.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** ✅ FCRA workflow shipped
 
 ---
 

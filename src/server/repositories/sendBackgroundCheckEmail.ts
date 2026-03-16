@@ -1,6 +1,4 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getFromEmail, getResend } from '@/server/lib/resend';
 
 /**
  * Sends a notification email to org staff when a background check result
@@ -14,15 +12,13 @@ export async function sendBackgroundCheckConsiderEmail(input: {
 	orgName: string;
 	requestId: string;
 }): Promise<void> {
-	const from = process.env.RESEND_FROM_EMAIL;
-	if (!from) throw new Error('RESEND_FROM_EMAIL is not set');
-	if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY is not set');
+	const from = getFromEmail();
 
 	const appUrl =
 		process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.volunteerready.com';
 	const reviewUrl = `${appUrl}/app/credentials`;
 
-	await resend.emails.send({
+	await getResend().emails.send({
 		from,
 		to: input.to,
 		subject: `Background check requires review — ${input.volunteerName}`,

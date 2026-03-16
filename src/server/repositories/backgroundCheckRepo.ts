@@ -8,6 +8,7 @@
 
 import type {
 	BackgroundCheckStatus,
+	FcraStatus,
 	Prisma,
 	PrismaClient,
 } from '@/prisma/generated/client';
@@ -18,6 +19,24 @@ type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 // ---------------------------------------------------------------------------
 // Reads
 // ---------------------------------------------------------------------------
+
+/** Find a single BackgroundCheckRequest by ID with user email (for FCRA emails). */
+export async function findBackgroundCheckById(id: string) {
+	return prisma.backgroundCheckRequest.findUnique({
+		where: { id },
+		select: {
+			id: true,
+			orgId: true,
+			userId: true,
+			status: true,
+			fcraStatus: true,
+			preAdverseNoticeSentAt: true,
+			provider: true,
+			credentialId: true,
+			user: { select: { id: true, name: true, email: true } },
+		},
+	});
+}
 
 /** Find a single BackgroundCheckRequest by Checkr report ID (externalId). */
 export async function findBackgroundCheckByExternalId(externalId: string) {
@@ -48,6 +67,8 @@ export async function listBackgroundChecksByOrg(
 			id: true,
 			status: true,
 			provider: true,
+			fcraStatus: true,
+			preAdverseNoticeSentAt: true,
 			createdAt: true,
 			updatedAt: true,
 			user: { select: { id: true, name: true, email: true } },
@@ -137,6 +158,9 @@ export interface UpdateBackgroundCheckInput {
 	status?: BackgroundCheckStatus;
 	webhookPayload?: Prisma.InputJsonValue;
 	credentialId?: string;
+	fcraStatus?: FcraStatus;
+	preAdverseNoticeSentAt?: Date;
+	adverseActionAt?: Date;
 }
 
 /** Update status, webhookPayload, and/or credentialId on a request. */

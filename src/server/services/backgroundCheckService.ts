@@ -11,7 +11,7 @@
  *       │ yes → throw TRPCError BAD_REQUEST
  *       │ no
  *       ▼
- *   get org's checkrAccessToken from DB
+ *   get org's checkrAccessToken from DB (decrypted via tryDecrypt)
  *       │ null → throw TRPCError BAD_REQUEST: "Connect Checkr first"
  *       ▼
  *   checkrAdapter.initiateCheck(pii, packageName, accessToken) ← PII ends here (OUTSIDE tx)
@@ -44,15 +44,42 @@
  *     writeAuditLogTx
  *   )
  *   sendBackgroundCheckConsiderEmail (if CONSIDER) — try/catch, never throws
+ *
+ * FCRA adverse action data flow:
+ *
+ *   sendPreAdverseNotice(requestId, orgId, actorId):
+ *     guard: request exists + IDOR check
+ *     guard: status=CONSIDER, fcraStatus=NONE
+ *     fetch volunteer email
+ *     sendPreAdverseActionEmail() ← REMOTE CALL (throws on failure)
+ *     prisma.$transaction(update fcraStatus + preAdverseNoticeSentAt + audit)
+ *
+ *   finalizeAdverseAction(requestId, orgId, actorId):
+ *     guard: request exists + IDOR check
+ *     guard: status=CONSIDER, fcraStatus=PRE_ADVERSE_SENT
+ *     guard: waiting period elapsed (≥5 days)
+ *     fetch volunteer email
+ *     sendAdverseActionEmail() ← REMOTE CALL (throws on failure)
+ *     prisma.$transaction(update fcraStatus + adverseActionAt + status=FAILED + audit)
+ *
+ *   resolveFcra(requestId, orgId, actorId):
+ *     guard: request exists + IDOR check
+ *     guard: status=CONSIDER, fcraStatus=NONE or PRE_ADVERSE_SENT
+ *     prisma.$transaction(update fcraStatus=RESOLVED + audit)
  */
 
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from '@/prisma/generated/client';
 import {
+	canFinalizeAdverseAction,
+	canResolveFcra,
+	canSendPreAdverseNotice,
 	isTerminalStatus,
+	isWaitingPeriodElapsed,
 	mapCheckrResultToStatus,
 	sanitizeCheckrPayload,
 	shouldAutoIssueCredential,
+	waitingPeriodDaysRemaining,
 } from '@/server/domain/background-check';
 import {
 	CheckrApiError,
@@ -61,11 +88,13 @@ import {
 	checkrAdapter,
 } from '@/server/lib/adapters/background-check/checkr';
 import type { CandidatePii } from '@/server/lib/adapters/background-check/types';
+import { encrypt, tryDecrypt } from '@/server/lib/crypto';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
 	createBackgroundCheckRequestTx,
 	findActiveCheckForUserInOrg,
 	findBackgroundCheckByExternalId,
+	findBackgroundCheckById,
 	isCheckrWebhookEventProcessed,
 	listBackgroundChecksByOrg,
 	markCheckrWebhookEventProcessedTx,
@@ -73,6 +102,10 @@ import {
 } from '@/server/repositories/backgroundCheckRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { sendBackgroundCheckConsiderEmail } from '@/server/repositories/sendBackgroundCheckEmail';
+import {
+	sendAdverseActionEmail,
+	sendPreAdverseActionEmail,
+} from '@/server/repositories/sendFcraEmails';
 import {
 	findCredentialByUserOrgType,
 	upsertCredential,
@@ -95,7 +128,9 @@ async function getOrgCheckrToken(orgId: string): Promise<string | null> {
 		where: { id: orgId },
 		select: { checkrAccessToken: true },
 	});
-	return org?.checkrAccessToken ?? null;
+	const raw = org?.checkrAccessToken ?? null;
+	if (!raw) return null;
+	return tryDecrypt(raw);
 }
 
 // ---------------------------------------------------------------------------
@@ -104,7 +139,7 @@ async function getOrgCheckrToken(orgId: string): Promise<string | null> {
 
 /**
  * Exchange an OAuth authorization code for a per-org Checkr access token
- * and persist it on the Organization record.
+ * and persist it (encrypted) on the Organization record.
  *
  * Called from the OAuth callback route after Checkr redirects back.
  */
@@ -116,10 +151,12 @@ export async function connectCheckrAccount(
 	const { accessToken, accountId } =
 		await checkrAdapter.exchangeOAuthCode(code);
 
+	const encryptedToken = encrypt(accessToken);
+
 	await prisma.$transaction(async (tx) => {
 		await tx.organization.update({
 			where: { id: orgId },
-			data: { checkrAccessToken: accessToken, checkrAccountId: accountId },
+			data: { checkrAccessToken: encryptedToken, checkrAccountId: accountId },
 		});
 		await writeAuditLogTx(tx, {
 			orgId,
@@ -501,4 +538,263 @@ export async function handleCheckrWebhookEvent(
 			// DO NOT rethrow — email failure must not fail the webhook
 		}
 	}
+}
+
+// ---------------------------------------------------------------------------
+// FCRA Adverse Action — sendPreAdverseNotice
+// ---------------------------------------------------------------------------
+
+/**
+ * Send a pre-adverse action notice to the volunteer per FCRA requirements.
+ * Email is sent FIRST — DB only updated on email success (fail-loudly).
+ */
+export async function sendPreAdverseNotice(
+	requestId: string,
+	orgId: string,
+	actorId: string,
+): Promise<void> {
+	const request = await findBackgroundCheckById(requestId);
+	if (!request || request.orgId !== orgId) {
+		throw new TRPCError({ code: 'NOT_FOUND' });
+	}
+
+	if (request.status !== 'CONSIDER') {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: `Cannot send pre-adverse notice for a check in ${request.status} status.`,
+		});
+	}
+
+	if (!canSendPreAdverseNotice(request.fcraStatus)) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: `Pre-adverse notice has already been sent (FCRA status: ${request.fcraStatus}).`,
+		});
+	}
+
+	const volunteerEmail = request.user.email;
+	if (!volunteerEmail) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: 'Volunteer does not have an email address on file.',
+		});
+	}
+
+	// Fetch org name for the email
+	const org = await prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { name: true },
+	});
+	if (!org) {
+		throw new TRPCError({ code: 'NOT_FOUND' });
+	}
+
+	const volunteerName = request.user.name ?? request.user.email ?? 'Volunteer';
+
+	// Send email FIRST — throws on failure (fail-loudly for FCRA compliance)
+	await sendPreAdverseActionEmail({
+		to: volunteerEmail,
+		volunteerName,
+		orgName: org.name,
+	});
+
+	// Email succeeded — update DB with atomic guard on fcraStatus
+	const now = new Date();
+	await prisma.$transaction(async (tx) => {
+		const { count } = await tx.backgroundCheckRequest.updateMany({
+			where: { id: requestId, fcraStatus: 'NONE' },
+			data: {
+				fcraStatus: 'PRE_ADVERSE_SENT',
+				preAdverseNoticeSentAt: now,
+			},
+		});
+		if (count === 0) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'Pre-adverse notice was already sent by another request.',
+			});
+		}
+		await writeAuditLogTx(tx, {
+			orgId,
+			actorId,
+			action: 'FCRA_PRE_ADVERSE_SENT',
+			entityType: 'BackgroundCheckRequest',
+			entityId: requestId,
+			metadata: { volunteerEmail },
+		});
+	});
+
+	console.log(
+		`[bg-check] Pre-adverse notice sent requestId=${requestId} userId=${request.userId}`,
+	);
+}
+
+// ---------------------------------------------------------------------------
+// FCRA Adverse Action — finalizeAdverseAction
+// ---------------------------------------------------------------------------
+
+/**
+ * Finalize the adverse action after the FCRA waiting period.
+ * Email is sent FIRST — DB only updated on email success (fail-loudly).
+ * Sets status=FAILED (terminal) alongside fcraStatus=ADVERSE_ACTION_SENT.
+ */
+export async function finalizeAdverseAction(
+	requestId: string,
+	orgId: string,
+	actorId: string,
+): Promise<void> {
+	const request = await findBackgroundCheckById(requestId);
+	if (!request || request.orgId !== orgId) {
+		throw new TRPCError({ code: 'NOT_FOUND' });
+	}
+
+	if (request.status !== 'CONSIDER') {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: `Cannot finalize adverse action for a check in ${request.status} status.`,
+		});
+	}
+
+	if (!canFinalizeAdverseAction(request.fcraStatus)) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: `Cannot finalize adverse action (FCRA status: ${request.fcraStatus}). Pre-adverse notice must be sent first.`,
+		});
+	}
+
+	if (!request.preAdverseNoticeSentAt) {
+		throw new TRPCError({
+			code: 'INTERNAL_SERVER_ERROR',
+			message: 'Pre-adverse notice timestamp is missing.',
+		});
+	}
+
+	const now = new Date();
+	if (!isWaitingPeriodElapsed(request.preAdverseNoticeSentAt, now)) {
+		const daysLeft = waitingPeriodDaysRemaining(
+			request.preAdverseNoticeSentAt,
+			now,
+		);
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: `FCRA waiting period has not elapsed. ${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining.`,
+		});
+	}
+
+	const volunteerEmail = request.user.email;
+	if (!volunteerEmail) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: 'Volunteer does not have an email address on file.',
+		});
+	}
+
+	const org = await prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { name: true },
+	});
+	if (!org) {
+		throw new TRPCError({ code: 'NOT_FOUND' });
+	}
+
+	const volunteerName = request.user.name ?? request.user.email ?? 'Volunteer';
+
+	// Send email FIRST — throws on failure (fail-loudly for FCRA compliance)
+	await sendAdverseActionEmail({
+		to: volunteerEmail,
+		volunteerName,
+		orgName: org.name,
+	});
+
+	// Email succeeded — update DB with atomic guard on fcraStatus
+	await prisma.$transaction(async (tx) => {
+		const { count } = await tx.backgroundCheckRequest.updateMany({
+			where: { id: requestId, fcraStatus: 'PRE_ADVERSE_SENT' },
+			data: {
+				status: 'FAILED',
+				fcraStatus: 'ADVERSE_ACTION_SENT',
+				adverseActionAt: now,
+			},
+		});
+		if (count === 0) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'Adverse action was already finalized or status changed.',
+			});
+		}
+		await writeAuditLogTx(tx, {
+			orgId,
+			actorId,
+			action: 'FCRA_ADVERSE_ACTION_FINALIZED',
+			entityType: 'BackgroundCheckRequest',
+			entityId: requestId,
+			metadata: { volunteerEmail },
+		});
+	});
+
+	console.log(
+		`[bg-check] Adverse action finalized requestId=${requestId} userId=${request.userId}`,
+	);
+}
+
+// ---------------------------------------------------------------------------
+// FCRA — resolveFcra (favorable resolution)
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the FCRA process favorably (e.g., staff issues a credential).
+ * Called by the UI after credentials.issue succeeds on a CONSIDER row.
+ */
+export async function resolveFcra(
+	requestId: string,
+	orgId: string,
+	actorId: string,
+): Promise<void> {
+	const request = await findBackgroundCheckById(requestId);
+	if (!request || request.orgId !== orgId) {
+		throw new TRPCError({ code: 'NOT_FOUND' });
+	}
+
+	if (request.status !== 'CONSIDER') {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: `Cannot resolve FCRA for a check in ${request.status} status.`,
+		});
+	}
+
+	if (!canResolveFcra(request.fcraStatus)) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: `Cannot resolve FCRA (status: ${request.fcraStatus}).`,
+		});
+	}
+
+	await prisma.$transaction(async (tx) => {
+		// Atomic guard: only transition from NONE or PRE_ADVERSE_SENT
+		const { count } = await tx.backgroundCheckRequest.updateMany({
+			where: {
+				id: requestId,
+				fcraStatus: { in: ['NONE', 'PRE_ADVERSE_SENT'] },
+			},
+			data: { fcraStatus: 'RESOLVED' },
+		});
+		if (count === 0) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'FCRA status was already resolved or changed.',
+			});
+		}
+		await writeAuditLogTx(tx, {
+			orgId,
+			actorId,
+			action: 'FCRA_RESOLVED',
+			entityType: 'BackgroundCheckRequest',
+			entityId: requestId,
+			metadata: { previousFcraStatus: request.fcraStatus },
+		});
+	});
+
+	console.log(
+		`[bg-check] FCRA resolved favorably requestId=${requestId} userId=${request.userId}`,
+	);
 }

@@ -329,6 +329,16 @@ export const BackgroundCheckStatus: {
 
 export type BackgroundCheckStatus = (typeof BackgroundCheckStatus)[keyof typeof BackgroundCheckStatus]
 
+
+export const FcraStatus: {
+  NONE: 'NONE',
+  PRE_ADVERSE_SENT: 'PRE_ADVERSE_SENT',
+  ADVERSE_ACTION_SENT: 'ADVERSE_ACTION_SENT',
+  RESOLVED: 'RESOLVED'
+};
+
+export type FcraStatus = (typeof FcraStatus)[keyof typeof FcraStatus]
+
 }
 
 export type ApplicationStatus = $Enums.ApplicationStatus
@@ -398,6 +408,10 @@ export const BackgroundCheckProvider: typeof $Enums.BackgroundCheckProvider
 export type BackgroundCheckStatus = $Enums.BackgroundCheckStatus
 
 export const BackgroundCheckStatus: typeof $Enums.BackgroundCheckStatus
+
+export type FcraStatus = $Enums.FcraStatus
+
+export const FcraStatus: typeof $Enums.FcraStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -36186,6 +36200,9 @@ export namespace Prisma {
     externalId: string | null
     status: $Enums.BackgroundCheckStatus | null
     credentialId: string | null
+    fcraStatus: $Enums.FcraStatus | null
+    preAdverseNoticeSentAt: Date | null
+    adverseActionAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -36198,6 +36215,9 @@ export namespace Prisma {
     externalId: string | null
     status: $Enums.BackgroundCheckStatus | null
     credentialId: string | null
+    fcraStatus: $Enums.FcraStatus | null
+    preAdverseNoticeSentAt: Date | null
+    adverseActionAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -36211,6 +36231,9 @@ export namespace Prisma {
     status: number
     webhookPayload: number
     credentialId: number
+    fcraStatus: number
+    preAdverseNoticeSentAt: number
+    adverseActionAt: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -36225,6 +36248,9 @@ export namespace Prisma {
     externalId?: true
     status?: true
     credentialId?: true
+    fcraStatus?: true
+    preAdverseNoticeSentAt?: true
+    adverseActionAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -36237,6 +36263,9 @@ export namespace Prisma {
     externalId?: true
     status?: true
     credentialId?: true
+    fcraStatus?: true
+    preAdverseNoticeSentAt?: true
+    adverseActionAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -36250,6 +36279,9 @@ export namespace Prisma {
     status?: true
     webhookPayload?: true
     credentialId?: true
+    fcraStatus?: true
+    preAdverseNoticeSentAt?: true
+    adverseActionAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -36336,6 +36368,9 @@ export namespace Prisma {
     status: $Enums.BackgroundCheckStatus
     webhookPayload: JsonValue | null
     credentialId: string | null
+    fcraStatus: $Enums.FcraStatus
+    preAdverseNoticeSentAt: Date | null
+    adverseActionAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: BackgroundCheckRequestCountAggregateOutputType | null
@@ -36366,6 +36401,9 @@ export namespace Prisma {
     status?: boolean
     webhookPayload?: boolean
     credentialId?: boolean
+    fcraStatus?: boolean
+    preAdverseNoticeSentAt?: boolean
+    adverseActionAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -36382,6 +36420,9 @@ export namespace Prisma {
     status?: boolean
     webhookPayload?: boolean
     credentialId?: boolean
+    fcraStatus?: boolean
+    preAdverseNoticeSentAt?: boolean
+    adverseActionAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -36398,6 +36439,9 @@ export namespace Prisma {
     status?: boolean
     webhookPayload?: boolean
     credentialId?: boolean
+    fcraStatus?: boolean
+    preAdverseNoticeSentAt?: boolean
+    adverseActionAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -36414,11 +36458,14 @@ export namespace Prisma {
     status?: boolean
     webhookPayload?: boolean
     credentialId?: boolean
+    fcraStatus?: boolean
+    preAdverseNoticeSentAt?: boolean
+    adverseActionAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type BackgroundCheckRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "userId" | "provider" | "externalId" | "status" | "webhookPayload" | "credentialId" | "createdAt" | "updatedAt", ExtArgs["result"]["backgroundCheckRequest"]>
+  export type BackgroundCheckRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "userId" | "provider" | "externalId" | "status" | "webhookPayload" | "credentialId" | "fcraStatus" | "preAdverseNoticeSentAt" | "adverseActionAt" | "createdAt" | "updatedAt", ExtArgs["result"]["backgroundCheckRequest"]>
   export type BackgroundCheckRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -36451,6 +36498,9 @@ export namespace Prisma {
       status: $Enums.BackgroundCheckStatus
       webhookPayload: Prisma.JsonValue | null
       credentialId: string | null
+      fcraStatus: $Enums.FcraStatus
+      preAdverseNoticeSentAt: Date | null
+      adverseActionAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["backgroundCheckRequest"]>
@@ -36887,6 +36937,9 @@ export namespace Prisma {
     readonly status: FieldRef<"BackgroundCheckRequest", 'BackgroundCheckStatus'>
     readonly webhookPayload: FieldRef<"BackgroundCheckRequest", 'Json'>
     readonly credentialId: FieldRef<"BackgroundCheckRequest", 'String'>
+    readonly fcraStatus: FieldRef<"BackgroundCheckRequest", 'FcraStatus'>
+    readonly preAdverseNoticeSentAt: FieldRef<"BackgroundCheckRequest", 'DateTime'>
+    readonly adverseActionAt: FieldRef<"BackgroundCheckRequest", 'DateTime'>
     readonly createdAt: FieldRef<"BackgroundCheckRequest", 'DateTime'>
     readonly updatedAt: FieldRef<"BackgroundCheckRequest", 'DateTime'>
   }
@@ -38723,6 +38776,9 @@ export namespace Prisma {
     status: 'status',
     webhookPayload: 'webhookPayload',
     credentialId: 'credentialId',
+    fcraStatus: 'fcraStatus',
+    preAdverseNoticeSentAt: 'preAdverseNoticeSentAt',
+    adverseActionAt: 'adverseActionAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -39106,6 +39162,20 @@ export namespace Prisma {
    * Reference to a field of type 'BackgroundCheckStatus[]'
    */
   export type ListEnumBackgroundCheckStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BackgroundCheckStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'FcraStatus'
+   */
+  export type EnumFcraStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FcraStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'FcraStatus[]'
+   */
+  export type ListEnumFcraStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FcraStatus[]'>
     
   /**
    * Deep Input Types
@@ -41169,6 +41239,9 @@ export namespace Prisma {
     status?: EnumBackgroundCheckStatusFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckStatus
     webhookPayload?: JsonNullableFilter<"BackgroundCheckRequest">
     credentialId?: StringNullableFilter<"BackgroundCheckRequest"> | string | null
+    fcraStatus?: EnumFcraStatusFilter<"BackgroundCheckRequest"> | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: DateTimeNullableFilter<"BackgroundCheckRequest"> | Date | string | null
+    adverseActionAt?: DateTimeNullableFilter<"BackgroundCheckRequest"> | Date | string | null
     createdAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
     updatedAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
@@ -41185,6 +41258,9 @@ export namespace Prisma {
     status?: SortOrder
     webhookPayload?: SortOrderInput | SortOrder
     credentialId?: SortOrderInput | SortOrder
+    fcraStatus?: SortOrder
+    preAdverseNoticeSentAt?: SortOrderInput | SortOrder
+    adverseActionAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     organization?: OrganizationOrderByWithRelationInput
@@ -41204,6 +41280,9 @@ export namespace Prisma {
     provider?: EnumBackgroundCheckProviderFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckProvider
     status?: EnumBackgroundCheckStatusFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckStatus
     webhookPayload?: JsonNullableFilter<"BackgroundCheckRequest">
+    fcraStatus?: EnumFcraStatusFilter<"BackgroundCheckRequest"> | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: DateTimeNullableFilter<"BackgroundCheckRequest"> | Date | string | null
+    adverseActionAt?: DateTimeNullableFilter<"BackgroundCheckRequest"> | Date | string | null
     createdAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
     updatedAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
@@ -41220,6 +41299,9 @@ export namespace Prisma {
     status?: SortOrder
     webhookPayload?: SortOrderInput | SortOrder
     credentialId?: SortOrderInput | SortOrder
+    fcraStatus?: SortOrder
+    preAdverseNoticeSentAt?: SortOrderInput | SortOrder
+    adverseActionAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BackgroundCheckRequestCountOrderByAggregateInput
@@ -41239,6 +41321,9 @@ export namespace Prisma {
     status?: EnumBackgroundCheckStatusWithAggregatesFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckStatus
     webhookPayload?: JsonNullableWithAggregatesFilter<"BackgroundCheckRequest">
     credentialId?: StringNullableWithAggregatesFilter<"BackgroundCheckRequest"> | string | null
+    fcraStatus?: EnumFcraStatusWithAggregatesFilter<"BackgroundCheckRequest"> | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: DateTimeNullableWithAggregatesFilter<"BackgroundCheckRequest"> | Date | string | null
+    adverseActionAt?: DateTimeNullableWithAggregatesFilter<"BackgroundCheckRequest"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"BackgroundCheckRequest"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"BackgroundCheckRequest"> | Date | string
   }
@@ -43472,6 +43557,9 @@ export namespace Prisma {
     externalId: string
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutBackgroundCheckRequestsInput
@@ -43488,6 +43576,9 @@ export namespace Prisma {
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: string | null
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -43498,6 +43589,9 @@ export namespace Prisma {
     externalId?: StringFieldUpdateOperationsInput | string
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
@@ -43514,6 +43608,9 @@ export namespace Prisma {
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -43527,6 +43624,9 @@ export namespace Prisma {
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: string | null
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -43537,6 +43637,9 @@ export namespace Prisma {
     externalId?: StringFieldUpdateOperationsInput | string
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -43550,6 +43653,9 @@ export namespace Prisma {
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -45445,6 +45551,13 @@ export namespace Prisma {
     not?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel> | $Enums.BackgroundCheckStatus
   }
 
+  export type EnumFcraStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.FcraStatus | EnumFcraStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.FcraStatus[] | ListEnumFcraStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.FcraStatus[] | ListEnumFcraStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumFcraStatusFilter<$PrismaModel> | $Enums.FcraStatus
+  }
+
   export type VolunteerCredentialNullableScalarRelationFilter = {
     is?: VolunteerCredentialWhereInput | null
     isNot?: VolunteerCredentialWhereInput | null
@@ -45459,6 +45572,9 @@ export namespace Prisma {
     status?: SortOrder
     webhookPayload?: SortOrder
     credentialId?: SortOrder
+    fcraStatus?: SortOrder
+    preAdverseNoticeSentAt?: SortOrder
+    adverseActionAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -45471,6 +45587,9 @@ export namespace Prisma {
     externalId?: SortOrder
     status?: SortOrder
     credentialId?: SortOrder
+    fcraStatus?: SortOrder
+    preAdverseNoticeSentAt?: SortOrder
+    adverseActionAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -45483,6 +45602,9 @@ export namespace Prisma {
     externalId?: SortOrder
     status?: SortOrder
     credentialId?: SortOrder
+    fcraStatus?: SortOrder
+    preAdverseNoticeSentAt?: SortOrder
+    adverseActionAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -45505,6 +45627,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel>
     _max?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel>
+  }
+
+  export type EnumFcraStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.FcraStatus | EnumFcraStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.FcraStatus[] | ListEnumFcraStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.FcraStatus[] | ListEnumFcraStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumFcraStatusWithAggregatesFilter<$PrismaModel> | $Enums.FcraStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumFcraStatusFilter<$PrismaModel>
+    _max?: NestedEnumFcraStatusFilter<$PrismaModel>
   }
 
   export type CheckrWebhookEventCountOrderByAggregateInput = {
@@ -47810,6 +47942,10 @@ export namespace Prisma {
     set?: $Enums.BackgroundCheckStatus
   }
 
+  export type EnumFcraStatusFieldUpdateOperationsInput = {
+    set?: $Enums.FcraStatus
+  }
+
   export type OrganizationUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput = {
     create?: XOR<OrganizationCreateWithoutBackgroundCheckRequestsInput, OrganizationUncheckedCreateWithoutBackgroundCheckRequestsInput>
     connectOrCreate?: OrganizationCreateOrConnectWithoutBackgroundCheckRequestsInput
@@ -48368,6 +48504,13 @@ export namespace Prisma {
     not?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel> | $Enums.BackgroundCheckStatus
   }
 
+  export type NestedEnumFcraStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.FcraStatus | EnumFcraStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.FcraStatus[] | ListEnumFcraStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.FcraStatus[] | ListEnumFcraStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumFcraStatusFilter<$PrismaModel> | $Enums.FcraStatus
+  }
+
   export type NestedEnumBackgroundCheckProviderWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.BackgroundCheckProvider | EnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
     in?: $Enums.BackgroundCheckProvider[] | ListEnumBackgroundCheckProviderFieldRefInput<$PrismaModel>
@@ -48386,6 +48529,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel>
     _max?: NestedEnumBackgroundCheckStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumFcraStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.FcraStatus | EnumFcraStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.FcraStatus[] | ListEnumFcraStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.FcraStatus[] | ListEnumFcraStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumFcraStatusWithAggregatesFilter<$PrismaModel> | $Enums.FcraStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumFcraStatusFilter<$PrismaModel>
+    _max?: NestedEnumFcraStatusFilter<$PrismaModel>
   }
 
   export type AccountCreateWithoutUserInput = {
@@ -48697,6 +48850,9 @@ export namespace Prisma {
     externalId: string
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutBackgroundCheckRequestsInput
@@ -48711,6 +48867,9 @@ export namespace Prisma {
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: string | null
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -49060,6 +49219,9 @@ export namespace Prisma {
     status?: EnumBackgroundCheckStatusFilter<"BackgroundCheckRequest"> | $Enums.BackgroundCheckStatus
     webhookPayload?: JsonNullableFilter<"BackgroundCheckRequest">
     credentialId?: StringNullableFilter<"BackgroundCheckRequest"> | string | null
+    fcraStatus?: EnumFcraStatusFilter<"BackgroundCheckRequest"> | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: DateTimeNullableFilter<"BackgroundCheckRequest"> | Date | string | null
+    adverseActionAt?: DateTimeNullableFilter<"BackgroundCheckRequest"> | Date | string | null
     createdAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
     updatedAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
   }
@@ -49820,6 +49982,9 @@ export namespace Prisma {
     externalId: string
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutBackgroundCheckRequestsInput
@@ -49834,6 +49999,9 @@ export namespace Prisma {
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: string | null
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -52593,6 +52761,9 @@ export namespace Prisma {
     externalId: string
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutBackgroundCheckRequestsInput
@@ -52607,6 +52778,9 @@ export namespace Prisma {
     externalId: string
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -52745,6 +52919,9 @@ export namespace Prisma {
     externalId?: StringFieldUpdateOperationsInput | string
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
@@ -52759,6 +52936,9 @@ export namespace Prisma {
     externalId?: StringFieldUpdateOperationsInput | string
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -54259,6 +54439,9 @@ export namespace Prisma {
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: string | null
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -54537,6 +54720,9 @@ export namespace Prisma {
     externalId?: StringFieldUpdateOperationsInput | string
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
@@ -54551,6 +54737,9 @@ export namespace Prisma {
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -54563,6 +54752,9 @@ export namespace Prisma {
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -54694,6 +54886,9 @@ export namespace Prisma {
     status?: $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: string | null
+    fcraStatus?: $Enums.FcraStatus
+    preAdverseNoticeSentAt?: Date | string | null
+    adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -55075,6 +55270,9 @@ export namespace Prisma {
     externalId?: StringFieldUpdateOperationsInput | string
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutBackgroundCheckRequestsNestedInput
@@ -55089,6 +55287,9 @@ export namespace Prisma {
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -55101,6 +55302,9 @@ export namespace Prisma {
     status?: EnumBackgroundCheckStatusFieldUpdateOperationsInput | $Enums.BackgroundCheckStatus
     webhookPayload?: NullableJsonNullValueInput | InputJsonValue
     credentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
+    preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

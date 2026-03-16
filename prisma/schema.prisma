@@ -595,17 +595,27 @@ enum BackgroundCheckStatus {
   CANCELLED
 }
 
+enum FcraStatus {
+  NONE
+  PRE_ADVERSE_SENT
+  ADVERSE_ACTION_SENT
+  RESOLVED
+}
+
 model BackgroundCheckRequest {
-  id             String                  @id @default(cuid())
-  orgId          String
-  userId         String
-  provider       BackgroundCheckProvider @default(CHECKR)
-  externalId     String                  @unique // Checkr report ID — idempotency key
-  status         BackgroundCheckStatus   @default(PENDING)
-  webhookPayload Json? // sanitized (no PII fields)
-  credentialId   String?                 @unique
-  createdAt      DateTime                @default(now())
-  updatedAt      DateTime                @updatedAt
+  id                      String                  @id @default(cuid())
+  orgId                   String
+  userId                  String
+  provider                BackgroundCheckProvider @default(CHECKR)
+  externalId              String                  @unique // Checkr report ID — idempotency key
+  status                  BackgroundCheckStatus   @default(PENDING)
+  webhookPayload          Json? // sanitized (no PII fields)
+  credentialId            String?                 @unique
+  fcraStatus              FcraStatus              @default(NONE)
+  preAdverseNoticeSentAt  DateTime?
+  adverseActionAt         DateTime?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
 
   organization Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)

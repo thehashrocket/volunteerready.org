@@ -100,6 +100,10 @@ src/
 │   │                               opportunities, org, screener, status
 │   ├── services/                 # Business logic layer
 │   ├── repositories/             # Prisma data access layer
+│   ├── lib/                      # Shared utilities and adapters
+│   │   ├── adapters/             # External service adapters (Checkr, etc.)
+│   │   ├── crypto.ts             # AES-256-GCM encryption for secrets at rest
+│   │   └── resend.ts             # Shared Resend email client (lazy singleton)
 │   └── domain/                   # Pure types + functions + tests
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
 │       ├── screener/
@@ -142,6 +146,8 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **VolunteerCredential** — org-scoped verification badges (unique per user + org + type). Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE. Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED.
 - **Shift** — org-scoped volunteer shift with time range, capacity, status, optional opportunity link.
 - **ShiftSignup** — volunteer sign-up for a shift (unique per shift + user). Status: CONFIRMED / CANCELLED / NO_SHOW / ATTENDED.
+- **BackgroundCheckRequest** — org-scoped background check lifecycle (PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED). FCRA status nested within CONSIDER: NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED. Provider tokens encrypted at rest (AES-256-GCM).
+- **CheckrWebhookEvent** — idempotency table for webhook deduplication (mirrors StripeWebhookEvent pattern).
 - **AuditLog** — append-only, immutable activity log per org.
 - **FeatureFlag** — per-org feature toggles.
 - **OrganizationInvitation** — team invite tokens with expiry.
@@ -178,6 +184,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | Router | Key procedures |
 |---|---|
 | `auth` | signout |
+| `backgroundChecks` | initiate, listByOrg, cancel, sendPreAdverseNotice, finalizeAdverseAction, resolveFcra, getCheckrOAuthUrl, getCheckrStatus, disconnectCheckr |
 | `credentials` | getMyCredentials, listOrgCredentials, issue, revoke, remove |
 | `health` | ping |
 | `matching` | getMySkills, updateMySkills, getRecommendations |
@@ -334,6 +341,9 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/domain/shift.ts` | Shift capacity, signup validation, attendance summaries |
 | `src/server/services/shiftService.ts` | Shift CRUD with audit logging |
 | `src/server/services/shiftSignupService.ts` | Signup orchestration with capacity + conflict checks |
+| `src/server/domain/background-check.ts` | FCRA state machine guards, waiting period helpers, PII sanitization |
+| `src/server/services/backgroundCheckService.ts` | Background check lifecycle, FCRA workflow, token encryption |
+| `src/server/lib/crypto.ts` | AES-256-GCM encrypt/decrypt/tryDecrypt for secrets at rest |
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
 
 ---
@@ -347,7 +357,11 @@ pnpm docs:dev               # VitePress dev server
 | 3 — Matching Engine | ✅ Complete |
 | 4 — Volunteer Profiles | ✅ Complete |
 | 5 — Scheduling & Shifts | ✅ Complete |
-| 6 — Nonprofit Operations (grants, events, analytics) | Planned |
+| 6A — Employer Accounts & Billing | ✅ Complete |
+| 6B — Background Check Integration | ✅ Complete |
+| 6C — Portable Credential Sharing | Planned |
+| 6D — Corporate ESG Reporting | Planned |
+| 6E — Mobile PWA | Planned |
 
 See `docs/ROADMAP.md` for details.
 

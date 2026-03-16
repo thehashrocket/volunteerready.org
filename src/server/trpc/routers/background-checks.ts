@@ -4,9 +4,12 @@ import { checkrAdapter } from '@/server/lib/adapters/background-check/checkr';
 import {
 	cancelBackgroundCheck,
 	disconnectCheckrAccount,
+	finalizeAdverseAction,
 	getCheckrConnectionStatus,
 	initiateBackgroundCheck,
 	listOrgBackgroundChecks,
+	resolveFcra,
+	sendPreAdverseNotice,
 } from '@/server/services/backgroundCheckService';
 import {
 	adminProcedure,
@@ -72,6 +75,39 @@ export const backgroundChecksRouter = createTRPCRouter({
 				ctx.orgId,
 				ctx.session?.user?.id ?? '',
 			),
+		),
+
+	// ---------------------------------------------------------------------------
+	// FCRA Adverse Action — Staff+
+	// ---------------------------------------------------------------------------
+
+	/** Send a pre-adverse action notice to the volunteer. Staff+. */
+	sendPreAdverseNotice: staffProcedure
+		.input(z.object({ requestId: z.string().min(1) }))
+		.mutation(({ ctx, input }) =>
+			sendPreAdverseNotice(
+				input.requestId,
+				ctx.orgId,
+				ctx.session?.user?.id ?? '',
+			),
+		),
+
+	/** Finalize adverse action after the FCRA waiting period. Staff+. */
+	finalizeAdverseAction: staffProcedure
+		.input(z.object({ requestId: z.string().min(1) }))
+		.mutation(({ ctx, input }) =>
+			finalizeAdverseAction(
+				input.requestId,
+				ctx.orgId,
+				ctx.session?.user?.id ?? '',
+			),
+		),
+
+	/** Resolve FCRA favorably (called after credential issuance). Staff+. */
+	resolveFcra: staffProcedure
+		.input(z.object({ requestId: z.string().min(1) }))
+		.mutation(({ ctx, input }) =>
+			resolveFcra(input.requestId, ctx.orgId, ctx.session?.user?.id ?? ''),
 		),
 
 	// ---------------------------------------------------------------------------

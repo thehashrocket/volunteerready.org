@@ -200,20 +200,29 @@ Key entities added:
 - Session gains: `currentCompanyId`
 - AuditLog gains: `companyId`
 
-## 6B — Background Check Integration
+## 6B — Background Check Integration ✅ Complete
 
-- Checkr (or Sterling) API integration for initiating background checks from within the platform
-- `BackgroundCheckRequest` entity tracks lifecycle: PENDING → COMPLETE → FAILED / CANCELLED
-- Async webhook handler — provider posts result; credential is auto-created on pass
-- PII guardrail — SSN/DOB passed through to provider only, never stored in the database
-- Staff-initiated check UI at `/app/credentials` — existing page extended
-- Result = CONSIDER flow — marks request PENDING and notifies staff for manual review
-- Webhook race condition handling — lookup by `externalId`; not-found requeues with delay
+Completed capabilities:
+
+- ✅ Checkr Partner API integration for initiating background checks from within the platform
+- ✅ `BackgroundCheckRequest` entity tracks lifecycle: PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED
+- ✅ Async webhook handler — provider posts result; credential is auto-created on COMPLETE
+- ✅ PII guardrail — SSN/DOB passed through to provider only, never stored in the database
+- ✅ Staff-initiated check UI at `/app/credentials` — existing page extended
+- ✅ CONSIDER flow — marks request and notifies staff for manual review
+- ✅ Webhook race condition handling — lookup by `externalId`; not-found requeues with delay
+- ✅ FCRA adverse action workflow — pre-adverse notice → 5-day waiting period → adverse action notice
+- ✅ `FcraStatus` state machine (NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED)
+- ✅ Volunteer-facing FCRA emails with legally-required rights information
+- ✅ AES-256-GCM encryption of Checkr OAuth tokens at rest (`tryDecrypt` for zero-downtime migration)
+- ✅ Shared lazy-initialized Resend email client singleton
 
 Key entities added:
 
-- BackgroundCheckRequest (provider, externalId, status, webhookPayload, credentialId)
+- BackgroundCheckRequest (provider, externalId, status, fcraStatus, webhookPayload, credentialId)
 - BackgroundCheckProvider (enum: CHECKR / STERLING)
+- FcraStatus (enum: NONE / PRE_ADVERSE_SENT / ADVERSE_ACTION_SENT / RESOLVED)
+- CheckrWebhookEvent (idempotency table for webhook deduplication)
 
 ## 6C — Portable Credential Sharing
 
