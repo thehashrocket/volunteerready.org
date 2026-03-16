@@ -8,23 +8,24 @@ datasource db {
 }
 
 model User {
-  id                    String                 @id @default(cuid())
-  name                  String?
-  email                 String?                @unique
-  emailVerified         DateTime?
-  image                 String?
-  accounts              Account[]
-  sessions              Session[]
-  memberships           OrganizationMember[]
-  companyMemberships    CompanyMember[]
-  auditLogs             AuditLog[]             @relation("AuditActor")
-  submittedApplications VolunteerApplication[] @relation("SubmittedApplications")
-  volunteerSkills       VolunteerSkill[]
-  profile               VolunteerProfile?
-  credentials           VolunteerCredential[]
-  shiftSignups          ShiftSignup[]
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+  id                      String                   @id @default(cuid())
+  name                    String?
+  email                   String?                  @unique
+  emailVerified           DateTime?
+  image                   String?
+  accounts                Account[]
+  sessions                Session[]
+  memberships             OrganizationMember[]
+  companyMemberships      CompanyMember[]
+  auditLogs               AuditLog[]               @relation("AuditActor")
+  submittedApplications   VolunteerApplication[]   @relation("SubmittedApplications")
+  volunteerSkills         VolunteerSkill[]
+  profile                 VolunteerProfile?
+  credentials             VolunteerCredential[]
+  shiftSignups            ShiftSignup[]
+  backgroundCheckRequests BackgroundCheckRequest[]
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
 }
 
 model Account {
@@ -92,26 +93,30 @@ model ApplicationStatusToken {
 }
 
 model Organization {
-  id                   String                   @id @default(cuid())
-  name                 String
-  slug                 String                   @unique
-  planTier             PlanTier                 @default(FREE)
-  stripeCustomerId     String?                  @unique
-  stripeSubscriptionId String?                  @unique
-  trialEndsAt          DateTime?
-  createdAt            DateTime                 @default(now())
-  updatedAt            DateTime                 @updatedAt
-  members              OrganizationMember[]
-  auditLogs            AuditLog[]
-  featureFlags         FeatureFlag[]
-  applications         VolunteerApplication[]
-  screenerQuestions    ScreenerQuestion[]
-  sessions             Session[] // optional backrelation
-  invitations          OrganizationInvitation[]
-  opportunities        VolunteerOpportunity[]
-  credentials          VolunteerCredential[]
-  shifts               Shift[]
-  companyLinks         CompanyNonprofitLink[]
+  id                      String                   @id @default(cuid())
+  name                    String
+  slug                    String                   @unique
+  planTier                PlanTier                 @default(FREE)
+  stripeCustomerId        String?                  @unique
+  stripeSubscriptionId    String?                  @unique
+  trialEndsAt             DateTime?
+  // Checkr Partner API — per-org OAuth credentials
+  checkrAccessToken       String? // OAuth access token; store server-side only
+  checkrAccountId         String?                  @unique // Checkr account ID for webhook routing
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  members                 OrganizationMember[]
+  auditLogs               AuditLog[]
+  featureFlags            FeatureFlag[]
+  applications            VolunteerApplication[]
+  screenerQuestions       ScreenerQuestion[]
+  sessions                Session[] // optional backrelation
+  invitations             OrganizationInvitation[]
+  opportunities           VolunteerOpportunity[]
+  credentials             VolunteerCredential[]
+  shifts                  Shift[]
+  companyLinks            CompanyNonprofitLink[]
+  backgroundCheckRequests BackgroundCheckRequest[]
 }
 
 model OrganizationMember {
@@ -395,8 +400,9 @@ model VolunteerCredential {
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization           Organization            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  backgroundCheckRequest BackgroundCheckRequest?
 
   @@unique([userId, orgId, type])
   @@index([userId])
@@ -570,4 +576,50 @@ model StripeWebhookEvent {
   type        String
   processedAt DateTime @default(now())
   payload     Json
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6B — Background Check Integration
+// ---------------------------------------------------------------------------
+
+enum BackgroundCheckProvider {
+  CHECKR
+  STERLING
+}
+
+enum BackgroundCheckStatus {
+  PENDING
+  COMPLETE
+  CONSIDER
+  FAILED
+  CANCELLED
+}
+
+model BackgroundCheckRequest {
+  id             String                  @id @default(cuid())
+  orgId          String
+  userId         String
+  provider       BackgroundCheckProvider @default(CHECKR)
+  externalId     String                  @unique // Checkr report ID — idempotency key
+  status         BackgroundCheckStatus   @default(PENDING)
+  webhookPayload Json? // sanitized (no PII fields)
+  credentialId   String?                 @unique
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  organization Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credential   VolunteerCredential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+
+  @@index([orgId])
+  @@index([userId])
+  @@index([orgId, status])
+}
+
+model CheckrWebhookEvent {
+  id          String   @id @default(cuid())
+  checkrId    String   @unique // idempotency key — mirrors StripeWebhookEvent.stripeId
+  type        String
+  processedAt DateTime @default(now())
+  payload     Json // sanitized (no PII fields)
 }

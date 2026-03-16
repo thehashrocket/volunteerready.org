@@ -179,6 +179,8 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   stripeCustomerId: 'stripeCustomerId',
   stripeSubscriptionId: 'stripeSubscriptionId',
   trialEndsAt: 'trialEndsAt',
+  checkrAccessToken: 'checkrAccessToken',
+  checkrAccountId: 'checkrAccountId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -411,6 +413,27 @@ exports.Prisma.StripeWebhookEventScalarFieldEnum = {
   payload: 'payload'
 };
 
+exports.Prisma.BackgroundCheckRequestScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  userId: 'userId',
+  provider: 'provider',
+  externalId: 'externalId',
+  status: 'status',
+  webhookPayload: 'webhookPayload',
+  credentialId: 'credentialId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CheckrWebhookEventScalarFieldEnum = {
+  id: 'id',
+  checkrId: 'checkrId',
+  type: 'type',
+  processedAt: 'processedAt',
+  payload: 'payload'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -538,6 +561,19 @@ exports.CompanyNonprofitLinkStatus = exports.$Enums.CompanyNonprofitLinkStatus =
   PAUSED: 'PAUSED'
 };
 
+exports.BackgroundCheckProvider = exports.$Enums.BackgroundCheckProvider = {
+  CHECKR: 'CHECKR',
+  STERLING: 'STERLING'
+};
+
+exports.BackgroundCheckStatus = exports.$Enums.BackgroundCheckStatus = {
+  PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  CONSIDER: 'CONSIDER',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -566,7 +602,9 @@ exports.Prisma.ModelName = {
   CompanyMember: 'CompanyMember',
   CompanyInvitation: 'CompanyInvitation',
   CompanyNonprofitLink: 'CompanyNonprofitLink',
-  StripeWebhookEvent: 'StripeWebhookEvent'
+  StripeWebhookEvent: 'StripeWebhookEvent',
+  BackgroundCheckRequest: 'BackgroundCheckRequest',
+  CheckrWebhookEvent: 'CheckrWebhookEvent'
 };
 
 /**
