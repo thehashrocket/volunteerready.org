@@ -2,8 +2,17 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, ShieldCheck, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import {
+	CheckCircle2,
+	Link2,
+	Link2Off,
+	Plus,
+	ShieldCheck,
+	Trash2,
+	XCircle,
+} from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -45,7 +54,14 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { trpc } from '@/lib/trpc/client';
+import { getPlanLimits } from '@/server/domain/billing';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -78,6 +94,17 @@ const statusVariant: Record<
 	REVOKED: 'destructive',
 };
 
+const bgCheckStatusVariant: Record<
+	string,
+	'success' | 'warning' | 'neutral' | 'destructive'
+> = {
+	PENDING: 'warning',
+	COMPLETE: 'success',
+	CONSIDER: 'warning',
+	FAILED: 'destructive',
+	CANCELLED: 'neutral',
+};
+
 // ---------------------------------------------------------------------------
 // Issue Credential Dialog – react-hook-form + zod
 // ---------------------------------------------------------------------------
@@ -98,15 +125,21 @@ const issueSchema = z.object({
 
 type IssueFormValues = z.infer<typeof issueSchema>;
 
-function IssueCredentialDialog() {
+function IssueCredentialDialog({
+	defaultUserId,
+	defaultType,
+}: {
+	defaultUserId?: string;
+	defaultType?: CredentialType;
+} = {}) {
 	const qc = useQueryClient();
 	const [open, setOpen] = useState(false);
 
 	const form = useForm<IssueFormValues>({
 		resolver: zodResolver(issueSchema),
 		defaultValues: {
-			userId: '',
-			type: 'BACKGROUND_CHECK',
+			userId: defaultUserId ?? '',
+			type: defaultType ?? 'BACKGROUND_CHECK',
 			status: 'VERIFIED',
 			notes: '',
 			expiresAt: '',
@@ -236,12 +269,462 @@ function IssueCredentialDialog() {
 }
 
 // ---------------------------------------------------------------------------
+// Initiate Background Check Dialog
+// ---------------------------------------------------------------------------
+
+const bgCheckSchema = z.object({
+	userId: z.string().min(1, 'Volunteer User ID is required'),
+	firstName: z.string().min(1, 'Required').max(100),
+	lastName: z.string().min(1, 'Required').max(100),
+	email: z.string().email('Valid email required'),
+	dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
+	ssn: z.string().regex(/^\d{9}$/, 'Must be exactly 9 digits, no dashes'),
+	packageName: z.string().optional(),
+});
+
+type BgCheckFormValues = z.infer<typeof bgCheckSchema>;
+
+function InitiateBackgroundCheckDialog({
+	canBackgroundChecks,
+}: {
+	canBackgroundChecks: boolean;
+}) {
+	const qc = useQueryClient();
+	const [open, setOpen] = useState(false);
+
+	const form = useForm<BgCheckFormValues>({
+		resolver: zodResolver(bgCheckSchema),
+		defaultValues: {
+			userId: '',
+			firstName: '',
+			lastName: '',
+			email: '',
+			dob: '',
+			ssn: '',
+			packageName: '',
+		},
+	});
+
+	const mutation = trpc.backgroundChecks.initiate.useMutation({
+		onSuccess: async () => {
+			toast.success(
+				'Background check initiated. Results will arrive via webhook.',
+			);
+			await qc.invalidateQueries();
+			setOpen(false);
+			form.reset();
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to initiate background check.');
+		},
+	});
+
+	function onSubmit(values: BgCheckFormValues) {
+		mutation.mutate({
+			userId: values.userId,
+			pii: {
+				firstName: values.firstName,
+				lastName: values.lastName,
+				email: values.email,
+				dob: values.dob,
+				ssn: values.ssn,
+			},
+			packageName: values.packageName || undefined,
+		});
+	}
+
+	const trigger = canBackgroundChecks ? (
+		<Button size="sm" variant="outline">
+			<ShieldCheck className="mr-1 h-4 w-4" />
+			Run Background Check
+		</Button>
+	) : (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<span className="inline-flex">
+						<Button size="sm" variant="outline" disabled>
+							<ShieldCheck className="mr-1 h-4 w-4" />
+							Run Background Check
+						</Button>
+					</span>
+				</TooltipTrigger>
+				<TooltipContent>
+					Upgrade to PRO to run background checks.
+				</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	);
+
+	if (!canBackgroundChecks) return trigger;
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>{trigger}</DialogTrigger>
+			<DialogContent className="max-w-lg">
+				<DialogHeader>
+					<DialogTitle>Initiate Background Check</DialogTitle>
+					<DialogDescription>
+						Run a Checkr background check for a volunteer. Results arrive
+						asynchronously via webhook.
+					</DialogDescription>
+				</DialogHeader>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					{/* Volunteer ID */}
+					<div className="space-y-2">
+						<Label htmlFor="bg-userId">Volunteer User ID</Label>
+						<Input
+							id="bg-userId"
+							placeholder="cuid…"
+							{...form.register('userId')}
+						/>
+						{form.formState.errors.userId && (
+							<p className="text-xs text-destructive">
+								{form.formState.errors.userId.message}
+							</p>
+						)}
+					</div>
+
+					{/* Name */}
+					<div className="grid grid-cols-2 gap-3">
+						<div className="space-y-2">
+							<Label htmlFor="bg-firstName">First Name</Label>
+							<Input id="bg-firstName" {...form.register('firstName')} />
+							{form.formState.errors.firstName && (
+								<p className="text-xs text-destructive">
+									{form.formState.errors.firstName.message}
+								</p>
+							)}
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="bg-lastName">Last Name</Label>
+							<Input id="bg-lastName" {...form.register('lastName')} />
+							{form.formState.errors.lastName && (
+								<p className="text-xs text-destructive">
+									{form.formState.errors.lastName.message}
+								</p>
+							)}
+						</div>
+					</div>
+
+					{/* Email */}
+					<div className="space-y-2">
+						<Label htmlFor="bg-email">Email</Label>
+						<Input id="bg-email" type="email" {...form.register('email')} />
+						{form.formState.errors.email && (
+							<p className="text-xs text-destructive">
+								{form.formState.errors.email.message}
+							</p>
+						)}
+					</div>
+
+					{/* DOB */}
+					<div className="space-y-2">
+						<Label htmlFor="bg-dob">Date of Birth</Label>
+						<Input id="bg-dob" type="date" {...form.register('dob')} />
+						{form.formState.errors.dob && (
+							<p className="text-xs text-destructive">
+								{form.formState.errors.dob.message}
+							</p>
+						)}
+					</div>
+
+					{/* SSN — type="password" prevents screen recording */}
+					<div className="space-y-2">
+						<Label htmlFor="bg-ssn">SSN (9 digits, no dashes)</Label>
+						<Input
+							id="bg-ssn"
+							type="password"
+							autoComplete="new-password"
+							placeholder="•••••••••"
+							maxLength={9}
+							{...form.register('ssn')}
+						/>
+						{form.formState.errors.ssn && (
+							<p className="text-xs text-destructive">
+								{form.formState.errors.ssn.message}
+							</p>
+						)}
+						<p className="text-xs text-muted-foreground">
+							SSN is sent directly to our background check provider and is never
+							stored by VolunteerReady.
+						</p>
+					</div>
+
+					<div className="flex justify-end gap-2">
+						<Button
+							type="button"
+							variant="ghost"
+							onClick={() => setOpen(false)}
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={mutation.isPending}>
+							{mutation.isPending ? 'Submitting…' : 'Submit'}
+						</Button>
+					</div>
+				</form>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Checkr Connect Card — Partner API OAuth connect/disconnect
+// ---------------------------------------------------------------------------
+
+function CheckrConnectCard() {
+	const qc = useQueryClient();
+	const statusQ = trpc.backgroundChecks.getCheckrStatus.useQuery();
+	const oauthUrlQ = trpc.backgroundChecks.getCheckrOAuthUrl.useQuery(
+		undefined,
+		{ enabled: false }, // only fetch on demand
+	);
+
+	const disconnectMutation = trpc.backgroundChecks.disconnectCheckr.useMutation(
+		{
+			onSuccess: async () => {
+				toast.success('Checkr account disconnected.');
+				await qc.invalidateQueries();
+			},
+			onError: (err) => {
+				toast.error(err.message ?? 'Failed to disconnect Checkr.');
+			},
+		},
+	);
+
+	function handleConnect() {
+		oauthUrlQ.refetch().then((result) => {
+			if (result.data?.url) {
+				window.location.href = result.data.url;
+			}
+		});
+	}
+
+	const connected = statusQ.data?.connected ?? false;
+	const accountId = statusQ.data?.accountId;
+
+	return (
+		<Card>
+			<CardHeader>
+				<div className="flex items-center justify-between">
+					<div>
+						<CardTitle className="flex items-center gap-2">
+							<ShieldCheck className="h-5 w-5" />
+							Checkr Integration
+						</CardTitle>
+						<CardDescription>
+							Connect your organization&apos;s Checkr account to run automated
+							background checks.
+						</CardDescription>
+					</div>
+					{connected && (
+						<Badge variant="success" className="flex items-center gap-1">
+							<CheckCircle2 className="h-3 w-3" />
+							Connected
+						</Badge>
+					)}
+				</div>
+			</CardHeader>
+			<CardContent>
+				{statusQ.isLoading ? (
+					<div className="space-y-2">
+						<div className="h-4 w-48 animate-pulse rounded bg-muted" />
+						<div className="h-4 w-32 animate-pulse rounded bg-muted" />
+					</div>
+				) : connected ? (
+					<div className="flex items-center justify-between">
+						<p className="text-sm text-muted-foreground">
+							Account ID: <span className="font-mono text-xs">{accountId}</span>
+						</p>
+						<Button
+							size="sm"
+							variant="outline"
+							className="text-destructive hover:text-destructive"
+							onClick={() => disconnectMutation.mutate()}
+							disabled={disconnectMutation.isPending}
+						>
+							<Link2Off className="mr-1 h-4 w-4" />
+							{disconnectMutation.isPending ? 'Disconnecting…' : 'Disconnect'}
+						</Button>
+					</div>
+				) : (
+					<div className="flex items-center justify-between">
+						<p className="text-sm text-muted-foreground">
+							No Checkr account connected. Connect to enable automated
+							background checks for your volunteers.
+						</p>
+						<Button
+							size="sm"
+							onClick={handleConnect}
+							disabled={oauthUrlQ.isFetching}
+						>
+							<Link2 className="mr-1 h-4 w-4" />
+							{oauthUrlQ.isFetching ? 'Redirecting…' : 'Connect Checkr'}
+						</Button>
+					</div>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Background Check Requests Table
+// ---------------------------------------------------------------------------
+
+function BackgroundCheckRequestsTable() {
+	const qc = useQueryClient();
+	const query = trpc.backgroundChecks.listByOrg.useQuery();
+
+	const cancelMutation = trpc.backgroundChecks.cancel.useMutation({
+		onSuccess: async () => {
+			toast.success('Background check cancelled.');
+			await qc.invalidateQueries();
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to cancel.');
+		},
+	});
+
+	if (query.isLoading) {
+		return (
+			<Card>
+				<CardContent className="space-y-2 pt-6">
+					{Array.from({ length: 3 }).map((_, i) => (
+						<Skeleton key={i} className="h-10 w-full" />
+					))}
+				</CardContent>
+			</Card>
+		);
+	}
+
+	const requests = (query.data ?? []) as NonNullable<typeof query.data>;
+
+	if (requests.length === 0) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Background Check Requests</CardTitle>
+					<CardDescription>
+						No background checks have been initiated yet.
+					</CardDescription>
+				</CardHeader>
+			</Card>
+		);
+	}
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Background Check Requests</CardTitle>
+				<CardDescription>
+					{requests.length} request{requests.length !== 1 ? 's' : ''}
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Volunteer</TableHead>
+							<TableHead>Status</TableHead>
+							<TableHead>Provider</TableHead>
+							<TableHead>Initiated</TableHead>
+							<TableHead className="text-right">Actions</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{requests.map((req) => (
+							<TableRow key={req.id}>
+								<TableCell>
+									<div>
+										<p className="font-medium text-sm">
+											{req.user.name ?? 'Unknown'}
+										</p>
+										<p className="text-xs text-muted-foreground">
+											{req.user.email}
+										</p>
+									</div>
+								</TableCell>
+								<TableCell>
+									<Badge
+										variant={bgCheckStatusVariant[req.status] ?? 'outline'}
+									>
+										{req.status === 'CONSIDER' ? 'Needs Review' : req.status}
+									</Badge>
+								</TableCell>
+								<TableCell className="text-sm text-muted-foreground">
+									{req.provider}
+								</TableCell>
+								<TableCell className="text-sm text-muted-foreground">
+									{new Date(req.createdAt).toLocaleDateString()}
+								</TableCell>
+								<TableCell className="text-right">
+									<div className="flex justify-end gap-1">
+										{/* CONSIDER → open IssueCredentialDialog pre-filled */}
+										{req.status === 'CONSIDER' && (
+											<IssueCredentialDialog
+												defaultUserId={req.user.id}
+												defaultType="BACKGROUND_CHECK"
+											/>
+										)}
+										{/* PENDING or CONSIDER → Cancel */}
+										{(req.status === 'PENDING' ||
+											req.status === 'CONSIDER') && (
+											<Button
+												size="sm"
+												variant="ghost"
+												className="text-destructive hover:text-destructive"
+												onClick={() =>
+													cancelMutation.mutate({
+														requestId: req.id,
+													})
+												}
+												disabled={cancelMutation.isPending}
+											>
+												<XCircle className="mr-1 h-4 w-4" />
+												Cancel
+											</Button>
+										)}
+									</div>
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</CardContent>
+		</Card>
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
 export default function CredentialsPage() {
 	const qc = useQueryClient();
 	const query = trpc.credentials.listOrgCredentials.useQuery();
+	const billingQ = trpc.billing.getBillingStatus.useQuery();
+	const searchParams = useSearchParams();
+
+	// Show toast after Checkr OAuth callback redirect (run once on mount)
+	useEffect(() => {
+		const checkrConnected = searchParams.get('checkr_connected');
+		const checkrError = searchParams.get('checkr_error');
+		if (checkrConnected === 'true') {
+			toast.success('Checkr account connected successfully.');
+		} else if (checkrError) {
+			const messages: Record<string, string> = {
+				authorization_denied: 'Checkr authorization was denied.',
+				missing_params: 'Checkr OAuth callback missing required parameters.',
+				state_mismatch: 'Security check failed. Please try connecting again.',
+				token_exchange_failed: 'Failed to connect Checkr. Please try again.',
+			};
+			toast.error(
+				messages[checkrError] ?? `Checkr connection error: ${checkrError}`,
+			);
+		}
+	}, [searchParams]);
 
 	const revokeMutation = trpc.credentials.revoke.useMutation({
 		onSuccess: async () => {
@@ -262,6 +745,9 @@ export default function CredentialsPage() {
 			toast.error(err.message ?? 'Failed to remove.');
 		},
 	});
+
+	const planTier = billingQ.data?.planTier ?? 'FREE';
+	const canBackgroundChecks = getPlanLimits(planTier).canBackgroundChecks;
 
 	if (query.isLoading) {
 		return (
@@ -310,7 +796,14 @@ export default function CredentialsPage() {
 			<PageHeader
 				title="Credentials"
 				description="Issue and manage volunteer verification badges."
-				actions={<IssueCredentialDialog />}
+				actions={
+					<div className="flex gap-2">
+						<InitiateBackgroundCheckDialog
+							canBackgroundChecks={canBackgroundChecks}
+						/>
+						<IssueCredentialDialog />
+					</div>
+				}
 			/>
 
 			{credentials.length === 0 ? (
@@ -405,6 +898,12 @@ export default function CredentialsPage() {
 					</CardContent>
 				</Card>
 			)}
+
+			{/* Checkr Partner API — connect/disconnect */}
+			<CheckrConnectCard />
+
+			{/* Background Check Requests — shown below credentials */}
+			<BackgroundCheckRequestsTable />
 		</div>
 	);
 }
