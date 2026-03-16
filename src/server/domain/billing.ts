@@ -10,6 +10,7 @@ export type PlanLimits = {
 	maxMembers: number | null;
 	canMatching: boolean;
 	canESGReports: boolean;
+	canBackgroundChecks: boolean;
 };
 
 const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
@@ -18,18 +19,21 @@ const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
 		maxMembers: 3,
 		canMatching: false,
 		canESGReports: false,
+		canBackgroundChecks: false,
 	},
 	STARTER: {
 		maxOpportunities: 25,
 		maxMembers: 10,
 		canMatching: true,
 		canESGReports: false,
+		canBackgroundChecks: false,
 	},
 	PRO: {
 		maxOpportunities: null, // unlimited
 		maxMembers: null, // unlimited
 		canMatching: true,
 		canESGReports: true,
+		canBackgroundChecks: true,
 	},
 };
 
