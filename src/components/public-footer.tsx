@@ -75,7 +75,7 @@ export function PublicFooter() {
 									<li key={link.href}>
 										<Link
 											href={link.href}
-											className="inline-block py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+											className="inline-flex min-h-[44px] items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
 										>
 											{link.label}
 										</Link>
