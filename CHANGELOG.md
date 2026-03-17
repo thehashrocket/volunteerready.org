@@ -5,24 +5,24 @@ All notable changes to this project will be documented in this file.
 ## [0.5.0] - 2026-03-16
 
 ### Added
-- **Full public site rewrite** — all marketing pages updated to sell the complete platform (matching engine, background checks, portable credentials, shift scheduling, ESG reporting) instead of just Phase 2 features
-- **New "For Employers" page** (`/for-employers`) — corporate CSR landing page with ESG reporting, employee volunteering, nonprofit partnerships, and background check features
-- **New "Security & Compliance" page** (`/security`) — details on encryption, FCRA compliance, multi-tenant isolation, RBAC, audit logging, and data portability
-- **Shared marketing components** — `PublicHero`, `CTABanner`, `FadeInOnScroll`, and `TrackedLink` components for consistent design across all public pages
-- **Platform stats on homepage** — live aggregate counts (organizations, credentials, shifts, volunteers) from `statsRepo.ts` with ISR (1-hour revalidation) and graceful degradation
-- **Pricing page feature comparison table** — 11-row comparison across Free/Starter/Pro tiers using real `getPlanLimits()` data
-- **Vercel Analytics tracking** — CTA click tracking on all marketing page links via `TrackedLink` component
-- **Scroll-triggered animations** — `FadeInOnScroll` component with `prefers-reduced-motion` respect
-- **Per-page SEO metadata** — Open Graph metadata on every public page
-- **Design system** — `DESIGN.md` added defining Organic/Natural aesthetic, Fraunces + Geist typography, warm color palette, spacing scale, and AI slop blacklist
+- **Full public site rewrite** — every marketing page now sells the complete platform (matching, background checks, portable credentials, shift scheduling, ESG reporting) instead of just early features
+- **"For Employers" landing page** (`/for-employers`) — corporate buyers can now see ESG reporting, employee volunteering, nonprofit partnerships, and background check features at a glance
+- **"Security & Compliance" page** (`/security`) — encryption, FCRA compliance, multi-tenant isolation, RBAC, audit logging, and data portability — all in one place for procurement teams
+- **Shared marketing components** — `PublicHero`, `CTABanner`, `FadeInOnScroll`, and `TrackedLink` give all public pages a consistent, polished look
+- **Live platform stats on homepage** — real aggregate counts (organizations, credentials, shifts, volunteers) with ISR (1-hour revalidation) and graceful fallback when the database is unavailable
+- **Pricing comparison table** — 11-row feature comparison across Free / Starter / Pro tiers, powered by the same `getPlanLimits()` data the app uses
+- **CTA click tracking** — every marketing page link is tracked via Vercel Analytics for conversion insights
+- **Scroll-triggered animations** — subtle fade-in effects that respect `prefers-reduced-motion`
+- **Per-page SEO metadata** — Open Graph tags on every public page for better social sharing
+- **Design system** — `DESIGN.md` defines the Organic/Natural aesthetic, Fraunces + Geist typography, warm color palette, spacing, motion, and an AI slop blacklist
 
 ### Changed
-- Rewrote homepage, for-volunteers, for-nonprofits, pricing, how-it-works, and about pages
-- Removed SVG blob decorations from all pages per design system AI slop blacklist
-- How-it-works expanded from 2 to 3 audience journeys (added employers)
-- About page now shows "What we've built so far" platform maturity milestones
-- Added "Pricing" link to main navigation header
-- Added "For Employers" column, Pricing and Security links to footer
+- Rewrote homepage, for-volunteers, for-nonprofits, pricing, how-it-works, and about pages with specific, active-voice copy
+- Removed SVG blob decorations from all pages — the design system blacklists generic AI aesthetic patterns
+- How-it-works now walks three audiences through their journey (volunteers, nonprofits, and employers)
+- About page shows "What we've built so far" milestones so visitors see a mature, shipping product
+- Added "Pricing" to the main navigation header
+- Footer now includes For Employers column, plus Pricing and Security links
 
 ## [0.4.0] - 2026-03-16
 
