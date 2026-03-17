@@ -216,7 +216,10 @@ export async function claimShareToken(
 	});
 
 	if (!check.ok) {
-		throw new TRPCError({ code: 'BAD_REQUEST', message: check.reason ?? 'Invalid credential share' });
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: check.reason ?? 'Invalid credential share',
+		});
 	}
 
 	// Check for duplicate credential in claiming org
