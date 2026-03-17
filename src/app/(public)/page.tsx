@@ -136,7 +136,7 @@ export default async function Home() {
 			)}
 
 			{/* ── Three-path cards ── */}
-			<section className="mx-auto w-full max-w-4xl px-4 py-20">
+			<section className="mx-auto w-full max-w-4xl px-4 py-16">
 				<h2 className="font-display mb-10 text-center text-[32px] font-bold leading-tight text-foreground [text-wrap:balance]">
 					One platform, three audiences
 				</h2>
