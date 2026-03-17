@@ -2,12 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.5.1] - 2026-03-17
+## [0.5.2] - 2026-03-17
 
 ### Added
 - **ESG Report PDF Export** — corporate admins can now download a branded PDF of the ESG Volunteer Impact Report with company header, summary stats, and per-organization breakdown table styled with the VolunteerReady design system
 - **PDF export button** on the corporate team dashboard (`/app/company/[companyId]/team`) next to the existing CSV export
 - **Bundled Fraunces + Geist fonts** for server-side PDF rendering (Vercel-compatible, no runtime font fetches)
+- **Corporate company seed data** — Acme Corporation (PRO plan) with OWNER/ADMIN members and two linked nonprofits for local QA testing
+
+### Fixed
+- **AI slop removal** — replaced blacklisted 3-column icon-in-colored-circle feature grid on homepage with left-aligned stacked list per DESIGN.md
+- **Touch targets** — footer links, "Learn more" buttons, and logo links in header/footer now meet 44px minimum per DESIGN.md
+- **Unused type property** — removed dead `companyId` from `SessionExt` in PDF export route
 
 ## [0.5.0] - 2026-03-16
 
