@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-03-17
+
+### Added
+- **Portable credential sharing** — volunteers can generate time-limited share links for their verified credentials. Org staff claim the link to import the credential without re-verification
+- **Credential wallet** on the volunteer profile page — tabbed UI (Profile + Credentials) with share link generation, copy-to-clipboard, token expiry countdown, and revoke functionality
+- **Credential claim page** at `/credentials/claim/[token]` — public page showing credential type, issuing org, and expiry with a one-click claim button for staff
+- **"Bring my credentials" checkbox** on the volunteer apply form — auto-shares all verified credentials with the org at application time (volunteer opt-in)
+- **Credential request from staff** — application detail page shows how many verified credentials a volunteer has at other orgs, with a button to send an email asking the volunteer to share
+- **Shared token utility** (`src/server/lib/tokens.ts`) — DRY refactor of token generation and SHA-256 hashing used across invitations, status tokens, and credential share tokens
+- **Claim notification email** — volunteers receive an email when their shared credential is claimed by an org (fire-and-forget, outside transaction)
+- **Credential sharing request email** — staff can ask volunteers to share credentials via email with a direct link to their profile
+
+### For contributors
+- `CredentialShareToken` model with SHA-256 hashed token storage, P2002 collision retry, and optimistic lock on claim
+- `ShareTokenStatus` enum: ACTIVE → CLAIMED / EXPIRED
+- `credential-sharing.ts` domain module: `canShareCredential()`, `canClaimToken()` (6 guards), `computeTokenExpiry()`, `tokenDaysRemaining()`
+- `credentialShareService.ts`: `generateShareToken()`, `claimShareToken()`, `revokeShareToken()`, `shareAllOnApply()`, `requestCredentialSharing()`
+- `credentialSharing` tRPC router: generate, listMyTokens, revoke (protected); getTokenInfo (public); claim, externalCredentialCount, requestSharing (staff)
+- 23 domain unit tests for credential sharing logic
+- New shadcn/ui components: Tabs, Checkbox
+- Seed data extended with 3 share token scenarios (claimed, active, expired) and provenance credential
+
 ## [0.2.3] - 2026-03-16
 
 ### Added
