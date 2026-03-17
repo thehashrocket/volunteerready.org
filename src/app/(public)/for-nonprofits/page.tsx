@@ -182,7 +182,7 @@ export default function ForNonprofitsPage() {
 										<div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
 											<Icon className="h-5 w-5 text-primary" />
 										</div>
-										<h3 className="mb-1 font-semibold text-foreground">
+										<h3 className="mb-1 font-semibold text-foreground [text-wrap:balance]">
 											{o.heading}
 										</h3>
 										<p className="text-sm leading-relaxed text-muted-foreground">
