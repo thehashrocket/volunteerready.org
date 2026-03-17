@@ -9,7 +9,9 @@ import { cn } from '@/lib/utils';
 const navLinks = [
 	{ label: 'For Volunteers', href: '/for-volunteers' },
 	{ label: 'For Nonprofits', href: '/for-nonprofits' },
+	{ label: 'For Employers', href: '/for-employers' },
 	{ label: 'How It Works', href: '/how-it-works' },
+	{ label: 'Pricing', href: '/pricing' },
 	{ label: 'About', href: '/about' },
 ];
 
