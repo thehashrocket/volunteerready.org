@@ -1,5 +1,3 @@
-import { prisma } from './prisma';
-
 export type PlatformStats = {
 	orgCount: number;
 	credentialCount: number;
@@ -7,18 +5,24 @@ export type PlatformStats = {
 	volunteerCount: number;
 };
 
+const ZERO_STATS: PlatformStats = {
+	orgCount: 0,
+	credentialCount: 0,
+	shiftCount: 0,
+	volunteerCount: 0,
+};
+
 /**
  * Aggregate platform-wide stats for the public homepage social proof section.
  * Returns zeros on any error (graceful degradation — homepage never breaks).
  *
- * Tables counted:
- *   Organization       → total orgs on platform
- *   VolunteerCredential → verified credentials issued
- *   Shift               → shifts completed
- *   User                → volunteers (users with at least one application)
+ * Uses dynamic import so that a missing DATABASE_URL (which throws at
+ * prisma module init) is caught instead of crashing the page.
  */
 export async function getPlatformStats(): Promise<PlatformStats> {
 	try {
+		const { prisma } = await import('./prisma');
+
 		const [orgCount, credentialCount, shiftCount, volunteerCount] =
 			await Promise.all([
 				prisma.organization.count(),
@@ -39,11 +43,6 @@ export async function getPlatformStats(): Promise<PlatformStats> {
 			volunteerCount: volunteerCount.length,
 		};
 	} catch {
-		return {
-			orgCount: 0,
-			credentialCount: 0,
-			shiftCount: 0,
-			volunteerCount: 0,
-		};
+		return ZERO_STATS;
 	}
 }
