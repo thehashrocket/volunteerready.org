@@ -21,9 +21,15 @@ interface AppShellProps {
 	children: ReactNode;
 	hasOrg: boolean;
 	hasCompany: boolean;
+	companyId?: string | null;
 }
 
-export function AppShell({ children, hasOrg, hasCompany }: AppShellProps) {
+export function AppShell({
+	children,
+	hasOrg,
+	hasCompany,
+	companyId,
+}: AppShellProps) {
 	const { data: session } = useSession();
 	const initial = session?.user?.email?.[0]?.toUpperCase() ?? 'U';
 	const homeHref = hasOrg ? '/app' : '/app/browse';
@@ -102,7 +108,11 @@ export function AppShell({ children, hasOrg, hasCompany }: AppShellProps) {
 				{/* Desktop sidebar */}
 				<aside className="hidden w-56 shrink-0 border-r border-border/60 lg:block">
 					<div className="sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto p-4">
-						<AppSidebar hasOrg={hasOrg} hasCompany={hasCompany} />
+						<AppSidebar
+							hasOrg={hasOrg}
+							hasCompany={hasCompany}
+							companyId={companyId}
+						/>
 					</div>
 				</aside>
 
@@ -116,7 +126,11 @@ export function AppShell({ children, hasOrg, hasCompany }: AppShellProps) {
 							onClick={() => setSidebarOpen(false)}
 						/>
 						<aside className="fixed left-0 top-14 z-30 h-[calc(100vh-3.5rem)] w-56 overflow-y-auto border-r border-border/60 bg-background p-4 lg:hidden">
-							<AppSidebar hasOrg={hasOrg} hasCompany={hasCompany} />
+							<AppSidebar
+								hasOrg={hasOrg}
+								hasCompany={hasCompany}
+								companyId={companyId}
+							/>
 						</aside>
 					</>
 				)}

@@ -48,7 +48,11 @@ export default async function AppLayout({
 	}
 
 	return (
-		<AppShell hasOrg={hasOrg} hasCompany={hasCompany}>
+		<AppShell
+			hasOrg={hasOrg}
+			hasCompany={hasCompany}
+			companyId={sessionExt?.companyId ?? null}
+		>
 			<AuthFeedback />
 			{children}
 		</AppShell>
