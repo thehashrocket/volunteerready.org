@@ -25,7 +25,7 @@ export function PublicHeader() {
 				{/* Logo */}
 				<Link
 					href="/"
-					className="flex items-center gap-2.5"
+					className="flex min-h-[44px] items-center gap-2.5"
 					onClick={() => setOpen(false)}
 				>
 					<div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">

@@ -160,7 +160,7 @@ export default async function Home() {
 								<Button
 									asChild
 									variant="outline"
-									className="mt-auto w-full rounded-lg"
+									className="mt-auto min-h-[44px] w-full rounded-lg"
 								>
 									<TrackedLink
 										href="/for-volunteers"
@@ -191,7 +191,7 @@ export default async function Home() {
 								</div>
 								<Button
 									asChild
-									className="mt-auto w-full rounded-lg bg-white text-primary hover:bg-white/90"
+									className="mt-auto min-h-[44px] w-full rounded-lg bg-white text-primary hover:bg-white/90"
 								>
 									<TrackedLink
 										href="/for-nonprofits"
@@ -224,7 +224,7 @@ export default async function Home() {
 								<Button
 									asChild
 									variant="outline"
-									className="mt-auto w-full rounded-lg"
+									className="mt-auto min-h-[44px] w-full rounded-lg"
 								>
 									<TrackedLink
 										href="/for-employers"
