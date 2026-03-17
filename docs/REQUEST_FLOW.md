@@ -185,6 +185,65 @@ Volunteer UI (/app/my-shifts or opportunity page)
 
 ---
 
+# Credential Share + Claim Flow
+
+## Volunteer generates share link
+
+```
+Volunteer UI (/app/profile → Credentials tab)
+    -> tRPC Mutation (credentialSharing.generate)
+        -> credentialShareService.generateShareToken()
+            -> Validate ownership + VERIFIED status
+            -> Generate 256-bit random token
+            -> SHA-256 hash token
+            -> $transaction:
+                ├─ Create CredentialShareToken (ACTIVE, 30-day expiry)
+                └─ Write AuditLog
+            -> If P2002 (hash collision): retry once with new token
+        -> Return raw token (never stored)
+    -> UI copies share link to clipboard
+```
+
+## Staff claims shared credential
+
+```
+Staff UI (/credentials/claim/[token])
+    -> tRPC Query (credentialSharing.getTokenInfo)
+        -> Hash token → lookup CredentialShareToken
+        -> Return credential type + issuing org name + expiry
+    -> Staff clicks "Claim credential"
+    -> tRPC Mutation (credentialSharing.claim)
+        -> credentialShareService.claimShareToken()
+            -> Hash token → lookup
+            -> Run 6 claim guards (domain pure function)
+            -> Check no duplicate credential in claiming org
+            -> $transaction:
+                ├─ Optimistic lock: updateMany WHERE status=ACTIVE
+                ├─ Create VolunteerCredential copy (with provenance)
+                └─ Write AuditLog
+            -> Fire-and-forget: send claim notification email
+        -> Return new credential
+    -> UI shows success
+```
+
+## Auto-share on apply ("Bring my credentials")
+
+```
+Volunteer UI (/apply/[orgSlug])
+    -> Checks "Bring my credentials" checkbox
+    -> tRPC Mutation (screener.submit)
+        -> submitApplication() (committed)
+        -> shareAllOnApply(userId, orgId) (try/catch, non-blocking)
+            -> Fetch all VERIFIED credentials for user
+            -> Filter: skip types already in target org, skip same org
+            -> $transaction:
+                ├─ For each eligible: create token + immediately claim
+                └─ Write single AuditLog entry
+        -> Return application result
+```
+
+---
+
 # Matching / Recommendations Flow
 
 ```
