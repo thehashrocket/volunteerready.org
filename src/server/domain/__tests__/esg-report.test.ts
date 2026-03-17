@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+	computeESGSummary,
 	type ESGOrgRow,
 	type ESGReportSummary,
-	computeESGSummary,
 	escapeCsvField,
 	esgReportInputSchema,
 	formatESGCsv,
@@ -119,7 +119,7 @@ describe('escapeCsvField', () => {
 
 	it('handles formula char + comma (both defenses)', () => {
 		// = gets prefixed, then comma triggers quoting
-		expect(escapeCsvField('=CMD(),foo')).toBe("\"'=CMD(),foo\"");
+		expect(escapeCsvField('=CMD(),foo')).toBe('"\'=CMD(),foo"');
 	});
 });
 
