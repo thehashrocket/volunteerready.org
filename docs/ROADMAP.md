@@ -339,7 +339,6 @@ The long-term ecosystem connects:
 - Nonprofit organizations — full workflow from application through scheduling and credentialing
 - Corporate employers — CSR and employee volunteer programs with real ESG reporting
 - Background check and identity providers — integrated, not bolted on
-- Grant funders — discovery and fit scoring for nonprofits seeking funding
 
 The goal is to be the **trusted infrastructure layer** that makes volunteer engagement safer,
 more accountable, and more meaningful for everyone involved.

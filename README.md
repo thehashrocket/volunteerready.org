@@ -364,6 +364,5 @@ The platform connects:
 - nonprofits (full workflow from application through credentialing)
 - corporate employers (CSR programs and ESG reporting)
 - background check providers (integrated, not bolted on)
-- grants and events (planned)
 
 into a unified ecosystem.
