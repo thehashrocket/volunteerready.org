@@ -70,12 +70,12 @@ export function PublicFooter() {
 							<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/70">
 								{col.heading}
 							</p>
-							<ul className="space-y-2">
+							<ul className="space-y-1">
 								{col.links.map((link) => (
 									<li key={link.href}>
 										<Link
 											href={link.href}
-											className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+											className="inline-block py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
 										>
 											{link.label}
 										</Link>
