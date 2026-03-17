@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2026-03-16
+
+### Added
+- **Full public site rewrite** — every marketing page now sells the complete platform (matching, background checks, portable credentials, shift scheduling, ESG reporting) instead of just early features
+- **"For Employers" landing page** (`/for-employers`) — corporate buyers can now see ESG reporting, employee volunteering, nonprofit partnerships, and background check features at a glance
+- **"Security & Compliance" page** (`/security`) — encryption, FCRA compliance, multi-tenant isolation, RBAC, audit logging, and data portability — all in one place for procurement teams
+- **Shared marketing components** — `PublicHero`, `CTABanner`, `FadeInOnScroll`, and `TrackedLink` give all public pages a consistent, polished look
+- **Live platform stats on homepage** — real aggregate counts (organizations, credentials, shifts, volunteers) with ISR (1-hour revalidation) and graceful fallback when the database is unavailable
+- **Pricing comparison table** — 11-row feature comparison across Free / Starter / Pro tiers, powered by the same `getPlanLimits()` data the app uses
+- **CTA click tracking** — every marketing page link is tracked via Vercel Analytics for conversion insights
+- **Scroll-triggered animations** — subtle fade-in effects that respect `prefers-reduced-motion`
+- **Per-page SEO metadata** — Open Graph tags on every public page for better social sharing
+- **Design system** — `DESIGN.md` defines the Organic/Natural aesthetic, Fraunces + Geist typography, warm color palette, spacing, motion, and an AI slop blacklist
+
+### Changed
+- Rewrote homepage, for-volunteers, for-nonprofits, pricing, how-it-works, and about pages with specific, active-voice copy
+- Removed SVG blob decorations from all pages — the design system blacklists generic AI aesthetic patterns
+- How-it-works now walks three audiences through their journey (volunteers, nonprofits, and employers)
+- About page shows "What we've built so far" milestones so visitors see a mature, shipping product
+- Added "Pricing" to the main navigation header
+- Footer now includes For Employers column, plus Pricing and Security links
+
 ## [0.4.0] - 2026-03-16
 
 ### Added

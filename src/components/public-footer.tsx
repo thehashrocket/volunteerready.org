@@ -6,6 +6,8 @@ const footerLinks = [
 		links: [
 			{ label: 'About Us', href: '/about' },
 			{ label: 'How It Works', href: '/how-it-works' },
+			{ label: 'Pricing', href: '/pricing' },
+			{ label: 'Security', href: '/security' },
 		],
 	},
 	{
@@ -26,6 +28,13 @@ const footerLinks = [
 		],
 	},
 	{
+		heading: 'For Employers',
+		links: [
+			{ label: 'Why VolunteerReady', href: '/for-employers' },
+			{ label: 'Corporate Pricing', href: '/pricing' },
+		],
+	},
+	{
 		heading: 'Legal',
 		links: [
 			{ label: 'Privacy Policy', href: '/privacy' },
@@ -39,7 +48,7 @@ export function PublicFooter() {
 		<footer className="border-t border-border/60 bg-muted/30">
 			<div className="mx-auto max-w-5xl px-4 py-12">
 				{/* Brand + links */}
-				<div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+				<div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
 					{/* Brand lockup */}
 					<div className="lg:col-span-1">
 						<Link href="/" className="flex items-center gap-2.5">
@@ -61,12 +70,12 @@ export function PublicFooter() {
 							<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/70">
 								{col.heading}
 							</p>
-							<ul className="space-y-2">
+							<ul className="space-y-1">
 								{col.links.map((link) => (
 									<li key={link.href}>
 										<Link
 											href={link.href}
-											className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+											className="inline-block py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
 										>
 											{link.label}
 										</Link>

@@ -355,6 +355,20 @@ See `docs/ROADMAP.md` for full detail.
 
 ---
 
+# Design System
+
+The public marketing site follows a documented design system defined in `DESIGN.md`. Key choices:
+
+- **Aesthetic:** Organic/Natural — warm, grounded, intentional
+- **Typography:** Fraunces (display) + Geist (body)
+- **Color:** `#1B3C2A` primary, `#C4A882` secondary, warm neutrals
+- **Touch targets:** 44px minimum on all interactive elements
+- **Motion:** `prefers-reduced-motion` respected on all animations
+
+See `DESIGN.md` for the full specification.
+
+---
+
 # Long-Term Goal
 
 VolunteerReady aims to become the infrastructure layer for nonprofit volunteer engagement.

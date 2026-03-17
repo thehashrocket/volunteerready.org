@@ -1,37 +1,51 @@
-import { Building2, Heart } from 'lucide-react';
-import Link from 'next/link';
+import { BarChart3, Building2, Heart } from 'lucide-react';
+import type { Metadata } from 'next';
+import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { PublicHero } from '@/components/public-hero';
+import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
+
+export const metadata: Metadata = {
+	title: 'How It Works — VolunteerReady',
+	description:
+		'See how VolunteerReady works for volunteers, nonprofits, and corporate CSR programs. From sign-up to verified service record.',
+	openGraph: {
+		title: 'How It Works — VolunteerReady',
+		description:
+			'See how VolunteerReady works for volunteers, nonprofits, and corporate CSR programs.',
+	},
+};
 
 const volunteerSteps = [
 	{
 		number: '01',
 		label: 'Create your profile',
 		detail:
-			'Sign up and add your skills, interests, and availability. Your profile travels with you across every organization on the platform.',
+			'Sign up and add your skills, interests, and availability. Our matching engine uses your profile to find the best opportunities.',
 	},
 	{
 		number: '02',
-		label: 'Browse vetted opportunities',
+		label: 'Get matched or browse',
 		detail:
-			'Explore volunteer roles posted by nonprofits in your area. Filter by cause, location, schedule, and required skills.',
+			'We surface opportunities tailored to your skills. You can also browse all listings and filter by cause, location, and schedule.',
 	},
 	{
 		number: '03',
-		label: 'Apply with a tailored form',
+		label: 'Apply and get screened',
 		detail:
-			'Each organization configures a short screening questionnaire. It usually takes under five minutes — no lengthy paperwork.',
+			'Complete a focused screening form — usually under five minutes. Background checks run seamlessly if required.',
 	},
 	{
 		number: '04',
-		label: 'Track your application status',
+		label: 'Track your status',
 		detail:
-			'Check your application status anytime from your dashboard. Get notified when a decision is made.',
+			'Check your application status anytime. Get notified when a decision is made — no more wondering if your email got lost.',
 	},
 	{
 		number: '05',
 		label: 'Show up, earn credentials, grow',
 		detail:
-			'Sign up for shifts, log attendance, and earn verified credentials (background check, training, orientation). Your record builds as you serve.',
+			'Sign up for shifts, log attendance, and earn verified credentials. Your portable record grows with every organization you serve.',
 	},
 ];
 
@@ -40,33 +54,100 @@ const nonprofitSteps = [
 		number: '01',
 		label: 'Set up your organization',
 		detail:
-			'Create your nonprofit profile in minutes. Add your mission, location, and team members. Invite staff to help manage applications.',
+			'Create your profile in minutes. Add your mission, location, and team members with role-based access.',
 	},
 	{
 		number: '02',
-		label: 'Post volunteer opportunities',
+		label: 'Post opportunities',
 		detail:
-			'Define the role, location, schedule, capacity, and any required skills. Publish when ready — unpublish or close when spots fill.',
+			'Define roles with location, schedule, capacity, and required skills. Publish when ready — close when spots fill.',
 	},
 	{
 		number: '03',
-		label: 'Configure screening questions',
+		label: 'Screen and background check',
 		detail:
-			'Build a custom questionnaire with auto-pass and auto-fail rules. VolunteerReady surfaces qualified applicants and flags edge cases automatically.',
+			'Build custom questionnaires with auto-pass/fail rules. Run FCRA-compliant Checkr background checks when needed.',
 	},
 	{
 		number: '04',
-		label: 'Review screened applications',
+		label: 'Review and approve',
 		detail:
-			'Applications arrive pre-sorted. Approve, reject, or flag for review — with the screening result already calculated for you.',
+			'Applications arrive pre-sorted. Approve, reject, or flag for review — with screening results already calculated.',
 	},
 	{
 		number: '05',
 		label: 'Schedule, attend, credential',
 		detail:
-			'Create shifts, manage sign-ups, track attendance, and issue verified credentials to your most trusted volunteers.',
+			'Create shifts, manage sign-ups, track attendance, and issue portable credentials to your most trusted volunteers.',
 	},
 ];
+
+const employerSteps = [
+	{
+		number: '01',
+		label: 'Create your company profile',
+		detail:
+			'Set up your corporate account and link to nonprofit partners already on the platform.',
+	},
+	{
+		number: '02',
+		label: 'Employees join naturally',
+		detail:
+			'Your employees create profiles on the same platform nonprofits use. No separate app to install or maintain.',
+	},
+	{
+		number: '03',
+		label: 'Track participation',
+		detail:
+			'See which employees are volunteering, where, and how often. Hours and credentials are verified by nonprofits.',
+	},
+	{
+		number: '04',
+		label: 'Export ESG reports',
+		detail:
+			'Aggregate impact data across your workforce. Export CSV reports for board decks, sustainability filings, and stakeholder updates.',
+	},
+];
+
+type StepData = { number: string; label: string; detail: string };
+
+function StepTimeline({
+	steps,
+	accentClass,
+}: {
+	steps: StepData[];
+	accentClass: string;
+}) {
+	return (
+		<div className="flex flex-col gap-6">
+			{steps.map((step, i) => (
+				<FadeInOnScroll key={step.number} delay={i * 75}>
+					<div className="flex items-start gap-5">
+						<div className="flex flex-col items-center">
+							<div
+								className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${accentClass}`}
+							>
+								{step.number}
+							</div>
+							{i < steps.length - 1 && (
+								<div
+									className="mt-1 w-px bg-border"
+									style={{ minHeight: '1.5rem' }}
+								/>
+							)}
+						</div>
+						<div className="pb-2 pt-1">
+							<p className="font-semibold text-foreground">{step.label}</p>
+							<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+								{step.detail}
+							</p>
+						</div>
+					</div>
+				</FadeInOnScroll>
+			))}
+		</div>
+	);
+}
 
 const faqs = [
 	{
@@ -74,51 +155,48 @@ const faqs = [
 		a: "Yes. Volunteers always use VolunteerReady for free. There's no cost to create a profile, apply to opportunities, or track your history.",
 	},
 	{
-		q: 'How does the screening process work?',
-		a: "Each nonprofit creates its own screening questionnaire. When you apply, you fill out that form. Behind the scenes, VolunteerReady compares your answers against the organization's rules and surfaces a result (pass, review, or flag) to their team. You're not rejected by an algorithm — humans make the final call.",
+		q: 'How does screening work?',
+		a: 'Each nonprofit creates its own screening questionnaire with auto-pass/fail rules. Your answers are evaluated against those rules, and the team sees a result (pass, review, or flag). Humans always make the final call.',
+	},
+	{
+		q: 'What about background checks?',
+		a: 'Background checks are powered by Checkr with full FCRA compliance — including adverse action workflows. They run seamlessly within the screening process and results are encrypted at rest.',
 	},
 	{
 		q: 'Can I volunteer with multiple organizations?',
-		a: "Absolutely. Your VolunteerReady profile is yours — it works across every organization on the platform. Apply to as many as you'd like and manage all your applications from a single dashboard.",
-	},
-	{
-		q: 'How does my nonprofit get set up?',
-		a: 'Visit the setup page, create your account, and follow the onboarding flow. You can invite staff, post your first opportunity, and start receiving applications the same day.',
+		a: "Your profile and credentials are portable across every organization on the platform. Apply to as many as you'd like from a single dashboard.",
 	},
 	{
 		q: 'What credentials can be tracked?',
-		a: 'Nonprofits can issue five types of verified credentials: Background Check Cleared, Training Complete, ID Verified, Reference Check Complete, and Orientation Complete. Each credential tracks the date issued and can be revoked if circumstances change.',
+		a: 'Background Check Cleared, Training Complete, ID Verified, Reference Check Complete, and Orientation Complete. Each tracks the date issued and can be revoked if circumstances change.',
 	},
 	{
-		q: "What if a volunteer's circumstances change after they're approved?",
-		a: 'Staff can revoke or expire credentials at any time. Application statuses can also be updated — approved volunteers can be moved back to review if needed.',
+		q: 'How does the matching engine work?',
+		a: 'On Starter and Pro plans, our matching engine evaluates volunteer skills, certifications, location, and availability against opportunity requirements. It surfaces the best-fit candidates automatically.',
+	},
+	{
+		q: 'How do corporate ESG reports work?',
+		a: 'Pro plan companies see aggregate dashboards of employee volunteering — hours, participation rates, and impact by nonprofit partner. Export CSV reports for sustainability filings.',
 	},
 ];
 
 export default function HowItWorksPage() {
 	return (
 		<div className="flex flex-col">
-			{/* ── Hero ── */}
-			<section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/10 px-4 py-20 sm:py-24">
-				<div className="relative mx-auto max-w-2xl text-center">
-					<p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-primary/70">
-						How it works
-					</p>
-					<h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl sm:leading-tight">
+			<PublicHero
+				eyebrow="How it works"
+				heading={
+					<>
 						Simple by design.{' '}
 						<em className="italic text-primary">Powerful under the hood.</em>
-					</h1>
-					<p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-						Whether you're a volunteer ready to give back or a nonprofit
-						building your team, the path forward is clear. Here's exactly how
-						VolunteerReady works.
-					</p>
-				</div>
-			</section>
+					</>
+				}
+				description="Whether you're a volunteer, a nonprofit, or a corporate CSR program — the path forward is clear. Here's exactly how VolunteerReady works."
+			/>
 
-			{/* ── Two audience sections ── */}
-			<section className="mx-auto w-full max-w-5xl px-4 py-16">
-				<div className="grid gap-16 lg:grid-cols-2">
+			{/* ── Three audience journeys ── */}
+			<section className="mx-auto w-full max-w-5xl px-4 py-20">
+				<div className="grid gap-16 lg:grid-cols-3">
 					{/* Volunteers */}
 					<div>
 						<div className="mb-8 flex items-center gap-3">
@@ -126,40 +204,23 @@ export default function HowItWorksPage() {
 								<Heart className="h-5 w-5 text-success-foreground" />
 							</div>
 							<h2 className="font-display text-2xl font-bold text-foreground">
-								For Volunteers
+								Volunteers
 							</h2>
 						</div>
-						<div className="flex flex-col gap-6">
-							{volunteerSteps.map((step, i) => (
-								<div key={step.number} className="flex items-start gap-5">
-									<div className="flex flex-col items-center">
-										<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/20 text-sm font-bold text-success-foreground">
-											{step.number}
-										</div>
-										{i < volunteerSteps.length - 1 && (
-											<div
-												className="mt-1 w-px bg-border"
-												style={{ minHeight: '1.5rem' }}
-											/>
-										)}
-									</div>
-									<div className="pb-2 pt-1">
-										<p className="font-semibold text-foreground">
-											{step.label}
-										</p>
-										<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-											{step.detail}
-										</p>
-									</div>
-								</div>
-							))}
-						</div>
+						<StepTimeline
+							steps={volunteerSteps}
+							accentClass="bg-success/20 text-success-foreground"
+						/>
 						<div className="mt-8">
 							<Button asChild className="rounded-full px-6">
-								<Link href="/login?callbackUrl=/app/my-applications">
+								<TrackedLink
+									href="/login?callbackUrl=/app/my-applications"
+									eventLabel="Start volunteering"
+									eventPage="how-it-works"
+								>
 									<Heart className="h-4 w-4" />
 									Start volunteering
-								</Link>
+								</TrackedLink>
 							</Button>
 						</div>
 					</div>
@@ -171,40 +232,51 @@ export default function HowItWorksPage() {
 								<Building2 className="h-5 w-5 text-primary" />
 							</div>
 							<h2 className="font-display text-2xl font-bold text-foreground">
-								For Nonprofits
+								Nonprofits
 							</h2>
 						</div>
-						<div className="flex flex-col gap-6">
-							{nonprofitSteps.map((step, i) => (
-								<div key={step.number} className="flex items-start gap-5">
-									<div className="flex flex-col items-center">
-										<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-											{step.number}
-										</div>
-										{i < nonprofitSteps.length - 1 && (
-											<div
-												className="mt-1 w-px bg-border"
-												style={{ minHeight: '1.5rem' }}
-											/>
-										)}
-									</div>
-									<div className="pb-2 pt-1">
-										<p className="font-semibold text-foreground">
-											{step.label}
-										</p>
-										<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-											{step.detail}
-										</p>
-									</div>
-								</div>
-							))}
-						</div>
+						<StepTimeline
+							steps={nonprofitSteps}
+							accentClass="bg-primary/10 text-primary"
+						/>
 						<div className="mt-8">
 							<Button asChild variant="outline" className="rounded-full px-6">
-								<Link href="/login?callbackUrl=/app/onboarding">
+								<TrackedLink
+									href="/login?callbackUrl=/app/onboarding"
+									eventLabel="Set up org"
+									eventPage="how-it-works"
+								>
 									<Building2 className="h-4 w-4" />
 									Set up your organization
-								</Link>
+								</TrackedLink>
+							</Button>
+						</div>
+					</div>
+
+					{/* Employers */}
+					<div>
+						<div className="mb-8 flex items-center gap-3">
+							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C4A882]/20">
+								<BarChart3 className="h-5 w-5 text-[#8B7355]" />
+							</div>
+							<h2 className="font-display text-2xl font-bold text-foreground">
+								Employers
+							</h2>
+						</div>
+						<StepTimeline
+							steps={employerSteps}
+							accentClass="bg-[#C4A882]/20 text-[#8B7355]"
+						/>
+						<div className="mt-8">
+							<Button asChild variant="outline" className="rounded-full px-6">
+								<TrackedLink
+									href="/for-employers"
+									eventLabel="Learn more employer"
+									eventPage="how-it-works"
+								>
+									<BarChart3 className="h-4 w-4" />
+									Learn more
+								</TrackedLink>
 							</Button>
 						</div>
 					</div>
@@ -212,9 +284,9 @@ export default function HowItWorksPage() {
 			</section>
 
 			{/* ── FAQ ── */}
-			<section className="bg-muted/40 px-4 py-16">
+			<section className="bg-[#F5F4F0] px-4 py-16">
 				<div className="mx-auto max-w-2xl">
-					<h2 className="font-display mb-10 text-center text-2xl font-bold text-foreground">
+					<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
 						Frequently asked questions
 					</h2>
 					<div className="space-y-3">
@@ -239,21 +311,24 @@ export default function HowItWorksPage() {
 			</section>
 
 			{/* ── Bottom CTA ── */}
-			<section className="px-4 py-16">
+			<section className="px-4 py-20">
 				<div className="mx-auto max-w-xl text-center">
-					<h2 className="font-display mb-3 text-2xl font-bold text-foreground">
+					<h2 className="font-display mb-3 text-2xl font-bold text-foreground [text-wrap:balance]">
 						Which describes you?
 					</h2>
 					<p className="mb-8 text-muted-foreground">
-						Both paths start with a single click. No credit card, no commitment
-						— just a step toward something meaningful.
+						All paths start with a single click. No credit card, no commitment.
 					</p>
 					<div className="flex flex-wrap items-center justify-center gap-3">
 						<Button asChild size="lg" className="rounded-full px-8">
-							<Link href="/login?callbackUrl=/app/my-applications">
+							<TrackedLink
+								href="/login?callbackUrl=/app/my-applications"
+								eventLabel="I'm a volunteer"
+								eventPage="how-it-works"
+							>
 								<Heart className="h-4 w-4" />
 								I'm a volunteer
-							</Link>
+							</TrackedLink>
 						</Button>
 						<Button
 							asChild
@@ -261,9 +336,13 @@ export default function HowItWorksPage() {
 							size="lg"
 							className="rounded-full px-8"
 						>
-							<Link href="/login?callbackUrl=/app/onboarding">
+							<TrackedLink
+								href="/login?callbackUrl=/app/onboarding"
+								eventLabel="I run a nonprofit"
+								eventPage="how-it-works"
+							>
 								<Building2 className="h-4 w-4" />I run a nonprofit
-							</Link>
+							</TrackedLink>
 						</Button>
 					</div>
 				</div>

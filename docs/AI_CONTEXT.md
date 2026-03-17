@@ -78,6 +78,14 @@ src/
 │   │   ├── settings/team/        # Admin: team/member management
 │   │   ├── onboarding/           # Org setup flow
 │   │   └── welcome/              # Post-login landing
+│   ├── (public)/                 # Public marketing pages (homepage, about, pricing, etc.)
+│   │   ├── for-volunteers/       # Volunteer marketing page
+│   │   ├── for-nonprofits/       # Nonprofit marketing page
+│   │   ├── for-employers/        # Corporate CSR marketing page
+│   │   ├── how-it-works/         # Product walkthrough
+│   │   ├── pricing/              # Plan comparison + pricing
+│   │   ├── about/                # Team and mission
+│   │   └── security/             # Security & compliance
 │   ├── apply/[orgSlug]/          # Public volunteer application form
 │   ├── apply/status/             # Email-based status lookup
 │   ├── credentials/claim/[token]/ # Public credential share claim page
@@ -90,7 +98,13 @@ src/
 │   ├── app/                      # Page-specific compound components
 │   ├── org/                      # Organization management components
 │   ├── my-applications/          # Volunteer application tracking
-│   └── opportunities/            # Opportunity display components
+│   ├── opportunities/            # Opportunity display components
+│   ├── public-header.tsx         # Marketing site header with nav
+│   ├── public-footer.tsx         # Marketing site footer
+│   ├── public-hero.tsx           # Shared hero section (eyebrow, heading, CTA)
+│   ├── cta-banner.tsx            # Full-width CTA banner
+│   ├── fade-in-on-scroll.tsx     # IntersectionObserver scroll animation
+│   └── tracked-link.tsx          # Link with Vercel Analytics click tracking
 │
 ├── server/
 │   ├── auth.ts                   # NextAuth config + session helpers
@@ -100,7 +114,7 @@ src/
 │   │   └── routers/              # auth, health, members, onboarding,
 │   │                               opportunities, org, screener, status
 │   ├── services/                 # Business logic layer
-│   ├── repositories/             # Prisma data access layer
+│   ├── repositories/             # Prisma data access layer (includes statsRepo for homepage aggregates)
 │   ├── lib/                      # Shared utilities and adapters
 │   │   ├── adapters/             # External service adapters (Checkr, etc.)
 │   │   ├── crypto.ts             # AES-256-GCM encryption for secrets at rest
@@ -399,7 +413,7 @@ pnpm docs:dev               # VitePress dev server
 | 6A — Employer Accounts & Billing | ✅ Complete |
 | 6B — Background Check Integration | ✅ Complete |
 | 6C — Portable Credential Sharing | ✅ Complete |
-| 6D — Corporate ESG Reporting | Planned |
+| 6D — Corporate ESG Reporting | ✅ Complete |
 | 6E — Mobile PWA | Planned |
 
 See `docs/ROADMAP.md` for details.

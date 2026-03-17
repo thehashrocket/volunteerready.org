@@ -438,3 +438,29 @@ tests bigint → number conversion from raw SQL.
 **Cons:** Requires test DB seeding infrastructure; slower than unit tests.
 
 **Effort:** M | **Priority:** P2 | **Depends on:** Phase 6D shipped, test DB seeding infra
+
+---
+
+## Public Site
+
+### [P2] Product Screenshots for Marketing Pages
+
+**What:** Add real product screenshots to the public-facing landing pages (homepage,
+for-volunteers, for-nonprofits, for-employers) to show the actual UI.
+
+**Why:** The public pages currently sell with words only. Showing the actual product
+UI — screener dashboard, shift calendar, credential badges, ESG report — builds
+immediate credibility. Competitors (Galaxy Digital, Rosterfy) all show product shots.
+
+**Context:** Screenshots should be taken from a demo org with realistic seed data.
+Key shots: (1) screener application list with pass/fail indicators, (2) shift calendar
+with sign-ups, (3) credential badge display, (4) ESG dashboard with charts,
+(5) volunteer profile page. Images go in `public/marketing/` as WebP, with
+`loading="lazy"` and explicit width/height dimensions. Consider using `next/image`
+for responsive srcset. Each landing page has a natural placement for 1-2 product shots.
+
+**Pros:** Massive conversion lift; shows product maturity; differentiates from competitors
+who hide their UI behind demo requests.
+**Cons:** Screenshots need updating when UI changes; requires realistic demo data.
+
+**Effort:** M | **Priority:** P2 | **Depends on:** ✅ Public site rewrite shipped

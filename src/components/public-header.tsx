@@ -9,7 +9,9 @@ import { cn } from '@/lib/utils';
 const navLinks = [
 	{ label: 'For Volunteers', href: '/for-volunteers' },
 	{ label: 'For Nonprofits', href: '/for-nonprofits' },
+	{ label: 'For Employers', href: '/for-employers' },
 	{ label: 'How It Works', href: '/how-it-works' },
+	{ label: 'Pricing', href: '/pricing' },
 	{ label: 'About', href: '/about' },
 ];
 
@@ -41,7 +43,7 @@ export function PublicHeader() {
 							key={link.href}
 							href={link.href}
 							className={cn(
-								'text-sm transition-colors hover:text-foreground',
+								'py-3 text-sm transition-colors hover:text-foreground',
 								pathname === link.href
 									? 'font-medium text-foreground'
 									: 'text-muted-foreground',
@@ -52,7 +54,7 @@ export function PublicHeader() {
 					))}
 					<Link
 						href="/login"
-						className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+						className="py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
 					>
 						Sign in
 					</Link>
