@@ -9,7 +9,7 @@ import {
 } from '@/server/repositories/companyRepo';
 import { generateESGPdfExport } from '@/server/services/employerReportService';
 
-type SessionExt = { companyId?: string | null; user?: { id?: string } };
+type SessionExt = { user?: { id?: string } };
 
 const paramsSchema = z.object({
 	companyId: z.string().min(1),
