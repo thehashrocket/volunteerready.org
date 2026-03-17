@@ -224,21 +224,30 @@ Key entities added:
 - FcraStatus (enum: NONE / PRE_ADVERSE_SENT / ADVERSE_ACTION_SENT / RESOLVED)
 - CheckrWebhookEvent (idempotency table for webhook deduplication)
 
-## 6C — Portable Credential Sharing
+## 6C — Portable Credential Sharing ✅ Complete (v0.3.0)
 
-- `CredentialShareToken` — volunteer generates a time-limited share link for any verified
-  credential
+- `CredentialShareToken` — volunteer generates a time-limited (30-day) share link for any
+  VERIFIED credential; SHA-256 hashed token storage with P2002 collision retry
 - Org staff claims the token at `/credentials/claim/[token]` — credential appears in their view
-  without re-verification
-- Token lifecycle: ACTIVE → CLAIMED / EXPIRED
-- Validation at claim time — credential status re-checked; REVOKED credentials cannot be claimed
-- "Bring my credentials" checkbox on apply flow — one-click share of all portable credentials
-  to a new org at application time (volunteer-opt-in)
-- `VolunteerCredential` gains: `expiresAt` (nullable), `notifiedAt` (expiry email tracking)
+  without re-verification; optimistic lock prevents concurrent claims
+- Token lifecycle: ACTIVE → CLAIMED / EXPIRED; domain guards check 6 conditions at claim time
+- Credential provenance: `sharedFromOrgId` + `sharedFromCredentialId` on copied credentials
+- "Bring my credentials" checkbox on apply flow — `shareAllOnApply()` auto-shares all portable
+  credentials in a single transaction (volunteer opt-in)
+- Credential wallet on profile page (tabbed UI: Profile + Credentials) with share link generation,
+  copy-to-clipboard toast, token expiry countdown, revoke functionality
+- Credential card type icons (Shield, GraduationCap, Fingerprint, Users)
+- "Shared from [Org Name]" badge on credential cards
+- Org-initiated credential request: staff sees "N credentials elsewhere" card on application
+  detail page; sends email asking volunteer to share
+- Claim notification email (fire-and-forget, outside transaction)
+- Shared token utility (`src/server/lib/tokens.ts`) with DRY refactor across 4 existing call sites
+- `VolunteerCredential` gains: `sharedFromOrgId`, `sharedFromCredentialId`, `notifiedAt`
 
 Key entities added:
 
-- CredentialShareToken (token, credentialId, expiresAt, claimedByOrgId, claimedAt)
+- CredentialShareToken (tokenHash, credentialId, expiresAt, claimedByOrgId, claimedAt, status)
+- ShareTokenStatus enum (ACTIVE / CLAIMED / EXPIRED)
 
 ## 6D — Corporate ESG Reporting
 

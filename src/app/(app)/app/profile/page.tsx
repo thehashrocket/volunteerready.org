@@ -9,8 +9,15 @@ import {
 	CheckCircle2,
 	CircleAlert,
 	CircleDashed,
+	Clock,
+	Copy,
+	Fingerprint,
+	GraduationCap,
+	Link2,
+	Shield,
 	ShieldCheck,
 	Sparkles,
+	Users,
 	X,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -18,6 +25,7 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,6 +45,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { trpc } from '@/lib/trpc/client';
 
@@ -377,221 +386,382 @@ export default function ProfilePage() {
 				</div>
 			)}
 
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-				{/* About */}
-				<Card>
-					<CardHeader>
-						<CardTitle>About</CardTitle>
-						<CardDescription>
-							Tell organizations a bit about yourself and why you volunteer.
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="bio">Bio</Label>
-							<Textarea
-								id="bio"
-								{...form.register('bio')}
-								placeholder="A short bio about yourself…"
-								maxLength={500}
-								rows={4}
-							/>
-							{form.formState.errors.bio && (
-								<p className="text-sm text-destructive">
-									{form.formState.errors.bio.message}
-								</p>
-							)}
-							<p className="text-right text-xs text-muted-foreground">
-								{(bio ?? '').length}/500
-							</p>
-						</div>
+			<Tabs defaultValue="profile">
+				<TabsList className="w-full">
+					<TabsTrigger value="profile" className="flex-1">
+						Profile
+					</TabsTrigger>
+					<TabsTrigger value="credentials" className="flex-1">
+						Credentials
+					</TabsTrigger>
+				</TabsList>
 
-						<div className="space-y-2">
-							<Label>Interests</Label>
-							<Controller
-								control={form.control}
-								name="interests"
-								render={({ field }) => (
-									<ChipInput
-										items={field.value}
-										onChange={field.onChange}
-										max={20}
-										placeholder="Type an interest and press Enter…"
+				<TabsContent value="profile" className="space-y-6">
+					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+						{/* About */}
+						<Card>
+							<CardHeader>
+								<CardTitle>About</CardTitle>
+								<CardDescription>
+									Tell organizations a bit about yourself and why you volunteer.
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<div className="space-y-2">
+									<Label htmlFor="bio">Bio</Label>
+									<Textarea
+										id="bio"
+										{...form.register('bio')}
+										placeholder="A short bio about yourself…"
+										maxLength={500}
+										rows={4}
 									/>
-								)}
-							/>
-						</div>
-					</CardContent>
-				</Card>
+									{form.formState.errors.bio && (
+										<p className="text-sm text-destructive">
+											{form.formState.errors.bio.message}
+										</p>
+									)}
+									<p className="text-right text-xs text-muted-foreground">
+										{(bio ?? '').length}/500
+									</p>
+								</div>
 
-				{/* Contact & Location */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Contact &amp; Location</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="phone">Phone</Label>
-							<Input
-								id="phone"
-								{...form.register('phone')}
-								placeholder="555-0123"
-								maxLength={30}
-							/>
-						</div>
-						<div className="grid gap-4 sm:grid-cols-3">
-							<div className="space-y-2">
-								<Label htmlFor="city">City</Label>
-								<Input
-									id="city"
-									{...form.register('city')}
-									placeholder="Portland"
-									maxLength={100}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="state">State / Province</Label>
-								<Input
-									id="state"
-									{...form.register('state')}
-									placeholder="OR"
-									maxLength={100}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="country">Country</Label>
-								<Input
-									id="country"
-									{...form.register('country')}
-									placeholder="US"
-									maxLength={100}
-								/>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
+								<div className="space-y-2">
+									<Label>Interests</Label>
+									<Controller
+										control={form.control}
+										name="interests"
+										render={({ field }) => (
+											<ChipInput
+												items={field.value}
+												onChange={field.onChange}
+												max={20}
+												placeholder="Type an interest and press Enter…"
+											/>
+										)}
+									/>
+								</div>
+							</CardContent>
+						</Card>
 
-				{/* Preferences */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Preferences</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="space-y-2">
-							<Label>Availability</Label>
-							<Controller
-								control={form.control}
-								name="availability"
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="FLEXIBLE">Flexible</SelectItem>
-											<SelectItem value="WEEKDAYS">Weekdays</SelectItem>
-											<SelectItem value="WEEKENDS">Weekends</SelectItem>
-											<SelectItem value="EVENINGS">Evenings</SelectItem>
-										</SelectContent>
-									</Select>
-								)}
-							/>
+						{/* Contact & Location */}
+						<Card>
+							<CardHeader>
+								<CardTitle>Contact &amp; Location</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<div className="space-y-2">
+									<Label htmlFor="phone">Phone</Label>
+									<Input
+										id="phone"
+										{...form.register('phone')}
+										placeholder="555-0123"
+										maxLength={30}
+									/>
+								</div>
+								<div className="grid gap-4 sm:grid-cols-3">
+									<div className="space-y-2">
+										<Label htmlFor="city">City</Label>
+										<Input
+											id="city"
+											{...form.register('city')}
+											placeholder="Portland"
+											maxLength={100}
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="state">State / Province</Label>
+										<Input
+											id="state"
+											{...form.register('state')}
+											placeholder="OR"
+											maxLength={100}
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="country">Country</Label>
+										<Input
+											id="country"
+											{...form.register('country')}
+											placeholder="US"
+											maxLength={100}
+										/>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* Preferences */}
+						<Card>
+							<CardHeader>
+								<CardTitle>Preferences</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<div className="space-y-2">
+									<Label>Availability</Label>
+									<Controller
+										control={form.control}
+										name="availability"
+										render={({ field }) => (
+											<Select
+												value={field.value}
+												onValueChange={field.onChange}
+											>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="FLEXIBLE">Flexible</SelectItem>
+													<SelectItem value="WEEKDAYS">Weekdays</SelectItem>
+													<SelectItem value="WEEKENDS">Weekends</SelectItem>
+													<SelectItem value="EVENINGS">Evenings</SelectItem>
+												</SelectContent>
+											</Select>
+										)}
+									/>
+								</div>
+
+								<div className="space-y-2">
+									<Label>Profile visibility</Label>
+									<Controller
+										control={form.control}
+										name="visibility"
+										render={({ field }) => (
+											<Select
+												value={field.value}
+												onValueChange={field.onChange}
+											>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="PUBLIC">
+														Public — anyone can see
+													</SelectItem>
+													<SelectItem value="ORGS_ONLY">
+														Organizations only — visible to orgs you've applied
+														to
+													</SelectItem>
+													<SelectItem value="PRIVATE">
+														Private — only you can see
+													</SelectItem>
+												</SelectContent>
+											</Select>
+										)}
+									/>
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* Save */}
+						<div className="flex items-center gap-2 pb-8">
+							<Button type="submit" disabled={mutation.isPending}>
+								{mutation.isPending ? 'Saving…' : 'Save profile'}
+							</Button>
 						</div>
+					</form>
+				</TabsContent>
 
-						<div className="space-y-2">
-							<Label>Profile visibility</Label>
-							<Controller
-								control={form.control}
-								name="visibility"
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="PUBLIC">
-												Public — anyone can see
-											</SelectItem>
-											<SelectItem value="ORGS_ONLY">
-												Organizations only — visible to orgs you've applied to
-											</SelectItem>
-											<SelectItem value="PRIVATE">
-												Private — only you can see
-											</SelectItem>
-										</SelectContent>
-									</Select>
-								)}
-							/>
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Save */}
-				<div className="flex items-center gap-2 pb-8">
-					<Button type="submit" disabled={mutation.isPending}>
-						{mutation.isPending ? 'Saving…' : 'Save profile'}
-					</Button>
-				</div>
-			</form>
-
-			{/* Credentials (read-only for volunteer) */}
-			<CredentialsCard />
+				<TabsContent value="credentials">
+					<CredentialWallet />
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 }
 
 // ---------------------------------------------------------------------------
-// Volunteer credential read-only view
+// Credential type icons + labels
 // ---------------------------------------------------------------------------
 
-function CredentialsCard() {
-	const query = trpc.credentials.getMyCredentials.useQuery();
-
-	if (query.isLoading || !query.data || query.data.length === 0) return null;
-
-	const statusVariant: Record<
-		string,
-		'success' | 'warning' | 'neutral' | 'destructive'
-	> = {
-		VERIFIED: 'success',
-		PENDING: 'warning',
-		EXPIRED: 'neutral',
-		REVOKED: 'destructive',
+const CREDENTIAL_META: Record<string, { label: string; icon: typeof Shield }> =
+	{
+		BACKGROUND_CHECK: { label: 'Background Check', icon: Shield },
+		TRAINING_COMPLETE: { label: 'Training Complete', icon: GraduationCap },
+		ID_VERIFIED: { label: 'ID Verified', icon: Fingerprint },
+		REFERENCE_CHECK: { label: 'Reference Check', icon: Users },
+		ORIENTATION_COMPLETE: {
+			label: 'Orientation Complete',
+			icon: GraduationCap,
+		},
 	};
 
-	const typeLabels: Record<string, string> = {
-		BACKGROUND_CHECK: 'Background Check',
-		TRAINING_COMPLETE: 'Training Complete',
-		ID_VERIFIED: 'ID Verified',
-		REFERENCE_CHECK: 'Reference Check',
-		ORIENTATION_COMPLETE: 'Orientation Complete',
-	};
+function getCredentialMeta(type: string) {
+	return (
+		CREDENTIAL_META[type] ?? { label: type.replace(/_/g, ' '), icon: Shield }
+	);
+}
+
+const statusVariant: Record<
+	string,
+	'success' | 'warning' | 'neutral' | 'destructive'
+> = {
+	VERIFIED: 'success',
+	PENDING: 'warning',
+	EXPIRED: 'neutral',
+	REVOKED: 'destructive',
+};
+
+// ---------------------------------------------------------------------------
+// Credential Wallet — full credential management with share links
+// ---------------------------------------------------------------------------
+
+function CredentialWallet() {
+	const credQuery = trpc.credentials.getMyCredentials.useQuery();
+	const tokensQuery = trpc.credentialSharing.listMyTokens.useQuery();
+
+	const generateMutation = trpc.credentialSharing.generate.useMutation({
+		onSuccess: (data) => {
+			const url = `${window.location.origin}/credentials/claim/${data.rawToken}`;
+			navigator.clipboard.writeText(url).then(() => {
+				toast.success('Share link copied to clipboard.');
+			});
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to generate share link.');
+		},
+	});
+
+	const revokeMutation = trpc.credentialSharing.revoke.useMutation({
+		onSuccess: async () => {
+			toast.success('Share link revoked.');
+			await tokensQuery.refetch();
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to revoke link.');
+		},
+	});
+
+	if (credQuery.isLoading) {
+		return (
+			<Card>
+				<CardContent className="py-8 text-center text-muted-foreground">
+					Loading credentials…
+				</CardContent>
+			</Card>
+		);
+	}
+
+	const credentials = credQuery.data ?? [];
+	const tokens = tokensQuery.data ?? [];
+
+	if (credentials.length === 0) {
+		return (
+			<EmptyState
+				icon={ShieldCheck}
+				title="No credentials yet"
+				description="Credentials will appear here once an organization verifies your background check, training, or other qualifications."
+			/>
+		);
+	}
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>Credentials</CardTitle>
-				<CardDescription>
-					Verification badges issued by organizations you volunteer with.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<div className="space-y-2">
-					{query.data.map((cred) => (
-						<div
-							key={cred.id}
-							className="flex items-center justify-between rounded-md border px-3 py-2"
-						>
-							<span className="text-sm font-medium">
-								{typeLabels[cred.type] ?? cred.type}
-							</span>
-							<Badge variant={statusVariant[cred.status] ?? 'outline'}>
-								{cred.status}
-							</Badge>
-						</div>
-					))}
-				</div>
-			</CardContent>
-		</Card>
+		<div className="space-y-4">
+			{credentials.map((cred) => {
+				const meta = getCredentialMeta(cred.type);
+				const Icon = meta.icon;
+				const credTokens = tokens.filter(
+					(t) => t.credentialId === cred.id && t.status === 'ACTIVE',
+				);
+
+				return (
+					<Card key={cred.id}>
+						<CardContent className="py-4">
+							<div className="flex items-start justify-between gap-4">
+								<div className="flex items-start gap-3">
+									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+										<Icon className="h-5 w-5 text-primary" />
+									</div>
+									<div>
+										<div className="flex items-center gap-2">
+											<span className="font-medium">{meta.label}</span>
+											<Badge variant={statusVariant[cred.status] ?? 'outline'}>
+												{cred.status}
+											</Badge>
+										</div>
+										<p className="mt-0.5 text-xs text-muted-foreground">
+											{cred.organization.name}
+										</p>
+										{cred.sharedFromOrg && (
+											<p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+												<Link2 className="h-3 w-3" />
+												Shared from {cred.sharedFromOrg.name}
+											</p>
+										)}
+										{cred.expiresAt && (
+											<p className="mt-0.5 text-xs text-muted-foreground">
+												Expires {new Date(cred.expiresAt).toLocaleDateString()}
+											</p>
+										)}
+									</div>
+								</div>
+
+								{cred.status === 'VERIFIED' && (
+									<Button
+										size="sm"
+										variant="outline"
+										onClick={() =>
+											generateMutation.mutate({
+												credentialId: cred.id,
+											})
+										}
+										disabled={generateMutation.isPending}
+									>
+										<Copy className="mr-1 h-4 w-4" />
+										Share
+									</Button>
+								)}
+							</div>
+
+							{/* Active share tokens for this credential */}
+							{credTokens.length > 0 && (
+								<div className="mt-3 space-y-2 border-t pt-3">
+									<p className="text-xs font-medium text-muted-foreground">
+										Active share links
+									</p>
+									{credTokens.map((token) => {
+										const daysLeft = Math.max(
+											0,
+											Math.ceil(
+												(new Date(token.expiresAt).getTime() - Date.now()) /
+													(1000 * 60 * 60 * 24),
+											),
+										);
+										return (
+											<div
+												key={token.id}
+												className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2 text-xs"
+											>
+												<span className="flex items-center gap-1.5">
+													<Clock className="h-3 w-3" />
+													<span
+														className={
+															daysLeft <= 7 ? 'font-medium text-amber-600' : ''
+														}
+													>
+														{daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining
+													</span>
+												</span>
+												<Button
+													size="sm"
+													variant="ghost"
+													className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+													onClick={() =>
+														revokeMutation.mutate({ tokenId: token.id })
+													}
+													disabled={revokeMutation.isPending}
+												>
+													Revoke
+												</Button>
+											</div>
+										);
+									})}
+								</div>
+							)}
+						</CardContent>
+					</Card>
+				);
+			})}
+		</div>
 	);
 }

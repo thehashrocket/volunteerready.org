@@ -292,26 +292,59 @@ lifecycle (PENDING → VERIFIED) still applies, but these are auto-issued by the
 
 **Effort:** M | **Priority:** P3 | **Depends on:** Phase 5 shift/attendance data sufficient for tenure calculation
 
-### [P3] Auto-Share Credentials on Apply ("Bring My Credentials" Checkbox)
+### ~~[P3] Auto-Share Credentials on Apply ("Bring My Credentials" Checkbox)~~ ✅ Complete
 
-**What:** Checkbox on the volunteer apply form that, when checked, automatically
-shares all VERIFIED credentials with the org at application submit time.
+**Completed:** v0.3.0 (2026-03-17) — Phase 6C
 
-**Why:** Reduces friction for repeat volunteers applying to new orgs. The org can
-immediately see the volunteer's credential history without waiting for manual sharing.
+Implemented as part of Phase 6C credential sharing. Checkbox on apply form triggers
+`shareAllOnApply(userId, orgId)` in `credentialShareService.ts`. Creates share tokens +
+immediately claims them in a single transaction for audit trail. Skips credentials
+already in the target org.
 
-**Context:** Current credential sharing requires the volunteer to manually generate
-tokens and the org staff to manually claim them. The auto-share checkbox would:
-(1) at apply submit, create `CredentialShareToken` for each VERIFIED credential;
-(2) immediately claim all tokens on behalf of the org (system-level claim, not staff action);
-(3) set `issuedById` on the copied credential to the volunteer's userId.
-The `publicApplyRepo` and apply page would need to be extended.
+### [P2] Platform-Wide Rate Limiting
 
-**Pros:** "Oh nice, they thought of that" — high volunteer delight, reduces onboarding friction.
-**Cons:** Requires careful privacy review; org sees credentials before even reviewing application;
-needs explicit volunteer consent copy in the UI.
+**What:** Add rate limiting to public and authenticated tRPC procedures (token generation,
+claim, application submit).
 
-**Effort:** M | **Priority:** P3 | **Depends on:** 6C credential sharing infrastructure
+**Why:** Without rate limits, attackers can brute-force token hashes or spam credential
+generation. Public endpoints are especially exposed.
+
+**Context:** Consider `@upstash/ratelimit` with Redis or Vercel KV for serverless-compatible
+rate limiting. Apply to: `credentialSharing.generate` (5/min per user),
+`credentialSharing.claim` (10/min per org), `screener.submit` (3/min per IP),
+`credentialSharing.getTokenInfo` (30/min per IP). Should be a middleware on tRPC procedures.
+
+**Effort:** M | **Priority:** P2 | **Depends on:** Redis/KV infrastructure decision
+
+### [P3] Share Token Cleanup Cron
+
+**What:** Scheduled job to mark expired `CredentialShareToken` records as `EXPIRED` and
+clean up stale tokens.
+
+**Why:** Tokens with `expiresAt` in the past remain `ACTIVE` in the DB. While the domain
+guards reject them at claim time, marking them `EXPIRED` keeps data clean and enables
+accurate reporting.
+
+**Context:** A Vercel Cron or similar job running daily would execute
+`UPDATE CredentialShareToken SET status = 'EXPIRED' WHERE status = 'ACTIVE' AND expiresAt < now()`.
+Can be combined with the credential expiry notification email TODO above.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Job queue or Vercel Cron infrastructure
+
+### [P2] Credential Expiry Auto-Transition Cron
+
+**What:** Scheduled job to automatically transition `VERIFIED` credentials to `EXPIRED`
+when `expiresAt` passes.
+
+**Why:** Credentials with `expiresAt` in the past remain `VERIFIED` in the DB. The domain
+guard in `canShareCredential` rejects sharing, but the credential status itself is stale.
+This creates confusion in the admin UI where credentials appear "Verified" but can't be shared.
+
+**Context:** Daily cron:
+`UPDATE VolunteerCredential SET status = 'EXPIRED' WHERE status = 'VERIFIED' AND expiresAt < now()`.
+Should fire an audit log entry for each transition.
+
+**Effort:** S | **Priority:** P2 | **Depends on:** Job queue or Vercel Cron infrastructure
 
 ---
 

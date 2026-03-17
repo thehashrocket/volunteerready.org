@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import crypto from 'node:crypto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import {
@@ -14,6 +15,7 @@ import {
 	Role,
 	type ScreenerQuestionType,
 	type ScreeningStatus,
+	type ShareTokenStatus,
 	type ShiftStatus,
 	type SignupStatus,
 } from '../src/prisma/generated/client/index.js';
@@ -407,13 +409,26 @@ async function upsertCredential(
 	orgId: string,
 	type: CredentialType,
 	status: CredentialStatus,
-	extra?: { issuedAt?: Date; expiresAt?: Date; notes?: string },
+	extra?: {
+		issuedAt?: Date;
+		expiresAt?: Date;
+		notes?: string;
+		sharedFromOrgId?: string;
+		sharedFromCredentialId?: string;
+	},
 ) {
 	return prisma.volunteerCredential.upsert({
 		where: { userId_orgId_type: { userId, orgId, type } },
 		update: { status, ...extra },
 		create: { userId, orgId, type, status, ...extra },
 	});
+}
+
+function seedTokenHash(label: string): string {
+	return crypto
+		.createHash('sha256')
+		.update(`seed-token-${label}`)
+		.digest('hex');
 }
 
 // ---------------------------------------------------------------------------
@@ -1847,7 +1862,111 @@ async function main() {
 	);
 
 	// =========================================================================
-	// 12. Audit log entries (a few realistic ones)
+	// 12. Credential Sharing (Phase 6C)
+	// =========================================================================
+	console.log('🔗 Creating credential share tokens...');
+
+	// Alex shared his BACKGROUND_CHECK from Helping Hands → Green City claimed it
+	const alexBgCheck = await prisma.volunteerCredential.findUnique({
+		where: {
+			userId_orgId_type: {
+				userId: vol1.id,
+				orgId: helpingHands.id,
+				type: 'BACKGROUND_CHECK',
+			},
+		},
+	});
+
+	if (alexBgCheck) {
+		// Create the claimed share token
+		await prisma.credentialShareToken
+			.create({
+				data: {
+					tokenHash: seedTokenHash('alex-bg-claimed'),
+					credentialId: alexBgCheck.id,
+					createdByUserId: vol1.id,
+					expiresAt: daysFromNow(15),
+					status: 'CLAIMED' as ShareTokenStatus,
+					claimedByOrgId: greenCity.id,
+					claimedAt: daysAgo(5),
+				},
+			})
+			.catch(() => {
+				/* ignore duplicate */
+			});
+
+		// Create the shared credential copy at Green City (provenance)
+		await upsertCredential(
+			vol1.id,
+			greenCity.id,
+			'BACKGROUND_CHECK',
+			'VERIFIED',
+			{
+				issuedAt: daysAgo(60),
+				expiresAt: daysFromNow(305),
+				notes: 'Cleared — no issues.',
+				sharedFromOrgId: helpingHands.id,
+				sharedFromCredentialId: alexBgCheck.id,
+			},
+		);
+	}
+
+	// Olivia has an active share token for her BG check (not yet claimed)
+	const oliviaBgCheck = await prisma.volunteerCredential.findUnique({
+		where: {
+			userId_orgId_type: {
+				userId: vol5.id,
+				orgId: helpingHands.id,
+				type: 'BACKGROUND_CHECK',
+			},
+		},
+	});
+
+	if (oliviaBgCheck) {
+		await prisma.credentialShareToken
+			.create({
+				data: {
+					tokenHash: seedTokenHash('olivia-bg-active'),
+					credentialId: oliviaBgCheck.id,
+					createdByUserId: vol5.id,
+					expiresAt: daysFromNow(25),
+					status: 'ACTIVE' as ShareTokenStatus,
+				},
+			})
+			.catch(() => {
+				/* ignore duplicate */
+			});
+	}
+
+	// Jordan had a share token that expired (BG check was already expired)
+	const jordanBgCheck = await prisma.volunteerCredential.findUnique({
+		where: {
+			userId_orgId_type: {
+				userId: vol2.id,
+				orgId: helpingHands.id,
+				type: 'BACKGROUND_CHECK',
+			},
+		},
+	});
+
+	if (jordanBgCheck) {
+		await prisma.credentialShareToken
+			.create({
+				data: {
+					tokenHash: seedTokenHash('jordan-bg-expired'),
+					credentialId: jordanBgCheck.id,
+					createdByUserId: vol2.id,
+					expiresAt: daysAgo(10),
+					status: 'EXPIRED' as ShareTokenStatus,
+				},
+			})
+			.catch(() => {
+				/* ignore duplicate */
+			});
+	}
+
+	// =========================================================================
+	// 13. Audit log entries (a few realistic ones)
 	// =========================================================================
 	console.log('📜 Creating audit log entries...');
 
@@ -1916,7 +2035,7 @@ async function main() {
 	}
 
 	// =========================================================================
-	// 13. Organization invitations
+	// 14. Organization invitations
 	// =========================================================================
 	console.log('✉️  Creating organization invitations...');
 
@@ -1963,7 +2082,8 @@ async function main() {
 	console.log('   Applications: ~12');
 	console.log('   Shifts: 8');
 	console.log('   Signups: ~15');
-	console.log('   Credentials: 8');
+	console.log('   Credentials: 9 (includes 1 shared with provenance)');
+	console.log('   Share tokens: 3 (1 claimed, 1 active, 1 expired)');
 	console.log('   Audit entries: 6');
 }
 

@@ -93,6 +93,7 @@ Key files:
 - `shift.ts` — shift capacity, signup validation, attendance
 - `background-check.ts` — FCRA state machine, PII sanitization
 - `billing.ts` — plan tier limits, trial validation
+- `credential-sharing.ts` — share token lifecycle guards, expiry computation
 
 ---
 
@@ -122,6 +123,7 @@ Key services:
 - `shiftService.ts` — shift CRUD and status transitions
 - `shiftSignupService.ts` — signup with conflict detection and attendance
 - `backgroundCheckService.ts` — Checkr integration, FCRA workflow, token encryption
+- `credentialShareService.ts` — credential sharing: generate, claim, revoke, shareAllOnApply
 - `billingService.ts` — Stripe integration, plan management
 - `companyService.ts` — corporate account management
 
@@ -143,6 +145,7 @@ Shared utilities and external service adapters.
 
 - `adapters/background-check/` — `BackgroundCheckAdapter` interface with `CheckrAdapter` implementation
 - `crypto.ts` — AES-256-GCM encrypt/decrypt for Checkr OAuth tokens
+- `tokens.ts` — shared token generation (256-bit random) and SHA-256 hashing
 - `resend.ts` — lazy-initialized Resend email client singleton
 
 ---
@@ -161,6 +164,7 @@ Entities:
 - VolunteerCredential
 - Shift / ShiftSignup
 - BackgroundCheckRequest
+- CredentialShareToken
 - CompanyAccount / CompanyMember / CompanyNonprofitLink
 - FeatureFlag
 - AuditLog
@@ -180,6 +184,7 @@ User
  │         ├─ Shift
  │         │    └─ ShiftSignup
  │         ├─ VolunteerCredential
+ │         │    └─ CredentialShareToken
  │         ├─ BackgroundCheckRequest
  │         ├─ FeatureFlag
  │         └─ AuditLog
@@ -251,7 +256,7 @@ Each middleware narrows the context type via `next({ ctx: { ... } })`, so downst
 
 ## Resend (Email)
 
-- Transactional emails: invitations, status lookups, background check notifications, FCRA notices
+- Transactional emails: invitations, status lookups, background check notifications, FCRA notices, credential claim notifications, credential sharing requests
 - Lazy-initialized singleton client
 
 ---

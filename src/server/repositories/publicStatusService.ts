@@ -1,17 +1,9 @@
-import crypto from 'node:crypto';
 import { TRPCError } from '@trpc/server';
 import type { PrismaClient } from '@/prisma/generated/client';
+import { generateToken, hashToken } from '@/server/lib/tokens';
 import { sendStatusLinkEmail } from '@/server/repositories/sendStatusLinkEmail';
 import { statusTokenRepo } from '@/server/repositories/statusTokenRepo';
 import { volunteerStatusRepo } from '@/server/repositories/volunteerStatusRepo';
-
-function sha256(input: string) {
-	return crypto.createHash('sha256').update(input).digest('hex');
-}
-
-function randomToken() {
-	return crypto.randomBytes(32).toString('hex');
-}
 
 export function publicStatusService(prisma: PrismaClient) {
 	const tokens = statusTokenRepo(prisma);
@@ -20,8 +12,8 @@ export function publicStatusService(prisma: PrismaClient) {
 	return {
 		async requestLink(email: string, baseUrl: string) {
 			// Always behave the same (no enumeration)
-			const raw = randomToken();
-			const tokenHash = sha256(raw);
+			const raw = generateToken();
+			const tokenHash = hashToken(raw);
 
 			const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 mins
 			await tokens.create({ email, tokenHash, expiresAt });
@@ -33,7 +25,7 @@ export function publicStatusService(prisma: PrismaClient) {
 		},
 
 		async getByToken(rawToken: string) {
-			const tokenHash = sha256(rawToken);
+			const tokenHash = hashToken(rawToken);
 			const record = await tokens.findValidByHash(tokenHash);
 
 			if (!record) {

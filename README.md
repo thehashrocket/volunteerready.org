@@ -31,11 +31,12 @@ Long-term goals include:
 - Background check integration (shipped)
 - Corporate CSR / employer accounts (shipped)
 - Billing and plan tiers (shipped)
+- Portable credential sharing across organizations (shipped)
 - Cross-organization volunteer identity (in progress)
 - Grant opportunity integration (planned)
 - Nonprofit analytics and reporting (planned)
 
-The current system implements Phases 1 through 6B. See `docs/ROADMAP.md` for the full plan.
+The current system implements Phases 1 through 6C. See `docs/ROADMAP.md` for the full plan.
 
 ---
 
@@ -130,6 +131,18 @@ Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENT
 Status lifecycle: PENDING -> VERIFIED -> EXPIRED / REVOKED
 
 Unique per user + org + type.
+
+Credentials can be shared across organizations via time-limited share tokens. Shared credentials carry provenance (which org they came from).
+
+---
+
+## CredentialShareToken
+
+Time-limited share link for a VERIFIED credential. Volunteers generate share links; org staff claim them to import the credential without re-verification.
+
+Token lifecycle: ACTIVE -> CLAIMED / EXPIRED
+
+Tokens are SHA-256 hashed before storage (raw token is never persisted).
 
 ---
 
@@ -332,7 +345,7 @@ pnpm prisma db seed
 | 5 | Scheduling & Shifts | Complete |
 | 6A | Employer Accounts & Billing | Complete |
 | 6B | Background Check Integration | Complete |
-| 6C | Portable Credential Sharing | Planned |
+| 6C | Portable Credential Sharing | Complete |
 | 6D | Corporate ESG Reporting | Planned |
 | 6E | Mobile PWA | Planned |
 | 7 | Network Growth & Volunteer Identity | Planned |

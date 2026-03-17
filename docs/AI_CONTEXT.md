@@ -80,6 +80,7 @@ src/
 │   │   └── welcome/              # Post-login landing
 │   ├── apply/[orgSlug]/          # Public volunteer application form
 │   ├── apply/status/             # Email-based status lookup
+│   ├── credentials/claim/[token]/ # Public credential share claim page
 │   ├── opportunities/[orgSlug]/  # Public opportunity listings
 │   ├── login/                    # Auth page
 │   └── health/                   # Health check endpoint
@@ -103,6 +104,7 @@ src/
 │   ├── lib/                      # Shared utilities and adapters
 │   │   ├── adapters/             # External service adapters (Checkr, etc.)
 │   │   ├── crypto.ts             # AES-256-GCM encryption for secrets at rest
+│   │   ├── tokens.ts             # Shared token generation + SHA-256 hashing
 │   │   └── resend.ts             # Shared Resend email client (lazy singleton)
 │   └── domain/                   # Pure types + functions + tests
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
@@ -143,7 +145,8 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **VolunteerOpportunity** — a volunteer position with status (`DRAFT | PUBLISHED | CLOSED`), location, dates, capacity.
 - **OpportunityTag / OpportunityRequirement** — metadata for opportunities.
 - **VolunteerProfile** — 1:1 with User (cross-org). Bio, phone, location, availability, visibility, interests.
-- **VolunteerCredential** — org-scoped verification badges (unique per user + org + type). Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE. Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED.
+- **VolunteerCredential** — org-scoped verification badges (unique per user + org + type). Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE. Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED. Credentials shared from other orgs carry provenance fields (`sharedFromOrgId`, `sharedFromCredentialId`).
+- **CredentialShareToken** — time-limited (30-day) share link for a VERIFIED credential. SHA-256 hashed token storage. Status lifecycle: ACTIVE → CLAIMED / EXPIRED. Optimistic lock on claim prevents concurrent claims.
 - **Shift** — org-scoped volunteer shift with time range, capacity, status, optional opportunity link.
 - **ShiftSignup** — volunteer sign-up for a shift (unique per shift + user). Status: CONFIRMED / CANCELLED / NO_SHOW / ATTENDED.
 - **BackgroundCheckRequest** — org-scoped background check lifecycle (PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED). FCRA status nested within CONSIDER: NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED. Provider tokens encrypted at rest (AES-256-GCM).
@@ -186,6 +189,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `auth` | signout |
 | `backgroundChecks` | initiate, listByOrg, cancel, sendPreAdverseNotice, finalizeAdverseAction, resolveFcra, getCheckrOAuthUrl, getCheckrStatus, disconnectCheckr |
 | `credentials` | getMyCredentials, listOrgCredentials, issue, revoke, remove |
+| `credentialSharing` | generate, listMyTokens, revoke, getTokenInfo (public), claim (staff), shareCount, externalCredentialCount (staff), requestSharing (staff) |
 | `health` | ping |
 | `matching` | getMySkills, updateMySkills, getRecommendations |
 | `members` | list, invite, updateRole, remove |
@@ -267,6 +271,36 @@ The volunteer profile system lives in `src/server/domain/volunteer-profile.ts`.
 
 ---
 
+## Portable Credential Sharing
+
+The credential sharing system lives in `src/server/domain/credential-sharing.ts`.
+
+**Flow:** Volunteer generates a share link for a VERIFIED credential → link contains a raw token (never stored) → org staff visits `/credentials/claim/[token]` → staff claims credential into their org → credential copy is created with provenance fields.
+
+**Token lifecycle:** ACTIVE → CLAIMED (staff claims) / EXPIRED (time-based or volunteer revokes)
+
+**Claim guards (6 conditions):** token ACTIVE, token not expired, credential VERIFIED, credential not expired, not claiming own org's credential, no duplicate credential type in claiming org.
+
+**Auto-share on apply:** "Bring my credentials" checkbox on apply form triggers `shareAllOnApply()` — creates tokens + immediately claims them in a single transaction for audit trail.
+
+**Key types:** `ShareTokenStatus`, `CredentialStatus`, `CredentialType`
+
+**Key functions:** `canShareCredential()`, `canClaimToken()`, `isTokenExpired()`, `computeTokenExpiry()`, `tokenDaysRemaining()` — all pure, no side effects
+
+**Service orchestration:** `src/server/services/credentialShareService.ts` — `generateShareToken()` (P2002 collision retry), `claimShareToken()` (optimistic lock + provenance), `revokeShareToken()`, `shareAllOnApply()`, `requestCredentialSharing()` (org-initiated email request)
+
+**tRPC router:** `src/server/trpc/routers/credentialSharing.ts` — `generate`, `listMyTokens`, `revoke` (`protectedProcedure`); `getTokenInfo` (`publicProcedure`); `claim`, `externalCredentialCount`, `requestSharing` (`staffProcedure`)
+
+**UI routes:**
+- `/credentials/claim/[token]` — public claim page (preview + claim button)
+- `/app/profile` — Credentials tab with share link generation, token management, revoke
+- `/app/applications/[id]` — "Portable credentials" card (staff sees external credential count + request sharing button)
+- `/apply/[orgSlug]` — "Bring my credentials" checkbox
+
+**Shared token utility:** `src/server/lib/tokens.ts` — `generateToken()` (256-bit random hex) and `hashToken()` (SHA-256), used across invitations, status tokens, and credential share tokens.
+
+---
+
 ## Scheduling & Shifts
 
 The shift scheduling system lives in `src/server/domain/shift.ts`.
@@ -343,6 +377,9 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/domain/shift.ts` | Shift capacity, signup validation, attendance summaries |
 | `src/server/services/shiftService.ts` | Shift CRUD with audit logging |
 | `src/server/services/shiftSignupService.ts` | Signup orchestration with capacity + conflict checks |
+| `src/server/domain/credential-sharing.ts` | Share token lifecycle guards, expiry computation |
+| `src/server/services/credentialShareService.ts` | Credential sharing workflows (generate, claim, revoke, shareAllOnApply) |
+| `src/server/lib/tokens.ts` | Shared token generation (256-bit) and SHA-256 hashing |
 | `src/server/domain/background-check.ts` | FCRA state machine guards, waiting period helpers, PII sanitization |
 | `src/server/services/backgroundCheckService.ts` | Background check lifecycle, FCRA workflow, token encryption |
 | `src/server/lib/crypto.ts` | AES-256-GCM encrypt/decrypt/tryDecrypt for secrets at rest |
@@ -361,7 +398,7 @@ pnpm docs:dev               # VitePress dev server
 | 5 — Scheduling & Shifts | ✅ Complete |
 | 6A — Employer Accounts & Billing | ✅ Complete |
 | 6B — Background Check Integration | ✅ Complete |
-| 6C — Portable Credential Sharing | Planned |
+| 6C — Portable Credential Sharing | ✅ Complete |
 | 6D — Corporate ESG Reporting | Planned |
 | 6E — Mobile PWA | Planned |
 

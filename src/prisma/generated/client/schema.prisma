@@ -24,6 +24,7 @@ model User {
   credentials             VolunteerCredential[]
   shiftSignups            ShiftSignup[]
   backgroundCheckRequests BackgroundCheckRequest[]
+  createdShareTokens      CredentialShareToken[]
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
 }
@@ -114,6 +115,8 @@ model Organization {
   invitations             OrganizationInvitation[]
   opportunities           VolunteerOpportunity[]
   credentials             VolunteerCredential[]
+  sharedCredentials       VolunteerCredential[]    @relation("SharedCredentials")
+  claimedShareTokens      CredentialShareToken[]   @relation("ClaimedShareTokens")
   shifts                  Shift[]
   companyLinks            CompanyNonprofitLink[]
   backgroundCheckRequests BackgroundCheckRequest[]
@@ -388,21 +391,28 @@ enum ProfileVisibility {
 }
 
 model VolunteerCredential {
-  id         String           @id @default(cuid())
-  userId     String
-  orgId      String
-  type       CredentialType
-  status     CredentialStatus @default(PENDING)
-  issuedAt   DateTime?
-  expiresAt  DateTime?
-  notes      String?
-  issuedById String?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  id                     String           @id @default(cuid())
+  userId                 String
+  orgId                  String
+  type                   CredentialType
+  status                 CredentialStatus @default(PENDING)
+  issuedAt               DateTime?
+  expiresAt              DateTime?
+  notes                  String?
+  issuedById             String?
+  // Phase 6C — provenance: tracks origin when credential was shared from another org
+  sharedFromOrgId        String?
+  sharedFromCredentialId String?
+  // Phase 6C — forward-prep for expiry notification cron (Phase 7)
+  notifiedAt             DateTime?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
   user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization           Organization            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  sharedFromOrg          Organization?           @relation("SharedCredentials", fields: [sharedFromOrgId], references: [id], onDelete: SetNull)
   backgroundCheckRequest BackgroundCheckRequest?
+  shareTokens            CredentialShareToken[]
 
   @@unique([userId, orgId, type])
   @@index([userId])
@@ -632,4 +642,35 @@ model CheckrWebhookEvent {
   type        String
   processedAt DateTime @default(now())
   payload     Json // sanitized (no PII fields)
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6C — Portable Credential Sharing
+// ---------------------------------------------------------------------------
+
+enum ShareTokenStatus {
+  ACTIVE
+  CLAIMED
+  EXPIRED
+}
+
+model CredentialShareToken {
+  id              String           @id @default(cuid())
+  credentialId    String
+  createdByUserId String
+  tokenHash       String           @unique
+  expiresAt       DateTime
+  claimedByOrgId  String?
+  claimedAt       DateTime?
+  status          ShareTokenStatus @default(ACTIVE)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  credential   VolunteerCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  createdBy    User                @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  claimedByOrg Organization?       @relation("ClaimedShareTokens", fields: [claimedByOrgId], references: [id], onDelete: SetNull)
+
+  @@index([credentialId])
+  @@index([createdByUserId])
+  @@index([expiresAt])
 }

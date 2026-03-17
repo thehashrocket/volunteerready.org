@@ -146,6 +146,7 @@ erDiagram
     Organization ||--o{ VolunteerOpportunity : publishes
     Organization ||--o{ Shift : schedules
     Organization ||--o{ VolunteerCredential : issues
+    VolunteerCredential ||--o{ CredentialShareToken : shared_via
     Organization ||--o{ BackgroundCheckRequest : initiates
     Organization ||--o{ FeatureFlag : has
     Organization ||--o{ AuditLog : has
@@ -221,6 +222,18 @@ erDiagram
         string orgId
         enum type
         enum status
+        string sharedFromOrgId
+        string sharedFromCredentialId
+    }
+
+    CredentialShareToken {
+        string id
+        string tokenHash
+        string credentialId
+        string createdByUserId
+        datetime expiresAt
+        enum status
+        string claimedByOrgId
     }
 
     BackgroundCheckRequest {
@@ -367,7 +380,23 @@ stateDiagram-v2
 
 ---
 
-# 8. Billing / Plan Tier Flow
+# 8. Credential Share Token Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> ACTIVE: Volunteer generates share link
+
+    ACTIVE --> CLAIMED: Staff claims token
+    ACTIVE --> EXPIRED: Time passes (30 days)
+    ACTIVE --> EXPIRED: Volunteer revokes
+
+    CLAIMED --> [*]: Credential copy created with provenance
+    EXPIRED --> [*]: Token is no longer usable
+```
+
+---
+
+# 9. Billing / Plan Tier Flow
 
 ```mermaid
 sequenceDiagram
@@ -397,7 +426,7 @@ sequenceDiagram
 
 ---
 
-# 9. Organization Access Control Model
+# 10. Organization Access Control Model
 
 ```mermaid
 flowchart TD
@@ -428,7 +457,7 @@ If any of those are skipped, the feature is likely insecure.
 
 ---
 
-# 10. Feature Flag Evaluation Flow
+# 11. Feature Flag Evaluation Flow
 
 ```mermaid
 flowchart LR
@@ -450,7 +479,7 @@ Feature flags should be used for:
 
 ---
 
-# 11. Platform Phase Map
+# 12. Platform Phase Map
 
 ```mermaid
 flowchart TD
@@ -461,7 +490,7 @@ flowchart TD
     E --> F[Phase 6A: Employer Accounts & Billing ✅]
     F --> G[Phase 6B: Background Checks ✅]
 
-    G --> H[Phase 6C: Portable Credentials]
+    G --> H[Phase 6C: Portable Credentials ✅]
     G --> I[Phase 6D: Corporate ESG Reporting]
     G --> J[Phase 6E: Mobile PWA]
 
@@ -476,7 +505,7 @@ flowchart TD
 
 ---
 
-# 12. Agent Guidance
+# 13. Agent Guidance
 
 When generating code for this repository, prefer the design that is:
 

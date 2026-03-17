@@ -184,6 +184,39 @@ Status lifecycle: PENDING -> VERIFIED -> EXPIRED / REVOKED
 
 Constraint: unique per (userId, orgId, type).
 
+Credentials may have provenance fields (`sharedFromOrgId`, `sharedFromCredentialId`) indicating they were claimed via a share token from another organization.
+
+---
+
+## CredentialShareToken
+
+Time-limited link that allows a volunteer to share a VERIFIED credential with another organization.
+
+Token lifecycle: ACTIVE -> CLAIMED / EXPIRED
+
+Key fields:
+
+- `tokenHash` — SHA-256 hash of the raw token (raw token is never stored)
+- `credentialId` — the credential being shared
+- `createdByUserId` — the volunteer who generated the share link
+- `expiresAt` — 30 days from creation
+- `claimedByOrgId` — the org that claimed the credential (set on claim)
+- `claimedAt` — timestamp of claim
+- `status` — ACTIVE / CLAIMED / EXPIRED
+
+Claim guards (6 conditions checked at claim time):
+
+1. Token status is ACTIVE
+2. Token is not expired
+3. Underlying credential is still VERIFIED
+4. Underlying credential is not expired
+5. Claiming org is not the issuing org
+6. No duplicate credential of the same type exists for the volunteer in the claiming org
+
+Optimistic lock: claim uses `updateMany` with `WHERE status = 'ACTIVE'` to prevent concurrent claims.
+
+Domain logic: `src/server/domain/credential-sharing.ts`
+
 ---
 
 ## Shift
@@ -373,6 +406,8 @@ Use these terms consistently across the codebase:
 - ShiftSignup
 - BackgroundCheckRequest
 - FcraStatus
+- CredentialShareToken
+- ShareTokenStatus
 - CompanyAccount
 - CompanyMember
 - CompanyNonprofitLink

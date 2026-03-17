@@ -101,6 +101,7 @@ export const screenerRouter = createTRPCRouter({
 				submittedByEmail: z.string().email(),
 				profile: volunteerProfileSchema,
 				responses: z.array(screenerResponseSchema),
+				shareCredentials: z.boolean().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -111,13 +112,32 @@ export const screenerRouter = createTRPCRouter({
 				});
 			}
 
-			return submitVolunteerApplication(input.orgId, {
+			const result = await submitVolunteerApplication(input.orgId, {
 				submittedByEmail: input.submittedByEmail,
 				submittedByUserId: ctx.session?.user?.id ?? null,
 				opportunityId: input.opportunityId ?? null,
 				profile: input.profile,
 				responses: input.responses,
 			});
+
+			// "Bring my credentials" — share all verified creds with this org
+			// Silently ignored for unauthenticated users (no userId to look up)
+			// Wrapped in try/catch: credential sharing must not fail the application
+			const userId = ctx.session?.user?.id;
+			if (input.shareCredentials && userId) {
+				try {
+					const { shareAllOnApply } = await import(
+						'@/server/services/credentialShareService'
+					);
+					await shareAllOnApply(userId, input.orgId);
+				} catch {
+					console.error(
+						'[screener.submit] shareAllOnApply failed — application was saved',
+					);
+				}
+			}
+
+			return result;
 		}),
 
 	list: adminProcedure

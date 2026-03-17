@@ -15,6 +15,10 @@ type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 export async function getCredentialsByUserId(userId: string) {
 	return prisma.volunteerCredential.findMany({
 		where: { userId },
+		include: {
+			organization: { select: { id: true, name: true } },
+			sharedFromOrg: { select: { id: true, name: true } },
+		},
 		orderBy: { createdAt: 'desc' },
 	});
 }
@@ -69,6 +73,8 @@ export interface UpsertCredentialInput {
 	expiresAt?: Date | null;
 	notes?: string | null;
 	issuedById?: string | null;
+	sharedFromOrgId?: string | null;
+	sharedFromCredentialId?: string | null;
 }
 
 /** Upsert a credential (unique on userId + orgId + type). */

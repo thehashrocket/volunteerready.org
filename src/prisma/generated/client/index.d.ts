@@ -163,6 +163,11 @@ export type BackgroundCheckRequest = $Result.DefaultSelection<Prisma.$Background
  * 
  */
 export type CheckrWebhookEvent = $Result.DefaultSelection<Prisma.$CheckrWebhookEventPayload>
+/**
+ * Model CredentialShareToken
+ * 
+ */
+export type CredentialShareToken = $Result.DefaultSelection<Prisma.$CredentialShareTokenPayload>
 
 /**
  * Enums
@@ -339,6 +344,15 @@ export const FcraStatus: {
 
 export type FcraStatus = (typeof FcraStatus)[keyof typeof FcraStatus]
 
+
+export const ShareTokenStatus: {
+  ACTIVE: 'ACTIVE',
+  CLAIMED: 'CLAIMED',
+  EXPIRED: 'EXPIRED'
+};
+
+export type ShareTokenStatus = (typeof ShareTokenStatus)[keyof typeof ShareTokenStatus]
+
 }
 
 export type ApplicationStatus = $Enums.ApplicationStatus
@@ -412,6 +426,10 @@ export const BackgroundCheckStatus: typeof $Enums.BackgroundCheckStatus
 export type FcraStatus = $Enums.FcraStatus
 
 export const FcraStatus: typeof $Enums.FcraStatus
+
+export type ShareTokenStatus = $Enums.ShareTokenStatus
+
+export const ShareTokenStatus: typeof $Enums.ShareTokenStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -833,6 +851,16 @@ export class PrismaClient<
     * ```
     */
   get checkrWebhookEvent(): Prisma.CheckrWebhookEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.credentialShareToken`: Exposes CRUD operations for the **CredentialShareToken** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CredentialShareTokens
+    * const credentialShareTokens = await prisma.credentialShareToken.findMany()
+    * ```
+    */
+  get credentialShareToken(): Prisma.CredentialShareTokenDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1296,7 +1324,8 @@ export namespace Prisma {
     CompanyNonprofitLink: 'CompanyNonprofitLink',
     StripeWebhookEvent: 'StripeWebhookEvent',
     BackgroundCheckRequest: 'BackgroundCheckRequest',
-    CheckrWebhookEvent: 'CheckrWebhookEvent'
+    CheckrWebhookEvent: 'CheckrWebhookEvent',
+    CredentialShareToken: 'CredentialShareToken'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1312,7 +1341,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent" | "backgroundCheckRequest" | "checkrWebhookEvent"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent" | "backgroundCheckRequest" | "checkrWebhookEvent" | "credentialShareToken"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3536,6 +3565,80 @@ export namespace Prisma {
           }
         }
       }
+      CredentialShareToken: {
+        payload: Prisma.$CredentialShareTokenPayload<ExtArgs>
+        fields: Prisma.CredentialShareTokenFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CredentialShareTokenFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CredentialShareTokenFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload>
+          }
+          findFirst: {
+            args: Prisma.CredentialShareTokenFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CredentialShareTokenFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload>
+          }
+          findMany: {
+            args: Prisma.CredentialShareTokenFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload>[]
+          }
+          create: {
+            args: Prisma.CredentialShareTokenCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload>
+          }
+          createMany: {
+            args: Prisma.CredentialShareTokenCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CredentialShareTokenCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload>[]
+          }
+          delete: {
+            args: Prisma.CredentialShareTokenDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload>
+          }
+          update: {
+            args: Prisma.CredentialShareTokenUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload>
+          }
+          deleteMany: {
+            args: Prisma.CredentialShareTokenDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CredentialShareTokenUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CredentialShareTokenUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload>[]
+          }
+          upsert: {
+            args: Prisma.CredentialShareTokenUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CredentialShareTokenPayload>
+          }
+          aggregate: {
+            args: Prisma.CredentialShareTokenAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCredentialShareToken>
+          }
+          groupBy: {
+            args: Prisma.CredentialShareTokenGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CredentialShareTokenGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CredentialShareTokenCountArgs<ExtArgs>
+            result: $Utils.Optional<CredentialShareTokenCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3674,6 +3777,7 @@ export namespace Prisma {
     stripeWebhookEvent?: StripeWebhookEventOmit
     backgroundCheckRequest?: BackgroundCheckRequestOmit
     checkrWebhookEvent?: CheckrWebhookEventOmit
+    credentialShareToken?: CredentialShareTokenOmit
   }
 
   /* Types for Logging */
@@ -3764,6 +3868,7 @@ export namespace Prisma {
     credentials: number
     shiftSignups: number
     backgroundCheckRequests: number
+    createdShareTokens: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3777,6 +3882,7 @@ export namespace Prisma {
     credentials?: boolean | UserCountOutputTypeCountCredentialsArgs
     shiftSignups?: boolean | UserCountOutputTypeCountShiftSignupsArgs
     backgroundCheckRequests?: boolean | UserCountOutputTypeCountBackgroundCheckRequestsArgs
+    createdShareTokens?: boolean | UserCountOutputTypeCountCreatedShareTokensArgs
   }
 
   // Custom InputTypes
@@ -3860,6 +3966,13 @@ export namespace Prisma {
     where?: BackgroundCheckRequestWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCreatedShareTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CredentialShareTokenWhereInput
+  }
+
 
   /**
    * Count Type OrganizationCountOutputType
@@ -3875,6 +3988,8 @@ export namespace Prisma {
     invitations: number
     opportunities: number
     credentials: number
+    sharedCredentials: number
+    claimedShareTokens: number
     shifts: number
     companyLinks: number
     backgroundCheckRequests: number
@@ -3890,6 +4005,8 @@ export namespace Prisma {
     invitations?: boolean | OrganizationCountOutputTypeCountInvitationsArgs
     opportunities?: boolean | OrganizationCountOutputTypeCountOpportunitiesArgs
     credentials?: boolean | OrganizationCountOutputTypeCountCredentialsArgs
+    sharedCredentials?: boolean | OrganizationCountOutputTypeCountSharedCredentialsArgs
+    claimedShareTokens?: boolean | OrganizationCountOutputTypeCountClaimedShareTokensArgs
     shifts?: boolean | OrganizationCountOutputTypeCountShiftsArgs
     companyLinks?: boolean | OrganizationCountOutputTypeCountCompanyLinksArgs
     backgroundCheckRequests?: boolean | OrganizationCountOutputTypeCountBackgroundCheckRequestsArgs
@@ -3967,6 +4084,20 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountCredentialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VolunteerCredentialWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountSharedCredentialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerCredentialWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountClaimedShareTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CredentialShareTokenWhereInput
   }
 
   /**
@@ -4157,6 +4288,37 @@ export namespace Prisma {
    */
   export type SkillCountOutputTypeCountRequirementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OpportunityRequirementWhereInput
+  }
+
+
+  /**
+   * Count Type VolunteerCredentialCountOutputType
+   */
+
+  export type VolunteerCredentialCountOutputType = {
+    shareTokens: number
+  }
+
+  export type VolunteerCredentialCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    shareTokens?: boolean | VolunteerCredentialCountOutputTypeCountShareTokensArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * VolunteerCredentialCountOutputType without action
+   */
+  export type VolunteerCredentialCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredentialCountOutputType
+     */
+    select?: VolunteerCredentialCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * VolunteerCredentialCountOutputType without action
+   */
+  export type VolunteerCredentialCountOutputTypeCountShareTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CredentialShareTokenWhereInput
   }
 
 
@@ -4453,6 +4615,7 @@ export namespace Prisma {
     credentials?: boolean | User$credentialsArgs<ExtArgs>
     shiftSignups?: boolean | User$shiftSignupsArgs<ExtArgs>
     backgroundCheckRequests?: boolean | User$backgroundCheckRequestsArgs<ExtArgs>
+    createdShareTokens?: boolean | User$createdShareTokensArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -4499,6 +4662,7 @@ export namespace Prisma {
     credentials?: boolean | User$credentialsArgs<ExtArgs>
     shiftSignups?: boolean | User$shiftSignupsArgs<ExtArgs>
     backgroundCheckRequests?: boolean | User$backgroundCheckRequestsArgs<ExtArgs>
+    createdShareTokens?: boolean | User$createdShareTokensArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4518,6 +4682,7 @@ export namespace Prisma {
       credentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
       shiftSignups: Prisma.$ShiftSignupPayload<ExtArgs>[]
       backgroundCheckRequests: Prisma.$BackgroundCheckRequestPayload<ExtArgs>[]
+      createdShareTokens: Prisma.$CredentialShareTokenPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4932,6 +5097,7 @@ export namespace Prisma {
     credentials<T extends User$credentialsArgs<ExtArgs> = {}>(args?: Subset<T, User$credentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     shiftSignups<T extends User$shiftSignupsArgs<ExtArgs> = {}>(args?: Subset<T, User$shiftSignupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     backgroundCheckRequests<T extends User$backgroundCheckRequestsArgs<ExtArgs> = {}>(args?: Subset<T, User$backgroundCheckRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    createdShareTokens<T extends User$createdShareTokensArgs<ExtArgs> = {}>(args?: Subset<T, User$createdShareTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5617,6 +5783,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BackgroundCheckRequestScalarFieldEnum | BackgroundCheckRequestScalarFieldEnum[]
+  }
+
+  /**
+   * User.createdShareTokens
+   */
+  export type User$createdShareTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    where?: CredentialShareTokenWhereInput
+    orderBy?: CredentialShareTokenOrderByWithRelationInput | CredentialShareTokenOrderByWithRelationInput[]
+    cursor?: CredentialShareTokenWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CredentialShareTokenScalarFieldEnum | CredentialShareTokenScalarFieldEnum[]
   }
 
   /**
@@ -10190,6 +10380,8 @@ export namespace Prisma {
     invitations?: boolean | Organization$invitationsArgs<ExtArgs>
     opportunities?: boolean | Organization$opportunitiesArgs<ExtArgs>
     credentials?: boolean | Organization$credentialsArgs<ExtArgs>
+    sharedCredentials?: boolean | Organization$sharedCredentialsArgs<ExtArgs>
+    claimedShareTokens?: boolean | Organization$claimedShareTokensArgs<ExtArgs>
     shifts?: boolean | Organization$shiftsArgs<ExtArgs>
     companyLinks?: boolean | Organization$companyLinksArgs<ExtArgs>
     backgroundCheckRequests?: boolean | Organization$backgroundCheckRequestsArgs<ExtArgs>
@@ -10249,6 +10441,8 @@ export namespace Prisma {
     invitations?: boolean | Organization$invitationsArgs<ExtArgs>
     opportunities?: boolean | Organization$opportunitiesArgs<ExtArgs>
     credentials?: boolean | Organization$credentialsArgs<ExtArgs>
+    sharedCredentials?: boolean | Organization$sharedCredentialsArgs<ExtArgs>
+    claimedShareTokens?: boolean | Organization$claimedShareTokensArgs<ExtArgs>
     shifts?: boolean | Organization$shiftsArgs<ExtArgs>
     companyLinks?: boolean | Organization$companyLinksArgs<ExtArgs>
     backgroundCheckRequests?: boolean | Organization$backgroundCheckRequestsArgs<ExtArgs>
@@ -10269,6 +10463,8 @@ export namespace Prisma {
       invitations: Prisma.$OrganizationInvitationPayload<ExtArgs>[]
       opportunities: Prisma.$VolunteerOpportunityPayload<ExtArgs>[]
       credentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
+      sharedCredentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
+      claimedShareTokens: Prisma.$CredentialShareTokenPayload<ExtArgs>[]
       shifts: Prisma.$ShiftPayload<ExtArgs>[]
       companyLinks: Prisma.$CompanyNonprofitLinkPayload<ExtArgs>[]
       backgroundCheckRequests: Prisma.$BackgroundCheckRequestPayload<ExtArgs>[]
@@ -10688,6 +10884,8 @@ export namespace Prisma {
     invitations<T extends Organization$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     opportunities<T extends Organization$opportunitiesArgs<ExtArgs> = {}>(args?: Subset<T, Organization$opportunitiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     credentials<T extends Organization$credentialsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$credentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    sharedCredentials<T extends Organization$sharedCredentialsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$sharedCredentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    claimedShareTokens<T extends Organization$claimedShareTokensArgs<ExtArgs> = {}>(args?: Subset<T, Organization$claimedShareTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     shifts<T extends Organization$shiftsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     companyLinks<T extends Organization$companyLinksArgs<ExtArgs> = {}>(args?: Subset<T, Organization$companyLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyNonprofitLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     backgroundCheckRequests<T extends Organization$backgroundCheckRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$backgroundCheckRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -11337,6 +11535,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.sharedCredentials
+   */
+  export type Organization$sharedCredentialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerCredential
+     */
+    select?: VolunteerCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerCredential
+     */
+    omit?: VolunteerCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerCredentialInclude<ExtArgs> | null
+    where?: VolunteerCredentialWhereInput
+    orderBy?: VolunteerCredentialOrderByWithRelationInput | VolunteerCredentialOrderByWithRelationInput[]
+    cursor?: VolunteerCredentialWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VolunteerCredentialScalarFieldEnum | VolunteerCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.claimedShareTokens
+   */
+  export type Organization$claimedShareTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    where?: CredentialShareTokenWhereInput
+    orderBy?: CredentialShareTokenOrderByWithRelationInput | CredentialShareTokenOrderByWithRelationInput[]
+    cursor?: CredentialShareTokenWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CredentialShareTokenScalarFieldEnum | CredentialShareTokenScalarFieldEnum[]
   }
 
   /**
@@ -27183,6 +27429,9 @@ export namespace Prisma {
     expiresAt: Date | null
     notes: string | null
     issuedById: string | null
+    sharedFromOrgId: string | null
+    sharedFromCredentialId: string | null
+    notifiedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -27197,6 +27446,9 @@ export namespace Prisma {
     expiresAt: Date | null
     notes: string | null
     issuedById: string | null
+    sharedFromOrgId: string | null
+    sharedFromCredentialId: string | null
+    notifiedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -27211,6 +27463,9 @@ export namespace Prisma {
     expiresAt: number
     notes: number
     issuedById: number
+    sharedFromOrgId: number
+    sharedFromCredentialId: number
+    notifiedAt: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -27227,6 +27482,9 @@ export namespace Prisma {
     expiresAt?: true
     notes?: true
     issuedById?: true
+    sharedFromOrgId?: true
+    sharedFromCredentialId?: true
+    notifiedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -27241,6 +27499,9 @@ export namespace Prisma {
     expiresAt?: true
     notes?: true
     issuedById?: true
+    sharedFromOrgId?: true
+    sharedFromCredentialId?: true
+    notifiedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -27255,6 +27516,9 @@ export namespace Prisma {
     expiresAt?: true
     notes?: true
     issuedById?: true
+    sharedFromOrgId?: true
+    sharedFromCredentialId?: true
+    notifiedAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -27342,6 +27606,9 @@ export namespace Prisma {
     expiresAt: Date | null
     notes: string | null
     issuedById: string | null
+    sharedFromOrgId: string | null
+    sharedFromCredentialId: string | null
+    notifiedAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: VolunteerCredentialCountAggregateOutputType | null
@@ -27373,11 +27640,17 @@ export namespace Prisma {
     expiresAt?: boolean
     notes?: boolean
     issuedById?: boolean
+    sharedFromOrgId?: boolean
+    sharedFromCredentialId?: boolean
+    notifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    sharedFromOrg?: boolean | VolunteerCredential$sharedFromOrgArgs<ExtArgs>
     backgroundCheckRequest?: boolean | VolunteerCredential$backgroundCheckRequestArgs<ExtArgs>
+    shareTokens?: boolean | VolunteerCredential$shareTokensArgs<ExtArgs>
+    _count?: boolean | VolunteerCredentialCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerCredential"]>
 
   export type VolunteerCredentialSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -27390,10 +27663,14 @@ export namespace Prisma {
     expiresAt?: boolean
     notes?: boolean
     issuedById?: boolean
+    sharedFromOrgId?: boolean
+    sharedFromCredentialId?: boolean
+    notifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    sharedFromOrg?: boolean | VolunteerCredential$sharedFromOrgArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerCredential"]>
 
   export type VolunteerCredentialSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -27406,10 +27683,14 @@ export namespace Prisma {
     expiresAt?: boolean
     notes?: boolean
     issuedById?: boolean
+    sharedFromOrgId?: boolean
+    sharedFromCredentialId?: boolean
+    notifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    sharedFromOrg?: boolean | VolunteerCredential$sharedFromOrgArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerCredential"]>
 
   export type VolunteerCredentialSelectScalar = {
@@ -27422,23 +27703,31 @@ export namespace Prisma {
     expiresAt?: boolean
     notes?: boolean
     issuedById?: boolean
+    sharedFromOrgId?: boolean
+    sharedFromCredentialId?: boolean
+    notifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type VolunteerCredentialOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "orgId" | "type" | "status" | "issuedAt" | "expiresAt" | "notes" | "issuedById" | "createdAt" | "updatedAt", ExtArgs["result"]["volunteerCredential"]>
+  export type VolunteerCredentialOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "orgId" | "type" | "status" | "issuedAt" | "expiresAt" | "notes" | "issuedById" | "sharedFromOrgId" | "sharedFromCredentialId" | "notifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["volunteerCredential"]>
   export type VolunteerCredentialInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    sharedFromOrg?: boolean | VolunteerCredential$sharedFromOrgArgs<ExtArgs>
     backgroundCheckRequest?: boolean | VolunteerCredential$backgroundCheckRequestArgs<ExtArgs>
+    shareTokens?: boolean | VolunteerCredential$shareTokensArgs<ExtArgs>
+    _count?: boolean | VolunteerCredentialCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type VolunteerCredentialIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    sharedFromOrg?: boolean | VolunteerCredential$sharedFromOrgArgs<ExtArgs>
   }
   export type VolunteerCredentialIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    sharedFromOrg?: boolean | VolunteerCredential$sharedFromOrgArgs<ExtArgs>
   }
 
   export type $VolunteerCredentialPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -27446,7 +27735,9 @@ export namespace Prisma {
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
       organization: Prisma.$OrganizationPayload<ExtArgs>
+      sharedFromOrg: Prisma.$OrganizationPayload<ExtArgs> | null
       backgroundCheckRequest: Prisma.$BackgroundCheckRequestPayload<ExtArgs> | null
+      shareTokens: Prisma.$CredentialShareTokenPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -27458,6 +27749,9 @@ export namespace Prisma {
       expiresAt: Date | null
       notes: string | null
       issuedById: string | null
+      sharedFromOrgId: string | null
+      sharedFromCredentialId: string | null
+      notifiedAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["volunteerCredential"]>
@@ -27856,7 +28150,9 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    sharedFromOrg<T extends VolunteerCredential$sharedFromOrgArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerCredential$sharedFromOrgArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     backgroundCheckRequest<T extends VolunteerCredential$backgroundCheckRequestArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerCredential$backgroundCheckRequestArgs<ExtArgs>>): Prisma__BackgroundCheckRequestClient<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    shareTokens<T extends VolunteerCredential$shareTokensArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerCredential$shareTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -27895,6 +28191,9 @@ export namespace Prisma {
     readonly expiresAt: FieldRef<"VolunteerCredential", 'DateTime'>
     readonly notes: FieldRef<"VolunteerCredential", 'String'>
     readonly issuedById: FieldRef<"VolunteerCredential", 'String'>
+    readonly sharedFromOrgId: FieldRef<"VolunteerCredential", 'String'>
+    readonly sharedFromCredentialId: FieldRef<"VolunteerCredential", 'String'>
+    readonly notifiedAt: FieldRef<"VolunteerCredential", 'DateTime'>
     readonly createdAt: FieldRef<"VolunteerCredential", 'DateTime'>
     readonly updatedAt: FieldRef<"VolunteerCredential", 'DateTime'>
   }
@@ -28298,6 +28597,25 @@ export namespace Prisma {
   }
 
   /**
+   * VolunteerCredential.sharedFromOrg
+   */
+  export type VolunteerCredential$sharedFromOrgArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Organization
+     */
+    select?: OrganizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Organization
+     */
+    omit?: OrganizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationInclude<ExtArgs> | null
+    where?: OrganizationWhereInput
+  }
+
+  /**
    * VolunteerCredential.backgroundCheckRequest
    */
   export type VolunteerCredential$backgroundCheckRequestArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -28314,6 +28632,30 @@ export namespace Prisma {
      */
     include?: BackgroundCheckRequestInclude<ExtArgs> | null
     where?: BackgroundCheckRequestWhereInput
+  }
+
+  /**
+   * VolunteerCredential.shareTokens
+   */
+  export type VolunteerCredential$shareTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    where?: CredentialShareTokenWhereInput
+    orderBy?: CredentialShareTokenOrderByWithRelationInput | CredentialShareTokenOrderByWithRelationInput[]
+    cursor?: CredentialShareTokenWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CredentialShareTokenScalarFieldEnum | CredentialShareTokenScalarFieldEnum[]
   }
 
   /**
@@ -38377,6 +38719,1169 @@ export namespace Prisma {
 
 
   /**
+   * Model CredentialShareToken
+   */
+
+  export type AggregateCredentialShareToken = {
+    _count: CredentialShareTokenCountAggregateOutputType | null
+    _min: CredentialShareTokenMinAggregateOutputType | null
+    _max: CredentialShareTokenMaxAggregateOutputType | null
+  }
+
+  export type CredentialShareTokenMinAggregateOutputType = {
+    id: string | null
+    credentialId: string | null
+    createdByUserId: string | null
+    tokenHash: string | null
+    expiresAt: Date | null
+    claimedByOrgId: string | null
+    claimedAt: Date | null
+    status: $Enums.ShareTokenStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CredentialShareTokenMaxAggregateOutputType = {
+    id: string | null
+    credentialId: string | null
+    createdByUserId: string | null
+    tokenHash: string | null
+    expiresAt: Date | null
+    claimedByOrgId: string | null
+    claimedAt: Date | null
+    status: $Enums.ShareTokenStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CredentialShareTokenCountAggregateOutputType = {
+    id: number
+    credentialId: number
+    createdByUserId: number
+    tokenHash: number
+    expiresAt: number
+    claimedByOrgId: number
+    claimedAt: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CredentialShareTokenMinAggregateInputType = {
+    id?: true
+    credentialId?: true
+    createdByUserId?: true
+    tokenHash?: true
+    expiresAt?: true
+    claimedByOrgId?: true
+    claimedAt?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CredentialShareTokenMaxAggregateInputType = {
+    id?: true
+    credentialId?: true
+    createdByUserId?: true
+    tokenHash?: true
+    expiresAt?: true
+    claimedByOrgId?: true
+    claimedAt?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CredentialShareTokenCountAggregateInputType = {
+    id?: true
+    credentialId?: true
+    createdByUserId?: true
+    tokenHash?: true
+    expiresAt?: true
+    claimedByOrgId?: true
+    claimedAt?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CredentialShareTokenAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CredentialShareToken to aggregate.
+     */
+    where?: CredentialShareTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CredentialShareTokens to fetch.
+     */
+    orderBy?: CredentialShareTokenOrderByWithRelationInput | CredentialShareTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CredentialShareTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CredentialShareTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CredentialShareTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CredentialShareTokens
+    **/
+    _count?: true | CredentialShareTokenCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CredentialShareTokenMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CredentialShareTokenMaxAggregateInputType
+  }
+
+  export type GetCredentialShareTokenAggregateType<T extends CredentialShareTokenAggregateArgs> = {
+        [P in keyof T & keyof AggregateCredentialShareToken]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCredentialShareToken[P]>
+      : GetScalarType<T[P], AggregateCredentialShareToken[P]>
+  }
+
+
+
+
+  export type CredentialShareTokenGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CredentialShareTokenWhereInput
+    orderBy?: CredentialShareTokenOrderByWithAggregationInput | CredentialShareTokenOrderByWithAggregationInput[]
+    by: CredentialShareTokenScalarFieldEnum[] | CredentialShareTokenScalarFieldEnum
+    having?: CredentialShareTokenScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CredentialShareTokenCountAggregateInputType | true
+    _min?: CredentialShareTokenMinAggregateInputType
+    _max?: CredentialShareTokenMaxAggregateInputType
+  }
+
+  export type CredentialShareTokenGroupByOutputType = {
+    id: string
+    credentialId: string
+    createdByUserId: string
+    tokenHash: string
+    expiresAt: Date
+    claimedByOrgId: string | null
+    claimedAt: Date | null
+    status: $Enums.ShareTokenStatus
+    createdAt: Date
+    updatedAt: Date
+    _count: CredentialShareTokenCountAggregateOutputType | null
+    _min: CredentialShareTokenMinAggregateOutputType | null
+    _max: CredentialShareTokenMaxAggregateOutputType | null
+  }
+
+  type GetCredentialShareTokenGroupByPayload<T extends CredentialShareTokenGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CredentialShareTokenGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CredentialShareTokenGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CredentialShareTokenGroupByOutputType[P]>
+            : GetScalarType<T[P], CredentialShareTokenGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CredentialShareTokenSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    credentialId?: boolean
+    createdByUserId?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    claimedByOrgId?: boolean
+    claimedAt?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    claimedByOrg?: boolean | CredentialShareToken$claimedByOrgArgs<ExtArgs>
+  }, ExtArgs["result"]["credentialShareToken"]>
+
+  export type CredentialShareTokenSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    credentialId?: boolean
+    createdByUserId?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    claimedByOrgId?: boolean
+    claimedAt?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    claimedByOrg?: boolean | CredentialShareToken$claimedByOrgArgs<ExtArgs>
+  }, ExtArgs["result"]["credentialShareToken"]>
+
+  export type CredentialShareTokenSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    credentialId?: boolean
+    createdByUserId?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    claimedByOrgId?: boolean
+    claimedAt?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    claimedByOrg?: boolean | CredentialShareToken$claimedByOrgArgs<ExtArgs>
+  }, ExtArgs["result"]["credentialShareToken"]>
+
+  export type CredentialShareTokenSelectScalar = {
+    id?: boolean
+    credentialId?: boolean
+    createdByUserId?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    claimedByOrgId?: boolean
+    claimedAt?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CredentialShareTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "credentialId" | "createdByUserId" | "tokenHash" | "expiresAt" | "claimedByOrgId" | "claimedAt" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["credentialShareToken"]>
+  export type CredentialShareTokenInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    claimedByOrg?: boolean | CredentialShareToken$claimedByOrgArgs<ExtArgs>
+  }
+  export type CredentialShareTokenIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    claimedByOrg?: boolean | CredentialShareToken$claimedByOrgArgs<ExtArgs>
+  }
+  export type CredentialShareTokenIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    claimedByOrg?: boolean | CredentialShareToken$claimedByOrgArgs<ExtArgs>
+  }
+
+  export type $CredentialShareTokenPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CredentialShareToken"
+    objects: {
+      credential: Prisma.$VolunteerCredentialPayload<ExtArgs>
+      createdBy: Prisma.$UserPayload<ExtArgs>
+      claimedByOrg: Prisma.$OrganizationPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      credentialId: string
+      createdByUserId: string
+      tokenHash: string
+      expiresAt: Date
+      claimedByOrgId: string | null
+      claimedAt: Date | null
+      status: $Enums.ShareTokenStatus
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["credentialShareToken"]>
+    composites: {}
+  }
+
+  type CredentialShareTokenGetPayload<S extends boolean | null | undefined | CredentialShareTokenDefaultArgs> = $Result.GetResult<Prisma.$CredentialShareTokenPayload, S>
+
+  type CredentialShareTokenCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CredentialShareTokenFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CredentialShareTokenCountAggregateInputType | true
+    }
+
+  export interface CredentialShareTokenDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CredentialShareToken'], meta: { name: 'CredentialShareToken' } }
+    /**
+     * Find zero or one CredentialShareToken that matches the filter.
+     * @param {CredentialShareTokenFindUniqueArgs} args - Arguments to find a CredentialShareToken
+     * @example
+     * // Get one CredentialShareToken
+     * const credentialShareToken = await prisma.credentialShareToken.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CredentialShareTokenFindUniqueArgs>(args: SelectSubset<T, CredentialShareTokenFindUniqueArgs<ExtArgs>>): Prisma__CredentialShareTokenClient<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CredentialShareToken that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CredentialShareTokenFindUniqueOrThrowArgs} args - Arguments to find a CredentialShareToken
+     * @example
+     * // Get one CredentialShareToken
+     * const credentialShareToken = await prisma.credentialShareToken.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CredentialShareTokenFindUniqueOrThrowArgs>(args: SelectSubset<T, CredentialShareTokenFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CredentialShareTokenClient<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CredentialShareToken that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CredentialShareTokenFindFirstArgs} args - Arguments to find a CredentialShareToken
+     * @example
+     * // Get one CredentialShareToken
+     * const credentialShareToken = await prisma.credentialShareToken.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CredentialShareTokenFindFirstArgs>(args?: SelectSubset<T, CredentialShareTokenFindFirstArgs<ExtArgs>>): Prisma__CredentialShareTokenClient<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CredentialShareToken that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CredentialShareTokenFindFirstOrThrowArgs} args - Arguments to find a CredentialShareToken
+     * @example
+     * // Get one CredentialShareToken
+     * const credentialShareToken = await prisma.credentialShareToken.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CredentialShareTokenFindFirstOrThrowArgs>(args?: SelectSubset<T, CredentialShareTokenFindFirstOrThrowArgs<ExtArgs>>): Prisma__CredentialShareTokenClient<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CredentialShareTokens that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CredentialShareTokenFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CredentialShareTokens
+     * const credentialShareTokens = await prisma.credentialShareToken.findMany()
+     * 
+     * // Get first 10 CredentialShareTokens
+     * const credentialShareTokens = await prisma.credentialShareToken.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const credentialShareTokenWithIdOnly = await prisma.credentialShareToken.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CredentialShareTokenFindManyArgs>(args?: SelectSubset<T, CredentialShareTokenFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CredentialShareToken.
+     * @param {CredentialShareTokenCreateArgs} args - Arguments to create a CredentialShareToken.
+     * @example
+     * // Create one CredentialShareToken
+     * const CredentialShareToken = await prisma.credentialShareToken.create({
+     *   data: {
+     *     // ... data to create a CredentialShareToken
+     *   }
+     * })
+     * 
+     */
+    create<T extends CredentialShareTokenCreateArgs>(args: SelectSubset<T, CredentialShareTokenCreateArgs<ExtArgs>>): Prisma__CredentialShareTokenClient<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CredentialShareTokens.
+     * @param {CredentialShareTokenCreateManyArgs} args - Arguments to create many CredentialShareTokens.
+     * @example
+     * // Create many CredentialShareTokens
+     * const credentialShareToken = await prisma.credentialShareToken.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CredentialShareTokenCreateManyArgs>(args?: SelectSubset<T, CredentialShareTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CredentialShareTokens and returns the data saved in the database.
+     * @param {CredentialShareTokenCreateManyAndReturnArgs} args - Arguments to create many CredentialShareTokens.
+     * @example
+     * // Create many CredentialShareTokens
+     * const credentialShareToken = await prisma.credentialShareToken.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CredentialShareTokens and only return the `id`
+     * const credentialShareTokenWithIdOnly = await prisma.credentialShareToken.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CredentialShareTokenCreateManyAndReturnArgs>(args?: SelectSubset<T, CredentialShareTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CredentialShareToken.
+     * @param {CredentialShareTokenDeleteArgs} args - Arguments to delete one CredentialShareToken.
+     * @example
+     * // Delete one CredentialShareToken
+     * const CredentialShareToken = await prisma.credentialShareToken.delete({
+     *   where: {
+     *     // ... filter to delete one CredentialShareToken
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CredentialShareTokenDeleteArgs>(args: SelectSubset<T, CredentialShareTokenDeleteArgs<ExtArgs>>): Prisma__CredentialShareTokenClient<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CredentialShareToken.
+     * @param {CredentialShareTokenUpdateArgs} args - Arguments to update one CredentialShareToken.
+     * @example
+     * // Update one CredentialShareToken
+     * const credentialShareToken = await prisma.credentialShareToken.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CredentialShareTokenUpdateArgs>(args: SelectSubset<T, CredentialShareTokenUpdateArgs<ExtArgs>>): Prisma__CredentialShareTokenClient<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CredentialShareTokens.
+     * @param {CredentialShareTokenDeleteManyArgs} args - Arguments to filter CredentialShareTokens to delete.
+     * @example
+     * // Delete a few CredentialShareTokens
+     * const { count } = await prisma.credentialShareToken.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CredentialShareTokenDeleteManyArgs>(args?: SelectSubset<T, CredentialShareTokenDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CredentialShareTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CredentialShareTokenUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CredentialShareTokens
+     * const credentialShareToken = await prisma.credentialShareToken.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CredentialShareTokenUpdateManyArgs>(args: SelectSubset<T, CredentialShareTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CredentialShareTokens and returns the data updated in the database.
+     * @param {CredentialShareTokenUpdateManyAndReturnArgs} args - Arguments to update many CredentialShareTokens.
+     * @example
+     * // Update many CredentialShareTokens
+     * const credentialShareToken = await prisma.credentialShareToken.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CredentialShareTokens and only return the `id`
+     * const credentialShareTokenWithIdOnly = await prisma.credentialShareToken.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CredentialShareTokenUpdateManyAndReturnArgs>(args: SelectSubset<T, CredentialShareTokenUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CredentialShareToken.
+     * @param {CredentialShareTokenUpsertArgs} args - Arguments to update or create a CredentialShareToken.
+     * @example
+     * // Update or create a CredentialShareToken
+     * const credentialShareToken = await prisma.credentialShareToken.upsert({
+     *   create: {
+     *     // ... data to create a CredentialShareToken
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CredentialShareToken we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CredentialShareTokenUpsertArgs>(args: SelectSubset<T, CredentialShareTokenUpsertArgs<ExtArgs>>): Prisma__CredentialShareTokenClient<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CredentialShareTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CredentialShareTokenCountArgs} args - Arguments to filter CredentialShareTokens to count.
+     * @example
+     * // Count the number of CredentialShareTokens
+     * const count = await prisma.credentialShareToken.count({
+     *   where: {
+     *     // ... the filter for the CredentialShareTokens we want to count
+     *   }
+     * })
+    **/
+    count<T extends CredentialShareTokenCountArgs>(
+      args?: Subset<T, CredentialShareTokenCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CredentialShareTokenCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CredentialShareToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CredentialShareTokenAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CredentialShareTokenAggregateArgs>(args: Subset<T, CredentialShareTokenAggregateArgs>): Prisma.PrismaPromise<GetCredentialShareTokenAggregateType<T>>
+
+    /**
+     * Group by CredentialShareToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CredentialShareTokenGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CredentialShareTokenGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CredentialShareTokenGroupByArgs['orderBy'] }
+        : { orderBy?: CredentialShareTokenGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CredentialShareTokenGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCredentialShareTokenGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CredentialShareToken model
+   */
+  readonly fields: CredentialShareTokenFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CredentialShareToken.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CredentialShareTokenClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    credential<T extends VolunteerCredentialDefaultArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerCredentialDefaultArgs<ExtArgs>>): Prisma__VolunteerCredentialClient<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    createdBy<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    claimedByOrg<T extends CredentialShareToken$claimedByOrgArgs<ExtArgs> = {}>(args?: Subset<T, CredentialShareToken$claimedByOrgArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CredentialShareToken model
+   */
+  interface CredentialShareTokenFieldRefs {
+    readonly id: FieldRef<"CredentialShareToken", 'String'>
+    readonly credentialId: FieldRef<"CredentialShareToken", 'String'>
+    readonly createdByUserId: FieldRef<"CredentialShareToken", 'String'>
+    readonly tokenHash: FieldRef<"CredentialShareToken", 'String'>
+    readonly expiresAt: FieldRef<"CredentialShareToken", 'DateTime'>
+    readonly claimedByOrgId: FieldRef<"CredentialShareToken", 'String'>
+    readonly claimedAt: FieldRef<"CredentialShareToken", 'DateTime'>
+    readonly status: FieldRef<"CredentialShareToken", 'ShareTokenStatus'>
+    readonly createdAt: FieldRef<"CredentialShareToken", 'DateTime'>
+    readonly updatedAt: FieldRef<"CredentialShareToken", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CredentialShareToken findUnique
+   */
+  export type CredentialShareTokenFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which CredentialShareToken to fetch.
+     */
+    where: CredentialShareTokenWhereUniqueInput
+  }
+
+  /**
+   * CredentialShareToken findUniqueOrThrow
+   */
+  export type CredentialShareTokenFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which CredentialShareToken to fetch.
+     */
+    where: CredentialShareTokenWhereUniqueInput
+  }
+
+  /**
+   * CredentialShareToken findFirst
+   */
+  export type CredentialShareTokenFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which CredentialShareToken to fetch.
+     */
+    where?: CredentialShareTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CredentialShareTokens to fetch.
+     */
+    orderBy?: CredentialShareTokenOrderByWithRelationInput | CredentialShareTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CredentialShareTokens.
+     */
+    cursor?: CredentialShareTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CredentialShareTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CredentialShareTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CredentialShareTokens.
+     */
+    distinct?: CredentialShareTokenScalarFieldEnum | CredentialShareTokenScalarFieldEnum[]
+  }
+
+  /**
+   * CredentialShareToken findFirstOrThrow
+   */
+  export type CredentialShareTokenFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which CredentialShareToken to fetch.
+     */
+    where?: CredentialShareTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CredentialShareTokens to fetch.
+     */
+    orderBy?: CredentialShareTokenOrderByWithRelationInput | CredentialShareTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CredentialShareTokens.
+     */
+    cursor?: CredentialShareTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CredentialShareTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CredentialShareTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CredentialShareTokens.
+     */
+    distinct?: CredentialShareTokenScalarFieldEnum | CredentialShareTokenScalarFieldEnum[]
+  }
+
+  /**
+   * CredentialShareToken findMany
+   */
+  export type CredentialShareTokenFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which CredentialShareTokens to fetch.
+     */
+    where?: CredentialShareTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CredentialShareTokens to fetch.
+     */
+    orderBy?: CredentialShareTokenOrderByWithRelationInput | CredentialShareTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CredentialShareTokens.
+     */
+    cursor?: CredentialShareTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CredentialShareTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CredentialShareTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CredentialShareTokens.
+     */
+    distinct?: CredentialShareTokenScalarFieldEnum | CredentialShareTokenScalarFieldEnum[]
+  }
+
+  /**
+   * CredentialShareToken create
+   */
+  export type CredentialShareTokenCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CredentialShareToken.
+     */
+    data: XOR<CredentialShareTokenCreateInput, CredentialShareTokenUncheckedCreateInput>
+  }
+
+  /**
+   * CredentialShareToken createMany
+   */
+  export type CredentialShareTokenCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CredentialShareTokens.
+     */
+    data: CredentialShareTokenCreateManyInput | CredentialShareTokenCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CredentialShareToken createManyAndReturn
+   */
+  export type CredentialShareTokenCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * The data used to create many CredentialShareTokens.
+     */
+    data: CredentialShareTokenCreateManyInput | CredentialShareTokenCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CredentialShareToken update
+   */
+  export type CredentialShareTokenUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CredentialShareToken.
+     */
+    data: XOR<CredentialShareTokenUpdateInput, CredentialShareTokenUncheckedUpdateInput>
+    /**
+     * Choose, which CredentialShareToken to update.
+     */
+    where: CredentialShareTokenWhereUniqueInput
+  }
+
+  /**
+   * CredentialShareToken updateMany
+   */
+  export type CredentialShareTokenUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CredentialShareTokens.
+     */
+    data: XOR<CredentialShareTokenUpdateManyMutationInput, CredentialShareTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which CredentialShareTokens to update
+     */
+    where?: CredentialShareTokenWhereInput
+    /**
+     * Limit how many CredentialShareTokens to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CredentialShareToken updateManyAndReturn
+   */
+  export type CredentialShareTokenUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * The data used to update CredentialShareTokens.
+     */
+    data: XOR<CredentialShareTokenUpdateManyMutationInput, CredentialShareTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which CredentialShareTokens to update
+     */
+    where?: CredentialShareTokenWhereInput
+    /**
+     * Limit how many CredentialShareTokens to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CredentialShareToken upsert
+   */
+  export type CredentialShareTokenUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CredentialShareToken to update in case it exists.
+     */
+    where: CredentialShareTokenWhereUniqueInput
+    /**
+     * In case the CredentialShareToken found by the `where` argument doesn't exist, create a new CredentialShareToken with this data.
+     */
+    create: XOR<CredentialShareTokenCreateInput, CredentialShareTokenUncheckedCreateInput>
+    /**
+     * In case the CredentialShareToken was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CredentialShareTokenUpdateInput, CredentialShareTokenUncheckedUpdateInput>
+  }
+
+  /**
+   * CredentialShareToken delete
+   */
+  export type CredentialShareTokenDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+    /**
+     * Filter which CredentialShareToken to delete.
+     */
+    where: CredentialShareTokenWhereUniqueInput
+  }
+
+  /**
+   * CredentialShareToken deleteMany
+   */
+  export type CredentialShareTokenDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CredentialShareTokens to delete
+     */
+    where?: CredentialShareTokenWhereInput
+    /**
+     * Limit how many CredentialShareTokens to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CredentialShareToken.claimedByOrg
+   */
+  export type CredentialShareToken$claimedByOrgArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Organization
+     */
+    select?: OrganizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Organization
+     */
+    omit?: OrganizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationInclude<ExtArgs> | null
+    where?: OrganizationWhereInput
+  }
+
+  /**
+   * CredentialShareToken without action
+   */
+  export type CredentialShareTokenDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CredentialShareToken
+     */
+    select?: CredentialShareTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CredentialShareToken
+     */
+    omit?: CredentialShareTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CredentialShareTokenInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -38665,6 +40170,9 @@ export namespace Prisma {
     expiresAt: 'expiresAt',
     notes: 'notes',
     issuedById: 'issuedById',
+    sharedFromOrgId: 'sharedFromOrgId',
+    sharedFromCredentialId: 'sharedFromCredentialId',
+    notifiedAt: 'notifiedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -38795,6 +40303,22 @@ export namespace Prisma {
   };
 
   export type CheckrWebhookEventScalarFieldEnum = (typeof CheckrWebhookEventScalarFieldEnum)[keyof typeof CheckrWebhookEventScalarFieldEnum]
+
+
+  export const CredentialShareTokenScalarFieldEnum: {
+    id: 'id',
+    credentialId: 'credentialId',
+    createdByUserId: 'createdByUserId',
+    tokenHash: 'tokenHash',
+    expiresAt: 'expiresAt',
+    claimedByOrgId: 'claimedByOrgId',
+    claimedAt: 'claimedAt',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CredentialShareTokenScalarFieldEnum = (typeof CredentialShareTokenScalarFieldEnum)[keyof typeof CredentialShareTokenScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -39177,6 +40701,20 @@ export namespace Prisma {
    */
   export type ListEnumFcraStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FcraStatus[]'>
     
+
+
+  /**
+   * Reference to a field of type 'ShareTokenStatus'
+   */
+  export type EnumShareTokenStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShareTokenStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'ShareTokenStatus[]'
+   */
+  export type ListEnumShareTokenStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShareTokenStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -39204,6 +40742,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialListRelationFilter
     shiftSignups?: ShiftSignupListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
+    createdShareTokens?: CredentialShareTokenListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -39225,6 +40764,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialOrderByRelationAggregateInput
     shiftSignups?: ShiftSignupOrderByRelationAggregateInput
     backgroundCheckRequests?: BackgroundCheckRequestOrderByRelationAggregateInput
+    createdShareTokens?: CredentialShareTokenOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -39249,6 +40789,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialListRelationFilter
     shiftSignups?: ShiftSignupListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
+    createdShareTokens?: CredentialShareTokenListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -39570,6 +41111,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationListRelationFilter
     opportunities?: VolunteerOpportunityListRelationFilter
     credentials?: VolunteerCredentialListRelationFilter
+    sharedCredentials?: VolunteerCredentialListRelationFilter
+    claimedShareTokens?: CredentialShareTokenListRelationFilter
     shifts?: ShiftListRelationFilter
     companyLinks?: CompanyNonprofitLinkListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
@@ -39596,6 +41139,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationOrderByRelationAggregateInput
     opportunities?: VolunteerOpportunityOrderByRelationAggregateInput
     credentials?: VolunteerCredentialOrderByRelationAggregateInput
+    sharedCredentials?: VolunteerCredentialOrderByRelationAggregateInput
+    claimedShareTokens?: CredentialShareTokenOrderByRelationAggregateInput
     shifts?: ShiftOrderByRelationAggregateInput
     companyLinks?: CompanyNonprofitLinkOrderByRelationAggregateInput
     backgroundCheckRequests?: BackgroundCheckRequestOrderByRelationAggregateInput
@@ -39625,6 +41170,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationListRelationFilter
     opportunities?: VolunteerOpportunityListRelationFilter
     credentials?: VolunteerCredentialListRelationFilter
+    sharedCredentials?: VolunteerCredentialListRelationFilter
+    claimedShareTokens?: CredentialShareTokenListRelationFilter
     shifts?: ShiftListRelationFilter
     companyLinks?: CompanyNonprofitLinkListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
@@ -40644,11 +42191,16 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
     notes?: StringNullableFilter<"VolunteerCredential"> | string | null
     issuedById?: StringNullableFilter<"VolunteerCredential"> | string | null
+    sharedFromOrgId?: StringNullableFilter<"VolunteerCredential"> | string | null
+    sharedFromCredentialId?: StringNullableFilter<"VolunteerCredential"> | string | null
+    notifiedAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
     createdAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
     updatedAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    sharedFromOrg?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
     backgroundCheckRequest?: XOR<BackgroundCheckRequestNullableScalarRelationFilter, BackgroundCheckRequestWhereInput> | null
+    shareTokens?: CredentialShareTokenListRelationFilter
   }
 
   export type VolunteerCredentialOrderByWithRelationInput = {
@@ -40661,11 +42213,16 @@ export namespace Prisma {
     expiresAt?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     issuedById?: SortOrderInput | SortOrder
+    sharedFromOrgId?: SortOrderInput | SortOrder
+    sharedFromCredentialId?: SortOrderInput | SortOrder
+    notifiedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
     organization?: OrganizationOrderByWithRelationInput
+    sharedFromOrg?: OrganizationOrderByWithRelationInput
     backgroundCheckRequest?: BackgroundCheckRequestOrderByWithRelationInput
+    shareTokens?: CredentialShareTokenOrderByRelationAggregateInput
   }
 
   export type VolunteerCredentialWhereUniqueInput = Prisma.AtLeast<{
@@ -40682,11 +42239,16 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
     notes?: StringNullableFilter<"VolunteerCredential"> | string | null
     issuedById?: StringNullableFilter<"VolunteerCredential"> | string | null
+    sharedFromOrgId?: StringNullableFilter<"VolunteerCredential"> | string | null
+    sharedFromCredentialId?: StringNullableFilter<"VolunteerCredential"> | string | null
+    notifiedAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
     createdAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
     updatedAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    sharedFromOrg?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
     backgroundCheckRequest?: XOR<BackgroundCheckRequestNullableScalarRelationFilter, BackgroundCheckRequestWhereInput> | null
+    shareTokens?: CredentialShareTokenListRelationFilter
   }, "id" | "userId_orgId_type">
 
   export type VolunteerCredentialOrderByWithAggregationInput = {
@@ -40699,6 +42261,9 @@ export namespace Prisma {
     expiresAt?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     issuedById?: SortOrderInput | SortOrder
+    sharedFromOrgId?: SortOrderInput | SortOrder
+    sharedFromCredentialId?: SortOrderInput | SortOrder
+    notifiedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: VolunteerCredentialCountOrderByAggregateInput
@@ -40719,6 +42284,9 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableWithAggregatesFilter<"VolunteerCredential"> | Date | string | null
     notes?: StringNullableWithAggregatesFilter<"VolunteerCredential"> | string | null
     issuedById?: StringNullableWithAggregatesFilter<"VolunteerCredential"> | string | null
+    sharedFromOrgId?: StringNullableWithAggregatesFilter<"VolunteerCredential"> | string | null
+    sharedFromCredentialId?: StringNullableWithAggregatesFilter<"VolunteerCredential"> | string | null
+    notifiedAt?: DateTimeNullableWithAggregatesFilter<"VolunteerCredential"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"VolunteerCredential"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"VolunteerCredential"> | Date | string
   }
@@ -41380,6 +42948,92 @@ export namespace Prisma {
     payload?: JsonWithAggregatesFilter<"CheckrWebhookEvent">
   }
 
+  export type CredentialShareTokenWhereInput = {
+    AND?: CredentialShareTokenWhereInput | CredentialShareTokenWhereInput[]
+    OR?: CredentialShareTokenWhereInput[]
+    NOT?: CredentialShareTokenWhereInput | CredentialShareTokenWhereInput[]
+    id?: StringFilter<"CredentialShareToken"> | string
+    credentialId?: StringFilter<"CredentialShareToken"> | string
+    createdByUserId?: StringFilter<"CredentialShareToken"> | string
+    tokenHash?: StringFilter<"CredentialShareToken"> | string
+    expiresAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
+    claimedByOrgId?: StringNullableFilter<"CredentialShareToken"> | string | null
+    claimedAt?: DateTimeNullableFilter<"CredentialShareToken"> | Date | string | null
+    status?: EnumShareTokenStatusFilter<"CredentialShareToken"> | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
+    updatedAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
+    credential?: XOR<VolunteerCredentialScalarRelationFilter, VolunteerCredentialWhereInput>
+    createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+    claimedByOrg?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
+  }
+
+  export type CredentialShareTokenOrderByWithRelationInput = {
+    id?: SortOrder
+    credentialId?: SortOrder
+    createdByUserId?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    claimedByOrgId?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    credential?: VolunteerCredentialOrderByWithRelationInput
+    createdBy?: UserOrderByWithRelationInput
+    claimedByOrg?: OrganizationOrderByWithRelationInput
+  }
+
+  export type CredentialShareTokenWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tokenHash?: string
+    AND?: CredentialShareTokenWhereInput | CredentialShareTokenWhereInput[]
+    OR?: CredentialShareTokenWhereInput[]
+    NOT?: CredentialShareTokenWhereInput | CredentialShareTokenWhereInput[]
+    credentialId?: StringFilter<"CredentialShareToken"> | string
+    createdByUserId?: StringFilter<"CredentialShareToken"> | string
+    expiresAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
+    claimedByOrgId?: StringNullableFilter<"CredentialShareToken"> | string | null
+    claimedAt?: DateTimeNullableFilter<"CredentialShareToken"> | Date | string | null
+    status?: EnumShareTokenStatusFilter<"CredentialShareToken"> | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
+    updatedAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
+    credential?: XOR<VolunteerCredentialScalarRelationFilter, VolunteerCredentialWhereInput>
+    createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+    claimedByOrg?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
+  }, "id" | "tokenHash">
+
+  export type CredentialShareTokenOrderByWithAggregationInput = {
+    id?: SortOrder
+    credentialId?: SortOrder
+    createdByUserId?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    claimedByOrgId?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CredentialShareTokenCountOrderByAggregateInput
+    _max?: CredentialShareTokenMaxOrderByAggregateInput
+    _min?: CredentialShareTokenMinOrderByAggregateInput
+  }
+
+  export type CredentialShareTokenScalarWhereWithAggregatesInput = {
+    AND?: CredentialShareTokenScalarWhereWithAggregatesInput | CredentialShareTokenScalarWhereWithAggregatesInput[]
+    OR?: CredentialShareTokenScalarWhereWithAggregatesInput[]
+    NOT?: CredentialShareTokenScalarWhereWithAggregatesInput | CredentialShareTokenScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CredentialShareToken"> | string
+    credentialId?: StringWithAggregatesFilter<"CredentialShareToken"> | string
+    createdByUserId?: StringWithAggregatesFilter<"CredentialShareToken"> | string
+    tokenHash?: StringWithAggregatesFilter<"CredentialShareToken"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"CredentialShareToken"> | Date | string
+    claimedByOrgId?: StringNullableWithAggregatesFilter<"CredentialShareToken"> | string | null
+    claimedAt?: DateTimeNullableWithAggregatesFilter<"CredentialShareToken"> | Date | string | null
+    status?: EnumShareTokenStatusWithAggregatesFilter<"CredentialShareToken"> | $Enums.ShareTokenStatus
+    createdAt?: DateTimeWithAggregatesFilter<"CredentialShareToken"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CredentialShareToken"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -41399,6 +43053,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -41420,6 +43075,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUpdateInput = {
@@ -41441,6 +43097,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -41462,6 +43119,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -41798,6 +43456,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -41824,6 +43484,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -41850,6 +43512,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -41876,6 +43540,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -42926,11 +44592,15 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutCredentialsInput
     organization: OrganizationCreateNestedOneWithoutCredentialsInput
+    sharedFromOrg?: OrganizationCreateNestedOneWithoutSharedCredentialsInput
     backgroundCheckRequest?: BackgroundCheckRequestCreateNestedOneWithoutCredentialInput
+    shareTokens?: CredentialShareTokenCreateNestedManyWithoutCredentialInput
   }
 
   export type VolunteerCredentialUncheckedCreateInput = {
@@ -42943,9 +44613,13 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromOrgId?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     backgroundCheckRequest?: BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput
+    shareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCredentialInput
   }
 
   export type VolunteerCredentialUpdateInput = {
@@ -42956,11 +44630,15 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
     organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+    sharedFromOrg?: OrganizationUpdateOneWithoutSharedCredentialsNestedInput
     backgroundCheckRequest?: BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput
+    shareTokens?: CredentialShareTokenUpdateManyWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateInput = {
@@ -42973,9 +44651,13 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     backgroundCheckRequest?: BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput
+    shareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialCreateManyInput = {
@@ -42988,6 +44670,9 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromOrgId?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -43000,6 +44685,8 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -43014,6 +44701,9 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -43716,6 +45406,94 @@ export namespace Prisma {
     payload?: JsonNullValueInput | InputJsonValue
   }
 
+  export type CredentialShareTokenCreateInput = {
+    id?: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    credential: VolunteerCredentialCreateNestedOneWithoutShareTokensInput
+    createdBy: UserCreateNestedOneWithoutCreatedShareTokensInput
+    claimedByOrg?: OrganizationCreateNestedOneWithoutClaimedShareTokensInput
+  }
+
+  export type CredentialShareTokenUncheckedCreateInput = {
+    id?: string
+    credentialId: string
+    createdByUserId: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedByOrgId?: string | null
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CredentialShareTokenUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    credential?: VolunteerCredentialUpdateOneRequiredWithoutShareTokensNestedInput
+    createdBy?: UserUpdateOneRequiredWithoutCreatedShareTokensNestedInput
+    claimedByOrg?: OrganizationUpdateOneWithoutClaimedShareTokensNestedInput
+  }
+
+  export type CredentialShareTokenUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    createdByUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CredentialShareTokenCreateManyInput = {
+    id?: string
+    credentialId: string
+    createdByUserId: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedByOrgId?: string | null
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CredentialShareTokenUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CredentialShareTokenUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    createdByUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -43833,6 +45611,12 @@ export namespace Prisma {
     none?: BackgroundCheckRequestWhereInput
   }
 
+  export type CredentialShareTokenListRelationFilter = {
+    every?: CredentialShareTokenWhereInput
+    some?: CredentialShareTokenWhereInput
+    none?: CredentialShareTokenWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -43875,6 +45659,10 @@ export namespace Prisma {
   }
 
   export type BackgroundCheckRequestOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CredentialShareTokenOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -45154,6 +46942,9 @@ export namespace Prisma {
     expiresAt?: SortOrder
     notes?: SortOrder
     issuedById?: SortOrder
+    sharedFromOrgId?: SortOrder
+    sharedFromCredentialId?: SortOrder
+    notifiedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -45168,6 +46959,9 @@ export namespace Prisma {
     expiresAt?: SortOrder
     notes?: SortOrder
     issuedById?: SortOrder
+    sharedFromOrgId?: SortOrder
+    sharedFromCredentialId?: SortOrder
+    notifiedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -45182,6 +46976,9 @@ export namespace Prisma {
     expiresAt?: SortOrder
     notes?: SortOrder
     issuedById?: SortOrder
+    sharedFromOrgId?: SortOrder
+    sharedFromCredentialId?: SortOrder
+    notifiedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -45661,6 +47458,67 @@ export namespace Prisma {
     processedAt?: SortOrder
   }
 
+  export type EnumShareTokenStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ShareTokenStatus | EnumShareTokenStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ShareTokenStatus[] | ListEnumShareTokenStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ShareTokenStatus[] | ListEnumShareTokenStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumShareTokenStatusFilter<$PrismaModel> | $Enums.ShareTokenStatus
+  }
+
+  export type VolunteerCredentialScalarRelationFilter = {
+    is?: VolunteerCredentialWhereInput
+    isNot?: VolunteerCredentialWhereInput
+  }
+
+  export type CredentialShareTokenCountOrderByAggregateInput = {
+    id?: SortOrder
+    credentialId?: SortOrder
+    createdByUserId?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    claimedByOrgId?: SortOrder
+    claimedAt?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CredentialShareTokenMaxOrderByAggregateInput = {
+    id?: SortOrder
+    credentialId?: SortOrder
+    createdByUserId?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    claimedByOrgId?: SortOrder
+    claimedAt?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CredentialShareTokenMinOrderByAggregateInput = {
+    id?: SortOrder
+    credentialId?: SortOrder
+    createdByUserId?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    claimedByOrgId?: SortOrder
+    claimedAt?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumShareTokenStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ShareTokenStatus | EnumShareTokenStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ShareTokenStatus[] | ListEnumShareTokenStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ShareTokenStatus[] | ListEnumShareTokenStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumShareTokenStatusWithAggregatesFilter<$PrismaModel> | $Enums.ShareTokenStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumShareTokenStatusFilter<$PrismaModel>
+    _max?: NestedEnumShareTokenStatusFilter<$PrismaModel>
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -45737,6 +47595,13 @@ export namespace Prisma {
     connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
   }
 
+  export type CredentialShareTokenCreateNestedManyWithoutCreatedByInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutCreatedByInput, CredentialShareTokenUncheckedCreateWithoutCreatedByInput> | CredentialShareTokenCreateWithoutCreatedByInput[] | CredentialShareTokenUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutCreatedByInput | CredentialShareTokenCreateOrConnectWithoutCreatedByInput[]
+    createMany?: CredentialShareTokenCreateManyCreatedByInputEnvelope
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -45811,6 +47676,13 @@ export namespace Prisma {
     connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutUserInput | BackgroundCheckRequestCreateOrConnectWithoutUserInput[]
     createMany?: BackgroundCheckRequestCreateManyUserInputEnvelope
     connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+  }
+
+  export type CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutCreatedByInput, CredentialShareTokenUncheckedCreateWithoutCreatedByInput> | CredentialShareTokenCreateWithoutCreatedByInput[] | CredentialShareTokenUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutCreatedByInput | CredentialShareTokenCreateOrConnectWithoutCreatedByInput[]
+    createMany?: CredentialShareTokenCreateManyCreatedByInputEnvelope
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -45979,6 +47851,20 @@ export namespace Prisma {
     deleteMany?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
   }
 
+  export type CredentialShareTokenUpdateManyWithoutCreatedByNestedInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutCreatedByInput, CredentialShareTokenUncheckedCreateWithoutCreatedByInput> | CredentialShareTokenCreateWithoutCreatedByInput[] | CredentialShareTokenUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutCreatedByInput | CredentialShareTokenCreateOrConnectWithoutCreatedByInput[]
+    upsert?: CredentialShareTokenUpsertWithWhereUniqueWithoutCreatedByInput | CredentialShareTokenUpsertWithWhereUniqueWithoutCreatedByInput[]
+    createMany?: CredentialShareTokenCreateManyCreatedByInputEnvelope
+    set?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    disconnect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    delete?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    update?: CredentialShareTokenUpdateWithWhereUniqueWithoutCreatedByInput | CredentialShareTokenUpdateWithWhereUniqueWithoutCreatedByInput[]
+    updateMany?: CredentialShareTokenUpdateManyWithWhereWithoutCreatedByInput | CredentialShareTokenUpdateManyWithWhereWithoutCreatedByInput[]
+    deleteMany?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -46129,6 +48015,20 @@ export namespace Prisma {
     deleteMany?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
   }
 
+  export type CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutCreatedByInput, CredentialShareTokenUncheckedCreateWithoutCreatedByInput> | CredentialShareTokenCreateWithoutCreatedByInput[] | CredentialShareTokenUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutCreatedByInput | CredentialShareTokenCreateOrConnectWithoutCreatedByInput[]
+    upsert?: CredentialShareTokenUpsertWithWhereUniqueWithoutCreatedByInput | CredentialShareTokenUpsertWithWhereUniqueWithoutCreatedByInput[]
+    createMany?: CredentialShareTokenCreateManyCreatedByInputEnvelope
+    set?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    disconnect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    delete?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    update?: CredentialShareTokenUpdateWithWhereUniqueWithoutCreatedByInput | CredentialShareTokenUpdateWithWhereUniqueWithoutCreatedByInput[]
+    updateMany?: CredentialShareTokenUpdateManyWithWhereWithoutCreatedByInput | CredentialShareTokenUpdateManyWithWhereWithoutCreatedByInput[]
+    deleteMany?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutAccountsInput = {
     create?: XOR<UserCreateWithoutAccountsInput, UserUncheckedCreateWithoutAccountsInput>
     connectOrCreate?: UserCreateOrConnectWithoutAccountsInput
@@ -46260,6 +48160,20 @@ export namespace Prisma {
     connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
   }
 
+  export type VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutSharedFromOrgInput, VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput> | VolunteerCredentialCreateWithoutSharedFromOrgInput[] | VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutSharedFromOrgInput | VolunteerCredentialCreateOrConnectWithoutSharedFromOrgInput[]
+    createMany?: VolunteerCredentialCreateManySharedFromOrgInputEnvelope
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+  }
+
+  export type CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutClaimedByOrgInput, CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput> | CredentialShareTokenCreateWithoutClaimedByOrgInput[] | CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutClaimedByOrgInput | CredentialShareTokenCreateOrConnectWithoutClaimedByOrgInput[]
+    createMany?: CredentialShareTokenCreateManyClaimedByOrgInputEnvelope
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+  }
+
   export type ShiftCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<ShiftCreateWithoutOrganizationInput, ShiftUncheckedCreateWithoutOrganizationInput> | ShiftCreateWithoutOrganizationInput[] | ShiftUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: ShiftCreateOrConnectWithoutOrganizationInput | ShiftCreateOrConnectWithoutOrganizationInput[]
@@ -46342,6 +48256,20 @@ export namespace Prisma {
     connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutOrganizationInput | VolunteerCredentialCreateOrConnectWithoutOrganizationInput[]
     createMany?: VolunteerCredentialCreateManyOrganizationInputEnvelope
     connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+  }
+
+  export type VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutSharedFromOrgInput, VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput> | VolunteerCredentialCreateWithoutSharedFromOrgInput[] | VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutSharedFromOrgInput | VolunteerCredentialCreateOrConnectWithoutSharedFromOrgInput[]
+    createMany?: VolunteerCredentialCreateManySharedFromOrgInputEnvelope
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+  }
+
+  export type CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutClaimedByOrgInput, CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput> | CredentialShareTokenCreateWithoutClaimedByOrgInput[] | CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutClaimedByOrgInput | CredentialShareTokenCreateOrConnectWithoutClaimedByOrgInput[]
+    createMany?: CredentialShareTokenCreateManyClaimedByOrgInputEnvelope
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
   }
 
   export type ShiftUncheckedCreateNestedManyWithoutOrganizationInput = {
@@ -46493,6 +48421,34 @@ export namespace Prisma {
     update?: VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput | VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput | VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+  }
+
+  export type VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutSharedFromOrgInput, VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput> | VolunteerCredentialCreateWithoutSharedFromOrgInput[] | VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutSharedFromOrgInput | VolunteerCredentialCreateOrConnectWithoutSharedFromOrgInput[]
+    upsert?: VolunteerCredentialUpsertWithWhereUniqueWithoutSharedFromOrgInput | VolunteerCredentialUpsertWithWhereUniqueWithoutSharedFromOrgInput[]
+    createMany?: VolunteerCredentialCreateManySharedFromOrgInputEnvelope
+    set?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    disconnect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    delete?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    update?: VolunteerCredentialUpdateWithWhereUniqueWithoutSharedFromOrgInput | VolunteerCredentialUpdateWithWhereUniqueWithoutSharedFromOrgInput[]
+    updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutSharedFromOrgInput | VolunteerCredentialUpdateManyWithWhereWithoutSharedFromOrgInput[]
+    deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+  }
+
+  export type CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutClaimedByOrgInput, CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput> | CredentialShareTokenCreateWithoutClaimedByOrgInput[] | CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutClaimedByOrgInput | CredentialShareTokenCreateOrConnectWithoutClaimedByOrgInput[]
+    upsert?: CredentialShareTokenUpsertWithWhereUniqueWithoutClaimedByOrgInput | CredentialShareTokenUpsertWithWhereUniqueWithoutClaimedByOrgInput[]
+    createMany?: CredentialShareTokenCreateManyClaimedByOrgInputEnvelope
+    set?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    disconnect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    delete?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    update?: CredentialShareTokenUpdateWithWhereUniqueWithoutClaimedByOrgInput | CredentialShareTokenUpdateWithWhereUniqueWithoutClaimedByOrgInput[]
+    updateMany?: CredentialShareTokenUpdateManyWithWhereWithoutClaimedByOrgInput | CredentialShareTokenUpdateManyWithWhereWithoutClaimedByOrgInput[]
+    deleteMany?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
   }
 
   export type ShiftUpdateManyWithoutOrganizationNestedInput = {
@@ -46661,6 +48617,34 @@ export namespace Prisma {
     update?: VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput | VolunteerCredentialUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput | VolunteerCredentialUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+  }
+
+  export type VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutSharedFromOrgInput, VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput> | VolunteerCredentialCreateWithoutSharedFromOrgInput[] | VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput[]
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutSharedFromOrgInput | VolunteerCredentialCreateOrConnectWithoutSharedFromOrgInput[]
+    upsert?: VolunteerCredentialUpsertWithWhereUniqueWithoutSharedFromOrgInput | VolunteerCredentialUpsertWithWhereUniqueWithoutSharedFromOrgInput[]
+    createMany?: VolunteerCredentialCreateManySharedFromOrgInputEnvelope
+    set?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    disconnect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    delete?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    connect?: VolunteerCredentialWhereUniqueInput | VolunteerCredentialWhereUniqueInput[]
+    update?: VolunteerCredentialUpdateWithWhereUniqueWithoutSharedFromOrgInput | VolunteerCredentialUpdateWithWhereUniqueWithoutSharedFromOrgInput[]
+    updateMany?: VolunteerCredentialUpdateManyWithWhereWithoutSharedFromOrgInput | VolunteerCredentialUpdateManyWithWhereWithoutSharedFromOrgInput[]
+    deleteMany?: VolunteerCredentialScalarWhereInput | VolunteerCredentialScalarWhereInput[]
+  }
+
+  export type CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutClaimedByOrgInput, CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput> | CredentialShareTokenCreateWithoutClaimedByOrgInput[] | CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutClaimedByOrgInput | CredentialShareTokenCreateOrConnectWithoutClaimedByOrgInput[]
+    upsert?: CredentialShareTokenUpsertWithWhereUniqueWithoutClaimedByOrgInput | CredentialShareTokenUpsertWithWhereUniqueWithoutClaimedByOrgInput[]
+    createMany?: CredentialShareTokenCreateManyClaimedByOrgInputEnvelope
+    set?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    disconnect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    delete?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    update?: CredentialShareTokenUpdateWithWhereUniqueWithoutClaimedByOrgInput | CredentialShareTokenUpdateWithWhereUniqueWithoutClaimedByOrgInput[]
+    updateMany?: CredentialShareTokenUpdateManyWithWhereWithoutClaimedByOrgInput | CredentialShareTokenUpdateManyWithWhereWithoutClaimedByOrgInput[]
+    deleteMany?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
   }
 
   export type ShiftUncheckedUpdateManyWithoutOrganizationNestedInput = {
@@ -47464,16 +49448,36 @@ export namespace Prisma {
     connect?: OrganizationWhereUniqueInput
   }
 
+  export type OrganizationCreateNestedOneWithoutSharedCredentialsInput = {
+    create?: XOR<OrganizationCreateWithoutSharedCredentialsInput, OrganizationUncheckedCreateWithoutSharedCredentialsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutSharedCredentialsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
   export type BackgroundCheckRequestCreateNestedOneWithoutCredentialInput = {
     create?: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
     connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutCredentialInput
     connect?: BackgroundCheckRequestWhereUniqueInput
   }
 
+  export type CredentialShareTokenCreateNestedManyWithoutCredentialInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutCredentialInput, CredentialShareTokenUncheckedCreateWithoutCredentialInput> | CredentialShareTokenCreateWithoutCredentialInput[] | CredentialShareTokenUncheckedCreateWithoutCredentialInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutCredentialInput | CredentialShareTokenCreateOrConnectWithoutCredentialInput[]
+    createMany?: CredentialShareTokenCreateManyCredentialInputEnvelope
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+  }
+
   export type BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput = {
     create?: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
     connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutCredentialInput
     connect?: BackgroundCheckRequestWhereUniqueInput
+  }
+
+  export type CredentialShareTokenUncheckedCreateNestedManyWithoutCredentialInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutCredentialInput, CredentialShareTokenUncheckedCreateWithoutCredentialInput> | CredentialShareTokenCreateWithoutCredentialInput[] | CredentialShareTokenUncheckedCreateWithoutCredentialInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutCredentialInput | CredentialShareTokenCreateOrConnectWithoutCredentialInput[]
+    createMany?: CredentialShareTokenCreateManyCredentialInputEnvelope
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
   }
 
   export type EnumCredentialTypeFieldUpdateOperationsInput = {
@@ -47500,6 +49504,16 @@ export namespace Prisma {
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutCredentialsInput, OrganizationUpdateWithoutCredentialsInput>, OrganizationUncheckedUpdateWithoutCredentialsInput>
   }
 
+  export type OrganizationUpdateOneWithoutSharedCredentialsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutSharedCredentialsInput, OrganizationUncheckedCreateWithoutSharedCredentialsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutSharedCredentialsInput
+    upsert?: OrganizationUpsertWithoutSharedCredentialsInput
+    disconnect?: OrganizationWhereInput | boolean
+    delete?: OrganizationWhereInput | boolean
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutSharedCredentialsInput, OrganizationUpdateWithoutSharedCredentialsInput>, OrganizationUncheckedUpdateWithoutSharedCredentialsInput>
+  }
+
   export type BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput = {
     create?: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
     connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutCredentialInput
@@ -47510,6 +49524,20 @@ export namespace Prisma {
     update?: XOR<XOR<BackgroundCheckRequestUpdateToOneWithWhereWithoutCredentialInput, BackgroundCheckRequestUpdateWithoutCredentialInput>, BackgroundCheckRequestUncheckedUpdateWithoutCredentialInput>
   }
 
+  export type CredentialShareTokenUpdateManyWithoutCredentialNestedInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutCredentialInput, CredentialShareTokenUncheckedCreateWithoutCredentialInput> | CredentialShareTokenCreateWithoutCredentialInput[] | CredentialShareTokenUncheckedCreateWithoutCredentialInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutCredentialInput | CredentialShareTokenCreateOrConnectWithoutCredentialInput[]
+    upsert?: CredentialShareTokenUpsertWithWhereUniqueWithoutCredentialInput | CredentialShareTokenUpsertWithWhereUniqueWithoutCredentialInput[]
+    createMany?: CredentialShareTokenCreateManyCredentialInputEnvelope
+    set?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    disconnect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    delete?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    update?: CredentialShareTokenUpdateWithWhereUniqueWithoutCredentialInput | CredentialShareTokenUpdateWithWhereUniqueWithoutCredentialInput[]
+    updateMany?: CredentialShareTokenUpdateManyWithWhereWithoutCredentialInput | CredentialShareTokenUpdateManyWithWhereWithoutCredentialInput[]
+    deleteMany?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
+  }
+
   export type BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput = {
     create?: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
     connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutCredentialInput
@@ -47518,6 +49546,20 @@ export namespace Prisma {
     delete?: BackgroundCheckRequestWhereInput | boolean
     connect?: BackgroundCheckRequestWhereUniqueInput
     update?: XOR<XOR<BackgroundCheckRequestUpdateToOneWithWhereWithoutCredentialInput, BackgroundCheckRequestUpdateWithoutCredentialInput>, BackgroundCheckRequestUncheckedUpdateWithoutCredentialInput>
+  }
+
+  export type CredentialShareTokenUncheckedUpdateManyWithoutCredentialNestedInput = {
+    create?: XOR<CredentialShareTokenCreateWithoutCredentialInput, CredentialShareTokenUncheckedCreateWithoutCredentialInput> | CredentialShareTokenCreateWithoutCredentialInput[] | CredentialShareTokenUncheckedCreateWithoutCredentialInput[]
+    connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutCredentialInput | CredentialShareTokenCreateOrConnectWithoutCredentialInput[]
+    upsert?: CredentialShareTokenUpsertWithWhereUniqueWithoutCredentialInput | CredentialShareTokenUpsertWithWhereUniqueWithoutCredentialInput[]
+    createMany?: CredentialShareTokenCreateManyCredentialInputEnvelope
+    set?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    disconnect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    delete?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+    update?: CredentialShareTokenUpdateWithWhereUniqueWithoutCredentialInput | CredentialShareTokenUpdateWithWhereUniqueWithoutCredentialInput[]
+    updateMany?: CredentialShareTokenUpdateManyWithWhereWithoutCredentialInput | CredentialShareTokenUpdateManyWithWhereWithoutCredentialInput[]
+    deleteMany?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutShiftsInput = {
@@ -47970,6 +50012,54 @@ export namespace Prisma {
     delete?: VolunteerCredentialWhereInput | boolean
     connect?: VolunteerCredentialWhereUniqueInput
     update?: XOR<XOR<VolunteerCredentialUpdateToOneWithWhereWithoutBackgroundCheckRequestInput, VolunteerCredentialUpdateWithoutBackgroundCheckRequestInput>, VolunteerCredentialUncheckedUpdateWithoutBackgroundCheckRequestInput>
+  }
+
+  export type VolunteerCredentialCreateNestedOneWithoutShareTokensInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutShareTokensInput, VolunteerCredentialUncheckedCreateWithoutShareTokensInput>
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutShareTokensInput
+    connect?: VolunteerCredentialWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutCreatedShareTokensInput = {
+    create?: XOR<UserCreateWithoutCreatedShareTokensInput, UserUncheckedCreateWithoutCreatedShareTokensInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCreatedShareTokensInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type OrganizationCreateNestedOneWithoutClaimedShareTokensInput = {
+    create?: XOR<OrganizationCreateWithoutClaimedShareTokensInput, OrganizationUncheckedCreateWithoutClaimedShareTokensInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutClaimedShareTokensInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type EnumShareTokenStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ShareTokenStatus
+  }
+
+  export type VolunteerCredentialUpdateOneRequiredWithoutShareTokensNestedInput = {
+    create?: XOR<VolunteerCredentialCreateWithoutShareTokensInput, VolunteerCredentialUncheckedCreateWithoutShareTokensInput>
+    connectOrCreate?: VolunteerCredentialCreateOrConnectWithoutShareTokensInput
+    upsert?: VolunteerCredentialUpsertWithoutShareTokensInput
+    connect?: VolunteerCredentialWhereUniqueInput
+    update?: XOR<XOR<VolunteerCredentialUpdateToOneWithWhereWithoutShareTokensInput, VolunteerCredentialUpdateWithoutShareTokensInput>, VolunteerCredentialUncheckedUpdateWithoutShareTokensInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutCreatedShareTokensNestedInput = {
+    create?: XOR<UserCreateWithoutCreatedShareTokensInput, UserUncheckedCreateWithoutCreatedShareTokensInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCreatedShareTokensInput
+    upsert?: UserUpsertWithoutCreatedShareTokensInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCreatedShareTokensInput, UserUpdateWithoutCreatedShareTokensInput>, UserUncheckedUpdateWithoutCreatedShareTokensInput>
+  }
+
+  export type OrganizationUpdateOneWithoutClaimedShareTokensNestedInput = {
+    create?: XOR<OrganizationCreateWithoutClaimedShareTokensInput, OrganizationUncheckedCreateWithoutClaimedShareTokensInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutClaimedShareTokensInput
+    upsert?: OrganizationUpsertWithoutClaimedShareTokensInput
+    disconnect?: OrganizationWhereInput | boolean
+    delete?: OrganizationWhereInput | boolean
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutClaimedShareTokensInput, OrganizationUpdateWithoutClaimedShareTokensInput>, OrganizationUncheckedUpdateWithoutClaimedShareTokensInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -48541,6 +50631,23 @@ export namespace Prisma {
     _max?: NestedEnumFcraStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumShareTokenStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ShareTokenStatus | EnumShareTokenStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ShareTokenStatus[] | ListEnumShareTokenStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ShareTokenStatus[] | ListEnumShareTokenStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumShareTokenStatusFilter<$PrismaModel> | $Enums.ShareTokenStatus
+  }
+
+  export type NestedEnumShareTokenStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ShareTokenStatus | EnumShareTokenStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ShareTokenStatus[] | ListEnumShareTokenStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ShareTokenStatus[] | ListEnumShareTokenStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumShareTokenStatusWithAggregatesFilter<$PrismaModel> | $Enums.ShareTokenStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumShareTokenStatusFilter<$PrismaModel>
+    _max?: NestedEnumShareTokenStatusFilter<$PrismaModel>
+  }
+
   export type AccountCreateWithoutUserInput = {
     id?: string
     type: string
@@ -48786,10 +50893,14 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutCredentialsInput
+    sharedFromOrg?: OrganizationCreateNestedOneWithoutSharedCredentialsInput
     backgroundCheckRequest?: BackgroundCheckRequestCreateNestedOneWithoutCredentialInput
+    shareTokens?: CredentialShareTokenCreateNestedManyWithoutCredentialInput
   }
 
   export type VolunteerCredentialUncheckedCreateWithoutUserInput = {
@@ -48801,9 +50912,13 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromOrgId?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     backgroundCheckRequest?: BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput
+    shareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCredentialInput
   }
 
   export type VolunteerCredentialCreateOrConnectWithoutUserInput = {
@@ -48881,6 +50996,40 @@ export namespace Prisma {
 
   export type BackgroundCheckRequestCreateManyUserInputEnvelope = {
     data: BackgroundCheckRequestCreateManyUserInput | BackgroundCheckRequestCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CredentialShareTokenCreateWithoutCreatedByInput = {
+    id?: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    credential: VolunteerCredentialCreateNestedOneWithoutShareTokensInput
+    claimedByOrg?: OrganizationCreateNestedOneWithoutClaimedShareTokensInput
+  }
+
+  export type CredentialShareTokenUncheckedCreateWithoutCreatedByInput = {
+    id?: string
+    credentialId: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedByOrgId?: string | null
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CredentialShareTokenCreateOrConnectWithoutCreatedByInput = {
+    where: CredentialShareTokenWhereUniqueInput
+    create: XOR<CredentialShareTokenCreateWithoutCreatedByInput, CredentialShareTokenUncheckedCreateWithoutCreatedByInput>
+  }
+
+  export type CredentialShareTokenCreateManyCreatedByInputEnvelope = {
+    data: CredentialShareTokenCreateManyCreatedByInput | CredentialShareTokenCreateManyCreatedByInput[]
     skipDuplicates?: boolean
   }
 
@@ -49158,6 +51307,9 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
     notes?: StringNullableFilter<"VolunteerCredential"> | string | null
     issuedById?: StringNullableFilter<"VolunteerCredential"> | string | null
+    sharedFromOrgId?: StringNullableFilter<"VolunteerCredential"> | string | null
+    sharedFromCredentialId?: StringNullableFilter<"VolunteerCredential"> | string | null
+    notifiedAt?: DateTimeNullableFilter<"VolunteerCredential"> | Date | string | null
     createdAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
     updatedAt?: DateTimeFilter<"VolunteerCredential"> | Date | string
   }
@@ -49226,6 +51378,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"BackgroundCheckRequest"> | Date | string
   }
 
+  export type CredentialShareTokenUpsertWithWhereUniqueWithoutCreatedByInput = {
+    where: CredentialShareTokenWhereUniqueInput
+    update: XOR<CredentialShareTokenUpdateWithoutCreatedByInput, CredentialShareTokenUncheckedUpdateWithoutCreatedByInput>
+    create: XOR<CredentialShareTokenCreateWithoutCreatedByInput, CredentialShareTokenUncheckedCreateWithoutCreatedByInput>
+  }
+
+  export type CredentialShareTokenUpdateWithWhereUniqueWithoutCreatedByInput = {
+    where: CredentialShareTokenWhereUniqueInput
+    data: XOR<CredentialShareTokenUpdateWithoutCreatedByInput, CredentialShareTokenUncheckedUpdateWithoutCreatedByInput>
+  }
+
+  export type CredentialShareTokenUpdateManyWithWhereWithoutCreatedByInput = {
+    where: CredentialShareTokenScalarWhereInput
+    data: XOR<CredentialShareTokenUpdateManyMutationInput, CredentialShareTokenUncheckedUpdateManyWithoutCreatedByInput>
+  }
+
+  export type CredentialShareTokenScalarWhereInput = {
+    AND?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
+    OR?: CredentialShareTokenScalarWhereInput[]
+    NOT?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
+    id?: StringFilter<"CredentialShareToken"> | string
+    credentialId?: StringFilter<"CredentialShareToken"> | string
+    createdByUserId?: StringFilter<"CredentialShareToken"> | string
+    tokenHash?: StringFilter<"CredentialShareToken"> | string
+    expiresAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
+    claimedByOrgId?: StringNullableFilter<"CredentialShareToken"> | string | null
+    claimedAt?: DateTimeNullableFilter<"CredentialShareToken"> | Date | string | null
+    status?: EnumShareTokenStatusFilter<"CredentialShareToken"> | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
+    updatedAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
+  }
+
   export type UserCreateWithoutAccountsInput = {
     id?: string
     name?: string | null
@@ -49244,6 +51428,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -49264,6 +51449,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -49300,6 +51486,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -49320,6 +51507,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -49340,6 +51528,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -49360,6 +51549,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -49387,6 +51577,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -49412,6 +51604,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -49488,6 +51682,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -49508,6 +51703,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type OrganizationUpsertWithoutSessionsInput = {
@@ -49541,6 +51737,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -49566,6 +51764,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -49878,10 +52078,14 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutCredentialsInput
+    sharedFromOrg?: OrganizationCreateNestedOneWithoutSharedCredentialsInput
     backgroundCheckRequest?: BackgroundCheckRequestCreateNestedOneWithoutCredentialInput
+    shareTokens?: CredentialShareTokenCreateNestedManyWithoutCredentialInput
   }
 
   export type VolunteerCredentialUncheckedCreateWithoutOrganizationInput = {
@@ -49893,9 +52097,13 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromOrgId?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     backgroundCheckRequest?: BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput
+    shareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCredentialInput
   }
 
   export type VolunteerCredentialCreateOrConnectWithoutOrganizationInput = {
@@ -49905,6 +52113,86 @@ export namespace Prisma {
 
   export type VolunteerCredentialCreateManyOrganizationInputEnvelope = {
     data: VolunteerCredentialCreateManyOrganizationInput | VolunteerCredentialCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type VolunteerCredentialCreateWithoutSharedFromOrgInput = {
+    id?: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCredentialsInput
+    organization: OrganizationCreateNestedOneWithoutCredentialsInput
+    backgroundCheckRequest?: BackgroundCheckRequestCreateNestedOneWithoutCredentialInput
+    shareTokens?: CredentialShareTokenCreateNestedManyWithoutCredentialInput
+  }
+
+  export type VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput = {
+    id?: string
+    userId: string
+    orgId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput
+    shareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCredentialInput
+  }
+
+  export type VolunteerCredentialCreateOrConnectWithoutSharedFromOrgInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    create: XOR<VolunteerCredentialCreateWithoutSharedFromOrgInput, VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput>
+  }
+
+  export type VolunteerCredentialCreateManySharedFromOrgInputEnvelope = {
+    data: VolunteerCredentialCreateManySharedFromOrgInput | VolunteerCredentialCreateManySharedFromOrgInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CredentialShareTokenCreateWithoutClaimedByOrgInput = {
+    id?: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    credential: VolunteerCredentialCreateNestedOneWithoutShareTokensInput
+    createdBy: UserCreateNestedOneWithoutCreatedShareTokensInput
+  }
+
+  export type CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput = {
+    id?: string
+    credentialId: string
+    createdByUserId: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CredentialShareTokenCreateOrConnectWithoutClaimedByOrgInput = {
+    where: CredentialShareTokenWhereUniqueInput
+    create: XOR<CredentialShareTokenCreateWithoutClaimedByOrgInput, CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput>
+  }
+
+  export type CredentialShareTokenCreateManyClaimedByOrgInputEnvelope = {
+    data: CredentialShareTokenCreateManyClaimedByOrgInput | CredentialShareTokenCreateManyClaimedByOrgInput[]
     skipDuplicates?: boolean
   }
 
@@ -50220,6 +52508,38 @@ export namespace Prisma {
     data: XOR<VolunteerCredentialUpdateManyMutationInput, VolunteerCredentialUncheckedUpdateManyWithoutOrganizationInput>
   }
 
+  export type VolunteerCredentialUpsertWithWhereUniqueWithoutSharedFromOrgInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    update: XOR<VolunteerCredentialUpdateWithoutSharedFromOrgInput, VolunteerCredentialUncheckedUpdateWithoutSharedFromOrgInput>
+    create: XOR<VolunteerCredentialCreateWithoutSharedFromOrgInput, VolunteerCredentialUncheckedCreateWithoutSharedFromOrgInput>
+  }
+
+  export type VolunteerCredentialUpdateWithWhereUniqueWithoutSharedFromOrgInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    data: XOR<VolunteerCredentialUpdateWithoutSharedFromOrgInput, VolunteerCredentialUncheckedUpdateWithoutSharedFromOrgInput>
+  }
+
+  export type VolunteerCredentialUpdateManyWithWhereWithoutSharedFromOrgInput = {
+    where: VolunteerCredentialScalarWhereInput
+    data: XOR<VolunteerCredentialUpdateManyMutationInput, VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgInput>
+  }
+
+  export type CredentialShareTokenUpsertWithWhereUniqueWithoutClaimedByOrgInput = {
+    where: CredentialShareTokenWhereUniqueInput
+    update: XOR<CredentialShareTokenUpdateWithoutClaimedByOrgInput, CredentialShareTokenUncheckedUpdateWithoutClaimedByOrgInput>
+    create: XOR<CredentialShareTokenCreateWithoutClaimedByOrgInput, CredentialShareTokenUncheckedCreateWithoutClaimedByOrgInput>
+  }
+
+  export type CredentialShareTokenUpdateWithWhereUniqueWithoutClaimedByOrgInput = {
+    where: CredentialShareTokenWhereUniqueInput
+    data: XOR<CredentialShareTokenUpdateWithoutClaimedByOrgInput, CredentialShareTokenUncheckedUpdateWithoutClaimedByOrgInput>
+  }
+
+  export type CredentialShareTokenUpdateManyWithWhereWithoutClaimedByOrgInput = {
+    where: CredentialShareTokenScalarWhereInput
+    data: XOR<CredentialShareTokenUpdateManyMutationInput, CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgInput>
+  }
+
   export type ShiftUpsertWithWhereUniqueWithoutOrganizationInput = {
     where: ShiftWhereUniqueInput
     update: XOR<ShiftUpdateWithoutOrganizationInput, ShiftUncheckedUpdateWithoutOrganizationInput>
@@ -50319,6 +52639,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -50344,6 +52666,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -50372,6 +52696,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -50392,6 +52717,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -50430,6 +52756,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -50455,6 +52783,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -50489,6 +52819,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -50509,6 +52840,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -50531,6 +52863,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -50556,6 +52890,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -50621,6 +52957,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -50641,6 +52978,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -50679,6 +53017,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -50704,6 +53044,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -50781,6 +53123,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -50801,6 +53144,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type OrganizationCreateWithoutFeatureFlagsInput = {
@@ -50823,6 +53167,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -50848,6 +53194,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -50889,6 +53237,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -50914,6 +53264,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -50939,6 +53291,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -50964,6 +53318,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -51035,6 +53391,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutSubmittedApplicationsInput = {
@@ -51055,6 +53412,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutSubmittedApplicationsInput = {
@@ -51115,6 +53473,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -51140,6 +53500,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -51223,6 +53585,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubmittedApplicationsInput = {
@@ -51243,6 +53606,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type VolunteerAnswerUpsertWithWhereUniqueWithoutApplicationInput = {
@@ -51355,6 +53719,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -51380,6 +53746,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -51421,6 +53789,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -51446,6 +53816,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -51471,6 +53843,8 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -51496,6 +53870,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -51537,6 +53913,8 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -51562,6 +53940,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -51587,6 +53967,8 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -51612,6 +53994,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -51773,6 +54157,8 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -51798,6 +54184,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -52425,6 +54813,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutVolunteerSkillsInput = {
@@ -52445,6 +54834,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutVolunteerSkillsInput = {
@@ -52506,6 +54896,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutVolunteerSkillsInput = {
@@ -52526,6 +54917,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type SkillUpsertWithoutVolunteerSkillsInput = {
@@ -52577,6 +54969,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutProfileInput = {
@@ -52597,6 +54990,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutProfileInput = {
@@ -52633,6 +55027,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProfileInput = {
@@ -52653,6 +55048,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateWithoutCredentialsInput = {
@@ -52673,6 +55069,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutCredentialsInput = {
@@ -52693,6 +55090,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutCredentialsInput = {
@@ -52720,6 +55118,8 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
@@ -52745,6 +55145,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
@@ -52753,6 +55155,65 @@ export namespace Prisma {
   export type OrganizationCreateOrConnectWithoutCredentialsInput = {
     where: OrganizationWhereUniqueInput
     create: XOR<OrganizationCreateWithoutCredentialsInput, OrganizationUncheckedCreateWithoutCredentialsInput>
+  }
+
+  export type OrganizationCreateWithoutSharedCredentialsInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutSharedCredentialsInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagUncheckedCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutSharedCredentialsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutSharedCredentialsInput, OrganizationUncheckedCreateWithoutSharedCredentialsInput>
   }
 
   export type BackgroundCheckRequestCreateWithoutCredentialInput = {
@@ -52790,6 +55251,40 @@ export namespace Prisma {
     create: XOR<BackgroundCheckRequestCreateWithoutCredentialInput, BackgroundCheckRequestUncheckedCreateWithoutCredentialInput>
   }
 
+  export type CredentialShareTokenCreateWithoutCredentialInput = {
+    id?: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy: UserCreateNestedOneWithoutCreatedShareTokensInput
+    claimedByOrg?: OrganizationCreateNestedOneWithoutClaimedShareTokensInput
+  }
+
+  export type CredentialShareTokenUncheckedCreateWithoutCredentialInput = {
+    id?: string
+    createdByUserId: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedByOrgId?: string | null
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CredentialShareTokenCreateOrConnectWithoutCredentialInput = {
+    where: CredentialShareTokenWhereUniqueInput
+    create: XOR<CredentialShareTokenCreateWithoutCredentialInput, CredentialShareTokenUncheckedCreateWithoutCredentialInput>
+  }
+
+  export type CredentialShareTokenCreateManyCredentialInputEnvelope = {
+    data: CredentialShareTokenCreateManyCredentialInput | CredentialShareTokenCreateManyCredentialInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutCredentialsInput = {
     update: XOR<UserUpdateWithoutCredentialsInput, UserUncheckedUpdateWithoutCredentialsInput>
     create: XOR<UserCreateWithoutCredentialsInput, UserUncheckedCreateWithoutCredentialsInput>
@@ -52819,6 +55314,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCredentialsInput = {
@@ -52839,6 +55335,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type OrganizationUpsertWithoutCredentialsInput = {
@@ -52872,6 +55369,8 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
@@ -52897,6 +55396,73 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUpsertWithoutSharedCredentialsInput = {
+    update: XOR<OrganizationUpdateWithoutSharedCredentialsInput, OrganizationUncheckedUpdateWithoutSharedCredentialsInput>
+    create: XOR<OrganizationCreateWithoutSharedCredentialsInput, OrganizationUncheckedCreateWithoutSharedCredentialsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutSharedCredentialsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutSharedCredentialsInput, OrganizationUncheckedUpdateWithoutSharedCredentialsInput>
+  }
+
+  export type OrganizationUpdateWithoutSharedCredentialsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutSharedCredentialsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUncheckedUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -52943,6 +55509,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CredentialShareTokenUpsertWithWhereUniqueWithoutCredentialInput = {
+    where: CredentialShareTokenWhereUniqueInput
+    update: XOR<CredentialShareTokenUpdateWithoutCredentialInput, CredentialShareTokenUncheckedUpdateWithoutCredentialInput>
+    create: XOR<CredentialShareTokenCreateWithoutCredentialInput, CredentialShareTokenUncheckedCreateWithoutCredentialInput>
+  }
+
+  export type CredentialShareTokenUpdateWithWhereUniqueWithoutCredentialInput = {
+    where: CredentialShareTokenWhereUniqueInput
+    data: XOR<CredentialShareTokenUpdateWithoutCredentialInput, CredentialShareTokenUncheckedUpdateWithoutCredentialInput>
+  }
+
+  export type CredentialShareTokenUpdateManyWithWhereWithoutCredentialInput = {
+    where: CredentialShareTokenScalarWhereInput
+    data: XOR<CredentialShareTokenUpdateManyMutationInput, CredentialShareTokenUncheckedUpdateManyWithoutCredentialInput>
+  }
+
   export type OrganizationCreateWithoutShiftsInput = {
     id?: string
     name: string
@@ -52964,6 +55546,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
@@ -52989,6 +55573,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
@@ -53101,6 +55687,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
@@ -53126,6 +55714,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
@@ -53250,6 +55840,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutShiftSignupsInput = {
@@ -53270,6 +55861,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutShiftSignupsInput = {
@@ -53349,6 +55941,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutShiftSignupsInput = {
@@ -53369,6 +55962,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type CompanyMemberCreateWithoutCompanyInput = {
@@ -53662,6 +56256,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutCompanyMembershipsInput = {
@@ -53682,6 +56277,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutCompanyMembershipsInput = {
@@ -53761,6 +56357,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCompanyMembershipsInput = {
@@ -53781,6 +56378,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type CompanyAccountCreateWithoutInvitationsInput = {
@@ -53921,6 +56519,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
   }
@@ -53946,6 +56546,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
   }
@@ -54030,6 +56632,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
   }
@@ -54055,6 +56659,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
@@ -54080,6 +56686,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
   }
@@ -54105,6 +56713,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
   }
@@ -54132,6 +56742,7 @@ export namespace Prisma {
     profile?: VolunteerProfileCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutBackgroundCheckRequestsInput = {
@@ -54152,6 +56763,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutBackgroundCheckRequestsInput = {
@@ -54167,10 +56779,14 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutCredentialsInput
     organization: OrganizationCreateNestedOneWithoutCredentialsInput
+    sharedFromOrg?: OrganizationCreateNestedOneWithoutSharedCredentialsInput
+    shareTokens?: CredentialShareTokenCreateNestedManyWithoutCredentialInput
   }
 
   export type VolunteerCredentialUncheckedCreateWithoutBackgroundCheckRequestInput = {
@@ -54183,8 +56799,12 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromOrgId?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    shareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCredentialInput
   }
 
   export type VolunteerCredentialCreateOrConnectWithoutBackgroundCheckRequestInput = {
@@ -54224,6 +56844,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
   }
@@ -54249,6 +56871,8 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
   }
@@ -54282,6 +56906,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBackgroundCheckRequestsInput = {
@@ -54302,6 +56927,7 @@ export namespace Prisma {
     profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type VolunteerCredentialUpsertWithoutBackgroundCheckRequestInput = {
@@ -54323,10 +56949,14 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
     organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+    sharedFromOrg?: OrganizationUpdateOneWithoutSharedCredentialsNestedInput
+    shareTokens?: CredentialShareTokenUpdateManyWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateWithoutBackgroundCheckRequestInput = {
@@ -54339,8 +56969,324 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    shareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCredentialNestedInput
+  }
+
+  export type VolunteerCredentialCreateWithoutShareTokensInput = {
+    id?: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCredentialsInput
+    organization: OrganizationCreateNestedOneWithoutCredentialsInput
+    sharedFromOrg?: OrganizationCreateNestedOneWithoutSharedCredentialsInput
+    backgroundCheckRequest?: BackgroundCheckRequestCreateNestedOneWithoutCredentialInput
+  }
+
+  export type VolunteerCredentialUncheckedCreateWithoutShareTokensInput = {
+    id?: string
+    userId: string
+    orgId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    sharedFromOrgId?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedCreateNestedOneWithoutCredentialInput
+  }
+
+  export type VolunteerCredentialCreateOrConnectWithoutShareTokensInput = {
+    where: VolunteerCredentialWhereUniqueInput
+    create: XOR<VolunteerCredentialCreateWithoutShareTokensInput, VolunteerCredentialUncheckedCreateWithoutShareTokensInput>
+  }
+
+  export type UserCreateWithoutCreatedShareTokensInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCreatedShareTokensInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCreatedShareTokensInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCreatedShareTokensInput, UserUncheckedCreateWithoutCreatedShareTokensInput>
+  }
+
+  export type OrganizationCreateWithoutClaimedShareTokensInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutClaimedShareTokensInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagUncheckedCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutClaimedShareTokensInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutClaimedShareTokensInput, OrganizationUncheckedCreateWithoutClaimedShareTokensInput>
+  }
+
+  export type VolunteerCredentialUpsertWithoutShareTokensInput = {
+    update: XOR<VolunteerCredentialUpdateWithoutShareTokensInput, VolunteerCredentialUncheckedUpdateWithoutShareTokensInput>
+    create: XOR<VolunteerCredentialCreateWithoutShareTokensInput, VolunteerCredentialUncheckedCreateWithoutShareTokensInput>
+    where?: VolunteerCredentialWhereInput
+  }
+
+  export type VolunteerCredentialUpdateToOneWithWhereWithoutShareTokensInput = {
+    where?: VolunteerCredentialWhereInput
+    data: XOR<VolunteerCredentialUpdateWithoutShareTokensInput, VolunteerCredentialUncheckedUpdateWithoutShareTokensInput>
+  }
+
+  export type VolunteerCredentialUpdateWithoutShareTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
+    organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+    sharedFromOrg?: OrganizationUpdateOneWithoutSharedCredentialsNestedInput
+    backgroundCheckRequest?: BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput
+  }
+
+  export type VolunteerCredentialUncheckedUpdateWithoutShareTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput
+  }
+
+  export type UserUpsertWithoutCreatedShareTokensInput = {
+    update: XOR<UserUpdateWithoutCreatedShareTokensInput, UserUncheckedUpdateWithoutCreatedShareTokensInput>
+    create: XOR<UserCreateWithoutCreatedShareTokensInput, UserUncheckedCreateWithoutCreatedShareTokensInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCreatedShareTokensInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCreatedShareTokensInput, UserUncheckedUpdateWithoutCreatedShareTokensInput>
+  }
+
+  export type UserUpdateWithoutCreatedShareTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCreatedShareTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type OrganizationUpsertWithoutClaimedShareTokensInput = {
+    update: XOR<OrganizationUpdateWithoutClaimedShareTokensInput, OrganizationUncheckedUpdateWithoutClaimedShareTokensInput>
+    create: XOR<OrganizationCreateWithoutClaimedShareTokensInput, OrganizationUncheckedCreateWithoutClaimedShareTokensInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutClaimedShareTokensInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutClaimedShareTokensInput, OrganizationUncheckedUpdateWithoutClaimedShareTokensInput>
+  }
+
+  export type OrganizationUpdateWithoutClaimedShareTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutClaimedShareTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUncheckedUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -54418,6 +57364,9 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromOrgId?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -54442,6 +57391,18 @@ export namespace Prisma {
     fcraStatus?: $Enums.FcraStatus
     preAdverseNoticeSentAt?: Date | string | null
     adverseActionAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CredentialShareTokenCreateManyCreatedByInput = {
+    id?: string
+    credentialId: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedByOrgId?: string | null
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -54654,10 +57615,14 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+    sharedFromOrg?: OrganizationUpdateOneWithoutSharedCredentialsNestedInput
     backgroundCheckRequest?: BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput
+    shareTokens?: CredentialShareTokenUpdateManyWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateWithoutUserInput = {
@@ -54669,9 +57634,13 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     backgroundCheckRequest?: BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput
+    shareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateManyWithoutUserInput = {
@@ -54683,6 +57652,9 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -54755,6 +57727,42 @@ export namespace Prisma {
     fcraStatus?: EnumFcraStatusFieldUpdateOperationsInput | $Enums.FcraStatus
     preAdverseNoticeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     adverseActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CredentialShareTokenUpdateWithoutCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    credential?: VolunteerCredentialUpdateOneRequiredWithoutShareTokensNestedInput
+    claimedByOrg?: OrganizationUpdateOneWithoutClaimedShareTokensNestedInput
+  }
+
+  export type CredentialShareTokenUncheckedUpdateWithoutCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CredentialShareTokenUncheckedUpdateManyWithoutCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -54851,6 +57859,37 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     notes?: string | null
     issuedById?: string | null
+    sharedFromOrgId?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VolunteerCredentialCreateManySharedFromOrgInput = {
+    id?: string
+    userId: string
+    orgId: string
+    type: $Enums.CredentialType
+    status?: $Enums.CredentialStatus
+    issuedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    notes?: string | null
+    issuedById?: string | null
+    sharedFromCredentialId?: string | null
+    notifiedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CredentialShareTokenCreateManyClaimedByOrgInput = {
+    id?: string
+    credentialId: string
+    createdByUserId: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -55160,10 +58199,14 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
+    sharedFromOrg?: OrganizationUpdateOneWithoutSharedCredentialsNestedInput
     backgroundCheckRequest?: BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput
+    shareTokens?: CredentialShareTokenUpdateManyWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateWithoutOrganizationInput = {
@@ -55175,9 +58218,13 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     backgroundCheckRequest?: BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput
+    shareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCredentialNestedInput
   }
 
   export type VolunteerCredentialUncheckedUpdateManyWithoutOrganizationInput = {
@@ -55189,6 +58236,97 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerCredentialUpdateWithoutSharedFromOrgInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCredentialsNestedInput
+    organization?: OrganizationUpdateOneRequiredWithoutCredentialsNestedInput
+    backgroundCheckRequest?: BackgroundCheckRequestUpdateOneWithoutCredentialNestedInput
+    shareTokens?: CredentialShareTokenUpdateManyWithoutCredentialNestedInput
+  }
+
+  export type VolunteerCredentialUncheckedUpdateWithoutSharedFromOrgInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    backgroundCheckRequest?: BackgroundCheckRequestUncheckedUpdateOneWithoutCredentialNestedInput
+    shareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCredentialNestedInput
+  }
+
+  export type VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    type?: EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
+    status?: EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+    issuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    issuedById?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedFromCredentialId?: NullableStringFieldUpdateOperationsInput | string | null
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CredentialShareTokenUpdateWithoutClaimedByOrgInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    credential?: VolunteerCredentialUpdateOneRequiredWithoutShareTokensNestedInput
+    createdBy?: UserUpdateOneRequiredWithoutCreatedShareTokensNestedInput
+  }
+
+  export type CredentialShareTokenUncheckedUpdateWithoutClaimedByOrgInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    createdByUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    createdByUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -55603,6 +58741,54 @@ export namespace Prisma {
     opportunityId?: StringFieldUpdateOperationsInput | string
     familyId?: NullableStringFieldUpdateOperationsInput | string | null
     level?: EnumRequirementLevelFieldUpdateOperationsInput | $Enums.RequirementLevel
+  }
+
+  export type CredentialShareTokenCreateManyCredentialInput = {
+    id?: string
+    createdByUserId: string
+    tokenHash: string
+    expiresAt: Date | string
+    claimedByOrgId?: string | null
+    claimedAt?: Date | string | null
+    status?: $Enums.ShareTokenStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CredentialShareTokenUpdateWithoutCredentialInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: UserUpdateOneRequiredWithoutCreatedShareTokensNestedInput
+    claimedByOrg?: OrganizationUpdateOneWithoutClaimedShareTokensNestedInput
+  }
+
+  export type CredentialShareTokenUncheckedUpdateWithoutCredentialInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdByUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CredentialShareTokenUncheckedUpdateManyWithoutCredentialInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdByUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ShiftSignupCreateManyShiftInput = {

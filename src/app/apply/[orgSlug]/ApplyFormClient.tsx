@@ -1,13 +1,14 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar, Clock, MapPin, Wifi } from 'lucide-react';
+import { Calendar, Clock, MapPin, ShieldCheck, Wifi } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -18,7 +19,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-// If you have shadcn textarea installed, prefer it:
 import { Textarea } from '@/components/ui/textarea';
 import { formatDateRange } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
@@ -62,6 +62,7 @@ export default function ApplyFormClient({
 			z.object({
 				profile: volunteerProfileSchema,
 				answers: answersSchema,
+				shareCredentials: z.boolean().optional(),
 			}),
 		[answersSchema],
 	);
@@ -81,6 +82,7 @@ export default function ApplyFormClient({
 					notes: '',
 				},
 				answers: buildDefaultValues(questions),
+				shareCredentials: false,
 			}) as FormValues,
 		[questions],
 	);
@@ -139,9 +141,10 @@ export default function ApplyFormClient({
 		submitMutation.mutate({
 			orgId: org.id,
 			opportunityId: opportunity?.id,
-			submittedByEmail: values.profile.email, // ✅ don't ask twice
+			submittedByEmail: values.profile.email,
 			profile: values.profile,
 			responses,
+			shareCredentials: values.shareCredentials,
 		});
 	}
 
@@ -298,6 +301,28 @@ export default function ApplyFormClient({
 							{questions.map((q) => (
 								<QuestionField key={q.id} question={q} form={form} />
 							))}
+						</div>
+
+						{/* Credential sharing opt-in */}
+						<div className="flex items-start gap-3 rounded-lg border bg-muted/30 p-4">
+							<Checkbox
+								id="shareCredentials"
+								{...form.register('shareCredentials')}
+								className="mt-0.5"
+							/>
+							<div>
+								<Label
+									htmlFor="shareCredentials"
+									className="cursor-pointer font-medium"
+								>
+									<ShieldCheck className="mr-1 inline-block h-4 w-4 text-primary" />
+									Bring my credentials
+								</Label>
+								<p className="mt-1 text-xs text-muted-foreground">
+									Share your verified credentials (background checks, training,
+									etc.) from other organizations with {org.name}.
+								</p>
+							</div>
 						</div>
 
 						<div className="pt-2">
