@@ -51,7 +51,7 @@ export function PublicFooter() {
 				<div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
 					{/* Brand lockup */}
 					<div className="lg:col-span-1">
-						<Link href="/" className="flex items-center gap-2.5">
+						<Link href="/" className="flex min-h-[44px] items-center gap-2.5">
 							<div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
 								V
 							</div>
@@ -75,7 +75,7 @@ export function PublicFooter() {
 									<li key={link.href}>
 										<Link
 											href={link.href}
-											className="inline-block py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+											className="inline-flex min-h-[44px] items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
 										>
 											{link.label}
 										</Link>

@@ -253,7 +253,7 @@ Key entities added:
 
 - Corporate account dashboard at `/app/company/[companyId]/team` — employee volunteer activity, hours, orgs supported
 - Aggregate-only view for corporate admins — individual employee records require employee consent
-- One-click ESG report export (CSV shipped; PDF deferred — see TODOS.md) — hours logged, verified credentials, supported nonprofits
+- One-click ESG report export (CSV + PDF) — hours logged, verified credentials, supported nonprofits
 - `EmployerReportService` — uses raw SQL aggregations (`$queryRaw` with `Prisma.sql`), not per-row queries
 - Structured audit log events for report generation (best-effort with `await` + `catch`)
 

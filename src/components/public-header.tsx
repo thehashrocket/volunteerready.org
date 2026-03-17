@@ -25,7 +25,7 @@ export function PublicHeader() {
 				{/* Logo */}
 				<Link
 					href="/"
-					className="flex items-center gap-2.5"
+					className="flex min-h-[44px] items-center gap-2.5"
 					onClick={() => setOpen(false)}
 				>
 					<div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
@@ -37,13 +37,13 @@ export function PublicHeader() {
 				</Link>
 
 				{/* Desktop nav */}
-				<nav className="hidden items-center gap-6 md:flex">
+				<nav className="hidden items-center gap-4 md:flex">
 					{navLinks.map((link) => (
 						<Link
 							key={link.href}
 							href={link.href}
 							className={cn(
-								'py-3 text-sm transition-colors hover:text-foreground',
+								'px-1.5 py-3 text-sm transition-colors hover:text-foreground',
 								pathname === link.href
 									? 'font-medium text-foreground'
 									: 'text-muted-foreground',

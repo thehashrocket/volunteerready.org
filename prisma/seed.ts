@@ -2070,12 +2070,109 @@ async function main() {
 		});
 
 	// =========================================================================
+	// Corporate company accounts
+	// =========================================================================
+	console.log('🏢 Creating company accounts...');
+
+	// Acme Corp — PRO plan, linked to Helping Hands + Green City Parks
+	const acmeCorp = await prisma.companyAccount.upsert({
+		where: { slug: 'acme-corp' },
+		update: { name: 'Acme Corporation', planTier: 'PRO' },
+		create: {
+			name: 'Acme Corporation',
+			slug: 'acme-corp',
+			planTier: 'PRO',
+		},
+		select: { id: true, slug: true, name: true },
+	});
+
+	// Sarah Chen is company OWNER (she's also Helping Hands org OWNER)
+	await prisma.companyMember
+		.upsert({
+			where: {
+				companyId_userId: {
+					companyId: acmeCorp.id,
+					userId: sarah.id,
+				},
+			},
+			update: { role: 'OWNER' },
+			create: {
+				companyId: acmeCorp.id,
+				userId: sarah.id,
+				role: 'OWNER',
+			},
+		})
+		.catch(() => {
+			/* ignore duplicate */
+		});
+
+	// Marcus Johnson is company ADMIN
+	await prisma.companyMember
+		.upsert({
+			where: {
+				companyId_userId: {
+					companyId: acmeCorp.id,
+					userId: marcus.id,
+				},
+			},
+			update: { role: 'ADMIN' },
+			create: {
+				companyId: acmeCorp.id,
+				userId: marcus.id,
+				role: 'ADMIN',
+			},
+		})
+		.catch(() => {
+			/* ignore duplicate */
+		});
+
+	// Link Acme Corp to Helping Hands and Green City Parks
+	await prisma.companyNonprofitLink
+		.upsert({
+			where: {
+				companyId_orgId: {
+					companyId: acmeCorp.id,
+					orgId: helpingHands.id,
+				},
+			},
+			update: { status: 'ACTIVE' },
+			create: {
+				companyId: acmeCorp.id,
+				orgId: helpingHands.id,
+				status: 'ACTIVE',
+			},
+		})
+		.catch(() => {
+			/* ignore duplicate */
+		});
+
+	await prisma.companyNonprofitLink
+		.upsert({
+			where: {
+				companyId_orgId: {
+					companyId: acmeCorp.id,
+					orgId: greenCity.id,
+				},
+			},
+			update: { status: 'ACTIVE' },
+			create: {
+				companyId: acmeCorp.id,
+				orgId: greenCity.id,
+				status: 'ACTIVE',
+			},
+		})
+		.catch(() => {
+			/* ignore duplicate */
+		});
+
+	// =========================================================================
 	// Done!
 	// =========================================================================
 	console.log('\n✅ Seed complete!');
 	console.log(
 		'   Organizations: 4 (Helping Hands, Green City Parks, Youth Futures, Dev Org)',
 	);
+	console.log('   Company accounts: 1 (Acme Corporation — PRO plan)');
 	console.log('   Staff users: 9');
 	console.log('   Pure volunteers: 10');
 	console.log('   Opportunities: 10');
