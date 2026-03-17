@@ -9,6 +9,7 @@ import type {
 } from '@/prisma/generated/client';
 import { authOptions } from '@/server/auth';
 import { assertPlanAtLeast } from '@/server/domain/billing';
+import { getCompanyPlanTier } from '@/server/repositories/companyRepo';
 import { getOrgPlanTier } from '@/server/repositories/orgRepo';
 import { prisma } from '@/server/repositories/prisma';
 
@@ -186,6 +187,26 @@ export const companyAdminProcedure = companyProcedure.use(({ ctx, next }) => {
 	}
 	return next({ ctx: { companyRole: ctx.companyRole } });
 });
+
+/**
+ * Company plan tier procedure — factory. Extends companyAdminProcedure with
+ * a fresh DB lookup of the company's plan tier. Mirrors planTierProcedure
+ * but for company context instead of org context.
+ */
+export function companyPlanTierProcedure(requiredTier: PlanTier) {
+	return companyAdminProcedure.use(async ({ ctx, next }) => {
+		const currentTier = await getCompanyPlanTier(ctx.companyId);
+		try {
+			assertPlanAtLeast(currentTier, requiredTier);
+		} catch {
+			throw new TRPCError({
+				code: 'FORBIDDEN',
+				message: `Requires ${requiredTier} plan or higher.`,
+			});
+		}
+		return next({ ctx: { planTier: currentTier } });
+	});
+}
 
 function getSessionTokenFromHeaders(req: Request) {
 	const cookie = req.headers.get('cookie');
