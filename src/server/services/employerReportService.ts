@@ -125,3 +125,15 @@ export async function generateESGCsvExport(
 	const summary = await generateESGReport(opts);
 	return formatESGCsv(summary);
 }
+
+/**
+ * Generate ESG report and render as PDF buffer.
+ * Dynamic import keeps @react-pdf/renderer out of the main bundle.
+ */
+export async function generateESGPdfExport(
+	opts: GenerateOpts,
+): Promise<Buffer> {
+	const summary = await generateESGReport(opts);
+	const { formatESGPdf } = await import('@/server/domain/esg-report-pdf');
+	return formatESGPdf(summary);
+}
