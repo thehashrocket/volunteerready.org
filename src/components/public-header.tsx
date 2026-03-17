@@ -37,13 +37,13 @@ export function PublicHeader() {
 				</Link>
 
 				{/* Desktop nav */}
-				<nav className="hidden items-center gap-6 md:flex">
+				<nav className="hidden items-center gap-4 md:flex">
 					{navLinks.map((link) => (
 						<Link
 							key={link.href}
 							href={link.href}
 							className={cn(
-								'py-3 text-sm transition-colors hover:text-foreground',
+								'px-1.5 py-3 text-sm transition-colors hover:text-foreground',
 								pathname === link.href
 									? 'font-medium text-foreground'
 									: 'text-muted-foreground',
