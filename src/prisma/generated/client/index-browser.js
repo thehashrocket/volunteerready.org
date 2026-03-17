@@ -335,6 +335,9 @@ exports.Prisma.VolunteerCredentialScalarFieldEnum = {
   expiresAt: 'expiresAt',
   notes: 'notes',
   issuedById: 'issuedById',
+  sharedFromOrgId: 'sharedFromOrgId',
+  sharedFromCredentialId: 'sharedFromCredentialId',
+  notifiedAt: 'notifiedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -435,6 +438,19 @@ exports.Prisma.CheckrWebhookEventScalarFieldEnum = {
   type: 'type',
   processedAt: 'processedAt',
   payload: 'payload'
+};
+
+exports.Prisma.CredentialShareTokenScalarFieldEnum = {
+  id: 'id',
+  credentialId: 'credentialId',
+  createdByUserId: 'createdByUserId',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  claimedByOrgId: 'claimedByOrgId',
+  claimedAt: 'claimedAt',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -584,6 +600,12 @@ exports.FcraStatus = exports.$Enums.FcraStatus = {
   RESOLVED: 'RESOLVED'
 };
 
+exports.ShareTokenStatus = exports.$Enums.ShareTokenStatus = {
+  ACTIVE: 'ACTIVE',
+  CLAIMED: 'CLAIMED',
+  EXPIRED: 'EXPIRED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -614,7 +636,8 @@ exports.Prisma.ModelName = {
   CompanyNonprofitLink: 'CompanyNonprofitLink',
   StripeWebhookEvent: 'StripeWebhookEvent',
   BackgroundCheckRequest: 'BackgroundCheckRequest',
-  CheckrWebhookEvent: 'CheckrWebhookEvent'
+  CheckrWebhookEvent: 'CheckrWebhookEvent',
+  CredentialShareToken: 'CredentialShareToken'
 };
 
 /**
