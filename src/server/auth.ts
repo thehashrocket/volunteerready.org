@@ -37,7 +37,9 @@ export const authOptions: NextAuthOptions = {
 			console.warn('next-auth warn', code);
 		},
 		debug(code, metadata) {
-			console.debug('next-auth debug', code, metadata);
+			if (process.env.NODE_ENV !== 'production') {
+				console.debug('next-auth debug', code, metadata);
+			}
 		},
 	},
 	providers: [

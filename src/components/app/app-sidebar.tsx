@@ -91,18 +91,21 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 
 	return (
 		<nav className="flex flex-col gap-1">
-			{/* Volunteers always see the volunteer section */}
-			<p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-				Volunteer
-			</p>
-			{VOLUNTEER_NAV.map((item) => (
-				<NavLink key={item.href} item={item} pathname={pathname} />
-			))}
+			{/* Volunteer section only shows when user is not an org member */}
+			{!hasOrg && (
+				<>
+					<p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+						Volunteer
+					</p>
+					{VOLUNTEER_NAV.map((item) => (
+						<NavLink key={item.href} item={item} pathname={pathname} />
+					))}
+				</>
+			)}
 
 			{/* Staff section only shows when user belongs to an org */}
 			{hasOrg && (
 				<>
-					<div className="my-3 border-t" />
 					<p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
 						Organization
 					</p>
