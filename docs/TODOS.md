@@ -411,3 +411,30 @@ who all use manual check-in.
 **Cons:** Token generation + validation adds complexity; must handle expired QR codes gracefully.
 
 **Effort:** M | **Priority:** P2 | **Depends on:** Phase 6E PWA shipped, Phase 5 attendance tracking in place
+
+---
+
+## Corporate ESG Reporting (Phase 6D)
+
+### [P2] ESG Report Integration Tests (Raw SQL)
+
+**What:** Integration tests for `getESGShiftAggregates`, `getESGCredentialCounts`,
+and `getESGDistinctEmployeeCount` with a seeded test database.
+
+**Why:** These repository functions use raw SQL via `Prisma.$queryRaw` with
+`Prisma.sql` tagged templates. Unlike Prisma's typed queries, raw SQL is not
+checked against the schema at compile time. If columns are renamed or table
+relationships change, the queries will fail silently at runtime. Integration
+tests with real data catch drift before it reaches production.
+
+**Context:** The three functions join 5 tables (CompanyNonprofitLink, Organization,
+Shift, ShiftSignup, CompanyMember) and use conditional WHERE clauses for date
+filtering. Test cases should cover: company with multiple linked orgs and
+overlapping employees, date range filtering (from-only, to-only, both, neither),
+credential-only orgs (no shifts), and empty results.
+
+**Pros:** Catches schema drift early; validates join logic with real FK constraints;
+tests bigint → number conversion from raw SQL.
+**Cons:** Requires test DB seeding infrastructure; slower than unit tests.
+
+**Effort:** M | **Priority:** P2 | **Depends on:** Phase 6D shipped, test DB seeding infra
