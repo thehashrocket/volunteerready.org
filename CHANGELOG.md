@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-03-16
+
+### Added
+- **Corporate ESG reporting dashboard** — see aggregate volunteer impact across all linked nonprofits: employees active, organizations supported, shifts completed, total hours, and verified credentials with a per-org breakdown table at `/app/company/[companyId]/team`
+- **CSV export** — download the full ESG report as a CSV file, with formula injection defense built in
+- **PRO plan gate** — ESG features require a PRO company plan; FREE plan users see an upgrade prompt with a direct link to billing
+- **Date range filtering** — narrow the report to a specific time window with from/to date inputs
+- **Credential-only orgs included** — nonprofits where employees hold verified credentials but haven't attended shifts still appear in the report
+- **Cross-org employee deduplication** — the "Employees Active" count correctly handles employees who volunteer at multiple linked nonprofits
+- **ESG Report sidebar link** — quick access to the ESG dashboard from the company navigation
+- **`companyPlanTierProcedure`** — new tRPC middleware factory for company-context plan enforcement (mirrors org-context `planTierProcedure`)
+- **22 domain unit tests** covering report computation, CSV formatting, formula injection defense, and input validation
+
+### For contributors
+- `esg-report.ts` domain module: `ESGOrgRow`, `ESGReportSummary` types, `computeESGSummary()`, `escapeCsvField()`, `formatESGCsv()`, `esgReportInputSchema`
+- `companyRepo.ts`: 4 new functions — `getCompanyPlanTier`, `getESGShiftAggregates` (5-table raw SQL join), `getESGCredentialCounts`, `getESGDistinctEmployeeCount`
+- `employerReportService.ts`: `generateESGReport()` (parallel queries via `Promise.all`, bidirectional merge, audit log with await+catch), `generateESGCsvExport()`
+- `esg-report` tRPC router with `getSummary` procedure gated on `companyPlanTierProcedure('PRO')`
+- CSV route handler with inline auth (membership + ADMIN role + PRO plan tier)
+- P2 TODO added for ESG report integration tests (raw SQL queries)
+
 ## [0.3.0] - 2026-03-17
 
 ### Added

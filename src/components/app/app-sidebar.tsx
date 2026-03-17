@@ -1,6 +1,7 @@
 'use client';
 
 import {
+	BarChart3,
 	Briefcase,
 	Building2,
 	Calendar,
@@ -43,9 +44,18 @@ const STAFF_NAV: NavItem[] = [
 	{ label: 'Billing', href: '/app/billing', icon: CreditCard },
 ];
 
-const COMPANY_NAV: NavItem[] = [
-	{ label: 'Company', href: '/app/company', icon: Building2 },
-];
+function getCompanyNav(companyId: string | null | undefined): NavItem[] {
+	if (!companyId)
+		return [{ label: 'Company', href: '/app/company', icon: Building2 }];
+	return [
+		{ label: 'Company', href: `/app/company/${companyId}`, icon: Building2 },
+		{
+			label: 'ESG Report',
+			href: `/app/company/${companyId}/team`,
+			icon: BarChart3,
+		},
+	];
+}
 
 function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 	// Exact match for dashboard (/app), prefix match for everything else
@@ -73,9 +83,10 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 interface AppSidebarProps {
 	hasOrg: boolean;
 	hasCompany: boolean;
+	companyId?: string | null;
 }
 
-export function AppSidebar({ hasOrg, hasCompany }: AppSidebarProps) {
+export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 	const pathname = usePathname();
 
 	return (
@@ -108,7 +119,7 @@ export function AppSidebar({ hasOrg, hasCompany }: AppSidebarProps) {
 					<p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
 						Company
 					</p>
-					{COMPANY_NAV.map((item) => (
+					{getCompanyNav(companyId).map((item) => (
 						<NavLink key={item.href} item={item} pathname={pathname} />
 					))}
 				</>

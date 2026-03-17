@@ -32,11 +32,12 @@ Long-term goals include:
 - Corporate CSR / employer accounts (shipped)
 - Billing and plan tiers (shipped)
 - Portable credential sharing across organizations (shipped)
+- Corporate ESG reporting (shipped)
 - Cross-organization volunteer identity (in progress)
 - Grant opportunity integration (planned)
 - Nonprofit analytics and reporting (planned)
 
-The current system implements Phases 1 through 6C. See `docs/ROADMAP.md` for the full plan.
+The current system implements Phases 1 through 6D. See `docs/ROADMAP.md` for the full plan.
 
 ---
 
@@ -184,7 +185,7 @@ Organizations have a plan tier: FREE / STARTER / PRO.
 
 Billing is managed via Stripe (checkout sessions, billing portal, webhook processing).
 
-Plan enforcement is server-side only via `planTierProcedure`.
+Plan enforcement is server-side only via `planTierProcedure` (org context) and `companyPlanTierProcedure` (company context).
 
 ---
 
@@ -346,7 +347,7 @@ pnpm prisma db seed
 | 6A | Employer Accounts & Billing | Complete |
 | 6B | Background Check Integration | Complete |
 | 6C | Portable Credential Sharing | Complete |
-| 6D | Corporate ESG Reporting | Planned |
+| 6D | Corporate ESG Reporting | Complete |
 | 6E | Mobile PWA | Planned |
 | 7 | Network Growth & Volunteer Identity | Planned |
 

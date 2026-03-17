@@ -94,6 +94,7 @@ Key files:
 - `background-check.ts` — FCRA state machine, PII sanitization
 - `billing.ts` — plan tier limits, trial validation
 - `credential-sharing.ts` — share token lifecycle guards, expiry computation
+- `esg-report.ts` — ESG report types, CSV formatting, formula injection defense
 
 ---
 
@@ -126,6 +127,7 @@ Key services:
 - `credentialShareService.ts` — credential sharing: generate, claim, revoke, shareAllOnApply
 - `billingService.ts` — Stripe integration, plan management
 - `companyService.ts` — corporate account management
+- `employerReportService.ts` — ESG report generation and CSV export
 
 ---
 
@@ -230,6 +232,8 @@ tRPC procedure types (defined in `src/server/trpc/init.ts`):
 | `staffProcedure` | STAFF, ADMIN, or OWNER role | `role: Role` |
 | `adminProcedure` | ADMIN or OWNER role | `role: Role` |
 | `companyProcedure` | Company membership | `companyId: string` |
+| `companyAdminProcedure` | Company ADMIN or OWNER | `companyRole: Role` |
+| `companyPlanTierProcedure(tier)` | Company plan at or above tier | `planTier: PlanTier` |
 | `planTierProcedure(tier)` | Org plan at or above tier | — |
 
 Use the narrowest access level possible.
