@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2026-03-16
+
+### Added
+- **Full public site rewrite** — all marketing pages updated to sell the complete platform (matching engine, background checks, portable credentials, shift scheduling, ESG reporting) instead of just Phase 2 features
+- **New "For Employers" page** (`/for-employers`) — corporate CSR landing page with ESG reporting, employee volunteering, nonprofit partnerships, and background check features
+- **New "Security & Compliance" page** (`/security`) — details on encryption, FCRA compliance, multi-tenant isolation, RBAC, audit logging, and data portability
+- **Shared marketing components** — `PublicHero`, `CTABanner`, `FadeInOnScroll`, and `TrackedLink` components for consistent design across all public pages
+- **Platform stats on homepage** — live aggregate counts (organizations, credentials, shifts, volunteers) from `statsRepo.ts` with ISR (1-hour revalidation) and graceful degradation
+- **Pricing page feature comparison table** — 11-row comparison across Free/Starter/Pro tiers using real `getPlanLimits()` data
+- **Vercel Analytics tracking** — CTA click tracking on all marketing page links via `TrackedLink` component
+- **Scroll-triggered animations** — `FadeInOnScroll` component with `prefers-reduced-motion` respect
+- **Per-page SEO metadata** — Open Graph metadata on every public page
+- **Design system** — `DESIGN.md` added defining Organic/Natural aesthetic, Fraunces + Geist typography, warm color palette, spacing scale, and AI slop blacklist
+
+### Changed
+- Rewrote homepage, for-volunteers, for-nonprofits, pricing, how-it-works, and about pages
+- Removed SVG blob decorations from all pages per design system AI slop blacklist
+- How-it-works expanded from 2 to 3 audience journeys (added employers)
+- About page now shows "What we've built so far" platform maturity milestones
+- Added "Pricing" link to main navigation header
+- Added "For Employers" column, Pricing and Security links to footer
+
 ## [0.4.0] - 2026-03-16
 
 ### Added
