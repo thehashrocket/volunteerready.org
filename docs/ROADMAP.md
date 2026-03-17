@@ -249,13 +249,13 @@ Key entities added:
 - CredentialShareToken (tokenHash, credentialId, expiresAt, claimedByOrgId, claimedAt, status)
 - ShareTokenStatus enum (ACTIVE / CLAIMED / EXPIRED)
 
-## 6D — Corporate ESG Reporting
+## 6D — Corporate ESG Reporting ✅
 
-- Corporate account dashboard at `/app/team` — employee volunteer activity, hours, orgs supported
+- Corporate account dashboard at `/app/company/[companyId]/team` — employee volunteer activity, hours, orgs supported
 - Aggregate-only view for corporate admins — individual employee records require employee consent
-- One-click ESG report export (PDF/CSV) — hours logged, verified credentials, supported nonprofits
-- `EmployerReportService` — uses DB aggregations (`groupBy`), not per-row queries
-- Structured log events for all billing and report actions
+- One-click ESG report export (CSV shipped; PDF deferred — see TODOS.md) — hours logged, verified credentials, supported nonprofits
+- `EmployerReportService` — uses raw SQL aggregations (`$queryRaw` with `Prisma.sql`), not per-row queries
+- Structured audit log events for report generation (best-effort with `await` + `catch`)
 
 ## 6E — Mobile PWA
 
@@ -268,7 +268,7 @@ Key new routes:
 
 - `/pricing` — public nonprofit + corporate pricing page
 - `/for-employers` — corporate marketing landing page
-- `/app/team` — corporate account dashboard (employees, activity, ESG report)
+- `/app/company/[companyId]/team` — corporate account dashboard (employees, activity, ESG report)
 - `/app/billing` — nonprofit plan management + upgrade flow
 - `/credentials/claim/[token]` — credential share token claim
 

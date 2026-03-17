@@ -5,15 +5,15 @@ All notable changes to this project will be documented in this file.
 ## [0.4.0] - 2026-03-16
 
 ### Added
-- **Corporate ESG reporting dashboard** at `/app/company/[companyId]/team` — aggregate volunteer impact metrics (employees active, organizations supported, shifts completed, total hours, verified credentials) with per-org breakdown table
-- **CSV export** of ESG report via `/api/esg-report/csv` with formula injection defense (prefixes `=`, `+`, `-`, `@` with `'`) and proper Content-Disposition headers
-- **PRO plan gate** — ESG features restricted to PRO-tier companies; FREE plan users see an upgrade prompt
-- **Date range filtering** — from/to date inputs filter shift-based metrics; Zod validation rejects `from > to`
-- **Bidirectional merge** — credential-only orgs (no attended shifts) appear in the report with zero hours/shifts
-- **Cross-org employee deduplication** — "Employees Active" count uses a separate `COUNT(DISTINCT userId)` query to avoid double-counting employees at multiple orgs
-- **ESG Report sidebar link** with BarChart3 icon in company navigation section
-- **`companyPlanTierProcedure`** factory in tRPC init — mirrors `planTierProcedure` for company context with fresh DB tier lookup
-- **Domain unit tests** — 22 tests covering `computeESGSummary`, `formatESGCsv`, `escapeCsvField`, and `esgReportInputSchema`
+- **Corporate ESG reporting dashboard** — see aggregate volunteer impact across all linked nonprofits: employees active, organizations supported, shifts completed, total hours, and verified credentials with a per-org breakdown table at `/app/company/[companyId]/team`
+- **CSV export** — download the full ESG report as a CSV file, with formula injection defense built in
+- **PRO plan gate** — ESG features require a PRO company plan; FREE plan users see an upgrade prompt with a direct link to billing
+- **Date range filtering** — narrow the report to a specific time window with from/to date inputs
+- **Credential-only orgs included** — nonprofits where employees hold verified credentials but haven't attended shifts still appear in the report
+- **Cross-org employee deduplication** — the "Employees Active" count correctly handles employees who volunteer at multiple linked nonprofits
+- **ESG Report sidebar link** — quick access to the ESG dashboard from the company navigation
+- **`companyPlanTierProcedure`** — new tRPC middleware factory for company-context plan enforcement (mirrors org-context `planTierProcedure`)
+- **22 domain unit tests** covering report computation, CSV formatting, formula injection defense, and input validation
 
 ### For contributors
 - `esg-report.ts` domain module: `ESGOrgRow`, `ESGReportSummary` types, `computeESGSummary()`, `escapeCsvField()`, `formatESGCsv()`, `esgReportInputSchema`
