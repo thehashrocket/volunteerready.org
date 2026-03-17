@@ -5,6 +5,7 @@ import {
 	Building2,
 	Clock,
 	Download,
+	FileText,
 	ShieldCheck,
 	Users,
 } from 'lucide-react';
@@ -109,12 +110,20 @@ export default function ESGTeamDashboardPage() {
 		);
 	}
 
-	const handleExportCsv = () => {
+	const buildExportParams = () => {
 		const params = new URLSearchParams();
 		if (company) params.set('companyId', company.id);
 		if (from) params.set('from', from);
 		if (to) params.set('to', to);
-		window.location.href = `/api/esg-report/csv?${params.toString()}`;
+		return params.toString();
+	};
+
+	const handleExportCsv = () => {
+		window.location.href = `/api/esg-report/csv?${buildExportParams()}`;
+	};
+
+	const handleExportPdf = () => {
+		window.location.href = `/api/esg-report/pdf?${buildExportParams()}`;
 	};
 
 	return (
@@ -127,14 +136,24 @@ export default function ESGTeamDashboardPage() {
 						Aggregate volunteer activity across linked nonprofits
 					</p>
 				</div>
-				<Button
-					variant="outline"
-					onClick={handleExportCsv}
-					disabled={esgQ.isLoading}
-				>
-					<Download className="mr-2 h-4 w-4" />
-					Export CSV
-				</Button>
+				<div className="flex gap-2">
+					<Button
+						variant="outline"
+						onClick={handleExportCsv}
+						disabled={esgQ.isLoading}
+					>
+						<Download className="mr-2 h-4 w-4" />
+						Export CSV
+					</Button>
+					<Button
+						variant="outline"
+						onClick={handleExportPdf}
+						disabled={esgQ.isLoading}
+					>
+						<FileText className="mr-2 h-4 w-4" />
+						Export PDF
+					</Button>
+				</div>
 			</div>
 
 			{/* Date range filter */}
