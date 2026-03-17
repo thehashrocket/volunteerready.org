@@ -8,6 +8,7 @@ import {
 	Clock,
 	MapPin,
 	RefreshCw,
+	ShieldCheck,
 	Wifi,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -302,6 +303,64 @@ export default function ApplicationDetailPage() {
 					)}
 				</CardContent>
 			</Card>
+
+			{/* Credential sharing request card */}
+			<CredentialRequestCard applicationId={app.id} />
 		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Credential request card — staff can request volunteer to share credentials
+// ---------------------------------------------------------------------------
+
+function CredentialRequestCard({ applicationId }: { applicationId: string }) {
+	const countQuery = trpc.credentialSharing.externalCredentialCount.useQuery({
+		applicationId,
+	});
+
+	const requestMutation = trpc.credentialSharing.requestSharing.useMutation({
+		onSuccess: () => {
+			toast.success('Credential sharing request sent to volunteer.');
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to send request.');
+		},
+	});
+
+	const count = countQuery.data?.count ?? 0;
+
+	if (countQuery.isLoading || count === 0) return null;
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<ShieldCheck className="h-5 w-5 text-primary" />
+					Portable credentials
+				</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-3">
+				<p className="text-sm text-muted-foreground">
+					This volunteer has{' '}
+					<span className="font-medium text-foreground">
+						{count} verified credential{count !== 1 ? 's' : ''}
+					</span>{' '}
+					at other organizations.
+				</p>
+				<Button
+					size="sm"
+					variant="outline"
+					onClick={() => requestMutation.mutate({ applicationId })}
+					disabled={requestMutation.isPending || requestMutation.isSuccess}
+				>
+					{requestMutation.isSuccess
+						? 'Request sent'
+						: requestMutation.isPending
+							? 'Sending…'
+							: 'Request credential sharing'}
+				</Button>
+			</CardContent>
+		</Card>
 	);
 }
