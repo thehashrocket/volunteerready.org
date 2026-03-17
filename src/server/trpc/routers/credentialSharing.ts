@@ -1,0 +1,107 @@
+import { TRPCError } from '@trpc/server';
+import {
+	claimShareTokenSchema,
+	generateShareTokenSchema,
+	getTokenInfoSchema,
+	requestCredentialSharingSchema,
+	revokeShareTokenSchema,
+} from '@/server/domain/credential-sharing';
+import {
+	claimShareToken,
+	generateShareToken,
+	getExternalCredentialCount,
+	getMyShareTokens,
+	getShareCount,
+	getTokenInfo,
+	requestCredentialSharing,
+	revokeShareToken,
+} from '@/server/services/credentialShareService';
+import {
+	createTRPCRouter,
+	protectedProcedure,
+	publicProcedure,
+	staffProcedure,
+} from '@/server/trpc/init';
+
+function requireUserId(session: { user?: { id?: string } } | null): string {
+	const id = session?.user?.id;
+	if (!id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+	return id;
+}
+
+export const credentialSharingRouter = createTRPCRouter({
+	/** Volunteer generates a share link for a VERIFIED credential. */
+	generate: protectedProcedure
+		.input(generateShareTokenSchema)
+		.mutation(async ({ ctx, input }) => {
+			return generateShareToken(input.credentialId, requireUserId(ctx.session));
+		}),
+
+	/** Volunteer lists their share tokens. */
+	listMyTokens: protectedProcedure.query(async ({ ctx }) => {
+		return getMyShareTokens(requireUserId(ctx.session));
+	}),
+
+	/** Volunteer revokes an active share token. */
+	revoke: protectedProcedure
+		.input(revokeShareTokenSchema)
+		.mutation(async ({ ctx, input }) => {
+			return revokeShareToken(input.tokenId, requireUserId(ctx.session));
+		}),
+
+	/** Public preview of a share token — credential type + org name only. */
+	getTokenInfo: publicProcedure
+		.input(getTokenInfoSchema)
+		.query(async ({ input }) => {
+			return getTokenInfo(input.token);
+		}),
+
+	/** Staff claims a shared credential into their organization. */
+	claim: staffProcedure
+		.input(claimShareTokenSchema)
+		.mutation(async ({ ctx, input }) => {
+			return claimShareToken(
+				input.token,
+				ctx.orgId,
+				requireUserId(ctx.session),
+			);
+		}),
+
+	/** Get share count for a specific credential. */
+	shareCount: protectedProcedure
+		.input(generateShareTokenSchema) // reuses credentialId schema
+		.query(async ({ input }) => {
+			return getShareCount(input.credentialId);
+		}),
+
+	/** Count verified credentials a volunteer has at other orgs (for staff). */
+	externalCredentialCount: staffProcedure
+		.input(requestCredentialSharingSchema) // uses applicationId
+		.query(async ({ ctx, input }) => {
+			// Look up the application to get the volunteer's userId
+			const { prisma } = await import('@/server/repositories/prisma');
+			const app = await prisma.volunteerApplication.findFirst({
+				where: { id: input.applicationId, orgId: ctx.orgId },
+				select: { submittedByUserId: true },
+			});
+			if (!app?.submittedByUserId) return { count: 0 };
+			const count = await getExternalCredentialCount(
+				app.submittedByUserId,
+				ctx.orgId,
+			);
+			return { count };
+		}),
+
+	/** Staff requests a volunteer to share their credentials. */
+	requestSharing: staffProcedure
+		.input(requestCredentialSharingSchema)
+		.mutation(async ({ ctx, input }) => {
+			const baseUrl = process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL ?? '';
+			return requestCredentialSharing({
+				applicationId: input.applicationId,
+				orgId: ctx.orgId,
+				actorId: requireUserId(ctx.session),
+				baseUrl,
+			});
+		}),
+});

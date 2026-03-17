@@ -113,11 +113,8 @@ export const companyRouter = createTRPCRouter({
 	acceptInvite: protectedProcedure
 		.input(z.object({ token: z.string() }))
 		.mutation(async ({ ctx, input }) => {
-			const crypto = await import('node:crypto');
-			const tokenHash = crypto
-				.createHash('sha256')
-				.update(input.token)
-				.digest('hex');
+			const { hashToken } = await import('@/server/lib/tokens');
+			const tokenHash = hashToken(input.token);
 			return acceptCompanyInvite({
 				tokenHash,
 				userId: ctx.session?.user?.id ?? '',
