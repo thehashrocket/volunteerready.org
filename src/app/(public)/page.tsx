@@ -241,26 +241,24 @@ export default async function Home() {
 			</section>
 
 			{/* ── Platform pillars ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
-				<div className="mx-auto max-w-5xl">
-					<h2 className="font-display mb-3 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
+			<section className="bg-[#F5F4F0] px-4 py-20">
+				<div className="mx-auto max-w-3xl">
+					<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
 						Built for trust, not just convenience
 					</h2>
-					<p className="mb-12 text-center text-muted-foreground">
+					<p className="mb-14 text-muted-foreground">
 						Everything nonprofits, volunteers, and corporate sponsors need — in
 						one platform.
 					</p>
-					<div className="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+					<div className="space-y-10">
 						{pillars.map((pillar, i) => {
 							const Icon = pillar.icon;
 							return (
 								<FadeInOnScroll key={pillar.heading} delay={i * 75}>
-									<div className="flex gap-4">
-										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-											<Icon className="h-5 w-5 text-primary" />
-										</div>
+									<div className="flex gap-5">
+										<Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
 										<div>
-											<p className="mb-1 text-lg font-semibold text-foreground">
+											<p className="mb-1 font-semibold text-foreground">
 												{pillar.heading}
 											</p>
 											<p className="text-sm leading-relaxed text-muted-foreground">
