@@ -384,7 +384,7 @@ Compare screenshots and observations across pages for:
 
 **Project-scoped:**
 ```bash
-SLUG=$(git remote get-url origin 2>/dev/null | sed 's|.*[:/]\([^/]*/[^/]*\)\.git$|\1|;s|.*[:/]\([^/]*/[^/]*\)$|\1|' | tr '/' '-')
+eval $(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)
 mkdir -p ~/.gstack/projects/$SLUG
 ```
 Write to: `~/.gstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md`
@@ -465,6 +465,7 @@ Tie everything to user goals and product objectives. Always suggest specific imp
 8. **Responsive is design, not just "not broken."** A stacked desktop layout on mobile is not responsive design — it's lazy. Evaluate whether the mobile layout makes *design* sense.
 9. **Document incrementally.** Write each finding to the report as you find it. Don't batch.
 10. **Depth over breadth.** 5-10 well-documented findings with screenshots and specific suggestions > 20 vague observations.
+11. **Show screenshots to the user.** After every `$B screenshot`, `$B snapshot -a -o`, or `$B responsive` command, use the Read tool on the output file(s) so the user can see them inline. For `responsive` (3 files), Read all three. This is critical — without it, screenshots are invisible to the user.
 
 ---
 
@@ -556,3 +557,57 @@ Project type: {web app / dashboard / marketing site / etc.}
 
 11. **Never fix anything.** Find and document only. Do not read source code, edit files, or suggest code fixes. Your job is to report what could be better and suggest design improvements. Use `/qa-design-review` for the fix loop.
 12. **The exception:** You MAY write a DESIGN.md file if the user accepts the offer. This is the only file you create.
+
+## Review Log
+
+After compiling the report, persist the review result:
+
+```bash
+eval $(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)
+mkdir -p ~/.gstack/projects/$SLUG
+echo '{"skill":"plan-design-review","timestamp":"TIMESTAMP","status":"STATUS","design_score":"GRADE","ai_slop_score":"GRADE","mode":"MODE"}' >> ~/.gstack/projects/$SLUG/$BRANCH-reviews.jsonl
+```
+
+Substitute values from the report:
+- **TIMESTAMP**: current ISO 8601 datetime
+- **STATUS**: "clean" if Design Score is A or B; "issues_open" if C, D, or F
+- **GRADE**: the letter grade from the report (Design Score and AI Slop Score respectively)
+- **MODE**: Full / Quick / Deep / Diff-aware / Regression
+
+## Review Readiness Dashboard
+
+After completing the review, read the review log and config to display the dashboard.
+
+```bash
+eval $(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)
+cat ~/.gstack/projects/$SLUG/$BRANCH-reviews.jsonl 2>/dev/null || echo "NO_REVIEWS"
+echo "---CONFIG---"
+~/.claude/skills/gstack/bin/gstack-config get skip_eng_review 2>/dev/null || echo "false"
+```
+
+Parse the output. Find the most recent entry for each skill (plan-ceo-review, plan-eng-review, plan-design-review). Ignore entries with timestamps older than 7 days. Display:
+
+```
++====================================================================+
+|                    REVIEW READINESS DASHBOARD                       |
++====================================================================+
+| Review          | Runs | Last Run            | Status    | Required |
+|-----------------|------|---------------------|-----------|----------|
+| Eng Review      |  1   | 2026-03-16 15:00    | CLEAR     | YES      |
+| CEO Review      |  0   | —                   | —         | no       |
+| Design Review   |  0   | —                   | —         | no       |
++--------------------------------------------------------------------+
+| VERDICT: CLEARED — Eng Review passed                                |
++====================================================================+
+```
+
+**Review tiers:**
+- **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \`gstack-config set skip_eng_review true\` (the "don't bother me" setting).
+- **CEO Review (optional):** Use your judgment. Recommend it for big product/business changes, new user-facing features, or scope decisions. Skip for bug fixes, refactors, infra, and cleanup.
+- **Design Review (optional):** Use your judgment. Recommend it for UI/UX changes. Skip for backend-only, infra, or prompt-only changes.
+
+**Verdict logic:**
+- **CLEARED**: Eng Review has >= 1 entry within 7 days with status "clean" (or \`skip_eng_review\` is \`true\`)
+- **NOT CLEARED**: Eng Review missing, stale (>7 days), or has open issues
+- CEO and Design reviews are shown for context but never block shipping
+- If \`skip_eng_review\` config is \`true\`, Eng Review shows "SKIPPED (global)" and verdict is CLEARED

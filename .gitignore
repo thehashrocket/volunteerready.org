@@ -63,3 +63,6 @@ VolunteerReady_Action_Plan.docx
 prisma/dev.db
 prisma/dev.db-journal
 .gstack/
+
+# Sentry Config File
+.env.sentry-build-plugin

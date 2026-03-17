@@ -263,6 +263,30 @@
 **Effort:** S
 **Priority:** P3
 
+### CI/CD generation for non-GitHub providers
+
+**What:** Extend CI/CD bootstrap to generate GitLab CI (`.gitlab-ci.yml`), CircleCI (`.circleci/config.yml`), and Bitrise pipelines.
+
+**Why:** Not all projects use GitHub Actions. Universal CI/CD bootstrap would make test bootstrap work for everyone.
+
+**Context:** v1 ships with GitHub Actions only. Detection logic already checks for `.gitlab-ci.yml`, `.circleci/`, `bitrise.yml` and skips with an informational note. Each provider needs ~20 lines of template text in `generateTestBootstrap()`.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** Test bootstrap (shipped)
+
+### Auto-upgrade weak tests (★) to strong tests (★★★)
+
+**What:** When Step 3.4 coverage audit identifies existing ★-rated tests (smoke/trivial assertions), generate improved versions testing edge cases and error paths.
+
+**Why:** Many codebases have tests that technically exist but don't catch real bugs — `expect(component).toBeDefined()` isn't testing behavior. Upgrading these closes the gap between "has tests" and "has good tests."
+
+**Context:** Requires the quality scoring rubric from the test coverage audit. Modifying existing test files is riskier than creating new ones — needs careful diffing to ensure the upgraded test still passes. Consider creating a companion test file rather than modifying the original.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** Test quality scoring (shipped)
+
 ## Retro
 
 ### Deployment health tracking (retro + browse)
@@ -407,6 +431,32 @@ Shipped as `/design-consultation` on garrytan/design branch. Renamed from `/setu
 **Effort:** S
 **Priority:** P2
 **Depends on:** None
+
+## Ship Confidence Dashboard
+
+### Smart review relevance detection
+
+**What:** Auto-detect which of the 4 reviews are relevant based on branch changes (skip Design Review if no CSS/view changes, skip Code Review if plan-only).
+
+**Why:** Currently dashboard always shows 4 rows. On docs-only changes, "Design Review: NOT YET RUN" is noise.
+
+**Context:** /plan-design-review and /qa already do file-type detection in diff-aware mode. Could reuse that heuristic. Would require a `gstack-diff-scope` helper or enriching `gstack-slug` to also output change categories.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** Ship Confidence Dashboard (shipped)
+
+### /merge skill — review-gated PR merge
+
+**What:** Create a `/merge` skill that merges an approved PR, but first checks the Review Readiness Dashboard and runs `/review` (Fix-First) if code review hasn't been done. Separates "ship" (create PR) from "merge" (land it).
+
+**Why:** Currently `/review` runs inside `/ship` Step 3.5 but isn't tracked as a gate. A `/merge` skill ensures code review always happens before landing, and enables workflows where someone else reviews the PR first.
+
+**Context:** `/ship` creates the PR. `/merge` would: check dashboard → run `/review` if needed → `gh pr merge`. This is where code review tracking belongs — at merge time, not at plan time.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** Ship Confidence Dashboard (shipped)
 
 ## Completed
 

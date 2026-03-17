@@ -1,6 +1,8 @@
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -11,6 +13,14 @@ export default function RootError({
 	error: Error & { digest?: string };
 	reset: () => void;
 }) {
+	useEffect(() => {
+		try {
+			Sentry.captureException(error);
+		} catch {
+			// Never let Sentry failure break the error boundary UI
+		}
+	}, [error]);
+
 	return (
 		<div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4">
 			<Card className="w-full max-w-md">
