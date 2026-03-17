@@ -4,6 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "cross-env PORT=3005 next dev --turbo",
+		"postinstall": "prisma generate",
 		"build": "prisma migrate deploy && next build",
 		"start": "next start",
 		"lint": "biome check .",

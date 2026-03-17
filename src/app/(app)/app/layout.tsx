@@ -44,7 +44,7 @@ export default async function AppLayout({
 	const hasCompany = !!sessionExt?.companyId;
 
 	if (!isExempt && !hasOrg) {
-		redirect('/app/browse');
+		redirect('/app/welcome');
 	}
 
 	return (
