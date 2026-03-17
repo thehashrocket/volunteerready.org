@@ -372,25 +372,34 @@ is sufficient.
 
 **Effort:** M | **Priority:** P2 | **Depends on:** ✅ 6A CompanyAccount shipped
 
-### [P1] ESG Report PDF Export
+### ~~[P1] ESG Report PDF Export~~ ✅ Complete
 
-**What:** One-click PDF download of the ESG aggregate report (hours logged, verified
-credentials, supported nonprofits).
+**Completed:** 2026-03-17
 
-**Why:** Corporate finance and sustainability teams often require PDF reports for
-board materials and audit submissions. CSV is useful for analysis; PDF is required
-for distribution.
+Implemented using `@react-pdf/renderer` 4.3.2 with branded PDF layout matching
+DESIGN.md (forest green header, sand stat boxes, warm neutral table). API route
+at `/api/esg-report/pdf` mirrors CSV route auth pattern. Dynamic import keeps
+`@react-pdf/renderer` out of the main bundle. Fonts (Fraunces Bold, Geist
+Regular/SemiBold/Bold) bundled as TTF in `public/fonts/`.
 
-**Context:** Phase 6 ships CSV-only export (no PDF dependency). PDF generation
-options: `@react-pdf/renderer` (React-based, works server-side, ~200KB bundle),
-Puppeteer headless (flexible but needs Vercel workarounds), or a dedicated report
-rendering service. The `EmployerReportService` aggregate data is already available;
-PDF is a presentation layer on top. Evaluate `@react-pdf/renderer` first.
+---
 
-**Pros:** Required by enterprise corporate buyers; high perceived value.
-**Cons:** New dependency, layout work is non-trivial.
+### [P3] Shared ESG Export Auth Helper
 
-**Effort:** M | **Priority:** P1 | **Depends on:** 6D ESG dashboard + CSV export shipped
+**What:** Extract repeated auth/validation logic from CSV and PDF API routes into
+a shared helper function.
+
+**Why:** Both `/api/esg-report/csv/route.ts` and `/api/esg-report/pdf/route.ts`
+duplicate the same auth flow: session check → param validation → membership check →
+role check → plan tier check. If a third export format is added, the duplication
+becomes a maintenance burden.
+
+**Context:** Currently acceptable at 2 call sites. Extract when a third format
+(e.g., XLSX, branded HTML) is added. The helper would live in
+`src/server/lib/esg-auth.ts` and return either the validated params + userId or
+a NextResponse error.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** A third ESG export format being added
 
 ### [P2] QR Code Volunteer Check-In (Mobile PWA)
 

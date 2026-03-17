@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2026-03-17
+
+### Added
+- **ESG Report PDF Export** — corporate admins can now download a branded PDF of the ESG Volunteer Impact Report with company header, summary stats, and per-organization breakdown table styled with the VolunteerReady design system
+- **PDF export button** on the corporate team dashboard (`/app/company/[companyId]/team`) next to the existing CSV export
+- **Bundled Fraunces + Geist fonts** for server-side PDF rendering (Vercel-compatible, no runtime font fetches)
+
 ## [0.5.0] - 2026-03-16
 
 ### Added
