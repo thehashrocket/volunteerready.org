@@ -1,5 +1,5 @@
-import crypto from 'node:crypto';
 import type { Role } from '@/prisma/generated/client';
+import { generateToken, hashToken } from '@/server/lib/tokens';
 import {
 	createInvitation,
 	findInvitationByHash,
@@ -8,10 +8,6 @@ import {
 } from '@/server/repositories/inviteRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { sendInviteEmail } from '@/server/repositories/sendInviteEmail';
-
-function hashToken(token: string): string {
-	return crypto.createHash('sha256').update(token).digest('hex');
-}
 
 const INVITE_EXPIRY_HOURS = 48;
 
@@ -38,7 +34,7 @@ export async function inviteMember(
 		throw new Error('This person is already a member of your organization.');
 	}
 
-	const rawToken = crypto.randomBytes(32).toString('hex');
+	const rawToken = generateToken();
 	const tokenHash = hashToken(rawToken);
 	const expiresAt = new Date(Date.now() + INVITE_EXPIRY_HOURS * 60 * 60 * 1000);
 

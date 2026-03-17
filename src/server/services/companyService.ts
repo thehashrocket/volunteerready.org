@@ -1,9 +1,9 @@
-import crypto from 'node:crypto';
 import { TRPCError } from '@trpc/server';
 import { findUniqueSlug, generateSlug } from '@/lib/slug';
 import type { CompanyMemberRole } from '@/prisma/generated/client';
 import { Prisma } from '@/prisma/generated/client';
 import { getResend } from '../lib/resend';
+import { generateToken, hashToken } from '../lib/tokens';
 import { writeAuditLogTx } from '../repositories/auditRepo';
 import {
 	createCompanyInvitationTx,
@@ -18,10 +18,6 @@ import {
 	upsertNonprofitLinkTx,
 } from '../repositories/companyRepo';
 import { prisma } from '../repositories/prisma';
-
-function hashToken(token: string): string {
-	return crypto.createHash('sha256').update(token).digest('hex');
-}
 
 const INVITE_EXPIRY_HOURS = 48;
 
@@ -214,7 +210,7 @@ export async function inviteCompanyMember(opts: {
 		});
 	}
 
-	const rawToken = crypto.randomBytes(32).toString('hex');
+	const rawToken = generateToken();
 	const tokenHash = hashToken(rawToken);
 	const expiresAt = new Date(Date.now() + INVITE_EXPIRY_HOURS * 60 * 60 * 1000);
 
