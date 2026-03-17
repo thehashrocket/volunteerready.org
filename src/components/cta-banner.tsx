@@ -20,7 +20,7 @@ export function CTABanner({
 				{Icon && (
 					<Icon className="mx-auto mb-4 h-8 w-8 text-primary-foreground/70" />
 				)}
-				<h2 className="font-display mb-3 text-2xl font-bold [text-wrap:balance] sm:text-3xl">
+				<h2 className="font-display mb-3 text-2xl font-bold [text-wrap:balance] sm:text-[32px]">
 					{heading}
 				</h2>
 				<p className="mb-8 text-primary-foreground/75">{description}</p>
