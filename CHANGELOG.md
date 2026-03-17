@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file.
 - **Claim notification email** — volunteers receive an email when their shared credential is claimed by an org (fire-and-forget, outside transaction)
 - **Credential sharing request email** — staff can ask volunteers to share credentials via email with a direct link to their profile
 
+### Fixed
+- Radix UI hydration mismatch on the account dropdown — deferred DropdownMenu rendering to client-only to eliminate SSR/client ID mismatches
+
 ### For contributors
 - `CredentialShareToken` model with SHA-256 hashed token storage, P2002 collision retry, and optimistic lock on claim
 - `ShareTokenStatus` enum: ACTIVE → CLAIMED / EXPIRED
