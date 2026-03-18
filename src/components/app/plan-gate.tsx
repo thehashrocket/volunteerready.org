@@ -30,7 +30,7 @@ export function PlanGate({
 	}
 
 	return (
-		<div className="rounded-lg border border-dashed bg-neutral-100 p-10 text-center">
+		<div className="rounded-md border border-dashed bg-muted p-10 text-center">
 			<div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-muted">
 				<Lock className="h-5 w-5 text-muted-foreground" />
 			</div>
