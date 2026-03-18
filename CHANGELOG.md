@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.2] - 2026-03-18
+
+### Fixed
+- **Security** — `getOrgVisibleProfile` tRPC procedure changed from `protectedProcedure` to `staffProcedure`; previously any authenticated volunteer could query another volunteer's ORGS_ONLY profile
+- **SEO dedup** — `getPublicProfile` wrapped with `React.cache()` so `generateMetadata` and the page component share a single fetch (was 8 DB queries per page load, now 4)
+- **Test reliability** — reverted module-level platform org ID cache in `tenureBadgeService`; the cache persisted `null` across test cases when the "org not found" test ran first, silently breaking 4 tenure badge issuance tests
+
 ## [0.7.1] - 2026-03-18
 
 ### Added
