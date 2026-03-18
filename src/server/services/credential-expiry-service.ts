@@ -7,6 +7,26 @@ import {
 import { markTokenExpiredTx } from '../repositories/credentialShareTokenRepo';
 import { prisma } from '../repositories/prisma';
 
+const NOTIFICATION_RETENTION_DAYS = 90;
+
+/**
+ * Hard-delete dismissed notifications older than 90 days.
+ */
+export async function purgeOldDismissedNotifications(): Promise<{
+	notificationsPurged: number;
+}> {
+	const cutoff = new Date();
+	cutoff.setDate(cutoff.getDate() - NOTIFICATION_RETENTION_DAYS);
+
+	const { count } = await prisma.notification.deleteMany({
+		where: {
+			deletedAt: { lt: cutoff },
+		},
+	});
+
+	return { notificationsPurged: count };
+}
+
 export async function expireStaleCredentialsAndTokens(): Promise<{
 	credentialsExpired: number;
 	tokensExpired: number;
