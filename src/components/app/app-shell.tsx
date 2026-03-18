@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 import { type ReactNode, useEffect, useState } from 'react';
 import { AppSidebar } from '@/components/app/app-sidebar';
+import { NotificationBell } from '@/components/app/notification-bell';
 import { CompanySwitcher } from '@/components/company/CompanySwitcher';
 import { OrgSwitcher } from '@/components/org/OrgSwitcher';
 import { Button } from '@/components/ui/button';
@@ -68,39 +69,42 @@ export function AppShell({
 						<OrgSwitcher />
 						<CompanySwitcher />
 					</div>
-					{mounted ? (
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" className="h-8 gap-2 text-xs">
-									<div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-										{initial}
-									</div>
-									<span className="hidden text-muted-foreground sm:inline">
-										{session?.user?.email ?? 'Account'}
-									</span>
-									<ChevronDown className="h-4 w-4 text-muted-foreground" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-48">
-								<DropdownMenuLabel>Signed in</DropdownMenuLabel>
-								<DropdownMenuItem disabled>
-									{session?.user?.email ?? 'No email'}
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => signOut()}>
-									<LogOut className="mr-2 h-4 w-4" />
-									Sign out
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					) : (
-						<Button variant="ghost" className="h-8 gap-2 text-xs">
-							<div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-								{initial}
-							</div>
-							<ChevronDown className="h-4 w-4 text-muted-foreground" />
-						</Button>
-					)}
+					<div className="flex items-center gap-1">
+						<NotificationBell />
+						{mounted ? (
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button variant="ghost" className="h-8 gap-2 text-xs">
+										<div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+											{initial}
+										</div>
+										<span className="hidden text-muted-foreground sm:inline">
+											{session?.user?.email ?? 'Account'}
+										</span>
+										<ChevronDown className="h-4 w-4 text-muted-foreground" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end" className="w-48">
+									<DropdownMenuLabel>Signed in</DropdownMenuLabel>
+									<DropdownMenuItem disabled>
+										{session?.user?.email ?? 'No email'}
+									</DropdownMenuItem>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem onClick={() => signOut()}>
+										<LogOut className="mr-2 h-4 w-4" />
+										Sign out
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						) : (
+							<Button variant="ghost" className="h-8 gap-2 text-xs">
+								<div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+									{initial}
+								</div>
+								<ChevronDown className="h-4 w-4 text-muted-foreground" />
+							</Button>
+						)}
+					</div>
 				</div>
 			</header>
 

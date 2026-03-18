@@ -462,6 +462,29 @@ exports.Prisma.VolunteerInvitationScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  orgId: 'orgId',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  href: 'href',
+  readAt: 'readAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.NotificationPreferenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  orgId: 'orgId',
+  type: 'type',
+  inApp: 'inApp',
+  email: 'email'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -618,6 +641,18 @@ exports.ShareTokenStatus = exports.$Enums.ShareTokenStatus = {
   EXPIRED: 'EXPIRED'
 };
 
+exports.NotificationType = exports.$Enums.NotificationType = {
+  SHIFT_REMINDER: 'SHIFT_REMINDER',
+  SHIFT_CANCELLED: 'SHIFT_CANCELLED',
+  SHIFT_UPDATED: 'SHIFT_UPDATED',
+  APPLICATION_STATUS: 'APPLICATION_STATUS',
+  CREDENTIAL_EXPIRY: 'CREDENTIAL_EXPIRY',
+  TEAM_ANNOUNCEMENT: 'TEAM_ANNOUNCEMENT',
+  WAITLIST_PROMOTED: 'WAITLIST_PROMOTED',
+  NEW_OPPORTUNITY: 'NEW_OPPORTUNITY',
+  BADGE_EARNED: 'BADGE_EARNED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -650,7 +685,9 @@ exports.Prisma.ModelName = {
   BackgroundCheckRequest: 'BackgroundCheckRequest',
   CheckrWebhookEvent: 'CheckrWebhookEvent',
   CredentialShareToken: 'CredentialShareToken',
-  VolunteerInvitation: 'VolunteerInvitation'
+  VolunteerInvitation: 'VolunteerInvitation',
+  Notification: 'Notification',
+  NotificationPreference: 'NotificationPreference'
 };
 
 /**

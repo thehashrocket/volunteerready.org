@@ -26,6 +26,8 @@ model User {
   backgroundCheckRequests BackgroundCheckRequest[]
   createdShareTokens      CredentialShareToken[]
   receivedInvitations     VolunteerInvitation[]   @relation("ReceivedInvitations")
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
 }
@@ -122,6 +124,8 @@ model Organization {
   companyLinks            CompanyNonprofitLink[]
   backgroundCheckRequests BackgroundCheckRequest[]
   volunteerInvitations    VolunteerInvitation[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
 }
 
 model OrganizationMember {
@@ -707,4 +711,57 @@ model VolunteerInvitation {
   @@unique([orgId, volunteerId, opportunityId])
   @@index([orgId, sentAt])
   @@index([volunteerId, sentAt])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 8 — Notifications & Preferences
+// ---------------------------------------------------------------------------
+
+enum NotificationType {
+  SHIFT_REMINDER
+  SHIFT_CANCELLED
+  SHIFT_UPDATED
+  APPLICATION_STATUS
+  CREDENTIAL_EXPIRY
+  TEAM_ANNOUNCEMENT
+  WAITLIST_PROMOTED
+  NEW_OPPORTUNITY
+  BADGE_EARNED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  orgId     String
+  type      NotificationType
+  title     String
+  body      String
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  deletedAt DateTime?
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([orgId])
+  @@index([deletedAt])
+}
+
+model NotificationPreference {
+  id      String           @id @default(cuid())
+  userId  String
+  orgId   String
+  type    NotificationType
+  inApp   Boolean          @default(true)
+  email   Boolean          @default(true)
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId, type])
+  @@index([userId, orgId])
 }

@@ -10,6 +10,7 @@ import { discoveryRouter } from '@/server/trpc/routers/discovery';
 import { esgReportRouter } from '@/server/trpc/routers/esg-report';
 import { healthRouter } from '@/server/trpc/routers/health';
 import { matchingRouter } from '@/server/trpc/routers/matching';
+import { notificationsRouter } from '@/server/trpc/routers/notifications';
 import { membersRouter } from '@/server/trpc/routers/members';
 import { onboardingRouter } from '@/server/trpc/routers/onboarding';
 import { opportunitiesRouter } from '@/server/trpc/routers/opportunities';
@@ -32,6 +33,7 @@ export const appRouter = createTRPCRouter({
 	health: healthRouter,
 	matching: matchingRouter,
 	members: membersRouter,
+	notifications: notificationsRouter,
 	onboarding: onboardingRouter,
 	opportunities: opportunitiesRouter,
 	org: orgRouter,
