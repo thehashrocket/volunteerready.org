@@ -13,6 +13,7 @@ import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
+	staffProcedure,
 } from '@/server/trpc/init';
 
 function requireUserId(session: { user?: { id?: string } } | null): string {
@@ -75,7 +76,7 @@ export const profileRouter = createTRPCRouter({
 	 * Returns data for PUBLIC and ORGS_ONLY profiles; null for PRIVATE + not-found.
 	 * Use this on internal screener pages, not the public internet.
 	 */
-	getOrgVisibleProfile: protectedProcedure
+	getOrgVisibleProfile: staffProcedure
 		.input(z.object({ userId: z.string().min(1) }))
 		.query(({ input }) => getOrgVisibleProfile(input.userId)),
 

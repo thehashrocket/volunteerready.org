@@ -490,3 +490,18 @@ env var gate from `src/app/(app)/app/discover/page.tsx`.
 **Cons:** New infrastructure dependency (Redis/Vercel KV); adds per-request latency.
 
 **Effort:** M | **Priority:** P1 | **Depends on:** Redis/Vercel KV infrastructure decision
+
+---
+
+### [P3] Consolidate CREDENTIAL_TYPE_LABELS into shared domain constant
+
+**What:** Remove the local `CREDENTIAL_TYPE_LABELS` map in `src/app/(app)/app/discover/_components/discover-client.tsx:51` and import `CREDENTIAL_LABELS` from `src/server/domain/volunteer-profile.ts` instead.
+
+**Why:** Two maps with the same keys but slightly different labels ("1-Year Tenure" vs "1 Year Volunteer") will diverge as new credential types are added. If a new `CredentialType` is added to the enum, the discover UI won't display it correctly unless the local copy is also updated — the TypeScript types won't catch this since the local map uses `Record<string, string>`.
+
+**Context:** `CREDENTIAL_LABELS` in `volunteer-profile.ts` is a pure constant with no framework dependencies. It can be safely imported in client components. The tenure label wording differs slightly between the two maps — align them during this cleanup.
+
+**Pros:** Single source of truth for credential display names; new credential types automatically appear in discover UI.
+**Cons:** Slight label wording change in discover UI (cosmetic only).
+
+**Effort:** XS | **Priority:** P3 | **Depends on:** nothing
