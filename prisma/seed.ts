@@ -468,6 +468,10 @@ async function main() {
 	// Keep the dev org for backwards compat
 	const devOrg = await upsertOrg('dev-organization', 'Dev Organization');
 
+	// Platform org — issues system-level credentials (tenure badges).
+	// Must always exist so tenureBadgeService can reference its ID.
+	const _platformOrg = await upsertOrg('platform', 'VolunteerReady Platform');
+
 	// =========================================================================
 	// 2. Feature flags
 	// =========================================================================

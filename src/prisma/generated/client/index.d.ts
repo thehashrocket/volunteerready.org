@@ -168,6 +168,11 @@ export type CheckrWebhookEvent = $Result.DefaultSelection<Prisma.$CheckrWebhookE
  * 
  */
 export type CredentialShareToken = $Result.DefaultSelection<Prisma.$CredentialShareTokenPayload>
+/**
+ * Model VolunteerInvitation
+ * 
+ */
+export type VolunteerInvitation = $Result.DefaultSelection<Prisma.$VolunteerInvitationPayload>
 
 /**
  * Enums
@@ -254,7 +259,10 @@ export const CredentialType: {
   TRAINING_COMPLETE: 'TRAINING_COMPLETE',
   ID_VERIFIED: 'ID_VERIFIED',
   REFERENCE_CHECK: 'REFERENCE_CHECK',
-  ORIENTATION_COMPLETE: 'ORIENTATION_COMPLETE'
+  ORIENTATION_COMPLETE: 'ORIENTATION_COMPLETE',
+  TENURE_1YR: 'TENURE_1YR',
+  TENURE_3YR: 'TENURE_3YR',
+  TENURE_5YR: 'TENURE_5YR'
 };
 
 export type CredentialType = (typeof CredentialType)[keyof typeof CredentialType]
@@ -861,6 +869,16 @@ export class PrismaClient<
     * ```
     */
   get credentialShareToken(): Prisma.CredentialShareTokenDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.volunteerInvitation`: Exposes CRUD operations for the **VolunteerInvitation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VolunteerInvitations
+    * const volunteerInvitations = await prisma.volunteerInvitation.findMany()
+    * ```
+    */
+  get volunteerInvitation(): Prisma.VolunteerInvitationDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1325,7 +1343,8 @@ export namespace Prisma {
     StripeWebhookEvent: 'StripeWebhookEvent',
     BackgroundCheckRequest: 'BackgroundCheckRequest',
     CheckrWebhookEvent: 'CheckrWebhookEvent',
-    CredentialShareToken: 'CredentialShareToken'
+    CredentialShareToken: 'CredentialShareToken',
+    VolunteerInvitation: 'VolunteerInvitation'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1341,7 +1360,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent" | "backgroundCheckRequest" | "checkrWebhookEvent" | "credentialShareToken"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent" | "backgroundCheckRequest" | "checkrWebhookEvent" | "credentialShareToken" | "volunteerInvitation"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3639,6 +3658,80 @@ export namespace Prisma {
           }
         }
       }
+      VolunteerInvitation: {
+        payload: Prisma.$VolunteerInvitationPayload<ExtArgs>
+        fields: Prisma.VolunteerInvitationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VolunteerInvitationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VolunteerInvitationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload>
+          }
+          findFirst: {
+            args: Prisma.VolunteerInvitationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VolunteerInvitationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload>
+          }
+          findMany: {
+            args: Prisma.VolunteerInvitationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload>[]
+          }
+          create: {
+            args: Prisma.VolunteerInvitationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload>
+          }
+          createMany: {
+            args: Prisma.VolunteerInvitationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VolunteerInvitationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload>[]
+          }
+          delete: {
+            args: Prisma.VolunteerInvitationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload>
+          }
+          update: {
+            args: Prisma.VolunteerInvitationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload>
+          }
+          deleteMany: {
+            args: Prisma.VolunteerInvitationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VolunteerInvitationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.VolunteerInvitationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload>[]
+          }
+          upsert: {
+            args: Prisma.VolunteerInvitationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VolunteerInvitationPayload>
+          }
+          aggregate: {
+            args: Prisma.VolunteerInvitationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVolunteerInvitation>
+          }
+          groupBy: {
+            args: Prisma.VolunteerInvitationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VolunteerInvitationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VolunteerInvitationCountArgs<ExtArgs>
+            result: $Utils.Optional<VolunteerInvitationCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3778,6 +3871,7 @@ export namespace Prisma {
     backgroundCheckRequest?: BackgroundCheckRequestOmit
     checkrWebhookEvent?: CheckrWebhookEventOmit
     credentialShareToken?: CredentialShareTokenOmit
+    volunteerInvitation?: VolunteerInvitationOmit
   }
 
   /* Types for Logging */
@@ -3869,6 +3963,7 @@ export namespace Prisma {
     shiftSignups: number
     backgroundCheckRequests: number
     createdShareTokens: number
+    receivedInvitations: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3883,6 +3978,7 @@ export namespace Prisma {
     shiftSignups?: boolean | UserCountOutputTypeCountShiftSignupsArgs
     backgroundCheckRequests?: boolean | UserCountOutputTypeCountBackgroundCheckRequestsArgs
     createdShareTokens?: boolean | UserCountOutputTypeCountCreatedShareTokensArgs
+    receivedInvitations?: boolean | UserCountOutputTypeCountReceivedInvitationsArgs
   }
 
   // Custom InputTypes
@@ -3973,6 +4069,13 @@ export namespace Prisma {
     where?: CredentialShareTokenWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountReceivedInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerInvitationWhereInput
+  }
+
 
   /**
    * Count Type OrganizationCountOutputType
@@ -3993,6 +4096,7 @@ export namespace Prisma {
     shifts: number
     companyLinks: number
     backgroundCheckRequests: number
+    volunteerInvitations: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4010,6 +4114,7 @@ export namespace Prisma {
     shifts?: boolean | OrganizationCountOutputTypeCountShiftsArgs
     companyLinks?: boolean | OrganizationCountOutputTypeCountCompanyLinksArgs
     backgroundCheckRequests?: boolean | OrganizationCountOutputTypeCountBackgroundCheckRequestsArgs
+    volunteerInvitations?: boolean | OrganizationCountOutputTypeCountVolunteerInvitationsArgs
   }
 
   // Custom InputTypes
@@ -4121,6 +4226,13 @@ export namespace Prisma {
     where?: BackgroundCheckRequestWhereInput
   }
 
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountVolunteerInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerInvitationWhereInput
+  }
+
 
   /**
    * Count Type VolunteerApplicationCountOutputType
@@ -4162,6 +4274,7 @@ export namespace Prisma {
     requirements: number
     applications: number
     shifts: number
+    volunteerInvitations: number
   }
 
   export type VolunteerOpportunityCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4169,6 +4282,7 @@ export namespace Prisma {
     requirements?: boolean | VolunteerOpportunityCountOutputTypeCountRequirementsArgs
     applications?: boolean | VolunteerOpportunityCountOutputTypeCountApplicationsArgs
     shifts?: boolean | VolunteerOpportunityCountOutputTypeCountShiftsArgs
+    volunteerInvitations?: boolean | VolunteerOpportunityCountOutputTypeCountVolunteerInvitationsArgs
   }
 
   // Custom InputTypes
@@ -4208,6 +4322,13 @@ export namespace Prisma {
    */
   export type VolunteerOpportunityCountOutputTypeCountShiftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ShiftWhereInput
+  }
+
+  /**
+   * VolunteerOpportunityCountOutputType without action
+   */
+  export type VolunteerOpportunityCountOutputTypeCountVolunteerInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerInvitationWhereInput
   }
 
 
@@ -4616,6 +4737,7 @@ export namespace Prisma {
     shiftSignups?: boolean | User$shiftSignupsArgs<ExtArgs>
     backgroundCheckRequests?: boolean | User$backgroundCheckRequestsArgs<ExtArgs>
     createdShareTokens?: boolean | User$createdShareTokensArgs<ExtArgs>
+    receivedInvitations?: boolean | User$receivedInvitationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -4663,6 +4785,7 @@ export namespace Prisma {
     shiftSignups?: boolean | User$shiftSignupsArgs<ExtArgs>
     backgroundCheckRequests?: boolean | User$backgroundCheckRequestsArgs<ExtArgs>
     createdShareTokens?: boolean | User$createdShareTokensArgs<ExtArgs>
+    receivedInvitations?: boolean | User$receivedInvitationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4683,6 +4806,7 @@ export namespace Prisma {
       shiftSignups: Prisma.$ShiftSignupPayload<ExtArgs>[]
       backgroundCheckRequests: Prisma.$BackgroundCheckRequestPayload<ExtArgs>[]
       createdShareTokens: Prisma.$CredentialShareTokenPayload<ExtArgs>[]
+      receivedInvitations: Prisma.$VolunteerInvitationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5098,6 +5222,7 @@ export namespace Prisma {
     shiftSignups<T extends User$shiftSignupsArgs<ExtArgs> = {}>(args?: Subset<T, User$shiftSignupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     backgroundCheckRequests<T extends User$backgroundCheckRequestsArgs<ExtArgs> = {}>(args?: Subset<T, User$backgroundCheckRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     createdShareTokens<T extends User$createdShareTokensArgs<ExtArgs> = {}>(args?: Subset<T, User$createdShareTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    receivedInvitations<T extends User$receivedInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, User$receivedInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5807,6 +5932,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: CredentialShareTokenScalarFieldEnum | CredentialShareTokenScalarFieldEnum[]
+  }
+
+  /**
+   * User.receivedInvitations
+   */
+  export type User$receivedInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    where?: VolunteerInvitationWhereInput
+    orderBy?: VolunteerInvitationOrderByWithRelationInput | VolunteerInvitationOrderByWithRelationInput[]
+    cursor?: VolunteerInvitationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VolunteerInvitationScalarFieldEnum | VolunteerInvitationScalarFieldEnum[]
   }
 
   /**
@@ -10385,6 +10534,7 @@ export namespace Prisma {
     shifts?: boolean | Organization$shiftsArgs<ExtArgs>
     companyLinks?: boolean | Organization$companyLinksArgs<ExtArgs>
     backgroundCheckRequests?: boolean | Organization$backgroundCheckRequestsArgs<ExtArgs>
+    volunteerInvitations?: boolean | Organization$volunteerInvitationsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -10446,6 +10596,7 @@ export namespace Prisma {
     shifts?: boolean | Organization$shiftsArgs<ExtArgs>
     companyLinks?: boolean | Organization$companyLinksArgs<ExtArgs>
     backgroundCheckRequests?: boolean | Organization$backgroundCheckRequestsArgs<ExtArgs>
+    volunteerInvitations?: boolean | Organization$volunteerInvitationsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -10468,6 +10619,7 @@ export namespace Prisma {
       shifts: Prisma.$ShiftPayload<ExtArgs>[]
       companyLinks: Prisma.$CompanyNonprofitLinkPayload<ExtArgs>[]
       backgroundCheckRequests: Prisma.$BackgroundCheckRequestPayload<ExtArgs>[]
+      volunteerInvitations: Prisma.$VolunteerInvitationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -10889,6 +11041,7 @@ export namespace Prisma {
     shifts<T extends Organization$shiftsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     companyLinks<T extends Organization$companyLinksArgs<ExtArgs> = {}>(args?: Subset<T, Organization$companyLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyNonprofitLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     backgroundCheckRequests<T extends Organization$backgroundCheckRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$backgroundCheckRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    volunteerInvitations<T extends Organization$volunteerInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$volunteerInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11655,6 +11808,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BackgroundCheckRequestScalarFieldEnum | BackgroundCheckRequestScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.volunteerInvitations
+   */
+  export type Organization$volunteerInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    where?: VolunteerInvitationWhereInput
+    orderBy?: VolunteerInvitationOrderByWithRelationInput | VolunteerInvitationOrderByWithRelationInput[]
+    cursor?: VolunteerInvitationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VolunteerInvitationScalarFieldEnum | VolunteerInvitationScalarFieldEnum[]
   }
 
   /**
@@ -19762,6 +19939,7 @@ export namespace Prisma {
     requirements?: boolean | VolunteerOpportunity$requirementsArgs<ExtArgs>
     applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
     shifts?: boolean | VolunteerOpportunity$shiftsArgs<ExtArgs>
+    volunteerInvitations?: boolean | VolunteerOpportunity$volunteerInvitationsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerOpportunity"]>
 
@@ -19822,6 +20000,7 @@ export namespace Prisma {
     requirements?: boolean | VolunteerOpportunity$requirementsArgs<ExtArgs>
     applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
     shifts?: boolean | VolunteerOpportunity$shiftsArgs<ExtArgs>
+    volunteerInvitations?: boolean | VolunteerOpportunity$volunteerInvitationsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type VolunteerOpportunityIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -19839,6 +20018,7 @@ export namespace Prisma {
       requirements: Prisma.$OpportunityRequirementPayload<ExtArgs>[]
       applications: Prisma.$VolunteerApplicationPayload<ExtArgs>[]
       shifts: Prisma.$ShiftPayload<ExtArgs>[]
+      volunteerInvitations: Prisma.$VolunteerInvitationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -20253,6 +20433,7 @@ export namespace Prisma {
     requirements<T extends VolunteerOpportunity$requirementsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$requirementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     applications<T extends VolunteerOpportunity$applicationsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$applicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     shifts<T extends VolunteerOpportunity$shiftsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    volunteerInvitations<T extends VolunteerOpportunity$volunteerInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$volunteerInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -20789,6 +20970,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerOpportunity.volunteerInvitations
+   */
+  export type VolunteerOpportunity$volunteerInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    where?: VolunteerInvitationWhereInput
+    orderBy?: VolunteerInvitationOrderByWithRelationInput | VolunteerInvitationOrderByWithRelationInput[]
+    cursor?: VolunteerInvitationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VolunteerInvitationScalarFieldEnum | VolunteerInvitationScalarFieldEnum[]
   }
 
   /**
@@ -39882,6 +40087,1098 @@ export namespace Prisma {
 
 
   /**
+   * Model VolunteerInvitation
+   */
+
+  export type AggregateVolunteerInvitation = {
+    _count: VolunteerInvitationCountAggregateOutputType | null
+    _min: VolunteerInvitationMinAggregateOutputType | null
+    _max: VolunteerInvitationMaxAggregateOutputType | null
+  }
+
+  export type VolunteerInvitationMinAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    volunteerId: string | null
+    opportunityId: string | null
+    sentAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type VolunteerInvitationMaxAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    volunteerId: string | null
+    opportunityId: string | null
+    sentAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type VolunteerInvitationCountAggregateOutputType = {
+    id: number
+    orgId: number
+    volunteerId: number
+    opportunityId: number
+    sentAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type VolunteerInvitationMinAggregateInputType = {
+    id?: true
+    orgId?: true
+    volunteerId?: true
+    opportunityId?: true
+    sentAt?: true
+    createdAt?: true
+  }
+
+  export type VolunteerInvitationMaxAggregateInputType = {
+    id?: true
+    orgId?: true
+    volunteerId?: true
+    opportunityId?: true
+    sentAt?: true
+    createdAt?: true
+  }
+
+  export type VolunteerInvitationCountAggregateInputType = {
+    id?: true
+    orgId?: true
+    volunteerId?: true
+    opportunityId?: true
+    sentAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type VolunteerInvitationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VolunteerInvitation to aggregate.
+     */
+    where?: VolunteerInvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerInvitations to fetch.
+     */
+    orderBy?: VolunteerInvitationOrderByWithRelationInput | VolunteerInvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VolunteerInvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerInvitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerInvitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VolunteerInvitations
+    **/
+    _count?: true | VolunteerInvitationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VolunteerInvitationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VolunteerInvitationMaxAggregateInputType
+  }
+
+  export type GetVolunteerInvitationAggregateType<T extends VolunteerInvitationAggregateArgs> = {
+        [P in keyof T & keyof AggregateVolunteerInvitation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVolunteerInvitation[P]>
+      : GetScalarType<T[P], AggregateVolunteerInvitation[P]>
+  }
+
+
+
+
+  export type VolunteerInvitationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VolunteerInvitationWhereInput
+    orderBy?: VolunteerInvitationOrderByWithAggregationInput | VolunteerInvitationOrderByWithAggregationInput[]
+    by: VolunteerInvitationScalarFieldEnum[] | VolunteerInvitationScalarFieldEnum
+    having?: VolunteerInvitationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VolunteerInvitationCountAggregateInputType | true
+    _min?: VolunteerInvitationMinAggregateInputType
+    _max?: VolunteerInvitationMaxAggregateInputType
+  }
+
+  export type VolunteerInvitationGroupByOutputType = {
+    id: string
+    orgId: string
+    volunteerId: string
+    opportunityId: string
+    sentAt: Date
+    createdAt: Date
+    _count: VolunteerInvitationCountAggregateOutputType | null
+    _min: VolunteerInvitationMinAggregateOutputType | null
+    _max: VolunteerInvitationMaxAggregateOutputType | null
+  }
+
+  type GetVolunteerInvitationGroupByPayload<T extends VolunteerInvitationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VolunteerInvitationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VolunteerInvitationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VolunteerInvitationGroupByOutputType[P]>
+            : GetScalarType<T[P], VolunteerInvitationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VolunteerInvitationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    volunteerId?: boolean
+    opportunityId?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    volunteer?: boolean | UserDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerInvitation"]>
+
+  export type VolunteerInvitationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    volunteerId?: boolean
+    opportunityId?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    volunteer?: boolean | UserDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerInvitation"]>
+
+  export type VolunteerInvitationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    volunteerId?: boolean
+    opportunityId?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    volunteer?: boolean | UserDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["volunteerInvitation"]>
+
+  export type VolunteerInvitationSelectScalar = {
+    id?: boolean
+    orgId?: boolean
+    volunteerId?: boolean
+    opportunityId?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type VolunteerInvitationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "volunteerId" | "opportunityId" | "sentAt" | "createdAt", ExtArgs["result"]["volunteerInvitation"]>
+  export type VolunteerInvitationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    volunteer?: boolean | UserDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }
+  export type VolunteerInvitationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    volunteer?: boolean | UserDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }
+  export type VolunteerInvitationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    volunteer?: boolean | UserDefaultArgs<ExtArgs>
+    opportunity?: boolean | VolunteerOpportunityDefaultArgs<ExtArgs>
+  }
+
+  export type $VolunteerInvitationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VolunteerInvitation"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+      volunteer: Prisma.$UserPayload<ExtArgs>
+      opportunity: Prisma.$VolunteerOpportunityPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orgId: string
+      volunteerId: string
+      opportunityId: string
+      sentAt: Date
+      createdAt: Date
+    }, ExtArgs["result"]["volunteerInvitation"]>
+    composites: {}
+  }
+
+  type VolunteerInvitationGetPayload<S extends boolean | null | undefined | VolunteerInvitationDefaultArgs> = $Result.GetResult<Prisma.$VolunteerInvitationPayload, S>
+
+  type VolunteerInvitationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<VolunteerInvitationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: VolunteerInvitationCountAggregateInputType | true
+    }
+
+  export interface VolunteerInvitationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VolunteerInvitation'], meta: { name: 'VolunteerInvitation' } }
+    /**
+     * Find zero or one VolunteerInvitation that matches the filter.
+     * @param {VolunteerInvitationFindUniqueArgs} args - Arguments to find a VolunteerInvitation
+     * @example
+     * // Get one VolunteerInvitation
+     * const volunteerInvitation = await prisma.volunteerInvitation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VolunteerInvitationFindUniqueArgs>(args: SelectSubset<T, VolunteerInvitationFindUniqueArgs<ExtArgs>>): Prisma__VolunteerInvitationClient<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one VolunteerInvitation that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {VolunteerInvitationFindUniqueOrThrowArgs} args - Arguments to find a VolunteerInvitation
+     * @example
+     * // Get one VolunteerInvitation
+     * const volunteerInvitation = await prisma.volunteerInvitation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VolunteerInvitationFindUniqueOrThrowArgs>(args: SelectSubset<T, VolunteerInvitationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VolunteerInvitationClient<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VolunteerInvitation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerInvitationFindFirstArgs} args - Arguments to find a VolunteerInvitation
+     * @example
+     * // Get one VolunteerInvitation
+     * const volunteerInvitation = await prisma.volunteerInvitation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VolunteerInvitationFindFirstArgs>(args?: SelectSubset<T, VolunteerInvitationFindFirstArgs<ExtArgs>>): Prisma__VolunteerInvitationClient<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VolunteerInvitation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerInvitationFindFirstOrThrowArgs} args - Arguments to find a VolunteerInvitation
+     * @example
+     * // Get one VolunteerInvitation
+     * const volunteerInvitation = await prisma.volunteerInvitation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VolunteerInvitationFindFirstOrThrowArgs>(args?: SelectSubset<T, VolunteerInvitationFindFirstOrThrowArgs<ExtArgs>>): Prisma__VolunteerInvitationClient<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more VolunteerInvitations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerInvitationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VolunteerInvitations
+     * const volunteerInvitations = await prisma.volunteerInvitation.findMany()
+     * 
+     * // Get first 10 VolunteerInvitations
+     * const volunteerInvitations = await prisma.volunteerInvitation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const volunteerInvitationWithIdOnly = await prisma.volunteerInvitation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VolunteerInvitationFindManyArgs>(args?: SelectSubset<T, VolunteerInvitationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a VolunteerInvitation.
+     * @param {VolunteerInvitationCreateArgs} args - Arguments to create a VolunteerInvitation.
+     * @example
+     * // Create one VolunteerInvitation
+     * const VolunteerInvitation = await prisma.volunteerInvitation.create({
+     *   data: {
+     *     // ... data to create a VolunteerInvitation
+     *   }
+     * })
+     * 
+     */
+    create<T extends VolunteerInvitationCreateArgs>(args: SelectSubset<T, VolunteerInvitationCreateArgs<ExtArgs>>): Prisma__VolunteerInvitationClient<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many VolunteerInvitations.
+     * @param {VolunteerInvitationCreateManyArgs} args - Arguments to create many VolunteerInvitations.
+     * @example
+     * // Create many VolunteerInvitations
+     * const volunteerInvitation = await prisma.volunteerInvitation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VolunteerInvitationCreateManyArgs>(args?: SelectSubset<T, VolunteerInvitationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VolunteerInvitations and returns the data saved in the database.
+     * @param {VolunteerInvitationCreateManyAndReturnArgs} args - Arguments to create many VolunteerInvitations.
+     * @example
+     * // Create many VolunteerInvitations
+     * const volunteerInvitation = await prisma.volunteerInvitation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VolunteerInvitations and only return the `id`
+     * const volunteerInvitationWithIdOnly = await prisma.volunteerInvitation.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VolunteerInvitationCreateManyAndReturnArgs>(args?: SelectSubset<T, VolunteerInvitationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a VolunteerInvitation.
+     * @param {VolunteerInvitationDeleteArgs} args - Arguments to delete one VolunteerInvitation.
+     * @example
+     * // Delete one VolunteerInvitation
+     * const VolunteerInvitation = await prisma.volunteerInvitation.delete({
+     *   where: {
+     *     // ... filter to delete one VolunteerInvitation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VolunteerInvitationDeleteArgs>(args: SelectSubset<T, VolunteerInvitationDeleteArgs<ExtArgs>>): Prisma__VolunteerInvitationClient<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one VolunteerInvitation.
+     * @param {VolunteerInvitationUpdateArgs} args - Arguments to update one VolunteerInvitation.
+     * @example
+     * // Update one VolunteerInvitation
+     * const volunteerInvitation = await prisma.volunteerInvitation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VolunteerInvitationUpdateArgs>(args: SelectSubset<T, VolunteerInvitationUpdateArgs<ExtArgs>>): Prisma__VolunteerInvitationClient<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more VolunteerInvitations.
+     * @param {VolunteerInvitationDeleteManyArgs} args - Arguments to filter VolunteerInvitations to delete.
+     * @example
+     * // Delete a few VolunteerInvitations
+     * const { count } = await prisma.volunteerInvitation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VolunteerInvitationDeleteManyArgs>(args?: SelectSubset<T, VolunteerInvitationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VolunteerInvitations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerInvitationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VolunteerInvitations
+     * const volunteerInvitation = await prisma.volunteerInvitation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VolunteerInvitationUpdateManyArgs>(args: SelectSubset<T, VolunteerInvitationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VolunteerInvitations and returns the data updated in the database.
+     * @param {VolunteerInvitationUpdateManyAndReturnArgs} args - Arguments to update many VolunteerInvitations.
+     * @example
+     * // Update many VolunteerInvitations
+     * const volunteerInvitation = await prisma.volunteerInvitation.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more VolunteerInvitations and only return the `id`
+     * const volunteerInvitationWithIdOnly = await prisma.volunteerInvitation.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends VolunteerInvitationUpdateManyAndReturnArgs>(args: SelectSubset<T, VolunteerInvitationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one VolunteerInvitation.
+     * @param {VolunteerInvitationUpsertArgs} args - Arguments to update or create a VolunteerInvitation.
+     * @example
+     * // Update or create a VolunteerInvitation
+     * const volunteerInvitation = await prisma.volunteerInvitation.upsert({
+     *   create: {
+     *     // ... data to create a VolunteerInvitation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VolunteerInvitation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VolunteerInvitationUpsertArgs>(args: SelectSubset<T, VolunteerInvitationUpsertArgs<ExtArgs>>): Prisma__VolunteerInvitationClient<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of VolunteerInvitations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerInvitationCountArgs} args - Arguments to filter VolunteerInvitations to count.
+     * @example
+     * // Count the number of VolunteerInvitations
+     * const count = await prisma.volunteerInvitation.count({
+     *   where: {
+     *     // ... the filter for the VolunteerInvitations we want to count
+     *   }
+     * })
+    **/
+    count<T extends VolunteerInvitationCountArgs>(
+      args?: Subset<T, VolunteerInvitationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VolunteerInvitationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VolunteerInvitation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerInvitationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VolunteerInvitationAggregateArgs>(args: Subset<T, VolunteerInvitationAggregateArgs>): Prisma.PrismaPromise<GetVolunteerInvitationAggregateType<T>>
+
+    /**
+     * Group by VolunteerInvitation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VolunteerInvitationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VolunteerInvitationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VolunteerInvitationGroupByArgs['orderBy'] }
+        : { orderBy?: VolunteerInvitationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VolunteerInvitationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVolunteerInvitationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VolunteerInvitation model
+   */
+  readonly fields: VolunteerInvitationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VolunteerInvitation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VolunteerInvitationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    volunteer<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    opportunity<T extends VolunteerOpportunityDefaultArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunityDefaultArgs<ExtArgs>>): Prisma__VolunteerOpportunityClient<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VolunteerInvitation model
+   */
+  interface VolunteerInvitationFieldRefs {
+    readonly id: FieldRef<"VolunteerInvitation", 'String'>
+    readonly orgId: FieldRef<"VolunteerInvitation", 'String'>
+    readonly volunteerId: FieldRef<"VolunteerInvitation", 'String'>
+    readonly opportunityId: FieldRef<"VolunteerInvitation", 'String'>
+    readonly sentAt: FieldRef<"VolunteerInvitation", 'DateTime'>
+    readonly createdAt: FieldRef<"VolunteerInvitation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VolunteerInvitation findUnique
+   */
+  export type VolunteerInvitationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerInvitation to fetch.
+     */
+    where: VolunteerInvitationWhereUniqueInput
+  }
+
+  /**
+   * VolunteerInvitation findUniqueOrThrow
+   */
+  export type VolunteerInvitationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerInvitation to fetch.
+     */
+    where: VolunteerInvitationWhereUniqueInput
+  }
+
+  /**
+   * VolunteerInvitation findFirst
+   */
+  export type VolunteerInvitationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerInvitation to fetch.
+     */
+    where?: VolunteerInvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerInvitations to fetch.
+     */
+    orderBy?: VolunteerInvitationOrderByWithRelationInput | VolunteerInvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VolunteerInvitations.
+     */
+    cursor?: VolunteerInvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerInvitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerInvitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerInvitations.
+     */
+    distinct?: VolunteerInvitationScalarFieldEnum | VolunteerInvitationScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerInvitation findFirstOrThrow
+   */
+  export type VolunteerInvitationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerInvitation to fetch.
+     */
+    where?: VolunteerInvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerInvitations to fetch.
+     */
+    orderBy?: VolunteerInvitationOrderByWithRelationInput | VolunteerInvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VolunteerInvitations.
+     */
+    cursor?: VolunteerInvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerInvitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerInvitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerInvitations.
+     */
+    distinct?: VolunteerInvitationScalarFieldEnum | VolunteerInvitationScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerInvitation findMany
+   */
+  export type VolunteerInvitationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which VolunteerInvitations to fetch.
+     */
+    where?: VolunteerInvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VolunteerInvitations to fetch.
+     */
+    orderBy?: VolunteerInvitationOrderByWithRelationInput | VolunteerInvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VolunteerInvitations.
+     */
+    cursor?: VolunteerInvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VolunteerInvitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VolunteerInvitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VolunteerInvitations.
+     */
+    distinct?: VolunteerInvitationScalarFieldEnum | VolunteerInvitationScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerInvitation create
+   */
+  export type VolunteerInvitationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a VolunteerInvitation.
+     */
+    data: XOR<VolunteerInvitationCreateInput, VolunteerInvitationUncheckedCreateInput>
+  }
+
+  /**
+   * VolunteerInvitation createMany
+   */
+  export type VolunteerInvitationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VolunteerInvitations.
+     */
+    data: VolunteerInvitationCreateManyInput | VolunteerInvitationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VolunteerInvitation createManyAndReturn
+   */
+  export type VolunteerInvitationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * The data used to create many VolunteerInvitations.
+     */
+    data: VolunteerInvitationCreateManyInput | VolunteerInvitationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VolunteerInvitation update
+   */
+  export type VolunteerInvitationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a VolunteerInvitation.
+     */
+    data: XOR<VolunteerInvitationUpdateInput, VolunteerInvitationUncheckedUpdateInput>
+    /**
+     * Choose, which VolunteerInvitation to update.
+     */
+    where: VolunteerInvitationWhereUniqueInput
+  }
+
+  /**
+   * VolunteerInvitation updateMany
+   */
+  export type VolunteerInvitationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VolunteerInvitations.
+     */
+    data: XOR<VolunteerInvitationUpdateManyMutationInput, VolunteerInvitationUncheckedUpdateManyInput>
+    /**
+     * Filter which VolunteerInvitations to update
+     */
+    where?: VolunteerInvitationWhereInput
+    /**
+     * Limit how many VolunteerInvitations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * VolunteerInvitation updateManyAndReturn
+   */
+  export type VolunteerInvitationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * The data used to update VolunteerInvitations.
+     */
+    data: XOR<VolunteerInvitationUpdateManyMutationInput, VolunteerInvitationUncheckedUpdateManyInput>
+    /**
+     * Filter which VolunteerInvitations to update
+     */
+    where?: VolunteerInvitationWhereInput
+    /**
+     * Limit how many VolunteerInvitations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VolunteerInvitation upsert
+   */
+  export type VolunteerInvitationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the VolunteerInvitation to update in case it exists.
+     */
+    where: VolunteerInvitationWhereUniqueInput
+    /**
+     * In case the VolunteerInvitation found by the `where` argument doesn't exist, create a new VolunteerInvitation with this data.
+     */
+    create: XOR<VolunteerInvitationCreateInput, VolunteerInvitationUncheckedCreateInput>
+    /**
+     * In case the VolunteerInvitation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VolunteerInvitationUpdateInput, VolunteerInvitationUncheckedUpdateInput>
+  }
+
+  /**
+   * VolunteerInvitation delete
+   */
+  export type VolunteerInvitationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+    /**
+     * Filter which VolunteerInvitation to delete.
+     */
+    where: VolunteerInvitationWhereUniqueInput
+  }
+
+  /**
+   * VolunteerInvitation deleteMany
+   */
+  export type VolunteerInvitationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VolunteerInvitations to delete
+     */
+    where?: VolunteerInvitationWhereInput
+    /**
+     * Limit how many VolunteerInvitations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * VolunteerInvitation without action
+   */
+  export type VolunteerInvitationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerInvitation
+     */
+    select?: VolunteerInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerInvitation
+     */
+    omit?: VolunteerInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerInvitationInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -40321,6 +41618,18 @@ export namespace Prisma {
   export type CredentialShareTokenScalarFieldEnum = (typeof CredentialShareTokenScalarFieldEnum)[keyof typeof CredentialShareTokenScalarFieldEnum]
 
 
+  export const VolunteerInvitationScalarFieldEnum: {
+    id: 'id',
+    orgId: 'orgId',
+    volunteerId: 'volunteerId',
+    opportunityId: 'opportunityId',
+    sentAt: 'sentAt',
+    createdAt: 'createdAt'
+  };
+
+  export type VolunteerInvitationScalarFieldEnum = (typeof VolunteerInvitationScalarFieldEnum)[keyof typeof VolunteerInvitationScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -40743,6 +42052,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
     createdShareTokens?: CredentialShareTokenListRelationFilter
+    receivedInvitations?: VolunteerInvitationListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -40765,6 +42075,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupOrderByRelationAggregateInput
     backgroundCheckRequests?: BackgroundCheckRequestOrderByRelationAggregateInput
     createdShareTokens?: CredentialShareTokenOrderByRelationAggregateInput
+    receivedInvitations?: VolunteerInvitationOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -40790,6 +42101,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
     createdShareTokens?: CredentialShareTokenListRelationFilter
+    receivedInvitations?: VolunteerInvitationListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -41116,6 +42428,7 @@ export namespace Prisma {
     shifts?: ShiftListRelationFilter
     companyLinks?: CompanyNonprofitLinkListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
+    volunteerInvitations?: VolunteerInvitationListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -41144,6 +42457,7 @@ export namespace Prisma {
     shifts?: ShiftOrderByRelationAggregateInput
     companyLinks?: CompanyNonprofitLinkOrderByRelationAggregateInput
     backgroundCheckRequests?: BackgroundCheckRequestOrderByRelationAggregateInput
+    volunteerInvitations?: VolunteerInvitationOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -41175,6 +42489,7 @@ export namespace Prisma {
     shifts?: ShiftListRelationFilter
     companyLinks?: CompanyNonprofitLinkListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
+    volunteerInvitations?: VolunteerInvitationListRelationFilter
   }, "id" | "slug" | "stripeCustomerId" | "stripeSubscriptionId" | "checkrAccountId">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -41716,6 +43031,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementListRelationFilter
     applications?: VolunteerApplicationListRelationFilter
     shifts?: ShiftListRelationFilter
+    volunteerInvitations?: VolunteerInvitationListRelationFilter
   }
 
   export type VolunteerOpportunityOrderByWithRelationInput = {
@@ -41737,6 +43053,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementOrderByRelationAggregateInput
     applications?: VolunteerApplicationOrderByRelationAggregateInput
     shifts?: ShiftOrderByRelationAggregateInput
+    volunteerInvitations?: VolunteerInvitationOrderByRelationAggregateInput
   }
 
   export type VolunteerOpportunityWhereUniqueInput = Prisma.AtLeast<{
@@ -41761,6 +43078,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementListRelationFilter
     applications?: VolunteerApplicationListRelationFilter
     shifts?: ShiftListRelationFilter
+    volunteerInvitations?: VolunteerInvitationListRelationFilter
   }, "id">
 
   export type VolunteerOpportunityOrderByWithAggregationInput = {
@@ -43034,6 +44352,73 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"CredentialShareToken"> | Date | string
   }
 
+  export type VolunteerInvitationWhereInput = {
+    AND?: VolunteerInvitationWhereInput | VolunteerInvitationWhereInput[]
+    OR?: VolunteerInvitationWhereInput[]
+    NOT?: VolunteerInvitationWhereInput | VolunteerInvitationWhereInput[]
+    id?: StringFilter<"VolunteerInvitation"> | string
+    orgId?: StringFilter<"VolunteerInvitation"> | string
+    volunteerId?: StringFilter<"VolunteerInvitation"> | string
+    opportunityId?: StringFilter<"VolunteerInvitation"> | string
+    sentAt?: DateTimeFilter<"VolunteerInvitation"> | Date | string
+    createdAt?: DateTimeFilter<"VolunteerInvitation"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    volunteer?: XOR<UserScalarRelationFilter, UserWhereInput>
+    opportunity?: XOR<VolunteerOpportunityScalarRelationFilter, VolunteerOpportunityWhereInput>
+  }
+
+  export type VolunteerInvitationOrderByWithRelationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    volunteerId?: SortOrder
+    opportunityId?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+    volunteer?: UserOrderByWithRelationInput
+    opportunity?: VolunteerOpportunityOrderByWithRelationInput
+  }
+
+  export type VolunteerInvitationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    orgId_volunteerId_opportunityId?: VolunteerInvitationOrgIdVolunteerIdOpportunityIdCompoundUniqueInput
+    AND?: VolunteerInvitationWhereInput | VolunteerInvitationWhereInput[]
+    OR?: VolunteerInvitationWhereInput[]
+    NOT?: VolunteerInvitationWhereInput | VolunteerInvitationWhereInput[]
+    orgId?: StringFilter<"VolunteerInvitation"> | string
+    volunteerId?: StringFilter<"VolunteerInvitation"> | string
+    opportunityId?: StringFilter<"VolunteerInvitation"> | string
+    sentAt?: DateTimeFilter<"VolunteerInvitation"> | Date | string
+    createdAt?: DateTimeFilter<"VolunteerInvitation"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    volunteer?: XOR<UserScalarRelationFilter, UserWhereInput>
+    opportunity?: XOR<VolunteerOpportunityScalarRelationFilter, VolunteerOpportunityWhereInput>
+  }, "id" | "orgId_volunteerId_opportunityId">
+
+  export type VolunteerInvitationOrderByWithAggregationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    volunteerId?: SortOrder
+    opportunityId?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+    _count?: VolunteerInvitationCountOrderByAggregateInput
+    _max?: VolunteerInvitationMaxOrderByAggregateInput
+    _min?: VolunteerInvitationMinOrderByAggregateInput
+  }
+
+  export type VolunteerInvitationScalarWhereWithAggregatesInput = {
+    AND?: VolunteerInvitationScalarWhereWithAggregatesInput | VolunteerInvitationScalarWhereWithAggregatesInput[]
+    OR?: VolunteerInvitationScalarWhereWithAggregatesInput[]
+    NOT?: VolunteerInvitationScalarWhereWithAggregatesInput | VolunteerInvitationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VolunteerInvitation"> | string
+    orgId?: StringWithAggregatesFilter<"VolunteerInvitation"> | string
+    volunteerId?: StringWithAggregatesFilter<"VolunteerInvitation"> | string
+    opportunityId?: StringWithAggregatesFilter<"VolunteerInvitation"> | string
+    sentAt?: DateTimeWithAggregatesFilter<"VolunteerInvitation"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"VolunteerInvitation"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -43054,6 +44439,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -43076,6 +44462,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUpdateInput = {
@@ -43098,6 +44485,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -43120,6 +44508,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -43461,6 +44850,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -43489,6 +44879,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -43517,6 +44908,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -43545,6 +44937,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -44096,6 +45489,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateInput = {
@@ -44116,6 +45510,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUpdateInput = {
@@ -44136,6 +45531,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateInput = {
@@ -44156,6 +45552,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityCreateManyInput = {
@@ -45494,6 +46891,66 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type VolunteerInvitationCreateInput = {
+    id?: string
+    sentAt?: Date | string
+    createdAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutVolunteerInvitationsInput
+    volunteer: UserCreateNestedOneWithoutReceivedInvitationsInput
+    opportunity: VolunteerOpportunityCreateNestedOneWithoutVolunteerInvitationsInput
+  }
+
+  export type VolunteerInvitationUncheckedCreateInput = {
+    id?: string
+    orgId: string
+    volunteerId: string
+    opportunityId: string
+    sentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerInvitationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutVolunteerInvitationsNestedInput
+    volunteer?: UserUpdateOneRequiredWithoutReceivedInvitationsNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneRequiredWithoutVolunteerInvitationsNestedInput
+  }
+
+  export type VolunteerInvitationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    volunteerId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerInvitationCreateManyInput = {
+    id?: string
+    orgId: string
+    volunteerId: string
+    opportunityId: string
+    sentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerInvitationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerInvitationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    volunteerId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -45617,6 +47074,12 @@ export namespace Prisma {
     none?: CredentialShareTokenWhereInput
   }
 
+  export type VolunteerInvitationListRelationFilter = {
+    every?: VolunteerInvitationWhereInput
+    some?: VolunteerInvitationWhereInput
+    none?: VolunteerInvitationWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -45663,6 +47126,10 @@ export namespace Prisma {
   }
 
   export type CredentialShareTokenOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type VolunteerInvitationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -47519,6 +48986,39 @@ export namespace Prisma {
     _max?: NestedEnumShareTokenStatusFilter<$PrismaModel>
   }
 
+  export type VolunteerInvitationOrgIdVolunteerIdOpportunityIdCompoundUniqueInput = {
+    orgId: string
+    volunteerId: string
+    opportunityId: string
+  }
+
+  export type VolunteerInvitationCountOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    volunteerId?: SortOrder
+    opportunityId?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type VolunteerInvitationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    volunteerId?: SortOrder
+    opportunityId?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type VolunteerInvitationMinOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    volunteerId?: SortOrder
+    opportunityId?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -47602,6 +49102,13 @@ export namespace Prisma {
     connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
   }
 
+  export type VolunteerInvitationCreateNestedManyWithoutVolunteerInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutVolunteerInput, VolunteerInvitationUncheckedCreateWithoutVolunteerInput> | VolunteerInvitationCreateWithoutVolunteerInput[] | VolunteerInvitationUncheckedCreateWithoutVolunteerInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutVolunteerInput | VolunteerInvitationCreateOrConnectWithoutVolunteerInput[]
+    createMany?: VolunteerInvitationCreateManyVolunteerInputEnvelope
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -47683,6 +49190,13 @@ export namespace Prisma {
     connectOrCreate?: CredentialShareTokenCreateOrConnectWithoutCreatedByInput | CredentialShareTokenCreateOrConnectWithoutCreatedByInput[]
     createMany?: CredentialShareTokenCreateManyCreatedByInputEnvelope
     connect?: CredentialShareTokenWhereUniqueInput | CredentialShareTokenWhereUniqueInput[]
+  }
+
+  export type VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutVolunteerInput, VolunteerInvitationUncheckedCreateWithoutVolunteerInput> | VolunteerInvitationCreateWithoutVolunteerInput[] | VolunteerInvitationUncheckedCreateWithoutVolunteerInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutVolunteerInput | VolunteerInvitationCreateOrConnectWithoutVolunteerInput[]
+    createMany?: VolunteerInvitationCreateManyVolunteerInputEnvelope
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -47865,6 +49379,20 @@ export namespace Prisma {
     deleteMany?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
   }
 
+  export type VolunteerInvitationUpdateManyWithoutVolunteerNestedInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutVolunteerInput, VolunteerInvitationUncheckedCreateWithoutVolunteerInput> | VolunteerInvitationCreateWithoutVolunteerInput[] | VolunteerInvitationUncheckedCreateWithoutVolunteerInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutVolunteerInput | VolunteerInvitationCreateOrConnectWithoutVolunteerInput[]
+    upsert?: VolunteerInvitationUpsertWithWhereUniqueWithoutVolunteerInput | VolunteerInvitationUpsertWithWhereUniqueWithoutVolunteerInput[]
+    createMany?: VolunteerInvitationCreateManyVolunteerInputEnvelope
+    set?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    disconnect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    delete?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    update?: VolunteerInvitationUpdateWithWhereUniqueWithoutVolunteerInput | VolunteerInvitationUpdateWithWhereUniqueWithoutVolunteerInput[]
+    updateMany?: VolunteerInvitationUpdateManyWithWhereWithoutVolunteerInput | VolunteerInvitationUpdateManyWithWhereWithoutVolunteerInput[]
+    deleteMany?: VolunteerInvitationScalarWhereInput | VolunteerInvitationScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -48027,6 +49555,20 @@ export namespace Prisma {
     update?: CredentialShareTokenUpdateWithWhereUniqueWithoutCreatedByInput | CredentialShareTokenUpdateWithWhereUniqueWithoutCreatedByInput[]
     updateMany?: CredentialShareTokenUpdateManyWithWhereWithoutCreatedByInput | CredentialShareTokenUpdateManyWithWhereWithoutCreatedByInput[]
     deleteMany?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
+  }
+
+  export type VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutVolunteerInput, VolunteerInvitationUncheckedCreateWithoutVolunteerInput> | VolunteerInvitationCreateWithoutVolunteerInput[] | VolunteerInvitationUncheckedCreateWithoutVolunteerInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutVolunteerInput | VolunteerInvitationCreateOrConnectWithoutVolunteerInput[]
+    upsert?: VolunteerInvitationUpsertWithWhereUniqueWithoutVolunteerInput | VolunteerInvitationUpsertWithWhereUniqueWithoutVolunteerInput[]
+    createMany?: VolunteerInvitationCreateManyVolunteerInputEnvelope
+    set?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    disconnect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    delete?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    update?: VolunteerInvitationUpdateWithWhereUniqueWithoutVolunteerInput | VolunteerInvitationUpdateWithWhereUniqueWithoutVolunteerInput[]
+    updateMany?: VolunteerInvitationUpdateManyWithWhereWithoutVolunteerInput | VolunteerInvitationUpdateManyWithWhereWithoutVolunteerInput[]
+    deleteMany?: VolunteerInvitationScalarWhereInput | VolunteerInvitationScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutAccountsInput = {
@@ -48195,6 +49737,13 @@ export namespace Prisma {
     connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
   }
 
+  export type VolunteerInvitationCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutOrganizationInput, VolunteerInvitationUncheckedCreateWithoutOrganizationInput> | VolunteerInvitationCreateWithoutOrganizationInput[] | VolunteerInvitationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOrganizationInput | VolunteerInvitationCreateOrConnectWithoutOrganizationInput[]
+    createMany?: VolunteerInvitationCreateManyOrganizationInputEnvelope
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+  }
+
   export type OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -48291,6 +49840,13 @@ export namespace Prisma {
     connectOrCreate?: BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput | BackgroundCheckRequestCreateOrConnectWithoutOrganizationInput[]
     createMany?: BackgroundCheckRequestCreateManyOrganizationInputEnvelope
     connect?: BackgroundCheckRequestWhereUniqueInput | BackgroundCheckRequestWhereUniqueInput[]
+  }
+
+  export type VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutOrganizationInput, VolunteerInvitationUncheckedCreateWithoutOrganizationInput> | VolunteerInvitationCreateWithoutOrganizationInput[] | VolunteerInvitationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOrganizationInput | VolunteerInvitationCreateOrConnectWithoutOrganizationInput[]
+    createMany?: VolunteerInvitationCreateManyOrganizationInputEnvelope
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
   }
 
   export type EnumPlanTierFieldUpdateOperationsInput = {
@@ -48493,6 +50049,20 @@ export namespace Prisma {
     deleteMany?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
   }
 
+  export type VolunteerInvitationUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutOrganizationInput, VolunteerInvitationUncheckedCreateWithoutOrganizationInput> | VolunteerInvitationCreateWithoutOrganizationInput[] | VolunteerInvitationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOrganizationInput | VolunteerInvitationCreateOrConnectWithoutOrganizationInput[]
+    upsert?: VolunteerInvitationUpsertWithWhereUniqueWithoutOrganizationInput | VolunteerInvitationUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: VolunteerInvitationCreateManyOrganizationInputEnvelope
+    set?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    disconnect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    delete?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    update?: VolunteerInvitationUpdateWithWhereUniqueWithoutOrganizationInput | VolunteerInvitationUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: VolunteerInvitationUpdateManyWithWhereWithoutOrganizationInput | VolunteerInvitationUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: VolunteerInvitationScalarWhereInput | VolunteerInvitationScalarWhereInput[]
+  }
+
   export type OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -48687,6 +50257,20 @@ export namespace Prisma {
     update?: BackgroundCheckRequestUpdateWithWhereUniqueWithoutOrganizationInput | BackgroundCheckRequestUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: BackgroundCheckRequestUpdateManyWithWhereWithoutOrganizationInput | BackgroundCheckRequestUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: BackgroundCheckRequestScalarWhereInput | BackgroundCheckRequestScalarWhereInput[]
+  }
+
+  export type VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutOrganizationInput, VolunteerInvitationUncheckedCreateWithoutOrganizationInput> | VolunteerInvitationCreateWithoutOrganizationInput[] | VolunteerInvitationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOrganizationInput | VolunteerInvitationCreateOrConnectWithoutOrganizationInput[]
+    upsert?: VolunteerInvitationUpsertWithWhereUniqueWithoutOrganizationInput | VolunteerInvitationUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: VolunteerInvitationCreateManyOrganizationInputEnvelope
+    set?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    disconnect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    delete?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    update?: VolunteerInvitationUpdateWithWhereUniqueWithoutOrganizationInput | VolunteerInvitationUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: VolunteerInvitationUpdateManyWithWhereWithoutOrganizationInput | VolunteerInvitationUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: VolunteerInvitationScalarWhereInput | VolunteerInvitationScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutMembersInput = {
@@ -48971,6 +50555,13 @@ export namespace Prisma {
     connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
   }
 
+  export type VolunteerInvitationCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutOpportunityInput, VolunteerInvitationUncheckedCreateWithoutOpportunityInput> | VolunteerInvitationCreateWithoutOpportunityInput[] | VolunteerInvitationUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOpportunityInput | VolunteerInvitationCreateOrConnectWithoutOpportunityInput[]
+    createMany?: VolunteerInvitationCreateManyOpportunityInputEnvelope
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+  }
+
   export type OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput = {
     create?: XOR<OpportunityTagCreateWithoutOpportunityInput, OpportunityTagUncheckedCreateWithoutOpportunityInput> | OpportunityTagCreateWithoutOpportunityInput[] | OpportunityTagUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: OpportunityTagCreateOrConnectWithoutOpportunityInput | OpportunityTagCreateOrConnectWithoutOpportunityInput[]
@@ -48997,6 +50588,13 @@ export namespace Prisma {
     connectOrCreate?: ShiftCreateOrConnectWithoutOpportunityInput | ShiftCreateOrConnectWithoutOpportunityInput[]
     createMany?: ShiftCreateManyOpportunityInputEnvelope
     connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+  }
+
+  export type VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutOpportunityInput, VolunteerInvitationUncheckedCreateWithoutOpportunityInput> | VolunteerInvitationCreateWithoutOpportunityInput[] | VolunteerInvitationUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOpportunityInput | VolunteerInvitationCreateOrConnectWithoutOpportunityInput[]
+    createMany?: VolunteerInvitationCreateManyOpportunityInputEnvelope
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
   }
 
   export type EnumOpportunityStatusFieldUpdateOperationsInput = {
@@ -49075,6 +50673,20 @@ export namespace Prisma {
     deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
   }
 
+  export type VolunteerInvitationUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutOpportunityInput, VolunteerInvitationUncheckedCreateWithoutOpportunityInput> | VolunteerInvitationCreateWithoutOpportunityInput[] | VolunteerInvitationUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOpportunityInput | VolunteerInvitationCreateOrConnectWithoutOpportunityInput[]
+    upsert?: VolunteerInvitationUpsertWithWhereUniqueWithoutOpportunityInput | VolunteerInvitationUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: VolunteerInvitationCreateManyOpportunityInputEnvelope
+    set?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    disconnect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    delete?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    update?: VolunteerInvitationUpdateWithWhereUniqueWithoutOpportunityInput | VolunteerInvitationUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: VolunteerInvitationUpdateManyWithWhereWithoutOpportunityInput | VolunteerInvitationUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: VolunteerInvitationScalarWhereInput | VolunteerInvitationScalarWhereInput[]
+  }
+
   export type OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput = {
     create?: XOR<OpportunityTagCreateWithoutOpportunityInput, OpportunityTagUncheckedCreateWithoutOpportunityInput> | OpportunityTagCreateWithoutOpportunityInput[] | OpportunityTagUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: OpportunityTagCreateOrConnectWithoutOpportunityInput | OpportunityTagCreateOrConnectWithoutOpportunityInput[]
@@ -49129,6 +50741,20 @@ export namespace Prisma {
     update?: ShiftUpdateWithWhereUniqueWithoutOpportunityInput | ShiftUpdateWithWhereUniqueWithoutOpportunityInput[]
     updateMany?: ShiftUpdateManyWithWhereWithoutOpportunityInput | ShiftUpdateManyWithWhereWithoutOpportunityInput[]
     deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+  }
+
+  export type VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<VolunteerInvitationCreateWithoutOpportunityInput, VolunteerInvitationUncheckedCreateWithoutOpportunityInput> | VolunteerInvitationCreateWithoutOpportunityInput[] | VolunteerInvitationUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOpportunityInput | VolunteerInvitationCreateOrConnectWithoutOpportunityInput[]
+    upsert?: VolunteerInvitationUpsertWithWhereUniqueWithoutOpportunityInput | VolunteerInvitationUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: VolunteerInvitationCreateManyOpportunityInputEnvelope
+    set?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    disconnect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    delete?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    connect?: VolunteerInvitationWhereUniqueInput | VolunteerInvitationWhereUniqueInput[]
+    update?: VolunteerInvitationUpdateWithWhereUniqueWithoutOpportunityInput | VolunteerInvitationUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: VolunteerInvitationUpdateManyWithWhereWithoutOpportunityInput | VolunteerInvitationUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: VolunteerInvitationScalarWhereInput | VolunteerInvitationScalarWhereInput[]
   }
 
   export type VolunteerOpportunityCreateNestedOneWithoutTagsInput = {
@@ -50060,6 +51686,48 @@ export namespace Prisma {
     delete?: OrganizationWhereInput | boolean
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutClaimedShareTokensInput, OrganizationUpdateWithoutClaimedShareTokensInput>, OrganizationUncheckedUpdateWithoutClaimedShareTokensInput>
+  }
+
+  export type OrganizationCreateNestedOneWithoutVolunteerInvitationsInput = {
+    create?: XOR<OrganizationCreateWithoutVolunteerInvitationsInput, OrganizationUncheckedCreateWithoutVolunteerInvitationsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutVolunteerInvitationsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutReceivedInvitationsInput = {
+    create?: XOR<UserCreateWithoutReceivedInvitationsInput, UserUncheckedCreateWithoutReceivedInvitationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReceivedInvitationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type VolunteerOpportunityCreateNestedOneWithoutVolunteerInvitationsInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutVolunteerInvitationsInput, VolunteerOpportunityUncheckedCreateWithoutVolunteerInvitationsInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutVolunteerInvitationsInput
+    connect?: VolunteerOpportunityWhereUniqueInput
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutVolunteerInvitationsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutVolunteerInvitationsInput, OrganizationUncheckedCreateWithoutVolunteerInvitationsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutVolunteerInvitationsInput
+    upsert?: OrganizationUpsertWithoutVolunteerInvitationsInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutVolunteerInvitationsInput, OrganizationUpdateWithoutVolunteerInvitationsInput>, OrganizationUncheckedUpdateWithoutVolunteerInvitationsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutReceivedInvitationsNestedInput = {
+    create?: XOR<UserCreateWithoutReceivedInvitationsInput, UserUncheckedCreateWithoutReceivedInvitationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReceivedInvitationsInput
+    upsert?: UserUpsertWithoutReceivedInvitationsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReceivedInvitationsInput, UserUpdateWithoutReceivedInvitationsInput>, UserUncheckedUpdateWithoutReceivedInvitationsInput>
+  }
+
+  export type VolunteerOpportunityUpdateOneRequiredWithoutVolunteerInvitationsNestedInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutVolunteerInvitationsInput, VolunteerOpportunityUncheckedCreateWithoutVolunteerInvitationsInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutVolunteerInvitationsInput
+    upsert?: VolunteerOpportunityUpsertWithoutVolunteerInvitationsInput
+    connect?: VolunteerOpportunityWhereUniqueInput
+    update?: XOR<XOR<VolunteerOpportunityUpdateToOneWithWhereWithoutVolunteerInvitationsInput, VolunteerOpportunityUpdateWithoutVolunteerInvitationsInput>, VolunteerOpportunityUncheckedUpdateWithoutVolunteerInvitationsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -51033,6 +52701,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type VolunteerInvitationCreateWithoutVolunteerInput = {
+    id?: string
+    sentAt?: Date | string
+    createdAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutVolunteerInvitationsInput
+    opportunity: VolunteerOpportunityCreateNestedOneWithoutVolunteerInvitationsInput
+  }
+
+  export type VolunteerInvitationUncheckedCreateWithoutVolunteerInput = {
+    id?: string
+    orgId: string
+    opportunityId: string
+    sentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerInvitationCreateOrConnectWithoutVolunteerInput = {
+    where: VolunteerInvitationWhereUniqueInput
+    create: XOR<VolunteerInvitationCreateWithoutVolunteerInput, VolunteerInvitationUncheckedCreateWithoutVolunteerInput>
+  }
+
+  export type VolunteerInvitationCreateManyVolunteerInputEnvelope = {
+    data: VolunteerInvitationCreateManyVolunteerInput | VolunteerInvitationCreateManyVolunteerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
     where: AccountWhereUniqueInput
     update: XOR<AccountUpdateWithoutUserInput, AccountUncheckedUpdateWithoutUserInput>
@@ -51410,6 +53104,34 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
   }
 
+  export type VolunteerInvitationUpsertWithWhereUniqueWithoutVolunteerInput = {
+    where: VolunteerInvitationWhereUniqueInput
+    update: XOR<VolunteerInvitationUpdateWithoutVolunteerInput, VolunteerInvitationUncheckedUpdateWithoutVolunteerInput>
+    create: XOR<VolunteerInvitationCreateWithoutVolunteerInput, VolunteerInvitationUncheckedCreateWithoutVolunteerInput>
+  }
+
+  export type VolunteerInvitationUpdateWithWhereUniqueWithoutVolunteerInput = {
+    where: VolunteerInvitationWhereUniqueInput
+    data: XOR<VolunteerInvitationUpdateWithoutVolunteerInput, VolunteerInvitationUncheckedUpdateWithoutVolunteerInput>
+  }
+
+  export type VolunteerInvitationUpdateManyWithWhereWithoutVolunteerInput = {
+    where: VolunteerInvitationScalarWhereInput
+    data: XOR<VolunteerInvitationUpdateManyMutationInput, VolunteerInvitationUncheckedUpdateManyWithoutVolunteerInput>
+  }
+
+  export type VolunteerInvitationScalarWhereInput = {
+    AND?: VolunteerInvitationScalarWhereInput | VolunteerInvitationScalarWhereInput[]
+    OR?: VolunteerInvitationScalarWhereInput[]
+    NOT?: VolunteerInvitationScalarWhereInput | VolunteerInvitationScalarWhereInput[]
+    id?: StringFilter<"VolunteerInvitation"> | string
+    orgId?: StringFilter<"VolunteerInvitation"> | string
+    volunteerId?: StringFilter<"VolunteerInvitation"> | string
+    opportunityId?: StringFilter<"VolunteerInvitation"> | string
+    sentAt?: DateTimeFilter<"VolunteerInvitation"> | Date | string
+    createdAt?: DateTimeFilter<"VolunteerInvitation"> | Date | string
+  }
+
   export type UserCreateWithoutAccountsInput = {
     id?: string
     name?: string | null
@@ -51429,6 +53151,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -51450,6 +53173,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -51487,6 +53211,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -51508,6 +53233,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -51529,6 +53255,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -51550,6 +53277,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -51582,6 +53310,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSessionsInput = {
@@ -51609,6 +53338,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSessionsInput = {
@@ -51683,6 +53413,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -51704,6 +53435,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type OrganizationUpsertWithoutSessionsInput = {
@@ -51742,6 +53474,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSessionsInput = {
@@ -51769,6 +53502,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type CompanyAccountUpsertWithoutSessionsInput = {
@@ -52039,6 +53773,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutOrganizationInput = {
@@ -52058,6 +53793,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutOrganizationInput = {
@@ -52301,6 +54037,32 @@ export namespace Prisma {
 
   export type BackgroundCheckRequestCreateManyOrganizationInputEnvelope = {
     data: BackgroundCheckRequestCreateManyOrganizationInput | BackgroundCheckRequestCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type VolunteerInvitationCreateWithoutOrganizationInput = {
+    id?: string
+    sentAt?: Date | string
+    createdAt?: Date | string
+    volunteer: UserCreateNestedOneWithoutReceivedInvitationsInput
+    opportunity: VolunteerOpportunityCreateNestedOneWithoutVolunteerInvitationsInput
+  }
+
+  export type VolunteerInvitationUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    volunteerId: string
+    opportunityId: string
+    sentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerInvitationCreateOrConnectWithoutOrganizationInput = {
+    where: VolunteerInvitationWhereUniqueInput
+    create: XOR<VolunteerInvitationCreateWithoutOrganizationInput, VolunteerInvitationUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type VolunteerInvitationCreateManyOrganizationInputEnvelope = {
+    data: VolunteerInvitationCreateManyOrganizationInput | VolunteerInvitationCreateManyOrganizationInput[]
     skipDuplicates?: boolean
   }
 
@@ -52619,6 +54381,22 @@ export namespace Prisma {
     data: XOR<BackgroundCheckRequestUpdateManyMutationInput, BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationInput>
   }
 
+  export type VolunteerInvitationUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: VolunteerInvitationWhereUniqueInput
+    update: XOR<VolunteerInvitationUpdateWithoutOrganizationInput, VolunteerInvitationUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<VolunteerInvitationCreateWithoutOrganizationInput, VolunteerInvitationUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type VolunteerInvitationUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: VolunteerInvitationWhereUniqueInput
+    data: XOR<VolunteerInvitationUpdateWithoutOrganizationInput, VolunteerInvitationUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type VolunteerInvitationUpdateManyWithWhereWithoutOrganizationInput = {
+    where: VolunteerInvitationScalarWhereInput
+    data: XOR<VolunteerInvitationUpdateManyMutationInput, VolunteerInvitationUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
   export type OrganizationCreateWithoutMembersInput = {
     id?: string
     name: string
@@ -52644,6 +54422,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -52671,6 +54450,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -52697,6 +54477,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -52718,6 +54499,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -52761,6 +54543,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -52788,6 +54571,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutMembershipsInput = {
@@ -52820,6 +54604,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -52841,6 +54626,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -52868,6 +54654,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
@@ -52895,6 +54682,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutAuditLogsInput = {
@@ -52958,6 +54746,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -52979,6 +54768,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -53022,6 +54812,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
@@ -53049,6 +54840,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type CompanyAccountUpsertWithoutAuditLogsInput = {
@@ -53124,6 +54916,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -53145,6 +54938,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type OrganizationCreateWithoutFeatureFlagsInput = {
@@ -53172,6 +54966,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutFeatureFlagsInput = {
@@ -53199,6 +54994,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutFeatureFlagsInput = {
@@ -53242,6 +55038,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutFeatureFlagsInput = {
@@ -53269,6 +55066,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutApplicationsInput = {
@@ -53296,6 +55094,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutApplicationsInput = {
@@ -53323,6 +55122,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutApplicationsInput = {
@@ -53347,6 +55147,7 @@ export namespace Prisma {
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutApplicationsInput = {
@@ -53366,6 +55167,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutApplicationsInput = {
@@ -53392,6 +55194,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutSubmittedApplicationsInput = {
@@ -53413,6 +55216,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutSubmittedApplicationsInput = {
@@ -53478,6 +55282,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutApplicationsInput = {
@@ -53505,6 +55310,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutApplicationsInput = {
@@ -53535,6 +55341,7 @@ export namespace Prisma {
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutApplicationsInput = {
@@ -53554,6 +55361,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type UserUpsertWithoutSubmittedApplicationsInput = {
@@ -53586,6 +55394,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubmittedApplicationsInput = {
@@ -53607,6 +55416,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type VolunteerAnswerUpsertWithWhereUniqueWithoutApplicationInput = {
@@ -53724,6 +55534,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutScreenerQuestionsInput = {
@@ -53751,6 +55562,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutScreenerQuestionsInput = {
@@ -53794,6 +55606,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutScreenerQuestionsInput = {
@@ -53821,6 +55634,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutInvitationsInput = {
@@ -53848,6 +55662,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -53875,6 +55690,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -53918,6 +55734,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -53945,6 +55762,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutOpportunitiesInput = {
@@ -53972,6 +55790,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutOpportunitiesInput = {
@@ -53999,6 +55818,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutOpportunitiesInput = {
@@ -54126,6 +55946,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type VolunteerInvitationCreateWithoutOpportunityInput = {
+    id?: string
+    sentAt?: Date | string
+    createdAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutVolunteerInvitationsInput
+    volunteer: UserCreateNestedOneWithoutReceivedInvitationsInput
+  }
+
+  export type VolunteerInvitationUncheckedCreateWithoutOpportunityInput = {
+    id?: string
+    orgId: string
+    volunteerId: string
+    sentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type VolunteerInvitationCreateOrConnectWithoutOpportunityInput = {
+    where: VolunteerInvitationWhereUniqueInput
+    create: XOR<VolunteerInvitationCreateWithoutOpportunityInput, VolunteerInvitationUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type VolunteerInvitationCreateManyOpportunityInputEnvelope = {
+    data: VolunteerInvitationCreateManyOpportunityInput | VolunteerInvitationCreateManyOpportunityInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrganizationUpsertWithoutOpportunitiesInput = {
     update: XOR<OrganizationUpdateWithoutOpportunitiesInput, OrganizationUncheckedUpdateWithoutOpportunitiesInput>
     create: XOR<OrganizationCreateWithoutOpportunitiesInput, OrganizationUncheckedCreateWithoutOpportunitiesInput>
@@ -54162,6 +56008,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutOpportunitiesInput = {
@@ -54189,6 +56036,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OpportunityTagUpsertWithWhereUniqueWithoutOpportunityInput = {
@@ -54275,6 +56123,22 @@ export namespace Prisma {
     data: XOR<ShiftUpdateManyMutationInput, ShiftUncheckedUpdateManyWithoutOpportunityInput>
   }
 
+  export type VolunteerInvitationUpsertWithWhereUniqueWithoutOpportunityInput = {
+    where: VolunteerInvitationWhereUniqueInput
+    update: XOR<VolunteerInvitationUpdateWithoutOpportunityInput, VolunteerInvitationUncheckedUpdateWithoutOpportunityInput>
+    create: XOR<VolunteerInvitationCreateWithoutOpportunityInput, VolunteerInvitationUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type VolunteerInvitationUpdateWithWhereUniqueWithoutOpportunityInput = {
+    where: VolunteerInvitationWhereUniqueInput
+    data: XOR<VolunteerInvitationUpdateWithoutOpportunityInput, VolunteerInvitationUncheckedUpdateWithoutOpportunityInput>
+  }
+
+  export type VolunteerInvitationUpdateManyWithWhereWithoutOpportunityInput = {
+    where: VolunteerInvitationScalarWhereInput
+    data: XOR<VolunteerInvitationUpdateManyMutationInput, VolunteerInvitationUncheckedUpdateManyWithoutOpportunityInput>
+  }
+
   export type VolunteerOpportunityCreateWithoutTagsInput = {
     id?: string
     title: string
@@ -54292,6 +56156,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutTagsInput = {
@@ -54311,6 +56176,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutTagsInput = {
@@ -54346,6 +56212,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutTagsInput = {
@@ -54365,6 +56232,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityCreateWithoutRequirementsInput = {
@@ -54384,6 +56252,7 @@ export namespace Prisma {
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutRequirementsInput = {
@@ -54403,6 +56272,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutRequirementsInput = {
@@ -54486,6 +56356,7 @@ export namespace Prisma {
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutRequirementsInput = {
@@ -54505,6 +56376,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type SkillUpsertWithoutRequirementsInput = {
@@ -54814,6 +56686,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutVolunteerSkillsInput = {
@@ -54835,6 +56708,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutVolunteerSkillsInput = {
@@ -54897,6 +56771,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutVolunteerSkillsInput = {
@@ -54918,6 +56793,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type SkillUpsertWithoutVolunteerSkillsInput = {
@@ -54970,6 +56846,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutProfileInput = {
@@ -54991,6 +56868,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutProfileInput = {
@@ -55028,6 +56906,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProfileInput = {
@@ -55049,6 +56928,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserCreateWithoutCredentialsInput = {
@@ -55070,6 +56950,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutCredentialsInput = {
@@ -55091,6 +56972,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutCredentialsInput = {
@@ -55123,6 +57005,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCredentialsInput = {
@@ -55150,6 +57033,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCredentialsInput = {
@@ -55182,6 +57066,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSharedCredentialsInput = {
@@ -55209,6 +57094,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSharedCredentialsInput = {
@@ -55315,6 +57201,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCredentialsInput = {
@@ -55336,6 +57223,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type OrganizationUpsertWithoutCredentialsInput = {
@@ -55374,6 +57262,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCredentialsInput = {
@@ -55401,6 +57290,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUpsertWithoutSharedCredentialsInput = {
@@ -55439,6 +57329,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSharedCredentialsInput = {
@@ -55466,6 +57357,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type BackgroundCheckRequestUpsertWithoutCredentialInput = {
@@ -55550,6 +57442,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutShiftsInput = {
@@ -55577,6 +57470,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutShiftsInput = {
@@ -55601,6 +57495,7 @@ export namespace Prisma {
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutShiftsInput = {
@@ -55620,6 +57515,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutShiftsInput = {
@@ -55691,6 +57587,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutShiftsInput = {
@@ -55718,6 +57615,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutShiftsInput = {
@@ -55748,6 +57646,7 @@ export namespace Prisma {
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutShiftsInput = {
@@ -55767,6 +57666,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type ShiftSignupUpsertWithWhereUniqueWithoutShiftInput = {
@@ -55841,6 +57741,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutShiftSignupsInput = {
@@ -55862,6 +57763,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutShiftSignupsInput = {
@@ -55942,6 +57844,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutShiftSignupsInput = {
@@ -55963,6 +57866,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type CompanyMemberCreateWithoutCompanyInput = {
@@ -56257,6 +58161,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutCompanyMembershipsInput = {
@@ -56278,6 +58183,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutCompanyMembershipsInput = {
@@ -56358,6 +58264,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCompanyMembershipsInput = {
@@ -56379,6 +58286,7 @@ export namespace Prisma {
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type CompanyAccountCreateWithoutInvitationsInput = {
@@ -56523,6 +58431,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCompanyLinksInput = {
@@ -56550,6 +58459,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCompanyLinksInput = {
@@ -56636,6 +58546,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCompanyLinksInput = {
@@ -56663,6 +58574,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutBackgroundCheckRequestsInput = {
@@ -56690,6 +58602,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutBackgroundCheckRequestsInput = {
@@ -56717,6 +58630,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutBackgroundCheckRequestsInput = {
@@ -56743,6 +58657,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutBackgroundCheckRequestsInput = {
@@ -56764,6 +58679,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutBackgroundCheckRequestsInput = {
@@ -56848,6 +58764,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutBackgroundCheckRequestsInput = {
@@ -56875,6 +58792,7 @@ export namespace Prisma {
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutBackgroundCheckRequestsInput = {
@@ -56907,6 +58825,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBackgroundCheckRequestsInput = {
@@ -56928,6 +58847,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type VolunteerCredentialUpsertWithoutBackgroundCheckRequestInput = {
@@ -57037,6 +58957,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserUncheckedCreateWithoutCreatedShareTokensInput = {
@@ -57058,6 +58979,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
     shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
   }
 
   export type UserCreateOrConnectWithoutCreatedShareTokensInput = {
@@ -57090,6 +59012,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutClaimedShareTokensInput = {
@@ -57117,6 +59040,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutClaimedShareTokensInput = {
@@ -57201,6 +59125,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedShareTokensInput = {
@@ -57222,6 +59147,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
     shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
   }
 
   export type OrganizationUpsertWithoutClaimedShareTokensInput = {
@@ -57260,6 +59186,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutClaimedShareTokensInput = {
@@ -57287,6 +59214,335 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationCreateWithoutVolunteerInvitationsInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutVolunteerInvitationsInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagUncheckedCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutVolunteerInvitationsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutVolunteerInvitationsInput, OrganizationUncheckedCreateWithoutVolunteerInvitationsInput>
+  }
+
+  export type UserCreateWithoutReceivedInvitationsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+  }
+
+  export type UserUncheckedCreateWithoutReceivedInvitationsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+  }
+
+  export type UserCreateOrConnectWithoutReceivedInvitationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutReceivedInvitationsInput, UserUncheckedCreateWithoutReceivedInvitationsInput>
+  }
+
+  export type VolunteerOpportunityCreateWithoutVolunteerInvitationsInput = {
+    id?: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
+    tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityUncheckedCreateWithoutVolunteerInvitationsInput = {
+    id?: string
+    orgId: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityCreateOrConnectWithoutVolunteerInvitationsInput = {
+    where: VolunteerOpportunityWhereUniqueInput
+    create: XOR<VolunteerOpportunityCreateWithoutVolunteerInvitationsInput, VolunteerOpportunityUncheckedCreateWithoutVolunteerInvitationsInput>
+  }
+
+  export type OrganizationUpsertWithoutVolunteerInvitationsInput = {
+    update: XOR<OrganizationUpdateWithoutVolunteerInvitationsInput, OrganizationUncheckedUpdateWithoutVolunteerInvitationsInput>
+    create: XOR<OrganizationCreateWithoutVolunteerInvitationsInput, OrganizationUncheckedCreateWithoutVolunteerInvitationsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutVolunteerInvitationsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutVolunteerInvitationsInput, OrganizationUncheckedUpdateWithoutVolunteerInvitationsInput>
+  }
+
+  export type OrganizationUpdateWithoutVolunteerInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutVolunteerInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUncheckedUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type UserUpsertWithoutReceivedInvitationsInput = {
+    update: XOR<UserUpdateWithoutReceivedInvitationsInput, UserUncheckedUpdateWithoutReceivedInvitationsInput>
+    create: XOR<UserCreateWithoutReceivedInvitationsInput, UserUncheckedCreateWithoutReceivedInvitationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutReceivedInvitationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutReceivedInvitationsInput, UserUncheckedUpdateWithoutReceivedInvitationsInput>
+  }
+
+  export type UserUpdateWithoutReceivedInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutReceivedInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+  }
+
+  export type VolunteerOpportunityUpsertWithoutVolunteerInvitationsInput = {
+    update: XOR<VolunteerOpportunityUpdateWithoutVolunteerInvitationsInput, VolunteerOpportunityUncheckedUpdateWithoutVolunteerInvitationsInput>
+    create: XOR<VolunteerOpportunityCreateWithoutVolunteerInvitationsInput, VolunteerOpportunityUncheckedCreateWithoutVolunteerInvitationsInput>
+    where?: VolunteerOpportunityWhereInput
+  }
+
+  export type VolunteerOpportunityUpdateToOneWithWhereWithoutVolunteerInvitationsInput = {
+    where?: VolunteerOpportunityWhereInput
+    data: XOR<VolunteerOpportunityUpdateWithoutVolunteerInvitationsInput, VolunteerOpportunityUncheckedUpdateWithoutVolunteerInvitationsInput>
+  }
+
+  export type VolunteerOpportunityUpdateWithoutVolunteerInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
+    tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+  }
+
+  export type VolunteerOpportunityUncheckedUpdateWithoutVolunteerInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -57405,6 +59661,14 @@ export namespace Prisma {
     status?: $Enums.ShareTokenStatus
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type VolunteerInvitationCreateManyVolunteerInput = {
+    id?: string
+    orgId: string
+    opportunityId: string
+    sentAt?: Date | string
+    createdAt?: Date | string
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -57767,6 +60031,30 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type VolunteerInvitationUpdateWithoutVolunteerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutVolunteerInvitationsNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneRequiredWithoutVolunteerInvitationsNestedInput
+  }
+
+  export type VolunteerInvitationUncheckedUpdateWithoutVolunteerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerInvitationUncheckedUpdateManyWithoutVolunteerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrganizationMemberCreateManyOrganizationInput = {
     id?: string
     userId: string
@@ -57930,6 +60218,14 @@ export namespace Prisma {
     adverseActionAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type VolunteerInvitationCreateManyOrganizationInput = {
+    id?: string
+    volunteerId: string
+    opportunityId: string
+    sentAt?: Date | string
+    createdAt?: Date | string
   }
 
   export type OrganizationMemberUpdateWithoutOrganizationInput = {
@@ -58155,6 +60451,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutOrganizationInput = {
@@ -58174,6 +60471,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationInput = {
@@ -58447,6 +60745,30 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type VolunteerInvitationUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    volunteer?: UserUpdateOneRequiredWithoutReceivedInvitationsNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneRequiredWithoutVolunteerInvitationsNestedInput
+  }
+
+  export type VolunteerInvitationUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    volunteerId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerInvitationUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    volunteerId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type VolunteerAnswerCreateManyApplicationInput = {
     id?: string
     questionId: string
@@ -58507,6 +60829,14 @@ export namespace Prisma {
     status?: $Enums.ShiftStatus
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type VolunteerInvitationCreateManyOpportunityInput = {
+    id?: string
+    orgId: string
+    volunteerId: string
+    sentAt?: Date | string
+    createdAt?: Date | string
   }
 
   export type OpportunityTagUpdateWithoutOpportunityInput = {
@@ -58625,6 +60955,30 @@ export namespace Prisma {
     status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerInvitationUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutVolunteerInvitationsNestedInput
+    volunteer?: UserUpdateOneRequiredWithoutReceivedInvitationsNestedInput
+  }
+
+  export type VolunteerInvitationUncheckedUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    volunteerId?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VolunteerInvitationUncheckedUpdateManyWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    volunteerId?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SkillCreateManyFamilyInput = {

@@ -453,6 +453,15 @@ exports.Prisma.CredentialShareTokenScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.VolunteerInvitationScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  volunteerId: 'volunteerId',
+  opportunityId: 'opportunityId',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -545,7 +554,10 @@ exports.CredentialType = exports.$Enums.CredentialType = {
   TRAINING_COMPLETE: 'TRAINING_COMPLETE',
   ID_VERIFIED: 'ID_VERIFIED',
   REFERENCE_CHECK: 'REFERENCE_CHECK',
-  ORIENTATION_COMPLETE: 'ORIENTATION_COMPLETE'
+  ORIENTATION_COMPLETE: 'ORIENTATION_COMPLETE',
+  TENURE_1YR: 'TENURE_1YR',
+  TENURE_3YR: 'TENURE_3YR',
+  TENURE_5YR: 'TENURE_5YR'
 };
 
 exports.CredentialStatus = exports.$Enums.CredentialStatus = {
@@ -637,7 +649,8 @@ exports.Prisma.ModelName = {
   StripeWebhookEvent: 'StripeWebhookEvent',
   BackgroundCheckRequest: 'BackgroundCheckRequest',
   CheckrWebhookEvent: 'CheckrWebhookEvent',
-  CredentialShareToken: 'CredentialShareToken'
+  CredentialShareToken: 'CredentialShareToken',
+  VolunteerInvitation: 'VolunteerInvitation'
 };
 
 /**
