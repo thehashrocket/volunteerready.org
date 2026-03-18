@@ -30,6 +30,11 @@ const availabilityEnum = z.enum([
 const visibilityEnum = z.enum(['PUBLIC', 'ORGS_ONLY', 'PRIVATE']);
 
 export const profileRouter = createTRPCRouter({
+	/** Get the authenticated user's own userId (for share card URL construction). */
+	getMyUserId: protectedProcedure.query(({ ctx }) => ({
+		userId: requireUserId(ctx.session),
+	})),
+
 	/** Get the authenticated user's profile + completeness. */
 	getMyProfile: protectedProcedure.query(({ ctx }) =>
 		getVolunteerProfileWithCompleteness(requireUserId(ctx.session)),
