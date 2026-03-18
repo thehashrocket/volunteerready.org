@@ -281,7 +281,7 @@ This phase establishes **the corporate CSR revenue surface and portable voluntee
 Goal: Drive organic growth through volunteer-facing public identity and deepen the quality moat
 with AI-assisted matching.
 
-## Delivered (v0.6.0–v0.7.0)
+## Delivered (v0.6.0–v0.7.2)
 
 Volunteer impact public pages:
 
@@ -307,10 +307,16 @@ Infrastructure:
 - ✅ `VolunteerInvitation` table — org-to-volunteer invitation tracking with rate limiting
 - ✅ Indexes on `VolunteerProfile(visibility)`, `VolunteerProfile(city, state)`, `VolunteerCredential(userId, status)`
 
+Cross-org volunteer discovery:
+
+- ✅ `/app/discover` — org staff can search PUBLIC volunteer profiles by skills, credential types, city, state, and availability; cursor-based pagination; feature-flagged behind `VOLUNTEER_DISCOVERY_ENABLED`
+- ✅ Invite to Apply — staff invites a discovered volunteer to a specific opportunity; rate-limited (10/day per org); TOCTOU-safe atomic transaction guard; duplicate invite rejected at DB level
+- ✅ `volunteerDiscoveryRepo` — `visibility = PUBLIC` hardcoded structural privacy invariant (not caller-supplied)
+- ✅ `volunteerDiscoveryService` — orchestrates search + invite; audit logged
+
 ## Planned
 
 - "Add to LinkedIn" deep link for verified credential badges (blocked on LinkedIn Partner Org ID)
-- Cross-org volunteer discovery (`/app/discover`) — feature-flagged, pending rate limiting PR
 - Organization analytics dashboard — volunteer engagement metrics, conversion funnel, shift fill rate
 
 This phase evolves VolunteerReady into a **network with compounding value** — more verified

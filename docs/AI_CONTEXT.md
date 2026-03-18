@@ -72,6 +72,7 @@ src/
 │   │   ├── my-shifts/            # Volunteer: upcoming shift signups
 │   │   ├── my-skills/            # Volunteer: manage skill tags
 │   │   ├── opportunities/        # Staff: manage opportunities
+│   │   ├── discover/             # Staff: search PUBLIC volunteers + invite to apply (feature-flagged)
 │   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
 │   │   ├── shifts/               # Staff: manage shifts + attendance
@@ -215,6 +216,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `onboarding` | create org, initial setup |
 | `opportunities` | create, update, delete, list, getById |
 | `org` | getCurrentOrg, listOrgs, switchOrg |
+| `discovery` | searchVolunteers (staff), inviteToApply (staff) |
 | `profile` | getMyProfile, updateMyProfile, getMyStats, getMyUserId, getPublicProfile (public), getOrgVisibleProfile (staff) |
 | `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail |
 | `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |
@@ -397,7 +399,9 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/domain/shift.ts` | Shift capacity, signup validation, attendance summaries |
 | `src/server/services/shiftService.ts` | Shift CRUD with audit logging |
 | `src/server/services/shiftSignupService.ts` | Signup orchestration with capacity + conflict checks |
-| `src/server/services/volunteerIdentityService.ts` | Public volunteer identity assembly — getPublicProfile, getOrgVisibleProfile, reliability score |
+| `src/server/services/volunteerIdentityService.ts` | Public volunteer identity assembly — getPublicProfile (React.cache-wrapped), getOrgVisibleProfile (staff-only), reliability score |
+| `src/server/services/volunteerDiscoveryService.ts` | Volunteer search + invite-to-apply — rate-limited, TOCTOU-safe transaction, audit logged |
+| `src/server/repositories/volunteerDiscoveryRepo.ts` | `searchPublicProfiles()` — `visibility = PUBLIC` hardcoded invariant, cursor pagination, credential/skill/location filters |
 | `src/server/services/tenureBadgeService.ts` | Fire-and-forget tenure badge issuance — idempotent, P2002-safe, called from 3 service triggers |
 | `src/server/domain/credential-sharing.ts` | Share token lifecycle guards, expiry computation |
 | `src/server/services/credentialShareService.ts` | Credential sharing workflows (generate, claim, revoke, shareAllOnApply) |
@@ -425,7 +429,7 @@ pnpm docs:dev               # VitePress dev server
 | 6E — Mobile PWA | Planned |
 | 7 — Network Growth & Volunteer Identity | 🚧 In Progress |
 
-Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses.
+Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses, volunteer discovery (`/app/discover`) with invite-to-apply (feature-flagged).
 
 See `docs/ROADMAP.md` for details.
 
