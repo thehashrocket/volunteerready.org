@@ -57,6 +57,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
@@ -218,8 +219,7 @@ function CreateShiftDialog() {
 						</div>
 					</div>
 					<div className="flex items-center gap-2">
-						<input
-							type="checkbox"
+						<Checkbox
 							id="isRemote"
 							{...form.register('isRemote')}
 						/>

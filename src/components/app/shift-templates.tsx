@@ -45,6 +45,7 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { trpc } from '@/lib/trpc/client';
 import { DAY_OF_WEEK_LABELS } from '@/server/domain/shift';
 
@@ -208,8 +209,7 @@ function CreateTemplateDialog() {
 						</div>
 					</div>
 					<div className="flex items-center gap-2">
-						<input
-							type="checkbox"
+						<Checkbox
 							id="tmpl-remote"
 							{...form.register('isRemote')}
 						/>
