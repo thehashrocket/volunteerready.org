@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-03-17
+
+### Added
+- **Public volunteer identity page** (`/v/[userId]`) — SEO-optimized profile showing verified credentials, total volunteer hours, distinct org count, tenure badge, and reliability score; respects visibility settings (PUBLIC only on internet)
+- **OG share card** (`/api/share-card/[userId]`) — 1200×630 social share image with Fraunces display font, forest green header, and sand stat boxes; generic fallback for non-public profiles
+- **Volunteer identity panel** on the application screener page — org staff see a volunteer's credentials, hours, and reliability score inline when reviewing applications; respects ORGS_ONLY visibility (authenticated screeners see both PUBLIC and ORGS_ONLY profiles)
+- **`computeTenure()`** domain function — calculates 1YR/3YR/5YR tenure level from earliest activity record
+- **`computeReliabilityScore()`** domain function — 0–100 score (40% attendance, 30% credentials, 20% tenure, 10% recency); returns null when no past shifts exist
+- **Matching engine context bonuses** — +5 for availability alignment, +5 for verified credential match (additive tiebreakers; capped at 100, don't affect PERFECT/PARTIAL classification)
+- **Tenure credential types** — `TENURE_1YR`, `TENURE_3YR`, `TENURE_5YR` enum values added for system-issued milestone badges
+- **`VolunteerInvitation` table** — tracks org-to-volunteer invitations with rate-limiting unique constraint (`orgId, volunteerId, opportunityId`)
+- **Platform org** seeded (`slug: platform`) as the issuer for system-level tenure credentials
+- **`getAttendedShiftsForUser` + `getSignupsForReliability`** repo functions for computing volunteer hours and reliability input data
+- **`getOrgVisibleProfile`** service function — identical to `getPublicProfile` but also serves ORGS_ONLY profiles for authenticated org screeners
+
+### Fixed
+- **Reliability denominator** — CONFIRMED (upcoming) signups excluded from attendance rate; only past ATTENDED + NO_SHOW shifts count, preventing active volunteers with future commitments from appearing unreliable
+- **ORGS_ONLY visibility gap** — volunteers who set visibility to ORGS_ONLY now correctly appear in the org screener identity panel (previously showed nothing)
+
 ## [0.5.2] - 2026-03-17
 
 ### Added

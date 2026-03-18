@@ -296,12 +296,6 @@ AI-powered matching upgrades
 - Interest + availability signal integration — surface best-fit opportunities by schedule
 - Cross-org "volunteers like you also served" discovery
 
-Grant discovery and tracking (original Phase 6 intent — correct direction, right timing)
-
-- GrantOpportunity — curated grants relevant to the org's cause area
-- GrantApplication — track status and deadlines
-- GrantFitScore — lightweight AI scoring of org/grant alignment
-
 Organization analytics
 
 - Volunteer engagement metrics (retention, return rate, avg hours)
