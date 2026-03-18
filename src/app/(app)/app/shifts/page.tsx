@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { ShiftTemplatesTab } from '@/components/app/shift-templates';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
+import { PlanGate } from '@/components/plan-gate';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -604,7 +605,13 @@ export default function ShiftsPage() {
 				</TabsContent>
 
 				<TabsContent value="templates">
-					<ShiftTemplatesTab />
+					<PlanGate
+						requiredTier="STARTER"
+						feature="Shift Templates"
+						description="Create reusable shift templates and generate weeks of shifts automatically."
+					>
+						<ShiftTemplatesTab />
+					</PlanGate>
 				</TabsContent>
 			</Tabs>
 		</div>

@@ -1,17 +1,9 @@
 'use client';
 
-import { TrendingUp } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
+import { PlanGate } from '@/components/plan-gate';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
@@ -35,37 +27,6 @@ const DATE_RANGES: { label: string; days: DaysOption }[] = [
 	{ label: '1 year', days: 365 },
 	{ label: 'All time', days: null },
 ];
-
-// ---------------------------------------------------------------------------
-// Upgrade Prompt
-// ---------------------------------------------------------------------------
-
-function UpgradePrompt() {
-	return (
-		<div className="flex items-center justify-center min-h-[400px]">
-			<Card className="max-w-md w-full">
-				<CardHeader className="text-center">
-					<div className="flex justify-center mb-4">
-						<TrendingUp className="h-10 w-10 text-muted-foreground" />
-					</div>
-					<CardTitle>Analytics</CardTitle>
-					<CardDescription>
-						Detailed volunteer engagement metrics are available on the PRO plan.
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="flex flex-col items-center gap-3">
-					<p className="text-sm text-muted-foreground text-center">
-						Track your application funnel, volunteer retention, shift fill
-						rates, and top contributors — all in one place.
-					</p>
-					<Button asChild>
-						<Link href="/app/billing">Upgrade to PRO</Link>
-					</Button>
-				</CardContent>
-			</Card>
-		</div>
-	);
-}
 
 // ---------------------------------------------------------------------------
 // Funnel Stage Card
@@ -203,20 +164,24 @@ function DashboardSkeleton() {
 // ---------------------------------------------------------------------------
 
 export function AnalyticsClient() {
+	return (
+		<PlanGate
+			requiredTier="PRO"
+			feature="Analytics"
+			description="Track your application funnel, volunteer retention, shift fill rates, and top contributors — all in one place."
+		>
+			<AnalyticsDashboard />
+		</PlanGate>
+	);
+}
+
+function AnalyticsDashboard() {
 	const [selectedDays, setSelectedDays] = useState<DaysOption>(90);
 
 	const dashboardQ = trpc.analytics.getDashboard.useQuery(
 		{ days: selectedDays },
 		{ retry: false },
 	);
-
-	// PRO gate: show upgrade prompt if FORBIDDEN
-	if (
-		dashboardQ.error?.data?.code === 'FORBIDDEN' ||
-		dashboardQ.error?.data?.httpStatus === 403
-	) {
-		return <UpgradePrompt />;
-	}
 
 	const data = dashboardQ.data;
 
