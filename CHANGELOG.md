@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1] - 2026-03-18
+
+### Added
+- **Volunteer discovery** (`/app/discover`) — org staff can search across all PUBLIC volunteer profiles by skills, credential types, city, state, and availability; results sorted by verified credential count; cursor-based pagination (20 per page); feature-flagged behind `VOLUNTEER_DISCOVERY_ENABLED` env var
+- **Invite to Apply** — staff can invite any discovered volunteer to apply to a specific opportunity; rate-limited to 10 invitations per org per 24 hours with a TOCTOU-safe atomic transaction guard; duplicate invitations (same org + volunteer + opportunity) are rejected at the DB level
+- **`volunteerDiscoveryRepo`** — privacy-first search repo with `visibility = PUBLIC` hardcoded (not caller-supplied); cursor-based pagination; filters on skills, credential types, location, availability
+- **`volunteerDiscoveryService`** — orchestrates search + invite; rate limit check + already-applied check + invitation create wrapped in `prisma.$transaction()` for atomicity
+- **`discovery` tRPC router** — `searchVolunteers` and `inviteToApply` procedures under `staffProcedure`
+- **`sendInviteToApplyEmail`** — invite email sent to volunteers (fire-and-forget; email failures are logged, never surfaced to caller)
+- **Navigation** — "Discover" link in staff nav (hidden when feature flag is off)
+
+### Fixed
+- **Rate-limit TOCTOU** — count + already-applied check + create now execute in a single `$transaction`, preventing concurrent requests from both passing the rate check before either creates a record
+- **`actorId` audit log** — `staffProcedure` guarantees an active session; removed the `?? ''` fallback that could silently corrupt audit records
+
+### For contributors
+- `src/server/repositories/volunteerDiscoveryRepo.ts` — new; `searchPublicProfiles` always hardcodes `visibility = 'PUBLIC'` (structural privacy invariant, not injected by callers)
+- `src/server/services/volunteerDiscoveryService.ts` — new; 10 unit tests in `volunteerDiscoveryService.test.ts`
+- `src/server/trpc/routers/discovery.ts` — new; registered in `root.ts` as `discovery`
+- `src/app/(app)/app/discover/page.tsx` — new; uses `VOLUNTEER_DISCOVERY_ENABLED` env var gate
+
 ## [0.7.0] - 2026-03-17
 
 ### Added
