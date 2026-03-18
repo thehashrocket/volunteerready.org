@@ -581,9 +581,14 @@ export default function ShiftsPage() {
 															size="sm"
 															variant="ghost"
 															onClick={() => {
-													if (!confirm(`Delete "${shift.title}"? This cannot be undone.`)) return;
-													removeMut.mutate({ id: shift.id });
-												}}
+																if (
+																	!confirm(
+																		`Delete "${shift.title}"? This cannot be undone.`,
+																	)
+																)
+																	return;
+																removeMut.mutate({ id: shift.id });
+															}}
 														>
 															<Trash2 className="h-3 w-3" />
 														</Button>

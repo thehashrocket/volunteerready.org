@@ -378,9 +378,14 @@ export function ShiftTemplatesTab() {
 													size="sm"
 													variant="ghost"
 													onClick={() => {
-													if (!confirm(`Delete "${tmpl.title}"? This cannot be undone.`)) return;
-													removeMut.mutate({ id: tmpl.id });
-												}}
+														if (
+															!confirm(
+																`Delete "${tmpl.title}"? This cannot be undone.`,
+															)
+														)
+															return;
+														removeMut.mutate({ id: tmpl.id });
+													}}
 												>
 													<Trash2 className="h-3 w-3" />
 												</Button>

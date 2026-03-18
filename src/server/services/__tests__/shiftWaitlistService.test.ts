@@ -60,7 +60,11 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
-import { cancelSignup, joinWaitlist, leaveWaitlist } from '../shiftSignupService';
+import {
+	cancelSignup,
+	joinWaitlist,
+	leaveWaitlist,
+} from '../shiftSignupService';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -234,10 +238,10 @@ describe('joinWaitlist', () => {
 		const result = await joinWaitlist(SHIFT_ID, USER_B);
 
 		expect(result.status).toBe('WAITLISTED');
-		expect(mocks.createWaitlistEntry).toHaveBeenCalledWith(
-			expect.anything(),
-			{ shiftId: SHIFT_ID, userId: USER_B },
-		);
+		expect(mocks.createWaitlistEntry).toHaveBeenCalledWith(expect.anything(), {
+			shiftId: SHIFT_ID,
+			userId: USER_B,
+		});
 		expect(mocks.writeAuditLogTx).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
