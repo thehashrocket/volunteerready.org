@@ -3,9 +3,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import {
 	AlertCircle,
+	Award,
 	Calendar,
 	ChevronLeft,
 	Clock,
+	ExternalLink,
 	MapPin,
 	RefreshCw,
 	ShieldCheck,
@@ -306,7 +308,110 @@ export default function ApplicationDetailPage() {
 
 			{/* Credential sharing request card */}
 			<CredentialRequestCard applicationId={app.id} />
+
+			{/* Volunteer identity panel (only if applicant has a user account) */}
+			{app.submittedByUserId && (
+				<VolunteerIdentityPanel userId={app.submittedByUserId} />
+			)}
 		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Credential request card — staff can request volunteer to share credentials
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Volunteer identity panel — shown when applicant has a VolunteerReady account
+// ---------------------------------------------------------------------------
+
+function VolunteerIdentityPanel({ userId }: { userId: string }) {
+	const query = trpc.profile.getOrgVisibleProfile.useQuery({ userId });
+
+	if (query.isLoading) {
+		return (
+			<Card>
+				<CardContent className="space-y-2 pt-6">
+					<Skeleton className="h-5 w-32" />
+					<Skeleton className="h-4 w-full" />
+					<Skeleton className="h-4 w-3/4" />
+				</CardContent>
+			</Card>
+		);
+	}
+
+	const profile = query.data;
+	// No data = private profile, no-show, or not-found — all treated as no panel.
+	if (!profile) return null;
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<Award className="h-5 w-5 text-primary" />
+					Volunteer identity
+				</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				{/* Stats row */}
+				<div className="flex flex-wrap gap-6">
+					<div>
+						<p className="font-tabular-nums text-xl font-bold tabular-nums">
+							{profile.totalHours}h
+						</p>
+						<p className="text-xs uppercase tracking-widest text-muted-foreground">
+							Hours served
+						</p>
+					</div>
+					{profile.orgCount > 0 && (
+						<div>
+							<p className="font-tabular-nums text-xl font-bold tabular-nums">
+								{profile.orgCount}
+							</p>
+							<p className="text-xs uppercase tracking-widest text-muted-foreground">
+								Org{profile.orgCount !== 1 ? 's' : ''}
+							</p>
+						</div>
+					)}
+					{profile.reliabilityScore !== null && (
+						<div>
+							<p className="font-tabular-nums text-xl font-bold tabular-nums text-primary">
+								{profile.reliabilityScore}%
+							</p>
+							<p className="text-xs uppercase tracking-widest text-muted-foreground">
+								Reliability
+							</p>
+						</div>
+					)}
+				</div>
+
+				{/* Credential badges */}
+				{profile.credentials.length > 0 && (
+					<div className="flex flex-wrap gap-2">
+						{profile.credentials.map((cred, i) => (
+							<span
+								key={i}
+								className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+							>
+								<ShieldCheck className="h-3 w-3" />
+								{cred.label}
+							</span>
+						))}
+					</div>
+				)}
+
+				{/* Link to public profile */}
+				<a
+					href={`/v/${userId}`}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+				>
+					View public profile
+					<ExternalLink className="h-3 w-3" />
+				</a>
+			</CardContent>
+		</Card>
 	);
 }
 

@@ -21,7 +21,9 @@ export async function getProfileWithUser(userId: string) {
 	return prisma.volunteerProfile.findUnique({
 		where: { userId },
 		include: {
-			user: { select: { name: true, email: true, image: true } },
+			user: {
+				select: { name: true, email: true, image: true, createdAt: true },
+			},
 		},
 	});
 }

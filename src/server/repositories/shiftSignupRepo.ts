@@ -46,6 +46,36 @@ export async function getConfirmedShiftsForUser(userId: string) {
 	});
 }
 
+/**
+ * Get all ATTENDED signups for a user, with shift start/end times and orgId.
+ * Used by volunteerIdentityService to compute total volunteer hours and orgCount.
+ */
+export async function getAttendedShiftsForUser(userId: string) {
+	return prisma.shiftSignup.findMany({
+		where: { userId, status: 'ATTENDED' },
+		include: {
+			shift: {
+				select: {
+					startTime: true,
+					endTime: true,
+					orgId: true,
+				},
+			},
+		},
+	});
+}
+
+/**
+ * Get all non-CANCELLED signups for a user.
+ * Used by volunteerIdentityService to compute reliability score.
+ */
+export async function getSignupsForReliability(userId: string) {
+	return prisma.shiftSignup.findMany({
+		where: { userId, status: { not: 'CANCELLED' } },
+		select: { status: true, createdAt: true },
+	});
+}
+
 export async function getUpcomingSignupsForUser(userId: string, limit = 10) {
 	return prisma.shiftSignup.findMany({
 		where: {
