@@ -8,6 +8,7 @@
  * Both return null for not-found AND for invisible profiles — identical response
  * prevents callers from distinguishing the two cases (no information leakage).
  */
+import { cache } from 'react';
 import type { CredentialType } from '@/prisma/generated/client';
 import {
 	CREDENTIAL_LABELS,
@@ -132,14 +133,14 @@ async function assembleProfile(
  * Use getOrgVisibleProfile for authenticated org screeners, which also
  * respects ORGS_ONLY visibility.
  */
-export async function getPublicProfile(
+export const getPublicProfile = cache(async function getPublicProfile(
 	userId: string,
 ): Promise<PublicVolunteerProfile | null> {
 	const profileWithUser = await getProfileWithUser(userId);
 	if (!profileWithUser) return null;
 	if (profileWithUser.visibility !== 'PUBLIC') return null;
 	return assembleProfile(profileWithUser);
-}
+});
 
 /**
  * Assemble a volunteer's profile for authenticated org screeners.

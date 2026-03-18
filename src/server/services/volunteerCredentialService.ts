@@ -8,6 +8,7 @@ import {
 	type UpsertCredentialInput,
 	upsertCredential,
 } from '@/server/repositories/volunteerCredentialRepo';
+import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
 // ---------------------------------------------------------------------------
 // Reads
@@ -40,8 +41,8 @@ export async function issueCredential(
 	input: UpsertCredentialInput,
 	actorId: string,
 ) {
-	return prisma.$transaction(async (tx) => {
-		const credential = await upsertCredential(tx, {
+	const credential = await prisma.$transaction(async (tx) => {
+		const cred = await upsertCredential(tx, {
 			...input,
 			issuedById: actorId,
 		});
@@ -51,7 +52,7 @@ export async function issueCredential(
 			actorId,
 			action: 'CREDENTIAL_ISSUED',
 			entityType: 'VolunteerCredential',
-			entityId: credential.id,
+			entityId: cred.id,
 			metadata: {
 				userId: input.userId,
 				type: input.type,
@@ -59,8 +60,15 @@ export async function issueCredential(
 			},
 		});
 
-		return credential;
+		return cred;
 	});
+
+	// Fire-and-forget: a new VERIFIED credential may unlock a tenure badge.
+	if (input.status === 'VERIFIED') {
+		void checkAndIssueTenureBadges(input.userId);
+	}
+
+	return credential;
 }
 
 /** Revoke a credential with audit logging. */

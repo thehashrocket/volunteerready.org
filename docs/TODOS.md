@@ -263,7 +263,7 @@ certification name, issuing org, issue date, expiry date, credential URL.
 
 **Effort:** S | **Priority:** P3 | **Depends on:** /v/[userId] public page, LinkedIn Partner status
 
-### [P3] Volunteer Tenure Badge Auto-Issuance Service
+### ~~[P3] Volunteer Tenure Badge Auto-Issuance Service~~ ✅ Complete
 
 **What:** Service that automatically issues a `VolunteerCredential` of type
 `TENURE_1YR/3YR/5YR` when a volunteer crosses a milestone.
@@ -284,7 +284,7 @@ re-join is out of scope — tenure is additive from earliest activity.
 **Pros:** Completes the tenure gamification loop; credentials appear on public profile immediately.
 **Cons:** Need trigger points in 3 services; platform org must always exist (seeded).
 
-**Effort:** M | **Priority:** P3 | **Depends on:** ✅ Phase 7 PR1 (enum + computeTenure + platform org seeded)
+**Effort:** M | **Priority:** ~~P3~~ | **Depends on:** ✅ Phase 7 PR1 (enum + computeTenure + platform org seeded) | **Completed:** v0.7.0 (2026-03-17)
 
 ### ~~[P3] Auto-Share Credentials on Apply ("Bring My Credentials" Checkbox)~~ ✅ Complete
 
@@ -467,3 +467,41 @@ who hide their UI behind demo requests.
 **Cons:** Screenshots need updating when UI changes; requires realistic demo data.
 
 **Effort:** M | **Priority:** P2 | **Depends on:** ✅ Public site rewrite shipped
+
+---
+
+## Volunteer Discovery
+
+### [P1] HTTP Rate Limiting for volunteer search endpoint
+
+**What:** Add request-level rate limiting to `discovery.searchVolunteers` (e.g., 60 req/min per org).
+
+**Why:** The `VOLUNTEER_DISCOVERY_ENABLED` env var gate must stay enabled until rate limiting lands.
+Without request-level limits, an org could call `searchVolunteers` thousands of times per minute
+once the gate is removed, scraping all PUBLIC volunteer data in bulk.
+
+**Context:** The invite-to-apply DB throttle (10/day per org) only limits invitations, not search
+queries. Request-level rate limiting requires @upstash/ratelimit + Redis/Vercel KV infrastructure
+not yet in the stack. This should be implemented as a tRPC middleware on `staffProcedure` or as a
+separate `rateLimitedStaffProcedure`. When this ships, remove the `VOLUNTEER_DISCOVERY_ENABLED`
+env var gate from `src/app/(app)/app/discover/page.tsx`.
+
+**Pros:** Enables safe removal of the env var gate; prevents bulk scraping of volunteer data.
+**Cons:** New infrastructure dependency (Redis/Vercel KV); adds per-request latency.
+
+**Effort:** M | **Priority:** P1 | **Depends on:** Redis/Vercel KV infrastructure decision
+
+---
+
+### [P3] Consolidate CREDENTIAL_TYPE_LABELS into shared domain constant
+
+**What:** Remove the local `CREDENTIAL_TYPE_LABELS` map in `src/app/(app)/app/discover/_components/discover-client.tsx:51` and import `CREDENTIAL_LABELS` from `src/server/domain/volunteer-profile.ts` instead.
+
+**Why:** Two maps with the same keys but slightly different labels ("1-Year Tenure" vs "1 Year Volunteer") will diverge as new credential types are added. If a new `CredentialType` is added to the enum, the discover UI won't display it correctly unless the local copy is also updated — the TypeScript types won't catch this since the local map uses `Record<string, string>`.
+
+**Context:** `CREDENTIAL_LABELS` in `volunteer-profile.ts` is a pure constant with no framework dependencies. It can be safely imported in client components. The tenure label wording differs slightly between the two maps — align them during this cleanup.
+
+**Pros:** Single source of truth for credential display names; new credential types automatically appear in discover UI.
+**Cons:** Slight label wording change in discover UI (cosmetic only).
+
+**Effort:** XS | **Priority:** P3 | **Depends on:** nothing

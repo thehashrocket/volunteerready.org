@@ -13,6 +13,7 @@ import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
+	staffProcedure,
 } from '@/server/trpc/init';
 
 function requireUserId(session: { user?: { id?: string } } | null): string {
@@ -30,6 +31,11 @@ const availabilityEnum = z.enum([
 const visibilityEnum = z.enum(['PUBLIC', 'ORGS_ONLY', 'PRIVATE']);
 
 export const profileRouter = createTRPCRouter({
+	/** Get the authenticated user's own userId (for share card URL construction). */
+	getMyUserId: protectedProcedure.query(({ ctx }) => ({
+		userId: requireUserId(ctx.session),
+	})),
+
 	/** Get the authenticated user's profile + completeness. */
 	getMyProfile: protectedProcedure.query(({ ctx }) =>
 		getVolunteerProfileWithCompleteness(requireUserId(ctx.session)),
@@ -70,7 +76,7 @@ export const profileRouter = createTRPCRouter({
 	 * Returns data for PUBLIC and ORGS_ONLY profiles; null for PRIVATE + not-found.
 	 * Use this on internal screener pages, not the public internet.
 	 */
-	getOrgVisibleProfile: protectedProcedure
+	getOrgVisibleProfile: staffProcedure
 		.input(z.object({ userId: z.string().min(1) }))
 		.query(({ input }) => getOrgVisibleProfile(input.userId)),
 

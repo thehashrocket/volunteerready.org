@@ -385,18 +385,20 @@ function VolunteerIdentityPanel({ userId }: { userId: string }) {
 					)}
 				</div>
 
-				{/* Credential badges */}
+				{/* Credential badges — deduplicated by type */}
 				{profile.credentials.length > 0 && (
 					<div className="flex flex-wrap gap-2">
-						{profile.credentials.map((cred, i) => (
-							<span
-								key={i}
-								className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
-							>
-								<ShieldCheck className="h-3 w-3" />
-								{cred.label}
-							</span>
-						))}
+						{[...new Set(profile.credentials.map((c) => c.label))].map(
+							(label) => (
+								<span
+									key={label}
+									className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+								>
+									<ShieldCheck className="h-3 w-3" />
+									{label}
+								</span>
+							),
+						)}
 					</div>
 				)}
 

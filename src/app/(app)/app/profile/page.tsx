@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+	Award,
 	Briefcase,
 	Building2,
 	CalendarClock,
@@ -11,6 +12,7 @@ import {
 	CircleDashed,
 	Clock,
 	Copy,
+	ExternalLink,
 	Fingerprint,
 	GraduationCap,
 	Link2,
@@ -584,6 +586,9 @@ const CREDENTIAL_META: Record<string, { label: string; icon: typeof Shield }> =
 			label: 'Orientation Complete',
 			icon: GraduationCap,
 		},
+		TENURE_1YR: { label: '1 Year Volunteer', icon: Award },
+		TENURE_3YR: { label: '3 Year Volunteer', icon: Award },
+		TENURE_5YR: { label: '5 Year Volunteer', icon: Award },
 	};
 
 function getCredentialMeta(type: string) {
@@ -609,6 +614,7 @@ const statusVariant: Record<
 function CredentialWallet() {
 	const credQuery = trpc.credentials.getMyCredentials.useQuery();
 	const tokensQuery = trpc.credentialSharing.listMyTokens.useQuery();
+	const userIdQuery = trpc.profile.getMyUserId.useQuery();
 
 	const generateMutation = trpc.credentialSharing.generate.useMutation({
 		onSuccess: (data) => {
@@ -655,8 +661,36 @@ function CredentialWallet() {
 		);
 	}
 
+	const userId = userIdQuery.data?.userId;
+
 	return (
 		<div className="space-y-4">
+			{/* Share card banner */}
+			{userId && (
+				<Card className="border-primary/20 bg-primary/5">
+					<CardContent className="flex items-center justify-between gap-4 py-4">
+						<div>
+							<p className="font-medium text-sm">Share your volunteer card</p>
+							<p className="text-xs text-muted-foreground">
+								Your verified credentials and impact stats in one shareable
+								link.
+							</p>
+						</div>
+						<Button variant="outline" size="sm" asChild>
+							<a
+								href={`/v/${userId}`}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1.5"
+							>
+								<ExternalLink className="h-3.5 w-3.5" />
+								View card
+							</a>
+						</Button>
+					</CardContent>
+				</Card>
+			)}
+
 			{credentials.map((cred) => {
 				const meta = getCredentialMeta(cred.type);
 				const Icon = meta.icon;

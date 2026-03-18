@@ -276,31 +276,48 @@ This phase establishes **the corporate CSR revenue surface and portable voluntee
 
 ---
 
-# Phase 7 — Network Growth & Volunteer Identity
+# Phase 7 — Network Growth & Volunteer Identity 🚧 In Progress
 
 Goal: Drive organic growth through volunteer-facing public identity and deepen the quality moat
 with AI-assisted matching.
 
-Planned areas:
+## Delivered (v0.6.0–v0.7.2)
 
-Volunteer impact public pages
+Volunteer impact public pages:
 
-- `/v/[userId]` — SEO-optimized public page per volunteer showing verified credentials, total
-  hours, and supported orgs (no PII; volunteer controls visibility)
-- "Add to LinkedIn" deep link for verified credential badges
-- Volunteer tenure badges — automatic "1 year / 3 year / 5 year" milestone credentials
+- ✅ `/v/[userId]` — SEO-optimized public page per volunteer showing verified credentials, total
+  hours, distinct org count, tenure badge, and reliability score; respects visibility settings
+- ✅ OG social share card (`/api/share-card/[userId]`) — 1200×630 image with Fraunces font, forest
+  green header, sand stat boxes; generic fallback for non-public profiles
+- ✅ Volunteer identity panel on the application screener — org staff see volunteer credentials,
+  hours, and reliability score inline when reviewing applications
+- ✅ "Share your volunteer card" button on `/app/profile` credentials tab
+- ✅ Volunteer tenure badges — `TENURE_1YR`, `TENURE_3YR`, `TENURE_5YR` auto-issued via
+  `tenureBadgeService` (fire-and-forget, idempotent) triggered on signup, application, and credential events
+- ✅ `computeTenure()` — calculates tenure level from earliest recorded activity
+- ✅ `computeReliabilityScore()` — 0–100 score (40% attendance, 30% credentials, 20% tenure, 10% recency)
 
-AI-powered matching upgrades
+AI-powered matching upgrades:
 
-- Credential-weighted recommendations — factor verified credential types into match scores
-- Interest + availability signal integration — surface best-fit opportunities by schedule
-- Cross-org "volunteers like you also served" discovery
+- ✅ Credential-weighted recommendations — +5 bonus for verified credential type match
+- ✅ Availability alignment bonus — +5 when volunteer availability matches shift schedule
 
-Organization analytics
+Infrastructure:
 
-- Volunteer engagement metrics (retention, return rate, avg hours)
-- Application conversion funnel (submitted → approved → shifted → credentialed)
-- Shift fill rate and no-show trends
+- ✅ `VolunteerInvitation` table — org-to-volunteer invitation tracking with rate limiting
+- ✅ Indexes on `VolunteerProfile(visibility)`, `VolunteerProfile(city, state)`, `VolunteerCredential(userId, status)`
+
+Cross-org volunteer discovery:
+
+- ✅ `/app/discover` — org staff can search PUBLIC volunteer profiles by skills, credential types, city, state, and availability; cursor-based pagination; feature-flagged behind `VOLUNTEER_DISCOVERY_ENABLED`
+- ✅ Invite to Apply — staff invites a discovered volunteer to a specific opportunity; rate-limited (10/day per org); TOCTOU-safe atomic transaction guard; duplicate invite rejected at DB level
+- ✅ `volunteerDiscoveryRepo` — `visibility = PUBLIC` hardcoded structural privacy invariant (not caller-supplied)
+- ✅ `volunteerDiscoveryService` — orchestrates search + invite; audit logged
+
+## Planned
+
+- "Add to LinkedIn" deep link for verified credential badges (blocked on LinkedIn Partner Org ID)
+- Organization analytics dashboard — volunteer engagement metrics, conversion funnel, shift fill rate
 
 This phase evolves VolunteerReady into a **network with compounding value** — more verified
 volunteers attract more orgs; more orgs attract more corporate sponsors.

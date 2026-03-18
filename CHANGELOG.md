@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.2] - 2026-03-18
+
+### Fixed
+- **Security** — `getOrgVisibleProfile` tRPC procedure changed from `protectedProcedure` to `staffProcedure`; previously any authenticated volunteer could query another volunteer's ORGS_ONLY profile
+- **SEO dedup** — `getPublicProfile` wrapped with `React.cache()` so `generateMetadata` and the page component share a single fetch (was 8 DB queries per page load, now 4)
+- **Test reliability** — reverted module-level platform org ID cache in `tenureBadgeService`; the cache persisted `null` across test cases when the "org not found" test ran first, silently breaking 4 tenure badge issuance tests
+
+## [0.7.1] - 2026-03-18
+
+### Added
+- **Volunteer discovery** (`/app/discover`) — org staff can search across all PUBLIC volunteer profiles by skills, credential types, city, state, and availability; results sorted by verified credential count; cursor-based pagination (20 per page); feature-flagged behind `VOLUNTEER_DISCOVERY_ENABLED` env var
+- **Invite to Apply** — staff can invite any discovered volunteer to apply to a specific opportunity; rate-limited to 10 invitations per org per 24 hours with a TOCTOU-safe atomic transaction guard; duplicate invitations (same org + volunteer + opportunity) are rejected at the DB level
+- **`volunteerDiscoveryRepo`** — privacy-first search repo with `visibility = PUBLIC` hardcoded (not caller-supplied); cursor-based pagination; filters on skills, credential types, location, availability
+- **`volunteerDiscoveryService`** — orchestrates search + invite; rate limit check + already-applied check + invitation create wrapped in `prisma.$transaction()` for atomicity
+- **`discovery` tRPC router** — `searchVolunteers` and `inviteToApply` procedures under `staffProcedure`
+- **`sendInviteToApplyEmail`** — invite email sent to volunteers (fire-and-forget; email failures are logged, never surfaced to caller)
+- **Navigation** — "Discover" link in staff nav (hidden when feature flag is off)
+
+### Fixed
+- **Rate-limit TOCTOU** — count + already-applied check + create now execute in a single `$transaction`, preventing concurrent requests from both passing the rate check before either creates a record
+- **`actorId` audit log** — `staffProcedure` guarantees an active session; removed the `?? ''` fallback that could silently corrupt audit records
+
+### For contributors
+- `src/server/repositories/volunteerDiscoveryRepo.ts` — new; `searchPublicProfiles` always hardcodes `visibility = 'PUBLIC'` (structural privacy invariant, not injected by callers)
+- `src/server/services/volunteerDiscoveryService.ts` — new; 10 unit tests in `volunteerDiscoveryService.test.ts`
+- `src/server/trpc/routers/discovery.ts` — new; registered in `root.ts` as `discovery`
+- `src/app/(app)/app/discover/page.tsx` — new; uses `VOLUNTEER_DISCOVERY_ENABLED` env var gate
+
+## [0.7.0] - 2026-03-17
+
+### Added
+- **Tenure badge auto-issuance** — milestone credentials (`TENURE_1YR`, `TENURE_3YR`, `TENURE_5YR`) are now issued automatically when a volunteer crosses a tenure threshold; triggered on shift signups, application submissions, and credential issuance
+- **Share your volunteer card** button on the credentials tab of `/app/profile` — opens the volunteer's public `/v/[userId]` page in a new tab
+
+### Fixed
+- **Tenure badge idempotency** — concurrent badge issuance (P2002) and unexpected errors are swallowed; parent operations (signups, applications, credentials) never fail due to badge issuance
+- **Anonymous application submissions** no longer attempt a tenure check (no userId available)
+
+### For contributors
+- `tenureBadgeService.checkAndIssueTenureBadges(userId)` — fire-and-forget service, called from `shiftSignupService`, `volunteer-screening`, and `volunteerCredentialService`
+- `profile.getMyUserId` tRPC procedure for client-side userId access
+- `MS_PER_YEAR` constant exported from `volunteer-profile.ts` domain module (used by `computeTenure` and `tenureBadgeService`)
+
 ## [0.6.1] - 2026-03-17
 
 ### Changed
