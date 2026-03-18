@@ -493,6 +493,31 @@ env var gate from `src/app/(app)/app/discover/page.tsx`.
 
 ---
 
+### [P3] Analytics — Make "Top Volunteers" respect the selected date range
+
+**What:** Pass `fromDate` to `getTopVolunteers` so the table filters by the selected period
+rather than showing all-time top contributors regardless of the date range selector.
+
+**Why:** The dashboard shows a "Top Volunteers — All Time" heading to communicate the
+discrepancy, but filtering by period would be more intuitive and consistent with the
+other three dashboard sections (funnel, retention, fill rate — all date-range scoped).
+
+**Context:** `getTopVolunteers(orgId, limit)` in `src/server/repositories/orgAnalyticsRepo.ts`
+currently has no `fromDate` parameter. Adding it requires:
+1. Adding `fromDate: Date` parameter to `getTopVolunteers`
+2. Adding `AND ss."createdAt" >= ${fromDate}` to the ATTENDED signups WHERE clause
+3. Passing `fromDate` from `orgAnalyticsService.getOrgAnalyticsDashboard()`
+4. Updating the section heading in `analytics-client.tsx` back to "Top Volunteers" (remove "— All Time")
+
+For all-time queries (`days = null`), pass `new Date(0)` as `fromDate` (same pattern as other queries).
+
+**Pros:** Consistent behavior across all dashboard sections; removes the "— All Time" caveat.
+**Cons:** Minor query change; top volunteers in short periods may show only 1-2 people if activity is sparse.
+
+**Effort:** XS | **Priority:** P3 | **Depends on:** ✅ Phase 7 PR4 analytics dashboard shipped
+
+---
+
 ### [P3] Consolidate CREDENTIAL_TYPE_LABELS into shared domain constant
 
 **What:** Remove the local `CREDENTIAL_TYPE_LABELS` map in `src/app/(app)/app/discover/_components/discover-client.tsx:51` and import `CREDENTIAL_LABELS` from `src/server/domain/volunteer-profile.ts` instead.

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.3] - 2026-03-18
+
+### Added
+- **Org Analytics Dashboard** (`/app/analytics`) — PRO-gated engagement metrics for org staff: application funnel (submitted → approved → shifted → credentialed), volunteer retention rate, average shift fill rate, and top volunteers by attended hours; date range selector (30d / 90d / 1yr / all-time)
+- **`orgAnalyticsRepo`** — raw SQL aggregate queries using parameterized `Prisma.sql` template literals; 4 functions: `getApplicationFunnel`, `getRetentionStats`, `getAvgFillRate`, `getTopVolunteers`
+- **`orgAnalyticsService`** — orchestrates all 4 analytics queries in parallel via `Promise.all`; all-time queries use epoch date as `fromDate` and skip retention (undefined for all-time)
+- **`analytics` tRPC router** — `getDashboard` procedure under `planTierProcedure('PRO')`; non-PRO orgs receive FORBIDDEN and see an upgrade prompt
+- **Analytics nav link** — "Analytics" entry added to the staff sidebar navigation
+- **Unit tests** (`orgAnalyticsService.test.ts`) — 11 unit tests covering date computation, retention skipping for all-time, parallel execution, and result assembly
+- **Integration tests** (`orgAnalyticsRepo.integration.test.ts`) — 20 integration tests covering all 4 repo functions with real Postgres; tests include org isolation, date filtering, empty-org edge cases, and status filtering
+
 ## [0.7.2] - 2026-03-18
 
 ### Fixed
