@@ -119,6 +119,11 @@ export type VolunteerProfile = $Result.DefaultSelection<Prisma.$VolunteerProfile
  */
 export type VolunteerCredential = $Result.DefaultSelection<Prisma.$VolunteerCredentialPayload>
 /**
+ * Model ShiftTemplate
+ * 
+ */
+export type ShiftTemplate = $Result.DefaultSelection<Prisma.$ShiftTemplatePayload>
+/**
  * Model Shift
  * 
  */
@@ -300,6 +305,7 @@ export type ShiftStatus = (typeof ShiftStatus)[keyof typeof ShiftStatus]
 
 export const SignupStatus: {
   CONFIRMED: 'CONFIRMED',
+  WAITLISTED: 'WAITLISTED',
   CANCELLED: 'CANCELLED',
   NO_SHOW: 'NO_SHOW',
   ATTENDED: 'ATTENDED'
@@ -798,6 +804,16 @@ export class PrismaClient<
     * ```
     */
   get volunteerCredential(): Prisma.VolunteerCredentialDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.shiftTemplate`: Exposes CRUD operations for the **ShiftTemplate** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ShiftTemplates
+    * const shiftTemplates = await prisma.shiftTemplate.findMany()
+    * ```
+    */
+  get shiftTemplate(): Prisma.ShiftTemplateDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.shift`: Exposes CRUD operations for the **Shift** model.
@@ -1383,6 +1399,7 @@ export namespace Prisma {
     VolunteerSkill: 'VolunteerSkill',
     VolunteerProfile: 'VolunteerProfile',
     VolunteerCredential: 'VolunteerCredential',
+    ShiftTemplate: 'ShiftTemplate',
     Shift: 'Shift',
     ShiftSignup: 'ShiftSignup',
     CompanyAccount: 'CompanyAccount',
@@ -1411,7 +1428,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent" | "backgroundCheckRequest" | "checkrWebhookEvent" | "credentialShareToken" | "volunteerInvitation" | "notification" | "notificationPreference"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shiftTemplate" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent" | "backgroundCheckRequest" | "checkrWebhookEvent" | "credentialShareToken" | "volunteerInvitation" | "notification" | "notificationPreference"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2969,6 +2986,80 @@ export namespace Prisma {
           }
         }
       }
+      ShiftTemplate: {
+        payload: Prisma.$ShiftTemplatePayload<ExtArgs>
+        fields: Prisma.ShiftTemplateFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ShiftTemplateFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ShiftTemplateFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload>
+          }
+          findFirst: {
+            args: Prisma.ShiftTemplateFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ShiftTemplateFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload>
+          }
+          findMany: {
+            args: Prisma.ShiftTemplateFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload>[]
+          }
+          create: {
+            args: Prisma.ShiftTemplateCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload>
+          }
+          createMany: {
+            args: Prisma.ShiftTemplateCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ShiftTemplateCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload>[]
+          }
+          delete: {
+            args: Prisma.ShiftTemplateDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload>
+          }
+          update: {
+            args: Prisma.ShiftTemplateUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload>
+          }
+          deleteMany: {
+            args: Prisma.ShiftTemplateDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ShiftTemplateUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ShiftTemplateUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload>[]
+          }
+          upsert: {
+            args: Prisma.ShiftTemplateUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ShiftTemplatePayload>
+          }
+          aggregate: {
+            args: Prisma.ShiftTemplateAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateShiftTemplate>
+          }
+          groupBy: {
+            args: Prisma.ShiftTemplateGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ShiftTemplateGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ShiftTemplateCountArgs<ExtArgs>
+            result: $Utils.Optional<ShiftTemplateCountAggregateOutputType> | number
+          }
+        }
+      }
       Shift: {
         payload: Prisma.$ShiftPayload<ExtArgs>
         fields: Prisma.ShiftFieldRefs
@@ -4060,6 +4151,7 @@ export namespace Prisma {
     volunteerSkill?: VolunteerSkillOmit
     volunteerProfile?: VolunteerProfileOmit
     volunteerCredential?: VolunteerCredentialOmit
+    shiftTemplate?: ShiftTemplateOmit
     shift?: ShiftOmit
     shiftSignup?: ShiftSignupOmit
     companyAccount?: CompanyAccountOmit
@@ -4313,6 +4405,7 @@ export namespace Prisma {
     sharedCredentials: number
     claimedShareTokens: number
     shifts: number
+    shiftTemplates: number
     companyLinks: number
     backgroundCheckRequests: number
     volunteerInvitations: number
@@ -4333,6 +4426,7 @@ export namespace Prisma {
     sharedCredentials?: boolean | OrganizationCountOutputTypeCountSharedCredentialsArgs
     claimedShareTokens?: boolean | OrganizationCountOutputTypeCountClaimedShareTokensArgs
     shifts?: boolean | OrganizationCountOutputTypeCountShiftsArgs
+    shiftTemplates?: boolean | OrganizationCountOutputTypeCountShiftTemplatesArgs
     companyLinks?: boolean | OrganizationCountOutputTypeCountCompanyLinksArgs
     backgroundCheckRequests?: boolean | OrganizationCountOutputTypeCountBackgroundCheckRequestsArgs
     volunteerInvitations?: boolean | OrganizationCountOutputTypeCountVolunteerInvitationsArgs
@@ -4438,6 +4532,13 @@ export namespace Prisma {
   /**
    * OrganizationCountOutputType without action
    */
+  export type OrganizationCountOutputTypeCountShiftTemplatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftTemplateWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
   export type OrganizationCountOutputTypeCountCompanyLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CompanyNonprofitLinkWhereInput
   }
@@ -4511,6 +4612,7 @@ export namespace Prisma {
     requirements: number
     applications: number
     shifts: number
+    shiftTemplates: number
     volunteerInvitations: number
   }
 
@@ -4519,6 +4621,7 @@ export namespace Prisma {
     requirements?: boolean | VolunteerOpportunityCountOutputTypeCountRequirementsArgs
     applications?: boolean | VolunteerOpportunityCountOutputTypeCountApplicationsArgs
     shifts?: boolean | VolunteerOpportunityCountOutputTypeCountShiftsArgs
+    shiftTemplates?: boolean | VolunteerOpportunityCountOutputTypeCountShiftTemplatesArgs
     volunteerInvitations?: boolean | VolunteerOpportunityCountOutputTypeCountVolunteerInvitationsArgs
   }
 
@@ -4559,6 +4662,13 @@ export namespace Prisma {
    */
   export type VolunteerOpportunityCountOutputTypeCountShiftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ShiftWhereInput
+  }
+
+  /**
+   * VolunteerOpportunityCountOutputType without action
+   */
+  export type VolunteerOpportunityCountOutputTypeCountShiftTemplatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftTemplateWhereInput
   }
 
   /**
@@ -4677,6 +4787,37 @@ export namespace Prisma {
    */
   export type VolunteerCredentialCountOutputTypeCountShareTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CredentialShareTokenWhereInput
+  }
+
+
+  /**
+   * Count Type ShiftTemplateCountOutputType
+   */
+
+  export type ShiftTemplateCountOutputType = {
+    shifts: number
+  }
+
+  export type ShiftTemplateCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    shifts?: boolean | ShiftTemplateCountOutputTypeCountShiftsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ShiftTemplateCountOutputType without action
+   */
+  export type ShiftTemplateCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplateCountOutputType
+     */
+    select?: ShiftTemplateCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ShiftTemplateCountOutputType without action
+   */
+  export type ShiftTemplateCountOutputTypeCountShiftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftWhereInput
   }
 
 
@@ -10825,6 +10966,7 @@ export namespace Prisma {
     sharedCredentials?: boolean | Organization$sharedCredentialsArgs<ExtArgs>
     claimedShareTokens?: boolean | Organization$claimedShareTokensArgs<ExtArgs>
     shifts?: boolean | Organization$shiftsArgs<ExtArgs>
+    shiftTemplates?: boolean | Organization$shiftTemplatesArgs<ExtArgs>
     companyLinks?: boolean | Organization$companyLinksArgs<ExtArgs>
     backgroundCheckRequests?: boolean | Organization$backgroundCheckRequestsArgs<ExtArgs>
     volunteerInvitations?: boolean | Organization$volunteerInvitationsArgs<ExtArgs>
@@ -10889,6 +11031,7 @@ export namespace Prisma {
     sharedCredentials?: boolean | Organization$sharedCredentialsArgs<ExtArgs>
     claimedShareTokens?: boolean | Organization$claimedShareTokensArgs<ExtArgs>
     shifts?: boolean | Organization$shiftsArgs<ExtArgs>
+    shiftTemplates?: boolean | Organization$shiftTemplatesArgs<ExtArgs>
     companyLinks?: boolean | Organization$companyLinksArgs<ExtArgs>
     backgroundCheckRequests?: boolean | Organization$backgroundCheckRequestsArgs<ExtArgs>
     volunteerInvitations?: boolean | Organization$volunteerInvitationsArgs<ExtArgs>
@@ -10914,6 +11057,7 @@ export namespace Prisma {
       sharedCredentials: Prisma.$VolunteerCredentialPayload<ExtArgs>[]
       claimedShareTokens: Prisma.$CredentialShareTokenPayload<ExtArgs>[]
       shifts: Prisma.$ShiftPayload<ExtArgs>[]
+      shiftTemplates: Prisma.$ShiftTemplatePayload<ExtArgs>[]
       companyLinks: Prisma.$CompanyNonprofitLinkPayload<ExtArgs>[]
       backgroundCheckRequests: Prisma.$BackgroundCheckRequestPayload<ExtArgs>[]
       volunteerInvitations: Prisma.$VolunteerInvitationPayload<ExtArgs>[]
@@ -11338,6 +11482,7 @@ export namespace Prisma {
     sharedCredentials<T extends Organization$sharedCredentialsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$sharedCredentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     claimedShareTokens<T extends Organization$claimedShareTokensArgs<ExtArgs> = {}>(args?: Subset<T, Organization$claimedShareTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CredentialShareTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     shifts<T extends Organization$shiftsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    shiftTemplates<T extends Organization$shiftTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, Organization$shiftTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     companyLinks<T extends Organization$companyLinksArgs<ExtArgs> = {}>(args?: Subset<T, Organization$companyLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyNonprofitLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     backgroundCheckRequests<T extends Organization$backgroundCheckRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$backgroundCheckRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackgroundCheckRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     volunteerInvitations<T extends Organization$volunteerInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$volunteerInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -12061,6 +12206,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.shiftTemplates
+   */
+  export type Organization$shiftTemplatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    where?: ShiftTemplateWhereInput
+    orderBy?: ShiftTemplateOrderByWithRelationInput | ShiftTemplateOrderByWithRelationInput[]
+    cursor?: ShiftTemplateWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ShiftTemplateScalarFieldEnum | ShiftTemplateScalarFieldEnum[]
   }
 
   /**
@@ -20288,6 +20457,7 @@ export namespace Prisma {
     requirements?: boolean | VolunteerOpportunity$requirementsArgs<ExtArgs>
     applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
     shifts?: boolean | VolunteerOpportunity$shiftsArgs<ExtArgs>
+    shiftTemplates?: boolean | VolunteerOpportunity$shiftTemplatesArgs<ExtArgs>
     volunteerInvitations?: boolean | VolunteerOpportunity$volunteerInvitationsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["volunteerOpportunity"]>
@@ -20349,6 +20519,7 @@ export namespace Prisma {
     requirements?: boolean | VolunteerOpportunity$requirementsArgs<ExtArgs>
     applications?: boolean | VolunteerOpportunity$applicationsArgs<ExtArgs>
     shifts?: boolean | VolunteerOpportunity$shiftsArgs<ExtArgs>
+    shiftTemplates?: boolean | VolunteerOpportunity$shiftTemplatesArgs<ExtArgs>
     volunteerInvitations?: boolean | VolunteerOpportunity$volunteerInvitationsArgs<ExtArgs>
     _count?: boolean | VolunteerOpportunityCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -20367,6 +20538,7 @@ export namespace Prisma {
       requirements: Prisma.$OpportunityRequirementPayload<ExtArgs>[]
       applications: Prisma.$VolunteerApplicationPayload<ExtArgs>[]
       shifts: Prisma.$ShiftPayload<ExtArgs>[]
+      shiftTemplates: Prisma.$ShiftTemplatePayload<ExtArgs>[]
       volunteerInvitations: Prisma.$VolunteerInvitationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -20782,6 +20954,7 @@ export namespace Prisma {
     requirements<T extends VolunteerOpportunity$requirementsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$requirementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OpportunityRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     applications<T extends VolunteerOpportunity$applicationsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$applicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     shifts<T extends VolunteerOpportunity$shiftsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    shiftTemplates<T extends VolunteerOpportunity$shiftTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$shiftTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     volunteerInvitations<T extends VolunteerOpportunity$volunteerInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, VolunteerOpportunity$volunteerInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -21319,6 +21492,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
+  }
+
+  /**
+   * VolunteerOpportunity.shiftTemplates
+   */
+  export type VolunteerOpportunity$shiftTemplatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    where?: ShiftTemplateWhereInput
+    orderBy?: ShiftTemplateOrderByWithRelationInput | ShiftTemplateOrderByWithRelationInput[]
+    cursor?: ShiftTemplateWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ShiftTemplateScalarFieldEnum | ShiftTemplateScalarFieldEnum[]
   }
 
   /**
@@ -29232,6 +29429,1310 @@ export namespace Prisma {
 
 
   /**
+   * Model ShiftTemplate
+   */
+
+  export type AggregateShiftTemplate = {
+    _count: ShiftTemplateCountAggregateOutputType | null
+    _avg: ShiftTemplateAvgAggregateOutputType | null
+    _sum: ShiftTemplateSumAggregateOutputType | null
+    _min: ShiftTemplateMinAggregateOutputType | null
+    _max: ShiftTemplateMaxAggregateOutputType | null
+  }
+
+  export type ShiftTemplateAvgAggregateOutputType = {
+    dayOfWeek: number | null
+    startHour: number | null
+    startMinute: number | null
+    endHour: number | null
+    endMinute: number | null
+    capacity: number | null
+  }
+
+  export type ShiftTemplateSumAggregateOutputType = {
+    dayOfWeek: number | null
+    startHour: number | null
+    startMinute: number | null
+    endHour: number | null
+    endMinute: number | null
+    capacity: number | null
+  }
+
+  export type ShiftTemplateMinAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    title: string | null
+    description: string | null
+    location: string | null
+    isRemote: boolean | null
+    dayOfWeek: number | null
+    startHour: number | null
+    startMinute: number | null
+    endHour: number | null
+    endMinute: number | null
+    capacity: number | null
+    opportunityId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ShiftTemplateMaxAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    title: string | null
+    description: string | null
+    location: string | null
+    isRemote: boolean | null
+    dayOfWeek: number | null
+    startHour: number | null
+    startMinute: number | null
+    endHour: number | null
+    endMinute: number | null
+    capacity: number | null
+    opportunityId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ShiftTemplateCountAggregateOutputType = {
+    id: number
+    orgId: number
+    title: number
+    description: number
+    location: number
+    isRemote: number
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    opportunityId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ShiftTemplateAvgAggregateInputType = {
+    dayOfWeek?: true
+    startHour?: true
+    startMinute?: true
+    endHour?: true
+    endMinute?: true
+    capacity?: true
+  }
+
+  export type ShiftTemplateSumAggregateInputType = {
+    dayOfWeek?: true
+    startHour?: true
+    startMinute?: true
+    endHour?: true
+    endMinute?: true
+    capacity?: true
+  }
+
+  export type ShiftTemplateMinAggregateInputType = {
+    id?: true
+    orgId?: true
+    title?: true
+    description?: true
+    location?: true
+    isRemote?: true
+    dayOfWeek?: true
+    startHour?: true
+    startMinute?: true
+    endHour?: true
+    endMinute?: true
+    capacity?: true
+    opportunityId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ShiftTemplateMaxAggregateInputType = {
+    id?: true
+    orgId?: true
+    title?: true
+    description?: true
+    location?: true
+    isRemote?: true
+    dayOfWeek?: true
+    startHour?: true
+    startMinute?: true
+    endHour?: true
+    endMinute?: true
+    capacity?: true
+    opportunityId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ShiftTemplateCountAggregateInputType = {
+    id?: true
+    orgId?: true
+    title?: true
+    description?: true
+    location?: true
+    isRemote?: true
+    dayOfWeek?: true
+    startHour?: true
+    startMinute?: true
+    endHour?: true
+    endMinute?: true
+    capacity?: true
+    opportunityId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ShiftTemplateAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ShiftTemplate to aggregate.
+     */
+    where?: ShiftTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ShiftTemplates to fetch.
+     */
+    orderBy?: ShiftTemplateOrderByWithRelationInput | ShiftTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ShiftTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ShiftTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ShiftTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ShiftTemplates
+    **/
+    _count?: true | ShiftTemplateCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ShiftTemplateAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ShiftTemplateSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ShiftTemplateMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ShiftTemplateMaxAggregateInputType
+  }
+
+  export type GetShiftTemplateAggregateType<T extends ShiftTemplateAggregateArgs> = {
+        [P in keyof T & keyof AggregateShiftTemplate]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateShiftTemplate[P]>
+      : GetScalarType<T[P], AggregateShiftTemplate[P]>
+  }
+
+
+
+
+  export type ShiftTemplateGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ShiftTemplateWhereInput
+    orderBy?: ShiftTemplateOrderByWithAggregationInput | ShiftTemplateOrderByWithAggregationInput[]
+    by: ShiftTemplateScalarFieldEnum[] | ShiftTemplateScalarFieldEnum
+    having?: ShiftTemplateScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ShiftTemplateCountAggregateInputType | true
+    _avg?: ShiftTemplateAvgAggregateInputType
+    _sum?: ShiftTemplateSumAggregateInputType
+    _min?: ShiftTemplateMinAggregateInputType
+    _max?: ShiftTemplateMaxAggregateInputType
+  }
+
+  export type ShiftTemplateGroupByOutputType = {
+    id: string
+    orgId: string
+    title: string
+    description: string | null
+    location: string | null
+    isRemote: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    opportunityId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ShiftTemplateCountAggregateOutputType | null
+    _avg: ShiftTemplateAvgAggregateOutputType | null
+    _sum: ShiftTemplateSumAggregateOutputType | null
+    _min: ShiftTemplateMinAggregateOutputType | null
+    _max: ShiftTemplateMaxAggregateOutputType | null
+  }
+
+  type GetShiftTemplateGroupByPayload<T extends ShiftTemplateGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ShiftTemplateGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ShiftTemplateGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ShiftTemplateGroupByOutputType[P]>
+            : GetScalarType<T[P], ShiftTemplateGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ShiftTemplateSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    title?: boolean
+    description?: boolean
+    location?: boolean
+    isRemote?: boolean
+    dayOfWeek?: boolean
+    startHour?: boolean
+    startMinute?: boolean
+    endHour?: boolean
+    endMinute?: boolean
+    capacity?: boolean
+    opportunityId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | ShiftTemplate$opportunityArgs<ExtArgs>
+    shifts?: boolean | ShiftTemplate$shiftsArgs<ExtArgs>
+    _count?: boolean | ShiftTemplateCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["shiftTemplate"]>
+
+  export type ShiftTemplateSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    title?: boolean
+    description?: boolean
+    location?: boolean
+    isRemote?: boolean
+    dayOfWeek?: boolean
+    startHour?: boolean
+    startMinute?: boolean
+    endHour?: boolean
+    endMinute?: boolean
+    capacity?: boolean
+    opportunityId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | ShiftTemplate$opportunityArgs<ExtArgs>
+  }, ExtArgs["result"]["shiftTemplate"]>
+
+  export type ShiftTemplateSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    title?: boolean
+    description?: boolean
+    location?: boolean
+    isRemote?: boolean
+    dayOfWeek?: boolean
+    startHour?: boolean
+    startMinute?: boolean
+    endHour?: boolean
+    endMinute?: boolean
+    capacity?: boolean
+    opportunityId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | ShiftTemplate$opportunityArgs<ExtArgs>
+  }, ExtArgs["result"]["shiftTemplate"]>
+
+  export type ShiftTemplateSelectScalar = {
+    id?: boolean
+    orgId?: boolean
+    title?: boolean
+    description?: boolean
+    location?: boolean
+    isRemote?: boolean
+    dayOfWeek?: boolean
+    startHour?: boolean
+    startMinute?: boolean
+    endHour?: boolean
+    endMinute?: boolean
+    capacity?: boolean
+    opportunityId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ShiftTemplateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "title" | "description" | "location" | "isRemote" | "dayOfWeek" | "startHour" | "startMinute" | "endHour" | "endMinute" | "capacity" | "opportunityId" | "createdAt" | "updatedAt", ExtArgs["result"]["shiftTemplate"]>
+  export type ShiftTemplateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | ShiftTemplate$opportunityArgs<ExtArgs>
+    shifts?: boolean | ShiftTemplate$shiftsArgs<ExtArgs>
+    _count?: boolean | ShiftTemplateCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ShiftTemplateIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | ShiftTemplate$opportunityArgs<ExtArgs>
+  }
+  export type ShiftTemplateIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    opportunity?: boolean | ShiftTemplate$opportunityArgs<ExtArgs>
+  }
+
+  export type $ShiftTemplatePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ShiftTemplate"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+      opportunity: Prisma.$VolunteerOpportunityPayload<ExtArgs> | null
+      shifts: Prisma.$ShiftPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orgId: string
+      title: string
+      description: string | null
+      location: string | null
+      isRemote: boolean
+      dayOfWeek: number
+      startHour: number
+      startMinute: number
+      endHour: number
+      endMinute: number
+      capacity: number
+      opportunityId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["shiftTemplate"]>
+    composites: {}
+  }
+
+  type ShiftTemplateGetPayload<S extends boolean | null | undefined | ShiftTemplateDefaultArgs> = $Result.GetResult<Prisma.$ShiftTemplatePayload, S>
+
+  type ShiftTemplateCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ShiftTemplateFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ShiftTemplateCountAggregateInputType | true
+    }
+
+  export interface ShiftTemplateDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ShiftTemplate'], meta: { name: 'ShiftTemplate' } }
+    /**
+     * Find zero or one ShiftTemplate that matches the filter.
+     * @param {ShiftTemplateFindUniqueArgs} args - Arguments to find a ShiftTemplate
+     * @example
+     * // Get one ShiftTemplate
+     * const shiftTemplate = await prisma.shiftTemplate.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ShiftTemplateFindUniqueArgs>(args: SelectSubset<T, ShiftTemplateFindUniqueArgs<ExtArgs>>): Prisma__ShiftTemplateClient<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ShiftTemplate that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ShiftTemplateFindUniqueOrThrowArgs} args - Arguments to find a ShiftTemplate
+     * @example
+     * // Get one ShiftTemplate
+     * const shiftTemplate = await prisma.shiftTemplate.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ShiftTemplateFindUniqueOrThrowArgs>(args: SelectSubset<T, ShiftTemplateFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ShiftTemplateClient<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ShiftTemplate that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftTemplateFindFirstArgs} args - Arguments to find a ShiftTemplate
+     * @example
+     * // Get one ShiftTemplate
+     * const shiftTemplate = await prisma.shiftTemplate.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ShiftTemplateFindFirstArgs>(args?: SelectSubset<T, ShiftTemplateFindFirstArgs<ExtArgs>>): Prisma__ShiftTemplateClient<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ShiftTemplate that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftTemplateFindFirstOrThrowArgs} args - Arguments to find a ShiftTemplate
+     * @example
+     * // Get one ShiftTemplate
+     * const shiftTemplate = await prisma.shiftTemplate.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ShiftTemplateFindFirstOrThrowArgs>(args?: SelectSubset<T, ShiftTemplateFindFirstOrThrowArgs<ExtArgs>>): Prisma__ShiftTemplateClient<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ShiftTemplates that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftTemplateFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ShiftTemplates
+     * const shiftTemplates = await prisma.shiftTemplate.findMany()
+     * 
+     * // Get first 10 ShiftTemplates
+     * const shiftTemplates = await prisma.shiftTemplate.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const shiftTemplateWithIdOnly = await prisma.shiftTemplate.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ShiftTemplateFindManyArgs>(args?: SelectSubset<T, ShiftTemplateFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ShiftTemplate.
+     * @param {ShiftTemplateCreateArgs} args - Arguments to create a ShiftTemplate.
+     * @example
+     * // Create one ShiftTemplate
+     * const ShiftTemplate = await prisma.shiftTemplate.create({
+     *   data: {
+     *     // ... data to create a ShiftTemplate
+     *   }
+     * })
+     * 
+     */
+    create<T extends ShiftTemplateCreateArgs>(args: SelectSubset<T, ShiftTemplateCreateArgs<ExtArgs>>): Prisma__ShiftTemplateClient<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ShiftTemplates.
+     * @param {ShiftTemplateCreateManyArgs} args - Arguments to create many ShiftTemplates.
+     * @example
+     * // Create many ShiftTemplates
+     * const shiftTemplate = await prisma.shiftTemplate.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ShiftTemplateCreateManyArgs>(args?: SelectSubset<T, ShiftTemplateCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ShiftTemplates and returns the data saved in the database.
+     * @param {ShiftTemplateCreateManyAndReturnArgs} args - Arguments to create many ShiftTemplates.
+     * @example
+     * // Create many ShiftTemplates
+     * const shiftTemplate = await prisma.shiftTemplate.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ShiftTemplates and only return the `id`
+     * const shiftTemplateWithIdOnly = await prisma.shiftTemplate.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ShiftTemplateCreateManyAndReturnArgs>(args?: SelectSubset<T, ShiftTemplateCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ShiftTemplate.
+     * @param {ShiftTemplateDeleteArgs} args - Arguments to delete one ShiftTemplate.
+     * @example
+     * // Delete one ShiftTemplate
+     * const ShiftTemplate = await prisma.shiftTemplate.delete({
+     *   where: {
+     *     // ... filter to delete one ShiftTemplate
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ShiftTemplateDeleteArgs>(args: SelectSubset<T, ShiftTemplateDeleteArgs<ExtArgs>>): Prisma__ShiftTemplateClient<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ShiftTemplate.
+     * @param {ShiftTemplateUpdateArgs} args - Arguments to update one ShiftTemplate.
+     * @example
+     * // Update one ShiftTemplate
+     * const shiftTemplate = await prisma.shiftTemplate.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ShiftTemplateUpdateArgs>(args: SelectSubset<T, ShiftTemplateUpdateArgs<ExtArgs>>): Prisma__ShiftTemplateClient<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ShiftTemplates.
+     * @param {ShiftTemplateDeleteManyArgs} args - Arguments to filter ShiftTemplates to delete.
+     * @example
+     * // Delete a few ShiftTemplates
+     * const { count } = await prisma.shiftTemplate.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ShiftTemplateDeleteManyArgs>(args?: SelectSubset<T, ShiftTemplateDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ShiftTemplates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftTemplateUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ShiftTemplates
+     * const shiftTemplate = await prisma.shiftTemplate.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ShiftTemplateUpdateManyArgs>(args: SelectSubset<T, ShiftTemplateUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ShiftTemplates and returns the data updated in the database.
+     * @param {ShiftTemplateUpdateManyAndReturnArgs} args - Arguments to update many ShiftTemplates.
+     * @example
+     * // Update many ShiftTemplates
+     * const shiftTemplate = await prisma.shiftTemplate.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ShiftTemplates and only return the `id`
+     * const shiftTemplateWithIdOnly = await prisma.shiftTemplate.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ShiftTemplateUpdateManyAndReturnArgs>(args: SelectSubset<T, ShiftTemplateUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ShiftTemplate.
+     * @param {ShiftTemplateUpsertArgs} args - Arguments to update or create a ShiftTemplate.
+     * @example
+     * // Update or create a ShiftTemplate
+     * const shiftTemplate = await prisma.shiftTemplate.upsert({
+     *   create: {
+     *     // ... data to create a ShiftTemplate
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ShiftTemplate we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ShiftTemplateUpsertArgs>(args: SelectSubset<T, ShiftTemplateUpsertArgs<ExtArgs>>): Prisma__ShiftTemplateClient<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ShiftTemplates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftTemplateCountArgs} args - Arguments to filter ShiftTemplates to count.
+     * @example
+     * // Count the number of ShiftTemplates
+     * const count = await prisma.shiftTemplate.count({
+     *   where: {
+     *     // ... the filter for the ShiftTemplates we want to count
+     *   }
+     * })
+    **/
+    count<T extends ShiftTemplateCountArgs>(
+      args?: Subset<T, ShiftTemplateCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ShiftTemplateCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ShiftTemplate.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftTemplateAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ShiftTemplateAggregateArgs>(args: Subset<T, ShiftTemplateAggregateArgs>): Prisma.PrismaPromise<GetShiftTemplateAggregateType<T>>
+
+    /**
+     * Group by ShiftTemplate.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ShiftTemplateGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ShiftTemplateGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ShiftTemplateGroupByArgs['orderBy'] }
+        : { orderBy?: ShiftTemplateGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ShiftTemplateGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetShiftTemplateGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ShiftTemplate model
+   */
+  readonly fields: ShiftTemplateFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ShiftTemplate.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ShiftTemplateClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    opportunity<T extends ShiftTemplate$opportunityArgs<ExtArgs> = {}>(args?: Subset<T, ShiftTemplate$opportunityArgs<ExtArgs>>): Prisma__VolunteerOpportunityClient<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    shifts<T extends ShiftTemplate$shiftsArgs<ExtArgs> = {}>(args?: Subset<T, ShiftTemplate$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ShiftTemplate model
+   */
+  interface ShiftTemplateFieldRefs {
+    readonly id: FieldRef<"ShiftTemplate", 'String'>
+    readonly orgId: FieldRef<"ShiftTemplate", 'String'>
+    readonly title: FieldRef<"ShiftTemplate", 'String'>
+    readonly description: FieldRef<"ShiftTemplate", 'String'>
+    readonly location: FieldRef<"ShiftTemplate", 'String'>
+    readonly isRemote: FieldRef<"ShiftTemplate", 'Boolean'>
+    readonly dayOfWeek: FieldRef<"ShiftTemplate", 'Int'>
+    readonly startHour: FieldRef<"ShiftTemplate", 'Int'>
+    readonly startMinute: FieldRef<"ShiftTemplate", 'Int'>
+    readonly endHour: FieldRef<"ShiftTemplate", 'Int'>
+    readonly endMinute: FieldRef<"ShiftTemplate", 'Int'>
+    readonly capacity: FieldRef<"ShiftTemplate", 'Int'>
+    readonly opportunityId: FieldRef<"ShiftTemplate", 'String'>
+    readonly createdAt: FieldRef<"ShiftTemplate", 'DateTime'>
+    readonly updatedAt: FieldRef<"ShiftTemplate", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ShiftTemplate findUnique
+   */
+  export type ShiftTemplateFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftTemplate to fetch.
+     */
+    where: ShiftTemplateWhereUniqueInput
+  }
+
+  /**
+   * ShiftTemplate findUniqueOrThrow
+   */
+  export type ShiftTemplateFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftTemplate to fetch.
+     */
+    where: ShiftTemplateWhereUniqueInput
+  }
+
+  /**
+   * ShiftTemplate findFirst
+   */
+  export type ShiftTemplateFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftTemplate to fetch.
+     */
+    where?: ShiftTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ShiftTemplates to fetch.
+     */
+    orderBy?: ShiftTemplateOrderByWithRelationInput | ShiftTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ShiftTemplates.
+     */
+    cursor?: ShiftTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ShiftTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ShiftTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ShiftTemplates.
+     */
+    distinct?: ShiftTemplateScalarFieldEnum | ShiftTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * ShiftTemplate findFirstOrThrow
+   */
+  export type ShiftTemplateFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftTemplate to fetch.
+     */
+    where?: ShiftTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ShiftTemplates to fetch.
+     */
+    orderBy?: ShiftTemplateOrderByWithRelationInput | ShiftTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ShiftTemplates.
+     */
+    cursor?: ShiftTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ShiftTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ShiftTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ShiftTemplates.
+     */
+    distinct?: ShiftTemplateScalarFieldEnum | ShiftTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * ShiftTemplate findMany
+   */
+  export type ShiftTemplateFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ShiftTemplates to fetch.
+     */
+    where?: ShiftTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ShiftTemplates to fetch.
+     */
+    orderBy?: ShiftTemplateOrderByWithRelationInput | ShiftTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ShiftTemplates.
+     */
+    cursor?: ShiftTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ShiftTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ShiftTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ShiftTemplates.
+     */
+    distinct?: ShiftTemplateScalarFieldEnum | ShiftTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * ShiftTemplate create
+   */
+  export type ShiftTemplateCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ShiftTemplate.
+     */
+    data: XOR<ShiftTemplateCreateInput, ShiftTemplateUncheckedCreateInput>
+  }
+
+  /**
+   * ShiftTemplate createMany
+   */
+  export type ShiftTemplateCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ShiftTemplates.
+     */
+    data: ShiftTemplateCreateManyInput | ShiftTemplateCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ShiftTemplate createManyAndReturn
+   */
+  export type ShiftTemplateCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * The data used to create many ShiftTemplates.
+     */
+    data: ShiftTemplateCreateManyInput | ShiftTemplateCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ShiftTemplate update
+   */
+  export type ShiftTemplateUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ShiftTemplate.
+     */
+    data: XOR<ShiftTemplateUpdateInput, ShiftTemplateUncheckedUpdateInput>
+    /**
+     * Choose, which ShiftTemplate to update.
+     */
+    where: ShiftTemplateWhereUniqueInput
+  }
+
+  /**
+   * ShiftTemplate updateMany
+   */
+  export type ShiftTemplateUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ShiftTemplates.
+     */
+    data: XOR<ShiftTemplateUpdateManyMutationInput, ShiftTemplateUncheckedUpdateManyInput>
+    /**
+     * Filter which ShiftTemplates to update
+     */
+    where?: ShiftTemplateWhereInput
+    /**
+     * Limit how many ShiftTemplates to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ShiftTemplate updateManyAndReturn
+   */
+  export type ShiftTemplateUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * The data used to update ShiftTemplates.
+     */
+    data: XOR<ShiftTemplateUpdateManyMutationInput, ShiftTemplateUncheckedUpdateManyInput>
+    /**
+     * Filter which ShiftTemplates to update
+     */
+    where?: ShiftTemplateWhereInput
+    /**
+     * Limit how many ShiftTemplates to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ShiftTemplate upsert
+   */
+  export type ShiftTemplateUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ShiftTemplate to update in case it exists.
+     */
+    where: ShiftTemplateWhereUniqueInput
+    /**
+     * In case the ShiftTemplate found by the `where` argument doesn't exist, create a new ShiftTemplate with this data.
+     */
+    create: XOR<ShiftTemplateCreateInput, ShiftTemplateUncheckedCreateInput>
+    /**
+     * In case the ShiftTemplate was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ShiftTemplateUpdateInput, ShiftTemplateUncheckedUpdateInput>
+  }
+
+  /**
+   * ShiftTemplate delete
+   */
+  export type ShiftTemplateDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    /**
+     * Filter which ShiftTemplate to delete.
+     */
+    where: ShiftTemplateWhereUniqueInput
+  }
+
+  /**
+   * ShiftTemplate deleteMany
+   */
+  export type ShiftTemplateDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ShiftTemplates to delete
+     */
+    where?: ShiftTemplateWhereInput
+    /**
+     * Limit how many ShiftTemplates to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ShiftTemplate.opportunity
+   */
+  export type ShiftTemplate$opportunityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VolunteerOpportunity
+     */
+    select?: VolunteerOpportunitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VolunteerOpportunity
+     */
+    omit?: VolunteerOpportunityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VolunteerOpportunityInclude<ExtArgs> | null
+    where?: VolunteerOpportunityWhereInput
+  }
+
+  /**
+   * ShiftTemplate.shifts
+   */
+  export type ShiftTemplate$shiftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Shift
+     */
+    select?: ShiftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Shift
+     */
+    omit?: ShiftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftInclude<ExtArgs> | null
+    where?: ShiftWhereInput
+    orderBy?: ShiftOrderByWithRelationInput | ShiftOrderByWithRelationInput[]
+    cursor?: ShiftWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ShiftScalarFieldEnum | ShiftScalarFieldEnum[]
+  }
+
+  /**
+   * ShiftTemplate without action
+   */
+  export type ShiftTemplateDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Shift
    */
 
@@ -29255,6 +30756,7 @@ export namespace Prisma {
     id: string | null
     orgId: string | null
     opportunityId: string | null
+    templateId: string | null
     title: string | null
     description: string | null
     location: string | null
@@ -29271,6 +30773,7 @@ export namespace Prisma {
     id: string | null
     orgId: string | null
     opportunityId: string | null
+    templateId: string | null
     title: string | null
     description: string | null
     location: string | null
@@ -29287,6 +30790,7 @@ export namespace Prisma {
     id: number
     orgId: number
     opportunityId: number
+    templateId: number
     title: number
     description: number
     location: number
@@ -29313,6 +30817,7 @@ export namespace Prisma {
     id?: true
     orgId?: true
     opportunityId?: true
+    templateId?: true
     title?: true
     description?: true
     location?: true
@@ -29329,6 +30834,7 @@ export namespace Prisma {
     id?: true
     orgId?: true
     opportunityId?: true
+    templateId?: true
     title?: true
     description?: true
     location?: true
@@ -29345,6 +30851,7 @@ export namespace Prisma {
     id?: true
     orgId?: true
     opportunityId?: true
+    templateId?: true
     title?: true
     description?: true
     location?: true
@@ -29448,6 +30955,7 @@ export namespace Prisma {
     id: string
     orgId: string
     opportunityId: string | null
+    templateId: string | null
     title: string
     description: string | null
     location: string | null
@@ -29483,6 +30991,7 @@ export namespace Prisma {
     id?: boolean
     orgId?: boolean
     opportunityId?: boolean
+    templateId?: boolean
     title?: boolean
     description?: boolean
     location?: boolean
@@ -29495,6 +31004,7 @@ export namespace Prisma {
     updatedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+    template?: boolean | Shift$templateArgs<ExtArgs>
     signups?: boolean | Shift$signupsArgs<ExtArgs>
     _count?: boolean | ShiftCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["shift"]>
@@ -29503,6 +31013,7 @@ export namespace Prisma {
     id?: boolean
     orgId?: boolean
     opportunityId?: boolean
+    templateId?: boolean
     title?: boolean
     description?: boolean
     location?: boolean
@@ -29515,12 +31026,14 @@ export namespace Prisma {
     updatedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+    template?: boolean | Shift$templateArgs<ExtArgs>
   }, ExtArgs["result"]["shift"]>
 
   export type ShiftSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     orgId?: boolean
     opportunityId?: boolean
+    templateId?: boolean
     title?: boolean
     description?: boolean
     location?: boolean
@@ -29533,12 +31046,14 @@ export namespace Prisma {
     updatedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+    template?: boolean | Shift$templateArgs<ExtArgs>
   }, ExtArgs["result"]["shift"]>
 
   export type ShiftSelectScalar = {
     id?: boolean
     orgId?: boolean
     opportunityId?: boolean
+    templateId?: boolean
     title?: boolean
     description?: boolean
     location?: boolean
@@ -29551,20 +31066,23 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type ShiftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "opportunityId" | "title" | "description" | "location" | "isRemote" | "startTime" | "endTime" | "capacity" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["shift"]>
+  export type ShiftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "opportunityId" | "templateId" | "title" | "description" | "location" | "isRemote" | "startTime" | "endTime" | "capacity" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["shift"]>
   export type ShiftInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+    template?: boolean | Shift$templateArgs<ExtArgs>
     signups?: boolean | Shift$signupsArgs<ExtArgs>
     _count?: boolean | ShiftCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ShiftIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+    template?: boolean | Shift$templateArgs<ExtArgs>
   }
   export type ShiftIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
+    template?: boolean | Shift$templateArgs<ExtArgs>
   }
 
   export type $ShiftPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -29572,12 +31090,14 @@ export namespace Prisma {
     objects: {
       organization: Prisma.$OrganizationPayload<ExtArgs>
       opportunity: Prisma.$VolunteerOpportunityPayload<ExtArgs> | null
+      template: Prisma.$ShiftTemplatePayload<ExtArgs> | null
       signups: Prisma.$ShiftSignupPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       orgId: string
       opportunityId: string | null
+      templateId: string | null
       title: string
       description: string | null
       location: string | null
@@ -29984,6 +31504,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     opportunity<T extends Shift$opportunityArgs<ExtArgs> = {}>(args?: Subset<T, Shift$opportunityArgs<ExtArgs>>): Prisma__VolunteerOpportunityClient<$Result.GetResult<Prisma.$VolunteerOpportunityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    template<T extends Shift$templateArgs<ExtArgs> = {}>(args?: Subset<T, Shift$templateArgs<ExtArgs>>): Prisma__ShiftTemplateClient<$Result.GetResult<Prisma.$ShiftTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     signups<T extends Shift$signupsArgs<ExtArgs> = {}>(args?: Subset<T, Shift$signupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShiftSignupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -30017,6 +31538,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Shift", 'String'>
     readonly orgId: FieldRef<"Shift", 'String'>
     readonly opportunityId: FieldRef<"Shift", 'String'>
+    readonly templateId: FieldRef<"Shift", 'String'>
     readonly title: FieldRef<"Shift", 'String'>
     readonly description: FieldRef<"Shift", 'String'>
     readonly location: FieldRef<"Shift", 'String'>
@@ -30444,6 +31966,25 @@ export namespace Prisma {
      */
     include?: VolunteerOpportunityInclude<ExtArgs> | null
     where?: VolunteerOpportunityWhereInput
+  }
+
+  /**
+   * Shift.template
+   */
+  export type Shift$templateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ShiftTemplate
+     */
+    select?: ShiftTemplateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ShiftTemplate
+     */
+    omit?: ShiftTemplateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ShiftTemplateInclude<ExtArgs> | null
+    where?: ShiftTemplateWhereInput
   }
 
   /**
@@ -44059,10 +45600,32 @@ export namespace Prisma {
   export type VolunteerCredentialScalarFieldEnum = (typeof VolunteerCredentialScalarFieldEnum)[keyof typeof VolunteerCredentialScalarFieldEnum]
 
 
+  export const ShiftTemplateScalarFieldEnum: {
+    id: 'id',
+    orgId: 'orgId',
+    title: 'title',
+    description: 'description',
+    location: 'location',
+    isRemote: 'isRemote',
+    dayOfWeek: 'dayOfWeek',
+    startHour: 'startHour',
+    startMinute: 'startMinute',
+    endHour: 'endHour',
+    endMinute: 'endMinute',
+    capacity: 'capacity',
+    opportunityId: 'opportunityId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ShiftTemplateScalarFieldEnum = (typeof ShiftTemplateScalarFieldEnum)[keyof typeof ShiftTemplateScalarFieldEnum]
+
+
   export const ShiftScalarFieldEnum: {
     id: 'id',
     orgId: 'orgId',
     opportunityId: 'opportunityId',
+    templateId: 'templateId',
     title: 'title',
     description: 'description',
     location: 'location',
@@ -45057,6 +46620,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialListRelationFilter
     claimedShareTokens?: CredentialShareTokenListRelationFilter
     shifts?: ShiftListRelationFilter
+    shiftTemplates?: ShiftTemplateListRelationFilter
     companyLinks?: CompanyNonprofitLinkListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
     volunteerInvitations?: VolunteerInvitationListRelationFilter
@@ -45088,6 +46652,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialOrderByRelationAggregateInput
     claimedShareTokens?: CredentialShareTokenOrderByRelationAggregateInput
     shifts?: ShiftOrderByRelationAggregateInput
+    shiftTemplates?: ShiftTemplateOrderByRelationAggregateInput
     companyLinks?: CompanyNonprofitLinkOrderByRelationAggregateInput
     backgroundCheckRequests?: BackgroundCheckRequestOrderByRelationAggregateInput
     volunteerInvitations?: VolunteerInvitationOrderByRelationAggregateInput
@@ -45122,6 +46687,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialListRelationFilter
     claimedShareTokens?: CredentialShareTokenListRelationFilter
     shifts?: ShiftListRelationFilter
+    shiftTemplates?: ShiftTemplateListRelationFilter
     companyLinks?: CompanyNonprofitLinkListRelationFilter
     backgroundCheckRequests?: BackgroundCheckRequestListRelationFilter
     volunteerInvitations?: VolunteerInvitationListRelationFilter
@@ -45668,6 +47234,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementListRelationFilter
     applications?: VolunteerApplicationListRelationFilter
     shifts?: ShiftListRelationFilter
+    shiftTemplates?: ShiftTemplateListRelationFilter
     volunteerInvitations?: VolunteerInvitationListRelationFilter
   }
 
@@ -45690,6 +47257,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementOrderByRelationAggregateInput
     applications?: VolunteerApplicationOrderByRelationAggregateInput
     shifts?: ShiftOrderByRelationAggregateInput
+    shiftTemplates?: ShiftTemplateOrderByRelationAggregateInput
     volunteerInvitations?: VolunteerInvitationOrderByRelationAggregateInput
   }
 
@@ -45715,6 +47283,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementListRelationFilter
     applications?: VolunteerApplicationListRelationFilter
     shifts?: ShiftListRelationFilter
+    shiftTemplates?: ShiftTemplateListRelationFilter
     volunteerInvitations?: VolunteerInvitationListRelationFilter
   }, "id">
 
@@ -46246,6 +47815,119 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"VolunteerCredential"> | Date | string
   }
 
+  export type ShiftTemplateWhereInput = {
+    AND?: ShiftTemplateWhereInput | ShiftTemplateWhereInput[]
+    OR?: ShiftTemplateWhereInput[]
+    NOT?: ShiftTemplateWhereInput | ShiftTemplateWhereInput[]
+    id?: StringFilter<"ShiftTemplate"> | string
+    orgId?: StringFilter<"ShiftTemplate"> | string
+    title?: StringFilter<"ShiftTemplate"> | string
+    description?: StringNullableFilter<"ShiftTemplate"> | string | null
+    location?: StringNullableFilter<"ShiftTemplate"> | string | null
+    isRemote?: BoolFilter<"ShiftTemplate"> | boolean
+    dayOfWeek?: IntFilter<"ShiftTemplate"> | number
+    startHour?: IntFilter<"ShiftTemplate"> | number
+    startMinute?: IntFilter<"ShiftTemplate"> | number
+    endHour?: IntFilter<"ShiftTemplate"> | number
+    endMinute?: IntFilter<"ShiftTemplate"> | number
+    capacity?: IntFilter<"ShiftTemplate"> | number
+    opportunityId?: StringNullableFilter<"ShiftTemplate"> | string | null
+    createdAt?: DateTimeFilter<"ShiftTemplate"> | Date | string
+    updatedAt?: DateTimeFilter<"ShiftTemplate"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    opportunity?: XOR<VolunteerOpportunityNullableScalarRelationFilter, VolunteerOpportunityWhereInput> | null
+    shifts?: ShiftListRelationFilter
+  }
+
+  export type ShiftTemplateOrderByWithRelationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    location?: SortOrderInput | SortOrder
+    isRemote?: SortOrder
+    dayOfWeek?: SortOrder
+    startHour?: SortOrder
+    startMinute?: SortOrder
+    endHour?: SortOrder
+    endMinute?: SortOrder
+    capacity?: SortOrder
+    opportunityId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+    opportunity?: VolunteerOpportunityOrderByWithRelationInput
+    shifts?: ShiftOrderByRelationAggregateInput
+  }
+
+  export type ShiftTemplateWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ShiftTemplateWhereInput | ShiftTemplateWhereInput[]
+    OR?: ShiftTemplateWhereInput[]
+    NOT?: ShiftTemplateWhereInput | ShiftTemplateWhereInput[]
+    orgId?: StringFilter<"ShiftTemplate"> | string
+    title?: StringFilter<"ShiftTemplate"> | string
+    description?: StringNullableFilter<"ShiftTemplate"> | string | null
+    location?: StringNullableFilter<"ShiftTemplate"> | string | null
+    isRemote?: BoolFilter<"ShiftTemplate"> | boolean
+    dayOfWeek?: IntFilter<"ShiftTemplate"> | number
+    startHour?: IntFilter<"ShiftTemplate"> | number
+    startMinute?: IntFilter<"ShiftTemplate"> | number
+    endHour?: IntFilter<"ShiftTemplate"> | number
+    endMinute?: IntFilter<"ShiftTemplate"> | number
+    capacity?: IntFilter<"ShiftTemplate"> | number
+    opportunityId?: StringNullableFilter<"ShiftTemplate"> | string | null
+    createdAt?: DateTimeFilter<"ShiftTemplate"> | Date | string
+    updatedAt?: DateTimeFilter<"ShiftTemplate"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    opportunity?: XOR<VolunteerOpportunityNullableScalarRelationFilter, VolunteerOpportunityWhereInput> | null
+    shifts?: ShiftListRelationFilter
+  }, "id">
+
+  export type ShiftTemplateOrderByWithAggregationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    location?: SortOrderInput | SortOrder
+    isRemote?: SortOrder
+    dayOfWeek?: SortOrder
+    startHour?: SortOrder
+    startMinute?: SortOrder
+    endHour?: SortOrder
+    endMinute?: SortOrder
+    capacity?: SortOrder
+    opportunityId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ShiftTemplateCountOrderByAggregateInput
+    _avg?: ShiftTemplateAvgOrderByAggregateInput
+    _max?: ShiftTemplateMaxOrderByAggregateInput
+    _min?: ShiftTemplateMinOrderByAggregateInput
+    _sum?: ShiftTemplateSumOrderByAggregateInput
+  }
+
+  export type ShiftTemplateScalarWhereWithAggregatesInput = {
+    AND?: ShiftTemplateScalarWhereWithAggregatesInput | ShiftTemplateScalarWhereWithAggregatesInput[]
+    OR?: ShiftTemplateScalarWhereWithAggregatesInput[]
+    NOT?: ShiftTemplateScalarWhereWithAggregatesInput | ShiftTemplateScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ShiftTemplate"> | string
+    orgId?: StringWithAggregatesFilter<"ShiftTemplate"> | string
+    title?: StringWithAggregatesFilter<"ShiftTemplate"> | string
+    description?: StringNullableWithAggregatesFilter<"ShiftTemplate"> | string | null
+    location?: StringNullableWithAggregatesFilter<"ShiftTemplate"> | string | null
+    isRemote?: BoolWithAggregatesFilter<"ShiftTemplate"> | boolean
+    dayOfWeek?: IntWithAggregatesFilter<"ShiftTemplate"> | number
+    startHour?: IntWithAggregatesFilter<"ShiftTemplate"> | number
+    startMinute?: IntWithAggregatesFilter<"ShiftTemplate"> | number
+    endHour?: IntWithAggregatesFilter<"ShiftTemplate"> | number
+    endMinute?: IntWithAggregatesFilter<"ShiftTemplate"> | number
+    capacity?: IntWithAggregatesFilter<"ShiftTemplate"> | number
+    opportunityId?: StringNullableWithAggregatesFilter<"ShiftTemplate"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ShiftTemplate"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ShiftTemplate"> | Date | string
+  }
+
   export type ShiftWhereInput = {
     AND?: ShiftWhereInput | ShiftWhereInput[]
     OR?: ShiftWhereInput[]
@@ -46253,6 +47935,7 @@ export namespace Prisma {
     id?: StringFilter<"Shift"> | string
     orgId?: StringFilter<"Shift"> | string
     opportunityId?: StringNullableFilter<"Shift"> | string | null
+    templateId?: StringNullableFilter<"Shift"> | string | null
     title?: StringFilter<"Shift"> | string
     description?: StringNullableFilter<"Shift"> | string | null
     location?: StringNullableFilter<"Shift"> | string | null
@@ -46265,6 +47948,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Shift"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     opportunity?: XOR<VolunteerOpportunityNullableScalarRelationFilter, VolunteerOpportunityWhereInput> | null
+    template?: XOR<ShiftTemplateNullableScalarRelationFilter, ShiftTemplateWhereInput> | null
     signups?: ShiftSignupListRelationFilter
   }
 
@@ -46272,6 +47956,7 @@ export namespace Prisma {
     id?: SortOrder
     orgId?: SortOrder
     opportunityId?: SortOrderInput | SortOrder
+    templateId?: SortOrderInput | SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
@@ -46284,6 +47969,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     organization?: OrganizationOrderByWithRelationInput
     opportunity?: VolunteerOpportunityOrderByWithRelationInput
+    template?: ShiftTemplateOrderByWithRelationInput
     signups?: ShiftSignupOrderByRelationAggregateInput
   }
 
@@ -46294,6 +47980,7 @@ export namespace Prisma {
     NOT?: ShiftWhereInput | ShiftWhereInput[]
     orgId?: StringFilter<"Shift"> | string
     opportunityId?: StringNullableFilter<"Shift"> | string | null
+    templateId?: StringNullableFilter<"Shift"> | string | null
     title?: StringFilter<"Shift"> | string
     description?: StringNullableFilter<"Shift"> | string | null
     location?: StringNullableFilter<"Shift"> | string | null
@@ -46306,6 +47993,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Shift"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     opportunity?: XOR<VolunteerOpportunityNullableScalarRelationFilter, VolunteerOpportunityWhereInput> | null
+    template?: XOR<ShiftTemplateNullableScalarRelationFilter, ShiftTemplateWhereInput> | null
     signups?: ShiftSignupListRelationFilter
   }, "id">
 
@@ -46313,6 +48001,7 @@ export namespace Prisma {
     id?: SortOrder
     orgId?: SortOrder
     opportunityId?: SortOrderInput | SortOrder
+    templateId?: SortOrderInput | SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
@@ -46337,6 +48026,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Shift"> | string
     orgId?: StringWithAggregatesFilter<"Shift"> | string
     opportunityId?: StringNullableWithAggregatesFilter<"Shift"> | string | null
+    templateId?: StringNullableWithAggregatesFilter<"Shift"> | string | null
     title?: StringWithAggregatesFilter<"Shift"> | string
     description?: StringNullableWithAggregatesFilter<"Shift"> | string | null
     location?: StringNullableWithAggregatesFilter<"Shift"> | string | null
@@ -47645,6 +49335,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -47676,6 +49367,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -47707,6 +49399,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -47738,6 +49431,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -48294,6 +49988,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
@@ -48315,6 +50010,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
@@ -48336,6 +50032,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -48357,6 +50054,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -48910,6 +50608,134 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ShiftTemplateCreateInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutShiftTemplatesInput
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftTemplatesInput
+    shifts?: ShiftCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ShiftTemplateUncheckedCreateInput = {
+    id?: string
+    orgId: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    opportunityId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ShiftTemplateUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutShiftTemplatesNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneWithoutShiftTemplatesNestedInput
+    shifts?: ShiftUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ShiftTemplateUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    shifts?: ShiftUncheckedUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ShiftTemplateCreateManyInput = {
+    id?: string
+    orgId: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    opportunityId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftTemplateUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftTemplateUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ShiftCreateInput = {
     id?: string
     title: string
@@ -48924,6 +50750,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutShiftsInput
     opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftsInput
+    template?: ShiftTemplateCreateNestedOneWithoutShiftsInput
     signups?: ShiftSignupCreateNestedManyWithoutShiftInput
   }
 
@@ -48931,6 +50758,7 @@ export namespace Prisma {
     id?: string
     orgId: string
     opportunityId?: string | null
+    templateId?: string | null
     title: string
     description?: string | null
     location?: string | null
@@ -48958,6 +50786,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutShiftsNestedInput
     opportunity?: VolunteerOpportunityUpdateOneWithoutShiftsNestedInput
+    template?: ShiftTemplateUpdateOneWithoutShiftsNestedInput
     signups?: ShiftSignupUpdateManyWithoutShiftNestedInput
   }
 
@@ -48965,6 +50794,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
     opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
@@ -48982,6 +50812,7 @@ export namespace Prisma {
     id?: string
     orgId: string
     opportunityId?: string | null
+    templateId?: string | null
     title: string
     description?: string | null
     location?: string | null
@@ -49012,6 +50843,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
     opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50429,6 +52261,12 @@ export namespace Prisma {
     none?: ShiftWhereInput
   }
 
+  export type ShiftTemplateListRelationFilter = {
+    every?: ShiftTemplateWhereInput
+    some?: ShiftTemplateWhereInput
+    none?: ShiftTemplateWhereInput
+  }
+
   export type CompanyNonprofitLinkListRelationFilter = {
     every?: CompanyNonprofitLinkWhereInput
     some?: CompanyNonprofitLinkWhereInput
@@ -50452,6 +52290,10 @@ export namespace Prisma {
   }
 
   export type ShiftOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ShiftTemplateOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -51452,6 +53294,78 @@ export namespace Prisma {
     _max?: NestedEnumCredentialStatusFilter<$PrismaModel>
   }
 
+  export type ShiftTemplateCountOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    location?: SortOrder
+    isRemote?: SortOrder
+    dayOfWeek?: SortOrder
+    startHour?: SortOrder
+    startMinute?: SortOrder
+    endHour?: SortOrder
+    endMinute?: SortOrder
+    capacity?: SortOrder
+    opportunityId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ShiftTemplateAvgOrderByAggregateInput = {
+    dayOfWeek?: SortOrder
+    startHour?: SortOrder
+    startMinute?: SortOrder
+    endHour?: SortOrder
+    endMinute?: SortOrder
+    capacity?: SortOrder
+  }
+
+  export type ShiftTemplateMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    location?: SortOrder
+    isRemote?: SortOrder
+    dayOfWeek?: SortOrder
+    startHour?: SortOrder
+    startMinute?: SortOrder
+    endHour?: SortOrder
+    endMinute?: SortOrder
+    capacity?: SortOrder
+    opportunityId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ShiftTemplateMinOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    location?: SortOrder
+    isRemote?: SortOrder
+    dayOfWeek?: SortOrder
+    startHour?: SortOrder
+    startMinute?: SortOrder
+    endHour?: SortOrder
+    endMinute?: SortOrder
+    capacity?: SortOrder
+    opportunityId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ShiftTemplateSumOrderByAggregateInput = {
+    dayOfWeek?: SortOrder
+    startHour?: SortOrder
+    startMinute?: SortOrder
+    endHour?: SortOrder
+    endMinute?: SortOrder
+    capacity?: SortOrder
+  }
+
   export type EnumShiftStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.ShiftStatus | EnumShiftStatusFieldRefInput<$PrismaModel>
     in?: $Enums.ShiftStatus[] | ListEnumShiftStatusFieldRefInput<$PrismaModel>
@@ -51459,10 +53373,16 @@ export namespace Prisma {
     not?: NestedEnumShiftStatusFilter<$PrismaModel> | $Enums.ShiftStatus
   }
 
+  export type ShiftTemplateNullableScalarRelationFilter = {
+    is?: ShiftTemplateWhereInput | null
+    isNot?: ShiftTemplateWhereInput | null
+  }
+
   export type ShiftCountOrderByAggregateInput = {
     id?: SortOrder
     orgId?: SortOrder
     opportunityId?: SortOrder
+    templateId?: SortOrder
     title?: SortOrder
     description?: SortOrder
     location?: SortOrder
@@ -51483,6 +53403,7 @@ export namespace Prisma {
     id?: SortOrder
     orgId?: SortOrder
     opportunityId?: SortOrder
+    templateId?: SortOrder
     title?: SortOrder
     description?: SortOrder
     location?: SortOrder
@@ -51499,6 +53420,7 @@ export namespace Prisma {
     id?: SortOrder
     orgId?: SortOrder
     opportunityId?: SortOrder
+    templateId?: SortOrder
     title?: SortOrder
     description?: SortOrder
     location?: SortOrder
@@ -52881,6 +54803,13 @@ export namespace Prisma {
     connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
   }
 
+  export type ShiftTemplateCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<ShiftTemplateCreateWithoutOrganizationInput, ShiftTemplateUncheckedCreateWithoutOrganizationInput> | ShiftTemplateCreateWithoutOrganizationInput[] | ShiftTemplateUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutOrganizationInput | ShiftTemplateCreateOrConnectWithoutOrganizationInput[]
+    createMany?: ShiftTemplateCreateManyOrganizationInputEnvelope
+    connect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+  }
+
   export type CompanyNonprofitLinkCreateNestedManyWithoutOrgInput = {
     create?: XOR<CompanyNonprofitLinkCreateWithoutOrgInput, CompanyNonprofitLinkUncheckedCreateWithoutOrgInput> | CompanyNonprofitLinkCreateWithoutOrgInput[] | CompanyNonprofitLinkUncheckedCreateWithoutOrgInput[]
     connectOrCreate?: CompanyNonprofitLinkCreateOrConnectWithoutOrgInput | CompanyNonprofitLinkCreateOrConnectWithoutOrgInput[]
@@ -52998,6 +54927,13 @@ export namespace Prisma {
     connectOrCreate?: ShiftCreateOrConnectWithoutOrganizationInput | ShiftCreateOrConnectWithoutOrganizationInput[]
     createMany?: ShiftCreateManyOrganizationInputEnvelope
     connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+  }
+
+  export type ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<ShiftTemplateCreateWithoutOrganizationInput, ShiftTemplateUncheckedCreateWithoutOrganizationInput> | ShiftTemplateCreateWithoutOrganizationInput[] | ShiftTemplateUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutOrganizationInput | ShiftTemplateCreateOrConnectWithoutOrganizationInput[]
+    createMany?: ShiftTemplateCreateManyOrganizationInputEnvelope
+    connect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
   }
 
   export type CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput = {
@@ -53205,6 +55141,20 @@ export namespace Prisma {
     update?: ShiftUpdateWithWhereUniqueWithoutOrganizationInput | ShiftUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: ShiftUpdateManyWithWhereWithoutOrganizationInput | ShiftUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+  }
+
+  export type ShiftTemplateUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<ShiftTemplateCreateWithoutOrganizationInput, ShiftTemplateUncheckedCreateWithoutOrganizationInput> | ShiftTemplateCreateWithoutOrganizationInput[] | ShiftTemplateUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutOrganizationInput | ShiftTemplateCreateOrConnectWithoutOrganizationInput[]
+    upsert?: ShiftTemplateUpsertWithWhereUniqueWithoutOrganizationInput | ShiftTemplateUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: ShiftTemplateCreateManyOrganizationInputEnvelope
+    set?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    disconnect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    delete?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    connect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    update?: ShiftTemplateUpdateWithWhereUniqueWithoutOrganizationInput | ShiftTemplateUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: ShiftTemplateUpdateManyWithWhereWithoutOrganizationInput | ShiftTemplateUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: ShiftTemplateScalarWhereInput | ShiftTemplateScalarWhereInput[]
   }
 
   export type CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput = {
@@ -53443,6 +55393,20 @@ export namespace Prisma {
     update?: ShiftUpdateWithWhereUniqueWithoutOrganizationInput | ShiftUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: ShiftUpdateManyWithWhereWithoutOrganizationInput | ShiftUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+  }
+
+  export type ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<ShiftTemplateCreateWithoutOrganizationInput, ShiftTemplateUncheckedCreateWithoutOrganizationInput> | ShiftTemplateCreateWithoutOrganizationInput[] | ShiftTemplateUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutOrganizationInput | ShiftTemplateCreateOrConnectWithoutOrganizationInput[]
+    upsert?: ShiftTemplateUpsertWithWhereUniqueWithoutOrganizationInput | ShiftTemplateUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: ShiftTemplateCreateManyOrganizationInputEnvelope
+    set?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    disconnect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    delete?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    connect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    update?: ShiftTemplateUpdateWithWhereUniqueWithoutOrganizationInput | ShiftTemplateUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: ShiftTemplateUpdateManyWithWhereWithoutOrganizationInput | ShiftTemplateUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: ShiftTemplateScalarWhereInput | ShiftTemplateScalarWhereInput[]
   }
 
   export type CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput = {
@@ -53797,6 +55761,13 @@ export namespace Prisma {
     connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
   }
 
+  export type ShiftTemplateCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<ShiftTemplateCreateWithoutOpportunityInput, ShiftTemplateUncheckedCreateWithoutOpportunityInput> | ShiftTemplateCreateWithoutOpportunityInput[] | ShiftTemplateUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutOpportunityInput | ShiftTemplateCreateOrConnectWithoutOpportunityInput[]
+    createMany?: ShiftTemplateCreateManyOpportunityInputEnvelope
+    connect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+  }
+
   export type VolunteerInvitationCreateNestedManyWithoutOpportunityInput = {
     create?: XOR<VolunteerInvitationCreateWithoutOpportunityInput, VolunteerInvitationUncheckedCreateWithoutOpportunityInput> | VolunteerInvitationCreateWithoutOpportunityInput[] | VolunteerInvitationUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOpportunityInput | VolunteerInvitationCreateOrConnectWithoutOpportunityInput[]
@@ -53830,6 +55801,13 @@ export namespace Prisma {
     connectOrCreate?: ShiftCreateOrConnectWithoutOpportunityInput | ShiftCreateOrConnectWithoutOpportunityInput[]
     createMany?: ShiftCreateManyOpportunityInputEnvelope
     connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+  }
+
+  export type ShiftTemplateUncheckedCreateNestedManyWithoutOpportunityInput = {
+    create?: XOR<ShiftTemplateCreateWithoutOpportunityInput, ShiftTemplateUncheckedCreateWithoutOpportunityInput> | ShiftTemplateCreateWithoutOpportunityInput[] | ShiftTemplateUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutOpportunityInput | ShiftTemplateCreateOrConnectWithoutOpportunityInput[]
+    createMany?: ShiftTemplateCreateManyOpportunityInputEnvelope
+    connect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
   }
 
   export type VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput = {
@@ -53915,6 +55893,20 @@ export namespace Prisma {
     deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
   }
 
+  export type ShiftTemplateUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<ShiftTemplateCreateWithoutOpportunityInput, ShiftTemplateUncheckedCreateWithoutOpportunityInput> | ShiftTemplateCreateWithoutOpportunityInput[] | ShiftTemplateUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutOpportunityInput | ShiftTemplateCreateOrConnectWithoutOpportunityInput[]
+    upsert?: ShiftTemplateUpsertWithWhereUniqueWithoutOpportunityInput | ShiftTemplateUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: ShiftTemplateCreateManyOpportunityInputEnvelope
+    set?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    disconnect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    delete?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    connect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    update?: ShiftTemplateUpdateWithWhereUniqueWithoutOpportunityInput | ShiftTemplateUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: ShiftTemplateUpdateManyWithWhereWithoutOpportunityInput | ShiftTemplateUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: ShiftTemplateScalarWhereInput | ShiftTemplateScalarWhereInput[]
+  }
+
   export type VolunteerInvitationUpdateManyWithoutOpportunityNestedInput = {
     create?: XOR<VolunteerInvitationCreateWithoutOpportunityInput, VolunteerInvitationUncheckedCreateWithoutOpportunityInput> | VolunteerInvitationCreateWithoutOpportunityInput[] | VolunteerInvitationUncheckedCreateWithoutOpportunityInput[]
     connectOrCreate?: VolunteerInvitationCreateOrConnectWithoutOpportunityInput | VolunteerInvitationCreateOrConnectWithoutOpportunityInput[]
@@ -53983,6 +55975,20 @@ export namespace Prisma {
     update?: ShiftUpdateWithWhereUniqueWithoutOpportunityInput | ShiftUpdateWithWhereUniqueWithoutOpportunityInput[]
     updateMany?: ShiftUpdateManyWithWhereWithoutOpportunityInput | ShiftUpdateManyWithWhereWithoutOpportunityInput[]
     deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+  }
+
+  export type ShiftTemplateUncheckedUpdateManyWithoutOpportunityNestedInput = {
+    create?: XOR<ShiftTemplateCreateWithoutOpportunityInput, ShiftTemplateUncheckedCreateWithoutOpportunityInput> | ShiftTemplateCreateWithoutOpportunityInput[] | ShiftTemplateUncheckedCreateWithoutOpportunityInput[]
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutOpportunityInput | ShiftTemplateCreateOrConnectWithoutOpportunityInput[]
+    upsert?: ShiftTemplateUpsertWithWhereUniqueWithoutOpportunityInput | ShiftTemplateUpsertWithWhereUniqueWithoutOpportunityInput[]
+    createMany?: ShiftTemplateCreateManyOpportunityInputEnvelope
+    set?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    disconnect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    delete?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    connect?: ShiftTemplateWhereUniqueInput | ShiftTemplateWhereUniqueInput[]
+    update?: ShiftTemplateUpdateWithWhereUniqueWithoutOpportunityInput | ShiftTemplateUpdateWithWhereUniqueWithoutOpportunityInput[]
+    updateMany?: ShiftTemplateUpdateManyWithWhereWithoutOpportunityInput | ShiftTemplateUpdateManyWithWhereWithoutOpportunityInput[]
+    deleteMany?: ShiftTemplateScalarWhereInput | ShiftTemplateScalarWhereInput[]
   }
 
   export type VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput = {
@@ -54430,6 +56436,78 @@ export namespace Prisma {
     deleteMany?: CredentialShareTokenScalarWhereInput | CredentialShareTokenScalarWhereInput[]
   }
 
+  export type OrganizationCreateNestedOneWithoutShiftTemplatesInput = {
+    create?: XOR<OrganizationCreateWithoutShiftTemplatesInput, OrganizationUncheckedCreateWithoutShiftTemplatesInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutShiftTemplatesInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type VolunteerOpportunityCreateNestedOneWithoutShiftTemplatesInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutShiftTemplatesInput, VolunteerOpportunityUncheckedCreateWithoutShiftTemplatesInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutShiftTemplatesInput
+    connect?: VolunteerOpportunityWhereUniqueInput
+  }
+
+  export type ShiftCreateNestedManyWithoutTemplateInput = {
+    create?: XOR<ShiftCreateWithoutTemplateInput, ShiftUncheckedCreateWithoutTemplateInput> | ShiftCreateWithoutTemplateInput[] | ShiftUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutTemplateInput | ShiftCreateOrConnectWithoutTemplateInput[]
+    createMany?: ShiftCreateManyTemplateInputEnvelope
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+  }
+
+  export type ShiftUncheckedCreateNestedManyWithoutTemplateInput = {
+    create?: XOR<ShiftCreateWithoutTemplateInput, ShiftUncheckedCreateWithoutTemplateInput> | ShiftCreateWithoutTemplateInput[] | ShiftUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutTemplateInput | ShiftCreateOrConnectWithoutTemplateInput[]
+    createMany?: ShiftCreateManyTemplateInputEnvelope
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutShiftTemplatesNestedInput = {
+    create?: XOR<OrganizationCreateWithoutShiftTemplatesInput, OrganizationUncheckedCreateWithoutShiftTemplatesInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutShiftTemplatesInput
+    upsert?: OrganizationUpsertWithoutShiftTemplatesInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutShiftTemplatesInput, OrganizationUpdateWithoutShiftTemplatesInput>, OrganizationUncheckedUpdateWithoutShiftTemplatesInput>
+  }
+
+  export type VolunteerOpportunityUpdateOneWithoutShiftTemplatesNestedInput = {
+    create?: XOR<VolunteerOpportunityCreateWithoutShiftTemplatesInput, VolunteerOpportunityUncheckedCreateWithoutShiftTemplatesInput>
+    connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutShiftTemplatesInput
+    upsert?: VolunteerOpportunityUpsertWithoutShiftTemplatesInput
+    disconnect?: VolunteerOpportunityWhereInput | boolean
+    delete?: VolunteerOpportunityWhereInput | boolean
+    connect?: VolunteerOpportunityWhereUniqueInput
+    update?: XOR<XOR<VolunteerOpportunityUpdateToOneWithWhereWithoutShiftTemplatesInput, VolunteerOpportunityUpdateWithoutShiftTemplatesInput>, VolunteerOpportunityUncheckedUpdateWithoutShiftTemplatesInput>
+  }
+
+  export type ShiftUpdateManyWithoutTemplateNestedInput = {
+    create?: XOR<ShiftCreateWithoutTemplateInput, ShiftUncheckedCreateWithoutTemplateInput> | ShiftCreateWithoutTemplateInput[] | ShiftUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutTemplateInput | ShiftCreateOrConnectWithoutTemplateInput[]
+    upsert?: ShiftUpsertWithWhereUniqueWithoutTemplateInput | ShiftUpsertWithWhereUniqueWithoutTemplateInput[]
+    createMany?: ShiftCreateManyTemplateInputEnvelope
+    set?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    disconnect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    delete?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    update?: ShiftUpdateWithWhereUniqueWithoutTemplateInput | ShiftUpdateWithWhereUniqueWithoutTemplateInput[]
+    updateMany?: ShiftUpdateManyWithWhereWithoutTemplateInput | ShiftUpdateManyWithWhereWithoutTemplateInput[]
+    deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+  }
+
+  export type ShiftUncheckedUpdateManyWithoutTemplateNestedInput = {
+    create?: XOR<ShiftCreateWithoutTemplateInput, ShiftUncheckedCreateWithoutTemplateInput> | ShiftCreateWithoutTemplateInput[] | ShiftUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: ShiftCreateOrConnectWithoutTemplateInput | ShiftCreateOrConnectWithoutTemplateInput[]
+    upsert?: ShiftUpsertWithWhereUniqueWithoutTemplateInput | ShiftUpsertWithWhereUniqueWithoutTemplateInput[]
+    createMany?: ShiftCreateManyTemplateInputEnvelope
+    set?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    disconnect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    delete?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    connect?: ShiftWhereUniqueInput | ShiftWhereUniqueInput[]
+    update?: ShiftUpdateWithWhereUniqueWithoutTemplateInput | ShiftUpdateWithWhereUniqueWithoutTemplateInput[]
+    updateMany?: ShiftUpdateManyWithWhereWithoutTemplateInput | ShiftUpdateManyWithWhereWithoutTemplateInput[]
+    deleteMany?: ShiftScalarWhereInput | ShiftScalarWhereInput[]
+  }
+
   export type OrganizationCreateNestedOneWithoutShiftsInput = {
     create?: XOR<OrganizationCreateWithoutShiftsInput, OrganizationUncheckedCreateWithoutShiftsInput>
     connectOrCreate?: OrganizationCreateOrConnectWithoutShiftsInput
@@ -54440,6 +56518,12 @@ export namespace Prisma {
     create?: XOR<VolunteerOpportunityCreateWithoutShiftsInput, VolunteerOpportunityUncheckedCreateWithoutShiftsInput>
     connectOrCreate?: VolunteerOpportunityCreateOrConnectWithoutShiftsInput
     connect?: VolunteerOpportunityWhereUniqueInput
+  }
+
+  export type ShiftTemplateCreateNestedOneWithoutShiftsInput = {
+    create?: XOR<ShiftTemplateCreateWithoutShiftsInput, ShiftTemplateUncheckedCreateWithoutShiftsInput>
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutShiftsInput
+    connect?: ShiftTemplateWhereUniqueInput
   }
 
   export type ShiftSignupCreateNestedManyWithoutShiftInput = {
@@ -54476,6 +56560,16 @@ export namespace Prisma {
     delete?: VolunteerOpportunityWhereInput | boolean
     connect?: VolunteerOpportunityWhereUniqueInput
     update?: XOR<XOR<VolunteerOpportunityUpdateToOneWithWhereWithoutShiftsInput, VolunteerOpportunityUpdateWithoutShiftsInput>, VolunteerOpportunityUncheckedUpdateWithoutShiftsInput>
+  }
+
+  export type ShiftTemplateUpdateOneWithoutShiftsNestedInput = {
+    create?: XOR<ShiftTemplateCreateWithoutShiftsInput, ShiftTemplateUncheckedCreateWithoutShiftsInput>
+    connectOrCreate?: ShiftTemplateCreateOrConnectWithoutShiftsInput
+    upsert?: ShiftTemplateUpsertWithoutShiftsInput
+    disconnect?: ShiftTemplateWhereInput | boolean
+    delete?: ShiftTemplateWhereInput | boolean
+    connect?: ShiftTemplateWhereUniqueInput
+    update?: XOR<XOR<ShiftTemplateUpdateToOneWithWhereWithoutShiftsInput, ShiftTemplateUpdateWithoutShiftsInput>, ShiftTemplateUncheckedUpdateWithoutShiftsInput>
   }
 
   export type ShiftSignupUpdateManyWithoutShiftNestedInput = {
@@ -56762,6 +58856,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -56792,6 +58887,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -56934,6 +59030,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -56964,6 +59061,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -57239,6 +59337,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
@@ -57259,6 +59358,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
@@ -57411,12 +59511,14 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftsInput
+    template?: ShiftTemplateCreateNestedOneWithoutShiftsInput
     signups?: ShiftSignupCreateNestedManyWithoutShiftInput
   }
 
   export type ShiftUncheckedCreateWithoutOrganizationInput = {
     id?: string
     opportunityId?: string | null
+    templateId?: string | null
     title: string
     description?: string | null
     location?: string | null
@@ -57437,6 +59539,52 @@ export namespace Prisma {
 
   export type ShiftCreateManyOrganizationInputEnvelope = {
     data: ShiftCreateManyOrganizationInput | ShiftCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ShiftTemplateCreateWithoutOrganizationInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftTemplatesInput
+    shifts?: ShiftCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ShiftTemplateUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    opportunityId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ShiftTemplateCreateOrConnectWithoutOrganizationInput = {
+    where: ShiftTemplateWhereUniqueInput
+    create: XOR<ShiftTemplateCreateWithoutOrganizationInput, ShiftTemplateUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type ShiftTemplateCreateManyOrganizationInputEnvelope = {
+    data: ShiftTemplateCreateManyOrganizationInput | ShiftTemplateCreateManyOrganizationInput[]
     skipDuplicates?: boolean
   }
 
@@ -57853,6 +60001,7 @@ export namespace Prisma {
     id?: StringFilter<"Shift"> | string
     orgId?: StringFilter<"Shift"> | string
     opportunityId?: StringNullableFilter<"Shift"> | string | null
+    templateId?: StringNullableFilter<"Shift"> | string | null
     title?: StringFilter<"Shift"> | string
     description?: StringNullableFilter<"Shift"> | string | null
     location?: StringNullableFilter<"Shift"> | string | null
@@ -57863,6 +60012,43 @@ export namespace Prisma {
     status?: EnumShiftStatusFilter<"Shift"> | $Enums.ShiftStatus
     createdAt?: DateTimeFilter<"Shift"> | Date | string
     updatedAt?: DateTimeFilter<"Shift"> | Date | string
+  }
+
+  export type ShiftTemplateUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: ShiftTemplateWhereUniqueInput
+    update: XOR<ShiftTemplateUpdateWithoutOrganizationInput, ShiftTemplateUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<ShiftTemplateCreateWithoutOrganizationInput, ShiftTemplateUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type ShiftTemplateUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: ShiftTemplateWhereUniqueInput
+    data: XOR<ShiftTemplateUpdateWithoutOrganizationInput, ShiftTemplateUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type ShiftTemplateUpdateManyWithWhereWithoutOrganizationInput = {
+    where: ShiftTemplateScalarWhereInput
+    data: XOR<ShiftTemplateUpdateManyMutationInput, ShiftTemplateUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type ShiftTemplateScalarWhereInput = {
+    AND?: ShiftTemplateScalarWhereInput | ShiftTemplateScalarWhereInput[]
+    OR?: ShiftTemplateScalarWhereInput[]
+    NOT?: ShiftTemplateScalarWhereInput | ShiftTemplateScalarWhereInput[]
+    id?: StringFilter<"ShiftTemplate"> | string
+    orgId?: StringFilter<"ShiftTemplate"> | string
+    title?: StringFilter<"ShiftTemplate"> | string
+    description?: StringNullableFilter<"ShiftTemplate"> | string | null
+    location?: StringNullableFilter<"ShiftTemplate"> | string | null
+    isRemote?: BoolFilter<"ShiftTemplate"> | boolean
+    dayOfWeek?: IntFilter<"ShiftTemplate"> | number
+    startHour?: IntFilter<"ShiftTemplate"> | number
+    startMinute?: IntFilter<"ShiftTemplate"> | number
+    endHour?: IntFilter<"ShiftTemplate"> | number
+    endMinute?: IntFilter<"ShiftTemplate"> | number
+    capacity?: IntFilter<"ShiftTemplate"> | number
+    opportunityId?: StringNullableFilter<"ShiftTemplate"> | string | null
+    createdAt?: DateTimeFilter<"ShiftTemplate"> | Date | string
+    updatedAt?: DateTimeFilter<"ShiftTemplate"> | Date | string
   }
 
   export type CompanyNonprofitLinkUpsertWithWhereUniqueWithoutOrgInput = {
@@ -57980,6 +60166,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -58010,6 +60197,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -58109,6 +60297,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -58139,6 +60328,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -58228,6 +60418,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -58258,6 +60449,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -58394,6 +60586,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -58424,6 +60617,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -58556,6 +60750,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -58586,6 +60781,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -58632,6 +60828,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -58662,6 +60859,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -58692,6 +60890,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -58722,6 +60921,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -58751,6 +60951,7 @@ export namespace Prisma {
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
@@ -58771,6 +60972,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
@@ -58888,6 +61090,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -58918,6 +61121,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -58953,6 +61157,7 @@ export namespace Prisma {
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -58973,6 +61178,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -59148,6 +61354,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -59178,6 +61385,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -59224,6 +61432,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -59254,6 +61463,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -59284,6 +61494,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -59314,6 +61525,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -59360,6 +61572,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -59390,6 +61603,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -59420,6 +61634,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -59450,6 +61665,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -59553,12 +61769,14 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutShiftsInput
+    template?: ShiftTemplateCreateNestedOneWithoutShiftsInput
     signups?: ShiftSignupCreateNestedManyWithoutShiftInput
   }
 
   export type ShiftUncheckedCreateWithoutOpportunityInput = {
     id?: string
     orgId: string
+    templateId?: string | null
     title: string
     description?: string | null
     location?: string | null
@@ -59579,6 +61797,52 @@ export namespace Prisma {
 
   export type ShiftCreateManyOpportunityInputEnvelope = {
     data: ShiftCreateManyOpportunityInput | ShiftCreateManyOpportunityInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ShiftTemplateCreateWithoutOpportunityInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutShiftTemplatesInput
+    shifts?: ShiftCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ShiftTemplateUncheckedCreateWithoutOpportunityInput = {
+    id?: string
+    orgId: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ShiftTemplateCreateOrConnectWithoutOpportunityInput = {
+    where: ShiftTemplateWhereUniqueInput
+    create: XOR<ShiftTemplateCreateWithoutOpportunityInput, ShiftTemplateUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type ShiftTemplateCreateManyOpportunityInputEnvelope = {
+    data: ShiftTemplateCreateManyOpportunityInput | ShiftTemplateCreateManyOpportunityInput[]
     skipDuplicates?: boolean
   }
 
@@ -59642,6 +61906,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -59672,6 +61937,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -59763,6 +62029,22 @@ export namespace Prisma {
     data: XOR<ShiftUpdateManyMutationInput, ShiftUncheckedUpdateManyWithoutOpportunityInput>
   }
 
+  export type ShiftTemplateUpsertWithWhereUniqueWithoutOpportunityInput = {
+    where: ShiftTemplateWhereUniqueInput
+    update: XOR<ShiftTemplateUpdateWithoutOpportunityInput, ShiftTemplateUncheckedUpdateWithoutOpportunityInput>
+    create: XOR<ShiftTemplateCreateWithoutOpportunityInput, ShiftTemplateUncheckedCreateWithoutOpportunityInput>
+  }
+
+  export type ShiftTemplateUpdateWithWhereUniqueWithoutOpportunityInput = {
+    where: ShiftTemplateWhereUniqueInput
+    data: XOR<ShiftTemplateUpdateWithoutOpportunityInput, ShiftTemplateUncheckedUpdateWithoutOpportunityInput>
+  }
+
+  export type ShiftTemplateUpdateManyWithWhereWithoutOpportunityInput = {
+    where: ShiftTemplateScalarWhereInput
+    data: XOR<ShiftTemplateUpdateManyMutationInput, ShiftTemplateUncheckedUpdateManyWithoutOpportunityInput>
+  }
+
   export type VolunteerInvitationUpsertWithWhereUniqueWithoutOpportunityInput = {
     where: VolunteerInvitationWhereUniqueInput
     update: XOR<VolunteerInvitationUpdateWithoutOpportunityInput, VolunteerInvitationUncheckedUpdateWithoutOpportunityInput>
@@ -59796,6 +62078,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
@@ -59816,6 +62099,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
@@ -59852,6 +62136,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -59872,6 +62157,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -59892,6 +62178,7 @@ export namespace Prisma {
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
@@ -59912,6 +62199,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
@@ -59996,6 +62284,7 @@ export namespace Prisma {
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -60016,6 +62305,7 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -60663,6 +62953,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -60693,6 +62984,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -60728,6 +63020,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -60758,6 +63051,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -60932,6 +63226,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -60962,6 +63257,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -61003,6 +63299,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -61033,6 +63330,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -61097,6 +63395,306 @@ export namespace Prisma {
     data: XOR<CredentialShareTokenUpdateManyMutationInput, CredentialShareTokenUncheckedUpdateManyWithoutCredentialInput>
   }
 
+  export type OrganizationCreateWithoutShiftTemplatesInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
+    notifications?: NotificationCreateNestedManyWithoutOrganizationInput
+    notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutShiftTemplatesInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagUncheckedCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
+    notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutShiftTemplatesInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutShiftTemplatesInput, OrganizationUncheckedCreateWithoutShiftTemplatesInput>
+  }
+
+  export type VolunteerOpportunityCreateWithoutShiftTemplatesInput = {
+    id?: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutOpportunitiesInput
+    tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityUncheckedCreateWithoutShiftTemplatesInput = {
+    id?: string
+    orgId: string
+    title: string
+    description: string
+    status?: $Enums.OpportunityStatus
+    location?: string | null
+    isRemote?: boolean
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    commitmentHours?: number | null
+    capacity?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
+    requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
+  }
+
+  export type VolunteerOpportunityCreateOrConnectWithoutShiftTemplatesInput = {
+    where: VolunteerOpportunityWhereUniqueInput
+    create: XOR<VolunteerOpportunityCreateWithoutShiftTemplatesInput, VolunteerOpportunityUncheckedCreateWithoutShiftTemplatesInput>
+  }
+
+  export type ShiftCreateWithoutTemplateInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutShiftsInput
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftsInput
+    signups?: ShiftSignupCreateNestedManyWithoutShiftInput
+  }
+
+  export type ShiftUncheckedCreateWithoutTemplateInput = {
+    id?: string
+    orgId: string
+    opportunityId?: string | null
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    signups?: ShiftSignupUncheckedCreateNestedManyWithoutShiftInput
+  }
+
+  export type ShiftCreateOrConnectWithoutTemplateInput = {
+    where: ShiftWhereUniqueInput
+    create: XOR<ShiftCreateWithoutTemplateInput, ShiftUncheckedCreateWithoutTemplateInput>
+  }
+
+  export type ShiftCreateManyTemplateInputEnvelope = {
+    data: ShiftCreateManyTemplateInput | ShiftCreateManyTemplateInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type OrganizationUpsertWithoutShiftTemplatesInput = {
+    update: XOR<OrganizationUpdateWithoutShiftTemplatesInput, OrganizationUncheckedUpdateWithoutShiftTemplatesInput>
+    create: XOR<OrganizationCreateWithoutShiftTemplatesInput, OrganizationUncheckedCreateWithoutShiftTemplatesInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutShiftTemplatesInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutShiftTemplatesInput, OrganizationUncheckedUpdateWithoutShiftTemplatesInput>
+  }
+
+  export type OrganizationUpdateWithoutShiftTemplatesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
+    notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
+    notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutShiftTemplatesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUncheckedUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
+    notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type VolunteerOpportunityUpsertWithoutShiftTemplatesInput = {
+    update: XOR<VolunteerOpportunityUpdateWithoutShiftTemplatesInput, VolunteerOpportunityUncheckedUpdateWithoutShiftTemplatesInput>
+    create: XOR<VolunteerOpportunityCreateWithoutShiftTemplatesInput, VolunteerOpportunityUncheckedCreateWithoutShiftTemplatesInput>
+    where?: VolunteerOpportunityWhereInput
+  }
+
+  export type VolunteerOpportunityUpdateToOneWithWhereWithoutShiftTemplatesInput = {
+    where?: VolunteerOpportunityWhereInput
+    data: XOR<VolunteerOpportunityUpdateWithoutShiftTemplatesInput, VolunteerOpportunityUncheckedUpdateWithoutShiftTemplatesInput>
+  }
+
+  export type VolunteerOpportunityUpdateWithoutShiftTemplatesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutOpportunitiesNestedInput
+    tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
+  }
+
+  export type VolunteerOpportunityUncheckedUpdateWithoutShiftTemplatesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumOpportunityStatusFieldUpdateOperationsInput | $Enums.OpportunityStatus
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    commitmentHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    capacity?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
+    requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
+  }
+
+  export type ShiftUpsertWithWhereUniqueWithoutTemplateInput = {
+    where: ShiftWhereUniqueInput
+    update: XOR<ShiftUpdateWithoutTemplateInput, ShiftUncheckedUpdateWithoutTemplateInput>
+    create: XOR<ShiftCreateWithoutTemplateInput, ShiftUncheckedCreateWithoutTemplateInput>
+  }
+
+  export type ShiftUpdateWithWhereUniqueWithoutTemplateInput = {
+    where: ShiftWhereUniqueInput
+    data: XOR<ShiftUpdateWithoutTemplateInput, ShiftUncheckedUpdateWithoutTemplateInput>
+  }
+
+  export type ShiftUpdateManyWithWhereWithoutTemplateInput = {
+    where: ShiftScalarWhereInput
+    data: XOR<ShiftUpdateManyMutationInput, ShiftUncheckedUpdateManyWithoutTemplateInput>
+  }
+
   export type OrganizationCreateWithoutShiftsInput = {
     id?: string
     name: string
@@ -61120,6 +63718,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -61150,6 +63749,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -61179,6 +63779,7 @@ export namespace Prisma {
     tags?: OpportunityTagCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOpportunityInput
   }
 
@@ -61199,12 +63800,54 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedCreateNestedManyWithoutOpportunityInput
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOpportunityInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutShiftsInput = {
     where: VolunteerOpportunityWhereUniqueInput
     create: XOR<VolunteerOpportunityCreateWithoutShiftsInput, VolunteerOpportunityUncheckedCreateWithoutShiftsInput>
+  }
+
+  export type ShiftTemplateCreateWithoutShiftsInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutShiftTemplatesInput
+    opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftTemplatesInput
+  }
+
+  export type ShiftTemplateUncheckedCreateWithoutShiftsInput = {
+    id?: string
+    orgId: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    opportunityId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftTemplateCreateOrConnectWithoutShiftsInput = {
+    where: ShiftTemplateWhereUniqueInput
+    create: XOR<ShiftTemplateCreateWithoutShiftsInput, ShiftTemplateUncheckedCreateWithoutShiftsInput>
   }
 
   export type ShiftSignupCreateWithoutShiftInput = {
@@ -61269,6 +63912,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -61299,6 +63943,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -61334,6 +63979,7 @@ export namespace Prisma {
     tags?: OpportunityTagUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -61354,7 +64000,55 @@ export namespace Prisma {
     tags?: OpportunityTagUncheckedUpdateManyWithoutOpportunityNestedInput
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
+  }
+
+  export type ShiftTemplateUpsertWithoutShiftsInput = {
+    update: XOR<ShiftTemplateUpdateWithoutShiftsInput, ShiftTemplateUncheckedUpdateWithoutShiftsInput>
+    create: XOR<ShiftTemplateCreateWithoutShiftsInput, ShiftTemplateUncheckedCreateWithoutShiftsInput>
+    where?: ShiftTemplateWhereInput
+  }
+
+  export type ShiftTemplateUpdateToOneWithWhereWithoutShiftsInput = {
+    where?: ShiftTemplateWhereInput
+    data: XOR<ShiftTemplateUpdateWithoutShiftsInput, ShiftTemplateUncheckedUpdateWithoutShiftsInput>
+  }
+
+  export type ShiftTemplateUpdateWithoutShiftsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutShiftTemplatesNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneWithoutShiftTemplatesNestedInput
+  }
+
+  export type ShiftTemplateUncheckedUpdateWithoutShiftsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ShiftSignupUpsertWithWhereUniqueWithoutShiftInput = {
@@ -61387,12 +64081,14 @@ export namespace Prisma {
     updatedAt?: Date | string
     organization: OrganizationCreateNestedOneWithoutShiftsInput
     opportunity?: VolunteerOpportunityCreateNestedOneWithoutShiftsInput
+    template?: ShiftTemplateCreateNestedOneWithoutShiftsInput
   }
 
   export type ShiftUncheckedCreateWithoutSignupsInput = {
     id?: string
     orgId: string
     opportunityId?: string | null
+    templateId?: string | null
     title: string
     description?: string | null
     location?: string | null
@@ -61488,12 +64184,14 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutShiftsNestedInput
     opportunity?: VolunteerOpportunityUpdateOneWithoutShiftsNestedInput
+    template?: ShiftTemplateUpdateOneWithoutShiftsNestedInput
   }
 
   export type ShiftUncheckedUpdateWithoutSignupsInput = {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
     opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62134,6 +64832,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
@@ -62164,6 +64863,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -62253,6 +64953,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
@@ -62283,6 +64984,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -62313,6 +65015,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
@@ -62343,6 +65046,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -62483,6 +65187,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
@@ -62513,6 +65218,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -62742,6 +65448,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -62772,6 +65479,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -62924,6 +65632,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -62954,6 +65663,7 @@ export namespace Prisma {
     credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -62985,6 +65695,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
@@ -63015,6 +65726,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -63097,6 +65809,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityUncheckedCreateWithoutVolunteerInvitationsInput = {
@@ -63117,6 +65830,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedCreateNestedManyWithoutOpportunityInput
     applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOpportunityInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOpportunityInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOpportunityInput
   }
 
   export type VolunteerOpportunityCreateOrConnectWithoutVolunteerInvitationsInput = {
@@ -63159,6 +65873,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
@@ -63189,6 +65904,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -63283,6 +65999,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOpportunityNestedInput
   }
 
   export type VolunteerOpportunityUncheckedUpdateWithoutVolunteerInvitationsInput = {
@@ -63303,6 +66020,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
   export type UserCreateWithoutNotificationsInput = {
@@ -63382,6 +66100,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -63412,6 +66131,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -63517,6 +66237,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -63547,6 +66268,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -63630,6 +66352,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
@@ -63660,6 +66383,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
     claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
     shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -63765,6 +66489,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
@@ -63795,6 +66520,7 @@ export namespace Prisma {
     sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
     claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -64525,6 +67251,7 @@ export namespace Prisma {
   export type ShiftCreateManyOrganizationInput = {
     id?: string
     opportunityId?: string | null
+    templateId?: string | null
     title: string
     description?: string | null
     location?: string | null
@@ -64533,6 +67260,23 @@ export namespace Prisma {
     endTime: Date | string
     capacity: number
     status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftTemplateCreateManyOrganizationInput = {
+    id?: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
+    opportunityId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -64812,6 +67556,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -64832,6 +67577,7 @@ export namespace Prisma {
     requirements?: OpportunityRequirementUncheckedUpdateManyWithoutOpportunityNestedInput
     applications?: VolunteerApplicationUncheckedUpdateManyWithoutOpportunityNestedInput
     shifts?: ShiftUncheckedUpdateManyWithoutOpportunityNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOpportunityNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOpportunityNestedInput
   }
 
@@ -65003,12 +67749,14 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     opportunity?: VolunteerOpportunityUpdateOneWithoutShiftsNestedInput
+    template?: ShiftTemplateUpdateOneWithoutShiftsNestedInput
     signups?: ShiftSignupUpdateManyWithoutShiftNestedInput
   }
 
   export type ShiftUncheckedUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
@@ -65025,6 +67773,7 @@ export namespace Prisma {
   export type ShiftUncheckedUpdateManyWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
@@ -65033,6 +67782,59 @@ export namespace Prisma {
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     capacity?: IntFieldUpdateOperationsInput | number
     status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftTemplateUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    opportunity?: VolunteerOpportunityUpdateOneWithoutShiftTemplatesNestedInput
+    shifts?: ShiftUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ShiftTemplateUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    shifts?: ShiftUncheckedUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ShiftTemplateUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65243,6 +68045,7 @@ export namespace Prisma {
   export type ShiftCreateManyOpportunityInput = {
     id?: string
     orgId: string
+    templateId?: string | null
     title: string
     description?: string | null
     location?: string | null
@@ -65251,6 +68054,23 @@ export namespace Prisma {
     endTime: Date | string
     capacity: number
     status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftTemplateCreateManyOpportunityInput = {
+    id?: string
+    orgId: string
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    dayOfWeek: number
+    startHour: number
+    startMinute: number
+    endHour: number
+    endMinute: number
+    capacity: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -65347,12 +68167,14 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutShiftsNestedInput
+    template?: ShiftTemplateUpdateOneWithoutShiftsNestedInput
     signups?: ShiftSignupUpdateManyWithoutShiftNestedInput
   }
 
   export type ShiftUncheckedUpdateWithoutOpportunityInput = {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
@@ -65369,6 +68191,7 @@ export namespace Prisma {
   export type ShiftUncheckedUpdateManyWithoutOpportunityInput = {
     id?: StringFieldUpdateOperationsInput | string
     orgId?: StringFieldUpdateOperationsInput | string
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
@@ -65377,6 +68200,59 @@ export namespace Prisma {
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     capacity?: IntFieldUpdateOperationsInput | number
     status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftTemplateUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutShiftTemplatesNestedInput
+    shifts?: ShiftUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ShiftTemplateUncheckedUpdateWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    shifts?: ShiftUncheckedUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ShiftTemplateUncheckedUpdateManyWithoutOpportunityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    dayOfWeek?: IntFieldUpdateOperationsInput | number
+    startHour?: IntFieldUpdateOperationsInput | number
+    startMinute?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    endMinute?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65565,6 +68441,72 @@ export namespace Prisma {
     claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ShiftCreateManyTemplateInput = {
+    id?: string
+    orgId: string
+    opportunityId?: string | null
+    title: string
+    description?: string | null
+    location?: string | null
+    isRemote?: boolean
+    startTime: Date | string
+    endTime: Date | string
+    capacity: number
+    status?: $Enums.ShiftStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ShiftUpdateWithoutTemplateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutShiftsNestedInput
+    opportunity?: VolunteerOpportunityUpdateOneWithoutShiftsNestedInput
+    signups?: ShiftSignupUpdateManyWithoutShiftNestedInput
+  }
+
+  export type ShiftUncheckedUpdateWithoutTemplateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    signups?: ShiftSignupUncheckedUpdateManyWithoutShiftNestedInput
+  }
+
+  export type ShiftUncheckedUpdateManyWithoutTemplateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    opportunityId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    isRemote?: BoolFieldUpdateOperationsInput | boolean
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    status?: EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

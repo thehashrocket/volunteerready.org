@@ -105,6 +105,48 @@ export async function getUpcomingSignupsForUser(userId: string, limit = 10) {
 	});
 }
 
+export async function getWaitlistForShift(shiftId: string) {
+	return prisma.shiftSignup.findMany({
+		where: { shiftId, status: 'WAITLISTED' },
+		include: {
+			user: { select: { id: true, name: true, email: true, image: true } },
+		},
+		orderBy: { createdAt: 'asc' },
+	});
+}
+
+export async function getUpcomingSignupsForUserIncludingWaitlist(
+	userId: string,
+	limit = 20,
+) {
+	return prisma.shiftSignup.findMany({
+		where: {
+			userId,
+			status: { in: ['CONFIRMED', 'WAITLISTED'] },
+			shift: {
+				startTime: { gte: new Date() },
+				status: { in: ['OPEN', 'FULL'] },
+			},
+		},
+		include: {
+			shift: {
+				select: {
+					id: true,
+					title: true,
+					startTime: true,
+					endTime: true,
+					location: true,
+					isRemote: true,
+					orgId: true,
+					organization: { select: { name: true, slug: true } },
+				},
+			},
+		},
+		orderBy: { shift: { startTime: 'asc' } },
+		take: limit,
+	});
+}
+
 // ---------------------------------------------------------------------------
 // Writes (transactional)
 // ---------------------------------------------------------------------------
@@ -119,6 +161,19 @@ export async function createSignup(
 			userId: input.userId,
 			notes: input.notes ?? null,
 			status: 'CONFIRMED',
+		},
+	});
+}
+
+export async function createWaitlistEntry(
+	tx: TxClient,
+	input: { shiftId: string; userId: string },
+) {
+	return tx.shiftSignup.create({
+		data: {
+			shiftId: input.shiftId,
+			userId: input.userId,
+			status: 'WAITLISTED',
 		},
 	});
 }

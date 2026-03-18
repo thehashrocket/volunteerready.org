@@ -260,7 +260,7 @@ export function computeTenure(
 
 /** Minimal signup record for reliability computation. */
 export interface SignupRecord {
-	status: 'CONFIRMED' | 'ATTENDED' | 'NO_SHOW' | 'CANCELLED';
+	status: 'CONFIRMED' | 'WAITLISTED' | 'ATTENDED' | 'NO_SHOW' | 'CANCELLED';
 	createdAt: Date;
 }
 

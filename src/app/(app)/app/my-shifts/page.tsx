@@ -18,7 +18,8 @@ import { trpc } from '@/lib/trpc/client';
 
 export default function MyShiftsPage() {
 	const qc = useQueryClient();
-	const { data: signups, isLoading } = trpc.shifts.myUpcoming.useQuery();
+	const { data: signups, isLoading } =
+		trpc.shifts.myUpcomingWithWaitlist.useQuery();
 
 	const cancelMut = trpc.shifts.cancelSignup.useMutation({
 		onSuccess: () => {
@@ -97,13 +98,18 @@ export default function MyShiftsPage() {
 								{signup.shift.isRemote && (
 									<Badge variant="outline">Remote</Badge>
 								)}
+								{signup.status === 'WAITLISTED' && (
+									<Badge variant="warning">Waitlisted</Badge>
+								)}
 								<Button
 									variant="outline"
 									size="sm"
 									className="w-full"
 									onClick={() => cancelMut.mutate({ shiftId: signup.shift.id })}
 								>
-									Cancel Signup
+									{signup.status === 'WAITLISTED'
+										? 'Leave Waitlist'
+										: 'Cancel Signup'}
 								</Button>
 							</CardContent>
 						</Card>

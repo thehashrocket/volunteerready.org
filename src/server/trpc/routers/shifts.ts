@@ -12,7 +12,11 @@ import {
 import {
 	cancelSignup,
 	getMyUpcomingShifts,
+	getMyUpcomingShiftsWithWaitlist,
 	getShiftSignups,
+	getShiftWaitlist,
+	joinWaitlist,
+	leaveWaitlist,
 	markAttendance,
 	signUpForShift,
 } from '@/server/services/shiftSignupService';
@@ -158,10 +162,38 @@ export const shiftsRouter = createTRPCRouter({
 			signUpForShift(input.shiftId, requireUserId(ctx.session), input.notes),
 		),
 
-	/** Cancel my signup. */
+	/** Cancel my signup (confirmed or waitlisted). */
 	cancelSignup: protectedProcedure
 		.input(z.object({ shiftId: z.string() }))
 		.mutation(({ ctx, input }) =>
 			cancelSignup(input.shiftId, requireUserId(ctx.session)),
 		),
+
+	// ---- Volunteer: Waitlist -------------------------------------------------
+
+	/** Get my upcoming signups including waitlisted entries. */
+	myUpcomingWithWaitlist: protectedProcedure.query(({ ctx }) =>
+		getMyUpcomingShiftsWithWaitlist(requireUserId(ctx.session)),
+	),
+
+	/** Join waitlist for a full shift. */
+	joinWaitlist: protectedProcedure
+		.input(z.object({ shiftId: z.string() }))
+		.mutation(({ ctx, input }) =>
+			joinWaitlist(input.shiftId, requireUserId(ctx.session)),
+		),
+
+	/** Leave the waitlist. */
+	leaveWaitlist: protectedProcedure
+		.input(z.object({ shiftId: z.string() }))
+		.mutation(({ ctx, input }) =>
+			leaveWaitlist(input.shiftId, requireUserId(ctx.session)),
+		),
+
+	// ---- Staff: Waitlist management ------------------------------------------
+
+	/** Get waitlist for a shift. */
+	getWaitlist: staffProcedure
+		.input(z.object({ shiftId: z.string() }))
+		.query(({ input }) => getShiftWaitlist(input.shiftId)),
 });

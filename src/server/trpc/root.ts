@@ -17,6 +17,7 @@ import { opportunitiesRouter } from '@/server/trpc/routers/opportunities';
 import { orgRouter } from '@/server/trpc/routers/org';
 import { profileRouter } from '@/server/trpc/routers/profile';
 import { screenerRouter } from '@/server/trpc/routers/screener';
+import { shiftTemplatesRouter } from '@/server/trpc/routers/shift-templates';
 import { shiftsRouter } from '@/server/trpc/routers/shifts';
 import { statusRouter } from '@/server/trpc/routers/status';
 
@@ -39,6 +40,7 @@ export const appRouter = createTRPCRouter({
 	org: orgRouter,
 	profile: profileRouter,
 	screener: screenerRouter,
+	shiftTemplates: shiftTemplatesRouter,
 	shifts: shiftsRouter,
 	status: statusRouter,
 });
