@@ -377,6 +377,7 @@ export function ShiftTemplatesTab() {
 												<Button
 													size="sm"
 													variant="ghost"
+													aria-label={`Delete template "${tmpl.title}"`}
 													onClick={() => {
 														if (
 															!confirm(
@@ -387,7 +388,7 @@ export function ShiftTemplatesTab() {
 														removeMut.mutate({ id: tmpl.id });
 													}}
 												>
-													<Trash2 className="h-3 w-3" />
+													<Trash2 className="h-3 w-3" aria-hidden="true" />
 												</Button>
 											</div>
 										</TableCell>

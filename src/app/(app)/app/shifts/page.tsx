@@ -561,26 +561,35 @@ export default function ShiftsPage() {
 																<Button
 																	size="sm"
 																	variant="outline"
+																	aria-label={`Mark "${shift.title}" complete`}
 																	onClick={() =>
 																		completeMut.mutate({ id: shift.id })
 																	}
 																>
-																	<CheckCircle2 className="h-3 w-3" />
+																	<CheckCircle2
+																		className="h-3 w-3"
+																		aria-hidden="true"
+																	/>
 																</Button>
 																<Button
 																	size="sm"
 																	variant="outline"
+																	aria-label={`Cancel "${shift.title}"`}
 																	onClick={() =>
 																		cancelMut.mutate({ id: shift.id })
 																	}
 																>
-																	<XCircle className="h-3 w-3" />
+																	<XCircle
+																		className="h-3 w-3"
+																		aria-hidden="true"
+																	/>
 																</Button>
 															</>
 														) : null}
 														<Button
 															size="sm"
 															variant="ghost"
+															aria-label={`Delete "${shift.title}"`}
 															onClick={() => {
 																if (
 																	!confirm(
@@ -591,7 +600,7 @@ export default function ShiftsPage() {
 																removeMut.mutate({ id: shift.id });
 															}}
 														>
-															<Trash2 className="h-3 w-3" />
+															<Trash2 className="h-3 w-3" aria-hidden="true" />
 														</Button>
 													</div>
 												</TableCell>

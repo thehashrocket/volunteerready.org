@@ -73,7 +73,10 @@ export function PlanGate({
 			<Card className="max-w-md w-full">
 				<CardHeader className="text-center">
 					<div className="flex justify-center mb-4">
-						<Lock className="h-10 w-10 text-muted-foreground" />
+						<Lock
+							className="h-10 w-10 text-muted-foreground"
+							aria-hidden="true"
+						/>
 					</div>
 					<CardTitle>{feature}</CardTitle>
 					<CardDescription>{description}</CardDescription>

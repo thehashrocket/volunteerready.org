@@ -206,12 +206,16 @@ function AnalyticsDashboard() {
 				</div>
 
 				{/* Date range tabs */}
-				<div className="flex gap-1 rounded-lg border bg-muted p-1">
+				<fieldset
+					className="flex gap-1 rounded-lg border bg-muted p-1 m-0 min-w-0"
+					aria-label="Date range"
+				>
 					{DATE_RANGES.map(({ label, days }) => (
 						<button
 							key={label}
 							type="button"
 							onClick={() => setSelectedDays(days)}
+							aria-pressed={selectedDays === days}
 							className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
 								selectedDays === days
 									? 'bg-background text-foreground shadow-sm'
@@ -221,7 +225,7 @@ function AnalyticsDashboard() {
 							{label}
 						</button>
 					))}
-				</div>
+				</fieldset>
 			</div>
 
 			{dashboardQ.isLoading ? (

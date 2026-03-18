@@ -50,7 +50,7 @@ export function NotificationBell() {
 					className="relative h-9 w-9 p-0"
 					aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
 				>
-					<Bell className="h-4 w-4" />
+					<Bell className="h-4 w-4" aria-hidden="true" />
 					{unreadCount > 0 && (
 						<span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
 							{unreadCount > 99 ? '99+' : unreadCount}
@@ -82,7 +82,10 @@ export function NotificationBell() {
 				<div className="max-h-96 overflow-y-auto">
 					{items.length === 0 ? (
 						<div className="px-4 py-8 text-center">
-							<Bell className="mx-auto h-8 w-8 text-muted-foreground/40" />
+							<Bell
+								className="mx-auto h-8 w-8 text-muted-foreground/40"
+								aria-hidden="true"
+							/>
 							<p className="mt-2 text-sm text-muted-foreground">
 								You&apos;re all caught up
 							</p>
@@ -97,7 +100,10 @@ export function NotificationBell() {
 									>
 										<div className="flex items-start gap-2">
 											{isUnread && (
-												<span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+												<span
+													className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary"
+													aria-hidden="true"
+												/>
 											)}
 											<div className="min-w-0 flex-1">
 												<p className="text-sm font-medium leading-tight">
