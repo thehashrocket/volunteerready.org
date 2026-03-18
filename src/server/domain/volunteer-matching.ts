@@ -4,9 +4,15 @@
 // Zero framework imports. All functions are pure and side-effect free.
 // ---------------------------------------------------------------------------
 
-/** A volunteer's canonical skill ID set. */
+import type { AvailabilityType, CredentialType } from './volunteer-profile';
+
+/** A volunteer's canonical skill ID set, with optional context signals. */
 export interface VolunteerSkillSet {
 	skillIds: string[];
+	/** VERIFIED credential types the volunteer holds (for bonus scoring). */
+	verifiedCredentialTypes?: CredentialType[];
+	/** Volunteer's stated availability preference (for alignment bonus). */
+	availability?: AvailabilityType | null;
 }
 
 /** A single requirement on the demand side. */
@@ -26,6 +32,16 @@ export interface OpportunityRequirement {
 export interface OpportunityRequirementSet {
 	opportunityId: string;
 	requirements: OpportunityRequirement[];
+	/**
+	 * Credential types that are preferred for this opportunity.
+	 * Each VERIFIED match adds a +5 bonus (up to the cap).
+	 */
+	preferredCredentialTypes?: CredentialType[];
+	/**
+	 * The shift schedule pattern — used for availability alignment.
+	 * Populated by the service layer from the opportunity's shifts.
+	 */
+	shiftSchedule?: 'WEEKDAYS' | 'WEEKENDS' | 'EVENINGS' | null;
 }
 
 export type MatchType = 'PERFECT' | 'PARTIAL' | 'NONE';
@@ -129,10 +145,25 @@ export function scoreOpportunity(
 	const preferredRatio =
 		preferred.length > 0 ? matchedPreferred.length / preferred.length : 1;
 
-	// Base 50 for meeting all required, up to 50 more for preferred
-	const score = Math.round(50 + preferredRatio * 50);
+	// Base 50 for meeting all required, up to 50 more for preferred skills.
+	// This preserves existing scoring behavior.
+	const skillScore = Math.round(50 + preferredRatio * 50);
 
-	const matchType: MatchType = score === 100 ? 'PERFECT' : 'PARTIAL';
+	// Context bonuses (availability +5, credential match +5) act as tiebreakers.
+	// They do NOT affect matchType — PERFECT is determined by skill matching only.
+	const availabilityBonus = computeAvailabilityBonus(
+		volunteer.availability ?? null,
+		opportunity.shiftSchedule ?? null,
+	);
+	const credentialBonus = computeCredentialBonus(
+		volunteer.verifiedCredentialTypes ?? [],
+		opportunity.preferredCredentialTypes ?? [],
+	);
+
+	const score = Math.min(100, skillScore + availabilityBonus + credentialBonus);
+
+	// matchType is based on skill score only, not total (bonuses don't change the match verdict)
+	const matchType: MatchType = skillScore === 100 ? 'PERFECT' : 'PARTIAL';
 
 	return {
 		opportunityId: opportunity.opportunityId,
@@ -142,6 +173,26 @@ export function scoreOpportunity(
 		missingRequired,
 		matchedPreferred,
 	};
+}
+
+function computeAvailabilityBonus(
+	availability: AvailabilityType | null,
+	shiftSchedule: 'WEEKDAYS' | 'WEEKENDS' | 'EVENINGS' | null,
+): number {
+	if (!availability || !shiftSchedule) return 0;
+	if (availability === 'FLEXIBLE') return 5;
+	if (availability === shiftSchedule) return 5;
+	return 0;
+}
+
+function computeCredentialBonus(
+	volunteerCredentials: CredentialType[],
+	preferredTypes: CredentialType[],
+): number {
+	if (preferredTypes.length === 0) return 0;
+	const volunteerSet = new Set(volunteerCredentials);
+	const hasMatch = preferredTypes.some((t) => volunteerSet.has(t));
+	return hasMatch ? 5 : 0;
 }
 
 /**
