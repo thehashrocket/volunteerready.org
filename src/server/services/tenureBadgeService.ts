@@ -21,7 +21,7 @@
  *           └─→ P2002 on concurrent issue → catch + continue
  */
 
-import { computeTenure } from '@/server/domain/volunteer-profile';
+import { computeTenure, MS_PER_YEAR } from '@/server/domain/volunteer-profile';
 import { prisma } from '@/server/repositories/prisma';
 import { getAttendedShiftsForUser } from '@/server/repositories/shiftSignupRepo';
 import { listUserApplications } from '@/server/repositories/volunteer-applications';
@@ -39,8 +39,6 @@ const TENURE_MILESTONES = [
 	{ level: '3YR', type: 'TENURE_3YR' as const },
 	{ level: '5YR', type: 'TENURE_5YR' as const },
 ] as const;
-
-const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 
 // ---------------------------------------------------------------------------
 // Platform org lookup

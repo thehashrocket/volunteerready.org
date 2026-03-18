@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+	Award,
 	Briefcase,
 	Building2,
 	CalendarClock,
@@ -585,6 +586,9 @@ const CREDENTIAL_META: Record<string, { label: string; icon: typeof Shield }> =
 			label: 'Orientation Complete',
 			icon: GraduationCap,
 		},
+		TENURE_1YR: { label: '1 Year Volunteer', icon: Award },
+		TENURE_3YR: { label: '3 Year Volunteer', icon: Award },
+		TENURE_5YR: { label: '5 Year Volunteer', icon: Award },
 	};
 
 function getCredentialMeta(type: string) {

@@ -204,6 +204,8 @@ export function summarizeCredentials(
 // Tenure Computation (Phase 7)
 // ---------------------------------------------------------------------------
 
+export const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+
 export type TenureLevel = 'NONE' | '1YR' | '3YR' | '5YR';
 
 export interface TenureResult {
@@ -235,7 +237,7 @@ export function computeTenure(
 		a.recordedAt < min.recordedAt ? a : min,
 	).recordedAt;
 
-	const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
+	const msPerYear = MS_PER_YEAR;
 	const years = Math.floor((now.getTime() - earliest.getTime()) / msPerYear);
 
 	let level: TenureLevel;
@@ -311,7 +313,7 @@ export function computeReliabilityScore(
 	const tenureScore =
 		Math.min(tenureYears, MAX_TENURE_YEARS) / MAX_TENURE_YEARS;
 
-	const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
+	const msPerYear = MS_PER_YEAR;
 	const hasRecentActivity = signups.some(
 		(s) => now.getTime() - s.createdAt.getTime() < msPerYear,
 	);

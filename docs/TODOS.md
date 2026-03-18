@@ -263,7 +263,7 @@ certification name, issuing org, issue date, expiry date, credential URL.
 
 **Effort:** S | **Priority:** P3 | **Depends on:** /v/[userId] public page, LinkedIn Partner status
 
-### [P3] Volunteer Tenure Badge Auto-Issuance Service
+### ~~[P3] Volunteer Tenure Badge Auto-Issuance Service~~ ✅ Complete
 
 **What:** Service that automatically issues a `VolunteerCredential` of type
 `TENURE_1YR/3YR/5YR` when a volunteer crosses a milestone.
@@ -284,7 +284,7 @@ re-join is out of scope — tenure is additive from earliest activity.
 **Pros:** Completes the tenure gamification loop; credentials appear on public profile immediately.
 **Cons:** Need trigger points in 3 services; platform org must always exist (seeded).
 
-**Effort:** M | **Priority:** P3 | **Depends on:** ✅ Phase 7 PR1 (enum + computeTenure + platform org seeded)
+**Effort:** M | **Priority:** ~~P3~~ | **Depends on:** ✅ Phase 7 PR1 (enum + computeTenure + platform org seeded) | **Completed:** v0.7.0 (2026-03-17)
 
 ### ~~[P3] Auto-Share Credentials on Apply ("Bring My Credentials" Checkbox)~~ ✅ Complete
 

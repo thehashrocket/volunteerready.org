@@ -85,7 +85,11 @@ src/
 │   │   ├── how-it-works/         # Product walkthrough
 │   │   ├── pricing/              # Plan comparison + pricing
 │   │   ├── about/                # Team and mission
-│   │   └── security/             # Security & compliance
+│   │   ├── security/             # Security & compliance
+│   │   └── v/[userId]/           # Public volunteer identity page (SEO-optimized, share card)
+│   ├── api/
+│   │   ├── share-card/[userId]/  # OG social share image (@vercel/og) — forest green/sand palette
+│   │   └── ...                   # stripe webhook, checkr webhook, etc.
 │   ├── apply/[orgSlug]/          # Public volunteer application form
 │   ├── apply/status/             # Email-based status lookup
 │   ├── credentials/claim/[token]/ # Public credential share claim page
@@ -159,8 +163,9 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **VolunteerOpportunity** — a volunteer position with status (`DRAFT | PUBLISHED | CLOSED`), location, dates, capacity.
 - **OpportunityTag / OpportunityRequirement** — metadata for opportunities.
 - **VolunteerProfile** — 1:1 with User (cross-org). Bio, phone, location, availability, visibility, interests.
-- **VolunteerCredential** — org-scoped verification badges (unique per user + org + type). Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE. Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED. Credentials shared from other orgs carry provenance fields (`sharedFromOrgId`, `sharedFromCredentialId`).
+- **VolunteerCredential** — org-scoped verification badges (unique per user + org + type). Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE, TENURE_1YR, TENURE_3YR, TENURE_5YR. Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED. Credentials shared from other orgs carry provenance fields (`sharedFromOrgId`, `sharedFromCredentialId`). Tenure badges are system-issued by the platform org (slug: `platform`) via `tenureBadgeService`.
 - **CredentialShareToken** — time-limited (30-day) share link for a VERIFIED credential. SHA-256 hashed token storage. Status lifecycle: ACTIVE → CLAIMED / EXPIRED. Optimistic lock on claim prevents concurrent claims.
+- **VolunteerInvitation** — tracks org-to-volunteer invitations for proactive talent discovery. Unique constraint on `(orgId, volunteerId, opportunityId)` for duplicate detection. Rate-limited per org (10 invites/day).
 - **Shift** — org-scoped volunteer shift with time range, capacity, status, optional opportunity link.
 - **ShiftSignup** — volunteer sign-up for a shift (unique per shift + user). Status: CONFIRMED / CANCELLED / NO_SHOW / ATTENDED.
 - **BackgroundCheckRequest** — org-scoped background check lifecycle (PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED). FCRA status nested within CONSIDER: NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED. Provider tokens encrypted at rest (AES-256-GCM).
@@ -210,7 +215,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `onboarding` | create org, initial setup |
 | `opportunities` | create, update, delete, list, getById |
 | `org` | getCurrentOrg, listOrgs, switchOrg |
-| `profile` | getMyProfile, updateMyProfile, getMyStats |
+| `profile` | getMyProfile, updateMyProfile, getMyStats, getMyUserId, getPublicProfile (public), getOrgVisibleProfile (staff) |
 | `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail |
 | `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |
 | `billing` | createCheckoutSession, createBillingPortalSession, getBillingStatus |
@@ -392,6 +397,8 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/domain/shift.ts` | Shift capacity, signup validation, attendance summaries |
 | `src/server/services/shiftService.ts` | Shift CRUD with audit logging |
 | `src/server/services/shiftSignupService.ts` | Signup orchestration with capacity + conflict checks |
+| `src/server/services/volunteerIdentityService.ts` | Public volunteer identity assembly — getPublicProfile, getOrgVisibleProfile, reliability score |
+| `src/server/services/tenureBadgeService.ts` | Fire-and-forget tenure badge issuance — idempotent, P2002-safe, called from 3 service triggers |
 | `src/server/domain/credential-sharing.ts` | Share token lifecycle guards, expiry computation |
 | `src/server/services/credentialShareService.ts` | Credential sharing workflows (generate, claim, revoke, shareAllOnApply) |
 | `src/server/lib/tokens.ts` | Shared token generation (256-bit) and SHA-256 hashing |
@@ -416,6 +423,9 @@ pnpm docs:dev               # VitePress dev server
 | 6C — Portable Credential Sharing | ✅ Complete |
 | 6D — Corporate ESG Reporting | ✅ Complete |
 | 6E — Mobile PWA | Planned |
+| 7 — Network Growth & Volunteer Identity | 🚧 In Progress |
+
+Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses.
 
 See `docs/ROADMAP.md` for details.
 
