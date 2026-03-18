@@ -151,7 +151,6 @@ function DashboardSkeleton() {
 		<div className="space-y-8">
 			<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 				{Array.from({ length: 4 }).map((_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
 					<Card key={i}>
 						<CardHeader className="pb-2">
 							<Skeleton className="h-4 w-24" />
@@ -190,7 +189,6 @@ function DashboardSkeleton() {
 				<CardContent>
 					<div className="space-y-3">
 						{Array.from({ length: 5 }).map((_, i) => (
-							// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
 							<Skeleton key={i} className="h-10 w-full" />
 						))}
 					</div>
@@ -330,7 +328,7 @@ export function AnalyticsClient() {
 					{/* Top volunteers */}
 					<section>
 						<h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-							Top Volunteers
+							Top Volunteers — All Time
 						</h2>
 						<Card>
 							<CardContent className="p-0">

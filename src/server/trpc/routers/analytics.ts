@@ -20,7 +20,9 @@ export const analyticsRouter = createTRPCRouter({
 				.optional(),
 		)
 		.query(async ({ ctx, input }) => {
+			// days is null for all-time, positive integer for a date range, or 90 by default.
+			// z.number().int().positive() ensures 0 cannot be passed.
 			const days = input?.days ?? 90;
-			return getOrgAnalyticsDashboard(ctx.orgId, days === 0 ? null : days);
+			return getOrgAnalyticsDashboard(ctx.orgId, days);
 		}),
 });

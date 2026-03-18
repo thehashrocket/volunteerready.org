@@ -21,7 +21,7 @@ export type ApplicationFunnelStats = {
 	approved: number;
 	/** Distinct volunteers who ATTENDED at least one shift in the period. */
 	shifted: number;
-	/** Distinct volunteers who hold a VERIFIED credential from this org. */
+	/** Distinct volunteers who received a VERIFIED credential from this org in the period. */
 	credentialed: number;
 };
 
