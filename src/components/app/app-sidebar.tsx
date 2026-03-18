@@ -13,6 +13,7 @@ import {
 	Settings,
 	Star,
 	User,
+	UserSearch,
 	Users,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -39,6 +40,7 @@ const STAFF_NAV: NavItem[] = [
 	{ label: 'Applications', href: '/app/applications', icon: FileText },
 	{ label: 'Screener', href: '/app/screener', icon: ClipboardList },
 	{ label: 'Shifts', href: '/app/shifts', icon: Calendar },
+	{ label: 'Discover', href: '/app/discover', icon: UserSearch },
 	{ label: 'Team', href: '/app/settings/team', icon: Users },
 	{ label: 'Settings', href: '/app/credentials', icon: Settings },
 	{ label: 'Billing', href: '/app/billing', icon: CreditCard },

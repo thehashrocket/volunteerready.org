@@ -13,6 +13,6 @@ export default defineConfig({
 	test: {
 		globals: true,
 		include: ["src/**/*.test.ts"],
-		exclude: ["node_modules", ".next", "prisma/generated"],
+		exclude: ["node_modules", ".next", "prisma/generated", "src/**/*.integration.test.ts"],
 	},
 });

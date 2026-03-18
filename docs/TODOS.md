@@ -467,3 +467,26 @@ who hide their UI behind demo requests.
 **Cons:** Screenshots need updating when UI changes; requires realistic demo data.
 
 **Effort:** M | **Priority:** P2 | **Depends on:** ✅ Public site rewrite shipped
+
+---
+
+## Volunteer Discovery
+
+### [P1] HTTP Rate Limiting for volunteer search endpoint
+
+**What:** Add request-level rate limiting to `discovery.searchVolunteers` (e.g., 60 req/min per org).
+
+**Why:** The `VOLUNTEER_DISCOVERY_ENABLED` env var gate must stay enabled until rate limiting lands.
+Without request-level limits, an org could call `searchVolunteers` thousands of times per minute
+once the gate is removed, scraping all PUBLIC volunteer data in bulk.
+
+**Context:** The invite-to-apply DB throttle (10/day per org) only limits invitations, not search
+queries. Request-level rate limiting requires @upstash/ratelimit + Redis/Vercel KV infrastructure
+not yet in the stack. This should be implemented as a tRPC middleware on `staffProcedure` or as a
+separate `rateLimitedStaffProcedure`. When this ships, remove the `VOLUNTEER_DISCOVERY_ENABLED`
+env var gate from `src/app/(app)/app/discover/page.tsx`.
+
+**Pros:** Enables safe removal of the env var gate; prevents bulk scraping of volunteer data.
+**Cons:** New infrastructure dependency (Redis/Vercel KV); adds per-request latency.
+
+**Effort:** M | **Priority:** P1 | **Depends on:** Redis/Vercel KV infrastructure decision

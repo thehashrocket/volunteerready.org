@@ -14,6 +14,7 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:watch": "vitest",
+		"test:integration": "vitest run --config vitest.integration.config.mts",
 		"prepare": "git config core.hooksPath .githooks",
 		"docs:dev": "vitepress dev docs",
 		"docs:build": "vitepress build docs",
