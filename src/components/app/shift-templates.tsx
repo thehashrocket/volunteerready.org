@@ -18,6 +18,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
 	Dialog,
 	DialogContent,
@@ -45,7 +46,6 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { trpc } from '@/lib/trpc/client';
 import { DAY_OF_WEEK_LABELS } from '@/server/domain/shift';
 
@@ -209,10 +209,7 @@ function CreateTemplateDialog() {
 						</div>
 					</div>
 					<div className="flex items-center gap-2">
-						<Checkbox
-							id="tmpl-remote"
-							{...form.register('isRemote')}
-						/>
+						<Checkbox id="tmpl-remote" {...form.register('isRemote')} />
 						<Label htmlFor="tmpl-remote">Remote shift</Label>
 					</div>
 					<Button type="submit" disabled={create.isPending} className="w-full">
@@ -380,7 +377,10 @@ export function ShiftTemplatesTab() {
 												<Button
 													size="sm"
 													variant="ghost"
-													onClick={() => removeMut.mutate({ id: tmpl.id })}
+													onClick={() => {
+													if (!confirm(`Delete "${tmpl.title}"? This cannot be undone.`)) return;
+													removeMut.mutate({ id: tmpl.id });
+												}}
 												>
 													<Trash2 className="h-3 w-3" />
 												</Button>
