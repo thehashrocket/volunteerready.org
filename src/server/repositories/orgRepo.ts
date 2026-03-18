@@ -42,6 +42,21 @@ export async function findOrgByStripeCustomerId(stripeCustomerId: string) {
 	});
 }
 
+export async function findOrgWithOwnerEmail(orgId: string) {
+	return prisma.organization.findUnique({
+		where: { id: orgId },
+		select: {
+			id: true,
+			name: true,
+			members: {
+				where: { role: 'OWNER' },
+				take: 1,
+				select: { user: { select: { email: true, name: true } } },
+			},
+		},
+	});
+}
+
 export async function updateOrgPlanTx(
 	tx: TxClient,
 	orgId: string,

@@ -42,6 +42,21 @@ export async function findCompanyByStripeCustomerId(stripeCustomerId: string) {
 	});
 }
 
+export async function findCompanyWithOwnerEmail(companyId: string) {
+	return prisma.companyAccount.findUnique({
+		where: { id: companyId },
+		select: {
+			id: true,
+			name: true,
+			members: {
+				where: { role: 'OWNER' },
+				take: 1,
+				select: { user: { select: { email: true, name: true } } },
+			},
+		},
+	});
+}
+
 export async function createCompanyWithOwnerTx(
 	tx: TxClient,
 	{
