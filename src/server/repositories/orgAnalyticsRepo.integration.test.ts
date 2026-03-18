@@ -475,7 +475,7 @@ describe('getTopVolunteers', () => {
 	it('returns empty array for an org with no ATTENDED shifts', async () => {
 		const org = await seedOrg('topvol-empty');
 
-		const result = await getTopVolunteers(org.id, 10);
+		const result = await getTopVolunteers(org.id, 10, new Date(0));
 
 		expect(result).toEqual([]);
 	});
@@ -498,7 +498,7 @@ describe('getTopVolunteers', () => {
 		await seedSignup(shift1.id, u1.id, { status: 'ATTENDED' });
 		await seedSignup(shift2.id, u2.id, { status: 'ATTENDED' });
 
-		const result = await getTopVolunteers(org.id, 10);
+		const result = await getTopVolunteers(org.id, 10, new Date(0));
 
 		expect(result[0].userId).toBe(u1.id);
 		expect(result[0].totalHours).toBeCloseTo(4.0, 1);
@@ -524,7 +524,7 @@ describe('getTopVolunteers', () => {
 			await seedSignup(s.id, u.id, { status: 'ATTENDED' });
 		}
 
-		const result = await getTopVolunteers(org.id, 3);
+		const result = await getTopVolunteers(org.id, 3, new Date(0));
 
 		expect(result).toHaveLength(3);
 	});
@@ -539,7 +539,7 @@ describe('getTopVolunteers', () => {
 
 		await seedSignup(shift.id, user.id, { status: 'CONFIRMED' }); // not ATTENDED
 
-		const result = await getTopVolunteers(org.id, 10);
+		const result = await getTopVolunteers(org.id, 10, new Date(0));
 
 		expect(result).toHaveLength(0);
 	});
@@ -556,7 +556,7 @@ describe('getTopVolunteers', () => {
 		await seedCredential(user.id, org.id, { status: 'VERIFIED' });
 		await seedCredential(user.id, org.id, { status: 'PENDING' }); // not verified
 
-		const result = await getTopVolunteers(org.id, 10);
+		const result = await getTopVolunteers(org.id, 10, new Date(0));
 
 		expect(result[0].verifiedCredentialCount).toBe(1);
 	});
@@ -571,7 +571,7 @@ describe('getTopVolunteers', () => {
 
 		await seedSignup(shift.id, user.id, { status: 'ATTENDED' });
 
-		const result = await getTopVolunteers(org.id, 10);
+		const result = await getTopVolunteers(org.id, 10, new Date(0));
 
 		expect(result[0].userId).toBe(user.id);
 		expect(result[0].displayName).toBe('Vol topvol-shape-u1');
@@ -597,7 +597,7 @@ describe('getTopVolunteers', () => {
 		await seedSignup(shift1.id, u1.id, { status: 'ATTENDED' });
 		await seedSignup(shift2.id, u2.id, { status: 'ATTENDED' });
 
-		const result = await getTopVolunteers(org1.id, 10);
+		const result = await getTopVolunteers(org1.id, 10, new Date(0));
 
 		expect(result).toHaveLength(1);
 		expect(result[0].userId).toBe(u1.id);

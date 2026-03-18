@@ -169,6 +169,7 @@ export async function getAvgFillRate(
 export async function getTopVolunteers(
 	orgId: string,
 	limit: number,
+	fromDate: Date,
 ): Promise<TopVolunteerRow[]> {
 	const rows = await prisma.$queryRaw<
 		{
@@ -198,6 +199,7 @@ export async function getTopVolunteers(
 		JOIN "User" u ON u.id = ss."userId"
 		WHERE sh."orgId" = ${orgId}
 		  AND ss.status = 'ATTENDED'
+		  AND ss."createdAt" >= ${fromDate}
 		GROUP BY u.id, u.name
 		ORDER BY total_hours DESC NULLS LAST
 		LIMIT ${limit}

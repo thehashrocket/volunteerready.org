@@ -293,7 +293,7 @@ function AnalyticsDashboard() {
 					{/* Top volunteers */}
 					<section>
 						<h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-							Top Volunteers — All Time
+							Top Volunteers
 						</h2>
 						<Card>
 							<CardContent className="p-0">

@@ -69,7 +69,7 @@ export async function getOrgAnalyticsDashboard(
 		// Retention comparison is undefined for all-time (no "prior period").
 		days !== null ? getRetentionStats(orgId, fromDate) : Promise.resolve(null),
 		getAvgFillRate(orgId, fromDate),
-		getTopVolunteers(orgId, 10),
+		getTopVolunteers(orgId, 10, fromDate),
 	]);
 
 	return {

@@ -157,12 +157,14 @@ describe('getOrgAnalyticsDashboard', () => {
 			});
 		});
 
-		it('calls getTopVolunteers with orgId and limit=10 regardless of date range', async () => {
+		it('calls getTopVolunteers with orgId, limit=10, and fromDate', async () => {
 			await getOrgAnalyticsDashboard(ORG_ID, 30);
 
-			expect(mocks.getTopVolunteers).toHaveBeenCalledWith(ORG_ID, 10);
-			// topVolunteers always all-time — no fromDate parameter
-			expect(mocks.getTopVolunteers.mock.calls[0]).toHaveLength(2);
+			expect(mocks.getTopVolunteers).toHaveBeenCalledWith(
+				ORG_ID,
+				10,
+				expect.any(Date),
+			);
 		});
 	});
 
