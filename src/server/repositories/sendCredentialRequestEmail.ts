@@ -1,5 +1,4 @@
-import { buildEmailHtml } from '@/server/lib/email-template';
-import { getFromEmail, getResend } from '@/server/lib/resend';
+import { sendEmail } from '@/server/lib/email';
 
 /** Email asking a volunteer to share their credentials with an organization. */
 export async function sendCredentialRequestEmail(opts: {
@@ -8,11 +7,10 @@ export async function sendCredentialRequestEmail(opts: {
 	orgName: string;
 	profileUrl: string;
 }) {
-	await getResend().emails.send({
-		from: getFromEmail(),
-		to: opts.to,
-		subject: `${opts.orgName} would like to see your verified credentials`,
-		html: buildEmailHtml(`
+	await sendEmail(
+		opts.to,
+		`${opts.orgName} would like to see your verified credentials`,
+		`
         <p>Hi ${opts.volunteerName || 'there'},</p>
         <p>
           <strong>${opts.orgName}</strong> noticed you have verified credentials on VolunteerReady
@@ -28,6 +26,6 @@ export async function sendCredentialRequestEmail(opts: {
           </a>
         </p>
         <p>If you don't want to share, you can simply ignore this email.</p>
-    `),
-	});
+    `,
+	);
 }
