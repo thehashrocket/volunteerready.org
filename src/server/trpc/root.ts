@@ -1,4 +1,5 @@
 import { createTRPCRouter } from '@/server/trpc/init';
+import { analyticsRouter } from '@/server/trpc/routers/analytics';
 import { authRouter } from '@/server/trpc/routers/auth';
 import { backgroundChecksRouter } from '@/server/trpc/routers/background-checks';
 import { billingRouter } from '@/server/trpc/routers/billing';
@@ -19,6 +20,7 @@ import { shiftsRouter } from '@/server/trpc/routers/shifts';
 import { statusRouter } from '@/server/trpc/routers/status';
 
 export const appRouter = createTRPCRouter({
+	analytics: analyticsRouter,
 	auth: authRouter,
 	backgroundChecks: backgroundChecksRouter,
 	billing: billingRouter,
