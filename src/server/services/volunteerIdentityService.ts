@@ -97,7 +97,12 @@ async function assembleProfile(
 	const tenureResult = computeTenure(activityRecords);
 
 	const signupRecords = signups.map((s) => ({
-		status: s.status as 'CONFIRMED' | 'ATTENDED' | 'NO_SHOW' | 'CANCELLED',
+		status: s.status as
+			| 'CONFIRMED'
+			| 'WAITLISTED'
+			| 'ATTENDED'
+			| 'NO_SHOW'
+			| 'CANCELLED',
 		createdAt: s.createdAt,
 	}));
 	const reliabilityScore = computeReliabilityScore(

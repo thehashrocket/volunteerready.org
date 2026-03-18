@@ -120,7 +120,11 @@ describe('createNotificationSchema', () => {
 
 describe('updatePreferenceSchema', () => {
 	it('accepts valid input', () => {
-		const input = { type: 'SHIFT_REMINDER' as const, inApp: true, email: false };
+		const input = {
+			type: 'SHIFT_REMINDER' as const,
+			inApp: true,
+			email: false,
+		};
 		expect(updatePreferenceSchema.parse(input)).toEqual(input);
 	});
 

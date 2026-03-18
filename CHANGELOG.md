@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2026-03-18
+
+### Added
+- **Shift templates** — Staff can create recurring shift templates (day of week, time range, capacity) and generate concrete shifts from them for N weeks at a time. Templates are plan-gated to STARTER+.
+- **Waitlist for full shifts** — Volunteers can join a waitlist when a shift is at capacity. When a confirmed volunteer cancels, the earliest waitlisted volunteer is auto-promoted (FIFO) with an in-app notification and audit trail.
+- **Templates tab on Shifts page** — New "Templates" tab on the admin shifts page with full CRUD: create, edit, delete, and "Generate N Weeks" workflow.
+- **Waitlist UI** — Staff see a waitlist section in the shift detail dialog. Volunteers see "Waitlisted" badges and "Leave Waitlist" actions on My Shifts.
+- **Delete confirmations** — Shift and template delete buttons now require a confirmation dialog before proceeding.
+- **Shared `requireUserId` utility** — Extracted duplicated auth helper from 6 tRPC routers into a single shared function in `trpc/init.ts`.
+
+### Changed
+- My Shifts page now uses `EmptyState` component with warm design system styling and a "Browse Opportunities" CTA.
+- Shift create form and template create form use `Checkbox` component instead of native HTML input.
+
+### For contributors
+- `ShiftTemplate` Prisma model with org FK, opportunity FK, and indexes
+- `WAITLISTED` added to `SignupStatus` enum
+- `shiftTemplateRepo.ts` — template CRUD + bulk shift creation
+- `shiftTemplateService.ts` — business logic with audit logging and time validation
+- `shiftSignupService.ts` — `joinWaitlist()`, `leaveWaitlist()`, auto-promote in `cancelSignup()`
+- `shift-templates.ts` tRPC router — `list`, `create`, `update`, `remove`, `generate` procedures
+- 38 new tests: domain validation (17), waitlist service (10), template service (11)
+
 ## [0.10.0] - 2026-03-18
 
 ### Added

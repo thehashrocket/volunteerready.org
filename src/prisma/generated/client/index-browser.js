@@ -342,10 +342,29 @@ exports.Prisma.VolunteerCredentialScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ShiftTemplateScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  title: 'title',
+  description: 'description',
+  location: 'location',
+  isRemote: 'isRemote',
+  dayOfWeek: 'dayOfWeek',
+  startHour: 'startHour',
+  startMinute: 'startMinute',
+  endHour: 'endHour',
+  endMinute: 'endMinute',
+  capacity: 'capacity',
+  opportunityId: 'opportunityId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ShiftScalarFieldEnum = {
   id: 'id',
   orgId: 'orgId',
   opportunityId: 'opportunityId',
+  templateId: 'templateId',
   title: 'title',
   description: 'description',
   location: 'location',
@@ -599,6 +618,7 @@ exports.ShiftStatus = exports.$Enums.ShiftStatus = {
 
 exports.SignupStatus = exports.$Enums.SignupStatus = {
   CONFIRMED: 'CONFIRMED',
+  WAITLISTED: 'WAITLISTED',
   CANCELLED: 'CANCELLED',
   NO_SHOW: 'NO_SHOW',
   ATTENDED: 'ATTENDED'
@@ -675,6 +695,7 @@ exports.Prisma.ModelName = {
   VolunteerSkill: 'VolunteerSkill',
   VolunteerProfile: 'VolunteerProfile',
   VolunteerCredential: 'VolunteerCredential',
+  ShiftTemplate: 'ShiftTemplate',
   Shift: 'Shift',
   ShiftSignup: 'ShiftSignup',
   CompanyAccount: 'CompanyAccount',

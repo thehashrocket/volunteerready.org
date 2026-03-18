@@ -1,4 +1,3 @@
-import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { prisma } from '@/server/repositories/prisma';
 import {
@@ -13,14 +12,9 @@ import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
+	requireUserId,
 	staffProcedure,
 } from '@/server/trpc/init';
-
-function requireUserId(session: { user?: { id?: string } } | null): string {
-	const id = session?.user?.id;
-	if (!id) throw new TRPCError({ code: 'UNAUTHORIZED' });
-	return id;
-}
 
 const availabilityEnum = z.enum([
 	'WEEKDAYS',

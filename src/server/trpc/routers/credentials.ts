@@ -1,4 +1,3 @@
-import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import {
 	getMyCredentials,
@@ -10,14 +9,9 @@ import {
 import {
 	createTRPCRouter,
 	protectedProcedure,
+	requireUserId,
 	staffProcedure,
 } from '@/server/trpc/init';
-
-function requireUserId(session: { user?: { id?: string } } | null): string {
-	const id = session?.user?.id;
-	if (!id) throw new TRPCError({ code: 'UNAUTHORIZED' });
-	return id;
-}
 
 const credentialTypeEnum = z.enum([
 	'BACKGROUND_CHECK',

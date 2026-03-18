@@ -1,4 +1,3 @@
-import { TRPCError } from '@trpc/server';
 import {
 	claimShareTokenSchema,
 	generateShareTokenSchema,
@@ -20,6 +19,7 @@ import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
+	requireUserId,
 	staffProcedure,
 } from '@/server/trpc/init';
 import {
@@ -27,12 +27,6 @@ import {
 	rateLimitByOrg,
 	rateLimitByUser,
 } from '@/server/trpc/rate-limit-middleware';
-
-function requireUserId(session: { user?: { id?: string } } | null): string {
-	const id = session?.user?.id;
-	if (!id) throw new TRPCError({ code: 'UNAUTHORIZED' });
-	return id;
-}
 
 export const credentialSharingRouter = createTRPCRouter({
 	/** Volunteer generates a share link for a VERIFIED credential. */

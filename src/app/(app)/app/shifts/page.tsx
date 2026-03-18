@@ -17,6 +17,7 @@ import type { Resolver } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { ShiftTemplatesTab } from '@/components/app/shift-templates';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
 	Dialog,
 	DialogContent,
@@ -54,6 +56,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { trpc } from '@/lib/trpc/client';
 
@@ -216,11 +219,7 @@ function CreateShiftDialog() {
 						</div>
 					</div>
 					<div className="flex items-center gap-2">
-						<input
-							type="checkbox"
-							id="isRemote"
-							{...form.register('isRemote')}
-						/>
+						<Checkbox id="isRemote" {...form.register('isRemote')} />
 						<Label htmlFor="isRemote">Remote shift</Label>
 					</div>
 					<Button type="submit" disabled={create.isPending} className="w-full">
@@ -257,8 +256,14 @@ function ShiftDetailDialog({
 		onError: (err) => toast.error(err.message),
 	});
 
+	const { data: waitlist } = trpc.shifts.getWaitlist.useQuery(
+		{ shiftId },
+		{ enabled: open },
+	);
+
 	const ATTENDANCE_VARIANTS: Record<string, BadgeProps['variant']> = {
 		CONFIRMED: 'info',
+		WAITLISTED: 'warning',
 		ATTENDED: 'success',
 		NO_SHOW: 'destructive',
 		CANCELLED: 'neutral',
@@ -360,6 +365,36 @@ function ShiftDetailDialog({
 								))}
 							</TableBody>
 						</Table>
+
+						{waitlist && waitlist.length > 0 && (
+							<div className="space-y-2">
+								<h4 className="text-sm font-medium">
+									Waitlist ({waitlist.length})
+								</h4>
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>#</TableHead>
+											<TableHead>Volunteer</TableHead>
+											<TableHead>Joined</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{waitlist.map((entry, idx) => (
+											<TableRow key={entry.id}>
+												<TableCell>{idx + 1}</TableCell>
+												<TableCell>
+													{entry.user.name ?? entry.user.email ?? 'Unknown'}
+												</TableCell>
+												<TableCell className="text-sm text-muted-foreground">
+													{new Date(entry.createdAt).toLocaleString()}
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</div>
+						)}
 					</div>
 				)}
 			</DialogContent>
@@ -412,142 +447,166 @@ export default function ShiftsPage() {
 				description="Manage volunteer shifts and attendance."
 			/>
 
-			<div className="flex items-center justify-between">
-				<Select value={statusFilter} onValueChange={setStatusFilter}>
-					<SelectTrigger className="w-[180px]">
-						<SelectValue placeholder="Filter by status" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="ALL">All Statuses</SelectItem>
-						<SelectItem value="OPEN">Open</SelectItem>
-						<SelectItem value="FULL">Full</SelectItem>
-						<SelectItem value="CANCELLED">Cancelled</SelectItem>
-						<SelectItem value="COMPLETED">Completed</SelectItem>
-					</SelectContent>
-				</Select>
+			<Tabs defaultValue="schedule">
+				<TabsList>
+					<TabsTrigger value="schedule">Schedule</TabsTrigger>
+					<TabsTrigger value="templates">Templates</TabsTrigger>
+				</TabsList>
 
-				<CreateShiftDialog />
-			</div>
+				<TabsContent value="schedule" className="space-y-4">
+					<div className="flex items-center justify-between">
+						<Select value={statusFilter} onValueChange={setStatusFilter}>
+							<SelectTrigger className="w-[180px]">
+								<SelectValue placeholder="Filter by status" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="ALL">All Statuses</SelectItem>
+								<SelectItem value="OPEN">Open</SelectItem>
+								<SelectItem value="FULL">Full</SelectItem>
+								<SelectItem value="CANCELLED">Cancelled</SelectItem>
+								<SelectItem value="COMPLETED">Completed</SelectItem>
+							</SelectContent>
+						</Select>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Shift Schedule</CardTitle>
-					<CardDescription>
-						Click a shift to view signups and manage attendance.
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{isLoading ? (
-						<div className="space-y-2 pt-2">
-							{Array.from({ length: 5 }).map((_, i) => (
-								<Skeleton key={i} className="h-12 w-full" />
-							))}
-						</div>
-					) : !shifts?.length ? (
-						<EmptyState
-							icon={Calendar}
-							title="No shifts found"
-							description="Create a shift to start scheduling volunteers."
-						/>
-					) : (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Shift</TableHead>
-									<TableHead>Date & Time</TableHead>
-									<TableHead>Location</TableHead>
-									<TableHead>Signups</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead className="text-right">Actions</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{shifts.map((shift) => (
-									<TableRow key={shift.id}>
-										<TableCell>
-											<ShiftDetailDialog shiftId={shift.id}>
-												<button
-													type="button"
-													className="text-left font-medium hover:underline"
-												>
-													{shift.title}
-													{shift.opportunity && (
-														<span className="ml-2 text-xs text-muted-foreground">
-															({shift.opportunity.title})
-														</span>
+						<CreateShiftDialog />
+					</div>
+
+					<Card>
+						<CardHeader>
+							<CardTitle>Shift Schedule</CardTitle>
+							<CardDescription>
+								Click a shift to view signups and manage attendance.
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{isLoading ? (
+								<div className="space-y-2 pt-2">
+									{Array.from({ length: 5 }).map((_, i) => (
+										<Skeleton key={i} className="h-12 w-full" />
+									))}
+								</div>
+							) : !shifts?.length ? (
+								<EmptyState
+									icon={Calendar}
+									title="No shifts found"
+									description="Create a shift to start scheduling volunteers."
+								/>
+							) : (
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Shift</TableHead>
+											<TableHead>Date & Time</TableHead>
+											<TableHead>Location</TableHead>
+											<TableHead>Signups</TableHead>
+											<TableHead>Status</TableHead>
+											<TableHead className="text-right">Actions</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{shifts.map((shift) => (
+											<TableRow key={shift.id}>
+												<TableCell>
+													<ShiftDetailDialog shiftId={shift.id}>
+														<button
+															type="button"
+															className="text-left font-medium hover:underline"
+														>
+															{shift.title}
+															{shift.opportunity && (
+																<span className="ml-2 text-xs text-muted-foreground">
+																	({shift.opportunity.title})
+																</span>
+															)}
+														</button>
+													</ShiftDetailDialog>
+												</TableCell>
+												<TableCell className="whitespace-nowrap">
+													<div className="flex items-center gap-1 text-sm">
+														<Calendar className="h-3 w-3" />
+														{new Date(shift.startTime).toLocaleDateString()}
+													</div>
+													<div className="flex items-center gap-1 text-xs text-muted-foreground">
+														<Clock className="h-3 w-3" />
+														{new Date(shift.startTime).toLocaleTimeString([], {
+															hour: '2-digit',
+															minute: '2-digit',
+														})}{' '}
+														–{' '}
+														{new Date(shift.endTime).toLocaleTimeString([], {
+															hour: '2-digit',
+															minute: '2-digit',
+														})}
+													</div>
+												</TableCell>
+												<TableCell>
+													{shift.isRemote ? (
+														<Badge variant="outline">Remote</Badge>
+													) : (
+														(shift.location ?? '—')
 													)}
-												</button>
-											</ShiftDetailDialog>
-										</TableCell>
-										<TableCell className="whitespace-nowrap">
-											<div className="flex items-center gap-1 text-sm">
-												<Calendar className="h-3 w-3" />
-												{new Date(shift.startTime).toLocaleDateString()}
-											</div>
-											<div className="flex items-center gap-1 text-xs text-muted-foreground">
-												<Clock className="h-3 w-3" />
-												{new Date(shift.startTime).toLocaleTimeString([], {
-													hour: '2-digit',
-													minute: '2-digit',
-												})}{' '}
-												–{' '}
-												{new Date(shift.endTime).toLocaleTimeString([], {
-													hour: '2-digit',
-													minute: '2-digit',
-												})}
-											</div>
-										</TableCell>
-										<TableCell>
-											{shift.isRemote ? (
-												<Badge variant="outline">Remote</Badge>
-											) : (
-												(shift.location ?? '—')
-											)}
-										</TableCell>
-										<TableCell>
-											{shift._count.signups} / {shift.capacity}
-										</TableCell>
-										<TableCell>
-											<ShiftStatusBadge status={shift.status} />
-										</TableCell>
-										<TableCell className="text-right">
-											<div className="flex justify-end gap-1">
-												{shift.status === 'OPEN' || shift.status === 'FULL' ? (
-													<>
+												</TableCell>
+												<TableCell>
+													{shift._count.signups} / {shift.capacity}
+												</TableCell>
+												<TableCell>
+													<ShiftStatusBadge status={shift.status} />
+												</TableCell>
+												<TableCell className="text-right">
+													<div className="flex justify-end gap-1">
+														{shift.status === 'OPEN' ||
+														shift.status === 'FULL' ? (
+															<>
+																<Button
+																	size="sm"
+																	variant="outline"
+																	onClick={() =>
+																		completeMut.mutate({ id: shift.id })
+																	}
+																>
+																	<CheckCircle2 className="h-3 w-3" />
+																</Button>
+																<Button
+																	size="sm"
+																	variant="outline"
+																	onClick={() =>
+																		cancelMut.mutate({ id: shift.id })
+																	}
+																>
+																	<XCircle className="h-3 w-3" />
+																</Button>
+															</>
+														) : null}
 														<Button
 															size="sm"
-															variant="outline"
-															onClick={() =>
-																completeMut.mutate({ id: shift.id })
-															}
+															variant="ghost"
+															onClick={() => {
+																if (
+																	!confirm(
+																		`Delete "${shift.title}"? This cannot be undone.`,
+																	)
+																)
+																	return;
+																removeMut.mutate({ id: shift.id });
+															}}
 														>
-															<CheckCircle2 className="h-3 w-3" />
+															<Trash2 className="h-3 w-3" />
 														</Button>
-														<Button
-															size="sm"
-															variant="outline"
-															onClick={() => cancelMut.mutate({ id: shift.id })}
-														>
-															<XCircle className="h-3 w-3" />
-														</Button>
-													</>
-												) : null}
-												<Button
-													size="sm"
-													variant="ghost"
-													onClick={() => removeMut.mutate({ id: shift.id })}
-												>
-													<Trash2 className="h-3 w-3" />
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					)}
-				</CardContent>
-			</Card>
+													</div>
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							)}
+						</CardContent>
+					</Card>
+				</TabsContent>
+
+				<TabsContent value="templates">
+					<ShiftTemplatesTab />
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 }
