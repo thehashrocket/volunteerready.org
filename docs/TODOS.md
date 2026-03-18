@@ -126,24 +126,16 @@ Consider also a "business days" mode that excludes weekends.
 
 ## Billing & Payments
 
-### [P2] Plan Upgrade Confirmation Email
+### ~~[P2] Plan Upgrade Confirmation Email~~ ✅ Complete
 
-**What:** Send a transactional email to the org owner when `customer.subscription.created` fires.
+**Completed:** v0.9.0 (2026-03-18)
 
-**Why:** Expected SaaS behavior — users expect a "Welcome to Starter" confirmation email
-after upgrading. Builds trust in the billing flow and confirms the charge was intentional.
-
-**Context:** `handleStripeWebhookEvent` in `src/server/services/billingService.ts` already
-processes `customer.subscription.created`. Add a Resend email call after `updateOrgPlanTx`
-commits. Email infrastructure (Resend client) already exists in the project. Requires a
-new email template (`buildUpgradeEmail`) in `src/lib/email/`. The sender is the org's
-primary email from `Organization.contactEmail` (or a fallback). Email failures should NOT
-cause the webhook to return 5xx — wrap in a try/catch and log the failure separately.
-
-**Pros:** High perceived professionalism; no new infrastructure needed (Resend already wired up).
-**Cons:** Adds email complexity to the webhook handler; template needs design.
-
-**Effort:** S | **Priority:** P2 | **Depends on:** ✅ 6A Stripe billing shipped
+Implemented upgrade, payment failed, and cancellation billing emails in
+`src/server/repositories/send-billing-emails.ts`. All three use the branded
+`buildEmailHtml` template system. Dispatched via `trySendBillingEmail` helper
+in `billingService.ts` (fire-and-forget, never crashes webhook). Supports both
+org and company entities. Upgrade email fires only on `subscription.created`
+(not `updated`).
 
 ---
 
@@ -305,35 +297,23 @@ Three tRPC middleware factories (`rateLimitByOrg`, `rateLimitByUser`, `rateLimit
 per user), `credentialSharing.claim` (10/min per org), `screener.submit` (3/min per IP),
 `credentialSharing.getTokenInfo` (30/min per IP). Fails open when Redis is unavailable.
 
-### [P3] Share Token Cleanup Cron
+### ~~[P3] Share Token Cleanup Cron~~ ✅ Complete
 
-**What:** Scheduled job to mark expired `CredentialShareToken` records as `EXPIRED` and
-clean up stale tokens.
+**Completed:** v0.9.0 (2026-03-18)
 
-**Why:** Tokens with `expiresAt` in the past remain `ACTIVE` in the DB. While the domain
-guards reject them at claim time, marking them `EXPIRED` keeps data clean and enables
-accurate reporting.
+Combined with credential expiry below into a single daily Vercel Cron job at
+`/api/cron/expire-credentials` (runs 03:00 UTC). Marks ACTIVE tokens with
+`expiresAt` in the past as EXPIRED. Per-record transactions with P2025 handling.
+Audit log entries with `actorId: null` for each transition.
 
-**Context:** A Vercel Cron or similar job running daily would execute
-`UPDATE CredentialShareToken SET status = 'EXPIRED' WHERE status = 'ACTIVE' AND expiresAt < now()`.
-Can be combined with the credential expiry notification email TODO above.
+### ~~[P2] Credential Expiry Auto-Transition Cron~~ ✅ Complete
 
-**Effort:** S | **Priority:** P3 | **Depends on:** Job queue or Vercel Cron infrastructure
+**Completed:** v0.9.0 (2026-03-18)
 
-### [P2] Credential Expiry Auto-Transition Cron
-
-**What:** Scheduled job to automatically transition `VERIFIED` credentials to `EXPIRED`
-when `expiresAt` passes.
-
-**Why:** Credentials with `expiresAt` in the past remain `VERIFIED` in the DB. The domain
-guard in `canShareCredential` rejects sharing, but the credential status itself is stale.
-This creates confusion in the admin UI where credentials appear "Verified" but can't be shared.
-
-**Context:** Daily cron:
-`UPDATE VolunteerCredential SET status = 'EXPIRED' WHERE status = 'VERIFIED' AND expiresAt < now()`.
-Should fire an audit log entry for each transition.
-
-**Effort:** S | **Priority:** P2 | **Depends on:** Job queue or Vercel Cron infrastructure
+Implemented in `credential-expiry-service.ts` as part of the daily cron job.
+Transitions VERIFIED credentials with `expiresAt` in the past to EXPIRED.
+Per-record transactions with audit logging (`CREDENTIAL_AUTO_EXPIRED`).
+Limit of 500 per run prevents unbounded processing.
 
 ---
 
@@ -503,15 +483,12 @@ For all-time queries (`days = null`), pass `new Date(0)` as `fromDate` (same pat
 
 ---
 
-### [P3] Consolidate CREDENTIAL_TYPE_LABELS into shared domain constant
+### ~~[P3] Consolidate CREDENTIAL_TYPE_LABELS into shared domain constant~~ ✅ Complete
 
-**What:** Remove the local `CREDENTIAL_TYPE_LABELS` map in `src/app/(app)/app/discover/_components/discover-client.tsx:51` and import `CREDENTIAL_LABELS` from `src/server/domain/volunteer-profile.ts` instead.
+**Completed:** v0.9.0 (2026-03-18)
 
-**Why:** Two maps with the same keys but slightly different labels ("1-Year Tenure" vs "1 Year Volunteer") will diverge as new credential types are added. If a new `CredentialType` is added to the enum, the discover UI won't display it correctly unless the local copy is also updated — the TypeScript types won't catch this since the local map uses `Record<string, string>`.
-
-**Context:** `CREDENTIAL_LABELS` in `volunteer-profile.ts` is a pure constant with no framework dependencies. It can be safely imported in client components. The tenure label wording differs slightly between the two maps — align them during this cleanup.
-
-**Pros:** Single source of truth for credential display names; new credential types automatically appear in discover UI.
-**Cons:** Slight label wording change in discover UI (cosmetic only).
-
-**Effort:** XS | **Priority:** P3 | **Depends on:** nothing
+Deleted local `CREDENTIAL_TYPE_LABELS` from `discover-client.tsx` — now imports
+`CREDENTIAL_LABELS` from `@/server/domain/volunteer-profile`. Also consolidated
+`CREDENTIAL_META` (labels + icons) into `src/lib/credential-meta.ts`, replacing
+duplicate maps in `profile/page.tsx` and `ClaimClient.tsx`. All 8 credential types
+(including TENURE) now have a single source of truth.
