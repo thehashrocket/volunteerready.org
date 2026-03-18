@@ -314,10 +314,13 @@ Cross-org volunteer discovery:
 - ✅ `volunteerDiscoveryRepo` — `visibility = PUBLIC` hardcoded structural privacy invariant (not caller-supplied)
 - ✅ `volunteerDiscoveryService` — orchestrates search + invite; audit logged
 
+## Delivered (v0.7.3)
+
+- ✅ Organization analytics dashboard (`/app/analytics`, PRO-gated) — application funnel (submitted → approved → shifted → credentialed), volunteer retention rate, average shift fill rate, and top volunteers by attended hours; date range selector (30d / 90d / 1yr / all-time); upgrade prompt for non-PRO orgs
+
 ## Planned
 
 - "Add to LinkedIn" deep link for verified credential badges (blocked on LinkedIn Partner Org ID)
-- Organization analytics dashboard — volunteer engagement metrics, conversion funnel, shift fill rate
 
 This phase evolves VolunteerReady into a **network with compounding value** — more verified
 volunteers attract more orgs; more orgs attract more corporate sponsors.
