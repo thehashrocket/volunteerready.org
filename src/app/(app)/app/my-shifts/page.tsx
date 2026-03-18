@@ -1,8 +1,10 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, Search } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
+import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,14 +47,16 @@ export default function MyShiftsPage() {
 					</CardContent>
 				</Card>
 			) : !signups?.length ? (
-				<Card>
-					<CardContent className="py-12 text-center">
-						<p className="text-muted-foreground">
-							You have no upcoming shifts. Browse opportunities to find shifts
-							to sign up for.
-						</p>
-					</CardContent>
-				</Card>
+				<EmptyState
+					icon={Search}
+					title="No upcoming shifts"
+					description="Browse opportunities to find shifts to sign up for."
+					action={
+						<Button asChild>
+							<Link href="/app/browse-opportunities">Browse Opportunities</Link>
+						</Button>
+					}
+				/>
 			) : (
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{signups.map((signup) => (
