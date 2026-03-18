@@ -118,6 +118,15 @@ export const roleRank: Record<Role, number> = {
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
+/** Extract user ID from session or throw UNAUTHORIZED. */
+export function requireUserId(
+	session: { user?: { id?: string } } | null,
+): string {
+	const id = session?.user?.id;
+	if (!id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+	return id;
+}
+
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 	if (!ctx.session?.user?.id) {
 		throw new TRPCError({ code: 'UNAUTHORIZED' });
