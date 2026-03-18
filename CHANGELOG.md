@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-03-18
+
+### Added
+- **Platform-wide rate limiting** — Upstash Redis-based rate limiting protects key endpoints: volunteer discovery search (60/min per org), credential generation (5/min per user), credential claims (10/min per org), token info lookups (30/min per IP), and application submissions (3/min per IP). Fails open if Redis is unavailable so outages never block users.
+- **Volunteer discovery is now available to all staff** — removed the `VOLUNTEER_DISCOVERY_ENABLED` feature flag gate; rate limiting replaces it as the abuse prevention mechanism.
+
+### For contributors
+- **`rate-limit.ts`** — lazy-initialized Upstash Redis singleton with cached `Ratelimit` instances per config; fail-open on errors
+- **`rate-limit-middleware.ts`** — three tRPC middleware factories: `rateLimitByOrg`, `rateLimitByUser`, `rateLimitByIp`
+- **IP extraction** — `createTRPCContext` now extracts client IP from `x-forwarded-for` / `x-real-ip` headers
+- **18 new tests** — 9 for rate-limit lib (caching, fail-open, passthrough) + 9 for middleware (pass/block/missing-identifier for all 3 factories)
+
 ## [0.7.3] - 2026-03-18
 
 ### Added

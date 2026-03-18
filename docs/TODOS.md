@@ -295,20 +295,15 @@ Implemented as part of Phase 6C credential sharing. Checkbox on apply form trigg
 immediately claims them in a single transaction for audit trail. Skips credentials
 already in the target org.
 
-### [P2] Platform-Wide Rate Limiting
+### ~~[P2] Platform-Wide Rate Limiting~~ ✅ Complete
 
-**What:** Add rate limiting to public and authenticated tRPC procedures (token generation,
-claim, application submit).
+**Completed:** v0.8.0 (2026-03-18)
 
-**Why:** Without rate limits, attackers can brute-force token hashes or spam credential
-generation. Public endpoints are especially exposed.
-
-**Context:** Consider `@upstash/ratelimit` with Redis or Vercel KV for serverless-compatible
-rate limiting. Apply to: `credentialSharing.generate` (5/min per user),
-`credentialSharing.claim` (10/min per org), `screener.submit` (3/min per IP),
-`credentialSharing.getTokenInfo` (30/min per IP). Should be a middleware on tRPC procedures.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** Redis/KV infrastructure decision
+Implemented Upstash Redis-based rate limiting via `@upstash/ratelimit` with sliding window.
+Three tRPC middleware factories (`rateLimitByOrg`, `rateLimitByUser`, `rateLimitByIp`) in
+`src/server/trpc/rate-limit-middleware.ts`. Applied to: `credentialSharing.generate` (5/min
+per user), `credentialSharing.claim` (10/min per org), `screener.submit` (3/min per IP),
+`credentialSharing.getTokenInfo` (30/min per IP). Fails open when Redis is unavailable.
 
 ### [P3] Share Token Cleanup Cron
 
@@ -472,24 +467,14 @@ who hide their UI behind demo requests.
 
 ## Volunteer Discovery
 
-### [P1] HTTP Rate Limiting for volunteer search endpoint
+### ~~[P1] HTTP Rate Limiting for volunteer search endpoint~~ ✅ Complete
 
-**What:** Add request-level rate limiting to `discovery.searchVolunteers` (e.g., 60 req/min per org).
+**Completed:** v0.8.0 (2026-03-18)
 
-**Why:** The `VOLUNTEER_DISCOVERY_ENABLED` env var gate must stay enabled until rate limiting lands.
-Without request-level limits, an org could call `searchVolunteers` thousands of times per minute
-once the gate is removed, scraping all PUBLIC volunteer data in bulk.
-
-**Context:** The invite-to-apply DB throttle (10/day per org) only limits invitations, not search
-queries. Request-level rate limiting requires @upstash/ratelimit + Redis/Vercel KV infrastructure
-not yet in the stack. This should be implemented as a tRPC middleware on `staffProcedure` or as a
-separate `rateLimitedStaffProcedure`. When this ships, remove the `VOLUNTEER_DISCOVERY_ENABLED`
-env var gate from `src/app/(app)/app/discover/page.tsx`.
-
-**Pros:** Enables safe removal of the env var gate; prevents bulk scraping of volunteer data.
-**Cons:** New infrastructure dependency (Redis/Vercel KV); adds per-request latency.
-
-**Effort:** M | **Priority:** P1 | **Depends on:** Redis/Vercel KV infrastructure decision
+Implemented `rateLimitByOrg` middleware (60 req/min per org) on `discovery.searchVolunteers`
+using `@upstash/ratelimit` with Upstash Redis. Sliding window algorithm prevents burst abuse.
+Removed the `VOLUNTEER_DISCOVERY_ENABLED` env var gate from `src/app/(app)/app/discover/page.tsx`
+— volunteer discovery is now available to all staff users with rate limiting enforced.
 
 ---
 
