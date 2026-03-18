@@ -22,6 +22,11 @@ import {
 	publicProcedure,
 	staffProcedure,
 } from '@/server/trpc/init';
+import {
+	rateLimitByIp,
+	rateLimitByOrg,
+	rateLimitByUser,
+} from '@/server/trpc/rate-limit-middleware';
 
 function requireUserId(session: { user?: { id?: string } } | null): string {
 	const id = session?.user?.id;
@@ -32,6 +37,13 @@ function requireUserId(session: { user?: { id?: string } } | null): string {
 export const credentialSharingRouter = createTRPCRouter({
 	/** Volunteer generates a share link for a VERIFIED credential. */
 	generate: protectedProcedure
+		.use(
+			rateLimitByUser({
+				limit: 5,
+				windowSeconds: 60,
+				prefix: 'credential:generate',
+			}),
+		)
 		.input(generateShareTokenSchema)
 		.mutation(async ({ ctx, input }) => {
 			return generateShareToken(input.credentialId, requireUserId(ctx.session));
@@ -51,6 +63,13 @@ export const credentialSharingRouter = createTRPCRouter({
 
 	/** Public preview of a share token — credential type + org name only. */
 	getTokenInfo: publicProcedure
+		.use(
+			rateLimitByIp({
+				limit: 30,
+				windowSeconds: 60,
+				prefix: 'credential:token-info',
+			}),
+		)
 		.input(getTokenInfoSchema)
 		.query(async ({ input }) => {
 			return getTokenInfo(input.token);
@@ -58,6 +77,13 @@ export const credentialSharingRouter = createTRPCRouter({
 
 	/** Staff claims a shared credential into their organization. */
 	claim: staffProcedure
+		.use(
+			rateLimitByOrg({
+				limit: 10,
+				windowSeconds: 60,
+				prefix: 'credential:claim',
+			}),
+		)
 		.input(claimShareTokenSchema)
 		.mutation(async ({ ctx, input }) => {
 			return claimShareToken(

@@ -4,9 +4,17 @@ import {
 	searchPublicVolunteers,
 } from '@/server/services/volunteerDiscoveryService';
 import { createTRPCRouter, staffProcedure } from '@/server/trpc/init';
+import { rateLimitByOrg } from '@/server/trpc/rate-limit-middleware';
 
 export const discoveryRouter = createTRPCRouter({
 	searchVolunteers: staffProcedure
+		.use(
+			rateLimitByOrg({
+				limit: 60,
+				windowSeconds: 60,
+				prefix: 'discovery:search',
+			}),
+		)
 		.input(
 			z.object({
 				skillIds: z.array(z.string()).optional(),
