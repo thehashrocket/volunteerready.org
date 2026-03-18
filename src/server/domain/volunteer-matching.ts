@@ -6,6 +6,9 @@
 
 import type { AvailabilityType, CredentialType } from './volunteer-profile';
 
+/** Additive tiebreaker bonus awarded per context signal (availability or credential match). */
+const CONTEXT_BONUS = 5;
+
 /** A volunteer's canonical skill ID set, with optional context signals. */
 export interface VolunteerSkillSet {
 	skillIds: string[];
@@ -180,8 +183,8 @@ function computeAvailabilityBonus(
 	shiftSchedule: 'WEEKDAYS' | 'WEEKENDS' | 'EVENINGS' | null,
 ): number {
 	if (!availability || !shiftSchedule) return 0;
-	if (availability === 'FLEXIBLE') return 5;
-	if (availability === shiftSchedule) return 5;
+	if (availability === 'FLEXIBLE') return CONTEXT_BONUS;
+	if (availability === shiftSchedule) return CONTEXT_BONUS;
 	return 0;
 }
 
@@ -192,7 +195,7 @@ function computeCredentialBonus(
 	if (preferredTypes.length === 0) return 0;
 	const volunteerSet = new Set(volunteerCredentials);
 	const hasMatch = preferredTypes.some((t) => volunteerSet.has(t));
-	return hasMatch ? 5 : 0;
+	return hasMatch ? CONTEXT_BONUS : 0;
 }
 
 /**

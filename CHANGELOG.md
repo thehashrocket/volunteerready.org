@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2026-03-17
+
+### Changed
+- **Matching bonus constant** — extracted magic number `5` into named constant `CONTEXT_BONUS` in `volunteer-matching.ts` for clarity
+
 ## [0.6.0] - 2026-03-17
 
 ### Added
