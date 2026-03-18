@@ -50,6 +50,8 @@ docs/.vitepress/dist
 .vscode
 .idea
 
+.vercel
+
 # AI tooling — ignore everything except gstack skill
 .claude/*
 !.claude/skills
