@@ -32,7 +32,7 @@ export const discoveryRouter = createTRPCRouter({
 			return inviteToApply({
 				...input,
 				orgId: ctx.orgId,
-				actorId: ctx.session?.user?.id ?? '',
+				actorId: ctx.session.user.id,
 			});
 		}),
 });

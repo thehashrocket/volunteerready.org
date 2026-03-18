@@ -26,6 +26,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 		volunteerOpportunity: {
 			findUnique: vi.fn(),
 		},
+		$transaction: vi.fn(),
 	},
 }));
 
@@ -94,6 +95,12 @@ function setupHappyPath() {
 describe('inviteToApply', () => {
 	beforeEach(() => {
 		vi.resetAllMocks();
+		// Restore $transaction: calls the callback with the prisma mock itself so
+		// tx.volunteerInvitation.* resolves to the same vi.fn() instances as prisma.*
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		vi.mocked(prisma.$transaction).mockImplementation(async (cb: any) =>
+			cb(prisma),
+		);
 	});
 
 	describe('rate limit', () => {

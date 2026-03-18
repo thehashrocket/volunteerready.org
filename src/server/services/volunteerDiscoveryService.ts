@@ -41,44 +41,37 @@ export async function inviteToApply(input: {
 }): Promise<{ invitationId: string }> {
 	const { volunteerId, opportunityId, orgId, actorId } = input;
 
-	// 1. Rate limit: max RATE_LIMIT_PER_DAY invitations per org per 24h
+	// 1. Rate limit + 2. Already-applied check + 3. Create invitation — all in
+	// one transaction to prevent the TOCTOU race: two concurrent requests from the
+	// same org could both pass the rate limit check before either creates a record.
 	const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-	const recentCount = await prisma.volunteerInvitation.count({
-		where: {
-			orgId,
-			sentAt: { gte: since },
-		},
-	});
-
-	if (recentCount >= RATE_LIMIT_PER_DAY) {
-		throw new TRPCError({
-			code: 'FORBIDDEN',
-			message: 'Rate limit: maximum 10 invitations per day',
-		});
-	}
-
-	// 2. Already applied check
-	const existingApplication = await prisma.volunteerApplication.findFirst({
-		where: {
-			orgId,
-			submittedByUserId: volunteerId,
-			opportunityId,
-		},
-	});
-
-	if (existingApplication) {
-		throw new TRPCError({
-			code: 'BAD_REQUEST',
-			message: 'Volunteer has already applied to this opportunity',
-		});
-	}
-
-	// 3. Create invitation (unique constraint catches duplicates)
 	let invitation: { id: string };
 	try {
-		invitation = await prisma.volunteerInvitation.create({
-			data: { orgId, volunteerId, opportunityId },
-			select: { id: true },
+		invitation = await prisma.$transaction(async (tx) => {
+			const recentCount = await tx.volunteerInvitation.count({
+				where: { orgId, sentAt: { gte: since } },
+			});
+			if (recentCount >= RATE_LIMIT_PER_DAY) {
+				throw new TRPCError({
+					code: 'FORBIDDEN',
+					message: 'Rate limit: maximum 10 invitations per day',
+				});
+			}
+
+			const existingApplication = await tx.volunteerApplication.findFirst({
+				where: { orgId, submittedByUserId: volunteerId, opportunityId },
+			});
+			if (existingApplication) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'Volunteer has already applied to this opportunity',
+				});
+			}
+
+			return tx.volunteerInvitation.create({
+				data: { orgId, volunteerId, opportunityId },
+				select: { id: true },
+			});
 		});
 	} catch (err) {
 		if ((err as { code?: string }).code === 'P2002') {
