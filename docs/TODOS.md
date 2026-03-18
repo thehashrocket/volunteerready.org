@@ -492,3 +492,70 @@ Deleted local `CREDENTIAL_TYPE_LABELS` from `discover-client.tsx` — now import
 `CREDENTIAL_META` (labels + icons) into `src/lib/credential-meta.ts`, replacing
 duplicate maps in `profile/page.tsx` and `ClaimClient.tsx`. All 8 credential types
 (including TENURE) now have a single source of truth.
+
+---
+
+## Phase 8 — Volunteer Operations Platform
+
+### [P3] Migrate Existing Email Send Files to `sendEmail()` Helper
+
+**What:** Refactor the 8 existing `send*.ts` email files to use the new `sendEmail(to, subject, html)`
+helper introduced in Phase 8 PR1.
+
+**Why:** PR1 introduces a `sendEmail()` helper in `src/server/lib/email.ts` to consolidate
+Resend boilerplate (init, try/catch, buildEmailHtml). New Phase 8 emails use it, but the
+existing 8 files (`sendInviteEmail.ts`, `sendStatusLinkEmail.ts`, `sendCredentialRequestEmail.ts`,
+`sendCredentialClaimedEmail.ts`, `sendFcraEmails.ts`, `sendBackgroundCheckEmail.ts`,
+`send-billing-emails.ts`, `sendInviteToApplyEmail.ts`) still have the old pattern.
+
+**Context:** Each file is ~30 lines with ~25 lines of identical boilerplate. Migration is mechanical:
+extract the subject + body into a pure function returning `{to, subject, html}`, call `sendEmail()`.
+Test by sending each email type in dev.
+
+**Pros:** Single email pattern codebase-wide; easier to add logging/retry/provider switching later.
+**Cons:** Pure refactor, no user-facing benefit; risk of regressions in working flows.
+
+**Effort:** S (CC: ~15 min) | **Priority:** P3 | **Depends on:** Phase 8 PR1 shipping `sendEmail()` helper
+
+---
+
+### [P3] Notification Cleanup Cron — Purge Old Dismissed Notifications
+
+**What:** Add a periodic cleanup job that hard-deletes notifications where `deletedAt` is older
+than 90 days.
+
+**Why:** With `deletedAt` on the Notification model, dismissed notifications accumulate indefinitely.
+At scale (5k volunteers × 5 notifications/week = 1.3M rows/year), the table grows unbounded.
+Old dismissed notifications have zero query value.
+
+**Context:** Could piggyback on the existing `/api/cron/expire-credentials` cron or be a separate
+job. Simple `DELETE FROM "Notification" WHERE "deletedAt" < now() - interval '90 days'` with a
+row limit cap (e.g., 5000 per run) to prevent long-running deletes.
+
+**Pros:** Prevents table bloat; trivial implementation.
+**Cons:** 90-day retention is arbitrary (but generous for audit needs).
+
+**Effort:** XS (CC: ~10 min) | **Priority:** P3 | **Depends on:** Phase 8 PR1 Notification model with `deletedAt`
+
+---
+
+### [P2] Accessibility Audit — Phase 8 Pages and Components
+
+**What:** Run a full accessibility audit (WAVE, axe-core, manual keyboard + screen reader testing)
+on all 6 new pages and 10 new components added in Phase 8.
+
+**Why:** Phase 8 adds significant UI surface area: notification bell, PlanGate, engagement dashboard,
+QR check-in, gamification, teams, announcements, reports. Each is a potential a11y gap. Nonprofit
+organizations are frequent targets of ADA web accessibility lawsuits, and volunteers with
+disabilities are a core audience.
+
+**Context:** The Phase 8 plan specifies ARIA labels, touch targets (44px min), keyboard nav patterns,
+and color contrast requirements. This audit verifies the implementation matches the specs. Key areas:
+notification bell popover/sheet keyboard nav, PlanGate screen reader announcement, bulk action
+toolbar keyboard operability, QR check-in page (must work with screen readers for staff scanning),
+engagement status pills (color-only indicators need text labels).
+
+**Pros:** Catches real a11y violations before users encounter them; required for ADA compliance.
+**Cons:** Can only run after implementation; adds a review step.
+
+**Effort:** M (CC: ~30 min with /qa a11y focus) | **Priority:** P2 | **Depends on:** Phase 8 implementation complete

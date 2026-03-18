@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2026-03-18
+
+### Added
+- **In-app notifications** — A notification bell in the app header shows unread notifications with infinite scroll. Notifications are scoped per-user and per-org, with real-time unread counts (30s polling) and mark-read/mark-all-read actions.
+- **Plan gate component** — Features gated behind higher plan tiers show a branded lock card with the required tier and an upgrade CTA, instead of being silently hidden.
+- **Shared `sendEmail()` helper** — A single entry point for all outbound email, wrapping Resend with branded HTML templates and error logging. New Phase 8 emails use this; existing emails will migrate in a follow-up.
+- **Notification preferences model** — Per-user, per-org, per-notification-type preferences for in-app and email delivery channels (schema + migration ready, UI in a future PR).
+- **`maxShiftTemplates` plan limit** — Plan-tier limits now include shift template caps (FREE: 0, STARTER: 10, PRO: unlimited).
+
+### For contributors
+- `Notification` + `NotificationPreference` Prisma models with soft delete, indexes, and cascade deletes
+- `notificationRepo.ts` — CRUD with `deletedAt IS NULL` filtering and cursor-based pagination
+- `notificationService.ts` — `notify()` (checks preferences), `tryNotify()` (fire-and-forget wrapper)
+- `notifications.ts` tRPC router — `list`, `unreadCount`, `markRead`, `markAllRead` procedures
+- `NotificationBell` component — Popover with infinite scroll, empty state, unread dot indicators
+- `PlanGate` component — Tier comparison with lock icon, warm neutral background, upgrade button
+- 20 new unit tests covering notification domain functions and sendEmail helper
+
 ## [0.9.0] - 2026-03-18
 
 ### Added

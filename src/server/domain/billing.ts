@@ -8,6 +8,7 @@ import type { PlanTier } from '@/prisma/generated/client';
 export type PlanLimits = {
 	maxOpportunities: number | null;
 	maxMembers: number | null;
+	maxShiftTemplates: number | null;
 	canMatching: boolean;
 	canESGReports: boolean;
 	canBackgroundChecks: boolean;
@@ -17,6 +18,7 @@ const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
 	FREE: {
 		maxOpportunities: 3,
 		maxMembers: 3,
+		maxShiftTemplates: 0,
 		canMatching: false,
 		canESGReports: false,
 		canBackgroundChecks: false,
@@ -24,6 +26,7 @@ const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
 	STARTER: {
 		maxOpportunities: 25,
 		maxMembers: 10,
+		maxShiftTemplates: 10,
 		canMatching: true,
 		canESGReports: false,
 		canBackgroundChecks: false,
@@ -31,6 +34,7 @@ const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
 	PRO: {
 		maxOpportunities: null, // unlimited
 		maxMembers: null, // unlimited
+		maxShiftTemplates: null, // unlimited
 		canMatching: true,
 		canESGReports: true,
 		canBackgroundChecks: true,
