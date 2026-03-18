@@ -55,8 +55,8 @@ function UpgradePrompt() {
 				</CardHeader>
 				<CardContent className="flex flex-col items-center gap-3">
 					<p className="text-sm text-muted-foreground text-center">
-						Track your application funnel, volunteer retention, shift fill rates,
-						and top contributors — all in one place.
+						Track your application funnel, volunteer retention, shift fill
+						rates, and top contributors — all in one place.
 					</p>
 					<Button asChild>
 						<Link href="/app/billing">Upgrade to PRO</Link>
@@ -349,7 +349,9 @@ export function AnalyticsClient() {
 												<TableHead className="tabular-nums text-right">
 													Credentials
 												</TableHead>
-												<TableHead className="text-right">Last Active</TableHead>
+												<TableHead className="text-right">
+													Last Active
+												</TableHead>
 											</TableRow>
 										</TableHeader>
 										<TableBody>
