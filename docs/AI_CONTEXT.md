@@ -73,7 +73,7 @@ src/
 │   │   ├── my-skills/            # Volunteer: manage skill tags
 │   │   ├── opportunities/        # Staff: manage opportunities
 │   │   ├── analytics/            # Staff: org engagement dashboard (PRO-gated) — funnel, retention, fill rate, top volunteers
-│   │   ├── discover/             # Staff: search PUBLIC volunteers + invite to apply (feature-flagged)
+│   │   ├── discover/             # Staff: search PUBLIC volunteers + invite to apply (rate-limited)
 │   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
 │   │   ├── shifts/               # Staff: manage shifts + attendance
@@ -433,7 +433,7 @@ pnpm docs:dev               # VitePress dev server
 | 6E — Mobile PWA | Planned |
 | 7 — Network Growth & Volunteer Identity | 🚧 In Progress |
 
-Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses, volunteer discovery (`/app/discover`) with invite-to-apply (feature-flagged), org analytics dashboard (`/app/analytics`, PRO-gated).
+Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses, volunteer discovery (`/app/discover`) with invite-to-apply (rate-limited), org analytics dashboard (`/app/analytics`, PRO-gated).
 
 See `docs/ROADMAP.md` for details.
 

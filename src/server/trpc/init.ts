@@ -85,7 +85,21 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 		}
 	}
 
-	return { session, orgId, role, companyId, companyRole, prisma, sessionToken };
+	const ip =
+		_opts.req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+		_opts.req.headers.get('x-real-ip') ??
+		null;
+
+	return {
+		session,
+		orgId,
+		role,
+		companyId,
+		companyRole,
+		prisma,
+		sessionToken,
+		ip,
+	};
 }
 
 export const t = initTRPC

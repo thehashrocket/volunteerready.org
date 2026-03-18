@@ -309,7 +309,7 @@ Infrastructure:
 
 Cross-org volunteer discovery:
 
-- ✅ `/app/discover` — org staff can search PUBLIC volunteer profiles by skills, credential types, city, state, and availability; cursor-based pagination; feature-flagged behind `VOLUNTEER_DISCOVERY_ENABLED`
+- ✅ `/app/discover` — org staff can search PUBLIC volunteer profiles by skills, credential types, city, state, and availability; cursor-based pagination; rate-limited (60 req/min per org)
 - ✅ Invite to Apply — staff invites a discovered volunteer to a specific opportunity; rate-limited (10/day per org); TOCTOU-safe atomic transaction guard; duplicate invite rejected at DB level
 - ✅ `volunteerDiscoveryRepo` — `visibility = PUBLIC` hardcoded structural privacy invariant (not caller-supplied)
 - ✅ `volunteerDiscoveryService` — orchestrates search + invite; audit logged
@@ -317,6 +317,14 @@ Cross-org volunteer discovery:
 ## Delivered (v0.7.3)
 
 - ✅ Organization analytics dashboard (`/app/analytics`, PRO-gated) — application funnel (submitted → approved → shifted → credentialed), volunteer retention rate, average shift fill rate, and top volunteers by attended hours; date range selector (30d / 90d / 1yr / all-time); upgrade prompt for non-PRO orgs
+
+## Delivered (v0.8.0)
+
+- ✅ Platform-wide rate limiting infrastructure — `@upstash/ratelimit` with Upstash Redis, sliding window, fail-open on Redis unavailability
+- ✅ Three tRPC middleware factories: `rateLimitByOrg`, `rateLimitByUser`, `rateLimitByIp`
+- ✅ Rate limits applied to: `discovery.searchVolunteers` (60/min per org), `credentialSharing.generate` (5/min per user), `credentialSharing.claim` (10/min per org), `screener.submit` (3/min per IP), `credentialSharing.getTokenInfo` (30/min per IP)
+- ✅ Removed `VOLUNTEER_DISCOVERY_ENABLED` env var gate — volunteer discovery now available to all staff
+- ✅ IP extraction in `createTRPCContext` via `x-forwarded-for` / `x-real-ip` headers
 
 ## Planned
 

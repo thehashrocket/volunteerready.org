@@ -30,6 +30,7 @@ import {
 	protectedProcedure,
 	publicProcedure,
 } from '@/server/trpc/init';
+import { rateLimitByIp } from '@/server/trpc/rate-limit-middleware';
 
 // ---------------------------------------------------------------------------
 // configJson helpers
@@ -94,6 +95,9 @@ export const screenerRouter = createTRPCRouter({
 	// ---- Volunteer-facing ----
 
 	submit: publicProcedure
+		.use(
+			rateLimitByIp({ limit: 3, windowSeconds: 60, prefix: 'screener:submit' }),
+		)
 		.input(
 			z.object({
 				orgId: z.string(),
