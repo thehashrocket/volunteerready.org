@@ -235,25 +235,15 @@ schema to the shared `BackgroundCheckResult` type.
 
 ## Volunteer Identity
 
-### [P1] Volunteer Impact Public Page (`/v/[userId]`)
+### ~~[P1] Volunteer Impact Public Page (`/v/[userId]`)~~ ✅ Complete
 
-**What:** SEO-optimized public page per volunteer showing verified credentials,
-total hours, and supported orgs (no PII; volunteer controls visibility).
+**Completed:** Phase 7 PR1+PR2 (2026-03-17)
 
-**Why:** Creates organic SEO growth and gives volunteers a portable identity they
-can share with new orgs or employers. Each verified credential page is indexable.
-
-**Context:** `VolunteerProfile` has a `visibility` field (`PUBLIC / ORGS_ONLY / PRIVATE`).
-The page should only show PUBLIC profiles. Data comes from cross-org credential,
-hours, and org participation aggregates — no PII. Volunteer tenure badges
-(1yr/3yr/5yr milestones) would also appear here. This is the Phase 7 "network
-growth" anchor feature.
-
-**Pros:** Compounding SEO value; strengthens volunteer retention; corporate sponsors
-want to see verified volunteer impact.
-**Cons:** Requires careful PII review; volunteer opt-in flow needs UX design.
-
-**Effort:** L | **Priority:** P1 | **Depends on:** Phase 6 credential portability shipped
+Implemented `/v/[userId]` public identity page (PUBLIC visibility only), OG share card at
+`/api/share-card/[userId]` with Fraunces font, `volunteerIdentityService` with
+`getPublicProfile` (PUBLIC) and `getOrgVisibleProfile` (PUBLIC + ORGS_ONLY for screeners),
+`computeTenure` + `computeReliabilityScore` domain functions, tenure badge display,
+`VolunteerIdentityPanel` on application screener page. No PII exposed.
 
 ### [P3] LinkedIn "Add to Profile" Deep Link for Verified Credentials
 
@@ -273,24 +263,28 @@ certification name, issuing org, issue date, expiry date, credential URL.
 
 **Effort:** S | **Priority:** P3 | **Depends on:** /v/[userId] public page, LinkedIn Partner status
 
-### [P3] Volunteer Tenure Badges (1yr / 3yr / 5yr Milestones)
+### [P3] Volunteer Tenure Badge Auto-Issuance Service
 
-**What:** Automatically issue a `VolunteerCredential` of a special "tenure" type
-when a volunteer reaches 1, 3, or 5 years of verified service on the platform.
+**What:** Service that automatically issues a `VolunteerCredential` of type
+`TENURE_1YR/3YR/5YR` when a volunteer crosses a milestone.
 
-**Why:** Gamification + retention. Long-tenure volunteers are the platform's most
-valuable credential holders. Milestone badges create visible proof of commitment.
+**Why:** The enum values and `computeTenure()` domain function are done (Phase 7 PR1).
+The public profile page already displays tenure badges from existing credentials.
+The missing piece is the service that actually mints and issues those credentials.
 
-**Context:** Tenure is calculated from the volunteer's earliest verified shift or
-application approval date across all orgs. A cron or webhook-triggered check at
-credential issue time could backfill milestones. A new `CredentialType` enum value
-`TENURE_1YR / TENURE_3YR / TENURE_5YR` would be added. The existing credential
-lifecycle (PENDING → VERIFIED) still applies, but these are auto-issued by the system.
+**Context:** `TENURE_1YR/3YR/5YR` enum values are in `CredentialType`. `computeTenure()`
+in `src/server/domain/volunteer-profile.ts` computes the current level. The platform org
+(`slug: platform`) is seeded and will be the issuer. The service (`tenureBadgeService.ts`)
+should: (1) call `computeTenure()` for the user's activity records, (2) check which
+milestones they've crossed, (3) upsert VERIFIED credentials for earned levels (idempotent),
+(4) be triggered from `shiftSignupService` on ATTENDED status and from
+`volunteerApplicationService` on approval. Edge case: milestone reset on account
+re-join is out of scope — tenure is additive from earliest activity.
 
-**Pros:** Creates recurring reasons for volunteers to return; differentiates platform.
-**Cons:** Edge cases: what if a volunteer deletes account and re-joins? Milestone reset?
+**Pros:** Completes the tenure gamification loop; credentials appear on public profile immediately.
+**Cons:** Need trigger points in 3 services; platform org must always exist (seeded).
 
-**Effort:** M | **Priority:** P3 | **Depends on:** Phase 5 shift/attendance data sufficient for tenure calculation
+**Effort:** M | **Priority:** P3 | **Depends on:** ✅ Phase 7 PR1 (enum + computeTenure + platform org seeded)
 
 ### ~~[P3] Auto-Share Credentials on Apply ("Bring My Credentials" Checkbox)~~ ✅ Complete
 

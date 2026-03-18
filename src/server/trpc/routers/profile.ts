@@ -2,10 +2,18 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { prisma } from '@/server/repositories/prisma';
 import {
+	getOrgVisibleProfile,
+	getPublicProfile,
+} from '@/server/services/volunteerIdentityService';
+import {
 	getVolunteerProfileWithCompleteness,
 	saveVolunteerProfile,
 } from '@/server/services/volunteerProfileService';
-import { createTRPCRouter, protectedProcedure } from '@/server/trpc/init';
+import {
+	createTRPCRouter,
+	protectedProcedure,
+	publicProcedure,
+} from '@/server/trpc/init';
 
 function requireUserId(session: { user?: { id?: string } } | null): string {
 	const id = session?.user?.id;
@@ -47,6 +55,24 @@ export const profileRouter = createTRPCRouter({
 				...input,
 			}),
 		),
+
+	/**
+	 * Get a volunteer's public profile by userId (internet-facing).
+	 * Returns null for not-found AND for non-PUBLIC profiles (same response — no leakage).
+	 * Callers must treat null as 404.
+	 */
+	getPublicProfile: publicProcedure
+		.input(z.object({ userId: z.string().min(1) }))
+		.query(({ input }) => getPublicProfile(input.userId)),
+
+	/**
+	 * Get a volunteer's org-visible profile for authenticated screeners.
+	 * Returns data for PUBLIC and ORGS_ONLY profiles; null for PRIVATE + not-found.
+	 * Use this on internal screener pages, not the public internet.
+	 */
+	getOrgVisibleProfile: protectedProcedure
+		.input(z.object({ userId: z.string().min(1) }))
+		.query(({ input }) => getOrgVisibleProfile(input.userId)),
 
 	/** Quick stats: application counts, org count, skill count. */
 	getMyStats: protectedProcedure.query(async ({ ctx }) => {

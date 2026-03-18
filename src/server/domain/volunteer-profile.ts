@@ -22,7 +22,10 @@ export type CredentialType =
 	| 'TRAINING_COMPLETE'
 	| 'ID_VERIFIED'
 	| 'REFERENCE_CHECK'
-	| 'ORIENTATION_COMPLETE';
+	| 'ORIENTATION_COMPLETE'
+	| 'TENURE_1YR'
+	| 'TENURE_3YR'
+	| 'TENURE_5YR';
 
 export type CredentialStatus = 'PENDING' | 'VERIFIED' | 'EXPIRED' | 'REVOKED';
 
@@ -150,6 +153,9 @@ export const CREDENTIAL_LABELS: Record<CredentialType, string> = {
 	ID_VERIFIED: 'ID Verified',
 	REFERENCE_CHECK: 'Reference Check',
 	ORIENTATION_COMPLETE: 'Orientation Complete',
+	TENURE_1YR: '1 Year Volunteer',
+	TENURE_3YR: '3 Year Volunteer',
+	TENURE_5YR: '5 Year Volunteer',
 };
 
 /** Check whether a credential is currently valid (verified + not expired). */
@@ -192,4 +198,130 @@ export function summarizeCredentials(
 	}
 
 	return summary;
+}
+
+// ---------------------------------------------------------------------------
+// Tenure Computation (Phase 7)
+// ---------------------------------------------------------------------------
+
+export type TenureLevel = 'NONE' | '1YR' | '3YR' | '5YR';
+
+export interface TenureResult {
+	/** Full years of volunteer tenure, based on earliest recorded activity. */
+	years: number;
+	level: TenureLevel;
+}
+
+/** Minimal activity record for tenure computation. */
+export interface ActivityRecord {
+	recordedAt: Date;
+}
+
+/**
+ * Compute a volunteer's tenure level from their activity history.
+ *
+ * Tenure clock starts from the earliest recorded activity (application or
+ * shift signup), not from account creation. Returns NONE if no activity.
+ */
+export function computeTenure(
+	activities: ActivityRecord[],
+	now: Date = new Date(),
+): TenureResult {
+	if (activities.length === 0) {
+		return { years: 0, level: 'NONE' };
+	}
+
+	const earliest = activities.reduce((min, a) =>
+		a.recordedAt < min.recordedAt ? a : min,
+	).recordedAt;
+
+	const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
+	const years = Math.floor((now.getTime() - earliest.getTime()) / msPerYear);
+
+	let level: TenureLevel;
+	if (years >= 5) {
+		level = '5YR';
+	} else if (years >= 3) {
+		level = '3YR';
+	} else if (years >= 1) {
+		level = '1YR';
+	} else {
+		level = 'NONE';
+	}
+
+	return { years, level };
+}
+
+// ---------------------------------------------------------------------------
+// Reliability Score (Phase 7)
+// ---------------------------------------------------------------------------
+
+/** Minimal signup record for reliability computation. */
+export interface SignupRecord {
+	status: 'CONFIRMED' | 'ATTENDED' | 'NO_SHOW' | 'CANCELLED';
+	createdAt: Date;
+}
+
+const RELIABILITY_WEIGHTS = {
+	attendance: 0.4,
+	credentials: 0.3,
+	tenure: 0.2,
+	recency: 0.1,
+} as const;
+
+const MAX_CREDENTIAL_SCORE_AT = 5;
+const MAX_TENURE_YEARS = 5;
+
+/**
+ * Compute a 0–100 reliability score for a volunteer.
+ *
+ * Returns null when there are no past completed shifts — distinguishing "no data"
+ * from "poor attendee". Callers must render null as "no data" rather than 0.
+ *
+ * Formula:
+ *   - 40% attendance rate (ATTENDED / (ATTENDED + NO_SHOW)) — past shifts only
+ *   - 30% verified credential count (capped at 5)
+ *   - 20% tenure years (capped at 5)
+ *   - 10% recency: any signup in the last 365 days (includes CONFIRMED upcoming)
+ *
+ * CONFIRMED signups are intentionally excluded from the attendance denominator.
+ * Counting upcoming shifts would penalise active volunteers who haven't attended
+ * them yet — reliability should reflect past behaviour only.
+ */
+export function computeReliabilityScore(
+	signups: SignupRecord[],
+	verifiedCredentialCount: number,
+	tenureYears: number,
+	now: Date = new Date(),
+): number | null {
+	// Past completed shifts only — CONFIRMED (upcoming) excluded from denominator.
+	const active = signups.filter(
+		(s) => s.status === 'ATTENDED' || s.status === 'NO_SHOW',
+	);
+
+	if (active.length === 0) return null;
+
+	const attended = active.filter((s) => s.status === 'ATTENDED').length;
+	const attendanceRate = attended / active.length;
+
+	const credentialScore =
+		Math.min(verifiedCredentialCount, MAX_CREDENTIAL_SCORE_AT) /
+		MAX_CREDENTIAL_SCORE_AT;
+
+	const tenureScore =
+		Math.min(tenureYears, MAX_TENURE_YEARS) / MAX_TENURE_YEARS;
+
+	const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
+	const hasRecentActivity = signups.some(
+		(s) => now.getTime() - s.createdAt.getTime() < msPerYear,
+	);
+	const recencyScore = hasRecentActivity ? 1 : 0;
+
+	const raw =
+		attendanceRate * RELIABILITY_WEIGHTS.attendance +
+		credentialScore * RELIABILITY_WEIGHTS.credentials +
+		tenureScore * RELIABILITY_WEIGHTS.tenure +
+		recencyScore * RELIABILITY_WEIGHTS.recency;
+
+	return Math.round(raw * 100);
 }

@@ -51,6 +51,7 @@ export async function getOrgApplicationDetailEnriched(
 		id: application.id,
 		submittedAt: application.submittedAt,
 		submittedByEmail: application.submittedByEmail,
+		submittedByUserId: application.submittedByUserId,
 		status: application.status,
 		screeningStatus: application.screeningStatus,
 		screeningReasons: normalizeReasons(application.screeningReasons),

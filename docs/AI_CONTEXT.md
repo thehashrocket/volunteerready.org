@@ -243,12 +243,13 @@ The volunteer–opportunity matching system lives in `src/server/domain/voluntee
 
 **Flow:** Volunteer adds skills via `/app/my-skills` → skills stored in `VolunteerSkill` → when browsing opportunities, `rankOpportunities()` scores each opportunity against the volunteer's skill set → results shown as match badges on cards.
 
-**Scoring algorithm (MVP):**
+**Scoring algorithm:**
 
 - No requirements → score 100 (PERFECT)
 - Any REQUIRED skill missing → score 0 (NONE)
 - All REQUIRED met → base 50 + up to 50 bonus for PREFERRED match ratio
-- PERFECT = 100, PARTIAL = 50–99, NONE = 0
+- Phase 7 context bonuses (additive, cap at 100): +5 availability alignment, +5 verified credential match
+- PERFECT = 100 (skill score only, bonuses don't change match verdict), PARTIAL = 50–99, NONE = 0
 - Skills are compared case-insensitively with whitespace trimming
 
 **Key types:** `VolunteerSkillSet`, `OpportunityRequirementSet`, `MatchResult`, `MatchType`
@@ -269,11 +270,11 @@ The volunteer profile system lives in `src/server/domain/volunteer-profile.ts`.
 
 **Profile:** Cross-org identity (1:1 with User). Includes bio, phone, location, availability, interests, and visibility settings. Profile completeness is scored 0–100 based on weighted fields (name 20, email 15, bio 15, location 15, interests 15, phone 10, photo 5, availability 5).
 
-**Credentials:** Org-scoped verification badges. Each credential is unique per `userId + orgId + type`. Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE. Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED.
+**Credentials:** Org-scoped verification badges. Each credential is unique per `userId + orgId + type`. Types: BACKGROUND_CHECK, TRAINING_COMPLETE, ID_VERIFIED, REFERENCE_CHECK, ORIENTATION_COMPLETE. Phase 7 adds system-issued tenure badges: TENURE_1YR, TENURE_3YR, TENURE_5YR (issued by platform org). Status lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED.
 
-**Key types:** `ProfileData`, `ProfileCompleteness`, `CompletenessLevel`, `CredentialRecord`, `CredentialSummary`
+**Key types:** `ProfileData`, `ProfileCompleteness`, `CompletenessLevel`, `CredentialRecord`, `CredentialSummary`, `TenureLevel`, `TenureResult`, `ActivityRecord`, `SignupRecord`
 
-**Key functions:** `computeProfileCompleteness()`, `isCredentialValid()`, `summarizeCredentials()` — all pure, no side effects
+**Key functions:** `computeProfileCompleteness()`, `isCredentialValid()`, `summarizeCredentials()`, `computeTenure()`, `computeReliabilityScore()` — all pure, no side effects
 
 **Service orchestration:**
 - `src/server/services/volunteerProfileService.ts` — `getVolunteerProfileWithCompleteness()`, `saveVolunteerProfile()` (transactional with audit)

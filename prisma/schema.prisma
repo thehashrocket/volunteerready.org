@@ -25,6 +25,7 @@ model User {
   shiftSignups            ShiftSignup[]
   backgroundCheckRequests BackgroundCheckRequest[]
   createdShareTokens      CredentialShareToken[]
+  receivedInvitations     VolunteerInvitation[]   @relation("ReceivedInvitations")
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
 }
@@ -120,6 +121,7 @@ model Organization {
   shifts                  Shift[]
   companyLinks            CompanyNonprofitLink[]
   backgroundCheckRequests BackgroundCheckRequest[]
+  volunteerInvitations    VolunteerInvitation[]
 }
 
 model OrganizationMember {
@@ -286,11 +288,12 @@ model VolunteerOpportunity {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  organization  Organization             @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  tags          OpportunityTag[]
-  requirements  OpportunityRequirement[]
-  applications  VolunteerApplication[]
-  shifts        Shift[]
+  organization          Organization             @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  tags                  OpportunityTag[]
+  requirements          OpportunityRequirement[]
+  applications          VolunteerApplication[]
+  shifts                Shift[]
+  volunteerInvitations  VolunteerInvitation[]
 
   @@index([orgId])
   @@index([status])
@@ -375,6 +378,10 @@ model VolunteerProfile {
   updatedAt    DateTime           @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Phase 7 — indexes for volunteer discovery search
+  @@index([visibility])
+  @@index([city, state])
 }
 
 enum AvailabilityType {
@@ -417,6 +424,8 @@ model VolunteerCredential {
   @@unique([userId, orgId, type])
   @@index([userId])
   @@index([orgId])
+  // Phase 7 — index for volunteer discovery (filter by verified credentials)
+  @@index([userId, status])
 }
 
 enum CredentialType {
@@ -425,6 +434,10 @@ enum CredentialType {
   ID_VERIFIED
   REFERENCE_CHECK
   ORIENTATION_COMPLETE
+  // Phase 7 — Tenure badges (issued by platform org)
+  TENURE_1YR
+  TENURE_3YR
+  TENURE_5YR
 }
 
 enum CredentialStatus {
@@ -673,4 +686,25 @@ model CredentialShareToken {
   @@index([credentialId])
   @@index([createdByUserId])
   @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 — Network Growth & Volunteer Identity
+// ---------------------------------------------------------------------------
+
+model VolunteerInvitation {
+  id            String   @id @default(cuid())
+  orgId         String
+  volunteerId   String
+  opportunityId String
+  sentAt        DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  organization Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  volunteer    User                 @relation("ReceivedInvitations", fields: [volunteerId], references: [id], onDelete: Cascade)
+  opportunity  VolunteerOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, volunteerId, opportunityId])
+  @@index([orgId, sentAt])
+  @@index([volunteerId, sentAt])
 }

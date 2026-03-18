@@ -41,13 +41,6 @@ export type ShareTokenStatus = 'ACTIVE' | 'CLAIMED' | 'EXPIRED';
 
 export type CredentialStatus = 'PENDING' | 'VERIFIED' | 'EXPIRED' | 'REVOKED';
 
-export type CredentialType =
-	| 'BACKGROUND_CHECK'
-	| 'TRAINING_COMPLETE'
-	| 'ID_VERIFIED'
-	| 'REFERENCE_CHECK'
-	| 'ORIENTATION_COMPLETE';
-
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
