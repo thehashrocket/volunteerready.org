@@ -35,9 +35,9 @@ Long-term goals include:
 - Corporate ESG reporting (shipped)
 - Cross-organization volunteer identity (in progress)
 - Grant opportunity integration (planned)
-- Nonprofit analytics and reporting (planned)
+- Nonprofit analytics and reporting (shipped)
 
-The current system implements Phases 1 through 6D. See `docs/ROADMAP.md` for the full plan.
+The current system implements Phases 1 through 7 (in progress). See `docs/ROADMAP.md` for the full plan.
 
 ---
 

@@ -72,6 +72,7 @@ src/
 │   │   ├── my-shifts/            # Volunteer: upcoming shift signups
 │   │   ├── my-skills/            # Volunteer: manage skill tags
 │   │   ├── opportunities/        # Staff: manage opportunities
+│   │   ├── analytics/            # Staff: org engagement dashboard (PRO-gated) — funnel, retention, fill rate, top volunteers
 │   │   ├── discover/             # Staff: search PUBLIC volunteers + invite to apply (feature-flagged)
 │   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
@@ -117,7 +118,7 @@ src/
 │   │   ├── init.ts               # Context creation, procedure definitions
 │   │   ├── root.ts               # App router (combines all sub-routers)
 │   │   └── routers/              # auth, health, members, onboarding,
-│   │                               opportunities, org, screener, status
+│   │                               analytics, opportunities, org, screener, status
 │   ├── services/                 # Business logic layer
 │   ├── repositories/             # Prisma data access layer (includes statsRepo for homepage aggregates)
 │   ├── lib/                      # Shared utilities and adapters
@@ -220,6 +221,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `profile` | getMyProfile, updateMyProfile, getMyStats, getMyUserId, getPublicProfile (public), getOrgVisibleProfile (staff) |
 | `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail |
 | `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |
+| `analytics` | getDashboard (staffProcedure, PRO-gated via `planTierProcedure('PRO')`) |
 | `billing` | createCheckoutSession, createBillingPortalSession, getBillingStatus |
 | `company` | create, list, switchCompany, inviteMember, listMembers, linkNonprofit |
 | `status` | public token-based status lookups |
@@ -401,6 +403,8 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/services/shiftSignupService.ts` | Signup orchestration with capacity + conflict checks |
 | `src/server/services/volunteerIdentityService.ts` | Public volunteer identity assembly — getPublicProfile (React.cache-wrapped), getOrgVisibleProfile (staff-only), reliability score |
 | `src/server/services/volunteerDiscoveryService.ts` | Volunteer search + invite-to-apply — rate-limited, TOCTOU-safe transaction, audit logged |
+| `src/server/services/orgAnalyticsService.ts` | Org analytics dashboard — orchestrates 4 parallel queries; days=null skips retention and uses epoch fromDate |
+| `src/server/repositories/orgAnalyticsRepo.ts` | Raw SQL analytics queries (Prisma.sql parameterized); getApplicationFunnel, getRetentionStats, getAvgFillRate, getTopVolunteers |
 | `src/server/repositories/volunteerDiscoveryRepo.ts` | `searchPublicProfiles()` — `visibility = PUBLIC` hardcoded invariant, cursor pagination, credential/skill/location filters |
 | `src/server/services/tenureBadgeService.ts` | Fire-and-forget tenure badge issuance — idempotent, P2002-safe, called from 3 service triggers |
 | `src/server/domain/credential-sharing.ts` | Share token lifecycle guards, expiry computation |
@@ -429,7 +433,7 @@ pnpm docs:dev               # VitePress dev server
 | 6E — Mobile PWA | Planned |
 | 7 — Network Growth & Volunteer Identity | 🚧 In Progress |
 
-Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses, volunteer discovery (`/app/discover`) with invite-to-apply (feature-flagged).
+Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses, volunteer discovery (`/app/discover`) with invite-to-apply (feature-flagged), org analytics dashboard (`/app/analytics`, PRO-gated).
 
 See `docs/ROADMAP.md` for details.
 
