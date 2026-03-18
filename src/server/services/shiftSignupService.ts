@@ -11,6 +11,7 @@ import {
 	getUpcomingSignupsForUser,
 	updateSignupStatus,
 } from '@/server/repositories/shiftSignupRepo';
+import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
 // ---------------------------------------------------------------------------
 // Reads
@@ -84,30 +85,37 @@ export async function signUpForShift(
 		throw new Error(validation.reason);
 	}
 
-	return prisma.$transaction(async (tx) => {
-		const signup = await createSignup(tx, { shiftId, userId, notes });
+	return prisma
+		.$transaction(async (tx) => {
+			const signup = await createSignup(tx, { shiftId, userId, notes });
 
-		// Auto-mark shift as FULL if at capacity
-		const confirmedCount =
-			signupRecords.filter((s) => s.status === 'CONFIRMED').length + 1;
-		if (confirmedCount >= shift.capacity) {
-			await tx.shift.update({
-				where: { id: shiftId },
-				data: { status: 'FULL' },
+			// Auto-mark shift as FULL if at capacity
+			const confirmedCount =
+				signupRecords.filter((s) => s.status === 'CONFIRMED').length + 1;
+			if (confirmedCount >= shift.capacity) {
+				await tx.shift.update({
+					where: { id: shiftId },
+					data: { status: 'FULL' },
+				});
+			}
+
+			await writeAuditLogTx(tx, {
+				orgId: shift.orgId,
+				actorId: userId,
+				action: 'shift.signup',
+				entityType: 'ShiftSignup',
+				entityId: signup.id,
+				metadata: { shiftId, shiftTitle: shift.title },
 			});
-		}
 
-		await writeAuditLogTx(tx, {
-			orgId: shift.orgId,
-			actorId: userId,
-			action: 'shift.signup',
-			entityType: 'ShiftSignup',
-			entityId: signup.id,
-			metadata: { shiftId, shiftTitle: shift.title },
+			return signup;
+		})
+		.then((signup) => {
+			// Fire-and-forget: check if signup unlocks a tenure badge.
+			// Must not throw — badge issuance is best-effort.
+			void checkAndIssueTenureBadges(userId);
+			return signup;
 		});
-
-		return signup;
-	});
 }
 
 export async function cancelSignup(shiftId: string, userId: string) {

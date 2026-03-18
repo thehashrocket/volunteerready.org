@@ -15,6 +15,7 @@ import {
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { getActiveQuestions } from '@/server/repositories/volunteer-applications';
+import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
 interface SubmitVolunteerApplicationPayload {
 	submittedByEmail: string;
@@ -131,6 +132,12 @@ export async function submitVolunteerApplication(
 
 		return app;
 	});
+
+	// Fire-and-forget: check if this application unlocks a tenure badge.
+	// Only runs for authenticated users (anonymous submissions have no userId).
+	if (payload.submittedByUserId) {
+		void checkAndIssueTenureBadges(payload.submittedByUserId);
+	}
 
 	return {
 		applicationId: application.id,
