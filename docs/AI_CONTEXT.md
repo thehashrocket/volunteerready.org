@@ -91,6 +91,7 @@ src/
 │   │   └── v/[userId]/           # Public volunteer identity page (SEO-optimized, share card)
 │   ├── api/
 │   │   ├── share-card/[userId]/  # OG social share image (@vercel/og) — forest green/sand palette
+│   │   ├── cron/expire-credentials/ # Daily Vercel Cron — expires stale credentials + share tokens
 │   │   └── ...                   # stripe webhook, checkr webhook, etc.
 │   ├── apply/[orgSlug]/          # Public volunteer application form
 │   ├── apply/status/             # Email-based status lookup
@@ -125,7 +126,8 @@ src/
 │   │   ├── adapters/             # External service adapters (Checkr, etc.)
 │   │   ├── crypto.ts             # AES-256-GCM encryption for secrets at rest
 │   │   ├── tokens.ts             # Shared token generation + SHA-256 hashing
-│   │   └── resend.ts             # Shared Resend email client (lazy singleton)
+│   │   ├── resend.ts             # Shared Resend email client (lazy singleton)
+│   │   └── email-template.ts     # Branded email wrapper (VolunteerReady header/footer)
 │   └── domain/                   # Pure types + functions + tests
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
 │       ├── screener/
@@ -136,7 +138,7 @@ src/
 │
 ├── lib/
 │   ├── trpc/                     # Client-side tRPC setup + provider
-│   ├── email/                    # Email template builders
+│   ├── credential-meta.ts        # Shared credential labels + icons (single source of truth)
 │   ├── slug.ts                   # URL slug utilities
 │   └── utils.ts                  # General utilities (cn, etc.)
 │
@@ -407,6 +409,9 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/repositories/orgAnalyticsRepo.ts` | Raw SQL analytics queries (Prisma.sql parameterized); getApplicationFunnel, getRetentionStats, getAvgFillRate, getTopVolunteers |
 | `src/server/repositories/volunteerDiscoveryRepo.ts` | `searchPublicProfiles()` — `visibility = PUBLIC` hardcoded invariant, cursor pagination, credential/skill/location filters |
 | `src/server/services/tenureBadgeService.ts` | Fire-and-forget tenure badge issuance — idempotent, P2002-safe, called from 3 service triggers |
+| `src/server/services/credential-expiry-service.ts` | Daily cron — expires stale credentials + share tokens (P2025 safe) |
+| `src/server/lib/email-template.ts` | Branded email wrapper matching DESIGN.md colors |
+| `src/lib/credential-meta.ts` | Shared credential labels + icons (single source of truth for all UI) |
 | `src/server/domain/credential-sharing.ts` | Share token lifecycle guards, expiry computation |
 | `src/server/services/credentialShareService.ts` | Credential sharing workflows (generate, claim, revoke, shareAllOnApply) |
 | `src/server/lib/tokens.ts` | Shared token generation (256-bit) and SHA-256 hashing |

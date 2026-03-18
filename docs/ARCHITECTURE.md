@@ -125,7 +125,8 @@ Key services:
 - `shiftSignupService.ts` — signup with conflict detection and attendance
 - `backgroundCheckService.ts` — Checkr integration, FCRA workflow, token encryption
 - `credentialShareService.ts` — credential sharing: generate, claim, revoke, shareAllOnApply
-- `billingService.ts` — Stripe integration, plan management
+- `billingService.ts` — Stripe integration, plan management, billing lifecycle emails (upgrade, payment failed, cancellation)
+- `credential-expiry-service.ts` — daily credential and share token expiry (Vercel Cron)
 - `companyService.ts` — corporate account management
 - `employerReportService.ts` — ESG report generation and CSV export
 
@@ -149,6 +150,7 @@ Shared utilities and external service adapters.
 - `crypto.ts` — AES-256-GCM encrypt/decrypt for Checkr OAuth tokens
 - `tokens.ts` — shared token generation (256-bit random) and SHA-256 hashing
 - `resend.ts` — lazy-initialized Resend email client singleton
+- `email-template.ts` — branded email wrapper (VolunteerReady header/footer matching DESIGN.md)
 
 ---
 
@@ -260,7 +262,8 @@ Each middleware narrows the context type via `next({ ctx: { ... } })`, so downst
 
 ## Resend (Email)
 
-- Transactional emails: invitations, status lookups, background check notifications, FCRA notices, credential claim notifications, credential sharing requests
+- Transactional emails: invitations, status lookups, background check notifications, FCRA notices, credential claim notifications, credential sharing requests, billing lifecycle (upgrade, payment failed, cancellation)
+- All emails use branded template (`buildEmailHtml` from `email-template.ts`)
 - Lazy-initialized singleton client
 
 ---
