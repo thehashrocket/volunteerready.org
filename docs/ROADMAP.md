@@ -326,6 +326,13 @@ Cross-org volunteer discovery:
 - ✅ Removed `VOLUNTEER_DISCOVERY_ENABLED` env var gate — volunteer discovery now available to all staff
 - ✅ IP extraction in `createTRPCContext` via `x-forwarded-for` / `x-real-ip` headers
 
+## Delivered (v0.9.0)
+
+- ✅ Branded email template — all transactional emails (invitations, FCRA, credentials, billing) use consistent VolunteerReady branding (forest green header, warm neutral footer)
+- ✅ Billing lifecycle emails — org/company owners receive emails for plan upgrades, payment failures, and cancellations (fire-and-forget via `trySendBillingEmail`)
+- ✅ Credential & share token expiry cron — daily Vercel Cron job (03:00 UTC) auto-transitions VERIFIED→EXPIRED credentials and ACTIVE→EXPIRED share tokens with audit logging
+- ✅ Consolidated credential display constants — single source of truth for credential labels and icons (`src/lib/credential-meta.ts`)
+
 ## Planned
 
 - "Add to LinkedIn" deep link for verified credential badges (blocked on LinkedIn Partner Org ID)

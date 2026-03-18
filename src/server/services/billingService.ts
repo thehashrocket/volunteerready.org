@@ -4,13 +4,20 @@ import type { PlanTier, Prisma } from '@/prisma/generated/client';
 import { writeAuditLogTx } from '../repositories/auditRepo';
 import {
 	findCompanyByStripeCustomerId,
+	findCompanyWithOwnerEmail,
 	updateCompanyPlanTx,
 } from '../repositories/companyRepo';
 import {
 	findOrgByStripeCustomerId,
+	findOrgWithOwnerEmail,
 	updateOrgPlanTx,
 } from '../repositories/orgRepo';
 import { prisma } from '../repositories/prisma';
+import {
+	sendCancellationEmail,
+	sendPaymentFailedEmail,
+	sendPlanUpgradeEmail,
+} from '../repositories/send-billing-emails';
 import {
 	isWebhookEventProcessed,
 	markWebhookEventProcessedTx,
@@ -84,6 +91,37 @@ async function recordEvent(event: Stripe.Event) {
 			payload: JSON.parse(JSON.stringify(event)) as Prisma.InputJsonValue,
 		},
 	});
+}
+
+// ---------------------------------------------------------------------------
+// Billing email helper — fire-and-forget (never crashes the webhook handler)
+// ---------------------------------------------------------------------------
+
+async function trySendBillingEmail(
+	entity: { type: 'org' | 'company'; id: string },
+	sendFn: (opts: { to: string; orgName: string }) => Promise<void>,
+	label: string,
+) {
+	try {
+		let ownerEmail: string | null | undefined;
+		let name: string | undefined;
+
+		if (entity.type === 'org') {
+			const org = await findOrgWithOwnerEmail(entity.id);
+			ownerEmail = org?.members[0]?.user?.email;
+			name = org?.name;
+		} else {
+			const company = await findCompanyWithOwnerEmail(entity.id);
+			ownerEmail = company?.members[0]?.user?.email;
+			name = company?.name;
+		}
+
+		if (ownerEmail && name) {
+			await sendFn({ to: ownerEmail, orgName: name });
+		}
+	} catch (e) {
+		console.error(`[billing] Failed to send ${label} email`, e);
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -235,6 +273,16 @@ export async function handleStripeWebhookEvent(
 					});
 				}
 			});
+
+			// Send upgrade email only on subscription.created (not on updates like
+			// payment method changes or proration adjustments)
+			if (event.type === 'customer.subscription.created') {
+				await trySendBillingEmail(
+					entity,
+					(opts) => sendPlanUpgradeEmail({ ...opts, tier: newTier }),
+					'upgrade',
+				);
+			}
 			break;
 		}
 
@@ -249,6 +297,17 @@ export async function handleStripeWebhookEvent(
 				);
 				await recordEvent(event);
 				break;
+			}
+
+			// Capture current tier before the transaction sets it to FREE
+			const priceId = subscription.items.data[0]?.price.id;
+			let previousTier: PlanTier = 'STARTER';
+			if (priceId) {
+				try {
+					previousTier = mapPriceIdToTier(priceId);
+				} catch {
+					// Unknown price — fall back to STARTER for email display
+				}
 			}
 
 			await prisma.$transaction(async (tx) => {
@@ -284,15 +343,31 @@ export async function handleStripeWebhookEvent(
 					});
 				}
 			});
+
+			await trySendBillingEmail(
+				entity,
+				(opts) => sendCancellationEmail({ ...opts, previousTier }),
+				'cancellation',
+			);
 			break;
 		}
 
 		case 'invoice.payment_failed': {
 			const invoice = event.data.object as Stripe.Invoice;
+			const customerId = invoice.customer as string;
 			console.warn(
-				`[billing] Payment failed for customer ${invoice.customer} — invoice ${invoice.id}`,
+				`[billing] Payment failed for customer ${customerId} — invoice ${invoice.id}`,
 			);
-			// TODO [P2]: Send payment failed email to org owner (see docs/TODOS.md)
+
+			const entity = await resolveEntityByCustomerId(customerId);
+			if (entity) {
+				await trySendBillingEmail(
+					entity,
+					sendPaymentFailedEmail,
+					'payment-failed',
+				);
+			}
+
 			await recordEvent(event);
 			break;
 		}

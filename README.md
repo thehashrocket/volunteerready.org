@@ -309,6 +309,9 @@ CHECKR_CLIENT_ID
 CHECKR_CLIENT_SECRET
 CHECKR_DEFAULT_PACKAGE
 CHECKR_TOKEN_ENCRYPTION_KEY
+
+# Cron
+CRON_SECRET
 ```
 
 See `.env.example` for safe defaults.
@@ -349,7 +352,7 @@ pnpm prisma db seed
 | 6C | Portable Credential Sharing | Complete |
 | 6D | Corporate ESG Reporting | Complete |
 | 6E | Mobile PWA | Planned |
-| 7 | Network Growth & Volunteer Identity | Planned |
+| 7 | Network Growth & Volunteer Identity | In Progress |
 
 See `docs/ROADMAP.md` for full detail.
 

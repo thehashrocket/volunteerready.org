@@ -43,6 +43,9 @@ flowchart TD
 
     Q --> F
     R --> F
+
+    S[Vercel Cron] -.->|Daily 03:00 UTC| T[/api/cron/expire-credentials]
+    T --> F
 ```
 
 ## Notes
@@ -421,6 +424,7 @@ sequenceDiagram
     W->>B: processWebhookEvent
     B->>DB: Update org planTier
     B->>DB: Write AuditLog + StripeWebhookEvent
+    B->>P: Send billing lifecycle email (fire-and-forget)
     W-->>ST: 200 OK
 ```
 
@@ -491,7 +495,7 @@ flowchart TD
     F --> G[Phase 6B: Background Checks ✅]
 
     G --> H[Phase 6C: Portable Credentials ✅]
-    G --> I[Phase 6D: Corporate ESG Reporting]
+    G --> I[Phase 6D: Corporate ESG Reporting ✅]
     G --> J[Phase 6E: Mobile PWA]
 
     H --> K[Phase 7: Network Growth]

@@ -153,11 +153,16 @@ Stripe POST /api/stripe/webhook
     -> Verify signature (constructEvent)
     -> Check idempotency (StripeWebhookEvent)
     -> Route by event type:
-        customer.subscription.created -> update org plan tier
-        customer.subscription.updated -> update org plan tier
-        customer.subscription.deleted -> downgrade to FREE
+        customer.subscription.created -> update org plan tier + send upgrade email
+        customer.subscription.updated -> update org plan tier (no email)
+        customer.subscription.deleted -> downgrade to FREE + send cancellation email
+        invoice.payment_failed -> send payment failed email
     -> Write AuditLog
     -> Return 200
+
+Billing emails are fire-and-forget (trySendBillingEmail) — failures are
+logged but never crash the webhook handler. Emails are sent to the org
+or company OWNER's email address.
 
 Error routing:
     400 = bad signature
@@ -241,6 +246,27 @@ Volunteer UI (/apply/[orgSlug])
                 └─ Write single AuditLog entry
         -> Return application result
 ```
+
+---
+
+# Credential & Token Expiry Cron Flow
+
+```
+Vercel Cron (daily, 03:00 UTC)
+    -> GET /api/cron/expire-credentials
+        -> Verify Authorization: Bearer CRON_SECRET
+        -> credentialExpiryService.expireStaleCredentialsAndTokens()
+            -> Find VERIFIED credentials with expiresAt in the past (limit 500)
+            -> For each: $transaction(update status → EXPIRED + audit log)
+            -> Find ACTIVE share tokens with expiresAt in the past (limit 500)
+            -> For each: $transaction(update status → EXPIRED + audit log)
+            -> Per-record try/catch: P2025 (concurrent modification) → skip
+        -> Return { ok: true, credentialsExpired, tokensExpired }
+```
+
+Audit log entries use `actorId: null` (system action, no human actor).
+Limit of 500 per query prevents unbounded processing; remaining records
+picked up on the next run.
 
 ---
 

@@ -41,11 +41,13 @@ vi.mock('stripe', async (importOriginal) => {
 
 vi.mock('@/server/repositories/orgRepo', () => ({
 	findOrgByStripeCustomerId: vi.fn(async () => null),
+	findOrgWithOwnerEmail: vi.fn(async () => null),
 	updateOrgPlanTx: vi.fn(async () => ({})),
 }));
 
 vi.mock('@/server/repositories/companyRepo', () => ({
 	findCompanyByStripeCustomerId: vi.fn(async () => null),
+	findCompanyWithOwnerEmail: vi.fn(async () => null),
 	updateCompanyPlanTx: vi.fn(async () => ({})),
 }));
 
@@ -56,6 +58,12 @@ vi.mock('@/server/repositories/webhookRepo', () => ({
 
 vi.mock('@/server/repositories/auditRepo', () => ({
 	writeAuditLogTx: vi.fn(async () => ({})),
+}));
+
+vi.mock('@/server/repositories/send-billing-emails', () => ({
+	sendPlanUpgradeEmail: vi.fn(async () => {}),
+	sendPaymentFailedEmail: vi.fn(async () => {}),
+	sendCancellationEmail: vi.fn(async () => {}),
 }));
 
 vi.mock('@/server/repositories/prisma', () => ({
@@ -76,8 +84,10 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
+import * as companyRepo from '@/server/repositories/companyRepo';
 import * as orgRepo from '@/server/repositories/orgRepo';
 import { prisma } from '@/server/repositories/prisma';
+import * as billingEmails from '@/server/repositories/send-billing-emails';
 import * as webhookRepo from '@/server/repositories/webhookRepo';
 import {
 	createCheckoutSession,
@@ -230,12 +240,242 @@ describe('handleStripeWebhookEvent', () => {
 			id: 'evt_del',
 			type: 'customer.subscription.deleted',
 			data: {
-				object: { id: 'sub_1', customer: 'cus_1' },
+				object: {
+					id: 'sub_1',
+					customer: 'cus_1',
+					items: { data: [{ price: { id: 'price_starter' } }] },
+				},
 			},
 		});
 
 		await handleStripeWebhookEvent(Buffer.from(''), 'sig');
 
 		expect(prisma.$transaction).toHaveBeenCalled();
+	});
+
+	// -----------------------------------------------------------------------
+	// Billing email dispatch tests
+	// -----------------------------------------------------------------------
+
+	it('sends upgrade email on subscription.created for org', async () => {
+		vi.mocked(orgRepo.findOrgByStripeCustomerId).mockResolvedValueOnce({
+			id: 'org-1',
+			planTier: 'FREE',
+			stripeCustomerId: 'cus_1',
+		});
+		vi.mocked(orgRepo.findOrgWithOwnerEmail).mockResolvedValueOnce({
+			id: 'org-1',
+			name: 'Test Org',
+			members: [{ user: { email: 'owner@org.com', name: 'Owner' } }],
+		});
+		mockStripe.webhooks.constructEvent.mockReturnValueOnce({
+			id: 'evt_created',
+			type: 'customer.subscription.created',
+			data: {
+				object: {
+					id: 'sub_1',
+					customer: 'cus_1',
+					items: { data: [{ price: { id: 'price_starter' } }] },
+				},
+			},
+		});
+
+		await handleStripeWebhookEvent(Buffer.from(''), 'sig');
+
+		expect(billingEmails.sendPlanUpgradeEmail).toHaveBeenCalledWith(
+			expect.objectContaining({
+				to: 'owner@org.com',
+				orgName: 'Test Org',
+				tier: 'STARTER',
+			}),
+		);
+	});
+
+	it('does NOT send upgrade email on subscription.updated', async () => {
+		vi.mocked(orgRepo.findOrgByStripeCustomerId).mockResolvedValueOnce({
+			id: 'org-1',
+			planTier: 'STARTER',
+			stripeCustomerId: 'cus_1',
+		});
+		mockStripe.webhooks.constructEvent.mockReturnValueOnce({
+			id: 'evt_updated',
+			type: 'customer.subscription.updated',
+			data: {
+				object: {
+					id: 'sub_1',
+					customer: 'cus_1',
+					items: { data: [{ price: { id: 'price_starter' } }] },
+				},
+			},
+		});
+
+		await handleStripeWebhookEvent(Buffer.from(''), 'sig');
+
+		expect(billingEmails.sendPlanUpgradeEmail).not.toHaveBeenCalled();
+	});
+
+	it('sends cancellation email on subscription.deleted', async () => {
+		vi.mocked(orgRepo.findOrgByStripeCustomerId).mockResolvedValueOnce({
+			id: 'org-1',
+			planTier: 'STARTER',
+			stripeCustomerId: 'cus_1',
+		});
+		vi.mocked(orgRepo.findOrgWithOwnerEmail).mockResolvedValueOnce({
+			id: 'org-1',
+			name: 'Test Org',
+			members: [{ user: { email: 'owner@org.com', name: 'Owner' } }],
+		});
+		mockStripe.webhooks.constructEvent.mockReturnValueOnce({
+			id: 'evt_cancel',
+			type: 'customer.subscription.deleted',
+			data: {
+				object: {
+					id: 'sub_1',
+					customer: 'cus_1',
+					items: { data: [{ price: { id: 'price_starter' } }] },
+				},
+			},
+		});
+
+		await handleStripeWebhookEvent(Buffer.from(''), 'sig');
+
+		expect(billingEmails.sendCancellationEmail).toHaveBeenCalledWith(
+			expect.objectContaining({
+				to: 'owner@org.com',
+				orgName: 'Test Org',
+				previousTier: 'STARTER',
+			}),
+		);
+	});
+
+	it('sends payment failed email for known customer', async () => {
+		vi.mocked(orgRepo.findOrgByStripeCustomerId).mockResolvedValueOnce({
+			id: 'org-1',
+			planTier: 'STARTER',
+			stripeCustomerId: 'cus_1',
+		});
+		vi.mocked(orgRepo.findOrgWithOwnerEmail).mockResolvedValueOnce({
+			id: 'org-1',
+			name: 'Test Org',
+			members: [{ user: { email: 'owner@org.com', name: 'Owner' } }],
+		});
+		mockStripe.webhooks.constructEvent.mockReturnValueOnce({
+			id: 'evt_fail',
+			type: 'invoice.payment_failed',
+			data: {
+				object: { id: 'inv_1', customer: 'cus_1' },
+			},
+		});
+		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+		await handleStripeWebhookEvent(Buffer.from(''), 'sig');
+
+		expect(billingEmails.sendPaymentFailedEmail).toHaveBeenCalledWith(
+			expect.objectContaining({
+				to: 'owner@org.com',
+				orgName: 'Test Org',
+			}),
+		);
+		warnSpy.mockRestore();
+	});
+
+	it('does not crash when email send throws', async () => {
+		vi.mocked(orgRepo.findOrgByStripeCustomerId).mockResolvedValueOnce({
+			id: 'org-1',
+			planTier: 'FREE',
+			stripeCustomerId: 'cus_1',
+		});
+		vi.mocked(orgRepo.findOrgWithOwnerEmail).mockResolvedValueOnce({
+			id: 'org-1',
+			name: 'Test Org',
+			members: [{ user: { email: 'owner@org.com', name: 'Owner' } }],
+		});
+		vi.mocked(billingEmails.sendPlanUpgradeEmail).mockRejectedValueOnce(
+			new Error('Resend is down'),
+		);
+		mockStripe.webhooks.constructEvent.mockReturnValueOnce({
+			id: 'evt_email_fail',
+			type: 'customer.subscription.created',
+			data: {
+				object: {
+					id: 'sub_1',
+					customer: 'cus_1',
+					items: { data: [{ price: { id: 'price_starter' } }] },
+				},
+			},
+		});
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		// Should not throw
+		await handleStripeWebhookEvent(Buffer.from(''), 'sig');
+
+		expect(errorSpy).toHaveBeenCalledWith(
+			expect.stringContaining('Failed to send upgrade email'),
+			expect.any(Error),
+		);
+		errorSpy.mockRestore();
+	});
+
+	it('skips email when no owner member exists', async () => {
+		vi.mocked(orgRepo.findOrgByStripeCustomerId).mockResolvedValueOnce({
+			id: 'org-1',
+			planTier: 'FREE',
+			stripeCustomerId: 'cus_1',
+		});
+		vi.mocked(orgRepo.findOrgWithOwnerEmail).mockResolvedValueOnce({
+			id: 'org-1',
+			name: 'Test Org',
+			members: [],
+		});
+		mockStripe.webhooks.constructEvent.mockReturnValueOnce({
+			id: 'evt_no_owner',
+			type: 'customer.subscription.created',
+			data: {
+				object: {
+					id: 'sub_1',
+					customer: 'cus_1',
+					items: { data: [{ price: { id: 'price_starter' } }] },
+				},
+			},
+		});
+
+		await handleStripeWebhookEvent(Buffer.from(''), 'sig');
+
+		expect(billingEmails.sendPlanUpgradeEmail).not.toHaveBeenCalled();
+	});
+
+	it('sends upgrade email for company entity', async () => {
+		vi.mocked(orgRepo.findOrgByStripeCustomerId).mockResolvedValueOnce(null);
+		vi.mocked(companyRepo.findCompanyByStripeCustomerId).mockResolvedValueOnce({
+			id: 'company-1',
+			planTier: 'FREE',
+			stripeCustomerId: 'cus_co',
+		});
+		vi.mocked(companyRepo.findCompanyWithOwnerEmail).mockResolvedValueOnce({
+			id: 'company-1',
+			name: 'Test Company',
+			members: [{ user: { email: 'boss@company.com', name: 'Boss' } }],
+		});
+		mockStripe.webhooks.constructEvent.mockReturnValueOnce({
+			id: 'evt_co_created',
+			type: 'customer.subscription.created',
+			data: {
+				object: {
+					id: 'sub_co',
+					customer: 'cus_co',
+					items: { data: [{ price: { id: 'price_pro' } }] },
+				},
+			},
+		});
+
+		await handleStripeWebhookEvent(Buffer.from(''), 'sig');
+
+		expect(billingEmails.sendPlanUpgradeEmail).toHaveBeenCalledWith(
+			expect.objectContaining({
+				to: 'boss@company.com',
+				orgName: 'Test Company',
+				tier: 'PRO',
+			}),
+		);
 	});
 });

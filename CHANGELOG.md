@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2026-03-18
+
+### Added
+- **Branded email template** — All transactional emails (invitations, FCRA notices, credential notifications, billing) now use a consistent VolunteerReady-branded template with forest green header, warm neutral footer, and brand-colored buttons.
+- **Billing lifecycle emails** — Org and company owners now receive transactional emails for plan upgrades, payment failures, and subscription cancellations. Emails are fire-and-forget (never crash the Stripe webhook handler).
+- **Credential & token expiry cron** — A daily Vercel Cron job (03:00 UTC) automatically marks expired credentials as EXPIRED and cleans up stale share tokens, with per-record transactions and full audit logging.
+- **Single source of truth for credential labels** — Credential display names and icons are now consolidated into shared constants, eliminating three duplicate maps across the codebase.
+
+### For contributors
+- **`buildEmailHtml()`** (`src/server/lib/email-template.ts`) — branded email wrapper matching DESIGN.md colors
+- **`send-billing-emails.ts`** — three billing email senders: upgrade, payment failed, cancellation
+- **`trySendBillingEmail()`** in `billingService.ts` — fire-and-forget helper resolving owner email for org/company entities
+- **`credential-expiry-repo.ts`** — queries for expired credentials and share tokens
+- **`credential-expiry-service.ts`** — batch expiry with P2025 (concurrent modification) handling
+- **`/api/cron/expire-credentials`** — Vercel Cron route with `CRON_SECRET` bearer auth
+- **`src/lib/credential-meta.ts`** — shared `CREDENTIAL_META` constant with labels + icons
+- **22 new tests** — 7 billing email dispatch tests, 5 credential expiry service tests, 5 cron route tests, plus coverage across existing test files
+- **`findOrgWithOwnerEmail`** / **`findCompanyWithOwnerEmail`** — owner email lookup helpers in orgRepo/companyRepo
+
 ## [0.8.0] - 2026-03-18
 
 ### Added

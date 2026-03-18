@@ -3,7 +3,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-	Award,
 	Briefcase,
 	Building2,
 	CalendarClock,
@@ -13,13 +12,9 @@ import {
 	Clock,
 	Copy,
 	ExternalLink,
-	Fingerprint,
-	GraduationCap,
 	Link2,
-	Shield,
 	ShieldCheck,
 	Sparkles,
-	Users,
 	X,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -49,6 +44,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { getCredentialMeta } from '@/lib/credential-meta';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
@@ -569,31 +565,6 @@ export default function ProfilePage() {
 				</TabsContent>
 			</Tabs>
 		</div>
-	);
-}
-
-// ---------------------------------------------------------------------------
-// Credential type icons + labels
-// ---------------------------------------------------------------------------
-
-const CREDENTIAL_META: Record<string, { label: string; icon: typeof Shield }> =
-	{
-		BACKGROUND_CHECK: { label: 'Background Check', icon: Shield },
-		TRAINING_COMPLETE: { label: 'Training Complete', icon: GraduationCap },
-		ID_VERIFIED: { label: 'ID Verified', icon: Fingerprint },
-		REFERENCE_CHECK: { label: 'Reference Check', icon: Users },
-		ORIENTATION_COMPLETE: {
-			label: 'Orientation Complete',
-			icon: GraduationCap,
-		},
-		TENURE_1YR: { label: '1 Year Volunteer', icon: Award },
-		TENURE_3YR: { label: '3 Year Volunteer', icon: Award },
-		TENURE_5YR: { label: '5 Year Volunteer', icon: Award },
-	};
-
-function getCredentialMeta(type: string) {
-	return (
-		CREDENTIAL_META[type] ?? { label: type.replace(/_/g, ' '), icon: Shield }
 	);
 }
 
