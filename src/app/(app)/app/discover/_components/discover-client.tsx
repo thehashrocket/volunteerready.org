@@ -278,7 +278,7 @@ export function DiscoverClient() {
 			cursor,
 		},
 		{
-			keepPreviousData: true,
+			placeholderData: (prev) => prev,
 		},
 	);
 
