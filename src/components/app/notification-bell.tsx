@@ -47,12 +47,12 @@ export function NotificationBell() {
 				<Button
 					variant="ghost"
 					size="sm"
-					className="relative h-8 w-8 p-0"
+					className="relative h-9 w-9 p-0"
 					aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
 				>
 					<Bell className="h-4 w-4" />
 					{unreadCount > 0 && (
-						<span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+						<span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
 							{unreadCount > 99 ? '99+' : unreadCount}
 						</span>
 					)}
@@ -79,7 +79,7 @@ export function NotificationBell() {
 					)}
 				</div>
 
-				<div className="max-h-80 overflow-y-auto">
+				<div className="max-h-96 overflow-y-auto">
 					{items.length === 0 ? (
 						<div className="px-4 py-8 text-center">
 							<Bell className="mx-auto h-8 w-8 text-muted-foreground/40" />
@@ -151,7 +151,7 @@ export function NotificationBell() {
 										onClick={() => fetchNextPage()}
 										disabled={isFetchingNextPage}
 									>
-										{isFetchingNextPage ? 'Loading...' : 'Load more'}
+										{isFetchingNextPage ? 'Loading\u2026' : 'Load more'}
 									</Button>
 								</div>
 							)}
