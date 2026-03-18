@@ -11,6 +11,7 @@
  *   - Adverse action: final notice that adverse action has been taken
  */
 
+import { buildEmailHtml } from '@/server/lib/email-template';
 import { getFromEmail, getResend } from '@/server/lib/resend';
 
 const FTC_FCRA_RIGHTS_URL =
@@ -34,8 +35,7 @@ export async function sendPreAdverseActionEmail(input: {
 		from,
 		to: input.to,
 		subject: `Important notice about your background check — ${input.orgName}`,
-		html: `
-      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height: 1.6; max-width: 600px;">
+		html: buildEmailHtml(`
         <p>Dear ${input.volunteerName},</p>
 
         <p><strong>${input.orgName}</strong> is considering taking adverse action regarding your volunteer
@@ -49,22 +49,21 @@ export async function sendPreAdverseActionEmail(input: {
         </ul>
 
         <p>To obtain a copy of your background check report, please contact Checkr directly
-        at <a href="https://candidate.checkr.com">candidate.checkr.com</a> or call
+        at <a href="https://candidate.checkr.com" style="color: #1B3C2A;">candidate.checkr.com</a> or call
         <strong>(844) 824-3257</strong>.</p>
 
         <p>You have <strong>5 business days</strong> from receipt of this notice to dispute
         any information before a final decision is made.</p>
 
         <p>For more information about your rights under the FCRA, please review the
-        <a href="${FTC_FCRA_RIGHTS_URL}">Summary of Your Rights Under the Fair Credit Reporting Act</a>.</p>
+        <a href="${FTC_FCRA_RIGHTS_URL}" style="color: #1B3C2A;">Summary of Your Rights Under the Fair Credit Reporting Act</a>.</p>
 
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
         <p style="color: #6b7280; font-size: 0.875rem;">
           This notice is sent on behalf of ${input.orgName} via VolunteerReady.
           If you have questions, please contact ${input.orgName} directly.
         </p>
-      </div>
-    `,
+    `),
 	});
 }
 
@@ -86,8 +85,7 @@ export async function sendAdverseActionEmail(input: {
 		from,
 		to: input.to,
 		subject: `Adverse action notice — ${input.orgName}`,
-		html: `
-      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height: 1.6; max-width: 600px;">
+		html: buildEmailHtml(`
         <p>Dear ${input.volunteerName},</p>
 
         <p><strong>${input.orgName}</strong> has made a final decision to take adverse action
@@ -105,7 +103,7 @@ export async function sendAdverseActionEmail(input: {
         <p>The background check was provided by:</p>
         <p style="margin-left: 16px;">
           <strong>Checkr, Inc.</strong><br />
-          Website: <a href="https://candidate.checkr.com">candidate.checkr.com</a><br />
+          Website: <a href="https://candidate.checkr.com" style="color: #1B3C2A;">candidate.checkr.com</a><br />
           Phone: (844) 824-3257
         </p>
 
@@ -114,13 +112,12 @@ export async function sendAdverseActionEmail(input: {
         this action.</p>
 
         <p>For more information about your rights under the FCRA, please review the
-        <a href="${FTC_FCRA_RIGHTS_URL}">Summary of Your Rights Under the Fair Credit Reporting Act</a>.</p>
+        <a href="${FTC_FCRA_RIGHTS_URL}" style="color: #1B3C2A;">Summary of Your Rights Under the Fair Credit Reporting Act</a>.</p>
 
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
         <p style="color: #6b7280; font-size: 0.875rem;">
           This notice is sent on behalf of ${input.orgName} via VolunteerReady.
         </p>
-      </div>
-    `,
+    `),
 	});
 }

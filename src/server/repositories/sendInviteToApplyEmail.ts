@@ -1,3 +1,4 @@
+import { buildEmailHtml } from '@/server/lib/email-template';
 import { getFromEmail, getResend } from '@/server/lib/resend';
 
 export async function sendInviteToApplyEmail(input: {
@@ -13,9 +14,8 @@ export async function sendInviteToApplyEmail(input: {
 		from,
 		to: input.to,
 		subject: `You've been invited to apply to ${input.opportunityTitle} at ${input.orgName}`,
-		html: `
-      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 24px;">
-        <h2 style="color: #2d6a4f; margin-bottom: 16px;">You've been invited to volunteer!</h2>
+		html: buildEmailHtml(`
+        <h2 style="color: #1B3C2A; margin-bottom: 16px;">You've been invited to volunteer!</h2>
         <p>Hi ${input.volunteerName},</p>
         <p>
           <strong>${input.orgName}</strong> has personally invited you to apply for their
@@ -24,7 +24,7 @@ export async function sendInviteToApplyEmail(input: {
         <p style="margin: 24px 0;">
           <a
             href="${input.opportunityLink}"
-            style="background-color: #2d6a4f; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;"
+            style="background-color: #1B3C2A; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;"
           >
             View &amp; Apply
           </a>
@@ -32,7 +32,6 @@ export async function sendInviteToApplyEmail(input: {
         <p style="color: #6b7280; font-size: 14px;">
           If you didn't expect this email or don't recognize this organization, you can safely ignore it.
         </p>
-      </div>
-    `,
+    `),
 	});
 }
