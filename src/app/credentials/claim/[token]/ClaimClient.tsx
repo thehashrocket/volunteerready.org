@@ -1,14 +1,6 @@
 'use client';
 
-import {
-	CheckCircle2,
-	Fingerprint,
-	GraduationCap,
-	Loader2,
-	Shield,
-	Users,
-	XCircle,
-} from 'lucide-react';
+import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -20,29 +12,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { getCredentialMeta } from '@/lib/credential-meta';
 import { trpc } from '@/lib/trpc/client';
-
-// ---------------------------------------------------------------------------
-// Credential type icons + labels
-// ---------------------------------------------------------------------------
-
-const CREDENTIAL_META: Record<string, { label: string; icon: typeof Shield }> =
-	{
-		BACKGROUND_CHECK: { label: 'Background Check', icon: Shield },
-		TRAINING_COMPLETE: { label: 'Training Complete', icon: GraduationCap },
-		ID_VERIFIED: { label: 'ID Verified', icon: Fingerprint },
-		REFERENCE_CHECK: { label: 'Reference Check', icon: Users },
-		ORIENTATION_COMPLETE: {
-			label: 'Orientation Complete',
-			icon: GraduationCap,
-		},
-	};
-
-function getCredentialMeta(type: string) {
-	return (
-		CREDENTIAL_META[type] ?? { label: type.replace(/_/g, ' '), icon: Shield }
-	);
-}
 
 // ---------------------------------------------------------------------------
 // Component

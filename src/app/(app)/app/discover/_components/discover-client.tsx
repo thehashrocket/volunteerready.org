@@ -23,6 +23,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CREDENTIAL_LABELS } from '@/server/domain/volunteer-profile';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
@@ -47,17 +48,6 @@ const AVAILABILITY_OPTIONS = [
 	{ value: 'EVENINGS', label: 'Evenings' },
 	{ value: 'FLEXIBLE', label: 'Flexible' },
 ];
-
-const CREDENTIAL_TYPE_LABELS: Record<string, string> = {
-	BACKGROUND_CHECK: 'Background Check',
-	TRAINING_COMPLETE: 'Training Complete',
-	ID_VERIFIED: 'ID Verified',
-	REFERENCE_CHECK: 'Reference Check',
-	ORIENTATION_COMPLETE: 'Orientation Complete',
-	TENURE_1YR: '1-Year Tenure',
-	TENURE_3YR: '3-Year Tenure',
-	TENURE_5YR: '5-Year Tenure',
-};
 
 // ---------------------------------------------------------------------------
 // Volunteer Card
@@ -90,7 +80,7 @@ function VolunteerCard({
 					<div className="flex flex-wrap gap-1">
 						{volunteer.verifiedCredentialTypes.map((type) => (
 							<Badge key={type} variant="secondary" className="text-xs">
-								{CREDENTIAL_TYPE_LABELS[type] ?? type}
+								{CREDENTIAL_LABELS[type as keyof typeof CREDENTIAL_LABELS] ?? type}
 							</Badge>
 						))}
 					</div>
