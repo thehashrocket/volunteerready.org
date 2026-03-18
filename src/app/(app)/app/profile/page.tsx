@@ -22,7 +22,6 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { getCredentialMeta } from '@/lib/credential-meta';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +44,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { getCredentialMeta } from '@/lib/credential-meta';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------

@@ -3,7 +3,8 @@ name: review
 version: 1.0.0
 description: |
   Pre-landing PR review. Analyzes diff against the base branch for SQL safety, LLM trust
-  boundary violations, conditional side effects, and other structural issues.
+  boundary violations, conditional side effects, and other structural issues. Use when
+  asked to "review this PR", "code review", "pre-landing review", or "check my diff".
 allowed-tools:
   - Bash
   - Read
@@ -219,7 +220,7 @@ eval $(~/.claude/skills/gstack/bin/gstack-diff-scope <base> 2>/dev/null)
 4. **Apply the design checklist** against the changed files. For each item:
    - **[HIGH] mechanical CSS fix** (`outline: none`, `!important`, `font-size < 16px`): classify as AUTO-FIX
    - **[HIGH/MEDIUM] design judgment needed**: classify as ASK
-   - **[LOW] intent-based detection**: present as "Possible — verify visually or run /qa-design-review"
+   - **[LOW] intent-based detection**: present as "Possible — verify visually or run /design-review"
 
 5. **Include findings** in the review output under a "Design Review" header, following the output format in the checklist. Design findings merge with code review findings into the same Fix-First flow.
 

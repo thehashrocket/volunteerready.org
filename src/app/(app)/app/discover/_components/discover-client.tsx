@@ -23,8 +23,8 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CREDENTIAL_LABELS } from '@/server/domain/volunteer-profile';
 import { trpc } from '@/lib/trpc/client';
+import { CREDENTIAL_LABELS } from '@/server/domain/volunteer-profile';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -80,7 +80,8 @@ function VolunteerCard({
 					<div className="flex flex-wrap gap-1">
 						{volunteer.verifiedCredentialTypes.map((type) => (
 							<Badge key={type} variant="secondary" className="text-xs">
-								{CREDENTIAL_LABELS[type as keyof typeof CREDENTIAL_LABELS] ?? type}
+								{CREDENTIAL_LABELS[type as keyof typeof CREDENTIAL_LABELS] ??
+									type}
 							</Badge>
 						))}
 					</div>

@@ -1,10 +1,4 @@
-import {
-	Award,
-	Fingerprint,
-	GraduationCap,
-	Shield,
-	Users,
-} from 'lucide-react';
+import { Award, Fingerprint, GraduationCap, Shield, Users } from 'lucide-react';
 import { CREDENTIAL_LABELS } from '@/server/domain/volunteer-profile';
 
 export const CREDENTIAL_META: Record<
