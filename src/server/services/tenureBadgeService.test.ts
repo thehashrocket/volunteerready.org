@@ -179,17 +179,23 @@ describe('checkAndIssueTenureBadges', () => {
 
 	it('swallows P2002 errors (concurrent badge issuance) without throwing', async () => {
 		mocks.prismaUserFindUnique.mockResolvedValue({ createdAt: daysAgo(500) });
-		mocks.listUserApplications.mockResolvedValue([{ submittedAt: daysAgo(430) }]);
+		mocks.listUserApplications.mockResolvedValue([
+			{ submittedAt: daysAgo(430) },
+		]);
 		mocks.getAttendedShiftsForUser.mockResolvedValue([]);
 
-		const p2002 = Object.assign(new Error('Unique constraint'), { code: 'P2002' });
+		const p2002 = Object.assign(new Error('Unique constraint'), {
+			code: 'P2002',
+		});
 		mocks.prismaTransaction.mockRejectedValue(p2002);
 
 		await expect(checkAndIssueTenureBadges(USER_ID)).resolves.toBeUndefined();
 	});
 
 	it('swallows unexpected errors without throwing (fire-and-forget contract)', async () => {
-		mocks.prismaUserFindUnique.mockRejectedValue(new Error('DB connection lost'));
+		mocks.prismaUserFindUnique.mockRejectedValue(
+			new Error('DB connection lost'),
+		);
 
 		await expect(checkAndIssueTenureBadges(USER_ID)).resolves.toBeUndefined();
 	});
@@ -197,7 +203,9 @@ describe('checkAndIssueTenureBadges', () => {
 	it('uses earliest activity across applications AND attended shifts', async () => {
 		mocks.prismaUserFindUnique.mockResolvedValue({ createdAt: daysAgo(1900) });
 		// Application is recent (200 days) but a shift signup is old (1130 days → 3YR)
-		mocks.listUserApplications.mockResolvedValue([{ submittedAt: daysAgo(200) }]);
+		mocks.listUserApplications.mockResolvedValue([
+			{ submittedAt: daysAgo(200) },
+		]);
 		mocks.getAttendedShiftsForUser.mockResolvedValue([
 			{ createdAt: daysAgo(1130) },
 		]);

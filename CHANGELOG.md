@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2026-03-17
+
+### Added
+- **Tenure badge auto-issuance** — `tenureBadgeService.checkAndIssueTenureBadges()` runs fire-and-forget after shift signups, application submissions, and credential issuance; issues `TENURE_1YR/3YR/5YR` system credentials via platform org
+- **Share your volunteer card** button on the credentials tab of `/app/profile` — opens the volunteer's public `/v/[userId]` page in a new tab
+- **`profile.getMyUserId`** tRPC procedure for client-side userId access
+
+### Fixed
+- **Tenure badge idempotency** — P2002 and unexpected errors in badge issuance are swallowed; parent operations (signups, applications, credentials) never fail due to badge issuance
+- **Anonymous application submissions** no longer attempt a tenure check (no userId available)
+
 ## [0.6.1] - 2026-03-17
 
 ### Changed
