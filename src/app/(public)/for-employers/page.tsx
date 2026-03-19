@@ -156,7 +156,7 @@ export default function ForEmployersPage() {
 					<div className="flex flex-col gap-8">
 						{differentiators.map((d, i) => (
 							<FadeInOnScroll key={d.label} delay={i * 75}>
-								<div className="border-l-2 border-[#C4A882] pl-6">
+								<div>
 									<p className="mb-1 text-lg font-semibold text-foreground">
 										{d.label}
 									</p>
