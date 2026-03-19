@@ -1,12 +1,18 @@
 'use client';
 
-import { CheckCircle2, Circle, X } from 'lucide-react';
+import { CheckCircle2, Circle, Sparkles, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc/client';
 
-export function GettingStartedChecklist() {
+interface GettingStartedChecklistProps {
+	onStartWizard?: () => void;
+}
+
+export function GettingStartedChecklist({
+	onStartWizard,
+}: GettingStartedChecklistProps) {
 	const query = trpc.onboarding.status.useQuery();
 	const utils = trpc.useUtils();
 	const dismiss = trpc.onboarding.dismiss.useMutation({
@@ -29,16 +35,29 @@ export function GettingStartedChecklist() {
 						{status.completedCount} of {status.totalCount} steps complete
 					</p>
 				</div>
-				<Button
-					variant="ghost"
-					size="icon"
-					className="h-8 w-8 text-muted-foreground"
-					onClick={() => dismiss.mutate()}
-					disabled={dismiss.isPending}
-				>
-					<X className="h-4 w-4" />
-					<span className="sr-only">Dismiss checklist</span>
-				</Button>
+				<div className="flex items-center gap-1">
+					{onStartWizard && (
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={onStartWizard}
+							className="gap-1.5"
+						>
+							<Sparkles className="h-3.5 w-3.5" />
+							Quick setup
+						</Button>
+					)}
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-8 w-8 text-muted-foreground"
+						onClick={() => dismiss.mutate()}
+						disabled={dismiss.isPending}
+					>
+						<X className="h-4 w-4" />
+						<span className="sr-only">Dismiss checklist</span>
+					</Button>
+				</div>
 			</CardHeader>
 			<CardContent>
 				{/* Progress bar */}
