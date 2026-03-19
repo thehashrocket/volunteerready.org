@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.1] - 2026-03-19
+
+### Fixed
+- **Design system compliance** — Removed decorative floating circles from login page and colored left-border from employer differentiators (AI Slop Blacklist violations). Replaced `transition-all` with explicit `transition-[transform,opacity]` per DESIGN.md motion rules.
+- **Typography consistency** — Added `font-display` (Fraunces) to `PageHeader` component and 5 inline h1 elements across dashboard, billing, company, and opportunity pages. Previously used system font instead of design system serif.
+- **Welcome page mobile layout** — Restructured role-selection cards to stack content and button vertically, preventing text overflow and button overlap on small screens.
+- **Nav bar mobile overflow** — Added responsive max-width and truncation to org/company switcher components to prevent long names from breaking the header layout on mobile.
+
 ## [0.12.0] - 2026-03-19
 
 ### Added
