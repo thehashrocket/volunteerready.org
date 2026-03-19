@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.2] - 2026-03-19
+
+### Added
+- **Privacy policy page** — Comprehensive `/privacy` page covering data collection, storage, security, sharing, retention, cookies, user rights, and children's privacy. Includes third-party service disclosure table (Google OAuth, Stripe, Checkr, Resend, Sentry, Vercel Analytics, Upstash Redis) and version history.
+- **Terms of service page** — Full `/terms` page with 15 sections covering acceptance, service description, accounts, org/volunteer responsibilities, background checks, billing, IP, acceptable use, termination, disclaimers, liability, governing law, and contact.
+- **Cookie consent banner** — GDPR-compliant cookie consent banner with essential (always on) and analytics (opt-in) categories. Expandable preferences panel with per-category toggles. Persists choice to localStorage.
+- **Consented analytics** — `<ConsentedAnalytics>` component gates Vercel Analytics behind cookie consent. Listens for consent changes via custom event. Resets to disabled when consent is cleared.
+
+### Changed
+- **Seed file refactor** — Split monolithic `prisma/seed.ts` (2,191 lines) into four files: `seed-helpers.ts` (shared Prisma client, types, upsert helpers), `seed-production.ts` (platform org + skill catalog only), `seed-dev.ts` (full demo data + test accounts), and `seed.ts` (thin dispatcher based on NODE_ENV). Added `seed:production` and `seed:dev` npm scripts.
+- **Cookie consent hardening** — Added localStorage shape validation to prevent corrupted JSON from permanently suppressing the consent banner. Added try/catch around localStorage writes for private browsing compatibility. Fixed analytics state not resetting when consent key is removed.
+
 ## [0.12.1] - 2026-03-19
 
 ### Fixed
