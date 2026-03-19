@@ -280,13 +280,7 @@ describe('generateShiftsFromTemplate', () => {
 		mocks.getTemplateById.mockResolvedValue(null);
 
 		await expect(
-			generateShiftsFromTemplate(
-				TEMPLATE_ID,
-				1,
-				new Date(),
-				ORG_ID,
-				ACTOR_ID,
-			),
+			generateShiftsFromTemplate(TEMPLATE_ID, 1, new Date(), ORG_ID, ACTOR_ID),
 		).rejects.toThrow('Template not found');
 	});
 
@@ -296,13 +290,7 @@ describe('generateShiftsFromTemplate', () => {
 		);
 
 		await expect(
-			generateShiftsFromTemplate(
-				TEMPLATE_ID,
-				1,
-				new Date(),
-				ORG_ID,
-				ACTOR_ID,
-			),
+			generateShiftsFromTemplate(TEMPLATE_ID, 1, new Date(), ORG_ID, ACTOR_ID),
 		).rejects.toThrow('Template not found');
 	});
 });
