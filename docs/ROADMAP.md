@@ -384,6 +384,38 @@ This phase makes the platform **operationally ready for daily use** — admins g
 
 ---
 
+# Phase 9 — Production-Ready + Activation (Planned)
+
+Goal: Make the platform production-ready for real users with self-serve onboarding,
+reliability infrastructure, and activation features that help a new org get their
+first volunteer application within 30 minutes.
+
+Full plan: [`docs/designs/phase-9-production-ready.md`](designs/phase-9-production-ready.md)
+
+Planned deliverables (13):
+
+- Onboarding wizard (multi-step guided first-run)
+- Getting started checklist (dashboard widget)
+- Shift reminder emails (24hr before, new cron)
+- Application status timeline (AuditLog-powered)
+- Email notification digests (daily/weekly)
+- Bulk volunteer import (CSV upload with rate limiting)
+- Stripe webhook event reconciliation (admin tool)
+- Credential share token expiry notification email
+- Context-switch UI (Org ↔ Company)
+- Product screenshots for marketing pages
+- Cron job health dashboard (admin)
+- `reminderSentAt` on ShiftSignup (idempotency)
+- Mobile bulk import guard
+
+Architecture: BulkImportJob table, CronJobRun table, `withCronAuth` DRY wrapper,
+AuditLog index, chronological Stripe replay with mutex, feature flags for wizard
+and bulk import.
+
+Review status: CEO CLEAR, Design CLEAR (9/10), Eng CLEAR (0 critical gaps).
+
+---
+
 # Platform Principles
 
 Across all phases the platform must maintain:

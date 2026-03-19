@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.2] - 2026-03-19
+
+### Added
+- **Phase 9 plan** — Production-ready + activation plan with 13 deliverables (onboarding wizard, shift reminders, bulk import, Stripe reconciliation, status timeline, digest emails, cron health dashboard). Reviewed and cleared by CEO, design (9/10), and eng reviews.
+- **Timezone-aware notification TODO** — Captured as P2 deferred work for post-Phase 9 delivery.
+
+### Changed
+- **Conductor run script** — Now runs Prisma migrations, generates client, and seeds database before starting dev server.
+
 ## [0.11.1] - 2026-03-19
 
 ### Changed

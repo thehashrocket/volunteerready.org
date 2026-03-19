@@ -1,7 +1,7 @@
 {
     "scripts": {
         "setup": "cp $CONDUCTOR_ROOT_PATH/.env.local .env.local && cp -r $CONDUCTOR_ROOT_PATH/.vercel . && pnpm install",
-        "run": "pnpm run dev",
+        "run": "pnpm prisma migrate dev && pnpm prisma generate && pnpm db:seed && pnpm run dev",
         "archive": ""
     }
 }
