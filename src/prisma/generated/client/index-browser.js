@@ -181,6 +181,9 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   trialEndsAt: 'trialEndsAt',
   checkrAccessToken: 'checkrAccessToken',
   checkrAccountId: 'checkrAccountId',
+  onboardingProgress: 'onboardingProgress',
+  onboardingDismissedAt: 'onboardingDismissedAt',
+  firstApplicationReceivedAt: 'firstApplicationReceivedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -383,6 +386,7 @@ exports.Prisma.ShiftSignupScalarFieldEnum = {
   userId: 'userId',
   status: 'status',
   notes: 'notes',
+  reminderSentAt: 'reminderSentAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -468,6 +472,7 @@ exports.Prisma.CredentialShareTokenScalarFieldEnum = {
   claimedByOrgId: 'claimedByOrgId',
   claimedAt: 'claimedAt',
   status: 'status',
+  notifiedAt: 'notifiedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -490,6 +495,7 @@ exports.Prisma.NotificationScalarFieldEnum = {
   body: 'body',
   href: 'href',
   readAt: 'readAt',
+  emailSentAt: 'emailSentAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -502,6 +508,43 @@ exports.Prisma.NotificationPreferenceScalarFieldEnum = {
   type: 'type',
   inApp: 'inApp',
   email: 'email'
+};
+
+exports.Prisma.CronJobRunScalarFieldEnum = {
+  id: 'id',
+  jobName: 'jobName',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  status: 'status',
+  resultSummary: 'resultSummary',
+  durationMs: 'durationMs',
+  error: 'error',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.UserDigestPreferenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  orgId: 'orgId',
+  digestFrequency: 'digestFrequency',
+  lastDigestSentAt: 'lastDigestSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BulkImportJobScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  uploadedById: 'uploadedById',
+  status: 'status',
+  totalRows: 'totalRows',
+  processedRows: 'processedRows',
+  createdRows: 'createdRows',
+  skippedRows: 'skippedRows',
+  errorRows: 'errorRows',
+  fileName: 'fileName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -673,6 +716,24 @@ exports.NotificationType = exports.$Enums.NotificationType = {
   BADGE_EARNED: 'BADGE_EARNED'
 };
 
+exports.CronJobStatus = exports.$Enums.CronJobStatus = {
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE'
+};
+
+exports.DigestFrequency = exports.$Enums.DigestFrequency = {
+  OFF: 'OFF',
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY'
+};
+
+exports.BulkImportStatus = exports.$Enums.BulkImportStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -708,7 +769,10 @@ exports.Prisma.ModelName = {
   CredentialShareToken: 'CredentialShareToken',
   VolunteerInvitation: 'VolunteerInvitation',
   Notification: 'Notification',
-  NotificationPreference: 'NotificationPreference'
+  NotificationPreference: 'NotificationPreference',
+  CronJobRun: 'CronJobRun',
+  UserDigestPreference: 'UserDigestPreference',
+  BulkImportJob: 'BulkImportJob'
 };
 
 /**

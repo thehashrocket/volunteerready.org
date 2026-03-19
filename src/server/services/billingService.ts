@@ -211,8 +211,25 @@ export async function handleStripeWebhookEvent(
 		STRIPE_WEBHOOK_SECRET,
 	);
 
+	await processStripeEvent(event);
+}
+
+// ---------------------------------------------------------------------------
+// Core event processor — used by both webhook handler and reconciliation.
+// Extracted so reconciliation can replay events from Stripe list API without
+// signature verification.
+// ---------------------------------------------------------------------------
+
+export async function processStripeEvent(
+	event: Stripe.Event,
+	opts?: { skipEmails?: boolean },
+): Promise<{ action: string }> {
+	const skipEmails = opts?.skipEmails ?? false;
+
 	// Early return if already processed (optimization — UNIQUE constraint is safety net)
-	if (await isWebhookEventProcessed(event.id)) return;
+	if (await isWebhookEventProcessed(event.id)) {
+		return { action: 'already_processed' };
+	}
 
 	switch (event.type) {
 		case 'customer.subscription.created':
@@ -226,7 +243,7 @@ export async function handleStripeWebhookEvent(
 					`[billing] No price ID on subscription ${subscription.id}`,
 				);
 				await recordEvent(event);
-				break;
+				return { action: 'skipped_no_price' };
 			}
 
 			const entity = await resolveEntityByCustomerId(customerId);
@@ -235,7 +252,7 @@ export async function handleStripeWebhookEvent(
 					`[billing] Unknown Stripe customer ${customerId} — skipping`,
 				);
 				await recordEvent(event);
-				break;
+				return { action: 'skipped_unknown_customer' };
 			}
 
 			const newTier = mapPriceIdToTier(priceId);
@@ -274,16 +291,14 @@ export async function handleStripeWebhookEvent(
 				}
 			});
 
-			// Send upgrade email only on subscription.created (not on updates like
-			// payment method changes or proration adjustments)
-			if (event.type === 'customer.subscription.created') {
+			if (!skipEmails && event.type === 'customer.subscription.created') {
 				await trySendBillingEmail(
 					entity,
 					(opts) => sendPlanUpgradeEmail({ ...opts, tier: newTier }),
 					'upgrade',
 				);
 			}
-			break;
+			return { action: 'plan_updated' };
 		}
 
 		case 'customer.subscription.deleted': {
@@ -296,10 +311,9 @@ export async function handleStripeWebhookEvent(
 					`[billing] Unknown Stripe customer ${customerId} — skipping`,
 				);
 				await recordEvent(event);
-				break;
+				return { action: 'skipped_unknown_customer' };
 			}
 
-			// Capture current tier before the transaction sets it to FREE
 			const priceId = subscription.items.data[0]?.price.id;
 			let previousTier: PlanTier = 'STARTER';
 			if (priceId) {
@@ -344,12 +358,14 @@ export async function handleStripeWebhookEvent(
 				}
 			});
 
-			await trySendBillingEmail(
-				entity,
-				(opts) => sendCancellationEmail({ ...opts, previousTier }),
-				'cancellation',
-			);
-			break;
+			if (!skipEmails) {
+				await trySendBillingEmail(
+					entity,
+					(opts) => sendCancellationEmail({ ...opts, previousTier }),
+					'cancellation',
+				);
+			}
+			return { action: 'plan_downgraded' };
 		}
 
 		case 'invoice.payment_failed': {
@@ -360,7 +376,7 @@ export async function handleStripeWebhookEvent(
 			);
 
 			const entity = await resolveEntityByCustomerId(customerId);
-			if (entity) {
+			if (!skipEmails && entity) {
 				await trySendBillingEmail(
 					entity,
 					sendPaymentFailedEmail,
@@ -369,11 +385,115 @@ export async function handleStripeWebhookEvent(
 			}
 
 			await recordEvent(event);
-			break;
+			return { action: 'payment_failed_recorded' };
 		}
 
 		default:
-			// Unknown event type — record so we don't reprocess on Stripe retry
 			await recordEvent(event);
+			return { action: 'unknown_event_recorded' };
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Stripe reconciliation — admin-triggered, replays missed events
+// ---------------------------------------------------------------------------
+
+export async function reconcileStripeEvents(opts: {
+	windowHours: number;
+}): Promise<{
+	eventsChecked: number;
+	eventsReplayed: number;
+	eventsFailed: number;
+	alreadyProcessed: number;
+	details: Array<{
+		eventId: string;
+		type: string;
+		status: string;
+		timestamp: string;
+	}>;
+}> {
+	const stripe = getStripe();
+	const since = Math.floor(
+		(Date.now() - opts.windowHours * 60 * 60 * 1000) / 1000,
+	);
+
+	let eventsChecked = 0;
+	let eventsReplayed = 0;
+	let eventsFailed = 0;
+	let alreadyProcessed = 0;
+	const details: Array<{
+		eventId: string;
+		type: string;
+		status: string;
+		timestamp: string;
+	}> = [];
+
+	let hasMore = true;
+	let startingAfter: string | undefined;
+
+	while (hasMore) {
+		const listParams: Stripe.EventListParams = {
+			created: { gte: since },
+			limit: 100,
+		};
+		if (startingAfter) {
+			listParams.starting_after = startingAfter;
+		}
+
+		const events = await stripe.events.list(listParams);
+		eventsChecked += events.data.length;
+
+		for (const event of events.data) {
+			const isProcessed = await isWebhookEventProcessed(event.id);
+
+			if (isProcessed) {
+				alreadyProcessed++;
+				details.push({
+					eventId: event.id,
+					type: event.type,
+					status: 'already_processed',
+					timestamp: new Date(event.created * 1000).toISOString(),
+				});
+				continue;
+			}
+
+			try {
+				const result = await processStripeEvent(event, {
+					skipEmails: true,
+				});
+				eventsReplayed++;
+				details.push({
+					eventId: event.id,
+					type: event.type,
+					status: `replayed:${result.action}`,
+					timestamp: new Date(event.created * 1000).toISOString(),
+				});
+			} catch (e) {
+				eventsFailed++;
+				console.error(`[reconcile] Failed to replay event ${event.id}`, e);
+				details.push({
+					eventId: event.id,
+					type: event.type,
+					status: `failed:${e instanceof Error ? e.message : 'unknown'}`,
+					timestamp: new Date(event.created * 1000).toISOString(),
+				});
+			}
+
+			// Rate limit: ~10 req/sec (sleep 100ms between events)
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		}
+
+		hasMore = events.has_more;
+		if (events.data.length > 0) {
+			startingAfter = events.data[events.data.length - 1]?.id;
+		}
+	}
+
+	return {
+		eventsChecked,
+		eventsReplayed,
+		eventsFailed,
+		alreadyProcessed,
+		details,
+	};
 }

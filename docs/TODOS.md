@@ -434,6 +434,74 @@ frequently; option (3) is more precise but requires job queue infrastructure.
 
 ---
 
+### [P1] Digest Cron Pagination with Cursor Tracking
+
+**What:** Implement batch processing (100 users per run) with cursor persistence in
+`CronJobRun.resultSummary` for the email digest cron job.
+
+**Why:** Vercel Cron has a 300s timeout (Pro plan). Processing 1000+ digest users
+sequentially would exceed this. Cursor tracking ensures all users eventually get
+their digest across multiple cron invocations without double-sending.
+
+**Context:** The digest cron (08:00 UTC) queries users with digest preferences enabled
+and `lastDigestSentAt` older than their configured frequency (daily/weekly). Process
+100 users per invocation. Store the cursor (last processed userId) in `CronJobRun.resultSummary`
+JSON. On next invocation, resume from cursor. When cursor reaches end, reset.
+`lastDigestSentAt` on `NotificationPreference` prevents double-sends on restart.
+
+**Pros:** Works within Vercel timeout constraints; scales to 10K+ users; idempotent.
+**Cons:** Users at the end of the cursor may receive digests hours after the cron trigger.
+
+**Effort:** S | **Priority:** P1 | **Depends on:** Digest cron + CronJobRun table implementation
+
+---
+
+### [P1] Cron Failure Alerting — 3 Consecutive Failures Trigger Admin Email
+
+**What:** After each cron run completes, check `CronJobRun` for 3 consecutive failures
+of the same job name. If found, send an alert email to the platform admin.
+
+**Why:** Without alerting, cron failures are only visible if an admin checks the health
+dashboard manually. Silent cron failures could mean volunteers don't get shift reminders
+for days or digests stop entirely — nobody is paged.
+
+**Context:** Add a `checkCronHealth(jobName)` function in `cronHealthService.ts` that
+queries the last 3 `CronJobRun` entries for the given job. If all 3 have `status: FAILED`,
+call `sendEmail()` to the platform admin address (env var `PLATFORM_ADMIN_EMAIL`).
+Call this at the end of each cron route's `withCronAuth` wrapper. Uses existing `sendEmail()`
+infrastructure — no new dependencies.
+
+**Pros:** Catches silent cron failures; uses existing email infrastructure; zero external deps.
+**Cons:** Email-only alerting (no PagerDuty/Slack); 3 failures means up to 3 days of missed
+daily crons before alert.
+
+**Effort:** S | **Priority:** P1 | **Depends on:** CronJobRun table + withCronAuth wrapper
+
+---
+
+### [P2] AuditLog Index — Use CONCURRENT Creation for Large Tables
+
+**What:** When creating the `@@index([entityType, entityId])` index on AuditLog, use
+`CREATE INDEX CONCURRENTLY` to avoid table locks during migration.
+
+**Why:** Standard `CREATE INDEX` acquires a SHARE lock on the table, blocking writes for
+the duration of index creation. If AuditLog has 100K+ rows at deploy time, this could
+cause a brief outage for any audit-logged operation.
+
+**Context:** Prisma doesn't natively support `CONCURRENTLY` in its migration generator.
+Options: (1) use a raw SQL migration file (`prisma migrate dev --create-only` then edit
+the SQL), or (2) check AuditLog row count at deploy time — if <50K rows, standard index
+is fine (~1s lock). The AuditLog table grows by ~100 rows/day at current usage, so this
+is only a concern if Phase 9 deploys after significant production usage.
+
+**Pros:** Zero-downtime index creation; prevents write stalls during deploy.
+**Cons:** Requires manual SQL migration edit; CONCURRENTLY can't run inside a transaction
+(Prisma may need `-- AlterTable` pragma adjustment).
+
+**Effort:** S | **Priority:** P2 | **Depends on:** Phase 9 migration (AuditLog index)
+
+---
+
 ## Public Site
 
 ### [P2] Product Screenshots for Marketing Pages

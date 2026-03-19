@@ -20,7 +20,7 @@ volunteer application within 30 minutes. No sales call needed.
 
 ---
 
-## Scope — 13 Deliverables
+## Scope — 14 Deliverables
 
 ### Baseline (Hybrid Critical Path)
 
@@ -60,6 +60,8 @@ volunteer application within 30 minutes. No sales call needed.
 12. **Cron job health dashboard** — admin page showing last-run time
     and result for each cron job
 13. **Mobile bulk import guard** — "Use desktop" message on mobile viewport
+14. **"First volunteer!" celebration** — in-app notification + dashboard highlight
+    when an org receives their first application; completes the activation arc
 
 ---
 
@@ -198,9 +200,45 @@ All use existing `buildEmailHtml()` (forest green header, warm neutral footer).
 component) + recent runs table.
 
 **StatCards:** Job name + "✓ 2h ago" (text-success) or "✗ Failed" (text-error).
+Forest green for success indicators (not generic traffic-light green). Geist
+with `tabular-nums` for timestamps. Warm neutral card backgrounds matching
+admin UI elsewhere.
 
 **States:** Loading = skeleton cards + table rows. Empty = "No cron jobs have run
 yet" (EmptyState with Clock icon).
+
+### Notification Preferences (Profile Page)
+
+**Position:** New section on `/app/profile` below existing profile fields. Card
+with h3 "Notification Preferences" (Geist 20px 600).
+
+**Layout:** Per-notification-type rows. Each row: type label + in-app toggle
+(shadcn Switch) + email toggle (Switch) + digest frequency selector
+(off/daily/weekly, shadcn Select). Inherits shadcn default ARIA.
+
+**States:** Loading = skeleton rows. Error = toast on save failure. Success =
+subtle toast "Preferences saved." Changes auto-save on toggle (no Save button).
+
+**Mobile:** Rows stack naturally. Toggles remain inline with labels.
+
+### Stripe Reconciliation (Admin)
+
+**Position:** Section on cron health page (`/app/admin/health`) or standalone
+admin page.
+
+**Layout:** "Reconcile Now" primary button + time window selector (last 24h / 7d /
+30d). Results display below.
+
+**States:**
+- Idle: button enabled, no results shown
+- Running: button disabled with spinner + "Checking N events..." progress text
+- Success: result summary card — "3 events replayed, 0 failed, 12 already processed"
+  with expandable details table (event ID, type, status, timestamp)
+- Error: error toast "Stripe API error — try again" + button re-enabled
+- No missed events: success card — "All events reconciled ✓"
+
+**Accessibility:** Button: standard shadcn Button a11y. Progress: `aria-live="polite"`.
+Results table: standard table semantics.
 
 ### Design Decisions Log
 
@@ -211,6 +249,11 @@ yet" (EmptyState with Clock icon).
 | 3 | Digest default | Weekly, per-user control | Less intrusive for new product. Users can switch to daily. |
 | 4 | CSV columns | email, firstName, lastName | Minimal reduces errors. Users fill own profile. |
 | 5 | Mobile wizard | Full-screen bottom sheet | Native mobile pattern. Centered modals feel wrong on small screens. |
+| 6 | Notification prefs | Profile page section | Co-locates all personal preferences; no new page needed. |
+| 7 | Stripe recon UI | Inline progress + summary | Admin needs to see what happened, not just pass/fail. |
+| 8 | Mobile checklist | order-first in grid | Must be first card new admins see on any viewport. |
+| 9 | Digest empty categories | Omit (not "0 updates") | Shorter emails are better emails. |
+| 10 | Cron health style | Forest green + tabular-nums | Same product feel in admin tools. |
 
 ### AI Slop Guards
 
@@ -221,6 +264,12 @@ yet" (EmptyState with Clock icon).
 - Import: Dashed border drop zone (existing pattern). Upload icon from lucide
   (not generic cloud). Semantic colors for results.
 - Timeline: Vertical line + dots (not a stepper component). Current dot larger.
+- Cron health: Forest green status indicators (not traffic-light). Geist tabular-nums
+  for timestamps. Warm neutral cards. Not a generic admin panel.
+- Stripe recon: Inline progress, not just a spinner. Expandable results table.
+  Admin tools deserve the same design care as user-facing pages.
+- Notification prefs: Auto-save toggles (no "Save" button). Digest frequency
+  as Select dropdown, not radio buttons. Clean, minimal row layout.
 
 ---
 
@@ -261,8 +310,35 @@ features (Sterling, SSO).
 
 ---
 
+## Plan Amendments (CEO Re-Review 2026-03-19)
+
+- **Onboarding wizard steps (locked in):** Step 1: Org basics → Step 2: Screener
+  questions → Step 3: First opportunity → Step 4: Invite team members
+- **`lastDigestSentAt`** on `NotificationPreference` for digest idempotency
+- **CSV upload limits:** 10MB max file size, 500-row cap per import
+- **Bulk import abuse mitigation:** audit log of imports, admin notification for large imports
+- **Stripe reconciliation:** backoff at 10 req/sec to avoid Stripe rate limits
+- **Digest cron pagination:** 100 users per run, cursor in CronJobRun, resume on next run
+- **Cron failure alerting:** 3 consecutive failures → email to platform admin
+- **Shared `computeOnboardingStatus(org)` domain function** for wizard + checklist DRY
+- **Status timeline:** cap at 20 most recent entries
+- **Bulk import UI:** disable upload button on click, block re-upload while job active
+
+## Plan Amendments (Eng Review 2026-03-19)
+
+- **Stripe reconciliation refactor:** Extract `processStripeEvent(event, { skipEmails?: boolean })` from `handleStripeWebhookEvent` — reconciliation replays events from Stripe list API without signature verification. Webhook route continues to verify signatures then delegates to same function.
+- **Platform admin procedure:** New `platformAdminProcedure` in tRPC init that checks `userId` against `PLATFORM_ADMIN_IDS` env var (comma-separated). Used by Stripe reconciliation and cron health dashboard. Separate from org-scoped `adminProcedure`.
+- **CredentialShareToken.notifiedAt:** Add `notifiedAt DateTime?` to `CredentialShareToken` model — the credential expiry cron checks this field, not `VolunteerCredential.notifiedAt`.
+- **Digest data model (supersedes CEO amendment):** New `UserDigestPreference` model (userId + orgId + digestFrequency + lastDigestSentAt) instead of fields on `NotificationPreference`. One row per user-org pair. Digest is cross-type, not per-notification-type.
+- **Bulk import semantics:** Find-or-create User by email + ensure OrgMember exists. Never mutate existing user profile fields. Skip if already a member of the org. Invite email sent only to newly created users.
+- **Application status audit logging:** Add AuditLog write to `updateApplicationStatus` flow — `entityType: 'APPLICATION'`, `action: 'STATUS_CHANGED'`, `metadata: { from, to }`. Required data source for the Status Timeline feature.
+- **Shift reminder filter:** Cron must filter `ShiftSignup.status = 'CONFIRMED'` only — do not send reminders for CANCELLED or WAITLISTED signups.
+- **First-volunteer exactly-once:** Use conditional DB update `WHERE firstApplicationReceivedAt IS NULL` to prevent race condition when two applications arrive simultaneously. Add `firstApplicationReceivedAt DateTime?` to Organization model.
+- **Digest as notification delivery layer:** Digest cron queries existing Notification records (`emailSentAt IS NULL` + user prefers digest delivery), batches into one email per user, then marks as delivered. NotificationService stays the single source of truth — no parallel notification path.
+- **Cron batch pattern:** All new cron services follow `credential-expiry-service.ts` pattern: per-record try/catch, P2025 handling, transaction-wrapped audit, return summary object for CronJobRun recording.
+
 ## Review Status
 
-- CEO Review: CLEAR (2026-03-19, 0 critical gaps, 0 unresolved)
-- Design Review: CLEAR (2026-03-19, 4→9/10 overall, 5 decisions made, 0 unresolved)
-- Eng Review: CLEAR (2026-03-19, 4 issues resolved, 0 critical gaps, 0 unresolved)
+- CEO Review: CLEAR (2026-03-19, re-review, 0 critical gaps, 0 unresolved)
+- Design Review: CLEAR (2026-03-19, re-review, 8→9/10 overall, 5 new decisions, 0 unresolved)
+- Eng Review: CLEAR (2026-03-19, 10 issues resolved, 0 critical gaps, 0 unresolved)
