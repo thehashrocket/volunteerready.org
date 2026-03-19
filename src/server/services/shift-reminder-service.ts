@@ -1,6 +1,14 @@
 import { sendEmail } from '../lib/email';
 import { prisma } from '../repositories/prisma';
 
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
+}
+
 /**
  * Send reminder emails for shifts starting within the next 24 hours.
  *
@@ -66,11 +74,11 @@ export async function sendShiftReminders(): Promise<{
 				'Your shift is tomorrow',
 				`
 				<h2>Your shift is tomorrow</h2>
-				<p>You have an upcoming shift with <strong>${shift.organization.name}</strong>:</p>
+				<p>You have an upcoming shift with <strong>${escapeHtml(shift.organization.name)}</strong>:</p>
 				<table style="margin: 16px 0; border-collapse: collapse;">
 					<tr>
 						<td style="padding: 4px 16px 4px 0; color: #666;">Shift</td>
-						<td style="padding: 4px 0;"><strong>${shift.title}</strong></td>
+						<td style="padding: 4px 0;"><strong>${escapeHtml(shift.title)}</strong></td>
 					</tr>
 					<tr>
 						<td style="padding: 4px 16px 4px 0; color: #666;">Time</td>
@@ -78,7 +86,7 @@ export async function sendShiftReminders(): Promise<{
 					</tr>
 					<tr>
 						<td style="padding: 4px 16px 4px 0; color: #666;">Location</td>
-						<td style="padding: 4px 0;">${location}</td>
+						<td style="padding: 4px 0;">${escapeHtml(location)}</td>
 					</tr>
 				</table>
 				<p style="margin-top: 24px;">

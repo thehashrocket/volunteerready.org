@@ -21,18 +21,18 @@ export const adminRouter = createTRPCRouter({
 			}
 		}
 
-		// Check for consecutive failures (alerting threshold = 3)
+		// Check for consecutive failures per job (alerting threshold = 3).
+		// Runs are sorted newest-first. Count failures until the first success per job.
 		const failureCounts = new Map<string, number>();
+		const settled = new Set<string>();
 		for (const run of recentRuns) {
 			const key = run.jobName;
+			if (settled.has(key)) continue;
 			if (run.status === 'FAILURE') {
 				failureCounts.set(key, (failureCounts.get(key) ?? 0) + 1);
 			} else {
-				// Reset on success — we only care about consecutive failures
-				if (!failureCounts.has(key)) {
-					failureCounts.set(key, 0);
-				}
-				break;
+				failureCounts.set(key, 0);
+				settled.add(key);
 			}
 		}
 

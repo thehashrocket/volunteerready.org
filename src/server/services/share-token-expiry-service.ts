@@ -1,6 +1,14 @@
 import { sendEmail } from '../lib/email';
 import { prisma } from '../repositories/prisma';
 
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
+}
+
 const DAYS_BEFORE_EXPIRY = 7;
 
 /**
@@ -55,7 +63,7 @@ export async function notifyExpiringShareTokens(): Promise<{
 				`Your share link expires in ${daysLeft} days`,
 				`
 				<h2>Your share link expires soon</h2>
-				<p>Your <strong>${credType}</strong> share link for <strong>${orgName}</strong> expires in ${daysLeft} days.</p>
+				<p>Your <strong>${escapeHtml(credType)}</strong> share link for <strong>${escapeHtml(orgName)}</strong> expires in ${daysLeft} days.</p>
 				<p>If you still need to share this credential, you can create a new share link from your credentials page.</p>
 				<p style="margin-top: 24px;">
 					<a href="${process.env.NEXTAUTH_URL}/app/credentials"
