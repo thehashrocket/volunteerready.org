@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.3] - 2026-03-19
+
+### Fixed
+- **Vercel build failure** — Removed `pnpm seed` from the build command. Seeding during every deploy caused failures when `seed-dev.js` couldn't be resolved in production. Seeding is now a manual step (`pnpm seed:production`).
+- **Seed script ESM resolution** — Replaced `ts-node` with `tsx` for all seed scripts. `ts-node` failed on Node 24 with ESM module resolution errors (`ERR_MODULE_NOT_FOUND` for `.js` imports).
+- **Seed dotenv loading** — Updated `seed-helpers.ts` to match Next.js dotenv loading order (`.env.{NODE_ENV}.local` → `.env.local` → `.env.{NODE_ENV}` → `.env`). Previously only loaded `.env`, missing `DATABASE_URL` from `.env.local`.
+
+### Changed
+- **Removed `ts-node` dependency** — Replaced by `tsx` which handles TypeScript + ESM natively without configuration.
+- **Documented seed commands** — Added `pnpm seed`, `pnpm seed:production`, and `pnpm seed:dev` to CLAUDE.md with usage notes.
+
 ## [0.12.2] - 2026-03-19
 
 ### Added
