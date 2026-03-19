@@ -38,7 +38,7 @@ Long-term goals include:
 - Grant opportunity integration (planned)
 - Nonprofit analytics and reporting (shipped)
 
-The current system implements Phases 1 through 8. See `docs/ROADMAP.md` for the full plan.
+The current system implements Phases 1 through 9. See `docs/ROADMAP.md` for the full plan.
 
 ---
 
@@ -245,7 +245,10 @@ src/
 
 prisma/
  ├─ schema.prisma       # Database schema (source of truth)
- └─ seed.ts             # Development seed data
+ ├─ seed.ts             # Seed dispatcher (runs production or dev based on NODE_ENV)
+ ├─ seed-helpers.ts     # Shared Prisma client, types, and upsert helpers
+ ├─ seed-production.ts  # Production seed (platform org + skill catalog)
+ └─ seed-dev.ts         # Dev/staging seed (full demo data + test accounts)
 
 docs/                   # VitePress documentation site
 ```
@@ -331,10 +334,12 @@ Apply migrations:
 pnpm prisma migrate deploy
 ```
 
-Seed development data:
+Seed data:
 
 ```bash
-pnpm prisma db seed
+pnpm prisma db seed          # Auto-detects: production seed in NODE_ENV=production, dev seed otherwise
+pnpm seed:production         # Production only (platform org + skill catalog)
+pnpm seed:dev                # Dev/staging (full demo data + 3 test accounts)
 ```
 
 ---
@@ -355,6 +360,7 @@ pnpm prisma db seed
 | 6E | Mobile PWA | Planned |
 | 7 | Network Growth & Volunteer Identity | Complete |
 | 8 | Operational Polish & CEO Quick Wins | Complete |
+| 9 | Production-Ready + Activation | Complete |
 
 See `docs/ROADMAP.md` for full detail.
 

@@ -88,6 +88,8 @@ src/
 │   │   ├── pricing/              # Plan comparison + pricing
 │   │   ├── about/                # Team and mission
 │   │   ├── security/             # Security & compliance
+│   │   ├── privacy/              # Privacy policy page (10 sections, third-party services table)
+│   │   ├── terms/                # Terms of service page (15 sections)
 │   │   └── v/[userId]/           # Public volunteer identity page (SEO-optimized, share card)
 │   ├── api/
 │   │   ├── share-card/[userId]/  # OG social share image (@vercel/og) — forest green/sand palette
@@ -112,7 +114,9 @@ src/
 │   ├── public-hero.tsx           # Shared hero section (eyebrow, heading, CTA)
 │   ├── cta-banner.tsx            # Full-width CTA banner
 │   ├── fade-in-on-scroll.tsx     # IntersectionObserver scroll animation
-│   └── tracked-link.tsx          # Link with Vercel Analytics click tracking
+│   ├── tracked-link.tsx          # Link with Vercel Analytics click tracking
+│   ├── cookie-consent-banner.tsx # GDPR-compliant cookie consent (essential + analytics categories)
+│   └── consented-analytics.tsx   # Vercel Analytics gated behind cookie consent
 │
 ├── server/
 │   ├── auth.ts                   # NextAuth config + session helpers
@@ -152,7 +156,10 @@ src/
 
 prisma/
 ├── schema.prisma                 # Database schema (source of truth)
-└── seed.ts                       # Development seed data
+├── seed.ts                       # Seed dispatcher (production vs dev based on NODE_ENV)
+├── seed-helpers.ts               # Shared Prisma client, types, and upsert helpers
+├── seed-production.ts            # Production seed (platform org + skill catalog)
+└── seed-dev.ts                   # Dev/staging seed (full demo data + test accounts)
 
 docs/                             # VitePress documentation site
 ```
@@ -394,7 +401,9 @@ pnpm test                 # Vitest (run once)
 pnpm test:watch           # Vitest (watch mode)
 pnpm check                # typecheck + lint + test (full CI suite)
 pnpm prisma migrate deploy  # Apply migrations
-pnpm prisma db seed         # Seed dev data
+pnpm prisma db seed         # Seed data (production or dev based on NODE_ENV)
+pnpm seed:production        # Production seed only (platform org + skill catalog)
+pnpm seed:dev               # Dev/staging seed (full demo data + test accounts)
 pnpm prisma studio          # Prisma Studio UI
 pnpm docs:dev               # VitePress dev server
 ```
@@ -473,10 +482,13 @@ pnpm docs:dev               # VitePress dev server
 | 6E — Mobile PWA | Planned |
 | 7 — Network Growth & Volunteer Identity | ✅ Complete |
 | 8 — Operational Polish & CEO Quick Wins | ✅ Complete |
+| 9 — Production-Ready + Activation | ✅ Complete |
 
 Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses, volunteer discovery (`/app/discover`) with invite-to-apply (rate-limited), org analytics dashboard (`/app/analytics`, PRO-gated).
 
 Phase 8 delivered: in-app notifications (bell + preferences), plan gate component (tier-based feature gating), shared `sendEmail()` helper, shift templates (recurring patterns + bulk generation), waitlist for full shifts (FIFO auto-promote), email consolidation (7 senders migrated), notification cleanup cron, top volunteers date range filter, accessibility audit.
+
+Phase 9 delivered: onboarding wizard, getting-started checklist, shift reminder emails, application status timeline, email digests (daily/weekly), bulk CSV import, Stripe webhook reconciliation, credential expiry notifications, cron health dashboard, product screenshots, design system compliance fixes, privacy policy page, terms of service page, GDPR-compliant cookie consent banner, consented analytics.
 
 See `docs/ROADMAP.md` for details.
 

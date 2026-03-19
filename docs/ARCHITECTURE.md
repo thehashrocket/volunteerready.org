@@ -54,7 +54,10 @@ src/
 
 prisma/
  ├─ schema.prisma       # Database schema (source of truth)
- └─ seed.ts             # Development seed data
+ ├─ seed.ts             # Seed dispatcher (production vs dev based on NODE_ENV)
+ ├─ seed-helpers.ts     # Shared Prisma client, types, and upsert helpers
+ ├─ seed-production.ts  # Production seed (platform org + skill catalog)
+ └─ seed-dev.ts         # Dev/staging seed (full demo data + test accounts)
 ```
 
 ---
