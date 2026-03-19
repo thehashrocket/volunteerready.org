@@ -1,9 +1,9 @@
-import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-	generateCheckinToken,
-	validateCheckinToken,
-	parseQrData,
 	formatQrData,
+	generateCheckinToken,
+	parseQrData,
+	validateCheckinToken,
 } from './checkin-token';
 
 const SECRET = 'test-secret-key-for-unit-tests';
@@ -33,9 +33,9 @@ describe('checkin-token', () => {
 		it('accepts current window token', () => {
 			const now = new Date('2026-03-19T12:02:00Z');
 			const token = generateCheckinToken(SECRET, SHIFT_ID, USER_ID, now);
-			expect(
-				validateCheckinToken(SECRET, SHIFT_ID, USER_ID, token, now),
-			).toBe(true);
+			expect(validateCheckinToken(SECRET, SHIFT_ID, USER_ID, token, now)).toBe(
+				true,
+			);
 		});
 
 		it('accepts previous window token', () => {
@@ -85,12 +85,7 @@ describe('checkin-token', () => {
 
 	describe('parseQrData', () => {
 		it('parses valid format', () => {
-			const token = generateCheckinToken(
-				SECRET,
-				SHIFT_ID,
-				USER_ID,
-				new Date(),
-			);
+			const token = generateCheckinToken(SECRET, SHIFT_ID, USER_ID, new Date());
 			const raw = `vr:1|${SHIFT_ID}|${USER_ID}|${token}`;
 			const result = parseQrData(raw);
 			expect(result).toEqual({
@@ -115,12 +110,7 @@ describe('checkin-token', () => {
 
 	describe('formatQrData', () => {
 		it('round-trips with parseQrData', () => {
-			const token = generateCheckinToken(
-				SECRET,
-				SHIFT_ID,
-				USER_ID,
-				new Date(),
-			);
+			const token = generateCheckinToken(SECRET, SHIFT_ID, USER_ID, new Date());
 			const formatted = formatQrData(SHIFT_ID, USER_ID, token);
 			const parsed = parseQrData(formatted);
 			expect(parsed).toEqual({
@@ -145,9 +135,7 @@ describe('checkin-token', () => {
 
 		it('throws if CHECKIN_HMAC_SECRET is not set', async () => {
 			delete process.env.CHECKIN_HMAC_SECRET;
-			const { generateCheckinTokenFromEnv } = await import(
-				'./checkin-token'
-			);
+			const { generateCheckinTokenFromEnv } = await import('./checkin-token');
 			expect(() => generateCheckinTokenFromEnv(SHIFT_ID, USER_ID)).toThrow(
 				'CHECKIN_HMAC_SECRET is not configured',
 			);
