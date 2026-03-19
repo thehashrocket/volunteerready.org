@@ -408,6 +408,32 @@ tests bigint → number conversion from raw SQL.
 
 ---
 
+## Phase 9 — Production-Ready + Activation
+
+### [P2] Timezone-Aware Notification Delivery
+
+**What:** Deliver shift reminders and digest emails based on the volunteer's
+local timezone rather than a fixed UTC offset.
+
+**Why:** A shift reminder sent at 06:00 UTC arrives at 10pm PST the night
+before — not useful. As the platform onboards orgs in multiple timezones,
+fixed-UTC cron delivery will cause poor UX for west-coast and international users.
+
+**Context:** Phase 9 ships reminders and digests at fixed UTC times (06:00 and
+08:00). The fix requires: (1) a `timezone` field on User or Organization
+(IANA timezone string, e.g., `America/Los_Angeles`), (2) cron jobs that query
+users grouped by timezone and send at their local 8am equivalent, or (3) a
+queue-based approach where each notification is scheduled for delivery at the
+user's local time. Option (2) is simpler but means the cron runs more
+frequently; option (3) is more precise but requires job queue infrastructure.
+
+**Pros:** Notifications arrive at sensible local times; critical for multi-timezone orgs.
+**Cons:** Adds complexity to cron scheduling; requires timezone data on users.
+
+**Effort:** M | **Priority:** P2 | **Depends on:** Phase 9 cron jobs shipped
+
+---
+
 ## Public Site
 
 ### [P2] Product Screenshots for Marketing Pages
