@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { ShiftTemplatesTab } from '@/components/app/shift-templates';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
+import { PlanGate } from '@/components/plan-gate';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -558,28 +559,40 @@ export default function ShiftsPage() {
 														shift.status === 'FULL' ? (
 															<>
 																<Button
-																	size="sm"
+																	size="icon"
 																	variant="outline"
+																	className="h-11 w-11"
+																	aria-label={`Mark "${shift.title}" complete`}
 																	onClick={() =>
 																		completeMut.mutate({ id: shift.id })
 																	}
 																>
-																	<CheckCircle2 className="h-3 w-3" />
+																	<CheckCircle2
+																		className="h-3 w-3"
+																		aria-hidden="true"
+																	/>
 																</Button>
 																<Button
-																	size="sm"
+																	size="icon"
 																	variant="outline"
+																	className="h-11 w-11"
+																	aria-label={`Cancel "${shift.title}"`}
 																	onClick={() =>
 																		cancelMut.mutate({ id: shift.id })
 																	}
 																>
-																	<XCircle className="h-3 w-3" />
+																	<XCircle
+																		className="h-3 w-3"
+																		aria-hidden="true"
+																	/>
 																</Button>
 															</>
 														) : null}
 														<Button
-															size="sm"
+															size="icon"
 															variant="ghost"
+															className="h-11 w-11"
+															aria-label={`Delete "${shift.title}"`}
 															onClick={() => {
 																if (
 																	!confirm(
@@ -590,7 +603,7 @@ export default function ShiftsPage() {
 																removeMut.mutate({ id: shift.id });
 															}}
 														>
-															<Trash2 className="h-3 w-3" />
+															<Trash2 className="h-3 w-3" aria-hidden="true" />
 														</Button>
 													</div>
 												</TableCell>
@@ -604,7 +617,13 @@ export default function ShiftsPage() {
 				</TabsContent>
 
 				<TabsContent value="templates">
-					<ShiftTemplatesTab />
+					<PlanGate
+						requiredTier="STARTER"
+						feature="Shift Templates"
+						description="Create reusable shift templates and generate weeks of shifts automatically."
+					>
+						<ShiftTemplatesTab />
+					</PlanGate>
 				</TabsContent>
 			</Tabs>
 		</div>

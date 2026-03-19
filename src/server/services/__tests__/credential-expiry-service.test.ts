@@ -19,6 +19,9 @@ vi.mock('@/server/repositories/prisma', () => ({
 		$transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) =>
 			fn({}),
 		),
+		notification: {
+			deleteMany: vi.fn(async () => ({ count: 0 })),
+		},
 	},
 }));
 
@@ -26,7 +29,10 @@ import * as auditRepo from '@/server/repositories/auditRepo';
 import * as expiryRepo from '@/server/repositories/credential-expiry-repo';
 import * as shareTokenRepo from '@/server/repositories/credentialShareTokenRepo';
 import { prisma } from '@/server/repositories/prisma';
-import { expireStaleCredentialsAndTokens } from '../credential-expiry-service';
+import {
+	expireStaleCredentialsAndTokens,
+	purgeOldDismissedNotifications,
+} from '../credential-expiry-service';
 
 describe('expireStaleCredentialsAndTokens', () => {
 	beforeEach(() => {
@@ -118,5 +124,31 @@ describe('expireStaleCredentialsAndTokens', () => {
 		const result = await expireStaleCredentialsAndTokens();
 
 		expect(result).toEqual({ credentialsExpired: 1, tokensExpired: 1 });
+	});
+});
+
+describe('purgeOldDismissedNotifications', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('returns zero when no notifications to purge', async () => {
+		const result = await purgeOldDismissedNotifications();
+		expect(result).toEqual({ notificationsPurged: 0 });
+	});
+
+	it('deletes dismissed notifications older than 90 days', async () => {
+		vi.mocked(prisma.notification.deleteMany).mockResolvedValueOnce({
+			count: 42,
+		});
+
+		const result = await purgeOldDismissedNotifications();
+
+		expect(result).toEqual({ notificationsPurged: 42 });
+		expect(prisma.notification.deleteMany).toHaveBeenCalledWith({
+			where: {
+				deletedAt: { lt: expect.any(Date) },
+			},
+		});
 	});
 });

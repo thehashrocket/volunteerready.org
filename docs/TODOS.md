@@ -139,25 +139,14 @@ org and company entities. Upgrade email fires only on `subscription.created`
 
 ---
 
-### [P2] Plan-Gated Feature UI Hints
+### ~~[P2] Plan-Gated Feature UI Hints~~ ✅ Complete
 
-**What:** Replace silent FORBIDDEN errors with lock icon + tooltip "Upgrade to [Tier] to unlock."
+**Completed:** v0.11.1 (2026-03-19)
 
-**Why:** Users who hit a plan gate currently see a generic error modal. Showing *what they need*
-to unlock the feature turns a frustration into a conversion opportunity.
-
-**Context:** `planTierProcedure` in `src/server/trpc/init.ts` returns FORBIDDEN for under-tiered
-orgs. The missing piece is the UI: (1) A `<PlanGate tier="STARTER">` wrapper component that
-queries `trpc.billing.getBillingStatus` and checks the current tier against the required tier
-using `getPlanLimits` from `src/server/domain/billing.ts`. (2) Lock overlays on disabled UI
-elements. (3) An "Upgrade" CTA linking to `/app/billing`. The `getBillingStatus` tRPC call
-already ships in Phase 6A. The domain function `getPlanLimits` is already pure and importable
-on the client side (no DB calls).
-
-**Pros:** Converts blocked users to upgrade candidates; makes the plan tier system visible.
-**Cons:** Requires UI audit of all gated features; `PlanGate` adds a tRPC call to those pages.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** ✅ 6A planTierProcedure + billing UI shipped
+Self-contained `<PlanGate>` component at `src/components/plan-gate.tsx` queries
+`billing.getBillingStatus`, compares `TIER_RANK`, and renders children or an upgrade
+prompt with lock icon + "Upgrade to {tier}" CTA. Applied to analytics (PRO) and
+shift templates (STARTER). Replaces inline upgrade prompts.
 
 ---
 
@@ -458,28 +447,13 @@ Removed the `VOLUNTEER_DISCOVERY_ENABLED` env var gate from `src/app/(app)/app/d
 
 ---
 
-### [P3] Analytics — Make "Top Volunteers" respect the selected date range
+### ~~[P3] Analytics — Make "Top Volunteers" respect the selected date range~~ ✅ Complete
 
-**What:** Pass `fromDate` to `getTopVolunteers` so the table filters by the selected period
-rather than showing all-time top contributors regardless of the date range selector.
+**Completed:** v0.11.1 (2026-03-19)
 
-**Why:** The dashboard shows a "Top Volunteers — All Time" heading to communicate the
-discrepancy, but filtering by period would be more intuitive and consistent with the
-other three dashboard sections (funnel, retention, fill rate — all date-range scoped).
-
-**Context:** `getTopVolunteers(orgId, limit)` in `src/server/repositories/orgAnalyticsRepo.ts`
-currently has no `fromDate` parameter. Adding it requires:
-1. Adding `fromDate: Date` parameter to `getTopVolunteers`
-2. Adding `AND ss."createdAt" >= ${fromDate}` to the ATTENDED signups WHERE clause
-3. Passing `fromDate` from `orgAnalyticsService.getOrgAnalyticsDashboard()`
-4. Updating the section heading in `analytics-client.tsx` back to "Top Volunteers" (remove "— All Time")
-
-For all-time queries (`days = null`), pass `new Date(0)` as `fromDate` (same pattern as other queries).
-
-**Pros:** Consistent behavior across all dashboard sections; removes the "— All Time" caveat.
-**Cons:** Minor query change; top volunteers in short periods may show only 1-2 people if activity is sparse.
-
-**Effort:** XS | **Priority:** P3 | **Depends on:** ✅ Phase 7 PR4 analytics dashboard shipped
+Added `fromDate: Date` parameter to `getTopVolunteers` in `orgAnalyticsRepo.ts`,
+passed through from `orgAnalyticsService.ts`. Updated heading from "Top Volunteers
+— All Time" to "Top Volunteers". All 7 integration test call sites updated.
 
 ---
 
@@ -497,65 +471,32 @@ duplicate maps in `profile/page.tsx` and `ClaimClient.tsx`. All 8 credential typ
 
 ## Phase 8 — Volunteer Operations Platform
 
-### [P3] Migrate Existing Email Send Files to `sendEmail()` Helper
+### ~~[P3] Migrate Existing Email Send Files to `sendEmail()` Helper~~ ✅ Complete
 
-**What:** Refactor the 8 existing `send*.ts` email files to use the new `sendEmail(to, subject, html)`
-helper introduced in Phase 8 PR1.
+**Completed:** v0.11.1 (2026-03-19)
 
-**Why:** PR1 introduces a `sendEmail()` helper in `src/server/lib/email.ts` to consolidate
-Resend boilerplate (init, try/catch, buildEmailHtml). New Phase 8 emails use it, but the
-existing 8 files (`sendInviteEmail.ts`, `sendStatusLinkEmail.ts`, `sendCredentialRequestEmail.ts`,
-`sendCredentialClaimedEmail.ts`, `sendFcraEmails.ts`, `sendBackgroundCheckEmail.ts`,
-`send-billing-emails.ts`, `sendInviteToApplyEmail.ts`) still have the old pattern.
-
-**Context:** Each file is ~30 lines with ~25 lines of identical boilerplate. Migration is mechanical:
-extract the subject + body into a pure function returning `{to, subject, html}`, call `sendEmail()`.
-Test by sending each email type in dev.
-
-**Pros:** Single email pattern codebase-wide; easier to add logging/retry/provider switching later.
-**Cons:** Pure refactor, no user-facing benefit; risk of regressions in working flows.
-
-**Effort:** S (CC: ~15 min) | **Priority:** P3 | **Depends on:** Phase 8 PR1 shipping `sendEmail()` helper
+Migrated 7 of 8 email files to `sendEmail()` helper: `sendInviteEmail.ts`,
+`sendStatusLinkEmail.ts`, `sendCredentialRequestEmail.ts`, `sendCredentialClaimedEmail.ts`,
+`sendBackgroundCheckEmail.ts`, `sendInviteToApplyEmail.ts`, `send-billing-emails.ts`.
+`sendFcraEmails.ts` intentionally excluded — FCRA legal compliance requires throw on failure.
 
 ---
 
-### [P3] Notification Cleanup Cron — Purge Old Dismissed Notifications
+### ~~[P3] Notification Cleanup Cron — Purge Old Dismissed Notifications~~ ✅ Complete
 
-**What:** Add a periodic cleanup job that hard-deletes notifications where `deletedAt` is older
-than 90 days.
+**Completed:** v0.11.1 (2026-03-19)
 
-**Why:** With `deletedAt` on the Notification model, dismissed notifications accumulate indefinitely.
-At scale (5k volunteers × 5 notifications/week = 1.3M rows/year), the table grows unbounded.
-Old dismissed notifications have zero query value.
-
-**Context:** Could piggyback on the existing `/api/cron/expire-credentials` cron or be a separate
-job. Simple `DELETE FROM "Notification" WHERE "deletedAt" < now() - interval '90 days'` with a
-row limit cap (e.g., 5000 per run) to prevent long-running deletes.
-
-**Pros:** Prevents table bloat; trivial implementation.
-**Cons:** 90-day retention is arbitrary (but generous for audit needs).
-
-**Effort:** XS (CC: ~10 min) | **Priority:** P3 | **Depends on:** Phase 8 PR1 Notification model with `deletedAt`
+`purgeOldDismissedNotifications()` in `credential-expiry-service.ts` hard-deletes
+notifications with `deletedAt < 90 days ago`. Runs in parallel alongside credential
+expiry in the existing `/api/cron/expire-credentials` daily cron (03:00 UTC).
 
 ---
 
-### [P2] Accessibility Audit — Phase 8 Pages and Components
+### ~~[P2] Accessibility Audit — Phase 8 Pages and Components~~ ✅ Complete
 
-**What:** Run a full accessibility audit (WAVE, axe-core, manual keyboard + screen reader testing)
-on all 6 new pages and 10 new components added in Phase 8.
+**Completed:** v0.11.1 (2026-03-19)
 
-**Why:** Phase 8 adds significant UI surface area: notification bell, PlanGate, engagement dashboard,
-QR check-in, gamification, teams, announcements, reports. Each is a potential a11y gap. Nonprofit
-organizations are frequent targets of ADA web accessibility lawsuits, and volunteers with
-disabilities are a core audience.
-
-**Context:** The Phase 8 plan specifies ARIA labels, touch targets (44px min), keyboard nav patterns,
-and color contrast requirements. This audit verifies the implementation matches the specs. Key areas:
-notification bell popover/sheet keyboard nav, PlanGate screen reader announcement, bulk action
-toolbar keyboard operability, QR check-in page (must work with screen readers for staff scanning),
-engagement status pills (color-only indicators need text labels).
-
-**Pros:** Catches real a11y violations before users encounter them; required for ADA compliance.
-**Cons:** Can only run after implementation; adds a review step.
-
-**Effort:** M (CC: ~30 min with /qa a11y focus) | **Priority:** P2 | **Depends on:** Phase 8 implementation complete
+Added `aria-label` to icon-only buttons (shifts page: complete, cancel, delete;
+shift templates: delete), `aria-hidden="true"` on decorative icons (notification bell,
+shift action icons), `aria-pressed` on analytics date range toggle buttons, converted
+analytics date range from `div[role=group]` to semantic `<fieldset>`.

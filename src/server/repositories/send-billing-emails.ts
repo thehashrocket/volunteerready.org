@@ -1,6 +1,5 @@
 import type { PlanTier } from '@/prisma/generated/client';
-import { buildEmailHtml } from '@/server/lib/email-template';
-import { getFromEmail, getResend } from '@/server/lib/resend';
+import { sendEmail } from '@/server/lib/email';
 
 const TIER_DISPLAY: Record<PlanTier, string> = {
 	FREE: 'Free',
@@ -15,11 +14,10 @@ export async function sendPlanUpgradeEmail(opts: {
 }): Promise<void> {
 	const tierDisplay = TIER_DISPLAY[opts.tier] ?? opts.tier;
 
-	await getResend().emails.send({
-		from: getFromEmail(),
-		to: opts.to,
-		subject: `Welcome to VolunteerReady ${tierDisplay}!`,
-		html: buildEmailHtml(`
+	await sendEmail(
+		opts.to,
+		`Welcome to VolunteerReady ${tierDisplay}!`,
+		`
         <p>Hi there,</p>
         <p>
           Great news! <strong>${opts.orgName}</strong> has been upgraded to the
@@ -34,19 +32,18 @@ export async function sendPlanUpgradeEmail(opts: {
           <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.volunteerready.com'}/app/billing" style="color: #1B3C2A;">billing settings</a>.
         </p>
         <p>Thank you for supporting your volunteers!</p>
-    `),
-	});
+    `,
+	);
 }
 
 export async function sendPaymentFailedEmail(opts: {
 	to: string;
 	orgName: string;
 }): Promise<void> {
-	await getResend().emails.send({
-		from: getFromEmail(),
-		to: opts.to,
-		subject: `Action required: payment failed for ${opts.orgName}`,
-		html: buildEmailHtml(`
+	await sendEmail(
+		opts.to,
+		`Action required: payment failed for ${opts.orgName}`,
+		`
         <p>Hi there,</p>
         <p>
           We were unable to process the latest payment for <strong>${opts.orgName}</strong>'s
@@ -64,8 +61,8 @@ export async function sendPaymentFailedEmail(opts: {
         <p style="color: #6b7280; font-size: 0.875rem;">
           If you believe this is an error, please contact your payment provider or reach out to us.
         </p>
-    `),
-	});
+    `,
+	);
 }
 
 export async function sendCancellationEmail(opts: {
@@ -75,11 +72,10 @@ export async function sendCancellationEmail(opts: {
 }): Promise<void> {
 	const tierDisplay = TIER_DISPLAY[opts.previousTier] ?? opts.previousTier;
 
-	await getResend().emails.send({
-		from: getFromEmail(),
-		to: opts.to,
-		subject: `Your VolunteerReady subscription has been cancelled`,
-		html: buildEmailHtml(`
+	await sendEmail(
+		opts.to,
+		'Your VolunteerReady subscription has been cancelled',
+		`
         <p>Hi there,</p>
         <p>
           The <strong>${tierDisplay}</strong> subscription for <strong>${opts.orgName}</strong>
@@ -96,6 +92,6 @@ export async function sendCancellationEmail(opts: {
           </a>
         </p>
         <p>We hope to see you back soon!</p>
-    `),
-	});
+    `,
+	);
 }

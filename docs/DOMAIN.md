@@ -237,11 +237,45 @@ Time validation: end must be after start, max 24h duration.
 
 Volunteer sign-up for a Shift.
 
-Status: CONFIRMED | CANCELLED | NO_SHOW | ATTENDED
+Status: CONFIRMED | CANCELLED | NO_SHOW | ATTENDED | WAITLISTED
 
 Constraint: unique per (shiftId, userId).
 
 Validated against: capacity limits, duplicate check, time overlap with other confirmed shifts.
+
+Waitlist behavior: when a shift is FULL, volunteers may join as WAITLISTED. When a confirmed volunteer cancels, the earliest waitlisted volunteer is auto-promoted to CONFIRMED (FIFO).
+
+---
+
+## ShiftTemplate
+
+Org-scoped recurring shift pattern used to generate concrete shifts.
+
+Key fields: title, description, location, isRemote, dayOfWeek (0-6), startHour, startMinute, endHour, endMinute, capacity, optional opportunity link.
+
+Templates are plan-gated (STARTER+). The `maxShiftTemplates` plan limit controls how many templates each org can create.
+
+---
+
+## Notification
+
+User-scoped, org-scoped notification record.
+
+Type: APPLICATION_UPDATE | SHIFT_REMINDER | CREDENTIAL_UPDATE | SYSTEM
+
+Key fields: title, body, href (optional deep link), readAt (null = unread), deletedAt (soft delete).
+
+Notifications support mark-read, mark-all-read, and soft delete. Dismissed notifications older than 90 days are purged by the daily cron job.
+
+---
+
+## NotificationPreference
+
+Per-user, per-org, per-notification-type delivery preferences.
+
+Channels: inApp (boolean), email (boolean). Both default to true.
+
+Constraint: unique per (userId, orgId, type).
 
 ---
 
@@ -404,6 +438,9 @@ Use these terms consistently across the codebase:
 - VolunteerCredential
 - Shift
 - ShiftSignup
+- ShiftTemplate
+- Notification
+- NotificationPreference
 - BackgroundCheckRequest
 - FcraStatus
 - CredentialShareToken

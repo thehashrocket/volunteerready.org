@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.1] - 2026-03-19
+
+### Changed
+- **Email consolidation** — All transactional emails now use the same branded template and delivery pipeline. Migrated 7 email senders to the shared `sendEmail()` helper (FCRA emails excluded for legal compliance).
+- **Notification cleanup** — Dismissed notifications older than 90 days are automatically purged by the daily cron job, keeping inboxes clean.
+- **PlanGate component** — Features behind higher plan tiers now show a polished lock card with upgrade CTA instead of being silently hidden. Replaces inline upgrade prompts in analytics.
+- **Top volunteers date range** — The "Top Volunteers" leaderboard on the analytics dashboard now respects your selected date range (30d, 90d, 1y, all-time) instead of always showing all-time.
+
+### Fixed
+- **Accessibility audit** — Added `aria-label` to icon-only buttons on shifts page, `aria-hidden` on decorative icons (notification bell, shift actions), `aria-pressed` on analytics date toggle, and converted analytics date range from `div[role=group]` to semantic `<fieldset>`.
+
+### Removed
+- Dead `src/components/app/plan-gate.tsx` (superseded by `src/components/plan-gate.tsx`).
+
 ## [0.11.0] - 2026-03-18
 
 ### Added

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { expireStaleCredentialsAndTokens } from '@/server/services/credential-expiry-service';
+import {
+	expireStaleCredentialsAndTokens,
+	purgeOldDismissedNotifications,
+} from '@/server/services/credential-expiry-service';
 
 export async function GET(req: Request) {
 	const authHeader = req.headers.get('authorization');
@@ -10,8 +13,11 @@ export async function GET(req: Request) {
 	}
 
 	try {
-		const result = await expireStaleCredentialsAndTokens();
-		return NextResponse.json({ ok: true, ...result });
+		const [expiryResult, purgeResult] = await Promise.all([
+			expireStaleCredentialsAndTokens(),
+			purgeOldDismissedNotifications(),
+		]);
+		return NextResponse.json({ ok: true, ...expiryResult, ...purgeResult });
 	} catch (e) {
 		console.error('[cron] expire-credentials failed', e);
 		return NextResponse.json(

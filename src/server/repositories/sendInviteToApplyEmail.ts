@@ -1,5 +1,4 @@
-import { buildEmailHtml } from '@/server/lib/email-template';
-import { getFromEmail, getResend } from '@/server/lib/resend';
+import { sendEmail } from '@/server/lib/email';
 
 export async function sendInviteToApplyEmail(input: {
 	to: string;
@@ -8,13 +7,10 @@ export async function sendInviteToApplyEmail(input: {
 	opportunityTitle: string;
 	opportunityLink: string;
 }) {
-	const from = getFromEmail();
-
-	await getResend().emails.send({
-		from,
-		to: input.to,
-		subject: `You've been invited to apply to ${input.opportunityTitle} at ${input.orgName}`,
-		html: buildEmailHtml(`
+	await sendEmail(
+		input.to,
+		`You've been invited to apply to ${input.opportunityTitle} at ${input.orgName}`,
+		`
         <h2 style="color: #1B3C2A; margin-bottom: 16px;">You've been invited to volunteer!</h2>
         <p>Hi ${input.volunteerName},</p>
         <p>
@@ -32,6 +28,6 @@ export async function sendInviteToApplyEmail(input: {
         <p style="color: #6b7280; font-size: 14px;">
           If you didn't expect this email or don't recognize this organization, you can safely ignore it.
         </p>
-    `),
-	});
+    `,
+	);
 }

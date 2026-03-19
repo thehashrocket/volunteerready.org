@@ -5,6 +5,9 @@ vi.mock('@/server/services/credential-expiry-service', () => ({
 		credentialsExpired: 0,
 		tokensExpired: 0,
 	})),
+	purgeOldDismissedNotifications: vi.fn(async () => ({
+		notificationsPurged: 0,
+	})),
 }));
 
 import * as expiryService from '@/server/services/credential-expiry-service';
@@ -41,6 +44,11 @@ describe('GET /api/cron/expire-credentials', () => {
 			credentialsExpired: 3,
 			tokensExpired: 1,
 		});
+		vi.mocked(
+			expiryService.purgeOldDismissedNotifications,
+		).mockResolvedValueOnce({
+			notificationsPurged: 5,
+		});
 
 		const res = await GET(makeRequest('Bearer test-secret'));
 		expect(res.status).toBe(200);
@@ -50,6 +58,7 @@ describe('GET /api/cron/expire-credentials', () => {
 			ok: true,
 			credentialsExpired: 3,
 			tokensExpired: 1,
+			notificationsPurged: 5,
 		});
 	});
 

@@ -76,7 +76,7 @@ src/
 │   │   ├── discover/             # Staff: search PUBLIC volunteers + invite to apply (rate-limited)
 │   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
-│   │   ├── shifts/               # Staff: manage shifts + attendance
+│   │   ├── shifts/               # Staff: manage shifts + attendance + templates tab (STARTER-gated)
 │   │   ├── settings/team/        # Admin: team/member management
 │   │   ├── onboarding/           # Org setup flow
 │   │   └── welcome/              # Post-login landing
@@ -102,7 +102,8 @@ src/
 │
 ├── components/
 │   ├── ui/                       # shadcn/ui primitives (button, input, dialog, etc.)
-│   ├── app/                      # Page-specific compound components
+│   ├── app/                      # Page-specific compound components (notification-bell, shift-templates)
+│   ├── plan-gate.tsx             # Plan-tier gating UI (lock card with upgrade CTA)
 │   ├── org/                      # Organization management components
 │   ├── my-applications/          # Volunteer application tracking
 │   ├── opportunities/            # Opportunity display components
@@ -118,8 +119,9 @@ src/
 │   ├── trpc/
 │   │   ├── init.ts               # Context creation, procedure definitions
 │   │   ├── root.ts               # App router (combines all sub-routers)
-│   │   └── routers/              # auth, health, members, onboarding,
-│   │                               analytics, opportunities, org, screener, status
+│   │   └── routers/              # auth, health, members, notifications, onboarding,
+│   │                               analytics, opportunities, org, screener,
+│   │                               shift-templates, status
 │   ├── services/                 # Business logic layer
 │   ├── repositories/             # Prisma data access layer (includes statsRepo for homepage aggregates)
 │   ├── lib/                      # Shared utilities and adapters
@@ -127,9 +129,12 @@ src/
 │   │   ├── crypto.ts             # AES-256-GCM encryption for secrets at rest
 │   │   ├── tokens.ts             # Shared token generation + SHA-256 hashing
 │   │   ├── resend.ts             # Shared Resend email client (lazy singleton)
-│   │   └── email-template.ts     # Branded email wrapper (VolunteerReady header/footer)
+│   │   ├── email-template.ts     # Branded email wrapper (VolunteerReady header/footer)
+│   │   ├── email.ts              # sendEmail() helper — single entry point for all outbound email
+│   │   └── rate-limit.ts         # Upstash Redis rate limiting (lazy singleton, fail-open)
 │   └── domain/                   # Pure types + functions + tests
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
+│       ├── notification.ts        # Notification types and domain functions
 │       ├── screener/
 │       │   ├── configSchema.ts     # Zod schemas for screening question config
 │       │   ├── publicForm.ts       # Public form type mapping
@@ -171,7 +176,10 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **CredentialShareToken** — time-limited (30-day) share link for a VERIFIED credential. SHA-256 hashed token storage. Status lifecycle: ACTIVE → CLAIMED / EXPIRED. Optimistic lock on claim prevents concurrent claims.
 - **VolunteerInvitation** — tracks org-to-volunteer invitations for proactive talent discovery. Unique constraint on `(orgId, volunteerId, opportunityId)` for duplicate detection. Rate-limited per org (10 invites/day).
 - **Shift** — org-scoped volunteer shift with time range, capacity, status, optional opportunity link.
-- **ShiftSignup** — volunteer sign-up for a shift (unique per shift + user). Status: CONFIRMED / CANCELLED / NO_SHOW / ATTENDED.
+- **ShiftSignup** — volunteer sign-up for a shift (unique per shift + user). Status: CONFIRMED / CANCELLED / NO_SHOW / ATTENDED / WAITLISTED.
+- **ShiftTemplate** — org-scoped recurring shift pattern (day of week, time range, capacity). Plan-gated to STARTER+.
+- **Notification** — user-scoped, org-scoped notification with type, title, body, optional href, soft delete. Types: APPLICATION_UPDATE, SHIFT_REMINDER, CREDENTIAL_UPDATE, SYSTEM.
+- **NotificationPreference** — per-user, per-org, per-type delivery channel toggles (inApp, email).
 - **BackgroundCheckRequest** — org-scoped background check lifecycle (PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED). FCRA status nested within CONSIDER: NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED. Provider tokens encrypted at rest (AES-256-GCM).
 - **CheckrWebhookEvent** — idempotency table for webhook deduplication (mirrors StripeWebhookEvent pattern).
 - **AuditLog** — append-only, immutable activity log per org.
@@ -223,6 +231,8 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `profile` | getMyProfile, updateMyProfile, getMyStats, getMyUserId, getPublicProfile (public), getOrgVisibleProfile (staff) |
 | `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail |
 | `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |
+| `shiftTemplates` | list, create, update, remove, generate (staffProcedure, STARTER-gated) |
+| `notifications` | list, unreadCount, markRead, markAllRead (protectedProcedure) |
 | `analytics` | getDashboard (staffProcedure, PRO-gated via `planTierProcedure('PRO')`) |
 | `billing` | createCheckoutSession, createBillingPortalSession, getBillingStatus |
 | `company` | create, list, switchCompany, inviteMember, listMembers, linkNonprofit |
@@ -333,7 +343,9 @@ The shift scheduling system lives in `src/server/domain/shift.ts`.
 
 **Shift:** Org-scoped time block with capacity. Optional link to a VolunteerOpportunity. Status lifecycle: OPEN → FULL (auto at capacity) → COMPLETED / CANCELLED. FULL auto-reverts to OPEN when a signup is cancelled.
 
-**Signup:** Unique per shift + user. Validated against capacity, duplicate check, and time overlap with user's other confirmed shifts. Status: CONFIRMED → ATTENDED / NO_SHOW / CANCELLED.
+**Signup:** Unique per shift + user. Validated against capacity, duplicate check, and time overlap with user's other confirmed shifts. Status: CONFIRMED → ATTENDED / NO_SHOW / CANCELLED / WAITLISTED. When a shift is FULL, volunteers join as WAITLISTED; when a confirmed signup cancels, the earliest waitlisted volunteer is auto-promoted (FIFO).
+
+**Shift Templates:** Recurring shift patterns (day of week, time range, capacity) that generate concrete shifts for N weeks. Plan-gated to STARTER+ via `maxShiftTemplates` limit.
 
 **Key types:** `ShiftData`, `SignupRecord`, `ShiftCapacity`, `AttendanceSummary`, `SignupValidation`
 
@@ -341,9 +353,30 @@ The shift scheduling system lives in `src/server/domain/shift.ts`.
 
 **Service orchestration:**
 - `src/server/services/shiftService.ts` — `createNewShift()`, `updateExistingShift()`, `cancelShift()`, `completeShift()`, `removeShift()` (all transactional with audit)
-- `src/server/services/shiftSignupService.ts` — `signUpForShift()` (validates + auto-FULL), `cancelSignup()` (auto-reopen), `markAttendance()` (all transactional with audit)
+- `src/server/services/shiftSignupService.ts` — `signUpForShift()` (validates + auto-FULL), `cancelSignup()` (auto-reopen + waitlist auto-promote), `markAttendance()`, `joinWaitlist()`, `leaveWaitlist()` (all transactional with audit)
+- `src/server/services/shiftTemplateService.ts` — template CRUD + bulk shift generation with time validation and audit logging
 
-**tRPC router:** `src/server/trpc/routers/shifts.ts` — Staff: `list`, `getById`, `create`, `update`, `cancel`, `complete`, `remove`, `getSignups`, `markAttendance` (`staffProcedure`). Volunteer: `myUpcoming`, `signup`, `cancelSignup` (`protectedProcedure`).
+**tRPC routers:**
+- `src/server/trpc/routers/shifts.ts` — Staff: `list`, `getById`, `create`, `update`, `cancel`, `complete`, `remove`, `getSignups`, `markAttendance` (`staffProcedure`). Volunteer: `myUpcoming`, `signup`, `cancelSignup` (`protectedProcedure`).
+- `src/server/trpc/routers/shift-templates.ts` — `list`, `create`, `update`, `remove`, `generate` (`staffProcedure`, STARTER-gated).
+
+---
+
+## In-App Notifications
+
+The notification system lives in `src/server/domain/notification.ts`.
+
+**Notification:** User-scoped, org-scoped notification with type, title, body, optional href, and soft delete. Types: APPLICATION_UPDATE, SHIFT_REMINDER, CREDENTIAL_UPDATE, SYSTEM. Unread count polled every 30 seconds.
+
+**Preferences:** Per-user, per-org, per-type delivery channel toggles (inApp, email). The `notify()` function checks preferences before creating the notification.
+
+**Cleanup:** Daily cron job purges dismissed notifications older than 90 days alongside credential expiry.
+
+**Service orchestration:** `src/server/services/notificationService.ts` — `notify()` (checks preferences), `tryNotify()` (fire-and-forget wrapper for use in other services)
+
+**tRPC router:** `src/server/trpc/routers/notifications.ts` — `list` (cursor-based, protectedProcedure), `unreadCount`, `markRead`, `markAllRead`
+
+**UI:** `src/components/app/notification-bell.tsx` — Popover with infinite scroll, empty state ("You're all caught up"), unread dot indicator.
 
 ---
 
@@ -405,6 +438,8 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/services/shiftSignupService.ts` | Signup orchestration with capacity + conflict checks |
 | `src/server/services/volunteerIdentityService.ts` | Public volunteer identity assembly — getPublicProfile (React.cache-wrapped), getOrgVisibleProfile (staff-only), reliability score |
 | `src/server/services/volunteerDiscoveryService.ts` | Volunteer search + invite-to-apply — rate-limited, TOCTOU-safe transaction, audit logged |
+| `src/server/services/notificationService.ts` | Notification delivery — checks preferences, creates notifications, fire-and-forget wrapper |
+| `src/server/services/shiftTemplateService.ts` | Shift template CRUD + bulk shift generation with plan-tier enforcement |
 | `src/server/services/orgAnalyticsService.ts` | Org analytics dashboard — orchestrates 4 parallel queries; days=null skips retention and uses epoch fromDate |
 | `src/server/repositories/orgAnalyticsRepo.ts` | Raw SQL analytics queries (Prisma.sql parameterized); getApplicationFunnel, getRetentionStats, getAvgFillRate, getTopVolunteers |
 | `src/server/repositories/volunteerDiscoveryRepo.ts` | `searchPublicProfiles()` — `visibility = PUBLIC` hardcoded invariant, cursor pagination, credential/skill/location filters |
@@ -436,9 +471,12 @@ pnpm docs:dev               # VitePress dev server
 | 6C — Portable Credential Sharing | ✅ Complete |
 | 6D — Corporate ESG Reporting | ✅ Complete |
 | 6E — Mobile PWA | Planned |
-| 7 — Network Growth & Volunteer Identity | 🚧 In Progress |
+| 7 — Network Growth & Volunteer Identity | ✅ Complete |
+| 8 — Operational Polish & CEO Quick Wins | ✅ Complete |
 
 Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses, volunteer discovery (`/app/discover`) with invite-to-apply (rate-limited), org analytics dashboard (`/app/analytics`, PRO-gated).
+
+Phase 8 delivered: in-app notifications (bell + preferences), plan gate component (tier-based feature gating), shared `sendEmail()` helper, shift templates (recurring patterns + bulk generation), waitlist for full shifts (FIFO auto-promote), email consolidation (7 senders migrated), notification cleanup cron, top volunteers date range filter, accessibility audit.
 
 See `docs/ROADMAP.md` for details.
 

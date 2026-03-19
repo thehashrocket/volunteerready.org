@@ -276,7 +276,7 @@ This phase establishes **the corporate CSR revenue surface and portable voluntee
 
 ---
 
-# Phase 7 — Network Growth & Volunteer Identity 🚧 In Progress
+# Phase 7 — Network Growth & Volunteer Identity ✅ Complete
 
 Goal: Drive organic growth through volunteer-facing public identity and deepen the quality moat
 with AI-assisted matching.
@@ -339,6 +339,48 @@ Cross-org volunteer discovery:
 
 This phase evolves VolunteerReady into a **network with compounding value** — more verified
 volunteers attract more orgs; more orgs attract more corporate sponsors.
+
+---
+
+# Phase 8 — Operational Polish & CEO Quick Wins ✅ Complete
+
+Goal: Ship the high-impact operational features that nonprofit admins and volunteers ask for most — notifications, shift templates, waitlists, and plan-gated feature access — while cleaning up infrastructure debt.
+
+## Delivered (v0.10.0)
+
+- ✅ In-app notifications — bell in app header with unread count (30s polling), infinite scroll, mark-read/mark-all-read, soft delete
+- ✅ `Notification` + `NotificationPreference` Prisma models with per-user, per-org, per-type delivery preferences
+- ✅ `PlanGate` component — features gated behind higher plan tiers show a branded lock card with upgrade CTA
+- ✅ Shared `sendEmail()` helper — single entry point for all outbound email with branded templates
+- ✅ `maxShiftTemplates` plan limit added to plan tier domain
+
+## Delivered (v0.11.0)
+
+- ✅ Shift templates — recurring patterns (day of week, time range, capacity) with bulk shift generation for N weeks; plan-gated to STARTER+
+- ✅ Waitlist for full shifts — WAITLISTED signup status with FIFO auto-promotion when a confirmed volunteer cancels; in-app notification on promotion
+- ✅ Templates tab on admin shifts page with full CRUD and "Generate N Weeks" workflow
+- ✅ Waitlist UI — staff see waitlist in shift detail dialog; volunteers see badges and "Leave Waitlist" on My Shifts
+- ✅ Delete confirmations for shifts and templates
+- ✅ Shared `requireUserId` utility extracted from 6 tRPC routers
+- ✅ 38 new tests: domain validation (17), waitlist service (10), template service (11)
+
+## Delivered (v0.11.1)
+
+- ✅ Email consolidation — migrated 7 email senders to shared `sendEmail()` helper (FCRA excluded for legal compliance)
+- ✅ Notification cleanup cron — daily purge of dismissed notifications older than 90 days
+- ✅ PlanGate self-contained billing query (replaced inline upgrade prompts in analytics)
+- ✅ Top volunteers date range filter — analytics query now respects the selected date range
+- ✅ Accessibility audit — `aria-label` on icon-only buttons, `aria-hidden` on decorative icons, `aria-pressed` on date toggle, semantic `<fieldset>` for analytics date range
+- ✅ Dead code removal (old plan-gate component)
+
+Key entities added:
+
+- Notification (userId, orgId, type, title, body, href, readAt, deletedAt)
+- NotificationPreference (userId, orgId, type, inApp, email)
+- ShiftTemplate (orgId, dayOfWeek, time range, capacity, optional opportunity link)
+- WAITLISTED added to SignupStatus enum
+
+This phase makes the platform **operationally ready for daily use** — admins get templates and analytics, volunteers get notifications and waitlists, and plan gating drives upgrades.
 
 ---
 

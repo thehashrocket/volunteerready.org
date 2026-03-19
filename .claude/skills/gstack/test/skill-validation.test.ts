@@ -218,7 +218,7 @@ describe('Update check preamble', () => {
     'ship/SKILL.md', 'review/SKILL.md',
     'plan-ceo-review/SKILL.md', 'plan-eng-review/SKILL.md',
     'retro/SKILL.md',
-    'office-hours/SKILL.md', 'debug/SKILL.md',
+    'office-hours/SKILL.md', 'investigate/SKILL.md',
     'plan-design-review/SKILL.md',
     'design-review/SKILL.md',
     'design-consultation/SKILL.md',
@@ -447,6 +447,7 @@ describe('No hardcoded branch names in SKILL templates', () => {
     'document-release/SKILL.md.tmpl',
     'plan-eng-review/SKILL.md.tmpl',
     'plan-design-review/SKILL.md.tmpl',
+    'codex/SKILL.md.tmpl',
   ];
 
   // Patterns that indicate hardcoded 'main' in git commands
@@ -529,7 +530,7 @@ describe('v0.4.1 preamble features', () => {
     'ship/SKILL.md', 'review/SKILL.md',
     'plan-ceo-review/SKILL.md', 'plan-eng-review/SKILL.md',
     'retro/SKILL.md',
-    'office-hours/SKILL.md', 'debug/SKILL.md',
+    'office-hours/SKILL.md', 'investigate/SKILL.md',
     'plan-design-review/SKILL.md',
     'design-review/SKILL.md',
     'design-consultation/SKILL.md',
@@ -645,8 +646,8 @@ describe('office-hours skill structure', () => {
   });
 });
 
-describe('debug skill structure', () => {
-  const content = fs.readFileSync(path.join(ROOT, 'debug', 'SKILL.md'), 'utf-8');
+describe('investigate skill structure', () => {
+  const content = fs.readFileSync(path.join(ROOT, 'investigate', 'SKILL.md'), 'utf-8');
   for (const section of ['Iron Law', 'Root Cause', 'Pattern Analysis', 'Hypothesis',
                           'DEBUG REPORT', '3-strike', 'BLOCKED']) {
     test(`contains ${section}`, () => expect(content).toContain(section));
@@ -1119,4 +1120,140 @@ describe('QA report template', () => {
     expect(content).toContain('### Deferred Tests');
     expect(content).toContain('**Precondition:**');
   });
+});
+
+// --- Codex skill validation ---
+
+describe('Codex skill', () => {
+  test('codex/SKILL.md exists and has correct frontmatter', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('name: codex');
+    expect(content).toContain('version: 1.0.0');
+    expect(content).toContain('allowed-tools:');
+  });
+
+  test('codex/SKILL.md contains all three modes', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('Step 2A: Review Mode');
+    expect(content).toContain('Step 2B: Challenge');
+    expect(content).toContain('Step 2C: Consult Mode');
+  });
+
+  test('codex/SKILL.md contains gate verdict logic', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('[P1]');
+    expect(content).toContain('GATE: PASS');
+    expect(content).toContain('GATE: FAIL');
+  });
+
+  test('codex/SKILL.md contains session continuity', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('codex-session-id');
+    expect(content).toContain('codex exec resume');
+  });
+
+  test('codex/SKILL.md contains cost tracking', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('tokens used');
+    expect(content).toContain('Est. cost');
+  });
+
+  test('codex/SKILL.md contains cross-model comparison', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('CROSS-MODEL ANALYSIS');
+    expect(content).toContain('Agreement rate');
+  });
+
+  test('codex/SKILL.md contains review log persistence', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('codex-review');
+    expect(content).toContain('gstack-review-log');
+  });
+
+  test('codex/SKILL.md uses which for binary discovery, not hardcoded path', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('which codex');
+    expect(content).not.toContain('/opt/homebrew/bin/codex');
+  });
+
+  test('codex/SKILL.md contains error handling for missing binary and auth', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('NOT_FOUND');
+    expect(content).toContain('codex login');
+  });
+
+  test('codex/SKILL.md uses mktemp for temp files', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('mktemp');
+  });
+
+  test('codex integration in /review offers second opinion', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'review', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('Codex second opinion');
+    expect(content).toContain('codex review');
+    expect(content).toContain('adversarial');
+  });
+
+  test('codex integration in /ship offers review gate', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'ship', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('Codex');
+    expect(content).toContain('codex review');
+    expect(content).toContain('codex-review');
+  });
+
+  test('codex integration in /plan-eng-review offers plan critique', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'plan-eng-review', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('Codex');
+    expect(content).toContain('codex exec');
+  });
+
+  test('Review Readiness Dashboard includes Codex Review row', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'ship', 'SKILL.md'), 'utf-8');
+    expect(content).toContain('Codex Review');
+    expect(content).toContain('codex-review');
+  });
+});
+
+// --- Trigger phrase validation ---
+
+describe('Skill trigger phrases', () => {
+  // Skills that must have "Use when" trigger phrases in their description.
+  // Excluded: root gstack (browser tool), gstack-upgrade (gstack-specific),
+  // humanizer (text tool)
+  const SKILLS_REQUIRING_TRIGGERS = [
+    'qa', 'qa-only', 'ship', 'review', 'investigate', 'office-hours',
+    'plan-ceo-review', 'plan-eng-review', 'plan-design-review',
+    'design-review', 'design-consultation', 'retro', 'document-release',
+    'codex', 'browse', 'setup-browser-cookies',
+  ];
+
+  for (const skill of SKILLS_REQUIRING_TRIGGERS) {
+    test(`${skill}/SKILL.md has "Use when" trigger phrases`, () => {
+      const skillPath = path.join(ROOT, skill, 'SKILL.md');
+      if (!fs.existsSync(skillPath)) return;
+      const content = fs.readFileSync(skillPath, 'utf-8');
+      // Extract description from frontmatter
+      const frontmatterEnd = content.indexOf('---', 4);
+      const frontmatter = content.slice(0, frontmatterEnd);
+      expect(frontmatter).toMatch(/Use when/i);
+    });
+  }
+
+  // Skills with proactive triggers should have "Proactively suggest" in description
+  const SKILLS_REQUIRING_PROACTIVE = [
+    'qa', 'qa-only', 'ship', 'review', 'investigate', 'office-hours',
+    'plan-ceo-review', 'plan-eng-review', 'plan-design-review',
+    'design-review', 'design-consultation', 'retro', 'document-release',
+  ];
+
+  for (const skill of SKILLS_REQUIRING_PROACTIVE) {
+    test(`${skill}/SKILL.md has "Proactively suggest" phrase`, () => {
+      const skillPath = path.join(ROOT, skill, 'SKILL.md');
+      if (!fs.existsSync(skillPath)) return;
+      const content = fs.readFileSync(skillPath, 'utf-8');
+      const frontmatterEnd = content.indexOf('---', 4);
+      const frontmatter = content.slice(0, frontmatterEnd);
+      expect(frontmatter).toMatch(/Proactively suggest/i);
+    });
+  }
 });
