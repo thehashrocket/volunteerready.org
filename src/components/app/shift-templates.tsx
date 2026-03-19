@@ -375,8 +375,9 @@ export function ShiftTemplatesTab() {
 											<div className="flex justify-end gap-1">
 												<GenerateShiftsDialog templateId={tmpl.id} />
 												<Button
-													size="sm"
+													size="icon"
 													variant="ghost"
+													className="h-11 w-11"
 													aria-label={`Delete template "${tmpl.title}"`}
 													onClick={() => {
 														if (
