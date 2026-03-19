@@ -1,12 +1,15 @@
 'use client';
 
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, WifiOff } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useCallback, useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { trpc } from '@/lib/trpc/client';
 import { formatQrData } from '@/server/lib/checkin-token';
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const OFFLINE_CACHE_KEY_PREFIX = 'vr-checkin-token-';
+const OFFLINE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes (2 windows)
 
 type QrCheckinCodeProps = {
 	shiftId: string;
@@ -46,6 +49,22 @@ export function QrCheckinCode({
 	shiftLocation,
 }: QrCheckinCodeProps) {
 	const [countdown, setCountdown] = useState(REFRESH_INTERVAL_MS);
+	const [isOffline, setIsOffline] = useState(false);
+	const [offlineToken, setOfflineToken] = useState<string | null>(null);
+	const [offlineExpired, setOfflineExpired] = useState(false);
+
+	// Track online/offline status
+	useEffect(() => {
+		const goOffline = () => setIsOffline(true);
+		const goOnline = () => setIsOffline(false);
+		setIsOffline(!navigator.onLine);
+		window.addEventListener('offline', goOffline);
+		window.addEventListener('online', goOnline);
+		return () => {
+			window.removeEventListener('offline', goOffline);
+			window.removeEventListener('online', goOnline);
+		};
+	}, []);
 
 	const tokenQuery = trpc.shifts.getCheckinToken.useQuery(
 		{ shiftId },
@@ -54,6 +73,43 @@ export function QrCheckinCode({
 			staleTime: REFRESH_INTERVAL_MS - 10_000,
 		},
 	);
+
+	// Cache token to localStorage when online
+	useEffect(() => {
+		if (tokenQuery.data?.token) {
+			const cacheKey = `${OFFLINE_CACHE_KEY_PREFIX}${shiftId}`;
+			localStorage.setItem(
+				cacheKey,
+				JSON.stringify({
+					token: tokenQuery.data.token,
+					cachedAt: Date.now(),
+				}),
+			);
+		}
+	}, [tokenQuery.data?.token, shiftId]);
+
+	// Load cached token when offline
+	useEffect(() => {
+		if (!isOffline) {
+			setOfflineToken(null);
+			setOfflineExpired(false);
+			return;
+		}
+
+		const cacheKey = `${OFFLINE_CACHE_KEY_PREFIX}${shiftId}`;
+		const cached = localStorage.getItem(cacheKey);
+		if (cached) {
+			const { token: cachedToken, cachedAt } = JSON.parse(cached);
+			const age = Date.now() - cachedAt;
+			if (age < OFFLINE_EXPIRY_MS) {
+				setOfflineToken(cachedToken);
+				setOfflineExpired(false);
+			} else {
+				setOfflineToken(cachedToken);
+				setOfflineExpired(true);
+			}
+		}
+	}, [isOffline, shiftId]);
 
 	const statusQuery = trpc.shifts.myCheckinStatus.useQuery(
 		{ shiftId },
@@ -99,7 +155,7 @@ export function QrCheckinCode({
 		return null; // Don't show QR if token generation fails (shift too far away, not confirmed, etc.)
 	}
 
-	const token = tokenQuery.data?.token;
+	const token = tokenQuery.data?.token ?? (isOffline ? offlineToken : null);
 	if (!token) return null;
 
 	// Checked-in state: show checkmark instead of QR
@@ -119,7 +175,16 @@ export function QrCheckinCode({
 	const qrData = formatQrData(shiftId, userId, token);
 
 	return (
-		<div className="flex flex-col items-center gap-2 py-4">
+		<div className="relative flex flex-col items-center gap-2 py-4">
+			{isOffline && (
+				<Badge
+					variant="outline"
+					className="absolute right-0 top-4 text-[#787571]"
+				>
+					<WifiOff className="mr-1 h-3 w-3" />
+					Offline
+				</Badge>
+			)}
 			<div
 				role="img"
 				aria-label={`Check-in QR code for this shift. ${getContextualCopy(phase)}`}
@@ -135,12 +200,18 @@ export function QrCheckinCode({
 			<p className="text-center text-sm text-muted-foreground">
 				{getContextualCopy(phase, shiftLocation)}
 			</p>
-			<p
-				className="text-xs tabular-nums text-muted-foreground/70"
-				aria-live="polite"
-			>
-				Refreshes in {formatCountdown(countdown)}
-			</p>
+			{isOffline && offlineExpired ? (
+				<p className="text-xs text-[#B8860B]">
+					Token may be expired. Reconnect to refresh.
+				</p>
+			) : (
+				<p
+					className="text-xs tabular-nums text-muted-foreground/70"
+					aria-live="polite"
+				>
+					Refreshes in {formatCountdown(countdown)}
+				</p>
+			)}
 		</div>
 	);
 }

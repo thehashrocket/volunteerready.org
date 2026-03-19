@@ -371,6 +371,8 @@ exports.Prisma.ShiftScalarFieldEnum = {
   title: 'title',
   description: 'description',
   location: 'location',
+  latitude: 'latitude',
+  longitude: 'longitude',
   isRemote: 'isRemote',
   startTime: 'startTime',
   endTime: 'endTime',

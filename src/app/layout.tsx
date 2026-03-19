@@ -3,6 +3,8 @@ import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
 import { ConsentedAnalytics } from '@/components/consented-analytics';
 import { CookieConsentBanner } from '@/components/cookie-consent-banner';
 import { AppToaster } from '@/components/sonner';
+import { SwRegister } from '@/components/sw-register';
+import { SwUpdateBanner } from '@/components/sw-update-banner';
 import './globals.css';
 
 const geistSans = Geist({
@@ -26,6 +28,8 @@ export const metadata: Metadata = {
 	metadataBase: new URL('https://www.volunteerready.org'),
 	title: 'VolunteerReady',
 	description: 'Find and manage volunteer opportunities.',
+	manifest: '/manifest.webmanifest',
+	themeColor: '#1B3C2A',
 	openGraph: {
 		title: 'VolunteerReady',
 		description: 'Find and manage volunteer opportunities.',
@@ -52,6 +56,8 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} min-h-screen bg-background text-foreground antialiased`}
 			>
 				{children}
+				<SwRegister />
+				<SwUpdateBanner />
 				<AppToaster />
 				<ConsentedAnalytics />
 				<CookieConsentBanner />
