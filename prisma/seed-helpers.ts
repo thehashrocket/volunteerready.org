@@ -1,4 +1,12 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+
+// Match Next.js dotenv loading order: most specific wins (first loaded, never overwritten).
+// See: https://nextjs.org/docs/app/building-your-application/configuring/environment-variables#environment-variable-load-order
+const env = process.env.NODE_ENV ?? 'development';
+dotenv.config({ path: `.env.${env}.local` });
+dotenv.config({ path: '.env.local' });
+dotenv.config({ path: `.env.${env}` });
+dotenv.config();
 import crypto from 'node:crypto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';

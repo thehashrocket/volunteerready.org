@@ -26,6 +26,13 @@ Current commands:
 - `pnpm docs:dev`: run VitePress docs locally
 - `pnpm docs:build`: build docs site
 - `pnpm docs:preview`: preview built docs site
+- `pnpm seed`: seed local dev database (reads from `.env.local`)
+- `pnpm seed:production`: seed production database (run manually: `source .env.production && pnpm seed:production`)
+- `pnpm seed:dev`: seed with full demo data
+
+Note: seeding does NOT run during `pnpm build` / Vercel deploys. After a fresh
+production database setup, run `pnpm seed:production` manually to create the
+platform org and skill catalog.
 
 ## Coding Style & Naming Conventions
 
