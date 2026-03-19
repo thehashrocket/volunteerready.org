@@ -122,6 +122,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/REQUEST_FLOW.md` — how data flows through the system
 - `docs/SYSTEM_DIAGRAM.md` — Mermaid diagrams of system architecture
 - `docs/ROADMAP.md` — phased development plan
+- `docs/designs/phase-9-production-ready.md` — Phase 9 plan (production-ready + activation)
 - `docs/TODOS.md` - todos for the current project
 
 ## gstack
