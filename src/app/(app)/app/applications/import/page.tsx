@@ -1,12 +1,28 @@
 'use client';
 
-import { FileUp, Upload } from 'lucide-react';
+import { FileUp, Laptop, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
+
+function MobileGuard({ children }: { children: React.ReactNode }) {
+	return (
+		<>
+			<div className="flex flex-col items-center gap-4 py-12 text-center md:hidden">
+				<Laptop className="h-12 w-12 text-muted-foreground/50" />
+				<p className="text-lg font-medium">Use a desktop browser</p>
+				<p className="max-w-xs text-sm text-muted-foreground">
+					CSV import works best on a larger screen. Please switch to a desktop
+					or laptop to upload files.
+				</p>
+			</div>
+			<div className="hidden md:block">{children}</div>
+		</>
+	);
+}
 
 export default function BulkImportPage() {
 	const fileRef = useRef<HTMLInputElement>(null);
@@ -53,56 +69,62 @@ export default function BulkImportPage() {
 				description="Upload a CSV file to create volunteer applications in bulk."
 			/>
 
-			{/* Upload card */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-base">Upload CSV</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="rounded-lg border-2 border-dashed border-border/60 p-6 text-center">
-						<FileUp className="mx-auto h-8 w-8 text-muted-foreground/50" />
-						<p className="mt-2 text-sm text-muted-foreground">
-							CSV with an <code className="font-mono text-xs">email</code>{' '}
-							column (required). Optional:{' '}
-							<code className="font-mono text-xs">opportunityId</code>.
-						</p>
-						<input
-							ref={fileRef}
-							type="file"
-							accept=".csv,text/csv"
-							className="mt-3 text-sm"
-							onChange={() => {
-								setError('');
-								setResult(null);
-							}}
-						/>
-					</div>
-
-					<Button onClick={handleUpload} disabled={uploading} className="gap-2">
-						<Upload className="h-4 w-4" />
-						{uploading ? 'Importing…' : 'Start import'}
-					</Button>
-
-					{error && <p className="text-sm text-destructive">{error}</p>}
-
-					{result && (
-						<div className="rounded-lg border bg-muted/30 p-4 text-sm">
-							<p className="font-medium text-primary">Import started</p>
-							<p className="mt-1 text-muted-foreground">
-								{result.totalRows} rows queued for processing.
-								{result.parseErrors > 0 && (
-									<span className="text-destructive">
-										{' '}
-										{result.parseErrors} rows had parse errors.
-									</span>
-								)}
+			<MobileGuard>
+				{/* Upload card */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-base">Upload CSV</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="rounded-lg border-2 border-dashed border-border/60 p-6 text-center">
+							<FileUp className="mx-auto h-8 w-8 text-muted-foreground/50" />
+							<p className="mt-2 text-sm text-muted-foreground">
+								CSV with an <code className="font-mono text-xs">email</code>{' '}
+								column (required). Optional:{' '}
+								<code className="font-mono text-xs">opportunityId</code>.
 							</p>
+							<input
+								ref={fileRef}
+								type="file"
+								accept=".csv,text/csv"
+								className="mt-3 text-sm"
+								onChange={() => {
+									setError('');
+									setResult(null);
+								}}
+							/>
 						</div>
-					)}
-				</CardContent>
-			</Card>
 
-			{/* Recent imports */}
+						<Button
+							onClick={handleUpload}
+							disabled={uploading}
+							className="gap-2"
+						>
+							<Upload className="h-4 w-4" />
+							{uploading ? 'Importing…' : 'Start import'}
+						</Button>
+
+						{error && <p className="text-sm text-destructive">{error}</p>}
+
+						{result && (
+							<div className="rounded-lg border bg-muted/30 p-4 text-sm">
+								<p className="font-medium text-primary">Import started</p>
+								<p className="mt-1 text-muted-foreground">
+									{result.totalRows} rows queued for processing.
+									{result.parseErrors > 0 && (
+										<span className="text-destructive">
+											{' '}
+											{result.parseErrors} rows had parse errors.
+										</span>
+									)}
+								</p>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+
+				{/* Recent imports */}
+			</MobileGuard>
 			<Card>
 				<CardHeader>
 					<CardTitle className="text-base">Recent imports</CardTitle>

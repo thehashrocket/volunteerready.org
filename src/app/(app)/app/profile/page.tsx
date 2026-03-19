@@ -46,6 +46,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { getCredentialMeta } from '@/lib/credential-meta';
 import { trpc } from '@/lib/trpc/client';
+import { NOTIFICATION_TYPE_LABELS } from '@/server/domain/notification';
 
 // ---------------------------------------------------------------------------
 // Interest chip-input (same pattern as SkillInput)
@@ -392,6 +393,9 @@ export default function ProfilePage() {
 					<TabsTrigger value="credentials" className="flex-1">
 						Credentials
 					</TabsTrigger>
+					<TabsTrigger value="notifications" className="flex-1">
+						Notifications
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="profile" className="space-y-6">
@@ -563,7 +567,162 @@ export default function ProfilePage() {
 				<TabsContent value="credentials">
 					<CredentialWallet />
 				</TabsContent>
+
+				<TabsContent value="notifications">
+					<NotificationPreferences />
+				</TabsContent>
 			</Tabs>
+		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Notification Preferences
+// ---------------------------------------------------------------------------
+
+function NotificationPreferences() {
+	const prefsQuery = trpc.notifications.getPreferences.useQuery();
+	const digestQuery = trpc.notifications.getDigestPreference.useQuery();
+	const utils = trpc.useUtils();
+
+	const updatePref = trpc.notifications.updatePreference.useMutation({
+		onSuccess: () => {
+			utils.notifications.getPreferences.invalidate();
+			toast.success('Preferences saved.');
+		},
+		onError: (err) => toast.error(err.message),
+	});
+
+	const updateDigest = trpc.notifications.updateDigestPreference.useMutation({
+		onSuccess: () => {
+			utils.notifications.getDigestPreference.invalidate();
+			toast.success('Preferences saved.');
+		},
+		onError: (err) => toast.error(err.message),
+	});
+
+	if (prefsQuery.isLoading || digestQuery.isLoading) {
+		return (
+			<Card>
+				<CardContent className="py-8 text-center text-muted-foreground">
+					Loading preferences…
+				</CardContent>
+			</Card>
+		);
+	}
+
+	// Build a map of current preferences
+	const prefMap = new Map((prefsQuery.data ?? []).map((p) => [p.type, p]));
+
+	// Notification types to show (skip FIRST_APPLICATION — org-only, no user control)
+	const types = Object.entries(NOTIFICATION_TYPE_LABELS).filter(
+		([key]) => key !== 'FIRST_APPLICATION',
+	);
+
+	return (
+		<div className="space-y-6">
+			{/* Per-type preferences */}
+			<Card>
+				<CardHeader>
+					<CardTitle>Notification Preferences</CardTitle>
+					<CardDescription>
+						Choose how you want to receive notifications. Changes save
+						automatically.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-1">
+						<div className="grid grid-cols-[1fr_64px_64px] items-center gap-2 border-b pb-2 text-xs font-medium text-muted-foreground">
+							<span>Type</span>
+							<span className="text-center">In-app</span>
+							<span className="text-center">Email</span>
+						</div>
+						{types.map(([type, label]) => {
+							const pref = prefMap.get(
+								type as keyof typeof NOTIFICATION_TYPE_LABELS,
+							);
+							const inApp = pref?.inApp ?? true;
+							const email = pref?.email ?? true;
+							return (
+								<div
+									key={type}
+									className="grid grid-cols-[1fr_64px_64px] items-center gap-2 border-b py-2 last:border-0"
+								>
+									<span className="text-sm">{label}</span>
+									<div className="flex justify-center">
+										<button
+											type="button"
+											role="switch"
+											aria-checked={inApp}
+											className={`h-5 w-9 rounded-full transition-colors ${inApp ? 'bg-primary' : 'bg-muted'}`}
+											onClick={() =>
+												updatePref.mutate({
+													type: type as keyof typeof NOTIFICATION_TYPE_LABELS,
+													inApp: !inApp,
+													email,
+												})
+											}
+										>
+											<span
+												className={`block h-4 w-4 rounded-full bg-white transition-transform ${inApp ? 'translate-x-4' : 'translate-x-0.5'}`}
+											/>
+										</button>
+									</div>
+									<div className="flex justify-center">
+										<button
+											type="button"
+											role="switch"
+											aria-checked={email}
+											className={`h-5 w-9 rounded-full transition-colors ${email ? 'bg-primary' : 'bg-muted'}`}
+											onClick={() =>
+												updatePref.mutate({
+													type: type as keyof typeof NOTIFICATION_TYPE_LABELS,
+													inApp,
+													email: !email,
+												})
+											}
+										>
+											<span
+												className={`block h-4 w-4 rounded-full bg-white transition-transform ${email ? 'translate-x-4' : 'translate-x-0.5'}`}
+											/>
+										</button>
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Digest frequency */}
+			<Card>
+				<CardHeader>
+					<CardTitle>Email Digest</CardTitle>
+					<CardDescription>
+						Receive a summary of your notifications instead of individual
+						emails.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<Select
+						value={digestQuery.data?.digestFrequency ?? 'WEEKLY'}
+						onValueChange={(val) =>
+							updateDigest.mutate({
+								digestFrequency: val as 'OFF' | 'DAILY' | 'WEEKLY',
+							})
+						}
+					>
+						<SelectTrigger className="w-48">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="OFF">Off</SelectItem>
+							<SelectItem value="DAILY">Daily</SelectItem>
+							<SelectItem value="WEEKLY">Weekly</SelectItem>
+						</SelectContent>
+					</Select>
+				</CardContent>
+			</Card>
 		</div>
 	);
 }
