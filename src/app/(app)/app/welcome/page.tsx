@@ -26,12 +26,10 @@ export default function WelcomePage() {
 								<ClipboardList className="h-5 w-5 text-success-foreground" />
 							</div>
 							<div className="min-w-0 flex-1 space-y-1">
-								<p className="font-semibold text-foreground">
-									I'm a volunteer
-								</p>
+								<p className="font-semibold text-foreground">I'm a volunteer</p>
 								<p className="text-sm text-muted-foreground">
-									Track the status of your volunteer applications and find
-									new opportunities.
+									Track the status of your volunteer applications and find new
+									opportunities.
 								</p>
 							</div>
 						</div>
