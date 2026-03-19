@@ -2,14 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.11.2] - 2026-03-19
+## [0.12.0] - 2026-03-19
 
 ### Added
-- **Phase 9 plan** — Production-ready + activation plan with 13 deliverables (onboarding wizard, shift reminders, bulk import, Stripe reconciliation, status timeline, digest emails, cron health dashboard). Reviewed and cleared by CEO, design (9/10), and eng reviews.
-- **Timezone-aware notification TODO** — Captured as P2 deferred work for post-Phase 9 delivery.
+- **Phase 9: Production-Ready Infrastructure** — Cron job framework (`withCronAuth` wrapper with `CronJobRun` recording), shift reminder emails (24hr before, CONFIRMED signups only), credential expiry notifications (7-day advance warning for share tokens), Stripe webhook reconciliation admin tool.
+- **Phase 9: Activation Features** — Application status timeline for volunteers, getting-started checklist for new org admins, first-volunteer celebration notification, onboarding wizard (4-step guided setup modal).
+- **Phase 9: Email Digests** — Daily/weekly notification digest emails with `UserDigestPreference` model, notification preferences UI on profile page, digest cron job.
+- **Phase 9: Bulk Import** — CSV bulk import for volunteer applications with progress tracking, duplicate detection, error reporting, and `BulkImportJob` model.
+- **Phase 9: Admin Dashboard** — Cron health monitoring page at `/app/admin/health` with per-job status, consecutive failure alerting, and recent run history.
+- **Marketing screenshots** — 6 product screenshots (dashboard, screener, shifts, credentials, ESG, profile) in `public/marketing/`.
+- **Platform admin procedure** — `platformAdminProcedure` tRPC middleware for platform-wide admin routes.
 
-### Changed
-- **Conductor run script** — Now runs Prisma migrations, generates client, and seeds database before starting dev server.
+### Fixed
+- **Cron health failure counting** — Fixed bug where `break` statement in admin router exited the entire loop instead of just settling one job, causing incorrect consecutive failure counts.
+- **HTML injection in email templates** — Added `escapeHtml()` to shift reminder and share token expiry email services to prevent XSS from user-controlled org names and shift titles.
+- **Cron route test** — Updated expire-credentials test to mock prisma and share-token-expiry-service imports added in Phase 9.
 
 ## [0.11.1] - 2026-03-19
 

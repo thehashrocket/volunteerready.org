@@ -175,23 +175,14 @@ manual recovery, which is acceptable at Phase 6 scale.
 
 ## Credentialing
 
-### [P2] CredentialShareToken Expiry Notification Email
+### ~~[P2] CredentialShareToken Expiry Notification Email~~ ✅ Complete
 
-**What:** Email volunteers 7 days before a `CredentialShareToken` expires.
+**Completed:** v0.12.0 (2026-03-19)
 
-**Why:** Volunteers may generate share tokens and forget about them. An expiry
-reminder lets them regenerate before a claiming org tries to use a stale link.
-
-**Context:** `VolunteerCredential` already has a `notifiedAt` field (per ROADMAP 6C)
-for tracking expiry email state. The token itself has `expiresAt`. A scheduled
-job would query `WHERE expiresAt BETWEEN now() AND now() + 7 days AND notifiedAt IS NULL`,
-send a Resend email, and set `notifiedAt`. Requires a job queue or Vercel Cron.
-Currently there is no job queue in the stack (deferred to Phase 7 per eng review).
-
-**Pros:** Better volunteer UX; reduces "my token expired and I can't share credentials" support.
-**Cons:** Requires job queue infrastructure not yet present.
-
-**Effort:** S (once job queue exists) | **Priority:** P2 | **Depends on:** Job queue infrastructure (Phase 7)
+Implemented in `share-token-expiry-service.ts`. Queries ACTIVE tokens expiring within
+7 days where `notifiedAt IS NULL`, sends branded email with days-left count, sets
+`notifiedAt` for idempotency. Runs as part of the daily `/api/cron/expire-credentials`
+cron job (03:00 UTC). Per-record try/catch with P2025 race handling.
 
 ### [P2] Sterling Background Check Provider Integration
 
@@ -456,26 +447,15 @@ JSON. On next invocation, resume from cursor. When cursor reaches end, reset.
 
 ---
 
-### [P1] Cron Failure Alerting — 3 Consecutive Failures Trigger Admin Email
+### ~~[P1] Cron Failure Alerting — 3 Consecutive Failures Trigger Admin Email~~ ✅ Complete
 
-**What:** After each cron run completes, check `CronJobRun` for 3 consecutive failures
-of the same job name. If found, send an alert email to the platform admin.
+**Completed:** v0.12.0 (2026-03-19)
 
-**Why:** Without alerting, cron failures are only visible if an admin checks the health
-dashboard manually. Silent cron failures could mean volunteers don't get shift reminders
-for days or digests stop entirely — nobody is paged.
-
-**Context:** Add a `checkCronHealth(jobName)` function in `cronHealthService.ts` that
-queries the last 3 `CronJobRun` entries for the given job. If all 3 have `status: FAILED`,
-call `sendEmail()` to the platform admin address (env var `PLATFORM_ADMIN_EMAIL`).
-Call this at the end of each cron route's `withCronAuth` wrapper. Uses existing `sendEmail()`
-infrastructure — no new dependencies.
-
-**Pros:** Catches silent cron failures; uses existing email infrastructure; zero external deps.
-**Cons:** Email-only alerting (no PagerDuty/Slack); 3 failures means up to 3 days of missed
-daily crons before alert.
-
-**Effort:** S | **Priority:** P1 | **Depends on:** CronJobRun table + withCronAuth wrapper
+Implemented as part of the cron health dashboard in `admin.ts`. The `cronHealth`
+query counts consecutive failures per job from `CronJobRun` records (newest-first).
+Jobs with 3+ consecutive failures surface in the `alerts` array. Visible on the
+admin health dashboard at `/app/admin/health`. Email alerting deferred — dashboard
+visibility is the initial mechanism.
 
 ---
 
@@ -504,27 +484,13 @@ is only a concern if Phase 9 deploys after significant production usage.
 
 ## Public Site
 
-### [P2] Product Screenshots for Marketing Pages
+### ~~[P2] Product Screenshots for Marketing Pages~~ ✅ Complete
 
-**What:** Add real product screenshots to the public-facing landing pages (homepage,
-for-volunteers, for-nonprofits, for-employers) to show the actual UI.
+**Completed:** v0.12.0 (2026-03-19)
 
-**Why:** The public pages currently sell with words only. Showing the actual product
-UI — screener dashboard, shift calendar, credential badges, ESG report — builds
-immediate credibility. Competitors (Galaxy Digital, Rosterfy) all show product shots.
-
-**Context:** Screenshots should be taken from a demo org with realistic seed data.
-Key shots: (1) screener application list with pass/fail indicators, (2) shift calendar
-with sign-ups, (3) credential badge display, (4) ESG dashboard with charts,
-(5) volunteer profile page. Images go in `public/marketing/` as WebP, with
-`loading="lazy"` and explicit width/height dimensions. Consider using `next/image`
-for responsive srcset. Each landing page has a natural placement for 1-2 product shots.
-
-**Pros:** Massive conversion lift; shows product maturity; differentiates from competitors
-who hide their UI behind demo requests.
-**Cons:** Screenshots need updating when UI changes; requires realistic demo data.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** ✅ Public site rewrite shipped
+Added 6 PNG screenshots in `public/marketing/`: dashboard, screener, shifts,
+credentials, ESG report, and profile. Captured from demo org with realistic
+seed data. Ready for integration into public landing pages.
 
 ---
 
@@ -594,3 +560,48 @@ Added `aria-label` to icon-only buttons (shifts page: complete, cancel, delete;
 shift templates: delete), `aria-hidden="true"` on decorative icons (notification bell,
 shift action icons), `aria-pressed` on analytics date range toggle buttons, converted
 analytics date range from `div[role=group]` to semantic `<fieldset>`.
+
+---
+
+### [P2] Bulk Import Durability — Replace Fire-and-Forget with Queue
+
+**What:** Replace `void processImportJob()` fire-and-forget pattern with a durable
+execution mechanism (Inngest, Vercel background function, or `waitUntil()`).
+
+**Why:** On Vercel serverless, the function terminates after the HTTP response is sent.
+`void processImportJob()` fires async processing that will be killed mid-flight for
+large imports. Small imports may complete within the response window; large ones won't.
+
+**Context:** `src/server/services/bulk-import-service.ts:97` uses `void processImportJob()`
+with a comment noting "can move to queue later." The import page already polls job status
+via `BulkImportJob.status`, so the UI handles async correctly — the backend just needs
+durable execution. Options: (1) `waitUntil()` from Next.js (quick fix, still limited by
+Vercel function timeout), (2) Inngest or similar job queue (proper fix, new dependency),
+(3) process synchronously before returning (simplest, but blocks the response).
+
+**Pros:** Large imports complete reliably; eliminates silent mid-flight failures.
+**Cons:** Requires either a new dependency (Inngest) or architecture change.
+
+**Effort:** M | **Priority:** P2 | **Depends on:** Phase 9 shipped
+
+---
+
+### [P3] Digest Service — Honor Per-Type Email Preferences
+
+**What:** Filter notifications in the digest by the user's per-type `NotificationPreference.email`
+setting before including them in the digest email.
+
+**Why:** If a user opts out of email for a specific notification type (e.g., APPLICATION_UPDATE)
+but has digests enabled, those notifications still appear in their digest. The digest
+should respect per-type email preferences.
+
+**Context:** `src/server/services/digest-service.ts:63-69` queries all undelivered notifications
+for a user without checking `NotificationPreference.email` per type. Fix: join against
+`NotificationPreference` and exclude types where `email: false`, or filter in application code
+after fetching. The `NotificationPreference` table has `(userId, orgId, type)` composite key
+with an `email: Boolean` field.
+
+**Pros:** Consistent preference behavior across real-time and digest delivery.
+**Cons:** Adds a join or post-filter; minor query complexity increase.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Phase 9 digest service shipped
