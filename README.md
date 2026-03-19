@@ -33,11 +33,12 @@ Long-term goals include:
 - Billing and plan tiers (shipped)
 - Portable credential sharing across organizations (shipped)
 - Corporate ESG reporting (shipped)
-- Cross-organization volunteer identity (in progress)
+- Cross-organization volunteer identity (shipped)
+- In-app notifications and shift templates (shipped)
 - Grant opportunity integration (planned)
 - Nonprofit analytics and reporting (shipped)
 
-The current system implements Phases 1 through 7 (in progress). See `docs/ROADMAP.md` for the full plan.
+The current system implements Phases 1 through 8. See `docs/ROADMAP.md` for the full plan.
 
 ---
 
@@ -352,7 +353,8 @@ pnpm prisma db seed
 | 6C | Portable Credential Sharing | Complete |
 | 6D | Corporate ESG Reporting | Complete |
 | 6E | Mobile PWA | Planned |
-| 7 | Network Growth & Volunteer Identity | In Progress |
+| 7 | Network Growth & Volunteer Identity | Complete |
+| 8 | Operational Polish & CEO Quick Wins | Complete |
 
 See `docs/ROADMAP.md` for full detail.
 

@@ -91,8 +91,9 @@ Key files:
 - `volunteer-matching.ts` — skill matching and scoring (0-100)
 - `volunteer-profile.ts` — profile completeness scoring
 - `shift.ts` — shift capacity, signup validation, attendance
+- `notification.ts` — notification types and domain functions
 - `background-check.ts` — FCRA state machine, PII sanitization
-- `billing.ts` — plan tier limits, trial validation
+- `billing.ts` — plan tier limits, trial validation (includes `maxShiftTemplates`)
 - `credential-sharing.ts` — share token lifecycle guards, expiry computation
 - `esg-report.ts` — ESG report types, CSV formatting, formula injection defense
 
@@ -122,7 +123,10 @@ Key services:
 - `volunteerProfileService.ts` — profile management
 - `volunteerCredentialService.ts` — credential lifecycle
 - `shiftService.ts` — shift CRUD and status transitions
-- `shiftSignupService.ts` — signup with conflict detection and attendance
+- `shiftSignupService.ts` — signup with conflict detection, attendance, waitlist auto-promote
+- `shiftTemplateService.ts` — recurring shift template CRUD + bulk shift generation
+- `notificationService.ts` — notification delivery with preference checking
+- `orgAnalyticsService.ts` — org engagement dashboard (funnel, retention, fill rate, top volunteers)
 - `backgroundCheckService.ts` — Checkr integration, FCRA workflow, token encryption
 - `credentialShareService.ts` — credential sharing: generate, claim, revoke, shareAllOnApply
 - `billingService.ts` — Stripe integration, plan management, billing lifecycle emails (upgrade, payment failed, cancellation)
@@ -151,6 +155,8 @@ Shared utilities and external service adapters.
 - `tokens.ts` — shared token generation (256-bit random) and SHA-256 hashing
 - `resend.ts` — lazy-initialized Resend email client singleton
 - `email-template.ts` — branded email wrapper (VolunteerReady header/footer matching DESIGN.md)
+- `email.ts` — `sendEmail()` helper — single entry point for all outbound email
+- `rate-limit.ts` — Upstash Redis rate limiting (lazy singleton, fail-open)
 
 ---
 
@@ -166,7 +172,8 @@ Entities:
 - Skill / SkillFamily / VolunteerSkill
 - VolunteerProfile
 - VolunteerCredential
-- Shift / ShiftSignup
+- Shift / ShiftSignup / ShiftTemplate
+- Notification / NotificationPreference
 - BackgroundCheckRequest
 - CredentialShareToken
 - CompanyAccount / CompanyMember / CompanyNonprofitLink
@@ -187,6 +194,9 @@ User
  │         │    └─ OpportunityRequirement
  │         ├─ Shift
  │         │    └─ ShiftSignup
+ │         ├─ ShiftTemplate
+ │         ├─ Notification
+ │         ├─ NotificationPreference
  │         ├─ VolunteerCredential
  │         │    └─ CredentialShareToken
  │         ├─ BackgroundCheckRequest
