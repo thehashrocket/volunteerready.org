@@ -216,7 +216,7 @@ function AnalyticsDashboard() {
 							type="button"
 							onClick={() => setSelectedDays(days)}
 							aria-pressed={selectedDays === days}
-							className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+							className={`min-h-11 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
 								selectedDays === days
 									? 'bg-background text-foreground shadow-sm'
 									: 'text-muted-foreground hover:text-foreground'
