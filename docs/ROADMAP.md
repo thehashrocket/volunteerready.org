@@ -408,6 +408,19 @@ Delivered (v0.12.0):
 - ✅ Mobile bulk import guard
 - ✅ First-volunteer celebration notification
 
+Delivered (v0.12.1):
+
+- ✅ Design system compliance fixes — removed AI slop patterns (floating circles, colored left-border), replaced `transition-all` with explicit properties, added `font-display` (Fraunces) to PageHeader and inline h1 elements
+- ✅ Mobile layout fixes — welcome page role-selection cards, nav bar org/company switcher overflow
+
+Delivered (v0.12.2):
+
+- ✅ Privacy policy page (`/privacy`) — 10 sections covering data collection, storage, security, sharing, retention, cookies, user rights, children's privacy; third-party service disclosure table
+- ✅ Terms of service page (`/terms`) — 15 sections with reusable Section component
+- ✅ Cookie consent banner — GDPR-compliant with essential (always on) and analytics (opt-in) categories; expandable preferences panel; localStorage persistence with shape validation
+- ✅ Consented analytics — `<ConsentedAnalytics>` component gates Vercel Analytics behind cookie consent; custom event listener for real-time consent changes
+- ✅ Seed file refactor — split monolithic `seed.ts` (2,191 lines) into `seed-helpers.ts`, `seed-production.ts`, `seed-dev.ts`, and thin dispatcher; added `seed:production` and `seed:dev` npm scripts
+
 Deferred from Phase 9:
 - Context-switch UI (Org ↔ Company) — deferred to post-Phase 9
 
