@@ -275,7 +275,7 @@ export default function OpportunityDashboardPage() {
 					<CardContent className="pt-6 pb-5">
 						<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 							<div className="min-w-0">
-								<h1 className="text-2xl font-semibold tracking-tight">
+								<h1 className="font-display text-2xl font-semibold tracking-tight">
 									{opp.title}
 								</h1>
 

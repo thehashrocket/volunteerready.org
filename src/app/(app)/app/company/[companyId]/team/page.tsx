@@ -131,7 +131,7 @@ export default function ESGTeamDashboardPage() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-2xl font-bold">ESG Volunteer Impact</h1>
+					<h1 className="font-display text-2xl font-bold">ESG Volunteer Impact</h1>
 					<p className="text-muted-foreground">
 						Aggregate volunteer activity across linked nonprofits
 					</p>
