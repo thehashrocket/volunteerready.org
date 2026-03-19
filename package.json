@@ -11,6 +11,8 @@
 		"format": "biome format src docs prisma/schema.prisma --write",
 		"check": "biome check src docs prisma/schema.prisma --write",
 		"seed": "ts-node --project prisma/tsconfig.json prisma/seed.ts",
+		"seed:production": "cross-env NODE_ENV=production ts-node --project prisma/tsconfig.json prisma/seed-production.ts",
+		"seed:dev": "ts-node --project prisma/tsconfig.json prisma/seed-dev.ts",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:watch": "vitest",

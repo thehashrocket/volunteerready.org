@@ -1,6 +1,7 @@
-import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
+import { ConsentedAnalytics } from '@/components/consented-analytics';
+import { CookieConsentBanner } from '@/components/cookie-consent-banner';
 import { AppToaster } from '@/components/sonner';
 import './globals.css';
 
@@ -52,7 +53,8 @@ export default function RootLayout({
 			>
 				{children}
 				<AppToaster />
-				<Analytics />
+				<ConsentedAnalytics />
+				<CookieConsentBanner />
 			</body>
 		</html>
 	);
