@@ -14,6 +14,7 @@ import {
 import * as qRepo from '@/server/repositories/screenerQuestionsRepo';
 import {
 	getMyApplicationDetail,
+	getMyApplicationStatusTimeline,
 	listMyApplications,
 } from '@/server/services/my-applications';
 import {
@@ -182,7 +183,12 @@ export const screenerRouter = createTRPCRouter({
 			if (!ctx.orgId) {
 				throw new Error('Missing org context');
 			}
-			return updateOrgApplicationStatus(ctx.orgId, input.id, input.status);
+			return updateOrgApplicationStatus(
+				ctx.orgId,
+				input.id,
+				input.status,
+				ctx.session?.user?.id,
+			);
 		}),
 
 	getDashboardStats: adminProcedure.query(async ({ ctx }) => {
@@ -218,6 +224,16 @@ export const screenerRouter = createTRPCRouter({
 				input.id,
 				ctx.session?.user?.email ?? null,
 			);
+		}),
+
+	myApplicationTimeline: protectedProcedure
+		.input(z.object({ id: z.string().min(1) }))
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.session?.user?.id;
+			if (!userId) {
+				throw new Error('Missing session user');
+			}
+			return getMyApplicationStatusTimeline(userId, input.id);
 		}),
 
 	// ---- Admin: question management ----

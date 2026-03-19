@@ -713,7 +713,8 @@ exports.NotificationType = exports.$Enums.NotificationType = {
   TEAM_ANNOUNCEMENT: 'TEAM_ANNOUNCEMENT',
   WAITLIST_PROMOTED: 'WAITLIST_PROMOTED',
   NEW_OPPORTUNITY: 'NEW_OPPORTUNITY',
-  BADGE_EARNED: 'BADGE_EARNED'
+  BADGE_EARNED: 'BADGE_EARNED',
+  FIRST_APPLICATION: 'FIRST_APPLICATION'
 };
 
 exports.CronJobStatus = exports.$Enums.CronJobStatus = {

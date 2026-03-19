@@ -402,7 +402,8 @@ export const NotificationType: {
   TEAM_ANNOUNCEMENT: 'TEAM_ANNOUNCEMENT',
   WAITLIST_PROMOTED: 'WAITLIST_PROMOTED',
   NEW_OPPORTUNITY: 'NEW_OPPORTUNITY',
-  BADGE_EARNED: 'BADGE_EARNED'
+  BADGE_EARNED: 'BADGE_EARNED',
+  FIRST_APPLICATION: 'FIRST_APPLICATION'
 };
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

@@ -70,6 +70,45 @@ export async function updateApplicationStatus(
 	});
 }
 
+/**
+ * Transactional version — fetches current status and updates atomically.
+ * Returns both the updated record and the previous status for audit logging.
+ */
+export async function updateApplicationStatusTx(
+	tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+	orgId: string,
+	applicationId: string,
+	newStatus: ApplicationStatus,
+) {
+	const current = await tx.volunteerApplication.findUniqueOrThrow({
+		where: { id: applicationId, orgId },
+		select: { status: true },
+	});
+
+	const updated = await tx.volunteerApplication.update({
+		where: { id: applicationId, orgId },
+		data: { status: newStatus },
+	});
+
+	return { updated, previousStatus: current.status };
+}
+
+export async function getApplicationStatusTimeline(applicationId: string) {
+	return prisma.auditLog.findMany({
+		where: {
+			entityType: 'APPLICATION',
+			entityId: applicationId,
+			action: 'STATUS_CHANGED',
+		},
+		orderBy: { createdAt: 'asc' },
+		select: {
+			id: true,
+			createdAt: true,
+			metadata: true,
+		},
+	});
+}
+
 export async function listUserApplications(userId: string) {
 	return prisma.volunteerApplication.findMany({
 		where: { submittedByUserId: userId },

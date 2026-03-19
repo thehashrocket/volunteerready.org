@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EmptyState } from '@/components/empty-state';
+import { GettingStartedChecklist } from '@/components/getting-started-checklist';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -70,6 +71,8 @@ export default function DashboardPage() {
 					Here's what's happening across your organization today.
 				</p>
 			</div>
+
+			<GettingStartedChecklist />
 
 			<PageHeader
 				title="Dashboard"

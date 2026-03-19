@@ -769,6 +769,7 @@ enum NotificationType {
   WAITLIST_PROMOTED
   NEW_OPPORTUNITY
   BADGE_EARNED
+  FIRST_APPLICATION
 }
 
 model Notification {

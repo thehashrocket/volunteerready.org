@@ -15,6 +15,7 @@ export const notificationTypeSchema = z.enum([
 	'WAITLIST_PROMOTED',
 	'NEW_OPPORTUNITY',
 	'BADGE_EARNED',
+	'FIRST_APPLICATION',
 ]);
 
 export const createNotificationSchema = z.object({
@@ -64,4 +65,5 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
 	WAITLIST_PROMOTED: 'Waitlist Promotions',
 	NEW_OPPORTUNITY: 'New Opportunities',
 	BADGE_EARNED: 'Badges Earned',
+	FIRST_APPLICATION: 'First Application',
 };
