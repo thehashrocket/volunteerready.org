@@ -111,7 +111,7 @@ export function validateResponses(
 				if (!validation.success) {
 					ctx.addIssue({
 						code: z.ZodIssueCode.custom,
-						message: `Invalid value for question ${question.id}`,
+						message: `Invalid value for "${question.prompt}"`,
 						path: [index, 'value'],
 					});
 					continue;
@@ -122,7 +122,7 @@ export function validateResponses(
 						if (!question.options.includes(item.value as string)) {
 							ctx.addIssue({
 								code: z.ZodIssueCode.custom,
-								message: `Value not in options for question ${question.id}`,
+								message: `Value not in options for "${question.prompt}"`,
 								path: [index, 'value'],
 							});
 						}
@@ -136,7 +136,7 @@ export function validateResponses(
 						if (invalid.length > 0) {
 							ctx.addIssue({
 								code: z.ZodIssueCode.custom,
-								message: `Value not in options for question ${question.id}`,
+								message: `Value not in options for "${question.prompt}"`,
 								path: [index, 'value'],
 							});
 						}

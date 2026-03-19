@@ -1,5 +1,7 @@
 import type { ApplicationStatus } from '@/prisma/generated/client';
+import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { countOpportunitiesByStatus } from '@/server/repositories/opportunityRepo';
+import { prisma } from '@/server/repositories/prisma';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import {
 	countApplicationsByStatus,
@@ -7,7 +9,7 @@ import {
 	getRecentApplications,
 	getScreenerQuestionsByIds,
 	listApplications,
-	updateApplicationStatus as repoUpdateApplicationStatus,
+	updateApplicationStatusTx,
 } from '@/server/repositories/volunteer-applications';
 import {
 	formatAnswerValue,
@@ -70,8 +72,27 @@ export async function updateOrgApplicationStatus(
 	orgId: string,
 	id: string,
 	status: ApplicationStatus,
+	actorId?: string | null,
 ) {
-	return repoUpdateApplicationStatus(orgId, id, status);
+	return prisma.$transaction(async (tx) => {
+		const { updated, previousStatus } = await updateApplicationStatusTx(
+			tx,
+			orgId,
+			id,
+			status,
+		);
+
+		await writeAuditLogTx(tx, {
+			orgId,
+			actorId: actorId ?? null,
+			action: 'STATUS_CHANGED',
+			entityType: 'APPLICATION',
+			entityId: id,
+			metadata: { from: previousStatus, to: status },
+		});
+
+		return updated;
+	});
 }
 
 export async function getPublicScreenerForm(orgSlug: string) {

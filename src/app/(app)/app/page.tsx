@@ -10,8 +10,11 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { EmptyState } from '@/components/empty-state';
+import { GettingStartedChecklist } from '@/components/getting-started-checklist';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
+import { OnboardingWizard } from '@/components/onboarding-wizard';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,9 +61,12 @@ function StatCard({ label, value, accent }: StatCardProps) {
 export default function DashboardPage() {
 	const router = useRouter();
 	const { data, isLoading } = trpc.screener.getDashboardStats.useQuery();
+	const [wizardOpen, setWizardOpen] = useState(false);
 
 	return (
 		<div className="space-y-8">
+			<OnboardingWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+
 			{/* ── Greeting banner ── */}
 			<div className="rounded-xl border border-border/60 bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-5">
 				<p className="font-display text-xl font-bold text-foreground">
@@ -70,6 +76,8 @@ export default function DashboardPage() {
 					Here's what's happening across your organization today.
 				</p>
 			</div>
+
+			<GettingStartedChecklist onStartWizard={() => setWizardOpen(true)} />
 
 			<PageHeader
 				title="Dashboard"

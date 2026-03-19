@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { EmptyState } from '@/components/empty-state';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
+import { StatusTimeline } from '@/components/my-applications/StatusTimeline';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -124,6 +125,11 @@ export default function MyApplicationDetailPage() {
 					</div>
 				</CardContent>
 			</Card>
+
+			<StatusTimeline
+				applicationId={application.id}
+				submittedAt={application.submittedAt}
+			/>
 
 			<Card>
 				<CardHeader>

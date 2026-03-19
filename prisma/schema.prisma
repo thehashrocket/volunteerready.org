@@ -28,6 +28,8 @@ model User {
   receivedInvitations     VolunteerInvitation[]   @relation("ReceivedInvitations")
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
+  digestPreferences       UserDigestPreference[]
+  bulkImportJobs          BulkImportJob[]
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
 }
@@ -97,18 +99,22 @@ model ApplicationStatusToken {
 }
 
 model Organization {
-  id                   String                   @id @default(cuid())
-  name                 String
-  slug                 String                   @unique
-  planTier             PlanTier                 @default(FREE)
-  stripeCustomerId     String?                  @unique
-  stripeSubscriptionId String?                  @unique
-  trialEndsAt          DateTime?
+  id                          String                   @id @default(cuid())
+  name                        String
+  slug                        String                   @unique
+  planTier                    PlanTier                 @default(FREE)
+  stripeCustomerId            String?                  @unique
+  stripeSubscriptionId        String?                  @unique
+  trialEndsAt                 DateTime?
   // Checkr Partner API — per-org OAuth credentials
-  checkrAccessToken    String?                  // OAuth access token; store server-side only
-  checkrAccountId      String?                  @unique // Checkr account ID for webhook routing
-  createdAt            DateTime                 @default(now())
-  updatedAt            DateTime                 @updatedAt
+  checkrAccessToken           String?                  // OAuth access token; store server-side only
+  checkrAccountId             String?                  @unique // Checkr account ID for webhook routing
+  // Phase 9 — Onboarding & activation
+  onboardingProgress          Json?                    // Wizard + checklist shared state
+  onboardingDismissedAt       DateTime?                // Checklist dismissed
+  firstApplicationReceivedAt  DateTime?                // First-volunteer celebration trigger
+  createdAt                   DateTime                 @default(now())
+  updatedAt                   DateTime                 @updatedAt
   members              OrganizationMember[]
   auditLogs            AuditLog[]
   featureFlags         FeatureFlag[]
@@ -127,6 +133,8 @@ model Organization {
   volunteerInvitations    VolunteerInvitation[]
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
+  digestPreferences       UserDigestPreference[]
+  bulkImportJobs          BulkImportJob[]
 }
 
 model OrganizationMember {
@@ -158,6 +166,8 @@ model AuditLog {
   organization   Organization?   @relation(fields: [orgId], references: [id], onDelete: Cascade)
   companyAccount CompanyAccount? @relation(fields: [companyId], references: [id], onDelete: Cascade)
   actor          User?           @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
 }
 
 model FeatureFlag {
@@ -517,13 +527,14 @@ enum ShiftStatus {
 }
 
 model ShiftSignup {
-  id        String       @id @default(cuid())
-  shiftId   String
-  userId    String
-  status    SignupStatus  @default(CONFIRMED)
-  notes     String?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id              String       @id @default(cuid())
+  shiftId         String
+  userId          String
+  status          SignupStatus  @default(CONFIRMED)
+  notes           String?
+  reminderSentAt  DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -710,6 +721,7 @@ model CredentialShareToken {
   claimedByOrgId  String?
   claimedAt       DateTime?
   status          ShareTokenStatus @default(ACTIVE)
+  notifiedAt      DateTime?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
@@ -757,6 +769,7 @@ enum NotificationType {
   WAITLIST_PROMOTED
   NEW_OPPORTUNITY
   BADGE_EARNED
+  FIRST_APPLICATION
 }
 
 model Notification {
@@ -766,11 +779,12 @@ model Notification {
   type      NotificationType
   title     String
   body      String
-  href      String?
-  readAt    DateTime?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  deletedAt DateTime?
+  href        String?
+  readAt      DateTime?
+  emailSentAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -794,4 +808,77 @@ model NotificationPreference {
 
   @@unique([userId, orgId, type])
   @@index([userId, orgId])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9 — Production-Ready Infrastructure
+// ---------------------------------------------------------------------------
+
+enum CronJobStatus {
+  SUCCESS
+  FAILURE
+}
+
+model CronJobRun {
+  id            String        @id @default(cuid())
+  jobName       String
+  startedAt     DateTime      @default(now())
+  completedAt   DateTime?
+  status        CronJobStatus
+  resultSummary Json?
+  durationMs    Int?
+  error         String?
+  createdAt     DateTime      @default(now())
+
+  @@index([jobName, startedAt])
+}
+
+enum DigestFrequency {
+  OFF
+  DAILY
+  WEEKLY
+}
+
+model UserDigestPreference {
+  id               String          @id @default(cuid())
+  userId           String
+  orgId            String
+  digestFrequency  DigestFrequency @default(WEEKLY)
+  lastDigestSentAt DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId])
+  @@index([digestFrequency, lastDigestSentAt])
+}
+
+enum BulkImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model BulkImportJob {
+  id           String           @id @default(cuid())
+  orgId        String
+  uploadedById String
+  status       BulkImportStatus @default(PENDING)
+  totalRows    Int              @default(0)
+  processedRows Int             @default(0)
+  createdRows  Int              @default(0)
+  skippedRows  Int              @default(0)
+  errorRows    Json?            // Array of { row: number, error: string }
+  fileName     String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([orgId, status])
+  @@index([uploadedById])
 }

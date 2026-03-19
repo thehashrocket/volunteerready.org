@@ -4,6 +4,7 @@ import {
 	getPreferences,
 	upsertPreference,
 } from '@/server/repositories/notificationRepo';
+import { prisma } from '@/server/repositories/prisma';
 import {
 	getUnreadCount,
 	listNotifications,
@@ -77,6 +78,36 @@ export const notificationsRouter = createTRPCRouter({
 				input.inApp,
 				input.email,
 			);
+			return { success: true };
+		}),
+
+	// Digest preferences
+	getDigestPreference: orgProcedure.query(async ({ ctx }) => {
+		const userId = ctx.session?.user?.id ?? '';
+		const pref = await prisma.userDigestPreference.findUnique({
+			where: { userId_orgId: { userId, orgId: ctx.orgId } },
+			select: { digestFrequency: true },
+		});
+		return { digestFrequency: pref?.digestFrequency ?? 'WEEKLY' };
+	}),
+
+	updateDigestPreference: orgProcedure
+		.input(
+			z.object({
+				digestFrequency: z.enum(['OFF', 'DAILY', 'WEEKLY']),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session?.user?.id ?? '';
+			await prisma.userDigestPreference.upsert({
+				where: { userId_orgId: { userId, orgId: ctx.orgId } },
+				create: {
+					userId,
+					orgId: ctx.orgId,
+					digestFrequency: input.digestFrequency,
+				},
+				update: { digestFrequency: input.digestFrequency },
+			});
 			return { success: true };
 		}),
 });

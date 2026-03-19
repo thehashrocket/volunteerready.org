@@ -18,10 +18,6 @@ export default function LoginPage() {
 				aria-hidden="true"
 				className="relative hidden overflow-hidden bg-primary lg:flex lg:flex-col lg:justify-between lg:p-12"
 			>
-				{/* Background circles */}
-				<div className="pointer-events-none absolute -bottom-32 -right-32 h-[500px] w-[500px] rounded-full bg-white/5" />
-				<div className="pointer-events-none absolute -left-24 -top-24 h-[350px] w-[350px] rounded-full bg-white/5" />
-
 				{/* Logo */}
 				<div className="relative z-10 flex items-center gap-2.5">
 					<div className="flex h-8 w-8 items-center justify-center rounded-md bg-white/15 text-sm font-bold text-white">

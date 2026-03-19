@@ -68,7 +68,11 @@ export function OrgSwitcher() {
 	}
 
 	if (orgs.length === 1) {
-		return <div className="text-xs text-muted-foreground">{orgs[0]?.name}</div>;
+		return (
+			<div className="max-w-[120px] truncate text-xs text-muted-foreground sm:max-w-[200px]">
+				{orgs[0]?.name}
+			</div>
+		);
 	}
 
 	return (
@@ -77,7 +81,7 @@ export function OrgSwitcher() {
 				<Button
 					variant="outline"
 					size="sm"
-					className="h-8 min-w-[220px] justify-between text-xs"
+					className="h-8 max-w-[160px] justify-between text-xs sm:max-w-[220px]"
 					disabled={switchMutation.isPending}
 				>
 					<span className="truncate">{currentName}</span>

@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import type { Prisma } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 import {
+	getApplicationStatusTimeline,
 	getScreenerQuestionsByIds,
 	getUserApplicationDetail,
 	listUserApplications,
@@ -70,6 +71,26 @@ export async function getMyApplicationDetail(
 		organization: application.organization,
 		answers,
 	};
+}
+
+export async function getMyApplicationStatusTimeline(
+	userId: string,
+	applicationId: string,
+) {
+	// Verify ownership before returning timeline
+	const application = await prisma.volunteerApplication.findFirst({
+		where: { id: applicationId, submittedByUserId: userId },
+		select: { id: true },
+	});
+
+	if (!application) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Application not found.',
+		});
+	}
+
+	return getApplicationStatusTimeline(applicationId);
 }
 
 async function linkApplicationsToUser(userId: string, email?: string | null) {

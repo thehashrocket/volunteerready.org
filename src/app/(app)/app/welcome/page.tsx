@@ -19,41 +19,47 @@ export default function WelcomePage() {
 			</div>
 
 			<div className="grid gap-4">
-				<Card className="relative overflow-hidden border-border/70 transition-shadow hover:shadow-md">
-					<div className="absolute inset-y-0 left-0 w-1 bg-success" />
-					<CardContent className="flex items-start gap-4 pb-6 pl-8 pt-6">
-						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/15">
-							<ClipboardList className="h-5 w-5 text-success-foreground" />
+				<Card className="overflow-hidden border-border/70 transition-shadow hover:shadow-md">
+					<CardContent className="space-y-4 pb-6 pt-6">
+						<div className="flex items-start gap-4">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success/15">
+								<ClipboardList className="h-5 w-5 text-success-foreground" />
+							</div>
+							<div className="min-w-0 flex-1 space-y-1">
+								<p className="font-semibold text-foreground">I'm a volunteer</p>
+								<p className="text-sm text-muted-foreground">
+									Track the status of your volunteer applications and find new
+									opportunities.
+								</p>
+							</div>
 						</div>
-						<div className="min-w-0 flex-1 space-y-1">
-							<p className="font-semibold text-foreground">I'm a volunteer</p>
-							<p className="text-sm text-muted-foreground">
-								Track the status of your volunteer applications and find new
-								opportunities.
-							</p>
-						</div>
-						<Button asChild variant="outline" className="shrink-0 rounded-lg">
+						<Button
+							asChild
+							variant="outline"
+							className="w-full rounded-lg sm:w-auto"
+						>
 							<Link href="/app/my-applications">View my applications</Link>
 						</Button>
 					</CardContent>
 				</Card>
 
-				<Card className="relative overflow-hidden border-primary/30 bg-primary/5 transition-shadow hover:shadow-md">
-					<div className="absolute inset-y-0 left-0 w-1 bg-primary" />
-					<CardContent className="flex items-start gap-4 pb-6 pl-8 pt-6">
-						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-							<Building2 className="h-5 w-5 text-primary" />
+				<Card className="overflow-hidden border-primary/30 bg-primary/5 transition-shadow hover:shadow-md">
+					<CardContent className="space-y-4 pb-6 pt-6">
+						<div className="flex items-start gap-4">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+								<Building2 className="h-5 w-5 text-primary" />
+							</div>
+							<div className="min-w-0 flex-1 space-y-1">
+								<p className="font-semibold text-foreground">
+									I'm setting up an organization
+								</p>
+								<p className="text-sm text-muted-foreground">
+									Create your organization and start recruiting and screening
+									volunteers.
+								</p>
+							</div>
 						</div>
-						<div className="min-w-0 flex-1 space-y-1">
-							<p className="font-semibold text-foreground">
-								I'm setting up an organization
-							</p>
-							<p className="text-sm text-muted-foreground">
-								Create your organization and start recruiting and screening
-								volunteers.
-							</p>
-						</div>
-						<Button asChild className="shrink-0 rounded-lg">
+						<Button asChild className="w-full rounded-lg sm:w-auto">
 							<Link href="/app/onboarding">Set up organization</Link>
 						</Button>
 					</CardContent>

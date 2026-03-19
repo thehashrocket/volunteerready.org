@@ -188,6 +188,21 @@ export type Notification = $Result.DefaultSelection<Prisma.$NotificationPayload>
  * 
  */
 export type NotificationPreference = $Result.DefaultSelection<Prisma.$NotificationPreferencePayload>
+/**
+ * Model CronJobRun
+ * 
+ */
+export type CronJobRun = $Result.DefaultSelection<Prisma.$CronJobRunPayload>
+/**
+ * Model UserDigestPreference
+ * 
+ */
+export type UserDigestPreference = $Result.DefaultSelection<Prisma.$UserDigestPreferencePayload>
+/**
+ * Model BulkImportJob
+ * 
+ */
+export type BulkImportJob = $Result.DefaultSelection<Prisma.$BulkImportJobPayload>
 
 /**
  * Enums
@@ -387,10 +402,38 @@ export const NotificationType: {
   TEAM_ANNOUNCEMENT: 'TEAM_ANNOUNCEMENT',
   WAITLIST_PROMOTED: 'WAITLIST_PROMOTED',
   NEW_OPPORTUNITY: 'NEW_OPPORTUNITY',
-  BADGE_EARNED: 'BADGE_EARNED'
+  BADGE_EARNED: 'BADGE_EARNED',
+  FIRST_APPLICATION: 'FIRST_APPLICATION'
 };
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
+
+
+export const CronJobStatus: {
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE'
+};
+
+export type CronJobStatus = (typeof CronJobStatus)[keyof typeof CronJobStatus]
+
+
+export const DigestFrequency: {
+  OFF: 'OFF',
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY'
+};
+
+export type DigestFrequency = (typeof DigestFrequency)[keyof typeof DigestFrequency]
+
+
+export const BulkImportStatus: {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+};
+
+export type BulkImportStatus = (typeof BulkImportStatus)[keyof typeof BulkImportStatus]
 
 }
 
@@ -473,6 +516,18 @@ export const ShareTokenStatus: typeof $Enums.ShareTokenStatus
 export type NotificationType = $Enums.NotificationType
 
 export const NotificationType: typeof $Enums.NotificationType
+
+export type CronJobStatus = $Enums.CronJobStatus
+
+export const CronJobStatus: typeof $Enums.CronJobStatus
+
+export type DigestFrequency = $Enums.DigestFrequency
+
+export const DigestFrequency: typeof $Enums.DigestFrequency
+
+export type BulkImportStatus = $Enums.BulkImportStatus
+
+export const BulkImportStatus: typeof $Enums.BulkImportStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -944,6 +999,36 @@ export class PrismaClient<
     * ```
     */
   get notificationPreference(): Prisma.NotificationPreferenceDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.cronJobRun`: Exposes CRUD operations for the **CronJobRun** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CronJobRuns
+    * const cronJobRuns = await prisma.cronJobRun.findMany()
+    * ```
+    */
+  get cronJobRun(): Prisma.CronJobRunDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userDigestPreference`: Exposes CRUD operations for the **UserDigestPreference** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserDigestPreferences
+    * const userDigestPreferences = await prisma.userDigestPreference.findMany()
+    * ```
+    */
+  get userDigestPreference(): Prisma.UserDigestPreferenceDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.bulkImportJob`: Exposes CRUD operations for the **BulkImportJob** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BulkImportJobs
+    * const bulkImportJobs = await prisma.bulkImportJob.findMany()
+    * ```
+    */
+  get bulkImportJob(): Prisma.BulkImportJobDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1412,7 +1497,10 @@ export namespace Prisma {
     CredentialShareToken: 'CredentialShareToken',
     VolunteerInvitation: 'VolunteerInvitation',
     Notification: 'Notification',
-    NotificationPreference: 'NotificationPreference'
+    NotificationPreference: 'NotificationPreference',
+    CronJobRun: 'CronJobRun',
+    UserDigestPreference: 'UserDigestPreference',
+    BulkImportJob: 'BulkImportJob'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1428,7 +1516,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shiftTemplate" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent" | "backgroundCheckRequest" | "checkrWebhookEvent" | "credentialShareToken" | "volunteerInvitation" | "notification" | "notificationPreference"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "applicationStatusToken" | "organization" | "organizationMember" | "auditLog" | "featureFlag" | "volunteerApplication" | "volunteerAnswer" | "screenerQuestion" | "organizationInvitation" | "volunteerOpportunity" | "opportunityTag" | "opportunityRequirement" | "skillFamily" | "skill" | "volunteerSkill" | "volunteerProfile" | "volunteerCredential" | "shiftTemplate" | "shift" | "shiftSignup" | "companyAccount" | "companyMember" | "companyInvitation" | "companyNonprofitLink" | "stripeWebhookEvent" | "backgroundCheckRequest" | "checkrWebhookEvent" | "credentialShareToken" | "volunteerInvitation" | "notification" | "notificationPreference" | "cronJobRun" | "userDigestPreference" | "bulkImportJob"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4022,6 +4110,228 @@ export namespace Prisma {
           }
         }
       }
+      CronJobRun: {
+        payload: Prisma.$CronJobRunPayload<ExtArgs>
+        fields: Prisma.CronJobRunFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CronJobRunFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CronJobRunFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload>
+          }
+          findFirst: {
+            args: Prisma.CronJobRunFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CronJobRunFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload>
+          }
+          findMany: {
+            args: Prisma.CronJobRunFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload>[]
+          }
+          create: {
+            args: Prisma.CronJobRunCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload>
+          }
+          createMany: {
+            args: Prisma.CronJobRunCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CronJobRunCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload>[]
+          }
+          delete: {
+            args: Prisma.CronJobRunDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload>
+          }
+          update: {
+            args: Prisma.CronJobRunUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload>
+          }
+          deleteMany: {
+            args: Prisma.CronJobRunDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CronJobRunUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CronJobRunUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload>[]
+          }
+          upsert: {
+            args: Prisma.CronJobRunUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CronJobRunPayload>
+          }
+          aggregate: {
+            args: Prisma.CronJobRunAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCronJobRun>
+          }
+          groupBy: {
+            args: Prisma.CronJobRunGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CronJobRunGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CronJobRunCountArgs<ExtArgs>
+            result: $Utils.Optional<CronJobRunCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserDigestPreference: {
+        payload: Prisma.$UserDigestPreferencePayload<ExtArgs>
+        fields: Prisma.UserDigestPreferenceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserDigestPreferenceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserDigestPreferenceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload>
+          }
+          findFirst: {
+            args: Prisma.UserDigestPreferenceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserDigestPreferenceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload>
+          }
+          findMany: {
+            args: Prisma.UserDigestPreferenceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload>[]
+          }
+          create: {
+            args: Prisma.UserDigestPreferenceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload>
+          }
+          createMany: {
+            args: Prisma.UserDigestPreferenceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserDigestPreferenceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload>[]
+          }
+          delete: {
+            args: Prisma.UserDigestPreferenceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload>
+          }
+          update: {
+            args: Prisma.UserDigestPreferenceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload>
+          }
+          deleteMany: {
+            args: Prisma.UserDigestPreferenceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserDigestPreferenceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserDigestPreferenceUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload>[]
+          }
+          upsert: {
+            args: Prisma.UserDigestPreferenceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserDigestPreferencePayload>
+          }
+          aggregate: {
+            args: Prisma.UserDigestPreferenceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserDigestPreference>
+          }
+          groupBy: {
+            args: Prisma.UserDigestPreferenceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserDigestPreferenceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserDigestPreferenceCountArgs<ExtArgs>
+            result: $Utils.Optional<UserDigestPreferenceCountAggregateOutputType> | number
+          }
+        }
+      }
+      BulkImportJob: {
+        payload: Prisma.$BulkImportJobPayload<ExtArgs>
+        fields: Prisma.BulkImportJobFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BulkImportJobFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BulkImportJobFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload>
+          }
+          findFirst: {
+            args: Prisma.BulkImportJobFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BulkImportJobFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload>
+          }
+          findMany: {
+            args: Prisma.BulkImportJobFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload>[]
+          }
+          create: {
+            args: Prisma.BulkImportJobCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload>
+          }
+          createMany: {
+            args: Prisma.BulkImportJobCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BulkImportJobCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload>[]
+          }
+          delete: {
+            args: Prisma.BulkImportJobDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload>
+          }
+          update: {
+            args: Prisma.BulkImportJobUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload>
+          }
+          deleteMany: {
+            args: Prisma.BulkImportJobDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BulkImportJobUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BulkImportJobUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload>[]
+          }
+          upsert: {
+            args: Prisma.BulkImportJobUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BulkImportJobPayload>
+          }
+          aggregate: {
+            args: Prisma.BulkImportJobAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBulkImportJob>
+          }
+          groupBy: {
+            args: Prisma.BulkImportJobGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BulkImportJobGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BulkImportJobCountArgs<ExtArgs>
+            result: $Utils.Optional<BulkImportJobCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -4165,6 +4475,9 @@ export namespace Prisma {
     volunteerInvitation?: VolunteerInvitationOmit
     notification?: NotificationOmit
     notificationPreference?: NotificationPreferenceOmit
+    cronJobRun?: CronJobRunOmit
+    userDigestPreference?: UserDigestPreferenceOmit
+    bulkImportJob?: BulkImportJobOmit
   }
 
   /* Types for Logging */
@@ -4259,6 +4572,8 @@ export namespace Prisma {
     receivedInvitations: number
     notifications: number
     notificationPreferences: number
+    digestPreferences: number
+    bulkImportJobs: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4276,6 +4591,8 @@ export namespace Prisma {
     receivedInvitations?: boolean | UserCountOutputTypeCountReceivedInvitationsArgs
     notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
     notificationPreferences?: boolean | UserCountOutputTypeCountNotificationPreferencesArgs
+    digestPreferences?: boolean | UserCountOutputTypeCountDigestPreferencesArgs
+    bulkImportJobs?: boolean | UserCountOutputTypeCountBulkImportJobsArgs
   }
 
   // Custom InputTypes
@@ -4387,6 +4704,20 @@ export namespace Prisma {
     where?: NotificationPreferenceWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountDigestPreferencesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserDigestPreferenceWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountBulkImportJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BulkImportJobWhereInput
+  }
+
 
   /**
    * Count Type OrganizationCountOutputType
@@ -4411,6 +4742,8 @@ export namespace Prisma {
     volunteerInvitations: number
     notifications: number
     notificationPreferences: number
+    digestPreferences: number
+    bulkImportJobs: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4432,6 +4765,8 @@ export namespace Prisma {
     volunteerInvitations?: boolean | OrganizationCountOutputTypeCountVolunteerInvitationsArgs
     notifications?: boolean | OrganizationCountOutputTypeCountNotificationsArgs
     notificationPreferences?: boolean | OrganizationCountOutputTypeCountNotificationPreferencesArgs
+    digestPreferences?: boolean | OrganizationCountOutputTypeCountDigestPreferencesArgs
+    bulkImportJobs?: boolean | OrganizationCountOutputTypeCountBulkImportJobsArgs
   }
 
   // Custom InputTypes
@@ -4569,6 +4904,20 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountNotificationPreferencesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: NotificationPreferenceWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountDigestPreferencesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserDigestPreferenceWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountBulkImportJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BulkImportJobWhereInput
   }
 
 
@@ -5118,6 +5467,8 @@ export namespace Prisma {
     receivedInvitations?: boolean | User$receivedInvitationsArgs<ExtArgs>
     notifications?: boolean | User$notificationsArgs<ExtArgs>
     notificationPreferences?: boolean | User$notificationPreferencesArgs<ExtArgs>
+    digestPreferences?: boolean | User$digestPreferencesArgs<ExtArgs>
+    bulkImportJobs?: boolean | User$bulkImportJobsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -5168,6 +5519,8 @@ export namespace Prisma {
     receivedInvitations?: boolean | User$receivedInvitationsArgs<ExtArgs>
     notifications?: boolean | User$notificationsArgs<ExtArgs>
     notificationPreferences?: boolean | User$notificationPreferencesArgs<ExtArgs>
+    digestPreferences?: boolean | User$digestPreferencesArgs<ExtArgs>
+    bulkImportJobs?: boolean | User$bulkImportJobsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -5191,6 +5544,8 @@ export namespace Prisma {
       receivedInvitations: Prisma.$VolunteerInvitationPayload<ExtArgs>[]
       notifications: Prisma.$NotificationPayload<ExtArgs>[]
       notificationPreferences: Prisma.$NotificationPreferencePayload<ExtArgs>[]
+      digestPreferences: Prisma.$UserDigestPreferencePayload<ExtArgs>[]
+      bulkImportJobs: Prisma.$BulkImportJobPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5609,6 +5964,8 @@ export namespace Prisma {
     receivedInvitations<T extends User$receivedInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, User$receivedInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     notifications<T extends User$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     notificationPreferences<T extends User$notificationPreferencesArgs<ExtArgs> = {}>(args?: Subset<T, User$notificationPreferencesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPreferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    digestPreferences<T extends User$digestPreferencesArgs<ExtArgs> = {}>(args?: Subset<T, User$digestPreferencesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    bulkImportJobs<T extends User$bulkImportJobsArgs<ExtArgs> = {}>(args?: Subset<T, User$bulkImportJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6390,6 +6747,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: NotificationPreferenceScalarFieldEnum | NotificationPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * User.digestPreferences
+   */
+  export type User$digestPreferencesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    where?: UserDigestPreferenceWhereInput
+    orderBy?: UserDigestPreferenceOrderByWithRelationInput | UserDigestPreferenceOrderByWithRelationInput[]
+    cursor?: UserDigestPreferenceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserDigestPreferenceScalarFieldEnum | UserDigestPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * User.bulkImportJobs
+   */
+  export type User$bulkImportJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    where?: BulkImportJobWhereInput
+    orderBy?: BulkImportJobOrderByWithRelationInput | BulkImportJobOrderByWithRelationInput[]
+    cursor?: BulkImportJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BulkImportJobScalarFieldEnum | BulkImportJobScalarFieldEnum[]
   }
 
   /**
@@ -10762,6 +11167,8 @@ export namespace Prisma {
     trialEndsAt: Date | null
     checkrAccessToken: string | null
     checkrAccountId: string | null
+    onboardingDismissedAt: Date | null
+    firstApplicationReceivedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -10776,6 +11183,8 @@ export namespace Prisma {
     trialEndsAt: Date | null
     checkrAccessToken: string | null
     checkrAccountId: string | null
+    onboardingDismissedAt: Date | null
+    firstApplicationReceivedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -10790,6 +11199,9 @@ export namespace Prisma {
     trialEndsAt: number
     checkrAccessToken: number
     checkrAccountId: number
+    onboardingProgress: number
+    onboardingDismissedAt: number
+    firstApplicationReceivedAt: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -10806,6 +11218,8 @@ export namespace Prisma {
     trialEndsAt?: true
     checkrAccessToken?: true
     checkrAccountId?: true
+    onboardingDismissedAt?: true
+    firstApplicationReceivedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -10820,6 +11234,8 @@ export namespace Prisma {
     trialEndsAt?: true
     checkrAccessToken?: true
     checkrAccountId?: true
+    onboardingDismissedAt?: true
+    firstApplicationReceivedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -10834,6 +11250,9 @@ export namespace Prisma {
     trialEndsAt?: true
     checkrAccessToken?: true
     checkrAccountId?: true
+    onboardingProgress?: true
+    onboardingDismissedAt?: true
+    firstApplicationReceivedAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -10921,6 +11340,9 @@ export namespace Prisma {
     trialEndsAt: Date | null
     checkrAccessToken: string | null
     checkrAccountId: string | null
+    onboardingProgress: JsonValue | null
+    onboardingDismissedAt: Date | null
+    firstApplicationReceivedAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: OrganizationCountAggregateOutputType | null
@@ -10952,6 +11374,9 @@ export namespace Prisma {
     trialEndsAt?: boolean
     checkrAccessToken?: boolean
     checkrAccountId?: boolean
+    onboardingProgress?: boolean
+    onboardingDismissedAt?: boolean
+    firstApplicationReceivedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     members?: boolean | Organization$membersArgs<ExtArgs>
@@ -10972,6 +11397,8 @@ export namespace Prisma {
     volunteerInvitations?: boolean | Organization$volunteerInvitationsArgs<ExtArgs>
     notifications?: boolean | Organization$notificationsArgs<ExtArgs>
     notificationPreferences?: boolean | Organization$notificationPreferencesArgs<ExtArgs>
+    digestPreferences?: boolean | Organization$digestPreferencesArgs<ExtArgs>
+    bulkImportJobs?: boolean | Organization$bulkImportJobsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -10985,6 +11412,9 @@ export namespace Prisma {
     trialEndsAt?: boolean
     checkrAccessToken?: boolean
     checkrAccountId?: boolean
+    onboardingProgress?: boolean
+    onboardingDismissedAt?: boolean
+    firstApplicationReceivedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["organization"]>
@@ -10999,6 +11429,9 @@ export namespace Prisma {
     trialEndsAt?: boolean
     checkrAccessToken?: boolean
     checkrAccountId?: boolean
+    onboardingProgress?: boolean
+    onboardingDismissedAt?: boolean
+    firstApplicationReceivedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["organization"]>
@@ -11013,11 +11446,14 @@ export namespace Prisma {
     trialEndsAt?: boolean
     checkrAccessToken?: boolean
     checkrAccountId?: boolean
+    onboardingProgress?: boolean
+    onboardingDismissedAt?: boolean
+    firstApplicationReceivedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "planTier" | "stripeCustomerId" | "stripeSubscriptionId" | "trialEndsAt" | "checkrAccessToken" | "checkrAccountId" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
+  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "planTier" | "stripeCustomerId" | "stripeSubscriptionId" | "trialEndsAt" | "checkrAccessToken" | "checkrAccountId" | "onboardingProgress" | "onboardingDismissedAt" | "firstApplicationReceivedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
   export type OrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     members?: boolean | Organization$membersArgs<ExtArgs>
     auditLogs?: boolean | Organization$auditLogsArgs<ExtArgs>
@@ -11037,6 +11473,8 @@ export namespace Prisma {
     volunteerInvitations?: boolean | Organization$volunteerInvitationsArgs<ExtArgs>
     notifications?: boolean | Organization$notificationsArgs<ExtArgs>
     notificationPreferences?: boolean | Organization$notificationPreferencesArgs<ExtArgs>
+    digestPreferences?: boolean | Organization$digestPreferencesArgs<ExtArgs>
+    bulkImportJobs?: boolean | Organization$bulkImportJobsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -11063,6 +11501,8 @@ export namespace Prisma {
       volunteerInvitations: Prisma.$VolunteerInvitationPayload<ExtArgs>[]
       notifications: Prisma.$NotificationPayload<ExtArgs>[]
       notificationPreferences: Prisma.$NotificationPreferencePayload<ExtArgs>[]
+      digestPreferences: Prisma.$UserDigestPreferencePayload<ExtArgs>[]
+      bulkImportJobs: Prisma.$BulkImportJobPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -11074,6 +11514,9 @@ export namespace Prisma {
       trialEndsAt: Date | null
       checkrAccessToken: string | null
       checkrAccountId: string | null
+      onboardingProgress: Prisma.JsonValue | null
+      onboardingDismissedAt: Date | null
+      firstApplicationReceivedAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["organization"]>
@@ -11488,6 +11931,8 @@ export namespace Prisma {
     volunteerInvitations<T extends Organization$volunteerInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$volunteerInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VolunteerInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     notifications<T extends Organization$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     notificationPreferences<T extends Organization$notificationPreferencesArgs<ExtArgs> = {}>(args?: Subset<T, Organization$notificationPreferencesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPreferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    digestPreferences<T extends Organization$digestPreferencesArgs<ExtArgs> = {}>(args?: Subset<T, Organization$digestPreferencesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    bulkImportJobs<T extends Organization$bulkImportJobsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$bulkImportJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11526,6 +11971,9 @@ export namespace Prisma {
     readonly trialEndsAt: FieldRef<"Organization", 'DateTime'>
     readonly checkrAccessToken: FieldRef<"Organization", 'String'>
     readonly checkrAccountId: FieldRef<"Organization", 'String'>
+    readonly onboardingProgress: FieldRef<"Organization", 'Json'>
+    readonly onboardingDismissedAt: FieldRef<"Organization", 'DateTime'>
+    readonly firstApplicationReceivedAt: FieldRef<"Organization", 'DateTime'>
     readonly createdAt: FieldRef<"Organization", 'DateTime'>
     readonly updatedAt: FieldRef<"Organization", 'DateTime'>
   }
@@ -12350,6 +12798,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: NotificationPreferenceScalarFieldEnum | NotificationPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.digestPreferences
+   */
+  export type Organization$digestPreferencesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    where?: UserDigestPreferenceWhereInput
+    orderBy?: UserDigestPreferenceOrderByWithRelationInput | UserDigestPreferenceOrderByWithRelationInput[]
+    cursor?: UserDigestPreferenceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserDigestPreferenceScalarFieldEnum | UserDigestPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.bulkImportJobs
+   */
+  export type Organization$bulkImportJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    where?: BulkImportJobWhereInput
+    orderBy?: BulkImportJobOrderByWithRelationInput | BulkImportJobOrderByWithRelationInput[]
+    cursor?: BulkImportJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BulkImportJobScalarFieldEnum | BulkImportJobScalarFieldEnum[]
   }
 
   /**
@@ -32046,6 +32542,7 @@ export namespace Prisma {
     userId: string | null
     status: $Enums.SignupStatus | null
     notes: string | null
+    reminderSentAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -32056,6 +32553,7 @@ export namespace Prisma {
     userId: string | null
     status: $Enums.SignupStatus | null
     notes: string | null
+    reminderSentAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -32066,6 +32564,7 @@ export namespace Prisma {
     userId: number
     status: number
     notes: number
+    reminderSentAt: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -32078,6 +32577,7 @@ export namespace Prisma {
     userId?: true
     status?: true
     notes?: true
+    reminderSentAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -32088,6 +32588,7 @@ export namespace Prisma {
     userId?: true
     status?: true
     notes?: true
+    reminderSentAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -32098,6 +32599,7 @@ export namespace Prisma {
     userId?: true
     status?: true
     notes?: true
+    reminderSentAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -32181,6 +32683,7 @@ export namespace Prisma {
     userId: string
     status: $Enums.SignupStatus
     notes: string | null
+    reminderSentAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: ShiftSignupCountAggregateOutputType | null
@@ -32208,6 +32711,7 @@ export namespace Prisma {
     userId?: boolean
     status?: boolean
     notes?: boolean
+    reminderSentAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     shift?: boolean | ShiftDefaultArgs<ExtArgs>
@@ -32220,6 +32724,7 @@ export namespace Prisma {
     userId?: boolean
     status?: boolean
     notes?: boolean
+    reminderSentAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     shift?: boolean | ShiftDefaultArgs<ExtArgs>
@@ -32232,6 +32737,7 @@ export namespace Prisma {
     userId?: boolean
     status?: boolean
     notes?: boolean
+    reminderSentAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     shift?: boolean | ShiftDefaultArgs<ExtArgs>
@@ -32244,11 +32750,12 @@ export namespace Prisma {
     userId?: boolean
     status?: boolean
     notes?: boolean
+    reminderSentAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ShiftSignupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "shiftId" | "userId" | "status" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["shiftSignup"]>
+  export type ShiftSignupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "shiftId" | "userId" | "status" | "notes" | "reminderSentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["shiftSignup"]>
   export type ShiftSignupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     shift?: boolean | ShiftDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -32274,6 +32781,7 @@ export namespace Prisma {
       userId: string
       status: $Enums.SignupStatus
       notes: string | null
+      reminderSentAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["shiftSignup"]>
@@ -32706,6 +33214,7 @@ export namespace Prisma {
     readonly userId: FieldRef<"ShiftSignup", 'String'>
     readonly status: FieldRef<"ShiftSignup", 'SignupStatus'>
     readonly notes: FieldRef<"ShiftSignup", 'String'>
+    readonly reminderSentAt: FieldRef<"ShiftSignup", 'DateTime'>
     readonly createdAt: FieldRef<"ShiftSignup", 'DateTime'>
     readonly updatedAt: FieldRef<"ShiftSignup", 'DateTime'>
   }
@@ -40832,6 +41341,7 @@ export namespace Prisma {
     claimedByOrgId: string | null
     claimedAt: Date | null
     status: $Enums.ShareTokenStatus | null
+    notifiedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -40845,6 +41355,7 @@ export namespace Prisma {
     claimedByOrgId: string | null
     claimedAt: Date | null
     status: $Enums.ShareTokenStatus | null
+    notifiedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -40858,6 +41369,7 @@ export namespace Prisma {
     claimedByOrgId: number
     claimedAt: number
     status: number
+    notifiedAt: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -40873,6 +41385,7 @@ export namespace Prisma {
     claimedByOrgId?: true
     claimedAt?: true
     status?: true
+    notifiedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -40886,6 +41399,7 @@ export namespace Prisma {
     claimedByOrgId?: true
     claimedAt?: true
     status?: true
+    notifiedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -40899,6 +41413,7 @@ export namespace Prisma {
     claimedByOrgId?: true
     claimedAt?: true
     status?: true
+    notifiedAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -40985,6 +41500,7 @@ export namespace Prisma {
     claimedByOrgId: string | null
     claimedAt: Date | null
     status: $Enums.ShareTokenStatus
+    notifiedAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: CredentialShareTokenCountAggregateOutputType | null
@@ -41015,6 +41531,7 @@ export namespace Prisma {
     claimedByOrgId?: boolean
     claimedAt?: boolean
     status?: boolean
+    notifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
@@ -41031,6 +41548,7 @@ export namespace Prisma {
     claimedByOrgId?: boolean
     claimedAt?: boolean
     status?: boolean
+    notifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
@@ -41047,6 +41565,7 @@ export namespace Prisma {
     claimedByOrgId?: boolean
     claimedAt?: boolean
     status?: boolean
+    notifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
@@ -41063,11 +41582,12 @@ export namespace Prisma {
     claimedByOrgId?: boolean
     claimedAt?: boolean
     status?: boolean
+    notifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type CredentialShareTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "credentialId" | "createdByUserId" | "tokenHash" | "expiresAt" | "claimedByOrgId" | "claimedAt" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["credentialShareToken"]>
+  export type CredentialShareTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "credentialId" | "createdByUserId" | "tokenHash" | "expiresAt" | "claimedByOrgId" | "claimedAt" | "status" | "notifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["credentialShareToken"]>
   export type CredentialShareTokenInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     credential?: boolean | VolunteerCredentialDefaultArgs<ExtArgs>
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
@@ -41100,6 +41620,7 @@ export namespace Prisma {
       claimedByOrgId: string | null
       claimedAt: Date | null
       status: $Enums.ShareTokenStatus
+      notifiedAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["credentialShareToken"]>
@@ -41536,6 +42057,7 @@ export namespace Prisma {
     readonly claimedByOrgId: FieldRef<"CredentialShareToken", 'String'>
     readonly claimedAt: FieldRef<"CredentialShareToken", 'DateTime'>
     readonly status: FieldRef<"CredentialShareToken", 'ShareTokenStatus'>
+    readonly notifiedAt: FieldRef<"CredentialShareToken", 'DateTime'>
     readonly createdAt: FieldRef<"CredentialShareToken", 'DateTime'>
     readonly updatedAt: FieldRef<"CredentialShareToken", 'DateTime'>
   }
@@ -43087,6 +43609,7 @@ export namespace Prisma {
     body: string | null
     href: string | null
     readAt: Date | null
+    emailSentAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -43101,6 +43624,7 @@ export namespace Prisma {
     body: string | null
     href: string | null
     readAt: Date | null
+    emailSentAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -43115,6 +43639,7 @@ export namespace Prisma {
     body: number
     href: number
     readAt: number
+    emailSentAt: number
     createdAt: number
     updatedAt: number
     deletedAt: number
@@ -43131,6 +43656,7 @@ export namespace Prisma {
     body?: true
     href?: true
     readAt?: true
+    emailSentAt?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -43145,6 +43671,7 @@ export namespace Prisma {
     body?: true
     href?: true
     readAt?: true
+    emailSentAt?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -43159,6 +43686,7 @@ export namespace Prisma {
     body?: true
     href?: true
     readAt?: true
+    emailSentAt?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -43246,6 +43774,7 @@ export namespace Prisma {
     body: string
     href: string | null
     readAt: Date | null
+    emailSentAt: Date | null
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -43277,6 +43806,7 @@ export namespace Prisma {
     body?: boolean
     href?: boolean
     readAt?: boolean
+    emailSentAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -43293,6 +43823,7 @@ export namespace Prisma {
     body?: boolean
     href?: boolean
     readAt?: boolean
+    emailSentAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -43309,6 +43840,7 @@ export namespace Prisma {
     body?: boolean
     href?: boolean
     readAt?: boolean
+    emailSentAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -43325,12 +43857,13 @@ export namespace Prisma {
     body?: boolean
     href?: boolean
     readAt?: boolean
+    emailSentAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
   }
 
-  export type NotificationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "orgId" | "type" | "title" | "body" | "href" | "readAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["notification"]>
+  export type NotificationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "orgId" | "type" | "title" | "body" | "href" | "readAt" | "emailSentAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["notification"]>
   export type NotificationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -43359,6 +43892,7 @@ export namespace Prisma {
       body: string
       href: string | null
       readAt: Date | null
+      emailSentAt: Date | null
       createdAt: Date
       updatedAt: Date
       deletedAt: Date | null
@@ -43795,6 +44329,7 @@ export namespace Prisma {
     readonly body: FieldRef<"Notification", 'String'>
     readonly href: FieldRef<"Notification", 'String'>
     readonly readAt: FieldRef<"Notification", 'DateTime'>
+    readonly emailSentAt: FieldRef<"Notification", 'DateTime'>
     readonly createdAt: FieldRef<"Notification", 'DateTime'>
     readonly updatedAt: FieldRef<"Notification", 'DateTime'>
     readonly deletedAt: FieldRef<"Notification", 'DateTime'>
@@ -45302,6 +45837,3389 @@ export namespace Prisma {
 
 
   /**
+   * Model CronJobRun
+   */
+
+  export type AggregateCronJobRun = {
+    _count: CronJobRunCountAggregateOutputType | null
+    _avg: CronJobRunAvgAggregateOutputType | null
+    _sum: CronJobRunSumAggregateOutputType | null
+    _min: CronJobRunMinAggregateOutputType | null
+    _max: CronJobRunMaxAggregateOutputType | null
+  }
+
+  export type CronJobRunAvgAggregateOutputType = {
+    durationMs: number | null
+  }
+
+  export type CronJobRunSumAggregateOutputType = {
+    durationMs: number | null
+  }
+
+  export type CronJobRunMinAggregateOutputType = {
+    id: string | null
+    jobName: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    status: $Enums.CronJobStatus | null
+    durationMs: number | null
+    error: string | null
+    createdAt: Date | null
+  }
+
+  export type CronJobRunMaxAggregateOutputType = {
+    id: string | null
+    jobName: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    status: $Enums.CronJobStatus | null
+    durationMs: number | null
+    error: string | null
+    createdAt: Date | null
+  }
+
+  export type CronJobRunCountAggregateOutputType = {
+    id: number
+    jobName: number
+    startedAt: number
+    completedAt: number
+    status: number
+    resultSummary: number
+    durationMs: number
+    error: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CronJobRunAvgAggregateInputType = {
+    durationMs?: true
+  }
+
+  export type CronJobRunSumAggregateInputType = {
+    durationMs?: true
+  }
+
+  export type CronJobRunMinAggregateInputType = {
+    id?: true
+    jobName?: true
+    startedAt?: true
+    completedAt?: true
+    status?: true
+    durationMs?: true
+    error?: true
+    createdAt?: true
+  }
+
+  export type CronJobRunMaxAggregateInputType = {
+    id?: true
+    jobName?: true
+    startedAt?: true
+    completedAt?: true
+    status?: true
+    durationMs?: true
+    error?: true
+    createdAt?: true
+  }
+
+  export type CronJobRunCountAggregateInputType = {
+    id?: true
+    jobName?: true
+    startedAt?: true
+    completedAt?: true
+    status?: true
+    resultSummary?: true
+    durationMs?: true
+    error?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CronJobRunAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CronJobRun to aggregate.
+     */
+    where?: CronJobRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CronJobRuns to fetch.
+     */
+    orderBy?: CronJobRunOrderByWithRelationInput | CronJobRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CronJobRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CronJobRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CronJobRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CronJobRuns
+    **/
+    _count?: true | CronJobRunCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CronJobRunAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CronJobRunSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CronJobRunMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CronJobRunMaxAggregateInputType
+  }
+
+  export type GetCronJobRunAggregateType<T extends CronJobRunAggregateArgs> = {
+        [P in keyof T & keyof AggregateCronJobRun]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCronJobRun[P]>
+      : GetScalarType<T[P], AggregateCronJobRun[P]>
+  }
+
+
+
+
+  export type CronJobRunGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CronJobRunWhereInput
+    orderBy?: CronJobRunOrderByWithAggregationInput | CronJobRunOrderByWithAggregationInput[]
+    by: CronJobRunScalarFieldEnum[] | CronJobRunScalarFieldEnum
+    having?: CronJobRunScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CronJobRunCountAggregateInputType | true
+    _avg?: CronJobRunAvgAggregateInputType
+    _sum?: CronJobRunSumAggregateInputType
+    _min?: CronJobRunMinAggregateInputType
+    _max?: CronJobRunMaxAggregateInputType
+  }
+
+  export type CronJobRunGroupByOutputType = {
+    id: string
+    jobName: string
+    startedAt: Date
+    completedAt: Date | null
+    status: $Enums.CronJobStatus
+    resultSummary: JsonValue | null
+    durationMs: number | null
+    error: string | null
+    createdAt: Date
+    _count: CronJobRunCountAggregateOutputType | null
+    _avg: CronJobRunAvgAggregateOutputType | null
+    _sum: CronJobRunSumAggregateOutputType | null
+    _min: CronJobRunMinAggregateOutputType | null
+    _max: CronJobRunMaxAggregateOutputType | null
+  }
+
+  type GetCronJobRunGroupByPayload<T extends CronJobRunGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CronJobRunGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CronJobRunGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CronJobRunGroupByOutputType[P]>
+            : GetScalarType<T[P], CronJobRunGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CronJobRunSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    jobName?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    status?: boolean
+    resultSummary?: boolean
+    durationMs?: boolean
+    error?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["cronJobRun"]>
+
+  export type CronJobRunSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    jobName?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    status?: boolean
+    resultSummary?: boolean
+    durationMs?: boolean
+    error?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["cronJobRun"]>
+
+  export type CronJobRunSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    jobName?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    status?: boolean
+    resultSummary?: boolean
+    durationMs?: boolean
+    error?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["cronJobRun"]>
+
+  export type CronJobRunSelectScalar = {
+    id?: boolean
+    jobName?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    status?: boolean
+    resultSummary?: boolean
+    durationMs?: boolean
+    error?: boolean
+    createdAt?: boolean
+  }
+
+  export type CronJobRunOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "jobName" | "startedAt" | "completedAt" | "status" | "resultSummary" | "durationMs" | "error" | "createdAt", ExtArgs["result"]["cronJobRun"]>
+
+  export type $CronJobRunPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CronJobRun"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      jobName: string
+      startedAt: Date
+      completedAt: Date | null
+      status: $Enums.CronJobStatus
+      resultSummary: Prisma.JsonValue | null
+      durationMs: number | null
+      error: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["cronJobRun"]>
+    composites: {}
+  }
+
+  type CronJobRunGetPayload<S extends boolean | null | undefined | CronJobRunDefaultArgs> = $Result.GetResult<Prisma.$CronJobRunPayload, S>
+
+  type CronJobRunCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CronJobRunFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CronJobRunCountAggregateInputType | true
+    }
+
+  export interface CronJobRunDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CronJobRun'], meta: { name: 'CronJobRun' } }
+    /**
+     * Find zero or one CronJobRun that matches the filter.
+     * @param {CronJobRunFindUniqueArgs} args - Arguments to find a CronJobRun
+     * @example
+     * // Get one CronJobRun
+     * const cronJobRun = await prisma.cronJobRun.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CronJobRunFindUniqueArgs>(args: SelectSubset<T, CronJobRunFindUniqueArgs<ExtArgs>>): Prisma__CronJobRunClient<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CronJobRun that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CronJobRunFindUniqueOrThrowArgs} args - Arguments to find a CronJobRun
+     * @example
+     * // Get one CronJobRun
+     * const cronJobRun = await prisma.cronJobRun.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CronJobRunFindUniqueOrThrowArgs>(args: SelectSubset<T, CronJobRunFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CronJobRunClient<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CronJobRun that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CronJobRunFindFirstArgs} args - Arguments to find a CronJobRun
+     * @example
+     * // Get one CronJobRun
+     * const cronJobRun = await prisma.cronJobRun.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CronJobRunFindFirstArgs>(args?: SelectSubset<T, CronJobRunFindFirstArgs<ExtArgs>>): Prisma__CronJobRunClient<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CronJobRun that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CronJobRunFindFirstOrThrowArgs} args - Arguments to find a CronJobRun
+     * @example
+     * // Get one CronJobRun
+     * const cronJobRun = await prisma.cronJobRun.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CronJobRunFindFirstOrThrowArgs>(args?: SelectSubset<T, CronJobRunFindFirstOrThrowArgs<ExtArgs>>): Prisma__CronJobRunClient<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CronJobRuns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CronJobRunFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CronJobRuns
+     * const cronJobRuns = await prisma.cronJobRun.findMany()
+     * 
+     * // Get first 10 CronJobRuns
+     * const cronJobRuns = await prisma.cronJobRun.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const cronJobRunWithIdOnly = await prisma.cronJobRun.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CronJobRunFindManyArgs>(args?: SelectSubset<T, CronJobRunFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CronJobRun.
+     * @param {CronJobRunCreateArgs} args - Arguments to create a CronJobRun.
+     * @example
+     * // Create one CronJobRun
+     * const CronJobRun = await prisma.cronJobRun.create({
+     *   data: {
+     *     // ... data to create a CronJobRun
+     *   }
+     * })
+     * 
+     */
+    create<T extends CronJobRunCreateArgs>(args: SelectSubset<T, CronJobRunCreateArgs<ExtArgs>>): Prisma__CronJobRunClient<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CronJobRuns.
+     * @param {CronJobRunCreateManyArgs} args - Arguments to create many CronJobRuns.
+     * @example
+     * // Create many CronJobRuns
+     * const cronJobRun = await prisma.cronJobRun.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CronJobRunCreateManyArgs>(args?: SelectSubset<T, CronJobRunCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CronJobRuns and returns the data saved in the database.
+     * @param {CronJobRunCreateManyAndReturnArgs} args - Arguments to create many CronJobRuns.
+     * @example
+     * // Create many CronJobRuns
+     * const cronJobRun = await prisma.cronJobRun.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CronJobRuns and only return the `id`
+     * const cronJobRunWithIdOnly = await prisma.cronJobRun.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CronJobRunCreateManyAndReturnArgs>(args?: SelectSubset<T, CronJobRunCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CronJobRun.
+     * @param {CronJobRunDeleteArgs} args - Arguments to delete one CronJobRun.
+     * @example
+     * // Delete one CronJobRun
+     * const CronJobRun = await prisma.cronJobRun.delete({
+     *   where: {
+     *     // ... filter to delete one CronJobRun
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CronJobRunDeleteArgs>(args: SelectSubset<T, CronJobRunDeleteArgs<ExtArgs>>): Prisma__CronJobRunClient<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CronJobRun.
+     * @param {CronJobRunUpdateArgs} args - Arguments to update one CronJobRun.
+     * @example
+     * // Update one CronJobRun
+     * const cronJobRun = await prisma.cronJobRun.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CronJobRunUpdateArgs>(args: SelectSubset<T, CronJobRunUpdateArgs<ExtArgs>>): Prisma__CronJobRunClient<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CronJobRuns.
+     * @param {CronJobRunDeleteManyArgs} args - Arguments to filter CronJobRuns to delete.
+     * @example
+     * // Delete a few CronJobRuns
+     * const { count } = await prisma.cronJobRun.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CronJobRunDeleteManyArgs>(args?: SelectSubset<T, CronJobRunDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CronJobRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CronJobRunUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CronJobRuns
+     * const cronJobRun = await prisma.cronJobRun.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CronJobRunUpdateManyArgs>(args: SelectSubset<T, CronJobRunUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CronJobRuns and returns the data updated in the database.
+     * @param {CronJobRunUpdateManyAndReturnArgs} args - Arguments to update many CronJobRuns.
+     * @example
+     * // Update many CronJobRuns
+     * const cronJobRun = await prisma.cronJobRun.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CronJobRuns and only return the `id`
+     * const cronJobRunWithIdOnly = await prisma.cronJobRun.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CronJobRunUpdateManyAndReturnArgs>(args: SelectSubset<T, CronJobRunUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CronJobRun.
+     * @param {CronJobRunUpsertArgs} args - Arguments to update or create a CronJobRun.
+     * @example
+     * // Update or create a CronJobRun
+     * const cronJobRun = await prisma.cronJobRun.upsert({
+     *   create: {
+     *     // ... data to create a CronJobRun
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CronJobRun we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CronJobRunUpsertArgs>(args: SelectSubset<T, CronJobRunUpsertArgs<ExtArgs>>): Prisma__CronJobRunClient<$Result.GetResult<Prisma.$CronJobRunPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CronJobRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CronJobRunCountArgs} args - Arguments to filter CronJobRuns to count.
+     * @example
+     * // Count the number of CronJobRuns
+     * const count = await prisma.cronJobRun.count({
+     *   where: {
+     *     // ... the filter for the CronJobRuns we want to count
+     *   }
+     * })
+    **/
+    count<T extends CronJobRunCountArgs>(
+      args?: Subset<T, CronJobRunCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CronJobRunCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CronJobRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CronJobRunAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CronJobRunAggregateArgs>(args: Subset<T, CronJobRunAggregateArgs>): Prisma.PrismaPromise<GetCronJobRunAggregateType<T>>
+
+    /**
+     * Group by CronJobRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CronJobRunGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CronJobRunGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CronJobRunGroupByArgs['orderBy'] }
+        : { orderBy?: CronJobRunGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CronJobRunGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCronJobRunGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CronJobRun model
+   */
+  readonly fields: CronJobRunFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CronJobRun.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CronJobRunClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CronJobRun model
+   */
+  interface CronJobRunFieldRefs {
+    readonly id: FieldRef<"CronJobRun", 'String'>
+    readonly jobName: FieldRef<"CronJobRun", 'String'>
+    readonly startedAt: FieldRef<"CronJobRun", 'DateTime'>
+    readonly completedAt: FieldRef<"CronJobRun", 'DateTime'>
+    readonly status: FieldRef<"CronJobRun", 'CronJobStatus'>
+    readonly resultSummary: FieldRef<"CronJobRun", 'Json'>
+    readonly durationMs: FieldRef<"CronJobRun", 'Int'>
+    readonly error: FieldRef<"CronJobRun", 'String'>
+    readonly createdAt: FieldRef<"CronJobRun", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CronJobRun findUnique
+   */
+  export type CronJobRunFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * Filter, which CronJobRun to fetch.
+     */
+    where: CronJobRunWhereUniqueInput
+  }
+
+  /**
+   * CronJobRun findUniqueOrThrow
+   */
+  export type CronJobRunFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * Filter, which CronJobRun to fetch.
+     */
+    where: CronJobRunWhereUniqueInput
+  }
+
+  /**
+   * CronJobRun findFirst
+   */
+  export type CronJobRunFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * Filter, which CronJobRun to fetch.
+     */
+    where?: CronJobRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CronJobRuns to fetch.
+     */
+    orderBy?: CronJobRunOrderByWithRelationInput | CronJobRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CronJobRuns.
+     */
+    cursor?: CronJobRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CronJobRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CronJobRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CronJobRuns.
+     */
+    distinct?: CronJobRunScalarFieldEnum | CronJobRunScalarFieldEnum[]
+  }
+
+  /**
+   * CronJobRun findFirstOrThrow
+   */
+  export type CronJobRunFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * Filter, which CronJobRun to fetch.
+     */
+    where?: CronJobRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CronJobRuns to fetch.
+     */
+    orderBy?: CronJobRunOrderByWithRelationInput | CronJobRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CronJobRuns.
+     */
+    cursor?: CronJobRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CronJobRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CronJobRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CronJobRuns.
+     */
+    distinct?: CronJobRunScalarFieldEnum | CronJobRunScalarFieldEnum[]
+  }
+
+  /**
+   * CronJobRun findMany
+   */
+  export type CronJobRunFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * Filter, which CronJobRuns to fetch.
+     */
+    where?: CronJobRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CronJobRuns to fetch.
+     */
+    orderBy?: CronJobRunOrderByWithRelationInput | CronJobRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CronJobRuns.
+     */
+    cursor?: CronJobRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CronJobRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CronJobRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CronJobRuns.
+     */
+    distinct?: CronJobRunScalarFieldEnum | CronJobRunScalarFieldEnum[]
+  }
+
+  /**
+   * CronJobRun create
+   */
+  export type CronJobRunCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * The data needed to create a CronJobRun.
+     */
+    data: XOR<CronJobRunCreateInput, CronJobRunUncheckedCreateInput>
+  }
+
+  /**
+   * CronJobRun createMany
+   */
+  export type CronJobRunCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CronJobRuns.
+     */
+    data: CronJobRunCreateManyInput | CronJobRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CronJobRun createManyAndReturn
+   */
+  export type CronJobRunCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * The data used to create many CronJobRuns.
+     */
+    data: CronJobRunCreateManyInput | CronJobRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CronJobRun update
+   */
+  export type CronJobRunUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * The data needed to update a CronJobRun.
+     */
+    data: XOR<CronJobRunUpdateInput, CronJobRunUncheckedUpdateInput>
+    /**
+     * Choose, which CronJobRun to update.
+     */
+    where: CronJobRunWhereUniqueInput
+  }
+
+  /**
+   * CronJobRun updateMany
+   */
+  export type CronJobRunUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CronJobRuns.
+     */
+    data: XOR<CronJobRunUpdateManyMutationInput, CronJobRunUncheckedUpdateManyInput>
+    /**
+     * Filter which CronJobRuns to update
+     */
+    where?: CronJobRunWhereInput
+    /**
+     * Limit how many CronJobRuns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CronJobRun updateManyAndReturn
+   */
+  export type CronJobRunUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * The data used to update CronJobRuns.
+     */
+    data: XOR<CronJobRunUpdateManyMutationInput, CronJobRunUncheckedUpdateManyInput>
+    /**
+     * Filter which CronJobRuns to update
+     */
+    where?: CronJobRunWhereInput
+    /**
+     * Limit how many CronJobRuns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CronJobRun upsert
+   */
+  export type CronJobRunUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * The filter to search for the CronJobRun to update in case it exists.
+     */
+    where: CronJobRunWhereUniqueInput
+    /**
+     * In case the CronJobRun found by the `where` argument doesn't exist, create a new CronJobRun with this data.
+     */
+    create: XOR<CronJobRunCreateInput, CronJobRunUncheckedCreateInput>
+    /**
+     * In case the CronJobRun was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CronJobRunUpdateInput, CronJobRunUncheckedUpdateInput>
+  }
+
+  /**
+   * CronJobRun delete
+   */
+  export type CronJobRunDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+    /**
+     * Filter which CronJobRun to delete.
+     */
+    where: CronJobRunWhereUniqueInput
+  }
+
+  /**
+   * CronJobRun deleteMany
+   */
+  export type CronJobRunDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CronJobRuns to delete
+     */
+    where?: CronJobRunWhereInput
+    /**
+     * Limit how many CronJobRuns to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CronJobRun without action
+   */
+  export type CronJobRunDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CronJobRun
+     */
+    select?: CronJobRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CronJobRun
+     */
+    omit?: CronJobRunOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserDigestPreference
+   */
+
+  export type AggregateUserDigestPreference = {
+    _count: UserDigestPreferenceCountAggregateOutputType | null
+    _min: UserDigestPreferenceMinAggregateOutputType | null
+    _max: UserDigestPreferenceMaxAggregateOutputType | null
+  }
+
+  export type UserDigestPreferenceMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    orgId: string | null
+    digestFrequency: $Enums.DigestFrequency | null
+    lastDigestSentAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserDigestPreferenceMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    orgId: string | null
+    digestFrequency: $Enums.DigestFrequency | null
+    lastDigestSentAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserDigestPreferenceCountAggregateOutputType = {
+    id: number
+    userId: number
+    orgId: number
+    digestFrequency: number
+    lastDigestSentAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type UserDigestPreferenceMinAggregateInputType = {
+    id?: true
+    userId?: true
+    orgId?: true
+    digestFrequency?: true
+    lastDigestSentAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UserDigestPreferenceMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    orgId?: true
+    digestFrequency?: true
+    lastDigestSentAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UserDigestPreferenceCountAggregateInputType = {
+    id?: true
+    userId?: true
+    orgId?: true
+    digestFrequency?: true
+    lastDigestSentAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type UserDigestPreferenceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserDigestPreference to aggregate.
+     */
+    where?: UserDigestPreferenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserDigestPreferences to fetch.
+     */
+    orderBy?: UserDigestPreferenceOrderByWithRelationInput | UserDigestPreferenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserDigestPreferenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserDigestPreferences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserDigestPreferences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserDigestPreferences
+    **/
+    _count?: true | UserDigestPreferenceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserDigestPreferenceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserDigestPreferenceMaxAggregateInputType
+  }
+
+  export type GetUserDigestPreferenceAggregateType<T extends UserDigestPreferenceAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserDigestPreference]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserDigestPreference[P]>
+      : GetScalarType<T[P], AggregateUserDigestPreference[P]>
+  }
+
+
+
+
+  export type UserDigestPreferenceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserDigestPreferenceWhereInput
+    orderBy?: UserDigestPreferenceOrderByWithAggregationInput | UserDigestPreferenceOrderByWithAggregationInput[]
+    by: UserDigestPreferenceScalarFieldEnum[] | UserDigestPreferenceScalarFieldEnum
+    having?: UserDigestPreferenceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserDigestPreferenceCountAggregateInputType | true
+    _min?: UserDigestPreferenceMinAggregateInputType
+    _max?: UserDigestPreferenceMaxAggregateInputType
+  }
+
+  export type UserDigestPreferenceGroupByOutputType = {
+    id: string
+    userId: string
+    orgId: string
+    digestFrequency: $Enums.DigestFrequency
+    lastDigestSentAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: UserDigestPreferenceCountAggregateOutputType | null
+    _min: UserDigestPreferenceMinAggregateOutputType | null
+    _max: UserDigestPreferenceMaxAggregateOutputType | null
+  }
+
+  type GetUserDigestPreferenceGroupByPayload<T extends UserDigestPreferenceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserDigestPreferenceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserDigestPreferenceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserDigestPreferenceGroupByOutputType[P]>
+            : GetScalarType<T[P], UserDigestPreferenceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserDigestPreferenceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    orgId?: boolean
+    digestFrequency?: boolean
+    lastDigestSentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userDigestPreference"]>
+
+  export type UserDigestPreferenceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    orgId?: boolean
+    digestFrequency?: boolean
+    lastDigestSentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userDigestPreference"]>
+
+  export type UserDigestPreferenceSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    orgId?: boolean
+    digestFrequency?: boolean
+    lastDigestSentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userDigestPreference"]>
+
+  export type UserDigestPreferenceSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    orgId?: boolean
+    digestFrequency?: boolean
+    lastDigestSentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type UserDigestPreferenceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "orgId" | "digestFrequency" | "lastDigestSentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["userDigestPreference"]>
+  export type UserDigestPreferenceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type UserDigestPreferenceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type UserDigestPreferenceIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+
+  export type $UserDigestPreferencePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserDigestPreference"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      orgId: string
+      digestFrequency: $Enums.DigestFrequency
+      lastDigestSentAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["userDigestPreference"]>
+    composites: {}
+  }
+
+  type UserDigestPreferenceGetPayload<S extends boolean | null | undefined | UserDigestPreferenceDefaultArgs> = $Result.GetResult<Prisma.$UserDigestPreferencePayload, S>
+
+  type UserDigestPreferenceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserDigestPreferenceFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserDigestPreferenceCountAggregateInputType | true
+    }
+
+  export interface UserDigestPreferenceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserDigestPreference'], meta: { name: 'UserDigestPreference' } }
+    /**
+     * Find zero or one UserDigestPreference that matches the filter.
+     * @param {UserDigestPreferenceFindUniqueArgs} args - Arguments to find a UserDigestPreference
+     * @example
+     * // Get one UserDigestPreference
+     * const userDigestPreference = await prisma.userDigestPreference.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserDigestPreferenceFindUniqueArgs>(args: SelectSubset<T, UserDigestPreferenceFindUniqueArgs<ExtArgs>>): Prisma__UserDigestPreferenceClient<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one UserDigestPreference that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserDigestPreferenceFindUniqueOrThrowArgs} args - Arguments to find a UserDigestPreference
+     * @example
+     * // Get one UserDigestPreference
+     * const userDigestPreference = await prisma.userDigestPreference.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserDigestPreferenceFindUniqueOrThrowArgs>(args: SelectSubset<T, UserDigestPreferenceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserDigestPreferenceClient<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserDigestPreference that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserDigestPreferenceFindFirstArgs} args - Arguments to find a UserDigestPreference
+     * @example
+     * // Get one UserDigestPreference
+     * const userDigestPreference = await prisma.userDigestPreference.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserDigestPreferenceFindFirstArgs>(args?: SelectSubset<T, UserDigestPreferenceFindFirstArgs<ExtArgs>>): Prisma__UserDigestPreferenceClient<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserDigestPreference that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserDigestPreferenceFindFirstOrThrowArgs} args - Arguments to find a UserDigestPreference
+     * @example
+     * // Get one UserDigestPreference
+     * const userDigestPreference = await prisma.userDigestPreference.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserDigestPreferenceFindFirstOrThrowArgs>(args?: SelectSubset<T, UserDigestPreferenceFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserDigestPreferenceClient<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more UserDigestPreferences that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserDigestPreferenceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserDigestPreferences
+     * const userDigestPreferences = await prisma.userDigestPreference.findMany()
+     * 
+     * // Get first 10 UserDigestPreferences
+     * const userDigestPreferences = await prisma.userDigestPreference.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userDigestPreferenceWithIdOnly = await prisma.userDigestPreference.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserDigestPreferenceFindManyArgs>(args?: SelectSubset<T, UserDigestPreferenceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a UserDigestPreference.
+     * @param {UserDigestPreferenceCreateArgs} args - Arguments to create a UserDigestPreference.
+     * @example
+     * // Create one UserDigestPreference
+     * const UserDigestPreference = await prisma.userDigestPreference.create({
+     *   data: {
+     *     // ... data to create a UserDigestPreference
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserDigestPreferenceCreateArgs>(args: SelectSubset<T, UserDigestPreferenceCreateArgs<ExtArgs>>): Prisma__UserDigestPreferenceClient<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many UserDigestPreferences.
+     * @param {UserDigestPreferenceCreateManyArgs} args - Arguments to create many UserDigestPreferences.
+     * @example
+     * // Create many UserDigestPreferences
+     * const userDigestPreference = await prisma.userDigestPreference.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserDigestPreferenceCreateManyArgs>(args?: SelectSubset<T, UserDigestPreferenceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserDigestPreferences and returns the data saved in the database.
+     * @param {UserDigestPreferenceCreateManyAndReturnArgs} args - Arguments to create many UserDigestPreferences.
+     * @example
+     * // Create many UserDigestPreferences
+     * const userDigestPreference = await prisma.userDigestPreference.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserDigestPreferences and only return the `id`
+     * const userDigestPreferenceWithIdOnly = await prisma.userDigestPreference.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserDigestPreferenceCreateManyAndReturnArgs>(args?: SelectSubset<T, UserDigestPreferenceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a UserDigestPreference.
+     * @param {UserDigestPreferenceDeleteArgs} args - Arguments to delete one UserDigestPreference.
+     * @example
+     * // Delete one UserDigestPreference
+     * const UserDigestPreference = await prisma.userDigestPreference.delete({
+     *   where: {
+     *     // ... filter to delete one UserDigestPreference
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserDigestPreferenceDeleteArgs>(args: SelectSubset<T, UserDigestPreferenceDeleteArgs<ExtArgs>>): Prisma__UserDigestPreferenceClient<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one UserDigestPreference.
+     * @param {UserDigestPreferenceUpdateArgs} args - Arguments to update one UserDigestPreference.
+     * @example
+     * // Update one UserDigestPreference
+     * const userDigestPreference = await prisma.userDigestPreference.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserDigestPreferenceUpdateArgs>(args: SelectSubset<T, UserDigestPreferenceUpdateArgs<ExtArgs>>): Prisma__UserDigestPreferenceClient<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more UserDigestPreferences.
+     * @param {UserDigestPreferenceDeleteManyArgs} args - Arguments to filter UserDigestPreferences to delete.
+     * @example
+     * // Delete a few UserDigestPreferences
+     * const { count } = await prisma.userDigestPreference.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserDigestPreferenceDeleteManyArgs>(args?: SelectSubset<T, UserDigestPreferenceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserDigestPreferences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserDigestPreferenceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserDigestPreferences
+     * const userDigestPreference = await prisma.userDigestPreference.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserDigestPreferenceUpdateManyArgs>(args: SelectSubset<T, UserDigestPreferenceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserDigestPreferences and returns the data updated in the database.
+     * @param {UserDigestPreferenceUpdateManyAndReturnArgs} args - Arguments to update many UserDigestPreferences.
+     * @example
+     * // Update many UserDigestPreferences
+     * const userDigestPreference = await prisma.userDigestPreference.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserDigestPreferences and only return the `id`
+     * const userDigestPreferenceWithIdOnly = await prisma.userDigestPreference.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserDigestPreferenceUpdateManyAndReturnArgs>(args: SelectSubset<T, UserDigestPreferenceUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one UserDigestPreference.
+     * @param {UserDigestPreferenceUpsertArgs} args - Arguments to update or create a UserDigestPreference.
+     * @example
+     * // Update or create a UserDigestPreference
+     * const userDigestPreference = await prisma.userDigestPreference.upsert({
+     *   create: {
+     *     // ... data to create a UserDigestPreference
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserDigestPreference we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserDigestPreferenceUpsertArgs>(args: SelectSubset<T, UserDigestPreferenceUpsertArgs<ExtArgs>>): Prisma__UserDigestPreferenceClient<$Result.GetResult<Prisma.$UserDigestPreferencePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of UserDigestPreferences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserDigestPreferenceCountArgs} args - Arguments to filter UserDigestPreferences to count.
+     * @example
+     * // Count the number of UserDigestPreferences
+     * const count = await prisma.userDigestPreference.count({
+     *   where: {
+     *     // ... the filter for the UserDigestPreferences we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserDigestPreferenceCountArgs>(
+      args?: Subset<T, UserDigestPreferenceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserDigestPreferenceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserDigestPreference.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserDigestPreferenceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserDigestPreferenceAggregateArgs>(args: Subset<T, UserDigestPreferenceAggregateArgs>): Prisma.PrismaPromise<GetUserDigestPreferenceAggregateType<T>>
+
+    /**
+     * Group by UserDigestPreference.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserDigestPreferenceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserDigestPreferenceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserDigestPreferenceGroupByArgs['orderBy'] }
+        : { orderBy?: UserDigestPreferenceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserDigestPreferenceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserDigestPreferenceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserDigestPreference model
+   */
+  readonly fields: UserDigestPreferenceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserDigestPreference.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserDigestPreferenceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserDigestPreference model
+   */
+  interface UserDigestPreferenceFieldRefs {
+    readonly id: FieldRef<"UserDigestPreference", 'String'>
+    readonly userId: FieldRef<"UserDigestPreference", 'String'>
+    readonly orgId: FieldRef<"UserDigestPreference", 'String'>
+    readonly digestFrequency: FieldRef<"UserDigestPreference", 'DigestFrequency'>
+    readonly lastDigestSentAt: FieldRef<"UserDigestPreference", 'DateTime'>
+    readonly createdAt: FieldRef<"UserDigestPreference", 'DateTime'>
+    readonly updatedAt: FieldRef<"UserDigestPreference", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserDigestPreference findUnique
+   */
+  export type UserDigestPreferenceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserDigestPreference to fetch.
+     */
+    where: UserDigestPreferenceWhereUniqueInput
+  }
+
+  /**
+   * UserDigestPreference findUniqueOrThrow
+   */
+  export type UserDigestPreferenceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserDigestPreference to fetch.
+     */
+    where: UserDigestPreferenceWhereUniqueInput
+  }
+
+  /**
+   * UserDigestPreference findFirst
+   */
+  export type UserDigestPreferenceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserDigestPreference to fetch.
+     */
+    where?: UserDigestPreferenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserDigestPreferences to fetch.
+     */
+    orderBy?: UserDigestPreferenceOrderByWithRelationInput | UserDigestPreferenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserDigestPreferences.
+     */
+    cursor?: UserDigestPreferenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserDigestPreferences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserDigestPreferences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserDigestPreferences.
+     */
+    distinct?: UserDigestPreferenceScalarFieldEnum | UserDigestPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * UserDigestPreference findFirstOrThrow
+   */
+  export type UserDigestPreferenceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserDigestPreference to fetch.
+     */
+    where?: UserDigestPreferenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserDigestPreferences to fetch.
+     */
+    orderBy?: UserDigestPreferenceOrderByWithRelationInput | UserDigestPreferenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserDigestPreferences.
+     */
+    cursor?: UserDigestPreferenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserDigestPreferences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserDigestPreferences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserDigestPreferences.
+     */
+    distinct?: UserDigestPreferenceScalarFieldEnum | UserDigestPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * UserDigestPreference findMany
+   */
+  export type UserDigestPreferenceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserDigestPreferences to fetch.
+     */
+    where?: UserDigestPreferenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserDigestPreferences to fetch.
+     */
+    orderBy?: UserDigestPreferenceOrderByWithRelationInput | UserDigestPreferenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserDigestPreferences.
+     */
+    cursor?: UserDigestPreferenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserDigestPreferences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserDigestPreferences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserDigestPreferences.
+     */
+    distinct?: UserDigestPreferenceScalarFieldEnum | UserDigestPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * UserDigestPreference create
+   */
+  export type UserDigestPreferenceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserDigestPreference.
+     */
+    data: XOR<UserDigestPreferenceCreateInput, UserDigestPreferenceUncheckedCreateInput>
+  }
+
+  /**
+   * UserDigestPreference createMany
+   */
+  export type UserDigestPreferenceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserDigestPreferences.
+     */
+    data: UserDigestPreferenceCreateManyInput | UserDigestPreferenceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserDigestPreference createManyAndReturn
+   */
+  export type UserDigestPreferenceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserDigestPreferences.
+     */
+    data: UserDigestPreferenceCreateManyInput | UserDigestPreferenceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserDigestPreference update
+   */
+  export type UserDigestPreferenceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserDigestPreference.
+     */
+    data: XOR<UserDigestPreferenceUpdateInput, UserDigestPreferenceUncheckedUpdateInput>
+    /**
+     * Choose, which UserDigestPreference to update.
+     */
+    where: UserDigestPreferenceWhereUniqueInput
+  }
+
+  /**
+   * UserDigestPreference updateMany
+   */
+  export type UserDigestPreferenceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserDigestPreferences.
+     */
+    data: XOR<UserDigestPreferenceUpdateManyMutationInput, UserDigestPreferenceUncheckedUpdateManyInput>
+    /**
+     * Filter which UserDigestPreferences to update
+     */
+    where?: UserDigestPreferenceWhereInput
+    /**
+     * Limit how many UserDigestPreferences to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserDigestPreference updateManyAndReturn
+   */
+  export type UserDigestPreferenceUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * The data used to update UserDigestPreferences.
+     */
+    data: XOR<UserDigestPreferenceUpdateManyMutationInput, UserDigestPreferenceUncheckedUpdateManyInput>
+    /**
+     * Filter which UserDigestPreferences to update
+     */
+    where?: UserDigestPreferenceWhereInput
+    /**
+     * Limit how many UserDigestPreferences to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserDigestPreference upsert
+   */
+  export type UserDigestPreferenceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserDigestPreference to update in case it exists.
+     */
+    where: UserDigestPreferenceWhereUniqueInput
+    /**
+     * In case the UserDigestPreference found by the `where` argument doesn't exist, create a new UserDigestPreference with this data.
+     */
+    create: XOR<UserDigestPreferenceCreateInput, UserDigestPreferenceUncheckedCreateInput>
+    /**
+     * In case the UserDigestPreference was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserDigestPreferenceUpdateInput, UserDigestPreferenceUncheckedUpdateInput>
+  }
+
+  /**
+   * UserDigestPreference delete
+   */
+  export type UserDigestPreferenceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter which UserDigestPreference to delete.
+     */
+    where: UserDigestPreferenceWhereUniqueInput
+  }
+
+  /**
+   * UserDigestPreference deleteMany
+   */
+  export type UserDigestPreferenceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserDigestPreferences to delete
+     */
+    where?: UserDigestPreferenceWhereInput
+    /**
+     * Limit how many UserDigestPreferences to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserDigestPreference without action
+   */
+  export type UserDigestPreferenceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserDigestPreference
+     */
+    select?: UserDigestPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserDigestPreference
+     */
+    omit?: UserDigestPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserDigestPreferenceInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BulkImportJob
+   */
+
+  export type AggregateBulkImportJob = {
+    _count: BulkImportJobCountAggregateOutputType | null
+    _avg: BulkImportJobAvgAggregateOutputType | null
+    _sum: BulkImportJobSumAggregateOutputType | null
+    _min: BulkImportJobMinAggregateOutputType | null
+    _max: BulkImportJobMaxAggregateOutputType | null
+  }
+
+  export type BulkImportJobAvgAggregateOutputType = {
+    totalRows: number | null
+    processedRows: number | null
+    createdRows: number | null
+    skippedRows: number | null
+  }
+
+  export type BulkImportJobSumAggregateOutputType = {
+    totalRows: number | null
+    processedRows: number | null
+    createdRows: number | null
+    skippedRows: number | null
+  }
+
+  export type BulkImportJobMinAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    uploadedById: string | null
+    status: $Enums.BulkImportStatus | null
+    totalRows: number | null
+    processedRows: number | null
+    createdRows: number | null
+    skippedRows: number | null
+    fileName: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BulkImportJobMaxAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    uploadedById: string | null
+    status: $Enums.BulkImportStatus | null
+    totalRows: number | null
+    processedRows: number | null
+    createdRows: number | null
+    skippedRows: number | null
+    fileName: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BulkImportJobCountAggregateOutputType = {
+    id: number
+    orgId: number
+    uploadedById: number
+    status: number
+    totalRows: number
+    processedRows: number
+    createdRows: number
+    skippedRows: number
+    errorRows: number
+    fileName: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BulkImportJobAvgAggregateInputType = {
+    totalRows?: true
+    processedRows?: true
+    createdRows?: true
+    skippedRows?: true
+  }
+
+  export type BulkImportJobSumAggregateInputType = {
+    totalRows?: true
+    processedRows?: true
+    createdRows?: true
+    skippedRows?: true
+  }
+
+  export type BulkImportJobMinAggregateInputType = {
+    id?: true
+    orgId?: true
+    uploadedById?: true
+    status?: true
+    totalRows?: true
+    processedRows?: true
+    createdRows?: true
+    skippedRows?: true
+    fileName?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BulkImportJobMaxAggregateInputType = {
+    id?: true
+    orgId?: true
+    uploadedById?: true
+    status?: true
+    totalRows?: true
+    processedRows?: true
+    createdRows?: true
+    skippedRows?: true
+    fileName?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BulkImportJobCountAggregateInputType = {
+    id?: true
+    orgId?: true
+    uploadedById?: true
+    status?: true
+    totalRows?: true
+    processedRows?: true
+    createdRows?: true
+    skippedRows?: true
+    errorRows?: true
+    fileName?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BulkImportJobAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BulkImportJob to aggregate.
+     */
+    where?: BulkImportJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BulkImportJobs to fetch.
+     */
+    orderBy?: BulkImportJobOrderByWithRelationInput | BulkImportJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BulkImportJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BulkImportJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BulkImportJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BulkImportJobs
+    **/
+    _count?: true | BulkImportJobCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: BulkImportJobAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: BulkImportJobSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BulkImportJobMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BulkImportJobMaxAggregateInputType
+  }
+
+  export type GetBulkImportJobAggregateType<T extends BulkImportJobAggregateArgs> = {
+        [P in keyof T & keyof AggregateBulkImportJob]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBulkImportJob[P]>
+      : GetScalarType<T[P], AggregateBulkImportJob[P]>
+  }
+
+
+
+
+  export type BulkImportJobGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BulkImportJobWhereInput
+    orderBy?: BulkImportJobOrderByWithAggregationInput | BulkImportJobOrderByWithAggregationInput[]
+    by: BulkImportJobScalarFieldEnum[] | BulkImportJobScalarFieldEnum
+    having?: BulkImportJobScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BulkImportJobCountAggregateInputType | true
+    _avg?: BulkImportJobAvgAggregateInputType
+    _sum?: BulkImportJobSumAggregateInputType
+    _min?: BulkImportJobMinAggregateInputType
+    _max?: BulkImportJobMaxAggregateInputType
+  }
+
+  export type BulkImportJobGroupByOutputType = {
+    id: string
+    orgId: string
+    uploadedById: string
+    status: $Enums.BulkImportStatus
+    totalRows: number
+    processedRows: number
+    createdRows: number
+    skippedRows: number
+    errorRows: JsonValue | null
+    fileName: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: BulkImportJobCountAggregateOutputType | null
+    _avg: BulkImportJobAvgAggregateOutputType | null
+    _sum: BulkImportJobSumAggregateOutputType | null
+    _min: BulkImportJobMinAggregateOutputType | null
+    _max: BulkImportJobMaxAggregateOutputType | null
+  }
+
+  type GetBulkImportJobGroupByPayload<T extends BulkImportJobGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BulkImportJobGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BulkImportJobGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BulkImportJobGroupByOutputType[P]>
+            : GetScalarType<T[P], BulkImportJobGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BulkImportJobSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    uploadedById?: boolean
+    status?: boolean
+    totalRows?: boolean
+    processedRows?: boolean
+    createdRows?: boolean
+    skippedRows?: boolean
+    errorRows?: boolean
+    fileName?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    uploadedBy?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bulkImportJob"]>
+
+  export type BulkImportJobSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    uploadedById?: boolean
+    status?: boolean
+    totalRows?: boolean
+    processedRows?: boolean
+    createdRows?: boolean
+    skippedRows?: boolean
+    errorRows?: boolean
+    fileName?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    uploadedBy?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bulkImportJob"]>
+
+  export type BulkImportJobSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    uploadedById?: boolean
+    status?: boolean
+    totalRows?: boolean
+    processedRows?: boolean
+    createdRows?: boolean
+    skippedRows?: boolean
+    errorRows?: boolean
+    fileName?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    uploadedBy?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bulkImportJob"]>
+
+  export type BulkImportJobSelectScalar = {
+    id?: boolean
+    orgId?: boolean
+    uploadedById?: boolean
+    status?: boolean
+    totalRows?: boolean
+    processedRows?: boolean
+    createdRows?: boolean
+    skippedRows?: boolean
+    errorRows?: boolean
+    fileName?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type BulkImportJobOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "uploadedById" | "status" | "totalRows" | "processedRows" | "createdRows" | "skippedRows" | "errorRows" | "fileName" | "createdAt" | "updatedAt", ExtArgs["result"]["bulkImportJob"]>
+  export type BulkImportJobInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    uploadedBy?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type BulkImportJobIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    uploadedBy?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type BulkImportJobIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    uploadedBy?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $BulkImportJobPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BulkImportJob"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+      uploadedBy: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orgId: string
+      uploadedById: string
+      status: $Enums.BulkImportStatus
+      totalRows: number
+      processedRows: number
+      createdRows: number
+      skippedRows: number
+      errorRows: Prisma.JsonValue | null
+      fileName: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["bulkImportJob"]>
+    composites: {}
+  }
+
+  type BulkImportJobGetPayload<S extends boolean | null | undefined | BulkImportJobDefaultArgs> = $Result.GetResult<Prisma.$BulkImportJobPayload, S>
+
+  type BulkImportJobCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BulkImportJobFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BulkImportJobCountAggregateInputType | true
+    }
+
+  export interface BulkImportJobDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BulkImportJob'], meta: { name: 'BulkImportJob' } }
+    /**
+     * Find zero or one BulkImportJob that matches the filter.
+     * @param {BulkImportJobFindUniqueArgs} args - Arguments to find a BulkImportJob
+     * @example
+     * // Get one BulkImportJob
+     * const bulkImportJob = await prisma.bulkImportJob.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BulkImportJobFindUniqueArgs>(args: SelectSubset<T, BulkImportJobFindUniqueArgs<ExtArgs>>): Prisma__BulkImportJobClient<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BulkImportJob that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BulkImportJobFindUniqueOrThrowArgs} args - Arguments to find a BulkImportJob
+     * @example
+     * // Get one BulkImportJob
+     * const bulkImportJob = await prisma.bulkImportJob.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BulkImportJobFindUniqueOrThrowArgs>(args: SelectSubset<T, BulkImportJobFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BulkImportJobClient<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BulkImportJob that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BulkImportJobFindFirstArgs} args - Arguments to find a BulkImportJob
+     * @example
+     * // Get one BulkImportJob
+     * const bulkImportJob = await prisma.bulkImportJob.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BulkImportJobFindFirstArgs>(args?: SelectSubset<T, BulkImportJobFindFirstArgs<ExtArgs>>): Prisma__BulkImportJobClient<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BulkImportJob that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BulkImportJobFindFirstOrThrowArgs} args - Arguments to find a BulkImportJob
+     * @example
+     * // Get one BulkImportJob
+     * const bulkImportJob = await prisma.bulkImportJob.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BulkImportJobFindFirstOrThrowArgs>(args?: SelectSubset<T, BulkImportJobFindFirstOrThrowArgs<ExtArgs>>): Prisma__BulkImportJobClient<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BulkImportJobs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BulkImportJobFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BulkImportJobs
+     * const bulkImportJobs = await prisma.bulkImportJob.findMany()
+     * 
+     * // Get first 10 BulkImportJobs
+     * const bulkImportJobs = await prisma.bulkImportJob.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const bulkImportJobWithIdOnly = await prisma.bulkImportJob.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BulkImportJobFindManyArgs>(args?: SelectSubset<T, BulkImportJobFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BulkImportJob.
+     * @param {BulkImportJobCreateArgs} args - Arguments to create a BulkImportJob.
+     * @example
+     * // Create one BulkImportJob
+     * const BulkImportJob = await prisma.bulkImportJob.create({
+     *   data: {
+     *     // ... data to create a BulkImportJob
+     *   }
+     * })
+     * 
+     */
+    create<T extends BulkImportJobCreateArgs>(args: SelectSubset<T, BulkImportJobCreateArgs<ExtArgs>>): Prisma__BulkImportJobClient<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BulkImportJobs.
+     * @param {BulkImportJobCreateManyArgs} args - Arguments to create many BulkImportJobs.
+     * @example
+     * // Create many BulkImportJobs
+     * const bulkImportJob = await prisma.bulkImportJob.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BulkImportJobCreateManyArgs>(args?: SelectSubset<T, BulkImportJobCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BulkImportJobs and returns the data saved in the database.
+     * @param {BulkImportJobCreateManyAndReturnArgs} args - Arguments to create many BulkImportJobs.
+     * @example
+     * // Create many BulkImportJobs
+     * const bulkImportJob = await prisma.bulkImportJob.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BulkImportJobs and only return the `id`
+     * const bulkImportJobWithIdOnly = await prisma.bulkImportJob.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BulkImportJobCreateManyAndReturnArgs>(args?: SelectSubset<T, BulkImportJobCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BulkImportJob.
+     * @param {BulkImportJobDeleteArgs} args - Arguments to delete one BulkImportJob.
+     * @example
+     * // Delete one BulkImportJob
+     * const BulkImportJob = await prisma.bulkImportJob.delete({
+     *   where: {
+     *     // ... filter to delete one BulkImportJob
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BulkImportJobDeleteArgs>(args: SelectSubset<T, BulkImportJobDeleteArgs<ExtArgs>>): Prisma__BulkImportJobClient<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BulkImportJob.
+     * @param {BulkImportJobUpdateArgs} args - Arguments to update one BulkImportJob.
+     * @example
+     * // Update one BulkImportJob
+     * const bulkImportJob = await prisma.bulkImportJob.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BulkImportJobUpdateArgs>(args: SelectSubset<T, BulkImportJobUpdateArgs<ExtArgs>>): Prisma__BulkImportJobClient<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BulkImportJobs.
+     * @param {BulkImportJobDeleteManyArgs} args - Arguments to filter BulkImportJobs to delete.
+     * @example
+     * // Delete a few BulkImportJobs
+     * const { count } = await prisma.bulkImportJob.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BulkImportJobDeleteManyArgs>(args?: SelectSubset<T, BulkImportJobDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BulkImportJobs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BulkImportJobUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BulkImportJobs
+     * const bulkImportJob = await prisma.bulkImportJob.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BulkImportJobUpdateManyArgs>(args: SelectSubset<T, BulkImportJobUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BulkImportJobs and returns the data updated in the database.
+     * @param {BulkImportJobUpdateManyAndReturnArgs} args - Arguments to update many BulkImportJobs.
+     * @example
+     * // Update many BulkImportJobs
+     * const bulkImportJob = await prisma.bulkImportJob.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BulkImportJobs and only return the `id`
+     * const bulkImportJobWithIdOnly = await prisma.bulkImportJob.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BulkImportJobUpdateManyAndReturnArgs>(args: SelectSubset<T, BulkImportJobUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BulkImportJob.
+     * @param {BulkImportJobUpsertArgs} args - Arguments to update or create a BulkImportJob.
+     * @example
+     * // Update or create a BulkImportJob
+     * const bulkImportJob = await prisma.bulkImportJob.upsert({
+     *   create: {
+     *     // ... data to create a BulkImportJob
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BulkImportJob we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BulkImportJobUpsertArgs>(args: SelectSubset<T, BulkImportJobUpsertArgs<ExtArgs>>): Prisma__BulkImportJobClient<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BulkImportJobs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BulkImportJobCountArgs} args - Arguments to filter BulkImportJobs to count.
+     * @example
+     * // Count the number of BulkImportJobs
+     * const count = await prisma.bulkImportJob.count({
+     *   where: {
+     *     // ... the filter for the BulkImportJobs we want to count
+     *   }
+     * })
+    **/
+    count<T extends BulkImportJobCountArgs>(
+      args?: Subset<T, BulkImportJobCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BulkImportJobCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BulkImportJob.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BulkImportJobAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BulkImportJobAggregateArgs>(args: Subset<T, BulkImportJobAggregateArgs>): Prisma.PrismaPromise<GetBulkImportJobAggregateType<T>>
+
+    /**
+     * Group by BulkImportJob.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BulkImportJobGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BulkImportJobGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BulkImportJobGroupByArgs['orderBy'] }
+        : { orderBy?: BulkImportJobGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BulkImportJobGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBulkImportJobGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BulkImportJob model
+   */
+  readonly fields: BulkImportJobFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BulkImportJob.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BulkImportJobClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    uploadedBy<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BulkImportJob model
+   */
+  interface BulkImportJobFieldRefs {
+    readonly id: FieldRef<"BulkImportJob", 'String'>
+    readonly orgId: FieldRef<"BulkImportJob", 'String'>
+    readonly uploadedById: FieldRef<"BulkImportJob", 'String'>
+    readonly status: FieldRef<"BulkImportJob", 'BulkImportStatus'>
+    readonly totalRows: FieldRef<"BulkImportJob", 'Int'>
+    readonly processedRows: FieldRef<"BulkImportJob", 'Int'>
+    readonly createdRows: FieldRef<"BulkImportJob", 'Int'>
+    readonly skippedRows: FieldRef<"BulkImportJob", 'Int'>
+    readonly errorRows: FieldRef<"BulkImportJob", 'Json'>
+    readonly fileName: FieldRef<"BulkImportJob", 'String'>
+    readonly createdAt: FieldRef<"BulkImportJob", 'DateTime'>
+    readonly updatedAt: FieldRef<"BulkImportJob", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BulkImportJob findUnique
+   */
+  export type BulkImportJobFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    /**
+     * Filter, which BulkImportJob to fetch.
+     */
+    where: BulkImportJobWhereUniqueInput
+  }
+
+  /**
+   * BulkImportJob findUniqueOrThrow
+   */
+  export type BulkImportJobFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    /**
+     * Filter, which BulkImportJob to fetch.
+     */
+    where: BulkImportJobWhereUniqueInput
+  }
+
+  /**
+   * BulkImportJob findFirst
+   */
+  export type BulkImportJobFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    /**
+     * Filter, which BulkImportJob to fetch.
+     */
+    where?: BulkImportJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BulkImportJobs to fetch.
+     */
+    orderBy?: BulkImportJobOrderByWithRelationInput | BulkImportJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BulkImportJobs.
+     */
+    cursor?: BulkImportJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BulkImportJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BulkImportJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BulkImportJobs.
+     */
+    distinct?: BulkImportJobScalarFieldEnum | BulkImportJobScalarFieldEnum[]
+  }
+
+  /**
+   * BulkImportJob findFirstOrThrow
+   */
+  export type BulkImportJobFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    /**
+     * Filter, which BulkImportJob to fetch.
+     */
+    where?: BulkImportJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BulkImportJobs to fetch.
+     */
+    orderBy?: BulkImportJobOrderByWithRelationInput | BulkImportJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BulkImportJobs.
+     */
+    cursor?: BulkImportJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BulkImportJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BulkImportJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BulkImportJobs.
+     */
+    distinct?: BulkImportJobScalarFieldEnum | BulkImportJobScalarFieldEnum[]
+  }
+
+  /**
+   * BulkImportJob findMany
+   */
+  export type BulkImportJobFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    /**
+     * Filter, which BulkImportJobs to fetch.
+     */
+    where?: BulkImportJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BulkImportJobs to fetch.
+     */
+    orderBy?: BulkImportJobOrderByWithRelationInput | BulkImportJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BulkImportJobs.
+     */
+    cursor?: BulkImportJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BulkImportJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BulkImportJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BulkImportJobs.
+     */
+    distinct?: BulkImportJobScalarFieldEnum | BulkImportJobScalarFieldEnum[]
+  }
+
+  /**
+   * BulkImportJob create
+   */
+  export type BulkImportJobCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BulkImportJob.
+     */
+    data: XOR<BulkImportJobCreateInput, BulkImportJobUncheckedCreateInput>
+  }
+
+  /**
+   * BulkImportJob createMany
+   */
+  export type BulkImportJobCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BulkImportJobs.
+     */
+    data: BulkImportJobCreateManyInput | BulkImportJobCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BulkImportJob createManyAndReturn
+   */
+  export type BulkImportJobCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * The data used to create many BulkImportJobs.
+     */
+    data: BulkImportJobCreateManyInput | BulkImportJobCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BulkImportJob update
+   */
+  export type BulkImportJobUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BulkImportJob.
+     */
+    data: XOR<BulkImportJobUpdateInput, BulkImportJobUncheckedUpdateInput>
+    /**
+     * Choose, which BulkImportJob to update.
+     */
+    where: BulkImportJobWhereUniqueInput
+  }
+
+  /**
+   * BulkImportJob updateMany
+   */
+  export type BulkImportJobUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BulkImportJobs.
+     */
+    data: XOR<BulkImportJobUpdateManyMutationInput, BulkImportJobUncheckedUpdateManyInput>
+    /**
+     * Filter which BulkImportJobs to update
+     */
+    where?: BulkImportJobWhereInput
+    /**
+     * Limit how many BulkImportJobs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BulkImportJob updateManyAndReturn
+   */
+  export type BulkImportJobUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * The data used to update BulkImportJobs.
+     */
+    data: XOR<BulkImportJobUpdateManyMutationInput, BulkImportJobUncheckedUpdateManyInput>
+    /**
+     * Filter which BulkImportJobs to update
+     */
+    where?: BulkImportJobWhereInput
+    /**
+     * Limit how many BulkImportJobs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BulkImportJob upsert
+   */
+  export type BulkImportJobUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BulkImportJob to update in case it exists.
+     */
+    where: BulkImportJobWhereUniqueInput
+    /**
+     * In case the BulkImportJob found by the `where` argument doesn't exist, create a new BulkImportJob with this data.
+     */
+    create: XOR<BulkImportJobCreateInput, BulkImportJobUncheckedCreateInput>
+    /**
+     * In case the BulkImportJob was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BulkImportJobUpdateInput, BulkImportJobUncheckedUpdateInput>
+  }
+
+  /**
+   * BulkImportJob delete
+   */
+  export type BulkImportJobDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+    /**
+     * Filter which BulkImportJob to delete.
+     */
+    where: BulkImportJobWhereUniqueInput
+  }
+
+  /**
+   * BulkImportJob deleteMany
+   */
+  export type BulkImportJobDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BulkImportJobs to delete
+     */
+    where?: BulkImportJobWhereInput
+    /**
+     * Limit how many BulkImportJobs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BulkImportJob without action
+   */
+  export type BulkImportJobDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BulkImportJob
+     */
+    select?: BulkImportJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BulkImportJob
+     */
+    omit?: BulkImportJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BulkImportJobInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -45391,6 +49309,9 @@ export namespace Prisma {
     trialEndsAt: 'trialEndsAt',
     checkrAccessToken: 'checkrAccessToken',
     checkrAccountId: 'checkrAccountId',
+    onboardingProgress: 'onboardingProgress',
+    onboardingDismissedAt: 'onboardingDismissedAt',
+    firstApplicationReceivedAt: 'firstApplicationReceivedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -45647,6 +49568,7 @@ export namespace Prisma {
     userId: 'userId',
     status: 'status',
     notes: 'notes',
+    reminderSentAt: 'reminderSentAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -45756,6 +49678,7 @@ export namespace Prisma {
     claimedByOrgId: 'claimedByOrgId',
     claimedAt: 'claimedAt',
     status: 'status',
+    notifiedAt: 'notifiedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -45784,6 +49707,7 @@ export namespace Prisma {
     body: 'body',
     href: 'href',
     readAt: 'readAt',
+    emailSentAt: 'emailSentAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
@@ -45802,6 +49726,52 @@ export namespace Prisma {
   };
 
   export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferenceScalarFieldEnum)[keyof typeof NotificationPreferenceScalarFieldEnum]
+
+
+  export const CronJobRunScalarFieldEnum: {
+    id: 'id',
+    jobName: 'jobName',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt',
+    status: 'status',
+    resultSummary: 'resultSummary',
+    durationMs: 'durationMs',
+    error: 'error',
+    createdAt: 'createdAt'
+  };
+
+  export type CronJobRunScalarFieldEnum = (typeof CronJobRunScalarFieldEnum)[keyof typeof CronJobRunScalarFieldEnum]
+
+
+  export const UserDigestPreferenceScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    orgId: 'orgId',
+    digestFrequency: 'digestFrequency',
+    lastDigestSentAt: 'lastDigestSentAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type UserDigestPreferenceScalarFieldEnum = (typeof UserDigestPreferenceScalarFieldEnum)[keyof typeof UserDigestPreferenceScalarFieldEnum]
+
+
+  export const BulkImportJobScalarFieldEnum: {
+    id: 'id',
+    orgId: 'orgId',
+    uploadedById: 'uploadedById',
+    status: 'status',
+    totalRows: 'totalRows',
+    processedRows: 'processedRows',
+    createdRows: 'createdRows',
+    skippedRows: 'skippedRows',
+    errorRows: 'errorRows',
+    fileName: 'fileName',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BulkImportJobScalarFieldEnum = (typeof BulkImportJobScalarFieldEnum)[keyof typeof BulkImportJobScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -45914,20 +49884,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Role'
-   */
-  export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
-    
-
-
-  /**
-   * Reference to a field of type 'Role[]'
-   */
-  export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role[]'>
-    
-
-
-  /**
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -45938,6 +49894,20 @@ export namespace Prisma {
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'Role'
+   */
+  export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
+    
+
+
+  /**
+   * Reference to a field of type 'Role[]'
+   */
+  export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role[]'>
     
 
 
@@ -46212,6 +50182,48 @@ export namespace Prisma {
    */
   export type ListEnumNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationType[]'>
     
+
+
+  /**
+   * Reference to a field of type 'CronJobStatus'
+   */
+  export type EnumCronJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CronJobStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'CronJobStatus[]'
+   */
+  export type ListEnumCronJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CronJobStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'DigestFrequency'
+   */
+  export type EnumDigestFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DigestFrequency'>
+    
+
+
+  /**
+   * Reference to a field of type 'DigestFrequency[]'
+   */
+  export type ListEnumDigestFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DigestFrequency[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'BulkImportStatus'
+   */
+  export type EnumBulkImportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BulkImportStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'BulkImportStatus[]'
+   */
+  export type ListEnumBulkImportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BulkImportStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -46243,6 +50255,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationListRelationFilter
     notifications?: NotificationListRelationFilter
     notificationPreferences?: NotificationPreferenceListRelationFilter
+    digestPreferences?: UserDigestPreferenceListRelationFilter
+    bulkImportJobs?: BulkImportJobListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -46268,6 +50282,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationOrderByRelationAggregateInput
     notifications?: NotificationOrderByRelationAggregateInput
     notificationPreferences?: NotificationPreferenceOrderByRelationAggregateInput
+    digestPreferences?: UserDigestPreferenceOrderByRelationAggregateInput
+    bulkImportJobs?: BulkImportJobOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -46296,6 +50312,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationListRelationFilter
     notifications?: NotificationListRelationFilter
     notificationPreferences?: NotificationPreferenceListRelationFilter
+    digestPreferences?: UserDigestPreferenceListRelationFilter
+    bulkImportJobs?: BulkImportJobListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -46606,6 +50624,9 @@ export namespace Prisma {
     trialEndsAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     checkrAccessToken?: StringNullableFilter<"Organization"> | string | null
     checkrAccountId?: StringNullableFilter<"Organization"> | string | null
+    onboardingProgress?: JsonNullableFilter<"Organization">
+    onboardingDismissedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
+    firstApplicationReceivedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
     members?: OrganizationMemberListRelationFilter
@@ -46626,6 +50647,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationListRelationFilter
     notifications?: NotificationListRelationFilter
     notificationPreferences?: NotificationPreferenceListRelationFilter
+    digestPreferences?: UserDigestPreferenceListRelationFilter
+    bulkImportJobs?: BulkImportJobListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -46638,6 +50661,9 @@ export namespace Prisma {
     trialEndsAt?: SortOrderInput | SortOrder
     checkrAccessToken?: SortOrderInput | SortOrder
     checkrAccountId?: SortOrderInput | SortOrder
+    onboardingProgress?: SortOrderInput | SortOrder
+    onboardingDismissedAt?: SortOrderInput | SortOrder
+    firstApplicationReceivedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     members?: OrganizationMemberOrderByRelationAggregateInput
@@ -46658,6 +50684,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationOrderByRelationAggregateInput
     notifications?: NotificationOrderByRelationAggregateInput
     notificationPreferences?: NotificationPreferenceOrderByRelationAggregateInput
+    digestPreferences?: UserDigestPreferenceOrderByRelationAggregateInput
+    bulkImportJobs?: BulkImportJobOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -46673,6 +50701,9 @@ export namespace Prisma {
     planTier?: EnumPlanTierFilter<"Organization"> | $Enums.PlanTier
     trialEndsAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     checkrAccessToken?: StringNullableFilter<"Organization"> | string | null
+    onboardingProgress?: JsonNullableFilter<"Organization">
+    onboardingDismissedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
+    firstApplicationReceivedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
     members?: OrganizationMemberListRelationFilter
@@ -46693,6 +50724,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationListRelationFilter
     notifications?: NotificationListRelationFilter
     notificationPreferences?: NotificationPreferenceListRelationFilter
+    digestPreferences?: UserDigestPreferenceListRelationFilter
+    bulkImportJobs?: BulkImportJobListRelationFilter
   }, "id" | "slug" | "stripeCustomerId" | "stripeSubscriptionId" | "checkrAccountId">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -46705,6 +50738,9 @@ export namespace Prisma {
     trialEndsAt?: SortOrderInput | SortOrder
     checkrAccessToken?: SortOrderInput | SortOrder
     checkrAccountId?: SortOrderInput | SortOrder
+    onboardingProgress?: SortOrderInput | SortOrder
+    onboardingDismissedAt?: SortOrderInput | SortOrder
+    firstApplicationReceivedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: OrganizationCountOrderByAggregateInput
@@ -46725,6 +50761,9 @@ export namespace Prisma {
     trialEndsAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
     checkrAccessToken?: StringNullableWithAggregatesFilter<"Organization"> | string | null
     checkrAccountId?: StringNullableWithAggregatesFilter<"Organization"> | string | null
+    onboardingProgress?: JsonNullableWithAggregatesFilter<"Organization">
+    onboardingDismissedAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
+    firstApplicationReceivedAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Organization"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Organization"> | Date | string
   }
@@ -48048,6 +52087,7 @@ export namespace Prisma {
     userId?: StringFilter<"ShiftSignup"> | string
     status?: EnumSignupStatusFilter<"ShiftSignup"> | $Enums.SignupStatus
     notes?: StringNullableFilter<"ShiftSignup"> | string | null
+    reminderSentAt?: DateTimeNullableFilter<"ShiftSignup"> | Date | string | null
     createdAt?: DateTimeFilter<"ShiftSignup"> | Date | string
     updatedAt?: DateTimeFilter<"ShiftSignup"> | Date | string
     shift?: XOR<ShiftScalarRelationFilter, ShiftWhereInput>
@@ -48060,6 +52100,7 @@ export namespace Prisma {
     userId?: SortOrder
     status?: SortOrder
     notes?: SortOrderInput | SortOrder
+    reminderSentAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     shift?: ShiftOrderByWithRelationInput
@@ -48076,6 +52117,7 @@ export namespace Prisma {
     userId?: StringFilter<"ShiftSignup"> | string
     status?: EnumSignupStatusFilter<"ShiftSignup"> | $Enums.SignupStatus
     notes?: StringNullableFilter<"ShiftSignup"> | string | null
+    reminderSentAt?: DateTimeNullableFilter<"ShiftSignup"> | Date | string | null
     createdAt?: DateTimeFilter<"ShiftSignup"> | Date | string
     updatedAt?: DateTimeFilter<"ShiftSignup"> | Date | string
     shift?: XOR<ShiftScalarRelationFilter, ShiftWhereInput>
@@ -48088,6 +52130,7 @@ export namespace Prisma {
     userId?: SortOrder
     status?: SortOrder
     notes?: SortOrderInput | SortOrder
+    reminderSentAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ShiftSignupCountOrderByAggregateInput
@@ -48104,6 +52147,7 @@ export namespace Prisma {
     userId?: StringWithAggregatesFilter<"ShiftSignup"> | string
     status?: EnumSignupStatusWithAggregatesFilter<"ShiftSignup"> | $Enums.SignupStatus
     notes?: StringNullableWithAggregatesFilter<"ShiftSignup"> | string | null
+    reminderSentAt?: DateTimeNullableWithAggregatesFilter<"ShiftSignup"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ShiftSignup"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ShiftSignup"> | Date | string
   }
@@ -48605,6 +52649,7 @@ export namespace Prisma {
     claimedByOrgId?: StringNullableFilter<"CredentialShareToken"> | string | null
     claimedAt?: DateTimeNullableFilter<"CredentialShareToken"> | Date | string | null
     status?: EnumShareTokenStatusFilter<"CredentialShareToken"> | $Enums.ShareTokenStatus
+    notifiedAt?: DateTimeNullableFilter<"CredentialShareToken"> | Date | string | null
     createdAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
     updatedAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
     credential?: XOR<VolunteerCredentialScalarRelationFilter, VolunteerCredentialWhereInput>
@@ -48621,6 +52666,7 @@ export namespace Prisma {
     claimedByOrgId?: SortOrderInput | SortOrder
     claimedAt?: SortOrderInput | SortOrder
     status?: SortOrder
+    notifiedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     credential?: VolunteerCredentialOrderByWithRelationInput
@@ -48640,6 +52686,7 @@ export namespace Prisma {
     claimedByOrgId?: StringNullableFilter<"CredentialShareToken"> | string | null
     claimedAt?: DateTimeNullableFilter<"CredentialShareToken"> | Date | string | null
     status?: EnumShareTokenStatusFilter<"CredentialShareToken"> | $Enums.ShareTokenStatus
+    notifiedAt?: DateTimeNullableFilter<"CredentialShareToken"> | Date | string | null
     createdAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
     updatedAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
     credential?: XOR<VolunteerCredentialScalarRelationFilter, VolunteerCredentialWhereInput>
@@ -48656,6 +52703,7 @@ export namespace Prisma {
     claimedByOrgId?: SortOrderInput | SortOrder
     claimedAt?: SortOrderInput | SortOrder
     status?: SortOrder
+    notifiedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: CredentialShareTokenCountOrderByAggregateInput
@@ -48675,6 +52723,7 @@ export namespace Prisma {
     claimedByOrgId?: StringNullableWithAggregatesFilter<"CredentialShareToken"> | string | null
     claimedAt?: DateTimeNullableWithAggregatesFilter<"CredentialShareToken"> | Date | string | null
     status?: EnumShareTokenStatusWithAggregatesFilter<"CredentialShareToken"> | $Enums.ShareTokenStatus
+    notifiedAt?: DateTimeNullableWithAggregatesFilter<"CredentialShareToken"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"CredentialShareToken"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"CredentialShareToken"> | Date | string
   }
@@ -48758,6 +52807,7 @@ export namespace Prisma {
     body?: StringFilter<"Notification"> | string
     href?: StringNullableFilter<"Notification"> | string | null
     readAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
+    emailSentAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
     createdAt?: DateTimeFilter<"Notification"> | Date | string
     updatedAt?: DateTimeFilter<"Notification"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
@@ -48774,6 +52824,7 @@ export namespace Prisma {
     body?: SortOrder
     href?: SortOrderInput | SortOrder
     readAt?: SortOrderInput | SortOrder
+    emailSentAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -48793,6 +52844,7 @@ export namespace Prisma {
     body?: StringFilter<"Notification"> | string
     href?: StringNullableFilter<"Notification"> | string | null
     readAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
+    emailSentAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
     createdAt?: DateTimeFilter<"Notification"> | Date | string
     updatedAt?: DateTimeFilter<"Notification"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
@@ -48809,6 +52861,7 @@ export namespace Prisma {
     body?: SortOrder
     href?: SortOrderInput | SortOrder
     readAt?: SortOrderInput | SortOrder
+    emailSentAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -48829,6 +52882,7 @@ export namespace Prisma {
     body?: StringWithAggregatesFilter<"Notification"> | string
     href?: StringNullableWithAggregatesFilter<"Notification"> | string | null
     readAt?: DateTimeNullableWithAggregatesFilter<"Notification"> | Date | string | null
+    emailSentAt?: DateTimeNullableWithAggregatesFilter<"Notification"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Notification"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Notification"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Notification"> | Date | string | null
@@ -48898,6 +52952,244 @@ export namespace Prisma {
     email?: BoolWithAggregatesFilter<"NotificationPreference"> | boolean
   }
 
+  export type CronJobRunWhereInput = {
+    AND?: CronJobRunWhereInput | CronJobRunWhereInput[]
+    OR?: CronJobRunWhereInput[]
+    NOT?: CronJobRunWhereInput | CronJobRunWhereInput[]
+    id?: StringFilter<"CronJobRun"> | string
+    jobName?: StringFilter<"CronJobRun"> | string
+    startedAt?: DateTimeFilter<"CronJobRun"> | Date | string
+    completedAt?: DateTimeNullableFilter<"CronJobRun"> | Date | string | null
+    status?: EnumCronJobStatusFilter<"CronJobRun"> | $Enums.CronJobStatus
+    resultSummary?: JsonNullableFilter<"CronJobRun">
+    durationMs?: IntNullableFilter<"CronJobRun"> | number | null
+    error?: StringNullableFilter<"CronJobRun"> | string | null
+    createdAt?: DateTimeFilter<"CronJobRun"> | Date | string
+  }
+
+  export type CronJobRunOrderByWithRelationInput = {
+    id?: SortOrder
+    jobName?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    status?: SortOrder
+    resultSummary?: SortOrderInput | SortOrder
+    durationMs?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CronJobRunWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CronJobRunWhereInput | CronJobRunWhereInput[]
+    OR?: CronJobRunWhereInput[]
+    NOT?: CronJobRunWhereInput | CronJobRunWhereInput[]
+    jobName?: StringFilter<"CronJobRun"> | string
+    startedAt?: DateTimeFilter<"CronJobRun"> | Date | string
+    completedAt?: DateTimeNullableFilter<"CronJobRun"> | Date | string | null
+    status?: EnumCronJobStatusFilter<"CronJobRun"> | $Enums.CronJobStatus
+    resultSummary?: JsonNullableFilter<"CronJobRun">
+    durationMs?: IntNullableFilter<"CronJobRun"> | number | null
+    error?: StringNullableFilter<"CronJobRun"> | string | null
+    createdAt?: DateTimeFilter<"CronJobRun"> | Date | string
+  }, "id">
+
+  export type CronJobRunOrderByWithAggregationInput = {
+    id?: SortOrder
+    jobName?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    status?: SortOrder
+    resultSummary?: SortOrderInput | SortOrder
+    durationMs?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: CronJobRunCountOrderByAggregateInput
+    _avg?: CronJobRunAvgOrderByAggregateInput
+    _max?: CronJobRunMaxOrderByAggregateInput
+    _min?: CronJobRunMinOrderByAggregateInput
+    _sum?: CronJobRunSumOrderByAggregateInput
+  }
+
+  export type CronJobRunScalarWhereWithAggregatesInput = {
+    AND?: CronJobRunScalarWhereWithAggregatesInput | CronJobRunScalarWhereWithAggregatesInput[]
+    OR?: CronJobRunScalarWhereWithAggregatesInput[]
+    NOT?: CronJobRunScalarWhereWithAggregatesInput | CronJobRunScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CronJobRun"> | string
+    jobName?: StringWithAggregatesFilter<"CronJobRun"> | string
+    startedAt?: DateTimeWithAggregatesFilter<"CronJobRun"> | Date | string
+    completedAt?: DateTimeNullableWithAggregatesFilter<"CronJobRun"> | Date | string | null
+    status?: EnumCronJobStatusWithAggregatesFilter<"CronJobRun"> | $Enums.CronJobStatus
+    resultSummary?: JsonNullableWithAggregatesFilter<"CronJobRun">
+    durationMs?: IntNullableWithAggregatesFilter<"CronJobRun"> | number | null
+    error?: StringNullableWithAggregatesFilter<"CronJobRun"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CronJobRun"> | Date | string
+  }
+
+  export type UserDigestPreferenceWhereInput = {
+    AND?: UserDigestPreferenceWhereInput | UserDigestPreferenceWhereInput[]
+    OR?: UserDigestPreferenceWhereInput[]
+    NOT?: UserDigestPreferenceWhereInput | UserDigestPreferenceWhereInput[]
+    id?: StringFilter<"UserDigestPreference"> | string
+    userId?: StringFilter<"UserDigestPreference"> | string
+    orgId?: StringFilter<"UserDigestPreference"> | string
+    digestFrequency?: EnumDigestFrequencyFilter<"UserDigestPreference"> | $Enums.DigestFrequency
+    lastDigestSentAt?: DateTimeNullableFilter<"UserDigestPreference"> | Date | string | null
+    createdAt?: DateTimeFilter<"UserDigestPreference"> | Date | string
+    updatedAt?: DateTimeFilter<"UserDigestPreference"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }
+
+  export type UserDigestPreferenceOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    digestFrequency?: SortOrder
+    lastDigestSentAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    organization?: OrganizationOrderByWithRelationInput
+  }
+
+  export type UserDigestPreferenceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_orgId?: UserDigestPreferenceUserIdOrgIdCompoundUniqueInput
+    AND?: UserDigestPreferenceWhereInput | UserDigestPreferenceWhereInput[]
+    OR?: UserDigestPreferenceWhereInput[]
+    NOT?: UserDigestPreferenceWhereInput | UserDigestPreferenceWhereInput[]
+    userId?: StringFilter<"UserDigestPreference"> | string
+    orgId?: StringFilter<"UserDigestPreference"> | string
+    digestFrequency?: EnumDigestFrequencyFilter<"UserDigestPreference"> | $Enums.DigestFrequency
+    lastDigestSentAt?: DateTimeNullableFilter<"UserDigestPreference"> | Date | string | null
+    createdAt?: DateTimeFilter<"UserDigestPreference"> | Date | string
+    updatedAt?: DateTimeFilter<"UserDigestPreference"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }, "id" | "userId_orgId">
+
+  export type UserDigestPreferenceOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    digestFrequency?: SortOrder
+    lastDigestSentAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: UserDigestPreferenceCountOrderByAggregateInput
+    _max?: UserDigestPreferenceMaxOrderByAggregateInput
+    _min?: UserDigestPreferenceMinOrderByAggregateInput
+  }
+
+  export type UserDigestPreferenceScalarWhereWithAggregatesInput = {
+    AND?: UserDigestPreferenceScalarWhereWithAggregatesInput | UserDigestPreferenceScalarWhereWithAggregatesInput[]
+    OR?: UserDigestPreferenceScalarWhereWithAggregatesInput[]
+    NOT?: UserDigestPreferenceScalarWhereWithAggregatesInput | UserDigestPreferenceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserDigestPreference"> | string
+    userId?: StringWithAggregatesFilter<"UserDigestPreference"> | string
+    orgId?: StringWithAggregatesFilter<"UserDigestPreference"> | string
+    digestFrequency?: EnumDigestFrequencyWithAggregatesFilter<"UserDigestPreference"> | $Enums.DigestFrequency
+    lastDigestSentAt?: DateTimeNullableWithAggregatesFilter<"UserDigestPreference"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"UserDigestPreference"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"UserDigestPreference"> | Date | string
+  }
+
+  export type BulkImportJobWhereInput = {
+    AND?: BulkImportJobWhereInput | BulkImportJobWhereInput[]
+    OR?: BulkImportJobWhereInput[]
+    NOT?: BulkImportJobWhereInput | BulkImportJobWhereInput[]
+    id?: StringFilter<"BulkImportJob"> | string
+    orgId?: StringFilter<"BulkImportJob"> | string
+    uploadedById?: StringFilter<"BulkImportJob"> | string
+    status?: EnumBulkImportStatusFilter<"BulkImportJob"> | $Enums.BulkImportStatus
+    totalRows?: IntFilter<"BulkImportJob"> | number
+    processedRows?: IntFilter<"BulkImportJob"> | number
+    createdRows?: IntFilter<"BulkImportJob"> | number
+    skippedRows?: IntFilter<"BulkImportJob"> | number
+    errorRows?: JsonNullableFilter<"BulkImportJob">
+    fileName?: StringNullableFilter<"BulkImportJob"> | string | null
+    createdAt?: DateTimeFilter<"BulkImportJob"> | Date | string
+    updatedAt?: DateTimeFilter<"BulkImportJob"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    uploadedBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type BulkImportJobOrderByWithRelationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    uploadedById?: SortOrder
+    status?: SortOrder
+    totalRows?: SortOrder
+    processedRows?: SortOrder
+    createdRows?: SortOrder
+    skippedRows?: SortOrder
+    errorRows?: SortOrderInput | SortOrder
+    fileName?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+    uploadedBy?: UserOrderByWithRelationInput
+  }
+
+  export type BulkImportJobWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: BulkImportJobWhereInput | BulkImportJobWhereInput[]
+    OR?: BulkImportJobWhereInput[]
+    NOT?: BulkImportJobWhereInput | BulkImportJobWhereInput[]
+    orgId?: StringFilter<"BulkImportJob"> | string
+    uploadedById?: StringFilter<"BulkImportJob"> | string
+    status?: EnumBulkImportStatusFilter<"BulkImportJob"> | $Enums.BulkImportStatus
+    totalRows?: IntFilter<"BulkImportJob"> | number
+    processedRows?: IntFilter<"BulkImportJob"> | number
+    createdRows?: IntFilter<"BulkImportJob"> | number
+    skippedRows?: IntFilter<"BulkImportJob"> | number
+    errorRows?: JsonNullableFilter<"BulkImportJob">
+    fileName?: StringNullableFilter<"BulkImportJob"> | string | null
+    createdAt?: DateTimeFilter<"BulkImportJob"> | Date | string
+    updatedAt?: DateTimeFilter<"BulkImportJob"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    uploadedBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type BulkImportJobOrderByWithAggregationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    uploadedById?: SortOrder
+    status?: SortOrder
+    totalRows?: SortOrder
+    processedRows?: SortOrder
+    createdRows?: SortOrder
+    skippedRows?: SortOrder
+    errorRows?: SortOrderInput | SortOrder
+    fileName?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BulkImportJobCountOrderByAggregateInput
+    _avg?: BulkImportJobAvgOrderByAggregateInput
+    _max?: BulkImportJobMaxOrderByAggregateInput
+    _min?: BulkImportJobMinOrderByAggregateInput
+    _sum?: BulkImportJobSumOrderByAggregateInput
+  }
+
+  export type BulkImportJobScalarWhereWithAggregatesInput = {
+    AND?: BulkImportJobScalarWhereWithAggregatesInput | BulkImportJobScalarWhereWithAggregatesInput[]
+    OR?: BulkImportJobScalarWhereWithAggregatesInput[]
+    NOT?: BulkImportJobScalarWhereWithAggregatesInput | BulkImportJobScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BulkImportJob"> | string
+    orgId?: StringWithAggregatesFilter<"BulkImportJob"> | string
+    uploadedById?: StringWithAggregatesFilter<"BulkImportJob"> | string
+    status?: EnumBulkImportStatusWithAggregatesFilter<"BulkImportJob"> | $Enums.BulkImportStatus
+    totalRows?: IntWithAggregatesFilter<"BulkImportJob"> | number
+    processedRows?: IntWithAggregatesFilter<"BulkImportJob"> | number
+    createdRows?: IntWithAggregatesFilter<"BulkImportJob"> | number
+    skippedRows?: IntWithAggregatesFilter<"BulkImportJob"> | number
+    errorRows?: JsonNullableWithAggregatesFilter<"BulkImportJob">
+    fileName?: StringNullableWithAggregatesFilter<"BulkImportJob"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"BulkImportJob"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BulkImportJob"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -48921,6 +53213,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -48946,6 +53240,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUpdateInput = {
@@ -48971,6 +53267,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -48996,6 +53294,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -49321,6 +53621,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -49341,6 +53644,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -49353,6 +53658,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -49373,6 +53681,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -49385,6 +53695,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -49405,6 +53718,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -49417,6 +53732,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -49437,6 +53755,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -49449,6 +53769,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -49463,6 +53786,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -49477,6 +53803,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -50860,6 +55189,7 @@ export namespace Prisma {
     id?: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    reminderSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     shift: ShiftCreateNestedOneWithoutSignupsInput
@@ -50872,6 +55202,7 @@ export namespace Prisma {
     userId: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    reminderSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -50880,6 +55211,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     shift?: ShiftUpdateOneRequiredWithoutSignupsNestedInput
@@ -50892,6 +55224,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -50902,6 +55235,7 @@ export namespace Prisma {
     userId: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    reminderSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -50910,6 +55244,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -50920,6 +55255,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -51446,6 +55782,7 @@ export namespace Prisma {
     expiresAt: Date | string
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     credential: VolunteerCredentialCreateNestedOneWithoutShareTokensInput
@@ -51462,6 +55799,7 @@ export namespace Prisma {
     claimedByOrgId?: string | null
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -51472,6 +55810,7 @@ export namespace Prisma {
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     credential?: VolunteerCredentialUpdateOneRequiredWithoutShareTokensNestedInput
@@ -51488,6 +55827,7 @@ export namespace Prisma {
     claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -51501,6 +55841,7 @@ export namespace Prisma {
     claimedByOrgId?: string | null
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -51511,6 +55852,7 @@ export namespace Prisma {
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -51524,6 +55866,7 @@ export namespace Prisma {
     claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -51595,6 +55938,7 @@ export namespace Prisma {
     body: string
     href?: string | null
     readAt?: Date | string | null
+    emailSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -51611,6 +55955,7 @@ export namespace Prisma {
     body: string
     href?: string | null
     readAt?: Date | string | null
+    emailSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -51623,6 +55968,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51639,6 +55985,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51653,6 +56000,7 @@ export namespace Prisma {
     body: string
     href?: string | null
     readAt?: Date | string | null
+    emailSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -51665,6 +56013,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51679,6 +56028,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51743,6 +56093,261 @@ export namespace Prisma {
     type?: EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
     inApp?: BoolFieldUpdateOperationsInput | boolean
     email?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type CronJobRunCreateInput = {
+    id?: string
+    jobName: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    status: $Enums.CronJobStatus
+    resultSummary?: NullableJsonNullValueInput | InputJsonValue
+    durationMs?: number | null
+    error?: string | null
+    createdAt?: Date | string
+  }
+
+  export type CronJobRunUncheckedCreateInput = {
+    id?: string
+    jobName: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    status: $Enums.CronJobStatus
+    resultSummary?: NullableJsonNullValueInput | InputJsonValue
+    durationMs?: number | null
+    error?: string | null
+    createdAt?: Date | string
+  }
+
+  export type CronJobRunUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    jobName?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumCronJobStatusFieldUpdateOperationsInput | $Enums.CronJobStatus
+    resultSummary?: NullableJsonNullValueInput | InputJsonValue
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CronJobRunUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    jobName?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumCronJobStatusFieldUpdateOperationsInput | $Enums.CronJobStatus
+    resultSummary?: NullableJsonNullValueInput | InputJsonValue
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CronJobRunCreateManyInput = {
+    id?: string
+    jobName: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    status: $Enums.CronJobStatus
+    resultSummary?: NullableJsonNullValueInput | InputJsonValue
+    durationMs?: number | null
+    error?: string | null
+    createdAt?: Date | string
+  }
+
+  export type CronJobRunUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    jobName?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumCronJobStatusFieldUpdateOperationsInput | $Enums.CronJobStatus
+    resultSummary?: NullableJsonNullValueInput | InputJsonValue
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CronJobRunUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    jobName?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumCronJobStatusFieldUpdateOperationsInput | $Enums.CronJobStatus
+    resultSummary?: NullableJsonNullValueInput | InputJsonValue
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserDigestPreferenceCreateInput = {
+    id?: string
+    digestFrequency?: $Enums.DigestFrequency
+    lastDigestSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutDigestPreferencesInput
+    organization: OrganizationCreateNestedOneWithoutDigestPreferencesInput
+  }
+
+  export type UserDigestPreferenceUncheckedCreateInput = {
+    id?: string
+    userId: string
+    orgId: string
+    digestFrequency?: $Enums.DigestFrequency
+    lastDigestSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserDigestPreferenceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutDigestPreferencesNestedInput
+    organization?: OrganizationUpdateOneRequiredWithoutDigestPreferencesNestedInput
+  }
+
+  export type UserDigestPreferenceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserDigestPreferenceCreateManyInput = {
+    id?: string
+    userId: string
+    orgId: string
+    digestFrequency?: $Enums.DigestFrequency
+    lastDigestSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserDigestPreferenceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserDigestPreferenceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BulkImportJobCreateInput = {
+    id?: string
+    status?: $Enums.BulkImportStatus
+    totalRows?: number
+    processedRows?: number
+    createdRows?: number
+    skippedRows?: number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutBulkImportJobsInput
+    uploadedBy: UserCreateNestedOneWithoutBulkImportJobsInput
+  }
+
+  export type BulkImportJobUncheckedCreateInput = {
+    id?: string
+    orgId: string
+    uploadedById: string
+    status?: $Enums.BulkImportStatus
+    totalRows?: number
+    processedRows?: number
+    createdRows?: number
+    skippedRows?: number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BulkImportJobUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutBulkImportJobsNestedInput
+    uploadedBy?: UserUpdateOneRequiredWithoutBulkImportJobsNestedInput
+  }
+
+  export type BulkImportJobUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    uploadedById?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BulkImportJobCreateManyInput = {
+    id?: string
+    orgId: string
+    uploadedById: string
+    status?: $Enums.BulkImportStatus
+    totalRows?: number
+    processedRows?: number
+    createdRows?: number
+    skippedRows?: number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BulkImportJobUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BulkImportJobUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    uploadedById?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -51886,6 +56491,18 @@ export namespace Prisma {
     none?: NotificationPreferenceWhereInput
   }
 
+  export type UserDigestPreferenceListRelationFilter = {
+    every?: UserDigestPreferenceWhereInput
+    some?: UserDigestPreferenceWhereInput
+    none?: UserDigestPreferenceWhereInput
+  }
+
+  export type BulkImportJobListRelationFilter = {
+    every?: BulkImportJobWhereInput
+    some?: BulkImportJobWhereInput
+    none?: BulkImportJobWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -51944,6 +56561,14 @@ export namespace Prisma {
   }
 
   export type NotificationPreferenceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserDigestPreferenceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BulkImportJobOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -52230,6 +56855,29 @@ export namespace Prisma {
     notIn?: $Enums.PlanTier[] | ListEnumPlanTierFieldRefInput<$PrismaModel>
     not?: NestedEnumPlanTierFilter<$PrismaModel> | $Enums.PlanTier
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type FeatureFlagListRelationFilter = {
     every?: FeatureFlagWhereInput
@@ -52311,6 +56959,9 @@ export namespace Prisma {
     trialEndsAt?: SortOrder
     checkrAccessToken?: SortOrder
     checkrAccountId?: SortOrder
+    onboardingProgress?: SortOrder
+    onboardingDismissedAt?: SortOrder
+    firstApplicationReceivedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -52325,6 +56976,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrder
     checkrAccessToken?: SortOrder
     checkrAccountId?: SortOrder
+    onboardingDismissedAt?: SortOrder
+    firstApplicationReceivedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -52339,6 +56992,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrder
     checkrAccessToken?: SortOrder
     checkrAccountId?: SortOrder
+    onboardingDismissedAt?: SortOrder
+    firstApplicationReceivedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -52351,6 +57006,32 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumPlanTierFilter<$PrismaModel>
     _max?: NestedEnumPlanTierFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type EnumRoleFilter<$PrismaModel = never> = {
@@ -52403,29 +57084,6 @@ export namespace Prisma {
     _min?: NestedEnumRoleFilter<$PrismaModel>
     _max?: NestedEnumRoleFilter<$PrismaModel>
   }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type UserNullableScalarRelationFilter = {
     is?: UserWhereInput | null
@@ -52464,32 +57122,6 @@ export namespace Prisma {
     entityType?: SortOrder
     entityId?: SortOrder
     createdAt?: SortOrder
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type BoolFilter<$PrismaModel = never> = {
@@ -53470,6 +58102,7 @@ export namespace Prisma {
     userId?: SortOrder
     status?: SortOrder
     notes?: SortOrder
+    reminderSentAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -53480,6 +58113,7 @@ export namespace Prisma {
     userId?: SortOrder
     status?: SortOrder
     notes?: SortOrder
+    reminderSentAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -53490,6 +58124,7 @@ export namespace Prisma {
     userId?: SortOrder
     status?: SortOrder
     notes?: SortOrder
+    reminderSentAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -53850,6 +58485,7 @@ export namespace Prisma {
     claimedByOrgId?: SortOrder
     claimedAt?: SortOrder
     status?: SortOrder
+    notifiedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -53863,6 +58499,7 @@ export namespace Prisma {
     claimedByOrgId?: SortOrder
     claimedAt?: SortOrder
     status?: SortOrder
+    notifiedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -53876,6 +58513,7 @@ export namespace Prisma {
     claimedByOrgId?: SortOrder
     claimedAt?: SortOrder
     status?: SortOrder
+    notifiedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -53939,6 +58577,7 @@ export namespace Prisma {
     body?: SortOrder
     href?: SortOrder
     readAt?: SortOrder
+    emailSentAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -53953,6 +58592,7 @@ export namespace Prisma {
     body?: SortOrder
     href?: SortOrder
     readAt?: SortOrder
+    emailSentAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -53967,6 +58607,7 @@ export namespace Prisma {
     body?: SortOrder
     href?: SortOrder
     readAt?: SortOrder
+    emailSentAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -54013,6 +58654,191 @@ export namespace Prisma {
     type?: SortOrder
     inApp?: SortOrder
     email?: SortOrder
+  }
+
+  export type EnumCronJobStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CronJobStatus | EnumCronJobStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CronJobStatus[] | ListEnumCronJobStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CronJobStatus[] | ListEnumCronJobStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCronJobStatusFilter<$PrismaModel> | $Enums.CronJobStatus
+  }
+
+  export type CronJobRunCountOrderByAggregateInput = {
+    id?: SortOrder
+    jobName?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    status?: SortOrder
+    resultSummary?: SortOrder
+    durationMs?: SortOrder
+    error?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CronJobRunAvgOrderByAggregateInput = {
+    durationMs?: SortOrder
+  }
+
+  export type CronJobRunMaxOrderByAggregateInput = {
+    id?: SortOrder
+    jobName?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    status?: SortOrder
+    durationMs?: SortOrder
+    error?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CronJobRunMinOrderByAggregateInput = {
+    id?: SortOrder
+    jobName?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    status?: SortOrder
+    durationMs?: SortOrder
+    error?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CronJobRunSumOrderByAggregateInput = {
+    durationMs?: SortOrder
+  }
+
+  export type EnumCronJobStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CronJobStatus | EnumCronJobStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CronJobStatus[] | ListEnumCronJobStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CronJobStatus[] | ListEnumCronJobStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCronJobStatusWithAggregatesFilter<$PrismaModel> | $Enums.CronJobStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCronJobStatusFilter<$PrismaModel>
+    _max?: NestedEnumCronJobStatusFilter<$PrismaModel>
+  }
+
+  export type EnumDigestFrequencyFilter<$PrismaModel = never> = {
+    equals?: $Enums.DigestFrequency | EnumDigestFrequencyFieldRefInput<$PrismaModel>
+    in?: $Enums.DigestFrequency[] | ListEnumDigestFrequencyFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DigestFrequency[] | ListEnumDigestFrequencyFieldRefInput<$PrismaModel>
+    not?: NestedEnumDigestFrequencyFilter<$PrismaModel> | $Enums.DigestFrequency
+  }
+
+  export type UserDigestPreferenceUserIdOrgIdCompoundUniqueInput = {
+    userId: string
+    orgId: string
+  }
+
+  export type UserDigestPreferenceCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    digestFrequency?: SortOrder
+    lastDigestSentAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserDigestPreferenceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    digestFrequency?: SortOrder
+    lastDigestSentAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserDigestPreferenceMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    orgId?: SortOrder
+    digestFrequency?: SortOrder
+    lastDigestSentAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumDigestFrequencyWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DigestFrequency | EnumDigestFrequencyFieldRefInput<$PrismaModel>
+    in?: $Enums.DigestFrequency[] | ListEnumDigestFrequencyFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DigestFrequency[] | ListEnumDigestFrequencyFieldRefInput<$PrismaModel>
+    not?: NestedEnumDigestFrequencyWithAggregatesFilter<$PrismaModel> | $Enums.DigestFrequency
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDigestFrequencyFilter<$PrismaModel>
+    _max?: NestedEnumDigestFrequencyFilter<$PrismaModel>
+  }
+
+  export type EnumBulkImportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportStatus | EnumBulkImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportStatusFilter<$PrismaModel> | $Enums.BulkImportStatus
+  }
+
+  export type BulkImportJobCountOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    uploadedById?: SortOrder
+    status?: SortOrder
+    totalRows?: SortOrder
+    processedRows?: SortOrder
+    createdRows?: SortOrder
+    skippedRows?: SortOrder
+    errorRows?: SortOrder
+    fileName?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BulkImportJobAvgOrderByAggregateInput = {
+    totalRows?: SortOrder
+    processedRows?: SortOrder
+    createdRows?: SortOrder
+    skippedRows?: SortOrder
+  }
+
+  export type BulkImportJobMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    uploadedById?: SortOrder
+    status?: SortOrder
+    totalRows?: SortOrder
+    processedRows?: SortOrder
+    createdRows?: SortOrder
+    skippedRows?: SortOrder
+    fileName?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BulkImportJobMinOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    uploadedById?: SortOrder
+    status?: SortOrder
+    totalRows?: SortOrder
+    processedRows?: SortOrder
+    createdRows?: SortOrder
+    skippedRows?: SortOrder
+    fileName?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BulkImportJobSumOrderByAggregateInput = {
+    totalRows?: SortOrder
+    processedRows?: SortOrder
+    createdRows?: SortOrder
+    skippedRows?: SortOrder
+  }
+
+  export type EnumBulkImportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportStatus | EnumBulkImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportStatusWithAggregatesFilter<$PrismaModel> | $Enums.BulkImportStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBulkImportStatusFilter<$PrismaModel>
+    _max?: NestedEnumBulkImportStatusFilter<$PrismaModel>
   }
 
   export type AccountCreateNestedManyWithoutUserInput = {
@@ -54119,6 +58945,20 @@ export namespace Prisma {
     connect?: NotificationPreferenceWhereUniqueInput | NotificationPreferenceWhereUniqueInput[]
   }
 
+  export type UserDigestPreferenceCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserDigestPreferenceCreateWithoutUserInput, UserDigestPreferenceUncheckedCreateWithoutUserInput> | UserDigestPreferenceCreateWithoutUserInput[] | UserDigestPreferenceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserDigestPreferenceCreateOrConnectWithoutUserInput | UserDigestPreferenceCreateOrConnectWithoutUserInput[]
+    createMany?: UserDigestPreferenceCreateManyUserInputEnvelope
+    connect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+  }
+
+  export type BulkImportJobCreateNestedManyWithoutUploadedByInput = {
+    create?: XOR<BulkImportJobCreateWithoutUploadedByInput, BulkImportJobUncheckedCreateWithoutUploadedByInput> | BulkImportJobCreateWithoutUploadedByInput[] | BulkImportJobUncheckedCreateWithoutUploadedByInput[]
+    connectOrCreate?: BulkImportJobCreateOrConnectWithoutUploadedByInput | BulkImportJobCreateOrConnectWithoutUploadedByInput[]
+    createMany?: BulkImportJobCreateManyUploadedByInputEnvelope
+    connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -54221,6 +59061,20 @@ export namespace Prisma {
     connectOrCreate?: NotificationPreferenceCreateOrConnectWithoutUserInput | NotificationPreferenceCreateOrConnectWithoutUserInput[]
     createMany?: NotificationPreferenceCreateManyUserInputEnvelope
     connect?: NotificationPreferenceWhereUniqueInput | NotificationPreferenceWhereUniqueInput[]
+  }
+
+  export type UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserDigestPreferenceCreateWithoutUserInput, UserDigestPreferenceUncheckedCreateWithoutUserInput> | UserDigestPreferenceCreateWithoutUserInput[] | UserDigestPreferenceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserDigestPreferenceCreateOrConnectWithoutUserInput | UserDigestPreferenceCreateOrConnectWithoutUserInput[]
+    createMany?: UserDigestPreferenceCreateManyUserInputEnvelope
+    connect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+  }
+
+  export type BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput = {
+    create?: XOR<BulkImportJobCreateWithoutUploadedByInput, BulkImportJobUncheckedCreateWithoutUploadedByInput> | BulkImportJobCreateWithoutUploadedByInput[] | BulkImportJobUncheckedCreateWithoutUploadedByInput[]
+    connectOrCreate?: BulkImportJobCreateOrConnectWithoutUploadedByInput | BulkImportJobCreateOrConnectWithoutUploadedByInput[]
+    createMany?: BulkImportJobCreateManyUploadedByInputEnvelope
+    connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -54445,6 +59299,34 @@ export namespace Prisma {
     deleteMany?: NotificationPreferenceScalarWhereInput | NotificationPreferenceScalarWhereInput[]
   }
 
+  export type UserDigestPreferenceUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserDigestPreferenceCreateWithoutUserInput, UserDigestPreferenceUncheckedCreateWithoutUserInput> | UserDigestPreferenceCreateWithoutUserInput[] | UserDigestPreferenceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserDigestPreferenceCreateOrConnectWithoutUserInput | UserDigestPreferenceCreateOrConnectWithoutUserInput[]
+    upsert?: UserDigestPreferenceUpsertWithWhereUniqueWithoutUserInput | UserDigestPreferenceUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserDigestPreferenceCreateManyUserInputEnvelope
+    set?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    disconnect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    delete?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    connect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    update?: UserDigestPreferenceUpdateWithWhereUniqueWithoutUserInput | UserDigestPreferenceUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserDigestPreferenceUpdateManyWithWhereWithoutUserInput | UserDigestPreferenceUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserDigestPreferenceScalarWhereInput | UserDigestPreferenceScalarWhereInput[]
+  }
+
+  export type BulkImportJobUpdateManyWithoutUploadedByNestedInput = {
+    create?: XOR<BulkImportJobCreateWithoutUploadedByInput, BulkImportJobUncheckedCreateWithoutUploadedByInput> | BulkImportJobCreateWithoutUploadedByInput[] | BulkImportJobUncheckedCreateWithoutUploadedByInput[]
+    connectOrCreate?: BulkImportJobCreateOrConnectWithoutUploadedByInput | BulkImportJobCreateOrConnectWithoutUploadedByInput[]
+    upsert?: BulkImportJobUpsertWithWhereUniqueWithoutUploadedByInput | BulkImportJobUpsertWithWhereUniqueWithoutUploadedByInput[]
+    createMany?: BulkImportJobCreateManyUploadedByInputEnvelope
+    set?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    disconnect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    delete?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    update?: BulkImportJobUpdateWithWhereUniqueWithoutUploadedByInput | BulkImportJobUpdateWithWhereUniqueWithoutUploadedByInput[]
+    updateMany?: BulkImportJobUpdateManyWithWhereWithoutUploadedByInput | BulkImportJobUpdateManyWithWhereWithoutUploadedByInput[]
+    deleteMany?: BulkImportJobScalarWhereInput | BulkImportJobScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -54651,6 +59533,34 @@ export namespace Prisma {
     deleteMany?: NotificationPreferenceScalarWhereInput | NotificationPreferenceScalarWhereInput[]
   }
 
+  export type UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserDigestPreferenceCreateWithoutUserInput, UserDigestPreferenceUncheckedCreateWithoutUserInput> | UserDigestPreferenceCreateWithoutUserInput[] | UserDigestPreferenceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserDigestPreferenceCreateOrConnectWithoutUserInput | UserDigestPreferenceCreateOrConnectWithoutUserInput[]
+    upsert?: UserDigestPreferenceUpsertWithWhereUniqueWithoutUserInput | UserDigestPreferenceUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserDigestPreferenceCreateManyUserInputEnvelope
+    set?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    disconnect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    delete?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    connect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    update?: UserDigestPreferenceUpdateWithWhereUniqueWithoutUserInput | UserDigestPreferenceUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserDigestPreferenceUpdateManyWithWhereWithoutUserInput | UserDigestPreferenceUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserDigestPreferenceScalarWhereInput | UserDigestPreferenceScalarWhereInput[]
+  }
+
+  export type BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput = {
+    create?: XOR<BulkImportJobCreateWithoutUploadedByInput, BulkImportJobUncheckedCreateWithoutUploadedByInput> | BulkImportJobCreateWithoutUploadedByInput[] | BulkImportJobUncheckedCreateWithoutUploadedByInput[]
+    connectOrCreate?: BulkImportJobCreateOrConnectWithoutUploadedByInput | BulkImportJobCreateOrConnectWithoutUploadedByInput[]
+    upsert?: BulkImportJobUpsertWithWhereUniqueWithoutUploadedByInput | BulkImportJobUpsertWithWhereUniqueWithoutUploadedByInput[]
+    createMany?: BulkImportJobCreateManyUploadedByInputEnvelope
+    set?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    disconnect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    delete?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    update?: BulkImportJobUpdateWithWhereUniqueWithoutUploadedByInput | BulkImportJobUpdateWithWhereUniqueWithoutUploadedByInput[]
+    updateMany?: BulkImportJobUpdateManyWithWhereWithoutUploadedByInput | BulkImportJobUpdateManyWithWhereWithoutUploadedByInput[]
+    deleteMany?: BulkImportJobScalarWhereInput | BulkImportJobScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutAccountsInput = {
     create?: XOR<UserCreateWithoutAccountsInput, UserUncheckedCreateWithoutAccountsInput>
     connectOrCreate?: UserCreateOrConnectWithoutAccountsInput
@@ -54845,6 +59755,20 @@ export namespace Prisma {
     connect?: NotificationPreferenceWhereUniqueInput | NotificationPreferenceWhereUniqueInput[]
   }
 
+  export type UserDigestPreferenceCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<UserDigestPreferenceCreateWithoutOrganizationInput, UserDigestPreferenceUncheckedCreateWithoutOrganizationInput> | UserDigestPreferenceCreateWithoutOrganizationInput[] | UserDigestPreferenceUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: UserDigestPreferenceCreateOrConnectWithoutOrganizationInput | UserDigestPreferenceCreateOrConnectWithoutOrganizationInput[]
+    createMany?: UserDigestPreferenceCreateManyOrganizationInputEnvelope
+    connect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+  }
+
+  export type BulkImportJobCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<BulkImportJobCreateWithoutOrganizationInput, BulkImportJobUncheckedCreateWithoutOrganizationInput> | BulkImportJobCreateWithoutOrganizationInput[] | BulkImportJobUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BulkImportJobCreateOrConnectWithoutOrganizationInput | BulkImportJobCreateOrConnectWithoutOrganizationInput[]
+    createMany?: BulkImportJobCreateManyOrganizationInputEnvelope
+    connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+  }
+
   export type OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -54969,6 +59893,20 @@ export namespace Prisma {
     connectOrCreate?: NotificationPreferenceCreateOrConnectWithoutOrganizationInput | NotificationPreferenceCreateOrConnectWithoutOrganizationInput[]
     createMany?: NotificationPreferenceCreateManyOrganizationInputEnvelope
     connect?: NotificationPreferenceWhereUniqueInput | NotificationPreferenceWhereUniqueInput[]
+  }
+
+  export type UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<UserDigestPreferenceCreateWithoutOrganizationInput, UserDigestPreferenceUncheckedCreateWithoutOrganizationInput> | UserDigestPreferenceCreateWithoutOrganizationInput[] | UserDigestPreferenceUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: UserDigestPreferenceCreateOrConnectWithoutOrganizationInput | UserDigestPreferenceCreateOrConnectWithoutOrganizationInput[]
+    createMany?: UserDigestPreferenceCreateManyOrganizationInputEnvelope
+    connect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+  }
+
+  export type BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<BulkImportJobCreateWithoutOrganizationInput, BulkImportJobUncheckedCreateWithoutOrganizationInput> | BulkImportJobCreateWithoutOrganizationInput[] | BulkImportJobUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BulkImportJobCreateOrConnectWithoutOrganizationInput | BulkImportJobCreateOrConnectWithoutOrganizationInput[]
+    createMany?: BulkImportJobCreateManyOrganizationInputEnvelope
+    connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
   }
 
   export type EnumPlanTierFieldUpdateOperationsInput = {
@@ -55227,6 +60165,34 @@ export namespace Prisma {
     deleteMany?: NotificationPreferenceScalarWhereInput | NotificationPreferenceScalarWhereInput[]
   }
 
+  export type UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<UserDigestPreferenceCreateWithoutOrganizationInput, UserDigestPreferenceUncheckedCreateWithoutOrganizationInput> | UserDigestPreferenceCreateWithoutOrganizationInput[] | UserDigestPreferenceUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: UserDigestPreferenceCreateOrConnectWithoutOrganizationInput | UserDigestPreferenceCreateOrConnectWithoutOrganizationInput[]
+    upsert?: UserDigestPreferenceUpsertWithWhereUniqueWithoutOrganizationInput | UserDigestPreferenceUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: UserDigestPreferenceCreateManyOrganizationInputEnvelope
+    set?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    disconnect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    delete?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    connect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    update?: UserDigestPreferenceUpdateWithWhereUniqueWithoutOrganizationInput | UserDigestPreferenceUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: UserDigestPreferenceUpdateManyWithWhereWithoutOrganizationInput | UserDigestPreferenceUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: UserDigestPreferenceScalarWhereInput | UserDigestPreferenceScalarWhereInput[]
+  }
+
+  export type BulkImportJobUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<BulkImportJobCreateWithoutOrganizationInput, BulkImportJobUncheckedCreateWithoutOrganizationInput> | BulkImportJobCreateWithoutOrganizationInput[] | BulkImportJobUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BulkImportJobCreateOrConnectWithoutOrganizationInput | BulkImportJobCreateOrConnectWithoutOrganizationInput[]
+    upsert?: BulkImportJobUpsertWithWhereUniqueWithoutOrganizationInput | BulkImportJobUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: BulkImportJobCreateManyOrganizationInputEnvelope
+    set?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    disconnect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    delete?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    update?: BulkImportJobUpdateWithWhereUniqueWithoutOrganizationInput | BulkImportJobUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: BulkImportJobUpdateManyWithWhereWithoutOrganizationInput | BulkImportJobUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: BulkImportJobScalarWhereInput | BulkImportJobScalarWhereInput[]
+  }
+
   export type OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<OrganizationMemberCreateWithoutOrganizationInput, OrganizationMemberUncheckedCreateWithoutOrganizationInput> | OrganizationMemberCreateWithoutOrganizationInput[] | OrganizationMemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: OrganizationMemberCreateOrConnectWithoutOrganizationInput | OrganizationMemberCreateOrConnectWithoutOrganizationInput[]
@@ -55477,6 +60443,34 @@ export namespace Prisma {
     update?: NotificationPreferenceUpdateWithWhereUniqueWithoutOrganizationInput | NotificationPreferenceUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: NotificationPreferenceUpdateManyWithWhereWithoutOrganizationInput | NotificationPreferenceUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: NotificationPreferenceScalarWhereInput | NotificationPreferenceScalarWhereInput[]
+  }
+
+  export type UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<UserDigestPreferenceCreateWithoutOrganizationInput, UserDigestPreferenceUncheckedCreateWithoutOrganizationInput> | UserDigestPreferenceCreateWithoutOrganizationInput[] | UserDigestPreferenceUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: UserDigestPreferenceCreateOrConnectWithoutOrganizationInput | UserDigestPreferenceCreateOrConnectWithoutOrganizationInput[]
+    upsert?: UserDigestPreferenceUpsertWithWhereUniqueWithoutOrganizationInput | UserDigestPreferenceUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: UserDigestPreferenceCreateManyOrganizationInputEnvelope
+    set?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    disconnect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    delete?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    connect?: UserDigestPreferenceWhereUniqueInput | UserDigestPreferenceWhereUniqueInput[]
+    update?: UserDigestPreferenceUpdateWithWhereUniqueWithoutOrganizationInput | UserDigestPreferenceUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: UserDigestPreferenceUpdateManyWithWhereWithoutOrganizationInput | UserDigestPreferenceUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: UserDigestPreferenceScalarWhereInput | UserDigestPreferenceScalarWhereInput[]
+  }
+
+  export type BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<BulkImportJobCreateWithoutOrganizationInput, BulkImportJobUncheckedCreateWithoutOrganizationInput> | BulkImportJobCreateWithoutOrganizationInput[] | BulkImportJobUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BulkImportJobCreateOrConnectWithoutOrganizationInput | BulkImportJobCreateOrConnectWithoutOrganizationInput[]
+    upsert?: BulkImportJobUpsertWithWhereUniqueWithoutOrganizationInput | BulkImportJobUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: BulkImportJobCreateManyOrganizationInputEnvelope
+    set?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    disconnect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    delete?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
+    update?: BulkImportJobUpdateWithWhereUniqueWithoutOrganizationInput | BulkImportJobUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: BulkImportJobUpdateManyWithWhereWithoutOrganizationInput | BulkImportJobUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: BulkImportJobScalarWhereInput | BulkImportJobScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutMembersInput = {
@@ -57126,6 +62120,74 @@ export namespace Prisma {
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutNotificationPreferencesInput, OrganizationUpdateWithoutNotificationPreferencesInput>, OrganizationUncheckedUpdateWithoutNotificationPreferencesInput>
   }
 
+  export type EnumCronJobStatusFieldUpdateOperationsInput = {
+    set?: $Enums.CronJobStatus
+  }
+
+  export type UserCreateNestedOneWithoutDigestPreferencesInput = {
+    create?: XOR<UserCreateWithoutDigestPreferencesInput, UserUncheckedCreateWithoutDigestPreferencesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutDigestPreferencesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type OrganizationCreateNestedOneWithoutDigestPreferencesInput = {
+    create?: XOR<OrganizationCreateWithoutDigestPreferencesInput, OrganizationUncheckedCreateWithoutDigestPreferencesInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutDigestPreferencesInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type EnumDigestFrequencyFieldUpdateOperationsInput = {
+    set?: $Enums.DigestFrequency
+  }
+
+  export type UserUpdateOneRequiredWithoutDigestPreferencesNestedInput = {
+    create?: XOR<UserCreateWithoutDigestPreferencesInput, UserUncheckedCreateWithoutDigestPreferencesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutDigestPreferencesInput
+    upsert?: UserUpsertWithoutDigestPreferencesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutDigestPreferencesInput, UserUpdateWithoutDigestPreferencesInput>, UserUncheckedUpdateWithoutDigestPreferencesInput>
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutDigestPreferencesNestedInput = {
+    create?: XOR<OrganizationCreateWithoutDigestPreferencesInput, OrganizationUncheckedCreateWithoutDigestPreferencesInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutDigestPreferencesInput
+    upsert?: OrganizationUpsertWithoutDigestPreferencesInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutDigestPreferencesInput, OrganizationUpdateWithoutDigestPreferencesInput>, OrganizationUncheckedUpdateWithoutDigestPreferencesInput>
+  }
+
+  export type OrganizationCreateNestedOneWithoutBulkImportJobsInput = {
+    create?: XOR<OrganizationCreateWithoutBulkImportJobsInput, OrganizationUncheckedCreateWithoutBulkImportJobsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutBulkImportJobsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutBulkImportJobsInput = {
+    create?: XOR<UserCreateWithoutBulkImportJobsInput, UserUncheckedCreateWithoutBulkImportJobsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBulkImportJobsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumBulkImportStatusFieldUpdateOperationsInput = {
+    set?: $Enums.BulkImportStatus
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutBulkImportJobsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutBulkImportJobsInput, OrganizationUncheckedCreateWithoutBulkImportJobsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutBulkImportJobsInput
+    upsert?: OrganizationUpsertWithoutBulkImportJobsInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutBulkImportJobsInput, OrganizationUpdateWithoutBulkImportJobsInput>, OrganizationUncheckedUpdateWithoutBulkImportJobsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutBulkImportJobsNestedInput = {
+    create?: XOR<UserCreateWithoutBulkImportJobsInput, UserUncheckedCreateWithoutBulkImportJobsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBulkImportJobsInput
+    upsert?: UserUpsertWithoutBulkImportJobsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBulkImportJobsInput, UserUpdateWithoutBulkImportJobsInput>, UserUncheckedUpdateWithoutBulkImportJobsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -57303,23 +62365,6 @@ export namespace Prisma {
     _min?: NestedEnumPlanTierFilter<$PrismaModel>
     _max?: NestedEnumPlanTierFilter<$PrismaModel>
   }
-
-  export type NestedEnumRoleFilter<$PrismaModel = never> = {
-    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
-    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
-    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
-    not?: NestedEnumRoleFilter<$PrismaModel> | $Enums.Role
-  }
-
-  export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
-    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
-    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
-    not?: NestedEnumRoleWithAggregatesFilter<$PrismaModel> | $Enums.Role
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumRoleFilter<$PrismaModel>
-    _max?: NestedEnumRoleFilter<$PrismaModel>
-  }
   export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -57342,6 +62387,23 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedEnumRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleFilter<$PrismaModel> | $Enums.Role
+  }
+
+  export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleWithAggregatesFilter<$PrismaModel> | $Enums.Role
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRoleFilter<$PrismaModel>
+    _max?: NestedEnumRoleFilter<$PrismaModel>
   }
 
   export type NestedBoolFilter<$PrismaModel = never> = {
@@ -57729,6 +62791,57 @@ export namespace Prisma {
     _max?: NestedEnumNotificationTypeFilter<$PrismaModel>
   }
 
+  export type NestedEnumCronJobStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CronJobStatus | EnumCronJobStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CronJobStatus[] | ListEnumCronJobStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CronJobStatus[] | ListEnumCronJobStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCronJobStatusFilter<$PrismaModel> | $Enums.CronJobStatus
+  }
+
+  export type NestedEnumCronJobStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CronJobStatus | EnumCronJobStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CronJobStatus[] | ListEnumCronJobStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CronJobStatus[] | ListEnumCronJobStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCronJobStatusWithAggregatesFilter<$PrismaModel> | $Enums.CronJobStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCronJobStatusFilter<$PrismaModel>
+    _max?: NestedEnumCronJobStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumDigestFrequencyFilter<$PrismaModel = never> = {
+    equals?: $Enums.DigestFrequency | EnumDigestFrequencyFieldRefInput<$PrismaModel>
+    in?: $Enums.DigestFrequency[] | ListEnumDigestFrequencyFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DigestFrequency[] | ListEnumDigestFrequencyFieldRefInput<$PrismaModel>
+    not?: NestedEnumDigestFrequencyFilter<$PrismaModel> | $Enums.DigestFrequency
+  }
+
+  export type NestedEnumDigestFrequencyWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DigestFrequency | EnumDigestFrequencyFieldRefInput<$PrismaModel>
+    in?: $Enums.DigestFrequency[] | ListEnumDigestFrequencyFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DigestFrequency[] | ListEnumDigestFrequencyFieldRefInput<$PrismaModel>
+    not?: NestedEnumDigestFrequencyWithAggregatesFilter<$PrismaModel> | $Enums.DigestFrequency
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDigestFrequencyFilter<$PrismaModel>
+    _max?: NestedEnumDigestFrequencyFilter<$PrismaModel>
+  }
+
+  export type NestedEnumBulkImportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportStatus | EnumBulkImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportStatusFilter<$PrismaModel> | $Enums.BulkImportStatus
+  }
+
+  export type NestedEnumBulkImportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportStatus | EnumBulkImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportStatusWithAggregatesFilter<$PrismaModel> | $Enums.BulkImportStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBulkImportStatusFilter<$PrismaModel>
+    _max?: NestedEnumBulkImportStatusFilter<$PrismaModel>
+  }
+
   export type AccountCreateWithoutUserInput = {
     id?: string
     type: string
@@ -58016,6 +63129,7 @@ export namespace Prisma {
     id?: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    reminderSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     shift: ShiftCreateNestedOneWithoutSignupsInput
@@ -58026,6 +63140,7 @@ export namespace Prisma {
     shiftId: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    reminderSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -58086,6 +63201,7 @@ export namespace Prisma {
     expiresAt: Date | string
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     credential: VolunteerCredentialCreateNestedOneWithoutShareTokensInput
@@ -58100,6 +63216,7 @@ export namespace Prisma {
     claimedByOrgId?: string | null
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -58147,6 +63264,7 @@ export namespace Prisma {
     body: string
     href?: string | null
     readAt?: Date | string | null
+    emailSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -58161,6 +63279,7 @@ export namespace Prisma {
     body: string
     href?: string | null
     readAt?: Date | string | null
+    emailSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -58199,6 +63318,72 @@ export namespace Prisma {
 
   export type NotificationPreferenceCreateManyUserInputEnvelope = {
     data: NotificationPreferenceCreateManyUserInput | NotificationPreferenceCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserDigestPreferenceCreateWithoutUserInput = {
+    id?: string
+    digestFrequency?: $Enums.DigestFrequency
+    lastDigestSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutDigestPreferencesInput
+  }
+
+  export type UserDigestPreferenceUncheckedCreateWithoutUserInput = {
+    id?: string
+    orgId: string
+    digestFrequency?: $Enums.DigestFrequency
+    lastDigestSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserDigestPreferenceCreateOrConnectWithoutUserInput = {
+    where: UserDigestPreferenceWhereUniqueInput
+    create: XOR<UserDigestPreferenceCreateWithoutUserInput, UserDigestPreferenceUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserDigestPreferenceCreateManyUserInputEnvelope = {
+    data: UserDigestPreferenceCreateManyUserInput | UserDigestPreferenceCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BulkImportJobCreateWithoutUploadedByInput = {
+    id?: string
+    status?: $Enums.BulkImportStatus
+    totalRows?: number
+    processedRows?: number
+    createdRows?: number
+    skippedRows?: number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutBulkImportJobsInput
+  }
+
+  export type BulkImportJobUncheckedCreateWithoutUploadedByInput = {
+    id?: string
+    orgId: string
+    status?: $Enums.BulkImportStatus
+    totalRows?: number
+    processedRows?: number
+    createdRows?: number
+    skippedRows?: number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BulkImportJobCreateOrConnectWithoutUploadedByInput = {
+    where: BulkImportJobWhereUniqueInput
+    create: XOR<BulkImportJobCreateWithoutUploadedByInput, BulkImportJobUncheckedCreateWithoutUploadedByInput>
+  }
+
+  export type BulkImportJobCreateManyUploadedByInputEnvelope = {
+    data: BulkImportJobCreateManyUploadedByInput | BulkImportJobCreateManyUploadedByInput[]
     skipDuplicates?: boolean
   }
 
@@ -58508,6 +63693,7 @@ export namespace Prisma {
     userId?: StringFilter<"ShiftSignup"> | string
     status?: EnumSignupStatusFilter<"ShiftSignup"> | $Enums.SignupStatus
     notes?: StringNullableFilter<"ShiftSignup"> | string | null
+    reminderSentAt?: DateTimeNullableFilter<"ShiftSignup"> | Date | string | null
     createdAt?: DateTimeFilter<"ShiftSignup"> | Date | string
     updatedAt?: DateTimeFilter<"ShiftSignup"> | Date | string
   }
@@ -58575,6 +63761,7 @@ export namespace Prisma {
     claimedByOrgId?: StringNullableFilter<"CredentialShareToken"> | string | null
     claimedAt?: DateTimeNullableFilter<"CredentialShareToken"> | Date | string | null
     status?: EnumShareTokenStatusFilter<"CredentialShareToken"> | $Enums.ShareTokenStatus
+    notifiedAt?: DateTimeNullableFilter<"CredentialShareToken"> | Date | string | null
     createdAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
     updatedAt?: DateTimeFilter<"CredentialShareToken"> | Date | string
   }
@@ -58635,6 +63822,7 @@ export namespace Prisma {
     body?: StringFilter<"Notification"> | string
     href?: StringNullableFilter<"Notification"> | string | null
     readAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
+    emailSentAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
     createdAt?: DateTimeFilter<"Notification"> | Date | string
     updatedAt?: DateTimeFilter<"Notification"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
@@ -58668,6 +63856,69 @@ export namespace Prisma {
     email?: BoolFilter<"NotificationPreference"> | boolean
   }
 
+  export type UserDigestPreferenceUpsertWithWhereUniqueWithoutUserInput = {
+    where: UserDigestPreferenceWhereUniqueInput
+    update: XOR<UserDigestPreferenceUpdateWithoutUserInput, UserDigestPreferenceUncheckedUpdateWithoutUserInput>
+    create: XOR<UserDigestPreferenceCreateWithoutUserInput, UserDigestPreferenceUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserDigestPreferenceUpdateWithWhereUniqueWithoutUserInput = {
+    where: UserDigestPreferenceWhereUniqueInput
+    data: XOR<UserDigestPreferenceUpdateWithoutUserInput, UserDigestPreferenceUncheckedUpdateWithoutUserInput>
+  }
+
+  export type UserDigestPreferenceUpdateManyWithWhereWithoutUserInput = {
+    where: UserDigestPreferenceScalarWhereInput
+    data: XOR<UserDigestPreferenceUpdateManyMutationInput, UserDigestPreferenceUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserDigestPreferenceScalarWhereInput = {
+    AND?: UserDigestPreferenceScalarWhereInput | UserDigestPreferenceScalarWhereInput[]
+    OR?: UserDigestPreferenceScalarWhereInput[]
+    NOT?: UserDigestPreferenceScalarWhereInput | UserDigestPreferenceScalarWhereInput[]
+    id?: StringFilter<"UserDigestPreference"> | string
+    userId?: StringFilter<"UserDigestPreference"> | string
+    orgId?: StringFilter<"UserDigestPreference"> | string
+    digestFrequency?: EnumDigestFrequencyFilter<"UserDigestPreference"> | $Enums.DigestFrequency
+    lastDigestSentAt?: DateTimeNullableFilter<"UserDigestPreference"> | Date | string | null
+    createdAt?: DateTimeFilter<"UserDigestPreference"> | Date | string
+    updatedAt?: DateTimeFilter<"UserDigestPreference"> | Date | string
+  }
+
+  export type BulkImportJobUpsertWithWhereUniqueWithoutUploadedByInput = {
+    where: BulkImportJobWhereUniqueInput
+    update: XOR<BulkImportJobUpdateWithoutUploadedByInput, BulkImportJobUncheckedUpdateWithoutUploadedByInput>
+    create: XOR<BulkImportJobCreateWithoutUploadedByInput, BulkImportJobUncheckedCreateWithoutUploadedByInput>
+  }
+
+  export type BulkImportJobUpdateWithWhereUniqueWithoutUploadedByInput = {
+    where: BulkImportJobWhereUniqueInput
+    data: XOR<BulkImportJobUpdateWithoutUploadedByInput, BulkImportJobUncheckedUpdateWithoutUploadedByInput>
+  }
+
+  export type BulkImportJobUpdateManyWithWhereWithoutUploadedByInput = {
+    where: BulkImportJobScalarWhereInput
+    data: XOR<BulkImportJobUpdateManyMutationInput, BulkImportJobUncheckedUpdateManyWithoutUploadedByInput>
+  }
+
+  export type BulkImportJobScalarWhereInput = {
+    AND?: BulkImportJobScalarWhereInput | BulkImportJobScalarWhereInput[]
+    OR?: BulkImportJobScalarWhereInput[]
+    NOT?: BulkImportJobScalarWhereInput | BulkImportJobScalarWhereInput[]
+    id?: StringFilter<"BulkImportJob"> | string
+    orgId?: StringFilter<"BulkImportJob"> | string
+    uploadedById?: StringFilter<"BulkImportJob"> | string
+    status?: EnumBulkImportStatusFilter<"BulkImportJob"> | $Enums.BulkImportStatus
+    totalRows?: IntFilter<"BulkImportJob"> | number
+    processedRows?: IntFilter<"BulkImportJob"> | number
+    createdRows?: IntFilter<"BulkImportJob"> | number
+    skippedRows?: IntFilter<"BulkImportJob"> | number
+    errorRows?: JsonNullableFilter<"BulkImportJob">
+    fileName?: StringNullableFilter<"BulkImportJob"> | string | null
+    createdAt?: DateTimeFilter<"BulkImportJob"> | Date | string
+    updatedAt?: DateTimeFilter<"BulkImportJob"> | Date | string
+  }
+
   export type UserCreateWithoutAccountsInput = {
     id?: string
     name?: string | null
@@ -58690,6 +63941,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -58714,6 +63967,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -58754,6 +64009,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -58778,6 +64035,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -58802,6 +64061,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -58826,6 +64087,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -58843,6 +64106,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -58862,6 +64128,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSessionsInput = {
@@ -58874,6 +64142,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -58893,6 +64164,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSessionsInput = {
@@ -58970,6 +64243,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -58994,6 +64269,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type OrganizationUpsertWithoutSessionsInput = {
@@ -59017,6 +64294,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -59036,6 +64316,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSessionsInput = {
@@ -59048,6 +64330,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -59067,6 +64352,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type CompanyAccountUpsertWithoutSessionsInput = {
@@ -59470,6 +64757,7 @@ export namespace Prisma {
     expiresAt: Date | string
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     credential: VolunteerCredentialCreateNestedOneWithoutShareTokensInput
@@ -59484,6 +64772,7 @@ export namespace Prisma {
     expiresAt: Date | string
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -59687,6 +64976,7 @@ export namespace Prisma {
     body: string
     href?: string | null
     readAt?: Date | string | null
+    emailSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -59701,6 +64991,7 @@ export namespace Prisma {
     body: string
     href?: string | null
     readAt?: Date | string | null
+    emailSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -59739,6 +65030,72 @@ export namespace Prisma {
 
   export type NotificationPreferenceCreateManyOrganizationInputEnvelope = {
     data: NotificationPreferenceCreateManyOrganizationInput | NotificationPreferenceCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserDigestPreferenceCreateWithoutOrganizationInput = {
+    id?: string
+    digestFrequency?: $Enums.DigestFrequency
+    lastDigestSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutDigestPreferencesInput
+  }
+
+  export type UserDigestPreferenceUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    userId: string
+    digestFrequency?: $Enums.DigestFrequency
+    lastDigestSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserDigestPreferenceCreateOrConnectWithoutOrganizationInput = {
+    where: UserDigestPreferenceWhereUniqueInput
+    create: XOR<UserDigestPreferenceCreateWithoutOrganizationInput, UserDigestPreferenceUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type UserDigestPreferenceCreateManyOrganizationInputEnvelope = {
+    data: UserDigestPreferenceCreateManyOrganizationInput | UserDigestPreferenceCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BulkImportJobCreateWithoutOrganizationInput = {
+    id?: string
+    status?: $Enums.BulkImportStatus
+    totalRows?: number
+    processedRows?: number
+    createdRows?: number
+    skippedRows?: number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    uploadedBy: UserCreateNestedOneWithoutBulkImportJobsInput
+  }
+
+  export type BulkImportJobUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    uploadedById: string
+    status?: $Enums.BulkImportStatus
+    totalRows?: number
+    processedRows?: number
+    createdRows?: number
+    skippedRows?: number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BulkImportJobCreateOrConnectWithoutOrganizationInput = {
+    where: BulkImportJobWhereUniqueInput
+    create: XOR<BulkImportJobCreateWithoutOrganizationInput, BulkImportJobUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type BulkImportJobCreateManyOrganizationInputEnvelope = {
+    data: BulkImportJobCreateManyOrganizationInput | BulkImportJobCreateManyOrganizationInput[]
     skipDuplicates?: boolean
   }
 
@@ -60143,6 +65500,38 @@ export namespace Prisma {
     data: XOR<NotificationPreferenceUpdateManyMutationInput, NotificationPreferenceUncheckedUpdateManyWithoutOrganizationInput>
   }
 
+  export type UserDigestPreferenceUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: UserDigestPreferenceWhereUniqueInput
+    update: XOR<UserDigestPreferenceUpdateWithoutOrganizationInput, UserDigestPreferenceUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<UserDigestPreferenceCreateWithoutOrganizationInput, UserDigestPreferenceUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type UserDigestPreferenceUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: UserDigestPreferenceWhereUniqueInput
+    data: XOR<UserDigestPreferenceUpdateWithoutOrganizationInput, UserDigestPreferenceUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type UserDigestPreferenceUpdateManyWithWhereWithoutOrganizationInput = {
+    where: UserDigestPreferenceScalarWhereInput
+    data: XOR<UserDigestPreferenceUpdateManyMutationInput, UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type BulkImportJobUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: BulkImportJobWhereUniqueInput
+    update: XOR<BulkImportJobUpdateWithoutOrganizationInput, BulkImportJobUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<BulkImportJobCreateWithoutOrganizationInput, BulkImportJobUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type BulkImportJobUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: BulkImportJobWhereUniqueInput
+    data: XOR<BulkImportJobUpdateWithoutOrganizationInput, BulkImportJobUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type BulkImportJobUpdateManyWithWhereWithoutOrganizationInput = {
+    where: BulkImportJobScalarWhereInput
+    data: XOR<BulkImportJobUpdateManyMutationInput, BulkImportJobUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
   export type OrganizationCreateWithoutMembersInput = {
     id?: string
     name: string
@@ -60153,6 +65542,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
@@ -60172,6 +65564,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -60184,6 +65578,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
@@ -60203,6 +65600,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -60232,6 +65631,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -60256,6 +65657,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -60284,6 +65687,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
@@ -60303,6 +65709,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -60315,6 +65723,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -60334,6 +65745,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutMembershipsInput = {
@@ -60369,6 +65782,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -60393,6 +65808,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -60405,6 +65822,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -60424,6 +65844,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
@@ -60436,6 +65858,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -60455,6 +65880,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutAuditLogsInput = {
@@ -60521,6 +65948,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -60545,6 +65974,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -60573,6 +66004,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -60592,6 +66026,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
@@ -60604,6 +66040,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -60623,6 +66062,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type CompanyAccountUpsertWithoutAuditLogsInput = {
@@ -60701,6 +66142,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -60725,6 +66168,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type OrganizationCreateWithoutFeatureFlagsInput = {
@@ -60737,6 +66182,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -60756,6 +66204,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutFeatureFlagsInput = {
@@ -60768,6 +66218,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -60787,6 +66240,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutFeatureFlagsInput = {
@@ -60815,6 +66270,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -60834,6 +66292,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutFeatureFlagsInput = {
@@ -60846,6 +66306,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -60865,6 +66328,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutApplicationsInput = {
@@ -60877,6 +66342,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -60896,6 +66364,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutApplicationsInput = {
@@ -60908,6 +66378,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -60927,6 +66400,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutApplicationsInput = {
@@ -61003,6 +66478,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutSubmittedApplicationsInput = {
@@ -61027,6 +66504,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutSubmittedApplicationsInput = {
@@ -61077,6 +66556,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -61096,6 +66578,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutApplicationsInput = {
@@ -61108,6 +66592,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -61127,6 +66614,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutApplicationsInput = {
@@ -61215,6 +66704,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubmittedApplicationsInput = {
@@ -61239,6 +66730,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type VolunteerAnswerUpsertWithWhereUniqueWithoutApplicationInput = {
@@ -61341,6 +66834,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -61360,6 +66856,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutScreenerQuestionsInput = {
@@ -61372,6 +66870,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -61391,6 +66892,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutScreenerQuestionsInput = {
@@ -61419,6 +66922,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -61438,6 +66944,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutScreenerQuestionsInput = {
@@ -61450,6 +66958,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -61469,6 +66980,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutInvitationsInput = {
@@ -61481,6 +66994,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -61500,6 +67016,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -61512,6 +67030,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -61531,6 +67052,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -61559,6 +67082,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -61578,6 +67104,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -61590,6 +67118,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -61609,6 +67140,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutOpportunitiesInput = {
@@ -61621,6 +67154,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -61640,6 +67176,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutOpportunitiesInput = {
@@ -61652,6 +67190,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -61671,6 +67212,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutOpportunitiesInput = {
@@ -61893,6 +67436,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -61912,6 +67458,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutOpportunitiesInput = {
@@ -61924,6 +67472,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -61943,6 +67494,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OpportunityTagUpsertWithWhereUniqueWithoutOpportunityInput = {
@@ -62619,6 +68172,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutVolunteerSkillsInput = {
@@ -62643,6 +68198,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutVolunteerSkillsInput = {
@@ -62708,6 +68265,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutVolunteerSkillsInput = {
@@ -62732,6 +68291,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type SkillUpsertWithoutVolunteerSkillsInput = {
@@ -62787,6 +68348,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutProfileInput = {
@@ -62811,6 +68374,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutProfileInput = {
@@ -62851,6 +68416,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProfileInput = {
@@ -62875,6 +68442,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserCreateWithoutCredentialsInput = {
@@ -62899,6 +68468,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutCredentialsInput = {
@@ -62923,6 +68494,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutCredentialsInput = {
@@ -62940,6 +68513,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -62959,6 +68535,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCredentialsInput = {
@@ -62971,6 +68549,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -62990,6 +68571,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCredentialsInput = {
@@ -63007,6 +68590,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -63026,6 +68612,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSharedCredentialsInput = {
@@ -63038,6 +68626,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -63057,6 +68648,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSharedCredentialsInput = {
@@ -63105,6 +68698,7 @@ export namespace Prisma {
     expiresAt: Date | string
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy: UserCreateNestedOneWithoutCreatedShareTokensInput
@@ -63119,6 +68713,7 @@ export namespace Prisma {
     claimedByOrgId?: string | null
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -63166,6 +68761,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCredentialsInput = {
@@ -63190,6 +68787,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type OrganizationUpsertWithoutCredentialsInput = {
@@ -63213,6 +68812,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -63232,6 +68834,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCredentialsInput = {
@@ -63244,6 +68848,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -63263,6 +68870,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUpsertWithoutSharedCredentialsInput = {
@@ -63286,6 +68895,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -63305,6 +68917,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSharedCredentialsInput = {
@@ -63317,6 +68931,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -63336,6 +68953,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type BackgroundCheckRequestUpsertWithoutCredentialInput = {
@@ -63405,6 +69024,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -63424,6 +69046,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutShiftTemplatesInput = {
@@ -63436,6 +69060,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -63455,6 +69082,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutShiftTemplatesInput = {
@@ -63574,6 +69203,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -63593,6 +69225,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutShiftTemplatesInput = {
@@ -63605,6 +69239,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -63624,6 +69261,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutShiftTemplatesInput = {
@@ -63705,6 +69344,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -63724,6 +69366,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutShiftsInput = {
@@ -63736,6 +69380,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -63755,6 +69402,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutShiftsInput = {
@@ -63854,6 +69503,7 @@ export namespace Prisma {
     id?: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    reminderSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutShiftSignupsInput
@@ -63864,6 +69514,7 @@ export namespace Prisma {
     userId: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    reminderSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -63899,6 +69550,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -63918,6 +69572,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutShiftsInput = {
@@ -63930,6 +69586,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -63949,6 +69608,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutShiftsInput = {
@@ -64128,6 +69789,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutShiftSignupsInput = {
@@ -64152,6 +69815,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutShiftSignupsInput = {
@@ -64237,6 +69902,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutShiftSignupsInput = {
@@ -64261,6 +69928,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type CompanyMemberCreateWithoutCompanyInput = {
@@ -64558,6 +70227,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutCompanyMembershipsInput = {
@@ -64582,6 +70253,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutCompanyMembershipsInput = {
@@ -64665,6 +70338,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCompanyMembershipsInput = {
@@ -64689,6 +70364,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type CompanyAccountCreateWithoutInvitationsInput = {
@@ -64818,6 +70495,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -64837,6 +70517,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCompanyLinksInput = {
@@ -64849,6 +70531,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -64868,6 +70553,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCompanyLinksInput = {
@@ -64939,6 +70626,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -64958,6 +70648,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCompanyLinksInput = {
@@ -64970,6 +70662,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -64989,6 +70684,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutBackgroundCheckRequestsInput = {
@@ -65001,6 +70698,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -65020,6 +70720,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutBackgroundCheckRequestsInput = {
@@ -65032,6 +70734,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -65051,6 +70756,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutBackgroundCheckRequestsInput = {
@@ -65080,6 +70787,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutBackgroundCheckRequestsInput = {
@@ -65104,6 +70813,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutBackgroundCheckRequestsInput = {
@@ -65173,6 +70884,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -65192,6 +70906,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutBackgroundCheckRequestsInput = {
@@ -65204,6 +70920,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -65223,6 +70942,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutBackgroundCheckRequestsInput = {
@@ -65258,6 +70979,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBackgroundCheckRequestsInput = {
@@ -65282,6 +71005,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type VolunteerCredentialUpsertWithoutBackgroundCheckRequestInput = {
@@ -65394,6 +71119,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutCreatedShareTokensInput = {
@@ -65418,6 +71145,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutCreatedShareTokensInput = {
@@ -65435,6 +71164,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -65454,6 +71186,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutClaimedShareTokensInput = {
@@ -65466,6 +71200,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -65485,6 +71222,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutClaimedShareTokensInput = {
@@ -65572,6 +71311,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedShareTokensInput = {
@@ -65596,6 +71337,8 @@ export namespace Prisma {
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type OrganizationUpsertWithoutClaimedShareTokensInput = {
@@ -65619,6 +71362,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -65638,6 +71384,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutClaimedShareTokensInput = {
@@ -65650,6 +71398,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -65669,6 +71420,8 @@ export namespace Prisma {
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutVolunteerInvitationsInput = {
@@ -65681,6 +71434,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -65700,6 +71456,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutVolunteerInvitationsInput = {
@@ -65712,6 +71470,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -65731,6 +71492,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutVolunteerInvitationsInput = {
@@ -65760,6 +71523,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutReceivedInvitationsInput = {
@@ -65784,6 +71549,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutReceivedInvitationsInput = {
@@ -65859,6 +71626,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -65878,6 +71648,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutVolunteerInvitationsInput = {
@@ -65890,6 +71662,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -65909,6 +71684,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutReceivedInvitationsInput = {
@@ -65944,6 +71721,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutReceivedInvitationsInput = {
@@ -65968,6 +71747,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type VolunteerOpportunityUpsertWithoutVolunteerInvitationsInput = {
@@ -66045,6 +71826,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -66069,6 +71852,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -66086,6 +71871,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -66105,6 +71893,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutNotificationsInput = {
@@ -66117,6 +71907,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -66136,6 +71929,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutNotificationsInput = {
@@ -66176,6 +71971,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -66200,6 +71997,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type OrganizationUpsertWithoutNotificationsInput = {
@@ -66223,6 +72022,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -66242,6 +72044,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutNotificationsInput = {
@@ -66254,6 +72058,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -66273,6 +72080,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserCreateWithoutNotificationPreferencesInput = {
@@ -66297,6 +72106,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
     receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserUncheckedCreateWithoutNotificationPreferencesInput = {
@@ -66321,6 +72132,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
     receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
   }
 
   export type UserCreateOrConnectWithoutNotificationPreferencesInput = {
@@ -66338,6 +72151,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -66357,6 +72173,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutNotificationPreferencesInput = {
@@ -66369,6 +72187,9 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -66388,6 +72209,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
     volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutNotificationPreferencesInput = {
@@ -66428,6 +72251,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
     receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutNotificationPreferencesInput = {
@@ -66452,6 +72277,8 @@ export namespace Prisma {
     createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
     receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
   }
 
   export type OrganizationUpsertWithoutNotificationPreferencesInput = {
@@ -66475,6 +72302,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -66494,6 +72324,8 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutNotificationPreferencesInput = {
@@ -66506,6 +72338,9 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -66525,6 +72360,568 @@ export namespace Prisma {
     backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type UserCreateWithoutDigestPreferencesInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutUploadedByInput
+  }
+
+  export type UserUncheckedCreateWithoutDigestPreferencesInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutUploadedByInput
+  }
+
+  export type UserCreateOrConnectWithoutDigestPreferencesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutDigestPreferencesInput, UserUncheckedCreateWithoutDigestPreferencesInput>
+  }
+
+  export type OrganizationCreateWithoutDigestPreferencesInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
+    notifications?: NotificationCreateNestedManyWithoutOrganizationInput
+    notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutDigestPreferencesInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagUncheckedCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
+    notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutDigestPreferencesInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutDigestPreferencesInput, OrganizationUncheckedCreateWithoutDigestPreferencesInput>
+  }
+
+  export type UserUpsertWithoutDigestPreferencesInput = {
+    update: XOR<UserUpdateWithoutDigestPreferencesInput, UserUncheckedUpdateWithoutDigestPreferencesInput>
+    create: XOR<UserCreateWithoutDigestPreferencesInput, UserUncheckedCreateWithoutDigestPreferencesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutDigestPreferencesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutDigestPreferencesInput, UserUncheckedUpdateWithoutDigestPreferencesInput>
+  }
+
+  export type UserUpdateWithoutDigestPreferencesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutUploadedByNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutDigestPreferencesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutUploadedByNestedInput
+  }
+
+  export type OrganizationUpsertWithoutDigestPreferencesInput = {
+    update: XOR<OrganizationUpdateWithoutDigestPreferencesInput, OrganizationUncheckedUpdateWithoutDigestPreferencesInput>
+    create: XOR<OrganizationCreateWithoutDigestPreferencesInput, OrganizationUncheckedCreateWithoutDigestPreferencesInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutDigestPreferencesInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutDigestPreferencesInput, OrganizationUncheckedUpdateWithoutDigestPreferencesInput>
+  }
+
+  export type OrganizationUpdateWithoutDigestPreferencesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
+    notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
+    notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutDigestPreferencesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUncheckedUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
+    notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationCreateWithoutBulkImportJobsInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationCreateNestedManyWithoutOrganizationInput
+    notifications?: NotificationCreateNestedManyWithoutOrganizationInput
+    notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutBulkImportJobsInput = {
+    id?: string
+    name: string
+    slug: string
+    planTier?: $Enums.PlanTier
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    trialEndsAt?: Date | string | null
+    checkrAccessToken?: string | null
+    checkrAccountId?: string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: Date | string | null
+    firstApplicationReceivedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+    featureFlags?: FeatureFlagUncheckedCreateNestedManyWithoutOrganizationInput
+    applications?: VolunteerApplicationUncheckedCreateNestedManyWithoutOrganizationInput
+    screenerQuestions?: ScreenerQuestionUncheckedCreateNestedManyWithoutOrganizationInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCurrentOrgInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    opportunities?: VolunteerOpportunityUncheckedCreateNestedManyWithoutOrganizationInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+    sharedCredentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutSharedFromOrgInput
+    claimedShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutClaimedByOrgInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+    shiftTemplates?: ShiftTemplateUncheckedCreateNestedManyWithoutOrganizationInput
+    companyLinks?: CompanyNonprofitLinkUncheckedCreateNestedManyWithoutOrgInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    volunteerInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput
+    notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutBulkImportJobsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutBulkImportJobsInput, OrganizationUncheckedCreateWithoutBulkImportJobsInput>
+  }
+
+  export type UserCreateWithoutBulkImportJobsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationCreateNestedManyWithoutVolunteerInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    notificationPreferences?: NotificationPreferenceCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutBulkImportJobsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    memberships?: OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+    companyMemberships?: CompanyMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
+    submittedApplications?: VolunteerApplicationUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    volunteerSkills?: VolunteerSkillUncheckedCreateNestedManyWithoutUserInput
+    profile?: VolunteerProfileUncheckedCreateNestedOneWithoutUserInput
+    credentials?: VolunteerCredentialUncheckedCreateNestedManyWithoutUserInput
+    shiftSignups?: ShiftSignupUncheckedCreateNestedManyWithoutUserInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedCreateNestedManyWithoutUserInput
+    createdShareTokens?: CredentialShareTokenUncheckedCreateNestedManyWithoutCreatedByInput
+    receivedInvitations?: VolunteerInvitationUncheckedCreateNestedManyWithoutVolunteerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    notificationPreferences?: NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+    digestPreferences?: UserDigestPreferenceUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutBulkImportJobsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutBulkImportJobsInput, UserUncheckedCreateWithoutBulkImportJobsInput>
+  }
+
+  export type OrganizationUpsertWithoutBulkImportJobsInput = {
+    update: XOR<OrganizationUpdateWithoutBulkImportJobsInput, OrganizationUncheckedUpdateWithoutBulkImportJobsInput>
+    create: XOR<OrganizationCreateWithoutBulkImportJobsInput, OrganizationUncheckedCreateWithoutBulkImportJobsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutBulkImportJobsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutBulkImportJobsInput, OrganizationUncheckedUpdateWithoutBulkImportJobsInput>
+  }
+
+  export type OrganizationUpdateWithoutBulkImportJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUpdateManyWithoutOrganizationNestedInput
+    notifications?: NotificationUpdateManyWithoutOrganizationNestedInput
+    notificationPreferences?: NotificationPreferenceUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutBulkImportJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    planTier?: EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
+    onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    featureFlags?: FeatureFlagUncheckedUpdateManyWithoutOrganizationNestedInput
+    applications?: VolunteerApplicationUncheckedUpdateManyWithoutOrganizationNestedInput
+    screenerQuestions?: ScreenerQuestionUncheckedUpdateManyWithoutOrganizationNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCurrentOrgNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    opportunities?: VolunteerOpportunityUncheckedUpdateManyWithoutOrganizationNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+    sharedCredentials?: VolunteerCredentialUncheckedUpdateManyWithoutSharedFromOrgNestedInput
+    claimedShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutClaimedByOrgNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+    shiftTemplates?: ShiftTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
+    companyLinks?: CompanyNonprofitLinkUncheckedUpdateManyWithoutOrgNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    volunteerInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput
+    notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type UserUpsertWithoutBulkImportJobsInput = {
+    update: XOR<UserUpdateWithoutBulkImportJobsInput, UserUncheckedUpdateWithoutBulkImportJobsInput>
+    create: XOR<UserCreateWithoutBulkImportJobsInput, UserUncheckedCreateWithoutBulkImportJobsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutBulkImportJobsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutBulkImportJobsInput, UserUncheckedUpdateWithoutBulkImportJobsInput>
+  }
+
+  export type UserUpdateWithoutBulkImportJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUpdateManyWithoutVolunteerNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    notificationPreferences?: NotificationPreferenceUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutBulkImportJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    memberships?: OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
+    companyMemberships?: CompanyMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
+    submittedApplications?: VolunteerApplicationUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    volunteerSkills?: VolunteerSkillUncheckedUpdateManyWithoutUserNestedInput
+    profile?: VolunteerProfileUncheckedUpdateOneWithoutUserNestedInput
+    credentials?: VolunteerCredentialUncheckedUpdateManyWithoutUserNestedInput
+    shiftSignups?: ShiftSignupUncheckedUpdateManyWithoutUserNestedInput
+    backgroundCheckRequests?: BackgroundCheckRequestUncheckedUpdateManyWithoutUserNestedInput
+    createdShareTokens?: CredentialShareTokenUncheckedUpdateManyWithoutCreatedByNestedInput
+    receivedInvitations?: VolunteerInvitationUncheckedUpdateManyWithoutVolunteerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    notificationPreferences?: NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+    digestPreferences?: UserDigestPreferenceUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -66614,6 +73011,7 @@ export namespace Prisma {
     shiftId: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    reminderSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -66641,6 +73039,7 @@ export namespace Prisma {
     claimedByOrgId?: string | null
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -66661,6 +73060,7 @@ export namespace Prisma {
     body: string
     href?: string | null
     readAt?: Date | string | null
+    emailSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -66672,6 +73072,29 @@ export namespace Prisma {
     type: $Enums.NotificationType
     inApp?: boolean
     email?: boolean
+  }
+
+  export type UserDigestPreferenceCreateManyUserInput = {
+    id?: string
+    orgId: string
+    digestFrequency?: $Enums.DigestFrequency
+    lastDigestSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BulkImportJobCreateManyUploadedByInput = {
+    id?: string
+    orgId: string
+    status?: $Enums.BulkImportStatus
+    totalRows?: number
+    processedRows?: number
+    createdRows?: number
+    skippedRows?: number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -66930,6 +73353,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     shift?: ShiftUpdateOneRequiredWithoutSignupsNestedInput
@@ -66940,6 +73364,7 @@ export namespace Prisma {
     shiftId?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -66949,6 +73374,7 @@ export namespace Prisma {
     shiftId?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -67004,6 +73430,7 @@ export namespace Prisma {
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     credential?: VolunteerCredentialUpdateOneRequiredWithoutShareTokensNestedInput
@@ -67018,6 +73445,7 @@ export namespace Prisma {
     claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -67030,6 +73458,7 @@ export namespace Prisma {
     claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -67065,6 +73494,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -67079,6 +73509,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -67092,6 +73523,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -67119,6 +73551,75 @@ export namespace Prisma {
     type?: EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
     inApp?: BoolFieldUpdateOperationsInput | boolean
     email?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type UserDigestPreferenceUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutDigestPreferencesNestedInput
+  }
+
+  export type UserDigestPreferenceUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserDigestPreferenceUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BulkImportJobUpdateWithoutUploadedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutBulkImportJobsNestedInput
+  }
+
+  export type BulkImportJobUncheckedUpdateWithoutUploadedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BulkImportJobUncheckedUpdateManyWithoutUploadedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrganizationMemberCreateManyOrganizationInput = {
@@ -67244,6 +73745,7 @@ export namespace Prisma {
     expiresAt: Date | string
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -67320,6 +73822,7 @@ export namespace Prisma {
     body: string
     href?: string | null
     readAt?: Date | string | null
+    emailSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -67331,6 +73834,29 @@ export namespace Prisma {
     type: $Enums.NotificationType
     inApp?: boolean
     email?: boolean
+  }
+
+  export type UserDigestPreferenceCreateManyOrganizationInput = {
+    id?: string
+    userId: string
+    digestFrequency?: $Enums.DigestFrequency
+    lastDigestSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BulkImportJobCreateManyOrganizationInput = {
+    id?: string
+    uploadedById: string
+    status?: $Enums.BulkImportStatus
+    totalRows?: number
+    processedRows?: number
+    createdRows?: number
+    skippedRows?: number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type OrganizationMemberUpdateWithoutOrganizationInput = {
@@ -67706,6 +74232,7 @@ export namespace Prisma {
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     credential?: VolunteerCredentialUpdateOneRequiredWithoutShareTokensNestedInput
@@ -67720,6 +74247,7 @@ export namespace Prisma {
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -67732,6 +74260,7 @@ export namespace Prisma {
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -67939,6 +74468,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -67953,6 +74483,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -67966,6 +74497,7 @@ export namespace Prisma {
     body?: StringFieldUpdateOperationsInput | string
     href?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -67993,6 +74525,75 @@ export namespace Prisma {
     type?: EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
     inApp?: BoolFieldUpdateOperationsInput | boolean
     email?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type UserDigestPreferenceUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutDigestPreferencesNestedInput
+  }
+
+  export type UserDigestPreferenceUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserDigestPreferenceUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    digestFrequency?: EnumDigestFrequencyFieldUpdateOperationsInput | $Enums.DigestFrequency
+    lastDigestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BulkImportJobUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedBy?: UserUpdateOneRequiredWithoutBulkImportJobsNestedInput
+  }
+
+  export type BulkImportJobUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    uploadedById?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BulkImportJobUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    uploadedById?: StringFieldUpdateOperationsInput | string
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
+    totalRows?: IntFieldUpdateOperationsInput | number
+    processedRows?: IntFieldUpdateOperationsInput | number
+    createdRows?: IntFieldUpdateOperationsInput | number
+    skippedRows?: IntFieldUpdateOperationsInput | number
+    errorRows?: NullableJsonNullValueInput | InputJsonValue
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type VolunteerAnswerCreateManyApplicationInput = {
@@ -68405,6 +75006,7 @@ export namespace Prisma {
     claimedByOrgId?: string | null
     claimedAt?: Date | string | null
     status?: $Enums.ShareTokenStatus
+    notifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -68415,6 +75017,7 @@ export namespace Prisma {
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: UserUpdateOneRequiredWithoutCreatedShareTokensNestedInput
@@ -68429,6 +75032,7 @@ export namespace Prisma {
     claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -68441,6 +75045,7 @@ export namespace Prisma {
     claimedByOrgId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumShareTokenStatusFieldUpdateOperationsInput | $Enums.ShareTokenStatus
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -68516,6 +75121,7 @@ export namespace Prisma {
     userId: string
     status?: $Enums.SignupStatus
     notes?: string | null
+    reminderSentAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -68524,6 +75130,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutShiftSignupsNestedInput
@@ -68534,6 +75141,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -68543,6 +75151,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     status?: EnumSignupStatusFieldUpdateOperationsInput | $Enums.SignupStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

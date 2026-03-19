@@ -66,7 +66,7 @@ export function CompanySwitcher() {
 
 	if (memberships.length === 1) {
 		return (
-			<div className="text-xs text-muted-foreground">
+			<div className="max-w-[120px] truncate text-xs text-muted-foreground sm:max-w-[180px]">
 				{memberships[0]?.company.name}
 			</div>
 		);
@@ -78,7 +78,7 @@ export function CompanySwitcher() {
 				<Button
 					variant="outline"
 					size="sm"
-					className="h-8 min-w-[180px] justify-between text-xs"
+					className="h-8 max-w-[140px] justify-between text-xs sm:max-w-[180px]"
 					disabled={switchMutation.isPending}
 				>
 					<span className="truncate">{currentName}</span>

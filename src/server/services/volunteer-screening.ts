@@ -15,6 +15,7 @@ import {
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { getActiveQuestions } from '@/server/repositories/volunteer-applications';
+import { tryNotify } from '@/server/services/notificationService';
 import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
 interface SubmitVolunteerApplicationPayload {
@@ -130,6 +131,13 @@ export async function submitVolunteerApplication(
 			},
 		});
 
+		// First-volunteer celebration — exactly-once conditional update.
+		// Only sets the timestamp if it hasn't been set yet (WHERE IS NULL).
+		await tx.organization.updateMany({
+			where: { id: orgId, firstApplicationReceivedAt: null },
+			data: { firstApplicationReceivedAt: new Date() },
+		});
+
 		return app;
 	});
 
@@ -139,9 +147,55 @@ export async function submitVolunteerApplication(
 		void checkAndIssueTenureBadges(payload.submittedByUserId);
 	}
 
+	// First-volunteer celebration — notify org admins/owners once.
+	// Check if the timestamp was just set (it's within 5 seconds of now).
+	void notifyFirstApplicationIfNew(orgId);
+
 	return {
 		applicationId: application.id,
 		screeningStatus,
 		screeningReasons,
 	};
+}
+
+/**
+ * If the org just received its first application (timestamp set within last 5s),
+ * send a celebration notification to all org admins and owners.
+ */
+async function notifyFirstApplicationIfNew(orgId: string) {
+	try {
+		const org = await prisma.organization.findUnique({
+			where: { id: orgId },
+			select: {
+				firstApplicationReceivedAt: true,
+				name: true,
+				members: {
+					where: { role: { in: ['ADMIN', 'OWNER'] } },
+					select: { userId: true },
+				},
+			},
+		});
+
+		if (!org?.firstApplicationReceivedAt) return;
+
+		// Only send if the timestamp was just set (within 5 seconds)
+		const elapsed = Date.now() - org.firstApplicationReceivedAt.getTime();
+		if (elapsed > 5000) return;
+
+		for (const member of org.members) {
+			void tryNotify({
+				userId: member.userId,
+				orgId,
+				type: 'FIRST_APPLICATION',
+				title: 'Your first volunteer applied!',
+				body: `Congratulations! ${org.name} just received its first volunteer application. Head to Applications to review it.`,
+				href: '/app/applications',
+			});
+		}
+	} catch (err) {
+		console.error(
+			'[volunteer-screening] notifyFirstApplicationIfNew failed:',
+			err,
+		);
+	}
 }

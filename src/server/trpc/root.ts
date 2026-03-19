@@ -1,8 +1,10 @@
 import { createTRPCRouter } from '@/server/trpc/init';
+import { adminRouter } from '@/server/trpc/routers/admin';
 import { analyticsRouter } from '@/server/trpc/routers/analytics';
 import { authRouter } from '@/server/trpc/routers/auth';
 import { backgroundChecksRouter } from '@/server/trpc/routers/background-checks';
 import { billingRouter } from '@/server/trpc/routers/billing';
+import { bulkImportRouter } from '@/server/trpc/routers/bulk-import';
 import { companyRouter } from '@/server/trpc/routers/company';
 import { credentialSharingRouter } from '@/server/trpc/routers/credentialSharing';
 import { credentialsRouter } from '@/server/trpc/routers/credentials';
@@ -22,10 +24,12 @@ import { shiftsRouter } from '@/server/trpc/routers/shifts';
 import { statusRouter } from '@/server/trpc/routers/status';
 
 export const appRouter = createTRPCRouter({
+	admin: adminRouter,
 	analytics: analyticsRouter,
 	auth: authRouter,
 	backgroundChecks: backgroundChecksRouter,
 	billing: billingRouter,
+	bulkImport: bulkImportRouter,
 	company: companyRouter,
 	credentialSharing: credentialSharingRouter,
 	credentials: credentialsRouter,

@@ -231,6 +231,30 @@ export function companyPlanTierProcedure(requiredTier: PlanTier) {
 	});
 }
 
+/**
+ * Platform admin procedure — checks userId against PLATFORM_ADMIN_IDS env var.
+ * Used for cross-org admin tools (Stripe reconciliation, cron health dashboard).
+ * Separate from org-scoped `adminProcedure`.
+ */
+export const platformAdminProcedure = protectedProcedure.use(
+	({ ctx, next }) => {
+		const adminIds = (process.env.PLATFORM_ADMIN_IDS ?? '')
+			.split(',')
+			.map((id) => id.trim())
+			.filter(Boolean);
+		const userId = ctx.session?.user?.id;
+
+		if (!userId || !adminIds.includes(userId)) {
+			throw new TRPCError({
+				code: 'FORBIDDEN',
+				message: 'Platform admin access required.',
+			});
+		}
+
+		return next({ ctx: { platformAdmin: true as const } });
+	},
+);
+
 function getSessionTokenFromHeaders(req: Request) {
 	const cookie = req.headers.get('cookie');
 	if (!cookie) {
