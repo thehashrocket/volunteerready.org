@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/server/repositories/prisma', () => ({
+	prisma: {
+		cronJobRun: { create: vi.fn(async () => ({})) },
+	},
+}));
+
 vi.mock('@/server/services/credential-expiry-service', () => ({
 	expireStaleCredentialsAndTokens: vi.fn(async () => ({
 		credentialsExpired: 0,
@@ -10,7 +16,14 @@ vi.mock('@/server/services/credential-expiry-service', () => ({
 	})),
 }));
 
+vi.mock('@/server/services/share-token-expiry-service', () => ({
+	notifyExpiringShareTokens: vi.fn(async () => ({
+		tokensNotified: 0,
+	})),
+}));
+
 import * as expiryService from '@/server/services/credential-expiry-service';
+import * as shareTokenService from '@/server/services/share-token-expiry-service';
 import { GET } from '../route';
 
 function makeRequest(authHeader?: string) {
@@ -49,6 +62,11 @@ describe('GET /api/cron/expire-credentials', () => {
 		).mockResolvedValueOnce({
 			notificationsPurged: 5,
 		});
+		vi.mocked(
+			shareTokenService.notifyExpiringShareTokens,
+		).mockResolvedValueOnce({
+			tokensNotified: 2,
+		});
 
 		const res = await GET(makeRequest('Bearer test-secret'));
 		expect(res.status).toBe(200);
@@ -59,6 +77,7 @@ describe('GET /api/cron/expire-credentials', () => {
 			credentialsExpired: 3,
 			tokensExpired: 1,
 			notificationsPurged: 5,
+			tokensNotified: 2,
 		});
 	});
 
