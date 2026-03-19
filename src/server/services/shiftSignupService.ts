@@ -295,11 +295,18 @@ export async function markAttendance(
 	userId: string,
 	status: 'ATTENDED' | 'NO_SHOW',
 	actorId: string,
+	method?: 'manual' | 'qr' | 'geo',
 ) {
 	const shift = await getShiftById(shiftId);
 	if (!shift) throw new Error('Shift not found.');
 
 	return prisma.$transaction(async (tx) => {
+		// Check-then-update: if already ATTENDED, return early (idempotent)
+		const existing = await getSignupByShiftAndUser(shiftId, userId);
+		if (existing?.status === 'ATTENDED' && status === 'ATTENDED') {
+			return { ...existing, alreadyCheckedIn: true };
+		}
+
 		const updated = await updateSignupStatus(tx, shiftId, userId, status);
 
 		await writeAuditLogTx(tx, {
@@ -308,9 +315,37 @@ export async function markAttendance(
 			action: `shift.attendance.${status.toLowerCase()}`,
 			entityType: 'ShiftSignup',
 			entityId: updated.id,
-			metadata: { shiftId, userId, status },
+			metadata: { shiftId, userId, status, method: method ?? 'manual' },
 		});
 
-		return updated;
+		return { ...updated, alreadyCheckedIn: false };
 	});
+}
+
+/**
+ * Get the check-in status for a volunteer on a specific shift.
+ */
+export async function getMyCheckinStatus(shiftId: string, userId: string) {
+	const signup = await getSignupByShiftAndUser(shiftId, userId);
+	if (!signup) return null;
+	return { status: signup.status };
+}
+
+/**
+ * Get check-in stats for a shift (attended count, total confirmed, rate).
+ */
+export async function getCheckinStats(shiftId: string) {
+	const signups = await getSignupsByShift(shiftId);
+	const confirmed = signups.filter(
+		(s) => s.status === 'CONFIRMED' || s.status === 'ATTENDED',
+	);
+	const attended = signups.filter((s) => s.status === 'ATTENDED');
+	return {
+		attended: attended.length,
+		total: confirmed.length,
+		rate:
+			confirmed.length > 0
+				? Math.round((attended.length / confirmed.length) * 100)
+				: 0,
+	};
 }
