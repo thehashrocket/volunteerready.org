@@ -4,6 +4,7 @@ import { analyticsRouter } from '@/server/trpc/routers/analytics';
 import { authRouter } from '@/server/trpc/routers/auth';
 import { backgroundChecksRouter } from '@/server/trpc/routers/background-checks';
 import { billingRouter } from '@/server/trpc/routers/billing';
+import { bulkImportRouter } from '@/server/trpc/routers/bulk-import';
 import { companyRouter } from '@/server/trpc/routers/company';
 import { credentialSharingRouter } from '@/server/trpc/routers/credentialSharing';
 import { credentialsRouter } from '@/server/trpc/routers/credentials';
@@ -28,6 +29,7 @@ export const appRouter = createTRPCRouter({
 	auth: authRouter,
 	backgroundChecks: backgroundChecksRouter,
 	billing: billingRouter,
+	bulkImport: bulkImportRouter,
 	company: companyRouter,
 	credentialSharing: credentialSharingRouter,
 	credentials: credentialsRouter,
