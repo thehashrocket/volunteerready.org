@@ -559,8 +559,9 @@ export default function ShiftsPage() {
 														shift.status === 'FULL' ? (
 															<>
 																<Button
-																	size="sm"
+																	size="icon"
 																	variant="outline"
+																	className="h-11 w-11"
 																	aria-label={`Mark "${shift.title}" complete`}
 																	onClick={() =>
 																		completeMut.mutate({ id: shift.id })
@@ -572,8 +573,9 @@ export default function ShiftsPage() {
 																	/>
 																</Button>
 																<Button
-																	size="sm"
+																	size="icon"
 																	variant="outline"
+																	className="h-11 w-11"
 																	aria-label={`Cancel "${shift.title}"`}
 																	onClick={() =>
 																		cancelMut.mutate({ id: shift.id })
@@ -587,8 +589,9 @@ export default function ShiftsPage() {
 															</>
 														) : null}
 														<Button
-															size="sm"
+															size="icon"
 															variant="ghost"
+															className="h-11 w-11"
 															aria-label={`Delete "${shift.title}"`}
 															onClick={() => {
 																if (
