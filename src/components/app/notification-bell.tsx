@@ -47,7 +47,7 @@ export function NotificationBell() {
 				<Button
 					variant="ghost"
 					size="sm"
-					className="relative h-9 w-9 p-0"
+					className="relative h-11 w-11 p-0"
 					aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
 				>
 					<Bell className="h-4 w-4" aria-hidden="true" />
