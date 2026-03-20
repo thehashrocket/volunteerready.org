@@ -115,9 +115,19 @@ export async function cancelShift(id: string, orgId: string, actorId: string) {
 export async function completeShift(
 	id: string,
 	orgId: string,
-	actorId: string,
+	actorId: string | null,
 ) {
 	const completedShift = await prisma.$transaction(async (tx) => {
+		// Guard: only transition OPEN/FULL → COMPLETED (prevents TOCTOU race
+		// where an admin cancels a shift while the auto-close cron is running)
+		const current = await tx.shift.findUnique({
+			where: { id },
+			select: { status: true },
+		});
+		if (!current || (current.status !== 'OPEN' && current.status !== 'FULL')) {
+			return null;
+		}
+
 		const shift = await updateShift(tx, { id, status: 'COMPLETED' });
 		await writeAuditLogTx(tx, {
 			orgId,
@@ -128,6 +138,10 @@ export async function completeShift(
 		});
 		return shift;
 	});
+
+	if (!completedShift) {
+		return null;
+	}
 
 	// Fire-and-forget: send thank-you notifications to ATTENDED volunteers
 	const signups = await prisma.shiftSignup.findMany({

@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
 	shiftSignupCount: vi.fn(),
 	orgMemberFindMany: vi.fn(),
 	queryRaw: vi.fn(),
+	shiftFindUnique: vi.fn(),
 }));
 
 vi.mock('@/server/repositories/shiftRepo', () => ({
@@ -41,7 +42,9 @@ vi.mock('@/server/lib/email', () => ({
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {
 		$transaction: vi.fn(async (cb: (tx: unknown) => unknown) => {
-			const tx = {};
+			const tx = {
+				shift: { findUnique: mocks.shiftFindUnique },
+			};
 			return cb(tx);
 		}),
 		shiftSignup: {
@@ -84,6 +87,7 @@ function makeCompletedShift() {
 describe('completeShift', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		mocks.shiftFindUnique.mockResolvedValue({ status: 'OPEN' });
 		mocks.updateShift.mockResolvedValue(makeCompletedShift());
 		mocks.shiftSignupCount.mockResolvedValue(5);
 		mocks.orgMemberFindMany.mockResolvedValue([]);
@@ -162,6 +166,17 @@ describe('completeShift', () => {
 		const emailHtml = mocks.sendEmail.mock.calls[0]?.[2] ?? '';
 		expect(emailHtml).not.toContain('<script>');
 		expect(emailHtml).toContain('&lt;script&gt;');
+	});
+
+	it('returns null and skips side effects when shift is already CANCELLED', async () => {
+		mocks.shiftFindUnique.mockResolvedValue({ status: 'CANCELLED' });
+
+		const result = await completeShift(SHIFT_ID, ORG_ID, ACTOR_ID);
+
+		expect(result).toBeNull();
+		expect(mocks.updateShift).not.toHaveBeenCalled();
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+		expect(mocks.tryNotify).not.toHaveBeenCalled();
 	});
 
 	it('writes audit log for shift completion', async () => {

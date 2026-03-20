@@ -1,3 +1,4 @@
+import { waitUntil } from '@vercel/functions';
 import { ApplicationStatus } from '@/prisma/generated/client';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
@@ -93,8 +94,8 @@ export async function createBulkImportJob(opts: {
 		},
 	});
 
-	// Process asynchronously (but in-request for now — can move to queue later)
-	void processImportJob(job.id, opts.orgId, rows, errors);
+	// Process asynchronously — waitUntil keeps the function alive on Vercel serverless
+	waitUntil(processImportJob(job.id, opts.orgId, rows, errors));
 
 	return { jobId: job.id, totalRows: rows.length, parseErrors: errors.length };
 }
