@@ -6,6 +6,10 @@ import {
 } from '@/server/domain/shift';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
+import {
+	findMemberByUserAndOrg,
+	touchMemberActivity,
+} from '@/server/repositories/reengagement-repo';
 import { getShiftById } from '@/server/repositories/shiftRepo';
 import {
 	createSignup,
@@ -131,8 +135,11 @@ export async function signUpForShift(
 		})
 		.then((signup) => {
 			// Fire-and-forget: check if signup unlocks a tenure badge.
-			// Must not throw — badge issuance is best-effort.
 			void checkAndIssueTenureBadges(userId);
+			// Fire-and-forget: update activity timestamp for re-engagement tracking.
+			void findMemberByUserAndOrg(userId, shift.orgId).then((memberId) => {
+				if (memberId) void touchMemberActivity(memberId);
+			});
 			return signup;
 		});
 }
