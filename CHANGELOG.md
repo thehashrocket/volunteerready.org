@@ -11,8 +11,7 @@ All notable changes to this project will be documented in this file.
 - **Organization timezone setting** — Staff can configure org timezone from Team Settings with a searchable dropdown of all IANA timezones.
 - **Volunteer re-engagement emails** — Inactive volunteers receive automated outreach at 30, 60, and 90 days of inactivity. The 60-day email includes org-scoped published opportunities. Each segment fires once per member-org pair; activity resets the cycle.
 - **Activity tracking** — Shift signups and application submissions now update OrganizationMember.lastActivityAt for re-engagement targeting.
-- **Backfill script** — `pnpm backfill:activity` populates lastActivityAt from historical shift signups and volunteer applications.
-- **Shared escapeHtml utility** — Extracted duplicated HTML escaping into `src/server/lib/html.ts`.
+- **Backfill script** — `pnpm backfill:activity` populates activity timestamps from historical shift signups and volunteer applications.
 
 ### Changed
 - Shift reminder and email digest cron schedules changed from daily to hourly (timezone-aware processing).

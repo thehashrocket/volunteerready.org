@@ -134,6 +134,9 @@ Key services:
 - `credentialShareService.ts` — credential sharing: generate, claim, revoke, shareAllOnApply
 - `billingService.ts` — Stripe integration, plan management, billing lifecycle emails (upgrade, payment failed, cancellation)
 - `credential-expiry-service.ts` — daily credential and share token expiry (Vercel Cron)
+- `digest-service.ts` — email digest aggregation with cursor pagination and timezone-aware delivery (Vercel Cron, hourly)
+- `shift-reminder-service.ts` — shift reminder emails with timezone-aware delivery (Vercel Cron, hourly)
+- `reengagement-service.ts` — 30/60/90-day volunteer re-engagement emails (Vercel Cron, daily)
 - `companyService.ts` — corporate account management
 - `employerReportService.ts` — ESG report generation and CSV export
 
