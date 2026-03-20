@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.1] - 2026-03-19
+
+### Added
+- **Phase 10 plan: Scale & Enterprise Readiness** — Complete plan document with 15 deliverables covering digest cron pagination, bulk import durability, Sterling background check adapter, encryption key rotation, shift auto-close cron, org health score, email delivery tracking, admin activity feed, and timezone-aware notification delivery. Triple-reviewed (CEO, Eng, Design) with full design specifications, error handling requirements, deployment sequence, and test requirements.
+
 ## [0.13.0] - 2026-03-20
 
 ### Added
