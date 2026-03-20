@@ -110,9 +110,21 @@ export const shiftsRouter = createTRPCRouter({
 	/** Mark a shift as completed. */
 	complete: staffProcedure
 		.input(z.object({ id: z.string() }))
-		.mutation(({ ctx, input }) =>
-			completeShift(input.id, ctx.orgId, requireUserId(ctx.session)),
-		),
+		.mutation(async ({ ctx, input }) => {
+			const result = await completeShift(
+				input.id,
+				ctx.orgId,
+				requireUserId(ctx.session),
+			);
+			if (!result) {
+				throw new TRPCError({
+					code: 'CONFLICT',
+					message:
+						'Shift cannot be completed — it may have been cancelled or already completed.',
+				});
+			}
+			return result;
+		}),
 
 	/** Delete a shift entirely. */
 	remove: staffProcedure

@@ -118,17 +118,19 @@ export async function completeShift(
 	actorId: string | null,
 ) {
 	const completedShift = await prisma.$transaction(async (tx) => {
-		// Guard: only transition OPEN/FULL → COMPLETED (prevents TOCTOU race
-		// where an admin cancels a shift while the auto-close cron is running)
-		const current = await tx.shift.findUnique({
-			where: { id },
-			select: { status: true },
+		// Atomic conditional update: only transition OPEN/FULL → COMPLETED.
+		// Uses updateMany with a status WHERE clause so the read+write is a
+		// single statement — no TOCTOU race under READ COMMITTED isolation.
+		const { count } = await tx.shift.updateMany({
+			where: { id, status: { in: ['OPEN', 'FULL'] } },
+			data: { status: 'COMPLETED' },
 		});
-		if (!current || (current.status !== 'OPEN' && current.status !== 'FULL')) {
+		if (count === 0) {
 			return null;
 		}
 
-		const shift = await updateShift(tx, { id, status: 'COMPLETED' });
+		// Fetch the now-COMPLETED shift for the return value
+		const shift = await tx.shift.findUniqueOrThrow({ where: { id } });
 		await writeAuditLogTx(tx, {
 			orgId,
 			actorId,

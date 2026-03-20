@@ -20,6 +20,7 @@ export async function autoCloseExpiredShifts(): Promise<{
 			status: { in: ['OPEN', 'FULL'] },
 			endTime: { lt: now },
 		},
+		orderBy: { endTime: 'asc' },
 		select: { id: true, orgId: true, title: true },
 		take: 200,
 	});
