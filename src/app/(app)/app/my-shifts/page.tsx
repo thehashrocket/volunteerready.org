@@ -3,7 +3,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Calendar, Clock, MapPin, Search } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
+import { GeoCheckin } from '@/components/app/geo-checkin';
+import { InstallPrompt } from '@/components/app/install-prompt';
+import { QrCheckinCode } from '@/components/app/qr-checkin-code';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -18,10 +22,20 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { trpc } from '@/lib/trpc/client';
 
+function isWithin24Hours(startTime: Date | string): boolean {
+	const start = new Date(startTime).getTime();
+	const now = Date.now();
+	const hoursUntil = (start - now) / (1000 * 60 * 60);
+	return hoursUntil <= 24;
+}
+
 export default function MyShiftsPage() {
+	const session = useSession();
+	const userId = session.data?.user?.id;
 	const qc = useQueryClient();
 	const { data: signups, isLoading } =
 		trpc.shifts.myUpcomingWithWaitlist.useQuery();
+	const { data: org } = trpc.org.getCurrentOrg.useQuery();
 
 	const cancelMut = trpc.shifts.cancelSignup.useMutation({
 		onSuccess: () => {
@@ -37,6 +51,8 @@ export default function MyShiftsPage() {
 				title="My Shifts"
 				description="Your upcoming volunteer shift signups."
 			/>
+
+			<InstallPrompt />
 
 			{isLoading ? (
 				<Card>
@@ -105,6 +121,27 @@ export default function MyShiftsPage() {
 								{signup.status === 'WAITLISTED' && (
 									<Badge variant="warning">Waitlisted</Badge>
 								)}
+								{signup.status === 'CONFIRMED' &&
+									userId &&
+									isWithin24Hours(signup.shift.startTime) && (
+										<>
+											<QrCheckinCode
+												shiftId={signup.shift.id}
+												userId={userId}
+												shiftStartTime={new Date(signup.shift.startTime)}
+												shiftLocation={signup.shift.location}
+												qrForegroundColor={org?.qrForegroundColor}
+											/>
+											{signup.shift.latitude != null &&
+												signup.shift.longitude != null && (
+													<GeoCheckin
+														shiftId={signup.shift.id}
+														shiftLatitude={signup.shift.latitude}
+														shiftLongitude={signup.shift.longitude}
+													/>
+												)}
+										</>
+									)}
 								<Button
 									variant="outline"
 									size="sm"

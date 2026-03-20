@@ -262,6 +262,22 @@ function ShiftDetailDialog({
 		{ enabled: open },
 	);
 
+	// Live check-in counter — poll only when shift is within ±2h
+	const isNearby =
+		open &&
+		shift &&
+		(shift.status === 'OPEN' || shift.status === 'FULL') &&
+		Math.abs(new Date(shift.startTime).getTime() - Date.now()) /
+			(1000 * 60 * 60) <=
+			2;
+	const { data: checkinStats } = trpc.shifts.getCheckinStats.useQuery(
+		{ shiftId },
+		{
+			enabled: !!isNearby,
+			refetchInterval: isNearby ? 10_000 : false,
+		},
+	);
+
 	const ATTENDANCE_VARIANTS: Record<string, BadgeProps['variant']> = {
 		CONFIRMED: 'info',
 		WAITLISTED: 'warning',
@@ -284,6 +300,23 @@ function ShiftDetailDialog({
 				</DialogHeader>
 				{shift && (
 					<div className="space-y-4">
+						{checkinStats && (
+							<div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
+								<Users className="h-4 w-4 text-muted-foreground" />
+								<span className="text-sm font-medium tabular-nums">
+									{checkinStats.attended}/{checkinStats.total} checked in
+								</span>
+								<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+									<div
+										className="h-full rounded-full bg-[#1B3C2A] transition-all duration-300"
+										style={{ width: `${checkinStats.rate}%` }}
+									/>
+								</div>
+								<span className="text-xs text-muted-foreground tabular-nums">
+									{checkinStats.rate}%
+								</span>
+							</div>
+						)}
 						<div className="flex gap-4 text-sm text-muted-foreground">
 							<span className="flex items-center gap-1">
 								<Users className="h-4 w-4" />

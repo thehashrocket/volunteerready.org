@@ -1,6 +1,11 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import {
+	generateCheckinTokenFromEnv,
+	validateCheckinTokenFromEnv,
+} from '@/server/lib/checkin-token';
+import { getShiftById } from '@/server/repositories/shiftRepo';
+import {
 	cancelShift,
 	completeShift,
 	createNewShift,
@@ -11,6 +16,8 @@ import {
 } from '@/server/services/shiftService';
 import {
 	cancelSignup,
+	getCheckinStats,
+	getMyCheckinStatus,
 	getMyUpcomingShifts,
 	getMyUpcomingShiftsWithWaitlist,
 	getShiftSignups,
@@ -26,6 +33,7 @@ import {
 	requireUserId,
 	staffProcedure,
 } from '@/server/trpc/init';
+import { rateLimitByOrg } from '@/server/trpc/rate-limit-middleware';
 
 export const shiftsRouter = createTRPCRouter({
 	// ---- Staff: Shift management --------------------------------------------
@@ -191,4 +199,175 @@ export const shiftsRouter = createTRPCRouter({
 	getWaitlist: staffProcedure
 		.input(z.object({ shiftId: z.string() }))
 		.query(({ input }) => getShiftWaitlist(input.shiftId)),
+
+	// ---- QR Check-in --------------------------------------------------------
+
+	/** Generate a check-in token for the current time window (volunteer). */
+	getCheckinToken: protectedProcedure
+		.input(z.object({ shiftId: z.string() }))
+		.query(async ({ ctx, input }) => {
+			const userId = requireUserId(ctx.session);
+			const shift = await getShiftById(input.shiftId);
+			if (!shift) {
+				throw new TRPCError({
+					code: 'NOT_FOUND',
+					message: 'Shift not found.',
+				});
+			}
+
+			// Must be OPEN or FULL and within 24h
+			if (shift.status !== 'OPEN' && shift.status !== 'FULL') {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: `Shift is ${shift.status.toLowerCase()}.`,
+				});
+			}
+			const hoursUntilStart =
+				(shift.startTime.getTime() - Date.now()) / (1000 * 60 * 60);
+			if (hoursUntilStart > 24) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'QR code is available 24 hours before the shift.',
+				});
+			}
+
+			// Must be confirmed signup
+			const status = await getMyCheckinStatus(input.shiftId, userId);
+			if (!status || status.status !== 'CONFIRMED') {
+				throw new TRPCError({
+					code: 'FORBIDDEN',
+					message: 'You must have a confirmed signup for this shift.',
+				});
+			}
+
+			const token = generateCheckinTokenFromEnv(input.shiftId, userId);
+			return { token };
+		}),
+
+	/** Staff scans a QR code to check in a volunteer. */
+	checkinByQr: staffProcedure
+		.use(
+			rateLimitByOrg({
+				limit: 120,
+				windowSeconds: 60,
+				prefix: 'shifts:checkinByQr',
+			}),
+		)
+		.input(
+			z.object({
+				shiftId: z.string(),
+				userId: z.string(),
+				token: z.string(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const shift = await getShiftById(input.shiftId);
+			if (!shift || shift.orgId !== ctx.orgId) {
+				throw new TRPCError({
+					code: 'NOT_FOUND',
+					message: 'Shift not found.',
+				});
+			}
+
+			if (shift.status !== 'OPEN' && shift.status !== 'FULL') {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: `Shift is ${shift.status.toLowerCase()}.`,
+				});
+			}
+
+			const valid = validateCheckinTokenFromEnv(
+				input.shiftId,
+				input.userId,
+				input.token,
+			);
+			if (!valid) {
+				throw new TRPCError({
+					code: 'UNAUTHORIZED',
+					message: 'Invalid or expired QR code.',
+				});
+			}
+
+			const result = await markAttendance(
+				input.shiftId,
+				input.userId,
+				'ATTENDED',
+				requireUserId(ctx.session),
+				'qr',
+			);
+
+			return {
+				success: true,
+				alreadyCheckedIn: result.alreadyCheckedIn,
+			};
+		}),
+
+	/** Volunteer self-check-in (for geo auto-check-in and future flows). */
+	selfCheckin: protectedProcedure
+		.input(z.object({ shiftId: z.string(), token: z.string() }))
+		.mutation(async ({ ctx, input }) => {
+			const userId = requireUserId(ctx.session);
+
+			const shift = await getShiftById(input.shiftId);
+			if (!shift) {
+				throw new TRPCError({
+					code: 'NOT_FOUND',
+					message: 'Shift not found.',
+				});
+			}
+
+			if (shift.status !== 'OPEN' && shift.status !== 'FULL') {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: `Shift is ${shift.status.toLowerCase()}.`,
+				});
+			}
+
+			const valid = validateCheckinTokenFromEnv(
+				input.shiftId,
+				userId,
+				input.token,
+			);
+			if (!valid) {
+				throw new TRPCError({
+					code: 'UNAUTHORIZED',
+					message: 'Invalid or expired check-in token.',
+				});
+			}
+
+			const result = await markAttendance(
+				input.shiftId,
+				userId,
+				'ATTENDED',
+				userId,
+				'geo',
+			);
+
+			return {
+				success: true,
+				alreadyCheckedIn: result.alreadyCheckedIn,
+			};
+		}),
+
+	/** Get check-in status for a volunteer's shift. */
+	myCheckinStatus: protectedProcedure
+		.input(z.object({ shiftId: z.string() }))
+		.query(async ({ ctx, input }) => {
+			const userId = requireUserId(ctx.session);
+			return getMyCheckinStatus(input.shiftId, userId);
+		}),
+
+	/** Get check-in stats for a shift (staff). */
+	getCheckinStats: staffProcedure
+		.input(z.object({ shiftId: z.string() }))
+		.query(async ({ ctx, input }) => {
+			const shift = await getShiftById(input.shiftId);
+			if (!shift || shift.orgId !== ctx.orgId) {
+				throw new TRPCError({
+					code: 'NOT_FOUND',
+					message: 'Shift not found.',
+				});
+			}
+			return getCheckinStats(input.shiftId);
+		}),
 });

@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
 	getRetentionStats: vi.fn(),
 	getAvgFillRate: vi.fn(),
 	getTopVolunteers: vi.fn(),
+	getCheckinAnalytics: vi.fn(),
 }));
 
 vi.mock('@/server/repositories/orgAnalyticsRepo', () => ({
@@ -25,6 +26,7 @@ vi.mock('@/server/repositories/orgAnalyticsRepo', () => ({
 	getRetentionStats: mocks.getRetentionStats,
 	getAvgFillRate: mocks.getAvgFillRate,
 	getTopVolunteers: mocks.getTopVolunteers,
+	getCheckinAnalytics: mocks.getCheckinAnalytics,
 }));
 
 import { getOrgAnalyticsDashboard } from './orgAnalyticsService';
@@ -57,6 +59,13 @@ beforeEach(() => {
 	mocks.getRetentionStats.mockResolvedValue(EMPTY_RETENTION);
 	mocks.getAvgFillRate.mockResolvedValue(0);
 	mocks.getTopVolunteers.mockResolvedValue([]);
+	mocks.getCheckinAnalytics.mockResolvedValue({
+		qrCheckins: 0,
+		manualCheckins: 0,
+		geoCheckins: 0,
+		totalCheckins: 0,
+		hourBuckets: [],
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -153,6 +162,13 @@ describe('getOrgAnalyticsDashboard', () => {
 				retention,
 				avgFillRate,
 				topVolunteers,
+				checkinAnalytics: {
+					qrCheckins: 0,
+					manualCheckins: 0,
+					geoCheckins: 0,
+					totalCheckins: 0,
+					hourBuckets: [],
+				},
 				days: 90,
 			});
 		});

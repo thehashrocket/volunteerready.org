@@ -184,6 +184,7 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   onboardingProgress: 'onboardingProgress',
   onboardingDismissedAt: 'onboardingDismissedAt',
   firstApplicationReceivedAt: 'firstApplicationReceivedAt',
+  qrForegroundColor: 'qrForegroundColor',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -371,6 +372,8 @@ exports.Prisma.ShiftScalarFieldEnum = {
   title: 'title',
   description: 'description',
   location: 'location',
+  latitude: 'latitude',
+  longitude: 'longitude',
   isRemote: 'isRemote',
   startTime: 'startTime',
   endTime: 'endTime',
@@ -708,6 +711,7 @@ exports.NotificationType = exports.$Enums.NotificationType = {
   SHIFT_REMINDER: 'SHIFT_REMINDER',
   SHIFT_CANCELLED: 'SHIFT_CANCELLED',
   SHIFT_UPDATED: 'SHIFT_UPDATED',
+  SHIFT_COMPLETED: 'SHIFT_COMPLETED',
   APPLICATION_STATUS: 'APPLICATION_STATUS',
   CREDENTIAL_EXPIRY: 'CREDENTIAL_EXPIRY',
   TEAM_ANNOUNCEMENT: 'TEAM_ANNOUNCEMENT',

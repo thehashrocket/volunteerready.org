@@ -1,0 +1,33 @@
+{
+  "name": "VolunteerReady",
+  "short_name": "VolunteerReady",
+  "description": "Find and manage volunteer opportunities.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#FAFAF8",
+  "theme_color": "#1B3C2A",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

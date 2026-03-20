@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0] - 2026-03-20
+
+### Added
+- **QR-based volunteer check-in** — Staff scan volunteer QR codes at events for fast attendance tracking. HMAC-SHA256 stateless tokens with 5-minute rotation, rate limiting (120/min per org), and multi-tenant orgId enforcement.
+- **Staff scanner page** (`/app/scan`) — Dashboard-first layout with shift auto-selection, live stats bar, camera viewfinder, inline result card with haptic feedback, and search-by-name a11y fallback. Keyboard shortcuts: `/` focuses search, `Esc` returns to camera.
+- **Volunteer QR display** — QR code on my-shifts page for CONFIRMED signups within 24h. Auto-refresh every 5 min with countdown timer, contextual copy (before/during/after shift), and check-in status polling with QR→checkmark transition.
+- **PWA support** — Web app manifest, service worker with cache-first static assets and network-first API, install prompt (sand-toned inline card on mobile), and SW update banner.
+- **Offline QR codes** — 10-minute token prefetch to localStorage with "Offline" badge and expiry warning.
+- **Geo-fenced auto check-in** — Automatic check-in when volunteer is within 100m of shift location using Geolocation API + haversine distance calculation. New `latitude`/`longitude` fields on Shift model.
+- **Real-time check-in counter** — Live progress bar in shift detail dialog, polling every 10s only when shift is within ±2h.
+- **Post-shift thank-you notifications** — `SHIFT_COMPLETED` notification type. When a shift is completed, each ATTENDED volunteer gets a notification with their hours logged and total hours.
+- **Session summary email** — Org admins receive an email with attended count, no-shows, and attendance rate when a shift is completed. HTML-escaped shift titles prevent injection.
+- **Check-in analytics** — Method breakdown (QR/manual/geo) and busiest check-in hours on the analytics page using existing FunnelCard/StatCard patterns. COALESCE handles pre-QR audit entries.
+- **QR color customization** — Orgs can set a custom QR foreground color with WCAG contrast validation (>=3:1 against white).
+- **Check-in integration tests** — 28 new test cases covering markAttendance (method metadata, idempotency, cancelled-user rejection, FOR UPDATE locking), completeShift (notifications, email, HTML escaping), getCheckinStats, and getCheckinAnalytics (method breakdown, COALESCE, date filtering, org isolation).
+
+### Fixed
+- **Cancelled user check-in** — markAttendance now rejects check-in if signup status is not CONFIRMED or ATTENDED, preventing tokens obtained before cancellation from being used.
+- **Audit log duplication** — Added `FOR UPDATE` row lock in markAttendance to prevent concurrent scans from writing duplicate audit entries.
+- **N+1 query in completeShift** — Batched per-volunteer total-hours query into single SQL with `ANY()` instead of sequential queries.
+- **HTML injection in shift summary email** — Shift titles are now escaped before interpolation into email HTML.
+- **Offline QR cache corruption** — JSON.parse of localStorage wrapped in try-catch with cache purge on corruption.
+
 ## [0.12.3] - 2026-03-19
 
 ### Fixed

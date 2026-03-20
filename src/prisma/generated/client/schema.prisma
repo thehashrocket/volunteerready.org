@@ -113,6 +113,7 @@ model Organization {
   onboardingProgress         Json? // Wizard + checklist shared state
   onboardingDismissedAt      DateTime? // Checklist dismissed
   firstApplicationReceivedAt DateTime? // First-volunteer celebration trigger
+  qrForegroundColor          String? // Custom QR code color (hex, e.g. #1B3C2A)
   createdAt                  DateTime                 @default(now())
   updatedAt                  DateTime                 @updatedAt
   members                    OrganizationMember[]
@@ -499,6 +500,8 @@ model Shift {
   title         String
   description   String?
   location      String?
+  latitude      Float?
+  longitude     Float?
   isRemote      Boolean     @default(false)
   startTime     DateTime
   endTime       DateTime
@@ -763,6 +766,7 @@ enum NotificationType {
   SHIFT_REMINDER
   SHIFT_CANCELLED
   SHIFT_UPDATED
+  SHIFT_COMPLETED
   APPLICATION_STATUS
   CREDENTIAL_EXPIRY
   TEAM_ANNOUNCEMENT

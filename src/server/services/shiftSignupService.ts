@@ -295,11 +295,35 @@ export async function markAttendance(
 	userId: string,
 	status: 'ATTENDED' | 'NO_SHOW',
 	actorId: string,
+	method?: 'manual' | 'qr' | 'geo',
 ) {
 	const shift = await getShiftById(shiftId);
 	if (!shift) throw new Error('Shift not found.');
 
 	return prisma.$transaction(async (tx) => {
+		// Lock the signup row to prevent concurrent audit log duplication
+		const [existing] = await tx.$queryRaw<
+			{ id: string; status: string }[]
+		>`SELECT id, status FROM "ShiftSignup" WHERE "shiftId" = ${shiftId} AND "userId" = ${userId} FOR UPDATE`;
+
+		if (!existing) {
+			throw new Error('No signup found for this shift.');
+		}
+
+		// Idempotent: already ATTENDED, skip audit log
+		if (existing.status === 'ATTENDED' && status === 'ATTENDED') {
+			return { ...existing, alreadyCheckedIn: true };
+		}
+
+		// Reject if signup was cancelled/waitlisted (e.g. token obtained then cancelled)
+		if (
+			status === 'ATTENDED' &&
+			existing.status !== 'CONFIRMED' &&
+			existing.status !== 'ATTENDED'
+		) {
+			throw new Error(`Cannot mark attendance: signup is ${existing.status}.`);
+		}
+
 		const updated = await updateSignupStatus(tx, shiftId, userId, status);
 
 		await writeAuditLogTx(tx, {
@@ -308,9 +332,37 @@ export async function markAttendance(
 			action: `shift.attendance.${status.toLowerCase()}`,
 			entityType: 'ShiftSignup',
 			entityId: updated.id,
-			metadata: { shiftId, userId, status },
+			metadata: { shiftId, userId, status, method: method ?? 'manual' },
 		});
 
-		return updated;
+		return { ...updated, alreadyCheckedIn: false };
 	});
+}
+
+/**
+ * Get the check-in status for a volunteer on a specific shift.
+ */
+export async function getMyCheckinStatus(shiftId: string, userId: string) {
+	const signup = await getSignupByShiftAndUser(shiftId, userId);
+	if (!signup) return null;
+	return { status: signup.status };
+}
+
+/**
+ * Get check-in stats for a shift (attended count, total confirmed, rate).
+ */
+export async function getCheckinStats(shiftId: string) {
+	const signups = await getSignupsByShift(shiftId);
+	const confirmed = signups.filter(
+		(s) => s.status === 'CONFIRMED' || s.status === 'ATTENDED',
+	);
+	const attended = signups.filter((s) => s.status === 'ATTENDED');
+	return {
+		attended: attended.length,
+		total: confirmed.length,
+		rate:
+			confirmed.length > 0
+				? Math.round((attended.length / confirmed.length) * 100)
+				: 0,
+	};
 }
