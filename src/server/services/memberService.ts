@@ -1,5 +1,6 @@
 import type { Role } from '@/prisma/generated/client';
 import { generateToken, hashToken } from '@/server/lib/tokens';
+import { writeAuditLog } from '@/server/repositories/auditRepo';
 import {
 	createInvitation,
 	findInvitationByHash,
@@ -16,6 +17,7 @@ export async function inviteMember(
 	email: string,
 	role: Role,
 	baseUrl: string,
+	actorId?: string | null,
 ) {
 	const org = await prisma.organization.findUnique({
 		where: { id: orgId },
@@ -45,6 +47,18 @@ export async function inviteMember(
 		inviteLink: `${baseUrl}/invite/${rawToken}`,
 		role,
 	});
+
+	try {
+		await writeAuditLog({
+			orgId,
+			actorId: actorId ?? null,
+			action: 'MEMBER_INVITED',
+			entityType: 'OrganizationInvitation',
+			metadata: { email, role },
+		});
+	} catch {
+		// Audit logging should never break the invite flow
+	}
 
 	return { sent: true };
 }

@@ -18,6 +18,7 @@ import {
 	listMyApplications,
 } from '@/server/services/my-applications';
 import {
+	getOrgActivityFeed,
 	getOrgApplicationDetailEnriched,
 	getOrgDashboardStats,
 	getPublicScreenerForm,
@@ -196,6 +197,13 @@ export const screenerRouter = createTRPCRouter({
 			throw new Error('Missing org context');
 		}
 		return getOrgDashboardStats(ctx.orgId);
+	}),
+
+	getActivityFeed: adminProcedure.query(async ({ ctx }) => {
+		if (!ctx.orgId) {
+			throw new Error('Missing org context');
+		}
+		return getOrgActivityFeed(ctx.orgId);
 	}),
 
 	getPublicForm: publicProcedure

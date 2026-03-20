@@ -42,7 +42,13 @@ export const membersRouter = createTRPCRouter({
 				process.env.NEXT_PUBLIC_APP_URL ??
 				process.env.NEXTAUTH_URL ??
 				'http://localhost:3000';
-			return inviteMember(ctx.orgId, input.email, input.role as Role, baseUrl);
+			return inviteMember(
+				ctx.orgId,
+				input.email,
+				input.role as Role,
+				baseUrl,
+				ctx.session?.user?.id,
+			);
 		}),
 
 	// Public: get invitation display info (org name, masked email, role)

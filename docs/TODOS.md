@@ -636,3 +636,28 @@ on the profile page.
 **Cons:** Additional complexity in cron grouping logic; edge case for now.
 
 **Effort:** S | **Priority:** P3 | **Depends on:** Phase 10 org-level timezone shipped
+
+---
+
+### [P3] Email Delivery Tracking Dashboard
+
+**What:** Admin dashboard showing email delivery status (sent, bounced, opened) for
+invite emails, digest emails, re-engagement emails, and FCRA notices.
+
+**Why:** Currently there is no visibility into whether emails are actually reaching
+volunteers. Bounced invites and silent delivery failures create operational blind spots
+for nonprofit admins. The audit log tracks that emails were *sent*, but not whether
+they were *delivered*.
+
+**Context:** Would require integration with the email provider's delivery webhooks
+(e.g., Resend webhooks for bounced/delivered/opened events). Store delivery events
+in a new `EmailDeliveryEvent` table linked to the relevant entity (invitation,
+notification, etc.). Display in a new `/app/settings/email-health` admin page with
+delivery rate, bounce rate, and recent failures.
+
+**Pros:** Gives admins confidence that their volunteer communications are working;
+surfaces bounced email addresses for cleanup.
+**Cons:** New webhook endpoint + table; email provider dependency; adds operational
+complexity.
+
+**Effort:** M | **Priority:** P3 | **Depends on:** Email sending infrastructure stable

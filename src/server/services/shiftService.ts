@@ -137,6 +137,7 @@ export async function completeShift(
 			action: 'shift.completed',
 			entityType: 'Shift',
 			entityId: id,
+			metadata: { title: shift.title },
 		});
 		return shift;
 	});

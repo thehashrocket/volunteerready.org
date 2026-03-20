@@ -461,6 +461,14 @@ Shipped (PR1 — v0.13.4):
 - Shift auto-close cron (hourly, TOCTOU-safe)
 - `completeShift()` actorId nullable for cron use
 
+Shipped (PR2 — v0.14.0):
+
+- Org health score widget (`computeOrgHealth()` pure domain fn + `OrgHealthWidget` component)
+- Admin activity feed (`ActivityFeed` component, curated AuditLog query, last 20 events grouped by date)
+- Dashboard rewrite: Getting Started Checklist replaced by health widget + activity feed
+- Audit log improvements: MEMBER_INVITED event, shift.completed metadata, try-catch resilience
+- Health score shift filter fix (CONFIRMED/ATTENDED/NO_SHOW only)
+
 Planned (remaining):
 
 - Context-switch UI (Org ↔ Company)
@@ -468,13 +476,11 @@ Planned (remaining):
 - Encryption key rotation (dual-key support)
 - ESG report integration tests
 - Stripe webhook reconciliation improvements
-- Org health score widget
 - Email delivery tracking (Resend webhooks)
-- Admin activity feed
 
 Architecture: Sterling adapter via `BackgroundCheckAdapter` interface,
-`EmailDeliveryEvent` table, `Organization.timezone` field, dual-key
-encryption in `crypto.ts`, `computeOrgHealth()` pure domain function.
+`EmailDeliveryEvent` table, `Organization.timezone` field (shipped), dual-key
+encryption in `crypto.ts`. `computeOrgHealth()` pure domain function (shipped v0.14.0).
 
 ---
 

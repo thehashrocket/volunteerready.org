@@ -108,7 +108,7 @@ src/
 │
 ├── components/
 │   ├── ui/                       # shadcn/ui primitives (button, input, dialog, etc.)
-│   ├── app/                      # Page-specific compound components (notification-bell, shift-templates)
+│   ├── app/                      # Page-specific compound components (notification-bell, shift-templates, org-health-widget, activity-feed)
 │   ├── plan-gate.tsx             # Plan-tier gating UI (lock card with upgrade CTA)
 │   ├── org/                      # Organization management components
 │   ├── my-applications/          # Volunteer application tracking
@@ -143,6 +143,7 @@ src/
 │   └── domain/                   # Pure types + functions + tests
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
 │       ├── notification.ts        # Notification types and domain functions
+│       ├── org-health.ts          # Org health score (computeOrgHealth, 0-100, four 25-pt metrics)
 │       ├── screener/
 │       │   ├── configSchema.ts     # Zod schemas for screening question config
 │       │   ├── publicForm.ts       # Public form type mapping
@@ -460,6 +461,9 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/services/tenureBadgeService.ts` | Fire-and-forget tenure badge issuance — idempotent, P2002-safe, called from 3 service triggers |
 | `src/server/services/credential-expiry-service.ts` | Daily cron — expires stale credentials + share tokens (P2025 safe) |
 | `src/server/services/shift-auto-close-service.ts` | Hourly cron — auto-completes expired shifts using atomic updateMany guard, per-record try/catch (P2025 safe) |
+| `src/server/domain/org-health.ts` | Pure domain: `computeOrgHealth()` — 0-100 score from four 25-pt metrics (screener, opportunity, shift signup, credential); returns score + next actionable tip |
+| `src/components/app/org-health-widget.tsx` | `OrgHealthWidget` — progress bar + tip text; renders inside dashboard greeting banner |
+| `src/components/app/activity-feed.tsx` | `ActivityFeed` — curated AuditLog query (last 20 events), grouped by date, relative timestamps; uses `screener.getActivityFeed` tRPC query |
 | `src/server/lib/email-template.ts` | Branded email wrapper matching DESIGN.md colors |
 | `src/lib/credential-meta.ts` | Shared credential labels + icons (single source of truth for all UI) |
 | `src/server/domain/credential-sharing.ts` | Share token lifecycle guards, expiry computation |
@@ -495,6 +499,8 @@ Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer 
 Phase 8 delivered: in-app notifications (bell + preferences), plan gate component (tier-based feature gating), shared `sendEmail()` helper, shift templates (recurring patterns + bulk generation), waitlist for full shifts (FIFO auto-promote), email consolidation (7 senders migrated), notification cleanup cron, top volunteers date range filter, accessibility audit.
 
 Phase 9 delivered: onboarding wizard, getting-started checklist, shift reminder emails, application status timeline, email digests (daily/weekly), bulk CSV import, Stripe webhook reconciliation, credential expiry notifications, cron health dashboard, product screenshots, design system compliance fixes, privacy policy page, terms of service page, GDPR-compliant cookie consent banner, consented analytics.
+
+Phase 10 (partial) delivered: shift auto-close cron (TOCTOU-safe), AuditLog/Shift composite indexes (CONCURRENTLY), bulk import durability (`waitUntil`), timezone-aware notification delivery, re-engagement emails, digest cursor pagination — and (v0.14.0) org health score widget, admin activity feed, dashboard rewrite (Getting Started Checklist replaced by OrgHealthWidget + ActivityFeed), audit log improvements (MEMBER_INVITED event, shift.completed metadata, try-catch resilience).
 
 See `docs/ROADMAP.md` for details.
 

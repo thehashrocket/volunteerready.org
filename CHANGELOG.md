@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.0] - 2026-03-20
+
+### Added
+- **Org Health Score Widget** — Dashboard greeting banner now shows a 0-100 health score based on four onboarding milestones (screener questions, published opportunities, shifts with signups, credentials issued). Contextual tips guide admins to the next milestone. Replaces the Getting Started Checklist.
+- **Admin Activity Feed** — Dashboard shows the 20 most recent org events (applications, check-ins, credential issuances, shift completions, member invites) with contextual text from audit log metadata, relative timestamps, and date grouping.
+- **Activity feed query tests** — 5 service-level tests verifying curated action type filtering, ordering, and actor inclusion.
+- **Org health domain tests** — 8 unit tests covering all score combinations, tip priority order, and binary scoring behavior.
+
+### Changed
+- Dashboard page simplified: removed Getting Started Checklist, Recent Applications table, and onboarding wizard in favor of the Health Score Widget and Activity Feed.
+- `MEMBER_INVITED` audit log now written when team members are invited, enabling activity feed visibility.
+- `shift.completed` audit log now includes shift title in metadata for contextual feed display.
+- Health score counts shifts with any non-cancelled signup status (`CONFIRMED`, `ATTENDED`, `NO_SHOW`) so scores don't regress after attendance is marked.
+
+### Fixed
+- Audit log write in `inviteMember` wrapped in try-catch so logging failures cannot break the invite flow.
+- Activity feed group keys use ISO date strings instead of display labels, preventing React reconciliation issues across date boundaries.
+
 ## [0.13.4] - 2026-03-20
 
 ### Added
