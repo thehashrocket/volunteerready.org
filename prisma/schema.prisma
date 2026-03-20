@@ -893,3 +893,47 @@ model BulkImportJob {
   @@index([orgId, status])
   @@index([uploadedById])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 10 — Email Delivery Tracking
+// ---------------------------------------------------------------------------
+
+enum EmailEventType {
+  SENT
+  DELIVERED
+  BOUNCED
+  COMPLAINED
+}
+
+/// Tracks email delivery lifecycle events.
+/// `resendId` is the Resend message ID — idempotency key for webhook events.
+/// Bounce management: `bounceCount` increments per BOUNCED event. When
+/// bounceCount >= 3 (MAX_REENABLE_CAP), the address is suppressed — sendEmail()
+/// skips delivery until an admin resets the count or the user re-enables.
+model EmailEvent {
+  id         String         @id @default(cuid())
+  resendId   String?        // Resend message ID (msg_...) — null for pre-send log
+  to         String         // recipient email address
+  subject    String
+  eventType  EmailEventType
+  payload    Json?          // raw webhook payload for debugging
+  createdAt  DateTime       @default(now())
+
+  @@index([to, eventType])
+  @@index([resendId])
+  @@index([createdAt])
+}
+
+/// Per-address bounce tracking for suppression management.
+/// Separate from EmailEvent so we can query bounce status without scanning
+/// the full event log. Bounce count increments per BOUNCED event; resets
+/// when an admin or user re-enables delivery.
+model EmailBounceStatus {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  bounceCount  Int      @default(0)
+  suppressedAt DateTime? // non-null = address is suppressed
+  lastBouncedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

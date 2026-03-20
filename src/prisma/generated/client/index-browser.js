@@ -553,6 +553,26 @@ exports.Prisma.BulkImportJobScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.EmailEventScalarFieldEnum = {
+  id: 'id',
+  resendId: 'resendId',
+  to: 'to',
+  subject: 'subject',
+  eventType: 'eventType',
+  payload: 'payload',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EmailBounceStatusScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  bounceCount: 'bounceCount',
+  suppressedAt: 'suppressedAt',
+  lastBouncedAt: 'lastBouncedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -743,6 +763,13 @@ exports.BulkImportStatus = exports.$Enums.BulkImportStatus = {
   FAILED: 'FAILED'
 };
 
+exports.EmailEventType = exports.$Enums.EmailEventType = {
+  SENT: 'SENT',
+  DELIVERED: 'DELIVERED',
+  BOUNCED: 'BOUNCED',
+  COMPLAINED: 'COMPLAINED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -781,7 +808,9 @@ exports.Prisma.ModelName = {
   NotificationPreference: 'NotificationPreference',
   CronJobRun: 'CronJobRun',
   UserDigestPreference: 'UserDigestPreference',
-  BulkImportJob: 'BulkImportJob'
+  BulkImportJob: 'BulkImportJob',
+  EmailEvent: 'EmailEvent',
+  EmailBounceStatus: 'EmailBounceStatus'
 };
 
 /**
