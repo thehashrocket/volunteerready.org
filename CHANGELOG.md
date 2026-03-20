@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.1] - 2026-03-19
+
+### Added
+- **Phase 10 plan: Scale & Enterprise Readiness** — 15 deliverables to make the platform trustworthy at scale and open the enterprise door: Sterling background check adapter, encryption key rotation, timezone-aware notifications, org health score, email delivery tracking, admin activity feed, shift auto-close, and production reliability fixes. Triple-reviewed (CEO, Eng, Design) with full design specs and deployment sequence.
+
 ## [0.13.0] - 2026-03-20
 
 ### Added
