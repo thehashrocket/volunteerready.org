@@ -469,18 +469,24 @@ Shipped (PR2 — v0.14.0):
 - Audit log improvements: MEMBER_INVITED event, shift.completed metadata, try-catch resilience
 - Health score shift filter fix (CONFIRMED/ATTENDED/NO_SHOW only)
 
+Shipped (PR3 — v0.15.0):
+
+- Context-switch UI (CompanySwitcher component + `company.switchCompany` mutation)
+- Encryption key rotation (dual-key decryption, `reEncrypt()`, batch migration script)
+- ESG report integration tests (13 tests covering raw SQL queries)
+- Stripe webhook reconciliation (admin `stripeReconcile` mutation)
+- Email delivery tracking (Resend webhook handler, `EmailEvent` + `EmailBounceStatus` models, bounce suppression)
+- Unified webhook health dashboard (Stripe + Checkr + Resend aggregates on `/app/admin/health`)
+- Email bounce management UI (per-address re-enable + platform admin "Reset All" override)
+
 Planned (remaining):
 
-- Context-switch UI (Org ↔ Company)
 - Sterling background check adapter
-- Encryption key rotation (dual-key support)
-- ESG report integration tests
-- Stripe webhook reconciliation improvements
-- Email delivery tracking (Resend webhooks)
 
 Architecture: Sterling adapter via `BackgroundCheckAdapter` interface,
-`EmailDeliveryEvent` table, `Organization.timezone` field (shipped), dual-key
-encryption in `crypto.ts`. `computeOrgHealth()` pure domain function (shipped v0.14.0).
+`EmailEvent` + `EmailBounceStatus` tables, `Organization.timezone` field (shipped),
+dual-key encryption in `crypto.ts` (shipped v0.15.0). `computeOrgHealth()` pure
+domain function (shipped v0.14.0). Resend webhook handler at `/api/resend/webhook`.
 
 ---
 
