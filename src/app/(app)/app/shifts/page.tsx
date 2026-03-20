@@ -524,6 +524,7 @@ export default function ShiftsPage() {
 									icon={Calendar}
 									title="No shifts found"
 									description="Create a shift to start scheduling volunteers."
+									action={<CreateShiftDialog />}
 								/>
 							) : (
 								<Table>
