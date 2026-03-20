@@ -185,6 +185,7 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   onboardingDismissedAt: 'onboardingDismissedAt',
   firstApplicationReceivedAt: 'firstApplicationReceivedAt',
   qrForegroundColor: 'qrForegroundColor',
+  timezone: 'timezone',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -194,6 +195,8 @@ exports.Prisma.OrganizationMemberScalarFieldEnum = {
   organizationId: 'organizationId',
   userId: 'userId',
   role: 'role',
+  lastActivityAt: 'lastActivityAt',
+  lastReengagementSegment: 'lastReengagementSegment',
   createdAt: 'createdAt'
 };
 
@@ -718,7 +721,8 @@ exports.NotificationType = exports.$Enums.NotificationType = {
   WAITLIST_PROMOTED: 'WAITLIST_PROMOTED',
   NEW_OPPORTUNITY: 'NEW_OPPORTUNITY',
   BADGE_EARNED: 'BADGE_EARNED',
-  FIRST_APPLICATION: 'FIRST_APPLICATION'
+  FIRST_APPLICATION: 'FIRST_APPLICATION',
+  REENGAGEMENT: 'REENGAGEMENT'
 };
 
 exports.CronJobStatus = exports.$Enums.CronJobStatus = {

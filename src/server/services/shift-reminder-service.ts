@@ -1,18 +1,14 @@
 import { sendEmail } from '../lib/email';
+import { escapeHtml } from '../lib/html';
+import { getTimezonesMatchingHour } from '../lib/timezone';
 import { prisma } from '../repositories/prisma';
-
-function escapeHtml(str: string): string {
-	return str
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;');
-}
 
 /**
  * Send reminder emails for shifts starting within the next 24 hours.
  *
+ * Timezone-aware: only processes orgs whose local hour is 6am.
  * Only sends to CONFIRMED signups. Uses reminderSentAt for idempotency.
+ * Safety cap of 500 signups per run (stragglers caught next hourly run).
  * Follows credential-expiry-service pattern: per-record try/catch.
  */
 export async function sendShiftReminders(): Promise<{
@@ -21,6 +17,9 @@ export async function sendShiftReminders(): Promise<{
 	const now = new Date();
 	const tomorrow = new Date(now);
 	tomorrow.setDate(tomorrow.getDate() + 1);
+
+	// Timezone-aware: only process orgs whose local hour is 6am
+	const tzFilter = await getTimezoneFilter(6);
 
 	const signups = await prisma.shiftSignup.findMany({
 		where: {
@@ -32,6 +31,7 @@ export async function sendShiftReminders(): Promise<{
 					lte: tomorrow,
 				},
 				status: { in: ['OPEN', 'FULL'] },
+				organization: tzFilter,
 			},
 		},
 		include: {
@@ -43,10 +43,11 @@ export async function sendShiftReminders(): Promise<{
 					endTime: true,
 					location: true,
 					isRemote: true,
-					organization: { select: { name: true } },
+					organization: { select: { name: true, timezone: true } },
 				},
 			},
 		},
+		take: 500, // Safety cap; reminderSentAt idempotency handles overflow
 	});
 
 	let remindersSent = 0;
@@ -57,12 +58,14 @@ export async function sendShiftReminders(): Promise<{
 			if (!email) continue;
 
 			const shift = signup.shift;
+			const orgTimezone = shift.organization.timezone ?? 'UTC';
 			const startFormatted = shift.startTime.toLocaleString('en-US', {
 				weekday: 'short',
 				month: 'short',
 				day: 'numeric',
 				hour: 'numeric',
 				minute: '2-digit',
+				timeZone: orgTimezone,
 				timeZoneName: 'short',
 			});
 			const location = shift.isRemote
@@ -117,4 +120,39 @@ export async function sendShiftReminders(): Promise<{
 	}
 
 	return { remindersSent };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a Prisma WHERE clause for Organization.timezone that matches
+ * orgs whose local time is currently the target hour.
+ */
+async function getTimezoneFilter(targetHour: number) {
+	const allTimezones = await prisma.organization.findMany({
+		select: { timezone: true },
+		distinct: ['timezone'],
+	});
+	const tzValues = allTimezones.map((o) => o.timezone);
+	const matching = getTimezonesMatchingHour(tzValues, targetHour);
+
+	const hasNull = matching.includes(null);
+	const nonNullTzs = matching.filter((tz): tz is string => tz !== null);
+
+	const conditions: Record<string, unknown>[] = [];
+	if (nonNullTzs.length > 0) {
+		conditions.push({ timezone: { in: nonNullTzs } });
+	}
+	if (hasNull) {
+		conditions.push({ timezone: null });
+	}
+
+	// If no timezones match, return impossible filter
+	if (conditions.length === 0) {
+		return { timezone: '__no_match__' };
+	}
+
+	return conditions.length === 1 ? conditions[0] : { OR: conditions };
 }

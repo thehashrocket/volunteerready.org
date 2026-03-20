@@ -14,6 +14,10 @@ import {
 } from '@/server/domain/volunteer-screening';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
+import {
+	findMemberByUserAndOrg,
+	touchMemberActivity,
+} from '@/server/repositories/reengagement-repo';
 import { getActiveQuestions } from '@/server/repositories/volunteer-applications';
 import { tryNotify } from '@/server/services/notificationService';
 import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
@@ -145,6 +149,12 @@ export async function submitVolunteerApplication(
 	// Only runs for authenticated users (anonymous submissions have no userId).
 	if (payload.submittedByUserId) {
 		void checkAndIssueTenureBadges(payload.submittedByUserId);
+		// Update activity timestamp for re-engagement tracking.
+		void findMemberByUserAndOrg(payload.submittedByUserId, orgId).then(
+			(memberId) => {
+				if (memberId) void touchMemberActivity(memberId);
+			},
+		);
 	}
 
 	// First-volunteer celebration — notify org admins/owners once.

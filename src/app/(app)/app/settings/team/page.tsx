@@ -1,17 +1,30 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { RefreshCw, Users } from 'lucide-react';
+import { Check, ChevronsUpDown, RefreshCw, Users } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '@/components/ui/popover';
 import {
 	Select,
 	SelectContent,
@@ -296,6 +309,128 @@ export default function TeamPage() {
 					</form>
 				</CardContent>
 			</Card>
+
+			{/* Timezone settings */}
+			<TimezoneCard />
 		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Timezone Card
+// ---------------------------------------------------------------------------
+
+const COMMON_TIMEZONES = [
+	'UTC',
+	'America/New_York',
+	'America/Chicago',
+	'America/Denver',
+	'America/Los_Angeles',
+	'America/Anchorage',
+	'Pacific/Honolulu',
+	'Europe/London',
+	'Europe/Paris',
+	'Europe/Berlin',
+	'Asia/Tokyo',
+	'Asia/Shanghai',
+	'Asia/Kolkata',
+	'Australia/Sydney',
+];
+
+function getTimezoneOptions(): string[] {
+	try {
+		return Intl.supportedValuesOf('timeZone');
+	} catch {
+		return COMMON_TIMEZONES;
+	}
+}
+
+function TimezoneCard() {
+	const orgQuery = trpc.org.getCurrentOrg.useQuery();
+	const qc = useQueryClient();
+	const timezones = useMemo(() => getTimezoneOptions(), []);
+	const [open, setOpen] = useState(false);
+
+	const updateTz = trpc.org.updateTimezone.useMutation({
+		onSuccess: () => {
+			toast.success('Timezone updated.');
+			void qc.invalidateQueries();
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to update timezone.');
+		},
+	});
+
+	const currentTz = orgQuery.data?.timezone ?? null;
+	const displayLabel = currentTz
+		? currentTz.replace(/_/g, ' ')
+		: 'UTC (default)';
+	const isDisabled = updateTz.isPending || orgQuery.isLoading;
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Organization timezone</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<p className="mb-3 text-sm text-muted-foreground">
+					Controls when digest emails and shift reminders are sent.
+					Notifications arrive at local morning time for your organization.
+				</p>
+				<div className="space-y-1.5">
+					<Label>Timezone</Label>
+					<Popover open={open} onOpenChange={setOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								variant="outline"
+								aria-expanded={open}
+								disabled={isDisabled}
+								className="w-full justify-between sm:w-72"
+							>
+								{displayLabel}
+								<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 sm:w-72">
+							<Command>
+								<CommandInput placeholder="Search timezones…" />
+								<CommandList>
+									<CommandEmpty>No timezone found.</CommandEmpty>
+									<CommandGroup>
+										<CommandItem
+											value="UTC (default)"
+											onSelect={() => {
+												updateTz.mutate({ timezone: null });
+												setOpen(false);
+											}}
+										>
+											<Check
+												className={`mr-2 h-4 w-4 ${currentTz === null ? 'opacity-100' : 'opacity-0'}`}
+											/>
+											UTC (default)
+										</CommandItem>
+										{timezones.map((tz) => (
+											<CommandItem
+												key={tz}
+												value={tz.replace(/_/g, ' ')}
+												onSelect={() => {
+													updateTz.mutate({ timezone: tz });
+													setOpen(false);
+												}}
+											>
+												<Check
+													className={`mr-2 h-4 w-4 ${currentTz === tz ? 'opacity-100' : 'opacity-0'}`}
+												/>
+												{tz.replace(/_/g, ' ')}
+											</CommandItem>
+										))}
+									</CommandGroup>
+								</CommandList>
+							</Command>
+						</PopoverContent>
+					</Popover>
+				</div>
+			</CardContent>
+		</Card>
 	);
 }

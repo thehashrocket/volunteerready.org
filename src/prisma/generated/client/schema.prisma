@@ -114,6 +114,7 @@ model Organization {
   onboardingDismissedAt      DateTime? // Checklist dismissed
   firstApplicationReceivedAt DateTime? // First-volunteer celebration trigger
   qrForegroundColor          String? // Custom QR code color (hex, e.g. #1B3C2A)
+  timezone                   String? // IANA timezone (e.g. "America/New_York"). NULL = UTC.
   createdAt                  DateTime                 @default(now())
   updatedAt                  DateTime                 @updatedAt
   members                    OrganizationMember[]
@@ -139,11 +140,13 @@ model Organization {
 }
 
 model OrganizationMember {
-  id             String   @id @default(cuid())
-  organizationId String
-  userId         String
-  role           Role     @default(STAFF)
-  createdAt      DateTime @default(now())
+  id                      String    @id @default(cuid())
+  organizationId          String
+  userId                  String
+  role                    Role      @default(STAFF)
+  lastActivityAt          DateTime?
+  lastReengagementSegment String?
+  createdAt               DateTime  @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -151,6 +154,7 @@ model OrganizationMember {
   @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([userId])
+  @@index([lastActivityAt])
 }
 
 model AuditLog {
@@ -774,6 +778,7 @@ enum NotificationType {
   NEW_OPPORTUNITY
   BADGE_EARNED
   FIRST_APPLICATION
+  REENGAGEMENT
 }
 
 model Notification {
