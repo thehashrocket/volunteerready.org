@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.3] - 2026-03-20
+
+### Added
+- **Digest cron cursor persistence** — Email digests now paginate through users in batches of 100 with cursor tracking via CronJobRun, preventing Vercel 300s timeouts at scale.
+- **Per-type email preference filter** — Digest emails now respect per-notification-type email opt-outs (NotificationPreference.email=false).
+- **Timezone-aware notification delivery** — Organizations can set an IANA timezone; digest emails and shift reminders are delivered at local morning time (8am and 6am respectively) instead of a fixed UTC hour. Crons now run hourly.
+- **Organization timezone setting** — Staff can configure org timezone from Team Settings with a searchable dropdown of all IANA timezones.
+- **Volunteer re-engagement emails** — Inactive volunteers receive automated outreach at 30, 60, and 90 days of inactivity. The 60-day email includes org-scoped published opportunities. Each segment fires once per member-org pair; activity resets the cycle.
+- **Activity tracking** — Shift signups and application submissions now update OrganizationMember.lastActivityAt for re-engagement targeting.
+- **Backfill script** — `pnpm backfill:activity` populates lastActivityAt from historical shift signups and volunteer applications.
+- **Shared escapeHtml utility** — Extracted duplicated HTML escaping into `src/server/lib/html.ts`.
+
+### Changed
+- Shift reminder and email digest cron schedules changed from daily to hourly (timezone-aware processing).
+- Shift reminder service now caps queries at 500 results per run and formats email times in the org's timezone.
+
 ## [0.13.2] - 2026-03-20
 
 ### Fixed

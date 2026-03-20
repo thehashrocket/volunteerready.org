@@ -391,49 +391,24 @@ tests bigint → number conversion from raw SQL.
 
 ## Phase 9 — Production-Ready + Activation
 
-### [P2] Timezone-Aware Notification Delivery
+### ~~[P2] Timezone-Aware Notification Delivery~~ ✅ Complete
 
-**What:** Deliver shift reminders and digest emails based on the volunteer's
-local timezone rather than a fixed UTC offset.
+**Completed:** v0.14.0 (2026-03-20)
 
-**Why:** A shift reminder sent at 06:00 UTC arrives at 10pm PST the night
-before — not useful. As the platform onboards orgs in multiple timezones,
-fixed-UTC cron delivery will cause poor UX for west-coast and international users.
-
-**Context:** Phase 9 ships reminders and digests at fixed UTC times (06:00 and
-08:00). The fix requires: (1) a `timezone` field on User or Organization
-(IANA timezone string, e.g., `America/Los_Angeles`), (2) cron jobs that query
-users grouped by timezone and send at their local 8am equivalent, or (3) a
-queue-based approach where each notification is scheduled for delivery at the
-user's local time. Option (2) is simpler but means the cron runs more
-frequently; option (3) is more precise but requires job queue infrastructure.
-
-**Pros:** Notifications arrive at sensible local times; critical for multi-timezone orgs.
-**Cons:** Adds complexity to cron scheduling; requires timezone data on users.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** Phase 9 cron jobs shipped
+Added `Organization.timezone` (nullable IANA string, NULL = UTC). Shift reminders
+fire at local 6am, digests at local 8am. Cron schedules changed to hourly.
+`getTimezonesMatchingHour()` utility in `src/server/lib/timezone.ts`. Timezone
+picker on `/app/settings/team`. `updateTimezone` tRPC mutation (staff-only).
 
 ---
 
-### [P1] Digest Cron Pagination with Cursor Tracking
+### ~~[P1] Digest Cron Pagination with Cursor Tracking~~ ✅ Complete
 
-**What:** Implement batch processing (100 users per run) with cursor persistence in
-`CronJobRun.resultSummary` for the email digest cron job.
+**Completed:** v0.14.0 (2026-03-20)
 
-**Why:** Vercel Cron has a 300s timeout (Pro plan). Processing 1000+ digest users
-sequentially would exceed this. Cursor tracking ensures all users eventually get
-their digest across multiple cron invocations without double-sending.
-
-**Context:** The digest cron (08:00 UTC) queries users with digest preferences enabled
-and `lastDigestSentAt` older than their configured frequency (daily/weekly). Process
-100 users per invocation. Store the cursor (last processed userId) in `CronJobRun.resultSummary`
-JSON. On next invocation, resume from cursor. When cursor reaches end, reset.
-`lastDigestSentAt` on `NotificationPreference` prevents double-sends on restart.
-
-**Pros:** Works within Vercel timeout constraints; scales to 10K+ users; idempotent.
-**Cons:** Users at the end of the cursor may receive digests hours after the cron trigger.
-
-**Effort:** S | **Priority:** P1 | **Depends on:** Digest cron + CronJobRun table implementation
+Cursor-based pagination (100 per batch) with `CronJobRun.resultSummary.nextCursor`.
+`lastDigestSentAt` idempotency prevents double-sends on cursor reset. Per-type
+email preference filter also added (excludes types where `NotificationPreference.email=false`).
 
 ---
 
@@ -576,48 +551,28 @@ Vercel function timeout), (2) Inngest or similar job queue (proper fix, new depe
 
 ---
 
-### [P3] Digest Service — Honor Per-Type Email Preferences
+### ~~[P3] Digest Service — Honor Per-Type Email Preferences~~ ✅ Complete
 
-**What:** Filter notifications in the digest by the user's per-type `NotificationPreference.email`
-setting before including them in the digest email.
+**Completed:** v0.14.0 (2026-03-20)
 
-**Why:** If a user opts out of email for a specific notification type (e.g., APPLICATION_UPDATE)
-but has digests enabled, those notifications still appear in their digest. The digest
-should respect per-type email preferences.
-
-**Context:** `src/server/services/digest-service.ts:63-69` queries all undelivered notifications
-for a user without checking `NotificationPreference.email` per type. Fix: join against
-`NotificationPreference` and exclude types where `email: false`, or filter in application code
-after fetching. The `NotificationPreference` table has `(userId, orgId, type)` composite key
-with an `email: Boolean` field.
-
-**Pros:** Consistent preference behavior across real-time and digest delivery.
-**Cons:** Adds a join or post-filter; minor query complexity increase.
-
-**Effort:** S | **Priority:** P3 | **Depends on:** Phase 9 digest service shipped
+Bundled with digest cursor pagination. `getOptedOutTypes(userId, orgId)` queries
+`NotificationPreference` where `email=false` and adds `type: { notIn: [...] }` to
+the notification query.
 
 ---
 
 ## Phase 10 — Scale & Enterprise Readiness (Deferred Items)
 
-### [P3] Volunteer Re-Engagement Emails
+### ~~[P3] Volunteer Re-Engagement Emails~~ ✅ Complete
 
-**What:** Automated emails to volunteers who haven't logged in or signed up for
-shifts in 30/60/90 days, encouraging them to return.
+**Completed:** v0.14.0 (2026-03-20)
 
-**Why:** Volunteer retention is a growth lever. Re-engagement emails are standard
-for marketplace platforms but are a growth feature, not a reliability feature.
-Phase 10 focuses on reliability and enterprise readiness.
-
-**Context:** Would require a new cron job querying users by last activity date,
-segmentation logic (30/60/90 day buckets), and branded email templates with
-personalized content (e.g., "Your org posted 3 new opportunities since you
-last visited"). Should respect notification preferences and digest settings.
-
-**Pros:** Improves volunteer retention; low implementation cost with existing email infra.
-**Cons:** Growth feature, not core reliability; needs careful frequency tuning to avoid spam.
-
-**Effort:** M | **Priority:** P3 | **Depends on:** Phase 10 shipped (notification preferences, digest)
+Three-segment (30d/60d/90d) re-engagement emails scoped to `OrganizationMember`.
+`lastActivityAt` tracked on shift signup + application submission. `lastReengagementSegment`
+prevents perpetual spam (each segment fires once, resets on activity). 60d template
+includes org-scoped published opportunities. Cursor-based pagination for scale.
+Cron at `/api/cron/volunteer-reengagement` (daily 3pm UTC). Respects `REENGAGEMENT`
+email opt-out via `NotificationPreference`. Backfill script: `pnpm backfill:activity`.
 
 ---
 
@@ -660,6 +615,28 @@ background functions or a self-hosted worker.
 **Cons:** New dependency (Inngest); monthly cost; architecture change.
 
 **Effort:** L | **Priority:** P3 | **Depends on:** Phase 10 bulk import waitUntil() shipped
+
+---
+
+### [P3] Cron Concurrency Guard — Claim-Based Processing
+
+**What:** Add optimistic locking or claim-based processing to digest and re-engagement
+cron services to prevent duplicate emails from concurrent runs.
+
+**Why:** Current flow is read→send→update with no claim/lock. While Vercel cron runs
+are serialized by schedule, manual curl triggers during an active run could cause
+duplicate email sends.
+
+**Context:** The `lastDigestSentAt` and `lastReengagementSegment` fields provide
+after-the-fact idempotency, but a concurrent run could read the same batch before
+updates are written. Fix options: (1) SELECT FOR UPDATE SKIP LOCKED on the batch
+query, (2) a "processing" flag on CronJobRun that blocks concurrent starts,
+(3) accept the risk since Vercel serializes cron triggers.
+
+**Pros:** Eliminates theoretical duplicate emails under concurrent manual triggers.
+**Cons:** Low probability scenario; adds query complexity; Vercel already serializes.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Digest + re-engagement crons shipped
 
 ---
 
