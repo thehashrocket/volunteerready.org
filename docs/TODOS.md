@@ -350,25 +350,15 @@ a NextResponse error.
 
 **Effort:** S | **Priority:** P3 | **Depends on:** A third ESG export format being added
 
-### [P2] QR Code Volunteer Check-In (Mobile PWA)
+### ~~[P2] QR Code Volunteer Check-In (Mobile PWA)~~ ✅ Complete
 
-**What:** QR code displayed on `/app/my-shifts` that staff can scan to instantly
-mark a volunteer as ATTENDED, replacing the manual attendance UI.
+**Completed:** v0.13.0 (2026-03-20)
 
-**Why:** At in-person events with 50+ volunteers, staff can't efficiently use the
-web UI to mark attendance one by one. QR scanning is the standard venue solution.
-
-**Context:** Phase 6E adds the PWA manifest (installable on iOS/Android). QR
-check-in is the natural companion. The QR code encodes a per-shift-per-volunteer
-token (signed URL or short-lived token). Staff scans with their phone camera →
-opens a URL that calls `shifts.markAttended` tRPC mutation. The volunteer's phone
-shows the QR; the staff's phone scans it.
-
-**Pros:** Massive operational efficiency at events; differentiates from competitors
-who all use manual check-in.
-**Cons:** Token generation + validation adds complexity; must handle expired QR codes gracefully.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** Phase 6E PWA shipped, Phase 5 attendance tracking in place
+Implemented as Phase 6E with HMAC-SHA256 stateless tokens, staff scanner page
+(`/app/scan`) with camera + search-by-name fallback, volunteer QR display on
+my-shifts, PWA manifest + service worker, geo-fenced auto check-in, real-time
+dashboard, thank-you notifications, check-in analytics, and QR color customization.
+28 new tests covering all check-in paths.
 
 ---
 
@@ -605,3 +595,89 @@ with an `email: Boolean` field.
 **Cons:** Adds a join or post-filter; minor query complexity increase.
 
 **Effort:** S | **Priority:** P3 | **Depends on:** Phase 9 digest service shipped
+
+---
+
+## Phase 10 — Scale & Enterprise Readiness (Deferred Items)
+
+### [P3] Volunteer Re-Engagement Emails
+
+**What:** Automated emails to volunteers who haven't logged in or signed up for
+shifts in 30/60/90 days, encouraging them to return.
+
+**Why:** Volunteer retention is a growth lever. Re-engagement emails are standard
+for marketplace platforms but are a growth feature, not a reliability feature.
+Phase 10 focuses on reliability and enterprise readiness.
+
+**Context:** Would require a new cron job querying users by last activity date,
+segmentation logic (30/60/90 day buckets), and branded email templates with
+personalized content (e.g., "Your org posted 3 new opportunities since you
+last visited"). Should respect notification preferences and digest settings.
+
+**Pros:** Improves volunteer retention; low implementation cost with existing email infra.
+**Cons:** Growth feature, not core reliability; needs careful frequency tuning to avoid spam.
+
+**Effort:** M | **Priority:** P3 | **Depends on:** Phase 10 shipped (notification preferences, digest)
+
+---
+
+### [P3] Bulk Credential Issuance
+
+**What:** Admin UI to issue the same credential type to multiple volunteers at once
+(e.g., after a group training session).
+
+**Why:** Orgs that run group trainings currently issue credentials one at a time.
+Bulk issuance is operational polish that reduces admin friction for high-volume orgs.
+
+**Context:** Would need a multi-select UI on the credentials page, a batch
+`credentials.bulkIssue` tRPC mutation, and progress tracking similar to bulk
+import. Reuse the `BulkImportJob` pattern for async processing. Should audit-log
+each credential individually.
+
+**Pros:** Significant time savings for orgs with group trainings.
+**Cons:** Operational polish, not a blocking gap; single-issue works today.
+
+**Effort:** M | **Priority:** P3 | **Depends on:** Phase 10 shipped
+
+---
+
+### [P3] Inngest/Real Queue for Bulk Import
+
+**What:** Replace the `waitUntil()` stopgap in bulk import with a proper job queue
+(Inngest or similar) for truly durable execution.
+
+**Why:** `waitUntil()` extends function lifetime but is still limited by Vercel's
+function timeout. For imports >500 rows with email sending, a real queue with
+retry semantics is the proper solution. Phase 10 uses `waitUntil()` as a quick
+fix; this TODO tracks the full solution.
+
+**Context:** `src/server/services/bulk-import-service.ts` currently uses
+`void processImportJob()` (fire-and-forget). Phase 10 upgrades to `waitUntil()`.
+Inngest provides step functions, retries, and observability. Alternative: Vercel
+background functions or a self-hosted worker.
+
+**Pros:** True durability; retry semantics; observability dashboard.
+**Cons:** New dependency (Inngest); monthly cost; architecture change.
+
+**Effort:** L | **Priority:** P3 | **Depends on:** Phase 10 bulk import waitUntil() shipped
+
+---
+
+### [P3] User-Level Timezone Override
+
+**What:** Allow individual users to set their own timezone, overriding the
+organization-level default.
+
+**Why:** Phase 10 adds organization-level timezone (IANA string on Organization
+model, NULL = UTC). This handles 95% of cases, but volunteers in different
+timezones than their org will receive notifications at suboptimal times.
+
+**Context:** Would add a `timezone String?` field to `User` or `VolunteerProfile`.
+Notification delivery logic would check user timezone first, fall back to org
+timezone, then UTC. The org settings timezone dropdown pattern can be reused
+on the profile page.
+
+**Pros:** Precise notification delivery for distributed volunteer bases.
+**Cons:** Additional complexity in cron grouping logic; edge case for now.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Phase 10 org-level timezone shipped

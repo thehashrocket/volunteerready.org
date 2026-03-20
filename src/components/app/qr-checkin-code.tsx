@@ -16,6 +16,7 @@ type QrCheckinCodeProps = {
 	userId: string;
 	shiftStartTime: Date;
 	shiftLocation?: string | null;
+	qrForegroundColor?: string | null;
 };
 
 type Phase = 'before' | 'during' | 'after';
@@ -42,11 +43,15 @@ function getContextualCopy(phase: Phase, location?: string | null): string {
 	}
 }
 
+const DEFAULT_QR_COLOR = '#1B3C2A';
+
+
 export function QrCheckinCode({
 	shiftId,
 	userId,
 	shiftStartTime,
 	shiftLocation,
+	qrForegroundColor,
 }: QrCheckinCodeProps) {
 	const [countdown, setCountdown] = useState(REFRESH_INTERVAL_MS);
 	const [isOffline, setIsOffline] = useState(false);
@@ -99,14 +104,18 @@ export function QrCheckinCode({
 		const cacheKey = `${OFFLINE_CACHE_KEY_PREFIX}${shiftId}`;
 		const cached = localStorage.getItem(cacheKey);
 		if (cached) {
-			const { token: cachedToken, cachedAt } = JSON.parse(cached);
-			const age = Date.now() - cachedAt;
-			if (age < OFFLINE_EXPIRY_MS) {
-				setOfflineToken(cachedToken);
-				setOfflineExpired(false);
-			} else {
-				setOfflineToken(cachedToken);
-				setOfflineExpired(true);
+			try {
+				const { token: cachedToken, cachedAt } = JSON.parse(cached);
+				const age = Date.now() - cachedAt;
+				if (age < OFFLINE_EXPIRY_MS) {
+					setOfflineToken(cachedToken);
+					setOfflineExpired(false);
+				} else {
+					setOfflineToken(cachedToken);
+					setOfflineExpired(true);
+				}
+			} catch {
+				localStorage.removeItem(cacheKey);
 			}
 		}
 	}, [isOffline, shiftId]);
@@ -193,7 +202,7 @@ export function QrCheckinCode({
 					value={qrData}
 					size={160}
 					level="M"
-					fgColor="#1B3C2A"
+					fgColor={qrForegroundColor ?? DEFAULT_QR_COLOR}
 					bgColor="transparent"
 				/>
 			</div>

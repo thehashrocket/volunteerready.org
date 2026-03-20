@@ -12,8 +12,10 @@
 
 import {
 	type ApplicationFunnelStats,
+	type CheckinAnalytics,
 	getApplicationFunnel,
 	getAvgFillRate,
+	getCheckinAnalytics,
 	getRetentionStats,
 	getTopVolunteers,
 	type RetentionStats,
@@ -34,6 +36,8 @@ export type OrgAnalyticsDashboard = {
 	/** Average fill rate across non-cancelled shifts, 0–100 integer. */
 	avgFillRate: number;
 	topVolunteers: TopVolunteerRow[];
+	/** Check-in method breakdown and busiest hours. */
+	checkinAnalytics: CheckinAnalytics;
 	/** Selected period in days; null = all-time. */
 	days: number | null;
 };
@@ -64,19 +68,24 @@ export async function getOrgAnalyticsDashboard(
 	const fromDate =
 		days !== null ? new Date(Date.now() - days * DAYS_TO_MS) : ALL_TIME_EPOCH;
 
-	const [funnel, retention, avgFillRate, topVolunteers] = await Promise.all([
-		getApplicationFunnel(orgId, fromDate),
-		// Retention comparison is undefined for all-time (no "prior period").
-		days !== null ? getRetentionStats(orgId, fromDate) : Promise.resolve(null),
-		getAvgFillRate(orgId, fromDate),
-		getTopVolunteers(orgId, 10, fromDate),
-	]);
+	const [funnel, retention, avgFillRate, topVolunteers, checkinAnalytics] =
+		await Promise.all([
+			getApplicationFunnel(orgId, fromDate),
+			// Retention comparison is undefined for all-time (no "prior period").
+			days !== null
+				? getRetentionStats(orgId, fromDate)
+				: Promise.resolve(null),
+			getAvgFillRate(orgId, fromDate),
+			getTopVolunteers(orgId, 10, fromDate),
+			getCheckinAnalytics(orgId, fromDate),
+		]);
 
 	return {
 		funnel,
 		retention,
 		avgFillRate,
 		topVolunteers,
+		checkinAnalytics,
 		days,
 	};
 }

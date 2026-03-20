@@ -301,11 +301,29 @@ export async function markAttendance(
 	if (!shift) throw new Error('Shift not found.');
 
 	return prisma.$transaction(async (tx) => {
-		// Check-then-update: if already ATTENDED, return early (idempotent)
-		const existing = await getSignupByShiftAndUser(shiftId, userId);
-		if (existing?.status === 'ATTENDED' && status === 'ATTENDED') {
+		// Lock the signup row to prevent concurrent audit log duplication
+		const [existing] = await tx.$queryRaw<
+			{ id: string; status: string }[]
+		>`SELECT id, status FROM "ShiftSignup" WHERE "shiftId" = ${shiftId} AND "userId" = ${userId} FOR UPDATE`;
+
+		if (!existing) {
+			throw new Error('No signup found for this shift.');
+		}
+
+		// Idempotent: already ATTENDED, skip audit log
+		if (existing.status === 'ATTENDED' && status === 'ATTENDED') {
 			return { ...existing, alreadyCheckedIn: true };
 		}
+
+		// Reject if signup was cancelled/waitlisted (e.g. token obtained then cancelled)
+		if (
+			status === 'ATTENDED' &&
+			existing.status !== 'CONFIRMED' &&
+			existing.status !== 'ATTENDED'
+		) {
+			throw new Error(`Cannot mark attendance: signup is ${existing.status}.`);
+		}
+
 
 		const updated = await updateSignupStatus(tx, shiftId, userId, status);
 

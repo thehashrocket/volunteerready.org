@@ -5,6 +5,7 @@ import {
 	createTRPCRouter,
 	orgProcedure,
 	protectedProcedure,
+	staffProcedure,
 } from '@/server/trpc/init';
 
 export const orgRouter = createTRPCRouter({
@@ -50,6 +51,47 @@ export const orgRouter = createTRPCRouter({
 				userId,
 				sessionToken,
 				targetOrgId: input.orgId,
+			});
+		}),
+
+	/** Update org QR foreground color (staff only). */
+	updateQrColor: staffProcedure
+		.input(
+			z.object({
+				qrForegroundColor: z
+					.string()
+					.regex(
+						/^#[0-9a-fA-F]{6}$/,
+						'Must be a valid hex color (e.g. #1B3C2A)',
+					)
+					.nullable(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Validate contrast against white background (WCAG AA: >= 3:1 for large text)
+			if (input.qrForegroundColor) {
+				const hex = input.qrForegroundColor.replace('#', '');
+				const r = Number.parseInt(hex.slice(0, 2), 16) / 255;
+				const g = Number.parseInt(hex.slice(2, 4), 16) / 255;
+				const b = Number.parseInt(hex.slice(4, 6), 16) / 255;
+				const luminance = (c: number) =>
+					c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+				const L =
+					0.2126 * luminance(r) + 0.7152 * luminance(g) + 0.0722 * luminance(b);
+				// White bg luminance = 1.0. Contrast ratio = (lighter + 0.05) / (darker + 0.05)
+				const contrast = (1.0 + 0.05) / (L + 0.05);
+				if (contrast < 3) {
+					throw new TRPCError({
+						code: 'BAD_REQUEST',
+						message:
+							'Color has insufficient contrast against white background. Choose a darker color.',
+					});
+				}
+			}
+
+			return ctx.prisma.organization.update({
+				where: { id: ctx.orgId },
+				data: { qrForegroundColor: input.qrForegroundColor },
 			});
 		}),
 });

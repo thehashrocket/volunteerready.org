@@ -35,6 +35,7 @@ export default function MyShiftsPage() {
 	const qc = useQueryClient();
 	const { data: signups, isLoading } =
 		trpc.shifts.myUpcomingWithWaitlist.useQuery();
+	const { data: org } = trpc.org.getCurrentOrg.useQuery();
 
 	const cancelMut = trpc.shifts.cancelSignup.useMutation({
 		onSuccess: () => {
@@ -129,6 +130,7 @@ export default function MyShiftsPage() {
 												userId={userId}
 												shiftStartTime={new Date(signup.shift.startTime)}
 												shiftLocation={signup.shift.location}
+												qrForegroundColor={org?.qrForegroundColor}
 											/>
 											{signup.shift.latitude != null &&
 												signup.shift.longitude != null && (

@@ -1,6 +1,6 @@
 'use client';
 
-import { Html5Qrcode } from 'html5-qrcode';
+import type { Html5Qrcode as Html5QrcodeType } from 'html5-qrcode';
 import {
 	Calendar,
 	Camera,
@@ -45,7 +45,7 @@ export default function Scanner() {
 	const [lastResult, setLastResult] = useState<ScanResult | null>(null);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [showCompletion, setShowCompletion] = useState(false);
-	const scannerRef = useRef<Html5Qrcode | null>(null);
+	const scannerRef = useRef<Html5QrcodeType | null>(null);
 	const processingRef = useRef(false);
 
 	// Fetch today's shifts for this org
@@ -186,37 +186,54 @@ export default function Scanner() {
 		],
 	);
 
-	// Start/stop camera
+	// Start/stop camera — lazy import html5-qrcode to avoid module-level DOM access
 	useEffect(() => {
 		if (!selectedShiftId || showCompletion) return;
+		if (!document.getElementById('qr-reader')) return;
 
-		const scanner = new Html5Qrcode('qr-reader');
-		scannerRef.current = scanner;
-		setIsScanning(true);
-		setCameraError(null);
+		let scanner: Html5QrcodeType | null = null;
+		let cancelled = false;
 
-		scanner
-			.start(
-				{ facingMode: 'environment' },
-				{ fps: 10, qrbox: { width: 250, height: 250 } },
-				(text) => handleScan(text),
-				() => {}, // ignore non-QR frames
-			)
-			.catch((err) => {
-				setIsScanning(false);
-				if (String(err).includes('NotAllowedError')) {
-					setCameraError(
-						'Camera access denied. Please allow camera access in your browser settings.',
-					);
-				} else if (String(err).includes('NotFoundError')) {
-					setCameraError('No camera found on this device.');
-				} else {
-					setCameraError('Could not start camera. Please try again.');
+		import('html5-qrcode')
+			.then(({ Html5Qrcode }) => {
+				if (cancelled) return;
+				try {
+					scanner = new Html5Qrcode('qr-reader');
+				} catch {
+					setCameraError('Could not initialize scanner.');
+					return;
 				}
+				scannerRef.current = scanner;
+				setIsScanning(true);
+				setCameraError(null);
+
+				scanner
+					.start(
+						{ facingMode: 'environment' },
+						{ fps: 10, qrbox: { width: 250, height: 250 } },
+						(text) => handleScan(text),
+						() => {},
+					)
+					.catch((err) => {
+						setIsScanning(false);
+						if (String(err).includes('NotAllowedError')) {
+							setCameraError(
+								'Camera access denied. Please allow camera access in your browser settings.',
+							);
+						} else if (String(err).includes('NotFoundError')) {
+							setCameraError('No camera found on this device.');
+						} else {
+							setCameraError('Could not start camera. Please try again.');
+						}
+					});
+			})
+			.catch(() => {
+				setCameraError('Could not load scanner library.');
 			});
 
 		return () => {
-			if (scanner.isScanning) {
+			cancelled = true;
+			if (scanner?.isScanning) {
 				scanner.stop().catch(() => {});
 			}
 		};
@@ -260,6 +277,32 @@ export default function Scanner() {
 		const name = s.user?.name?.toLowerCase() ?? '';
 		return name.includes(searchQuery.toLowerCase()) && s.status === 'CONFIRMED';
 	});
+
+	const searchInputRef = useRef<HTMLInputElement>(null);
+
+	// Keyboard shortcuts: / or Cmd+K focuses search, Esc re-focuses camera
+	useEffect(() => {
+		function handleKeyDown(e: KeyboardEvent) {
+			if (
+				e.target instanceof HTMLInputElement ||
+				e.target instanceof HTMLTextAreaElement
+			) {
+				if (e.key === 'Escape') {
+					(e.target as HTMLElement).blur();
+					e.preventDefault();
+				}
+				return;
+			}
+
+			if (e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) {
+				e.preventDefault();
+				searchInputRef.current?.focus();
+			}
+		}
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, []);
+
 
 	// No shifts available
 	if (shiftsQuery.isLoading) {
@@ -448,7 +491,8 @@ export default function Scanner() {
 				<div className="relative">
 					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
-						placeholder="Or search by name..."
+						ref={searchInputRef}
+						placeholder="Or search by name... (press / to focus)"
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						className="pl-9"

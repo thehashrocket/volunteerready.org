@@ -257,12 +257,20 @@ Key entities added:
 - `EmployerReportService` — uses raw SQL aggregations (`$queryRaw` with `Prisma.sql`), not per-row queries
 - Structured audit log events for report generation (best-effort with `await` + `catch`)
 
-## 6E — Mobile PWA
+## 6E — Mobile PWA + QR Check-in + Event Command Center ✅ Complete (v0.13.0)
 
-- Progressive Web App manifest — installable on iOS and Android home screens
-- Volunteer check-in via mobile — QR code displayed on `/app/my-shifts`; staff scans to mark
-  ATTENDED
-- Push notification groundwork — shift reminders (implementation deferred to Phase 7)
+- ✅ QR-based volunteer check-in — HMAC-SHA256 stateless tokens with 5-minute rotation, staff scanner page (`/app/scan`), search-by-name a11y fallback
+- ✅ Volunteer QR display on my-shifts — auto-refresh, countdown timer, contextual copy, check-in status polling with QR→checkmark transition
+- ✅ PWA manifest + service worker — installable on iOS/Android, cache-first static assets, network-first API, install prompt
+- ✅ Offline QR codes — 10-minute token prefetch to localStorage with offline badge
+- ✅ Geo-fenced auto check-in — haversine distance, auto-check-in within 100m; `latitude`/`longitude` on Shift model
+- ✅ Real-time check-in counter — live progress bar in shift detail dialog (polls within ±2h)
+- ✅ Post-shift thank-you notifications (`SHIFT_COMPLETED` type) with hours logged
+- ✅ Session summary email to org admins on shift completion
+- ✅ Check-in analytics — method breakdown (QR/manual/geo) + busiest hours on analytics page
+- ✅ QR color customization per org with WCAG contrast validation
+- ✅ Scanner keyboard shortcuts (`/` focuses search, `Esc` returns to camera)
+- Push notification groundwork — deferred (vague scope)
 
 Key new routes:
 
@@ -422,10 +430,42 @@ Delivered (v0.12.2):
 - ✅ Seed file refactor — split monolithic `seed.ts` (2,191 lines) into `seed-helpers.ts`, `seed-production.ts`, `seed-dev.ts`, and thin dispatcher; added `seed:production` and `seed:dev` npm scripts
 
 Deferred from Phase 9:
-- Context-switch UI (Org ↔ Company) — deferred to post-Phase 9
+- Context-switch UI (Org ↔ Company) — moved to Phase 10
 
 Architecture: BulkImportJob table, CronJobRun table, UserDigestPreference table,
 `withCronAuth` DRY wrapper, `platformAdminProcedure` tRPC middleware.
+
+---
+
+# Phase 10 — Scale & Enterprise Readiness (planned)
+
+Goal: Fix every known production failure mode, add Sterling background check adapter
+for enterprise nonprofits, and ship observability infrastructure that makes email
+delivery and cron health visible.
+
+Full plan: [`docs/designs/phase-10-scale-enterprise.md`](designs/phase-10-scale-enterprise.md)
+
+Planned (15 deliverables):
+
+- Digest cron pagination (100 users/batch, cursor tracking)
+- Bulk import durability (`waitUntil()` replacement)
+- AuditLog concurrent index creation
+- Timezone-aware notification delivery
+- Context-switch UI (Org ↔ Company)
+- Sterling background check adapter
+- Encryption key rotation (dual-key support)
+- ESG report integration tests
+- Digest per-type email preferences
+- Stripe webhook reconciliation improvements
+- Shift auto-close cron
+- Org health score widget
+- Email delivery tracking (Resend webhooks)
+- Admin activity feed
+- AuditLog orgId+createdAt index
+
+Architecture: Sterling adapter via `BackgroundCheckAdapter` interface,
+`EmailDeliveryEvent` table, `Organization.timezone` field, dual-key
+encryption in `crypto.ts`, `computeOrgHealth()` pure domain function.
 
 ---
 
