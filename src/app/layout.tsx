@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
 import { ConsentedAnalytics } from '@/components/consented-analytics';
 import { CookieConsentBanner } from '@/components/cookie-consent-banner';
+import { IosInstallPrompt } from '@/components/ios-install-prompt';
 import { AppToaster } from '@/components/sonner';
 import { SwRegister } from '@/components/sw-register';
 import { SwUpdateBanner } from '@/components/sw-update-banner';
@@ -29,6 +30,14 @@ export const metadata: Metadata = {
 	title: 'VolunteerReady',
 	description: 'Find and manage volunteer opportunities.',
 	manifest: '/manifest.webmanifest',
+	appleWebApp: {
+		capable: true,
+		statusBarStyle: 'default',
+		title: 'VolunteerReady',
+	},
+	icons: {
+		apple: '/icons/apple-touch-icon.png',
+	},
 	openGraph: {
 		title: 'VolunteerReady',
 		description: 'Find and manage volunteer opportunities.',
@@ -59,6 +68,7 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} min-h-screen bg-background text-foreground antialiased`}
 			>
 				{children}
+				<IosInstallPrompt />
 				<SwRegister />
 				<SwUpdateBanner />
 				<AppToaster />
