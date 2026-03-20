@@ -110,9 +110,7 @@ export default function DashboardPage() {
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<Card className="border-border/70">
 					<CardContent className="flex items-start gap-4 pt-6">
-						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-info/10">
-							<ClipboardList className="h-5 w-5 text-info-foreground" />
-						</div>
+						<ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-info-foreground" />
 						<div className="flex-1 space-y-1">
 							<p className="font-medium">Screener questions</p>
 							<p className="text-sm text-muted-foreground">
@@ -120,7 +118,7 @@ export default function DashboardPage() {
 								form.
 							</p>
 						</div>
-						<Button asChild variant="outline" size="sm">
+						<Button asChild variant="outline" size="default">
 							<Link href="/app/screener">Manage</Link>
 						</Button>
 					</CardContent>
@@ -128,16 +126,14 @@ export default function DashboardPage() {
 
 				<Card className="border-border/70">
 					<CardContent className="flex items-start gap-4 pt-6">
-						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-warning/10">
-							<FileText className="h-5 w-5 text-warning-foreground" />
-						</div>
+						<FileText className="mt-0.5 h-5 w-5 shrink-0 text-warning-foreground" />
 						<div className="flex-1 space-y-1">
 							<p className="font-medium">Volunteer applications</p>
 							<p className="text-sm text-muted-foreground">
 								Review and act on incoming volunteer applications.
 							</p>
 						</div>
-						<Button asChild variant="outline" size="sm">
+						<Button asChild variant="outline" size="default">
 							<Link href="/app/applications">Review</Link>
 						</Button>
 					</CardContent>
@@ -145,16 +141,14 @@ export default function DashboardPage() {
 
 				<Card className="border-border/70">
 					<CardContent className="flex items-start gap-4 pt-6">
-						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/15">
-							<Users className="h-5 w-5 text-success-foreground" />
-						</div>
+						<Users className="mt-0.5 h-5 w-5 shrink-0 text-success-foreground" />
 						<div className="flex-1 space-y-1">
 							<p className="font-medium">Team members</p>
 							<p className="text-sm text-muted-foreground">
 								Manage your organization's members and invite new ones.
 							</p>
 						</div>
-						<Button asChild variant="outline" size="sm">
+						<Button asChild variant="outline" size="default">
 							<Link href="/app/settings/team">Manage</Link>
 						</Button>
 					</CardContent>
@@ -162,9 +156,7 @@ export default function DashboardPage() {
 
 				<Card className="border-border/70">
 					<CardContent className="flex items-start gap-4 pt-6">
-						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
-							<Briefcase className="h-5 w-5 text-primary" />
-						</div>
+						<Briefcase className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
 						<div className="flex-1 space-y-1">
 							<p className="font-medium">Opportunities</p>
 							<p className="text-sm text-muted-foreground">
@@ -172,7 +164,7 @@ export default function DashboardPage() {
 								organization.
 							</p>
 						</div>
-						<Button asChild variant="outline" size="sm">
+						<Button asChild variant="outline" size="default">
 							<Link href="/app/opportunities">Manage</Link>
 						</Button>
 					</CardContent>
