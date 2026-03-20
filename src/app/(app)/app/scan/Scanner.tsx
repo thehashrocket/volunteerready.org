@@ -303,6 +303,7 @@ export default function Scanner() {
 		return () => window.removeEventListener('keydown', handleKeyDown);
 	}, []);
 
+
 	// No shifts available
 	if (shiftsQuery.isLoading) {
 		return (
