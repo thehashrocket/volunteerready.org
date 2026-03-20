@@ -430,10 +430,42 @@ Delivered (v0.12.2):
 - ✅ Seed file refactor — split monolithic `seed.ts` (2,191 lines) into `seed-helpers.ts`, `seed-production.ts`, `seed-dev.ts`, and thin dispatcher; added `seed:production` and `seed:dev` npm scripts
 
 Deferred from Phase 9:
-- Context-switch UI (Org ↔ Company) — deferred to post-Phase 9
+- Context-switch UI (Org ↔ Company) — moved to Phase 10
 
 Architecture: BulkImportJob table, CronJobRun table, UserDigestPreference table,
 `withCronAuth` DRY wrapper, `platformAdminProcedure` tRPC middleware.
+
+---
+
+# Phase 10 — Scale & Enterprise Readiness (planned)
+
+Goal: Fix every known production failure mode, add Sterling background check adapter
+for enterprise nonprofits, and ship observability infrastructure that makes email
+delivery and cron health visible.
+
+Full plan: [`docs/designs/phase-10-scale-enterprise.md`](designs/phase-10-scale-enterprise.md)
+
+Planned (15 deliverables):
+
+- Digest cron pagination (100 users/batch, cursor tracking)
+- Bulk import durability (`waitUntil()` replacement)
+- AuditLog concurrent index creation
+- Timezone-aware notification delivery
+- Context-switch UI (Org ↔ Company)
+- Sterling background check adapter
+- Encryption key rotation (dual-key support)
+- ESG report integration tests
+- Digest per-type email preferences
+- Stripe webhook reconciliation improvements
+- Shift auto-close cron
+- Org health score widget
+- Email delivery tracking (Resend webhooks)
+- Admin activity feed
+- AuditLog orgId+createdAt index
+
+Architecture: Sterling adapter via `BackgroundCheckAdapter` interface,
+`EmailDeliveryEvent` table, `Organization.timezone` field, dual-key
+encryption in `crypto.ts`, `computeOrgHealth()` pure domain function.
 
 ---
 

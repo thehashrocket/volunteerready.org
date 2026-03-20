@@ -133,6 +133,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/SYSTEM_DIAGRAM.md` — Mermaid diagrams of system architecture
 - `docs/ROADMAP.md` — phased development plan
 - `docs/designs/phase-9-production-ready.md` — Phase 9 plan (production-ready + activation)
+- `docs/designs/phase-10-scale-enterprise.md` — Phase 10 plan (scale & enterprise readiness)
 - `docs/TODOS.md` - todos for the current project
 
 ## gstack
