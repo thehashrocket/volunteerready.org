@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
 import { ConsentedAnalytics } from '@/components/consented-analytics';
 import { CookieConsentBanner } from '@/components/cookie-consent-banner';
@@ -29,7 +29,6 @@ export const metadata: Metadata = {
 	title: 'VolunteerReady',
 	description: 'Find and manage volunteer opportunities.',
 	manifest: '/manifest.webmanifest',
-	themeColor: '#1B3C2A',
 	openGraph: {
 		title: 'VolunteerReady',
 		description: 'Find and manage volunteer opportunities.',
@@ -43,6 +42,10 @@ export const metadata: Metadata = {
 		description: 'Find and manage volunteer opportunities.',
 		images: ['/images/og-image.png'],
 	},
+};
+
+export const viewport: Viewport = {
+	themeColor: '#1B3C2A',
 };
 
 export default function RootLayout({
