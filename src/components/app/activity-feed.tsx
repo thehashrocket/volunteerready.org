@@ -179,14 +179,15 @@ export function ActivityFeed() {
 	}
 
 	// Group events by date
-	const groups: { label: string; events: typeof data }[] = [];
-	let currentLabel = '';
+	const groups: { key: string; label: string; events: typeof data }[] = [];
+	let currentKey = '';
 	for (const event of data) {
 		const date = new Date(event.createdAt);
+		const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 		const label = getDateLabel(date);
-		if (label !== currentLabel) {
-			groups.push({ label, events: [] });
-			currentLabel = label;
+		if (key !== currentKey) {
+			groups.push({ key, label, events: [] });
+			currentKey = key;
 		}
 		groups[groups.length - 1].events.push(event);
 	}
@@ -201,7 +202,7 @@ export function ActivityFeed() {
 			<CardContent role="feed" aria-label="Recent activity">
 				<div className="space-y-4">
 					{groups.map((group) => (
-						<div key={group.label}>
+						<div key={group.key}>
 							<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 								{group.label}
 							</p>

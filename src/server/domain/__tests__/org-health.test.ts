@@ -31,9 +31,7 @@ describe('computeOrgHealth', () => {
 			publishedOpportunityCount: 2,
 		});
 		expect(result.score).toBe(50);
-		expect(result.tip).toBe(
-			'Get a volunteer signup on a shift to reach 75',
-		);
+		expect(result.tip).toBe('Get a volunteer signup on a shift to reach 75');
 	});
 
 	it('returns 75 when screener + opportunity + shift signups exist', () => {
