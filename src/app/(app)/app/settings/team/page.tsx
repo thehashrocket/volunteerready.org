@@ -1,9 +1,9 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { RefreshCw, Users } from 'lucide-react';
+import { Globe, RefreshCw, Users } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
@@ -296,6 +296,95 @@ export default function TeamPage() {
 					</form>
 				</CardContent>
 			</Card>
+
+			{/* Timezone settings */}
+			<TimezoneCard />
 		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Timezone Card
+// ---------------------------------------------------------------------------
+
+const COMMON_TIMEZONES = [
+	'UTC',
+	'America/New_York',
+	'America/Chicago',
+	'America/Denver',
+	'America/Los_Angeles',
+	'America/Anchorage',
+	'Pacific/Honolulu',
+	'Europe/London',
+	'Europe/Paris',
+	'Europe/Berlin',
+	'Asia/Tokyo',
+	'Asia/Shanghai',
+	'Asia/Kolkata',
+	'Australia/Sydney',
+];
+
+function getTimezoneOptions(): string[] {
+	try {
+		return Intl.supportedValuesOf('timeZone');
+	} catch {
+		return COMMON_TIMEZONES;
+	}
+}
+
+function TimezoneCard() {
+	const orgQuery = trpc.org.getCurrentOrg.useQuery();
+	const qc = useQueryClient();
+	const timezones = useMemo(() => getTimezoneOptions(), []);
+
+	const updateTz = trpc.org.updateTimezone.useMutation({
+		onSuccess: () => {
+			toast.success('Timezone updated.');
+			void qc.invalidateQueries();
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to update timezone.');
+		},
+	});
+
+	const currentTz = orgQuery.data?.timezone ?? '';
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<Globe className="h-4 w-4" />
+					Organization timezone
+				</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<p className="mb-3 text-sm text-muted-foreground">
+					Controls when digest emails and shift reminders are sent.
+					Notifications arrive at local morning time for your organization.
+				</p>
+				<div className="flex items-end gap-3">
+					<div className="flex-1 space-y-1.5">
+						<Label htmlFor="org-timezone">Timezone</Label>
+						<Select
+							value={currentTz}
+							onValueChange={(tz) => updateTz.mutate({ timezone: tz || null })}
+							disabled={updateTz.isPending || orgQuery.isLoading}
+						>
+							<SelectTrigger id="org-timezone" className="w-72">
+								<SelectValue placeholder="UTC (default)" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="">UTC (default)</SelectItem>
+								{timezones.map((tz) => (
+									<SelectItem key={tz} value={tz}>
+										{tz.replace(/_/g, ' ')}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
+			</CardContent>
+		</Card>
 	);
 }

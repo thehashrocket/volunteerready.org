@@ -94,4 +94,31 @@ export const orgRouter = createTRPCRouter({
 				data: { qrForegroundColor: input.qrForegroundColor },
 			});
 		}),
+
+	/** Update org timezone (staff only). */
+	updateTimezone: staffProcedure
+		.input(
+			z.object({
+				timezone: z
+					.string()
+					.refine(
+						(tz) => {
+							try {
+								Intl.DateTimeFormat(undefined, { timeZone: tz });
+								return true;
+							} catch {
+								return false;
+							}
+						},
+						{ message: 'Invalid IANA timezone string' },
+					)
+					.nullable(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			return ctx.prisma.organization.update({
+				where: { id: ctx.orgId },
+				data: { timezone: input.timezone },
+			});
+		}),
 });
