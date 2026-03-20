@@ -142,21 +142,33 @@ export async function completeShift(
 				10,
 		) / 10;
 
+	// Batch query: total hours per volunteer in one round-trip
+	const userIds = signups.map((s) => s.userId);
+	const totalHoursRows =
+		userIds.length > 0
+			? await prisma.$queryRaw<
+					{ user_id: string; total_hours: number | null }[]
+				>`
+				SELECT ss."userId" AS user_id, SUM(
+					EXTRACT(EPOCH FROM (sh."endTime" - sh."startTime")) / 3600.0
+				) AS total_hours
+				FROM "ShiftSignup" ss
+				JOIN "Shift" sh ON sh.id = ss."shiftId"
+				WHERE ss."userId" = ANY(${userIds})
+				  AND sh."orgId" = ${orgId}
+				  AND ss.status = 'ATTENDED'
+				GROUP BY ss."userId"
+			`
+			: [];
+	const hoursMap = new Map(
+		totalHoursRows.map((r) => [
+			r.user_id,
+			Math.round((r.total_hours ?? 0) * 10) / 10,
+		]),
+	);
+
 	for (const signup of signups) {
-		// Sum total hours for this volunteer across all ATTENDED shifts in this org
-		const totalResult = await prisma.$queryRaw<
-			[{ total_hours: number | null }]
-		>`
-			SELECT SUM(
-				EXTRACT(EPOCH FROM (sh."endTime" - sh."startTime")) / 3600.0
-			) AS total_hours
-			FROM "ShiftSignup" ss
-			JOIN "Shift" sh ON sh.id = ss."shiftId"
-			WHERE ss."userId" = ${signup.userId}
-			  AND sh."orgId" = ${orgId}
-			  AND ss.status = 'ATTENDED'
-		`;
-		const totalHours = Math.round((totalResult[0]?.total_hours ?? 0) * 10) / 10;
+		const totalHours = hoursMap.get(signup.userId) ?? 0;
 
 		void tryNotify({
 			userId: signup.userId,
@@ -196,8 +208,13 @@ async function sendShiftSummaryEmail(
 			include: { user: { select: { email: true } } },
 		});
 
+		const safeTitle = shiftTitle
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
 		const html = `
-			<h2>Shift Summary: ${shiftTitle}</h2>
+			<h2>Shift Summary: ${safeTitle}</h2>
 			<p>Here's a summary of the completed shift:</p>
 			<ul>
 				<li><strong>Attended:</strong> ${attendedCount} volunteers</li>

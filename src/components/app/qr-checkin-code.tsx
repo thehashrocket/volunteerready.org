@@ -103,14 +103,18 @@ export function QrCheckinCode({
 		const cacheKey = `${OFFLINE_CACHE_KEY_PREFIX}${shiftId}`;
 		const cached = localStorage.getItem(cacheKey);
 		if (cached) {
-			const { token: cachedToken, cachedAt } = JSON.parse(cached);
-			const age = Date.now() - cachedAt;
-			if (age < OFFLINE_EXPIRY_MS) {
-				setOfflineToken(cachedToken);
-				setOfflineExpired(false);
-			} else {
-				setOfflineToken(cachedToken);
-				setOfflineExpired(true);
+			try {
+				const { token: cachedToken, cachedAt } = JSON.parse(cached);
+				const age = Date.now() - cachedAt;
+				if (age < OFFLINE_EXPIRY_MS) {
+					setOfflineToken(cachedToken);
+					setOfflineExpired(false);
+				} else {
+					setOfflineToken(cachedToken);
+					setOfflineExpired(true);
+				}
+			} catch {
+				localStorage.removeItem(cacheKey);
 			}
 		}
 	}, [isOffline, shiftId]);
