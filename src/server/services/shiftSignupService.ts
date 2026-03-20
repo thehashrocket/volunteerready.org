@@ -324,7 +324,6 @@ export async function markAttendance(
 			throw new Error(`Cannot mark attendance: signup is ${existing.status}.`);
 		}
 
-
 		const updated = await updateSignupStatus(tx, shiftId, userId, status);
 
 		await writeAuditLogTx(tx, {

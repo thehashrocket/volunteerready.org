@@ -45,7 +45,6 @@ function getContextualCopy(phase: Phase, location?: string | null): string {
 
 const DEFAULT_QR_COLOR = '#1B3C2A';
 
-
 export function QrCheckinCode({
 	shiftId,
 	userId,
