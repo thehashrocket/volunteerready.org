@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.2] - 2026-03-20
+
+### Fixed
+- **iOS PWA install prompt** — iOS Safari users now see a banner prompting them to add the app to their home screen via Share → "Add to Home Screen." Previously no install prompt appeared because iOS doesn't support the `beforeinstallprompt` API.
+- **PWA manifest PNG icons** — Added PNG icons (180px, 192px, 512px) alongside existing SVGs. iOS Safari ignores SVG icons in the manifest, causing broken home screen icons.
+- **Apple web app meta tags** — Added `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`, and `apple-touch-icon` metadata for proper iOS standalone app behavior.
+- **iOS browser detection** — Install prompt only appears in Safari (not Chrome, Firefox, Edge, Opera, or in-app webviews like Facebook/Instagram) since only Safari supports "Add to Home Screen."
+- **localStorage safety** — Wrapped localStorage calls in try/catch to prevent errors in privacy mode or enterprise-locked browsers.
+
 ## [0.13.1] - 2026-03-19
 
 ### Added

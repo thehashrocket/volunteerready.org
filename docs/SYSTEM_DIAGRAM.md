@@ -496,7 +496,7 @@ flowchart TD
 
     G --> H[Phase 6C: Portable Credentials ✅]
     G --> I[Phase 6D: Corporate ESG Reporting ✅]
-    G --> J[Phase 6E: Mobile PWA]
+    G --> J[Phase 6E: Mobile PWA ✅]
 
     H --> K[Phase 7: Network Growth]
     I --> K
