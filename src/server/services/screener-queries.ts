@@ -100,10 +100,29 @@ export async function getPublicScreenerForm(orgSlug: string) {
 }
 
 export async function getOrgDashboardStats(orgId: string) {
-	const [appCounts, oppCounts, recentApplications] = await Promise.all([
+	const [
+		appCounts,
+		oppCounts,
+		recentApplications,
+		screenerQuestionCount,
+		shiftsWithSignupsCount,
+		credentialsIssuedCount,
+	] = await Promise.all([
 		countApplicationsByStatus(orgId),
 		countOpportunitiesByStatus(orgId),
 		getRecentApplications(orgId, 8),
+		prisma.screenerQuestion.count({ where: { orgId, isActive: true } }),
+		prisma.shift.count({
+			where: {
+				orgId,
+				signups: {
+					some: { status: { in: ['CONFIRMED', 'ATTENDED', 'NO_SHOW'] } },
+				},
+			},
+		}),
+		prisma.volunteerCredential.count({
+			where: { orgId, status: 'VERIFIED' },
+		}),
 	]);
 
 	return {
@@ -125,5 +144,40 @@ export async function getOrgDashboardStats(orgId: string) {
 				appCounts.rejected,
 		},
 		recentApplications,
+		health: {
+			screenerQuestionCount,
+			publishedOpportunityCount: oppCounts.published,
+			shiftsWithSignupsCount,
+			credentialsIssuedCount,
+		},
 	};
+}
+
+/** Curated action types shown in the admin activity feed. */
+const ACTIVITY_FEED_ACTIONS = [
+	'volunteer_application.submitted',
+	'shift.attendance.attended',
+	'CREDENTIAL_ISSUED',
+	'shift.completed',
+	'MEMBER_INVITED',
+] as const;
+
+export async function getOrgActivityFeed(orgId: string) {
+	const events = await prisma.auditLog.findMany({
+		where: {
+			orgId,
+			action: { in: [...ACTIVITY_FEED_ACTIONS] },
+		},
+		orderBy: { createdAt: 'desc' },
+		take: 20,
+		select: {
+			id: true,
+			action: true,
+			metadata: true,
+			createdAt: true,
+			actor: { select: { name: true, email: true } },
+		},
+	});
+
+	return events;
 }
