@@ -96,16 +96,27 @@ async function seedSignup(
 	});
 }
 
+let credTypeIdx = 0;
+const CRED_TYPES = [
+	'BACKGROUND_CHECK',
+	'TRAINING_COMPLETE',
+	'ID_VERIFIED',
+	'REFERENCE_CHECK',
+	'ORIENTATION_COMPLETE',
+] as const;
+
 async function seedCredential(
 	userId: string,
 	orgId: string,
 	opts?: { status?: string; issuedAt?: Date },
 ) {
+	const type = CRED_TYPES[credTypeIdx % CRED_TYPES.length]!;
+	credTypeIdx++;
 	return prisma.volunteerCredential.create({
 		data: {
 			userId,
 			orgId,
-			type: 'BACKGROUND_CHECK',
+			type,
 			status: (opts?.status as any) ?? 'VERIFIED',
 			issuedAt: opts?.issuedAt ?? new Date(),
 		},
@@ -117,6 +128,7 @@ async function seedCredential(
 // ---------------------------------------------------------------------------
 
 afterEach(async () => {
+	credTypeIdx = 0;
 	// Find all test orgs
 	const orgs = await prisma.organization.findMany({
 		where: { name: { startsWith: PREFIX } },

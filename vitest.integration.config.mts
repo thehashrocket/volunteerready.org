@@ -1,6 +1,11 @@
+import { config } from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
+
+// Load .env.local before vitest processes start (must happen at config time
+// so forked workers inherit the env vars via process.env).
+config({ path: '.env.local' });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
