@@ -14,8 +14,12 @@ All notable changes to this project will be documented in this file.
 - **Backfill script** — `pnpm backfill:activity` populates activity timestamps from historical shift signups and volunteer applications.
 
 ### Changed
-- Shift reminder and email digest cron schedules changed from daily to hourly (timezone-aware processing).
-- Shift reminder service now caps queries at 500 results per run and formats email times in the org's timezone.
+- Shift reminder and email digest crons now run hourly to deliver notifications at the right local time for each timezone.
+- Shift reminder emails now display times in your organization's timezone instead of UTC.
+- Timezone picker upgraded from a flat 419-item dropdown to a searchable combobox — type to filter (e.g., "new york").
+
+### Fixed
+- Timezone selector no longer crashes the Team Settings page (Radix Select empty-string value error).
 
 ## [0.13.2] - 2026-03-20
 

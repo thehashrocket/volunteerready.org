@@ -45,7 +45,13 @@ flowchart TD
     R --> F
 
     S[Vercel Cron] -.->|Daily 03:00 UTC| T[/api/cron/expire-credentials]
+    S -.->|Hourly| U[/api/cron/email-digests]
+    S -.->|Hourly| V[/api/cron/shift-reminders]
+    S -.->|Daily 15:00 UTC| W[/api/cron/volunteer-reengagement]
     T --> F
+    U --> F
+    V --> F
+    W --> F
 ```
 
 ## Notes

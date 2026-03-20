@@ -33,6 +33,10 @@ Top-level tenant.
 
 All operational data belongs to an organization.
 
+Key fields:
+
+- `timezone` — IANA timezone string (e.g. `America/New_York`). NULL = UTC. Controls when digest emails and shift reminders are delivered at local morning time.
+
 Examples:
 
 - screening questions
@@ -64,6 +68,11 @@ Roles:
 - ADMIN
 - STAFF
 - READONLY
+
+Activity tracking fields:
+
+- `lastActivityAt` — DateTime, updated on shift signup and application submission. Used for re-engagement targeting.
+- `lastReengagementSegment` — '30d' | '60d' | '90d' | null. Tracks which re-engagement email was last sent. Resets to null on new activity.
 
 Constraint:
 
@@ -261,7 +270,7 @@ Templates are plan-gated (STARTER+). The `maxShiftTemplates` plan limit controls
 
 User-scoped, org-scoped notification record.
 
-Type: APPLICATION_UPDATE | SHIFT_REMINDER | CREDENTIAL_UPDATE | SYSTEM
+Type: APPLICATION_UPDATE | SHIFT_REMINDER | CREDENTIAL_UPDATE | SYSTEM | BADGE_EARNED | FIRST_APPLICATION | REENGAGEMENT
 
 Key fields: title, body, href (optional deep link), readAt (null = unread), deletedAt (soft delete).
 
