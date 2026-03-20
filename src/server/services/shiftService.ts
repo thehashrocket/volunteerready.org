@@ -115,10 +115,22 @@ export async function cancelShift(id: string, orgId: string, actorId: string) {
 export async function completeShift(
 	id: string,
 	orgId: string,
-	actorId: string,
+	actorId: string | null,
 ) {
 	const completedShift = await prisma.$transaction(async (tx) => {
-		const shift = await updateShift(tx, { id, status: 'COMPLETED' });
+		// Atomic conditional update: only transition OPEN/FULL → COMPLETED.
+		// Uses updateMany with a status WHERE clause so the read+write is a
+		// single statement — no TOCTOU race under READ COMMITTED isolation.
+		const { count } = await tx.shift.updateMany({
+			where: { id, status: { in: ['OPEN', 'FULL'] } },
+			data: { status: 'COMPLETED' },
+		});
+		if (count === 0) {
+			return null;
+		}
+
+		// Fetch the now-COMPLETED shift for the return value
+		const shift = await tx.shift.findUniqueOrThrow({ where: { id } });
 		await writeAuditLogTx(tx, {
 			orgId,
 			actorId,
@@ -128,6 +140,10 @@ export async function completeShift(
 		});
 		return shift;
 	});
+
+	if (!completedShift) {
+		return null;
+	}
 
 	// Fire-and-forget: send thank-you notifications to ATTENDED volunteers
 	const signups = await prisma.shiftSignup.findMany({

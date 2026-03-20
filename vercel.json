@@ -15,6 +15,10 @@
 		{
 			"path": "/api/cron/volunteer-reengagement",
 			"schedule": "0 15 * * *"
+		},
+		{
+			"path": "/api/cron/shift-auto-close",
+			"schedule": "15 * * * *"
 		}
 	]
 }

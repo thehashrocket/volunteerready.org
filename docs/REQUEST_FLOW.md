@@ -270,6 +270,25 @@ picked up on the next run.
 
 ---
 
+# Shift Auto-Close Cron Flow
+
+```
+Vercel Cron (hourly)
+    -> GET /api/cron/shift-auto-close
+        -> Verify Authorization: Bearer CRON_SECRET
+        -> shiftAutoCloseService.autoCloseExpiredShifts()
+            -> Find OPEN shifts with endTime in the past
+            -> For each: atomic updateMany with status = OPEN WHERE guard (TOCTOU-safe)
+            -> Per-record try/catch: P2025 (concurrent modification) → skip
+        -> Return { ok: true, processed, completed, errors }
+```
+
+Uses atomic `updateMany` with a status WHERE clause so concurrent calls
+(manual complete + cron) never double-complete. `actorId: null` marks
+the audit log entry as a system action.
+
+---
+
 # Matching / Recommendations Flow
 
 ```

@@ -173,6 +173,7 @@ model AuditLog {
   actor          User?           @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([entityType, entityId])
+  @@index([orgId, createdAt])
 }
 
 model FeatureFlag {
@@ -524,6 +525,7 @@ model Shift {
   @@index([templateId])
   @@index([orgId, startTime])
   @@index([status])
+  @@index([status, endTime])
 }
 
 enum ShiftStatus {

@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.4] - 2026-03-20
+
+### Added
+- **Shift auto-close cron** — Shifts past their endTime are automatically marked COMPLETED by a new hourly cron (`/api/cron/shift-auto-close`), triggering thank-you notifications and session summary emails.
+- **Concurrent-safe shift completion** — `completeShift()` now checks current status atomically, preventing a race where auto-close could overwrite an admin's cancellation.
+- **Activity feed indexes** — Composite indexes on `AuditLog(orgId, createdAt)` and `Shift(status, endTime)` for fast dashboard queries and cron lookups, created with `CONCURRENTLY` for zero-downtime.
+
+### Changed
+- `completeShift()` actorId is now nullable (`string | null`) so the auto-close cron can call it without an actor.
+- Bulk import service uses `waitUntil()` from `@vercel/functions` instead of fire-and-forget `void`, keeping the serverless function alive until processing completes.
+
+### Fixed
+- Shift completion is now truly race-free — uses atomic `updateMany` with status WHERE clause instead of separate read+write.
+- Shift auto-close cron processes oldest expired shifts first (`orderBy: endTime asc`) instead of non-deterministic planner order.
+- `shifts.complete` tRPC mutation now throws `CONFLICT` error when shift status guard blocks, instead of silently returning null (which caused a false "success" toast).
+
 ## [0.13.3] - 2026-03-20
 
 ### Added

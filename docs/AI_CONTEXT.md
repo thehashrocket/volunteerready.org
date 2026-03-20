@@ -97,6 +97,7 @@ src/
 │   │   ├── cron/email-digests/    # Hourly Vercel Cron — timezone-aware digest emails (cursor-paginated)
 │   │   ├── cron/shift-reminders/  # Hourly Vercel Cron — timezone-aware shift reminder emails
 │   │   ├── cron/volunteer-reengagement/ # Daily Vercel Cron — 30/60/90-day re-engagement emails
+│   │   ├── cron/shift-auto-close/ # Hourly Vercel Cron — auto-completes expired shifts (TOCTOU-safe)
 │   │   └── ...                   # stripe webhook, checkr webhook, etc.
 │   ├── apply/[orgSlug]/          # Public volunteer application form
 │   ├── apply/status/             # Email-based status lookup
@@ -362,7 +363,8 @@ The shift scheduling system lives in `src/server/domain/shift.ts`.
 **Key functions:** `computeShiftCapacity()`, `validateSignup()`, `validateShiftTimes()`, `summarizeAttendance()` — all pure, no side effects
 
 **Service orchestration:**
-- `src/server/services/shiftService.ts` — `createNewShift()`, `updateExistingShift()`, `cancelShift()`, `completeShift()`, `removeShift()` (all transactional with audit)
+- `src/server/services/shiftService.ts` — `createNewShift()`, `updateExistingShift()`, `cancelShift()`, `completeShift(id, orgId, actorId: string | null)`, `removeShift()` (all transactional with audit). `completeShift` uses atomic `updateMany` with status WHERE clause for TOCTOU safety; returns `null` if status guard blocks.
+- `src/server/services/shift-auto-close-service.ts` — `autoCloseExpiredShifts()` — hourly cron auto-completes shifts past endTime using per-record try/catch (P2025 safe)
 - `src/server/services/shiftSignupService.ts` — `signUpForShift()` (validates + auto-FULL), `cancelSignup()` (auto-reopen + waitlist auto-promote), `markAttendance()`, `joinWaitlist()`, `leaveWaitlist()` (all transactional with audit)
 - `src/server/services/shiftTemplateService.ts` — template CRUD + bulk shift generation with time validation and audit logging
 
@@ -457,6 +459,7 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/repositories/volunteerDiscoveryRepo.ts` | `searchPublicProfiles()` — `visibility = PUBLIC` hardcoded invariant, cursor pagination, credential/skill/location filters |
 | `src/server/services/tenureBadgeService.ts` | Fire-and-forget tenure badge issuance — idempotent, P2002-safe, called from 3 service triggers |
 | `src/server/services/credential-expiry-service.ts` | Daily cron — expires stale credentials + share tokens (P2025 safe) |
+| `src/server/services/shift-auto-close-service.ts` | Hourly cron — auto-completes expired shifts using atomic updateMany guard, per-record try/catch (P2025 safe) |
 | `src/server/lib/email-template.ts` | Branded email wrapper matching DESIGN.md colors |
 | `src/lib/credential-meta.ts` | Shared credential labels + icons (single source of truth for all UI) |
 | `src/server/domain/credential-sharing.ts` | Share token lifecycle guards, expiry computation |

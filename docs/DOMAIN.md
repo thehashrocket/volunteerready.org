@@ -240,6 +240,8 @@ FULL auto-reverts to OPEN when a signup is cancelled.
 
 Time validation: end must be after start, max 24h duration.
 
+Auto-completion: Shifts past endTime are automatically transitioned to COMPLETED by the hourly shift-auto-close cron. Status transition uses atomic `updateMany` with WHERE status constraint to prevent TOCTOU races.
+
 ---
 
 ## ShiftSignup

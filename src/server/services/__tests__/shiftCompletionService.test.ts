@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
 	shiftSignupCount: vi.fn(),
 	orgMemberFindMany: vi.fn(),
 	queryRaw: vi.fn(),
+	shiftUpdateMany: vi.fn(),
+	shiftFindUniqueOrThrow: vi.fn(),
 }));
 
 vi.mock('@/server/repositories/shiftRepo', () => ({
@@ -41,7 +43,12 @@ vi.mock('@/server/lib/email', () => ({
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {
 		$transaction: vi.fn(async (cb: (tx: unknown) => unknown) => {
-			const tx = {};
+			const tx = {
+				shift: {
+					updateMany: mocks.shiftUpdateMany,
+					findUniqueOrThrow: mocks.shiftFindUniqueOrThrow,
+				},
+			};
 			return cb(tx);
 		}),
 		shiftSignup: {
@@ -84,7 +91,8 @@ function makeCompletedShift() {
 describe('completeShift', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mocks.updateShift.mockResolvedValue(makeCompletedShift());
+		mocks.shiftUpdateMany.mockResolvedValue({ count: 1 });
+		mocks.shiftFindUniqueOrThrow.mockResolvedValue(makeCompletedShift());
 		mocks.shiftSignupCount.mockResolvedValue(5);
 		mocks.orgMemberFindMany.mockResolvedValue([]);
 	});
@@ -145,7 +153,7 @@ describe('completeShift', () => {
 	});
 
 	it('escapes HTML in shift title for email', async () => {
-		mocks.updateShift.mockResolvedValue({
+		mocks.shiftFindUniqueOrThrow.mockResolvedValue({
 			...makeCompletedShift(),
 			title: '<script>alert("xss")</script>',
 		});
@@ -162,6 +170,17 @@ describe('completeShift', () => {
 		const emailHtml = mocks.sendEmail.mock.calls[0]?.[2] ?? '';
 		expect(emailHtml).not.toContain('<script>');
 		expect(emailHtml).toContain('&lt;script&gt;');
+	});
+
+	it('returns null and skips side effects when shift is already CANCELLED', async () => {
+		mocks.shiftUpdateMany.mockResolvedValue({ count: 0 });
+
+		const result = await completeShift(SHIFT_ID, ORG_ID, ACTOR_ID);
+
+		expect(result).toBeNull();
+		expect(mocks.shiftFindUniqueOrThrow).not.toHaveBeenCalled();
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+		expect(mocks.tryNotify).not.toHaveBeenCalled();
 	});
 
 	it('writes audit log for shift completion', async () => {

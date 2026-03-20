@@ -454,20 +454,23 @@ Delivered (v0.13.3):
 - Activity tracking (`OrganizationMember.lastActivityAt` on shift signup + application)
 - Backfill script (`pnpm backfill:activity`)
 
-Planned (9 remaining):
+Shipped (PR1 — v0.13.4):
 
-- Bulk import durability (`waitUntil()` replacement)
-- AuditLog concurrent index creation
+- Bulk import durability (`waitUntil()` from `@vercel/functions`)
+- AuditLog + Shift composite indexes (`CONCURRENTLY IF NOT EXISTS`)
+- Shift auto-close cron (hourly, TOCTOU-safe)
+- `completeShift()` actorId nullable for cron use
+
+Planned (remaining):
+
 - Context-switch UI (Org ↔ Company)
 - Sterling background check adapter
 - Encryption key rotation (dual-key support)
 - ESG report integration tests
 - Stripe webhook reconciliation improvements
-- Shift auto-close cron
 - Org health score widget
 - Email delivery tracking (Resend webhooks)
 - Admin activity feed
-- AuditLog orgId+createdAt index
 
 Architecture: Sterling adapter via `BackgroundCheckAdapter` interface,
 `EmailDeliveryEvent` table, `Organization.timezone` field, dual-key

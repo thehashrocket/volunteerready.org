@@ -424,26 +424,15 @@ visibility is the initial mechanism.
 
 ---
 
-### [P2] AuditLog Index — Use CONCURRENT Creation for Large Tables
+### ~~[P2] AuditLog Index — Use CONCURRENT Creation for Large Tables~~ ✅ Complete
 
-**What:** When creating the `@@index([entityType, entityId])` index on AuditLog, use
-`CREATE INDEX CONCURRENTLY` to avoid table locks during migration.
+**Completed:** v0.13.4 (2026-03-20)
 
-**Why:** Standard `CREATE INDEX` acquires a SHARE lock on the table, blocking writes for
-the duration of index creation. If AuditLog has 100K+ rows at deploy time, this could
-cause a brief outage for any audit-logged operation.
+Both `AuditLog(orgId, createdAt)` and `Shift(status, endTime)` indexes created with
+`CREATE INDEX CONCURRENTLY IF NOT EXISTS` in a `-- DropTransaction` migration. Zero
+table locks during deploy.
 
-**Context:** Prisma doesn't natively support `CONCURRENTLY` in its migration generator.
-Options: (1) use a raw SQL migration file (`prisma migrate dev --create-only` then edit
-the SQL), or (2) check AuditLog row count at deploy time — if <50K rows, standard index
-is fine (~1s lock). The AuditLog table grows by ~100 rows/day at current usage, so this
-is only a concern if Phase 9 deploys after significant production usage.
-
-**Pros:** Zero-downtime index creation; prevents write stalls during deploy.
-**Cons:** Requires manual SQL migration edit; CONCURRENTLY can't run inside a transaction
-(Prisma may need `-- AlterTable` pragma adjustment).
-
-**Effort:** S | **Priority:** P2 | **Depends on:** Phase 9 migration (AuditLog index)
+**Effort:** S | **Priority:** ~~P2~~
 
 ---
 
@@ -528,26 +517,15 @@ analytics date range from `div[role=group]` to semantic `<fieldset>`.
 
 ---
 
-### [P2] Bulk Import Durability — Replace Fire-and-Forget with Queue
+### ~~[P2] Bulk Import Durability — Replace Fire-and-Forget with Queue~~ ✅ Complete
 
-**What:** Replace `void processImportJob()` fire-and-forget pattern with a durable
-execution mechanism (Inngest, Vercel background function, or `waitUntil()`).
+**Completed:** v0.13.4 (2026-03-20)
 
-**Why:** On Vercel serverless, the function terminates after the HTTP response is sent.
-`void processImportJob()` fires async processing that will be killed mid-flight for
-large imports. Small imports may complete within the response window; large ones won't.
+Replaced `void processImportJob()` with `waitUntil(processImportJob(...))` from
+`@vercel/functions`. Keeps the serverless function alive until import processing
+completes. Full queue-based solution (Inngest) tracked separately in Phase 10 TODOs.
 
-**Context:** `src/server/services/bulk-import-service.ts:97` uses `void processImportJob()`
-with a comment noting "can move to queue later." The import page already polls job status
-via `BulkImportJob.status`, so the UI handles async correctly — the backend just needs
-durable execution. Options: (1) `waitUntil()` from Next.js (quick fix, still limited by
-Vercel function timeout), (2) Inngest or similar job queue (proper fix, new dependency),
-(3) process synchronously before returning (simplest, but blocks the response).
-
-**Pros:** Large imports complete reliably; eliminates silent mid-flight failures.
-**Cons:** Requires either a new dependency (Inngest) or architecture change.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** Phase 9 shipped
+**Effort:** ~~M~~ S | **Priority:** ~~P2~~
 
 ---
 

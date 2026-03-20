@@ -48,10 +48,12 @@ flowchart TD
     S -.->|Hourly| U[/api/cron/email-digests]
     S -.->|Hourly| V[/api/cron/shift-reminders]
     S -.->|Daily 15:00 UTC| W[/api/cron/volunteer-reengagement]
+    S -.->|Hourly| X[/api/cron/shift-auto-close]
     T --> F
     U --> F
     V --> F
     W --> F
+    X --> F
 ```
 
 ## Notes
