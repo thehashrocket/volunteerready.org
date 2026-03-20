@@ -347,7 +347,8 @@ function TimezoneCard() {
 		},
 	});
 
-	const currentTz = orgQuery.data?.timezone ?? '';
+	const UTC_SENTINEL = '__UTC__';
+	const currentTz = orgQuery.data?.timezone || UTC_SENTINEL;
 
 	return (
 		<Card>
@@ -367,14 +368,20 @@ function TimezoneCard() {
 						<Label htmlFor="org-timezone">Timezone</Label>
 						<Select
 							value={currentTz}
-							onValueChange={(tz) => updateTz.mutate({ timezone: tz || null })}
+							onValueChange={(tz) =>
+								updateTz.mutate({
+									timezone: tz === UTC_SENTINEL ? null : tz,
+								})
+							}
 							disabled={updateTz.isPending || orgQuery.isLoading}
 						>
 							<SelectTrigger id="org-timezone" className="w-72">
 								<SelectValue placeholder="UTC (default)" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="">UTC (default)</SelectItem>
+								<SelectItem value={UTC_SENTINEL}>
+									UTC (default)
+								</SelectItem>
 								{timezones.map((tz) => (
 									<SelectItem key={tz} value={tz}>
 										{tz.replace(/_/g, ' ')}
