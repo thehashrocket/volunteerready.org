@@ -397,6 +397,7 @@ export const NotificationType: {
   SHIFT_REMINDER: 'SHIFT_REMINDER',
   SHIFT_CANCELLED: 'SHIFT_CANCELLED',
   SHIFT_UPDATED: 'SHIFT_UPDATED',
+  SHIFT_COMPLETED: 'SHIFT_COMPLETED',
   APPLICATION_STATUS: 'APPLICATION_STATUS',
   CREDENTIAL_EXPIRY: 'CREDENTIAL_EXPIRY',
   TEAM_ANNOUNCEMENT: 'TEAM_ANNOUNCEMENT',
@@ -11169,6 +11170,7 @@ export namespace Prisma {
     checkrAccountId: string | null
     onboardingDismissedAt: Date | null
     firstApplicationReceivedAt: Date | null
+    qrForegroundColor: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -11185,6 +11187,7 @@ export namespace Prisma {
     checkrAccountId: string | null
     onboardingDismissedAt: Date | null
     firstApplicationReceivedAt: Date | null
+    qrForegroundColor: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -11202,6 +11205,7 @@ export namespace Prisma {
     onboardingProgress: number
     onboardingDismissedAt: number
     firstApplicationReceivedAt: number
+    qrForegroundColor: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -11220,6 +11224,7 @@ export namespace Prisma {
     checkrAccountId?: true
     onboardingDismissedAt?: true
     firstApplicationReceivedAt?: true
+    qrForegroundColor?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -11236,6 +11241,7 @@ export namespace Prisma {
     checkrAccountId?: true
     onboardingDismissedAt?: true
     firstApplicationReceivedAt?: true
+    qrForegroundColor?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -11253,6 +11259,7 @@ export namespace Prisma {
     onboardingProgress?: true
     onboardingDismissedAt?: true
     firstApplicationReceivedAt?: true
+    qrForegroundColor?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -11343,6 +11350,7 @@ export namespace Prisma {
     onboardingProgress: JsonValue | null
     onboardingDismissedAt: Date | null
     firstApplicationReceivedAt: Date | null
+    qrForegroundColor: string | null
     createdAt: Date
     updatedAt: Date
     _count: OrganizationCountAggregateOutputType | null
@@ -11377,6 +11385,7 @@ export namespace Prisma {
     onboardingProgress?: boolean
     onboardingDismissedAt?: boolean
     firstApplicationReceivedAt?: boolean
+    qrForegroundColor?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     members?: boolean | Organization$membersArgs<ExtArgs>
@@ -11415,6 +11424,7 @@ export namespace Prisma {
     onboardingProgress?: boolean
     onboardingDismissedAt?: boolean
     firstApplicationReceivedAt?: boolean
+    qrForegroundColor?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["organization"]>
@@ -11432,6 +11442,7 @@ export namespace Prisma {
     onboardingProgress?: boolean
     onboardingDismissedAt?: boolean
     firstApplicationReceivedAt?: boolean
+    qrForegroundColor?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["organization"]>
@@ -11449,11 +11460,12 @@ export namespace Prisma {
     onboardingProgress?: boolean
     onboardingDismissedAt?: boolean
     firstApplicationReceivedAt?: boolean
+    qrForegroundColor?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "planTier" | "stripeCustomerId" | "stripeSubscriptionId" | "trialEndsAt" | "checkrAccessToken" | "checkrAccountId" | "onboardingProgress" | "onboardingDismissedAt" | "firstApplicationReceivedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
+  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "planTier" | "stripeCustomerId" | "stripeSubscriptionId" | "trialEndsAt" | "checkrAccessToken" | "checkrAccountId" | "onboardingProgress" | "onboardingDismissedAt" | "firstApplicationReceivedAt" | "qrForegroundColor" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
   export type OrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     members?: boolean | Organization$membersArgs<ExtArgs>
     auditLogs?: boolean | Organization$auditLogsArgs<ExtArgs>
@@ -11517,6 +11529,7 @@ export namespace Prisma {
       onboardingProgress: Prisma.JsonValue | null
       onboardingDismissedAt: Date | null
       firstApplicationReceivedAt: Date | null
+      qrForegroundColor: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["organization"]>
@@ -11974,6 +11987,7 @@ export namespace Prisma {
     readonly onboardingProgress: FieldRef<"Organization", 'Json'>
     readonly onboardingDismissedAt: FieldRef<"Organization", 'DateTime'>
     readonly firstApplicationReceivedAt: FieldRef<"Organization", 'DateTime'>
+    readonly qrForegroundColor: FieldRef<"Organization", 'String'>
     readonly createdAt: FieldRef<"Organization", 'DateTime'>
     readonly updatedAt: FieldRef<"Organization", 'DateTime'>
   }
@@ -49346,6 +49360,7 @@ export namespace Prisma {
     onboardingProgress: 'onboardingProgress',
     onboardingDismissedAt: 'onboardingDismissedAt',
     firstApplicationReceivedAt: 'firstApplicationReceivedAt',
+    qrForegroundColor: 'qrForegroundColor',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -50663,6 +50678,7 @@ export namespace Prisma {
     onboardingProgress?: JsonNullableFilter<"Organization">
     onboardingDismissedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     firstApplicationReceivedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
+    qrForegroundColor?: StringNullableFilter<"Organization"> | string | null
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
     members?: OrganizationMemberListRelationFilter
@@ -50700,6 +50716,7 @@ export namespace Prisma {
     onboardingProgress?: SortOrderInput | SortOrder
     onboardingDismissedAt?: SortOrderInput | SortOrder
     firstApplicationReceivedAt?: SortOrderInput | SortOrder
+    qrForegroundColor?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     members?: OrganizationMemberOrderByRelationAggregateInput
@@ -50740,6 +50757,7 @@ export namespace Prisma {
     onboardingProgress?: JsonNullableFilter<"Organization">
     onboardingDismissedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     firstApplicationReceivedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
+    qrForegroundColor?: StringNullableFilter<"Organization"> | string | null
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
     members?: OrganizationMemberListRelationFilter
@@ -50777,6 +50795,7 @@ export namespace Prisma {
     onboardingProgress?: SortOrderInput | SortOrder
     onboardingDismissedAt?: SortOrderInput | SortOrder
     firstApplicationReceivedAt?: SortOrderInput | SortOrder
+    qrForegroundColor?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: OrganizationCountOrderByAggregateInput
@@ -50800,6 +50819,7 @@ export namespace Prisma {
     onboardingProgress?: JsonNullableWithAggregatesFilter<"Organization">
     onboardingDismissedAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
     firstApplicationReceivedAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
+    qrForegroundColor?: StringNullableWithAggregatesFilter<"Organization"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Organization"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Organization"> | Date | string
   }
@@ -53670,6 +53690,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -53707,6 +53728,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -53744,6 +53766,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -53781,6 +53804,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -53818,6 +53842,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -53835,6 +53860,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -53852,6 +53878,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -57022,6 +57049,7 @@ export namespace Prisma {
     onboardingProgress?: SortOrder
     onboardingDismissedAt?: SortOrder
     firstApplicationReceivedAt?: SortOrder
+    qrForegroundColor?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -57038,6 +57066,7 @@ export namespace Prisma {
     checkrAccountId?: SortOrder
     onboardingDismissedAt?: SortOrder
     firstApplicationReceivedAt?: SortOrder
+    qrForegroundColor?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -57054,6 +57083,7 @@ export namespace Prisma {
     checkrAccountId?: SortOrder
     onboardingDismissedAt?: SortOrder
     firstApplicationReceivedAt?: SortOrder
+    qrForegroundColor?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -64179,6 +64209,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -64215,6 +64246,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -64367,6 +64399,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -64403,6 +64436,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -65621,6 +65655,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput
@@ -65657,6 +65692,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
@@ -65766,6 +65802,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput
@@ -65802,6 +65839,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -65901,6 +65939,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -65937,6 +65976,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -66083,6 +66123,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -66119,6 +66160,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -66261,6 +66303,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -66297,6 +66340,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -66349,6 +66393,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -66385,6 +66430,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -66421,6 +66467,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -66457,6 +66504,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -66635,6 +66683,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -66671,6 +66720,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -66913,6 +66963,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -66949,6 +67000,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -67001,6 +67053,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -67037,6 +67090,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -67073,6 +67127,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -67109,6 +67164,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -67161,6 +67217,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -67197,6 +67254,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -67233,6 +67291,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -67269,6 +67328,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -67519,6 +67579,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -67555,6 +67616,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -68596,6 +68658,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -68632,6 +68695,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -68673,6 +68737,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -68709,6 +68774,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -68895,6 +68961,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -68931,6 +68998,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -68978,6 +69046,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -69014,6 +69083,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -69107,6 +69177,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -69143,6 +69214,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -69290,6 +69362,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -69326,6 +69399,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -69431,6 +69505,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -69467,6 +69542,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -69637,6 +69713,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -69673,6 +69750,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -70590,6 +70668,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -70626,6 +70705,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -70721,6 +70801,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -70757,6 +70838,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -70793,6 +70875,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -70829,6 +70912,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -70979,6 +71063,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -71015,6 +71100,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -71259,6 +71345,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -71295,6 +71382,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -71457,6 +71545,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -71493,6 +71582,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -71529,6 +71619,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -71565,6 +71656,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -71721,6 +71813,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -71757,6 +71850,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -71966,6 +72060,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -72002,6 +72097,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -72117,6 +72213,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -72153,6 +72250,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -72246,6 +72344,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -72282,6 +72381,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -72397,6 +72497,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -72433,6 +72534,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -72526,6 +72628,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -72562,6 +72665,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -72677,6 +72781,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -72713,6 +72818,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -72749,6 +72855,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberCreateNestedManyWithoutOrganizationInput
@@ -72785,6 +72892,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
+    qrForegroundColor?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
@@ -72894,6 +73002,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUpdateManyWithoutOrganizationNestedInput
@@ -72930,6 +73039,7 @@ export namespace Prisma {
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    qrForegroundColor?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput

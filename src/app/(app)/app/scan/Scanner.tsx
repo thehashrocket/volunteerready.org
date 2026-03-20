@@ -261,6 +261,31 @@ export default function Scanner() {
 		return name.includes(searchQuery.toLowerCase()) && s.status === 'CONFIRMED';
 	});
 
+	const searchInputRef = useRef<HTMLInputElement>(null);
+
+	// Keyboard shortcuts: / or Cmd+K focuses search, Esc re-focuses camera
+	useEffect(() => {
+		function handleKeyDown(e: KeyboardEvent) {
+			if (
+				e.target instanceof HTMLInputElement ||
+				e.target instanceof HTMLTextAreaElement
+			) {
+				if (e.key === 'Escape') {
+					(e.target as HTMLElement).blur();
+					e.preventDefault();
+				}
+				return;
+			}
+
+			if (e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) {
+				e.preventDefault();
+				searchInputRef.current?.focus();
+			}
+		}
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, []);
+
 	// No shifts available
 	if (shiftsQuery.isLoading) {
 		return (
@@ -448,7 +473,8 @@ export default function Scanner() {
 				<div className="relative">
 					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
-						placeholder="Or search by name..."
+						ref={searchInputRef}
+						placeholder="Or search by name... (press / to focus)"
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						className="pl-9"

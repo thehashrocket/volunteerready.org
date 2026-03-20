@@ -40,6 +40,14 @@ export type TopVolunteerRow = {
 	lastActiveAt: Date | null;
 };
 
+export type CheckinAnalytics = {
+	qrCheckins: number;
+	manualCheckins: number;
+	geoCheckins: number;
+	totalCheckins: number;
+	hourBuckets: { hour: number; count: number }[];
+};
+
 // ---------------------------------------------------------------------------
 // Queries
 // ---------------------------------------------------------------------------
@@ -212,4 +220,57 @@ export async function getTopVolunteers(
 		verifiedCredentialCount: Number(r.verified_credential_count),
 		lastActiveAt: r.last_active_at,
 	}));
+}
+
+/**
+ * Check-in analytics: method breakdown (QR vs manual vs geo) and
+ * busiest check-in hours. Uses AuditLog metadata to determine method.
+ * Pre-QR entries default to 'manual' via COALESCE.
+ */
+export async function getCheckinAnalytics(
+	orgId: string,
+	fromDate: Date,
+): Promise<CheckinAnalytics> {
+	const [methodRows, hourRows] = await Promise.all([
+		prisma.$queryRaw<{ method: string; count: bigint }[]>`
+			SELECT
+				COALESCE(al.metadata->>'method', 'manual') AS method,
+				COUNT(*) AS count
+			FROM "AuditLog" al
+			WHERE al."orgId" = ${orgId}
+			  AND al."entityType" = 'ShiftSignup'
+			  AND al.action = 'shift.attendance.attended'
+			  AND al."createdAt" >= ${fromDate}
+			GROUP BY COALESCE(al.metadata->>'method', 'manual')
+		`,
+		prisma.$queryRaw<{ hour: number; count: bigint }[]>`
+			SELECT
+				EXTRACT(HOUR FROM al."createdAt") AS hour,
+				COUNT(*) AS count
+			FROM "AuditLog" al
+			WHERE al."orgId" = ${orgId}
+			  AND al."entityType" = 'ShiftSignup'
+			  AND al.action = 'shift.attendance.attended'
+			  AND al."createdAt" >= ${fromDate}
+			GROUP BY EXTRACT(HOUR FROM al."createdAt")
+			ORDER BY hour
+		`,
+	]);
+
+	const methodMap: Record<string, number> = {};
+	for (const row of methodRows) {
+		methodMap[row.method] = Number(row.count);
+	}
+
+	return {
+		qrCheckins: methodMap.qr ?? 0,
+		manualCheckins: methodMap.manual ?? 0,
+		geoCheckins: methodMap.geo ?? 0,
+		totalCheckins:
+			(methodMap.qr ?? 0) + (methodMap.manual ?? 0) + (methodMap.geo ?? 0),
+		hourBuckets: hourRows.map((r) => ({
+			hour: Number(r.hour),
+			count: Number(r.count),
+		})),
+	};
 }

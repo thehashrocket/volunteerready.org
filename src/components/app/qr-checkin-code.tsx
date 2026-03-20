@@ -16,6 +16,7 @@ type QrCheckinCodeProps = {
 	userId: string;
 	shiftStartTime: Date;
 	shiftLocation?: string | null;
+	qrForegroundColor?: string | null;
 };
 
 type Phase = 'before' | 'during' | 'after';
@@ -42,11 +43,14 @@ function getContextualCopy(phase: Phase, location?: string | null): string {
 	}
 }
 
+const DEFAULT_QR_COLOR = '#1B3C2A';
+
 export function QrCheckinCode({
 	shiftId,
 	userId,
 	shiftStartTime,
 	shiftLocation,
+	qrForegroundColor,
 }: QrCheckinCodeProps) {
 	const [countdown, setCountdown] = useState(REFRESH_INTERVAL_MS);
 	const [isOffline, setIsOffline] = useState(false);
@@ -193,7 +197,7 @@ export function QrCheckinCode({
 					value={qrData}
 					size={160}
 					level="M"
-					fgColor="#1B3C2A"
+					fgColor={qrForegroundColor ?? DEFAULT_QR_COLOR}
 					bgColor="transparent"
 				/>
 			</div>

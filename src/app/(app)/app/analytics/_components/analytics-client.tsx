@@ -294,6 +294,106 @@ function AnalyticsDashboard() {
 						</div>
 					</section>
 
+					{/* Check-in analytics */}
+					{data.checkinAnalytics.totalCheckins > 0 ? (
+						<section>
+							<h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+								Check-in Analytics
+							</h2>
+							<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+								<StatCard
+									label="Total Check-ins"
+									value={data.checkinAnalytics.totalCheckins.toLocaleString()}
+									description="Volunteers checked in"
+								/>
+								<FunnelCard
+									label="QR Scans"
+									count={data.checkinAnalytics.qrCheckins}
+									total={data.checkinAnalytics.totalCheckins}
+									description="Checked in via QR code"
+								/>
+								<FunnelCard
+									label="Manual"
+									count={data.checkinAnalytics.manualCheckins}
+									total={data.checkinAnalytics.totalCheckins}
+									description="Checked in by staff"
+								/>
+								<FunnelCard
+									label="Geo"
+									count={data.checkinAnalytics.geoCheckins}
+									total={data.checkinAnalytics.totalCheckins}
+									description="Auto-checked in by location"
+								/>
+							</div>
+							{data.checkinAnalytics.hourBuckets.length > 0 && (
+								<Card className="mt-4">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm font-medium text-muted-foreground">
+											Busiest Check-in Hours
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="space-y-2">
+											{data.checkinAnalytics.hourBuckets.map((bucket) => {
+												const maxCount = Math.max(
+													...data.checkinAnalytics.hourBuckets.map(
+														(b) => b.count,
+													),
+												);
+												const pct =
+													maxCount > 0
+														? Math.round((bucket.count / maxCount) * 100)
+														: 0;
+												const hour = bucket.hour;
+												const label =
+													hour === 0
+														? '12 AM'
+														: hour < 12
+															? `${hour} AM`
+															: hour === 12
+																? '12 PM'
+																: `${hour - 12} PM`;
+												return (
+													<div
+														key={bucket.hour}
+														className="flex items-center gap-3"
+													>
+														<span className="w-12 text-right text-xs text-muted-foreground tabular-nums">
+															{label}
+														</span>
+														<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+															<div
+																className="h-full rounded-full bg-primary transition-all"
+																style={{ width: `${pct}%` }}
+															/>
+														</div>
+														<span className="w-8 text-right text-xs tabular-nums">
+															{bucket.count}
+														</span>
+													</div>
+												);
+											})}
+										</div>
+									</CardContent>
+								</Card>
+							)}
+						</section>
+					) : (
+						<section>
+							<h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+								Check-in Analytics
+							</h2>
+							<Card>
+								<CardContent className="py-8 text-center">
+									<p className="text-sm text-muted-foreground">
+										No check-in data yet. QR check-ins will appear here once
+										volunteers start scanning in.
+									</p>
+								</CardContent>
+							</Card>
+						</section>
+					)}
+
 					{/* Top volunteers */}
 					<section>
 						<h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
