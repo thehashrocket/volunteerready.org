@@ -1,4 +1,7 @@
+import type { NotificationType } from '@/prisma/generated/client';
 import { sendEmail } from '../lib/email';
+import { escapeHtml } from '../lib/html';
+import { getTimezonesMatchingHour } from '../lib/timezone';
 import { prisma } from '../repositories/prisma';
 
 /**
@@ -8,16 +11,29 @@ import { prisma } from '../repositories/prisma';
  * per user-org pair, batches them into one email, then marks them as delivered.
  * Uses UserDigestPreference.lastDigestSentAt for idempotency.
  *
+ * Cursor-based pagination: resumes from last successful CronJobRun's nextCursor.
+ * Processes 100 preferences per invocation. When batch < 100, resets cursor.
+ *
+ * Respects per-type NotificationPreference.email opt-outs: notifications where
+ * the user set email=false for that (userId, orgId, type) are excluded.
+ *
  * Follows the credential-expiry-service cron pattern: per-record try/catch,
  * returns a summary object for CronJobRun recording.
  */
 export async function sendDigestEmails(): Promise<{
 	digestsSent: number;
 	usersProcessed: number;
+	nextCursor: string | null;
 }> {
 	const now = new Date();
 	const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 	const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+	// Resume from last successful run's cursor
+	const resumeCursor = await getLastCursor('email-digests');
+
+	// Timezone-aware: only process orgs whose local hour is 8am
+	const tzFilter = await getTimezoneFilter(8);
 
 	// Find preferences where a digest is due
 	const preferences = await prisma.userDigestPreference.findMany({
@@ -41,12 +57,16 @@ export async function sendDigestEmails(): Promise<{
 					],
 				},
 			],
+			// Only process orgs in the current timezone window
+			organization: tzFilter,
 		},
 		include: {
 			user: { select: { email: true, name: true } },
 			organization: { select: { name: true } },
 		},
-		take: 100, // Pagination: 100 users per cron run
+		orderBy: { id: 'asc' },
+		...(resumeCursor ? { cursor: { id: resumeCursor }, skip: 1 } : {}),
+		take: 100,
 	});
 
 	let digestsSent = 0;
@@ -59,6 +79,9 @@ export async function sendDigestEmails(): Promise<{
 			const email = pref.user.email;
 			if (!email) continue;
 
+			// Get notification types the user has opted out of email for
+			const optedOutTypes = await getOptedOutTypes(pref.userId, pref.orgId);
+
 			// Fetch undelivered notifications for this user+org
 			const notifications = await prisma.notification.findMany({
 				where: {
@@ -66,6 +89,10 @@ export async function sendDigestEmails(): Promise<{
 					orgId: pref.orgId,
 					emailSentAt: null,
 					deletedAt: null,
+					// Exclude types the user opted out of
+					...(optedOutTypes.length > 0
+						? { type: { notIn: optedOutTypes } }
+						: {}),
 				},
 				orderBy: { createdAt: 'desc' },
 				take: 50, // Cap per digest
@@ -155,12 +182,77 @@ export async function sendDigestEmails(): Promise<{
 		}
 	}
 
-	return { digestsSent, usersProcessed };
+	// Compute next cursor: null if we've reached the end
+	const nextCursor =
+		preferences.length < 100 ? null : preferences[preferences.length - 1].id;
+
+	return { digestsSent, usersProcessed, nextCursor };
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Read the nextCursor from the last successful CronJobRun for the given job.
+ */
+async function getLastCursor(jobName: string): Promise<string | null> {
+	const lastRun = await prisma.cronJobRun.findFirst({
+		where: { jobName, status: 'SUCCESS' },
+		orderBy: { startedAt: 'desc' },
+		select: { resultSummary: true },
+	});
+	const summary = lastRun?.resultSummary as
+		| { nextCursor?: string | null }
+		| null
+		| undefined;
+	return summary?.nextCursor ?? null;
+}
+
+/**
+ * Get notification types where the user has opted out of email delivery.
+ */
+async function getOptedOutTypes(
+	userId: string,
+	orgId: string,
+): Promise<NotificationType[]> {
+	const prefs = await prisma.notificationPreference.findMany({
+		where: { userId, orgId, email: false },
+		select: { type: true },
+	});
+	return prefs.map((p) => p.type);
+}
+
+/**
+ * Build a Prisma WHERE clause for Organization.timezone that matches
+ * orgs whose local time is currently the target hour.
+ */
+async function getTimezoneFilter(targetHour: number) {
+	const allTimezones = await prisma.organization.findMany({
+		select: { timezone: true },
+		distinct: ['timezone'],
+	});
+	const tzValues = allTimezones.map((o) => o.timezone);
+	const matching = getTimezonesMatchingHour(tzValues, targetHour);
+
+	const hasNull = matching.includes(null);
+	const nonNullTzs = matching.filter((tz): tz is string => tz !== null);
+
+	const conditions: Record<string, unknown>[] = [];
+	if (nonNullTzs.length > 0) {
+		conditions.push({ timezone: { in: nonNullTzs } });
+	}
+	if (hasNull) {
+		conditions.push({ timezone: null });
+	}
+
+	// If no timezones match (unlikely but possible), return impossible filter
+	if (conditions.length === 0) {
+		return { timezone: '__no_match__' };
+	}
+
+	return conditions.length === 1 ? conditions[0] : { OR: conditions };
+}
 
 const TYPE_LABELS: Record<string, string> = {
 	SHIFT_REMINDER: 'Shift Reminders',
@@ -173,16 +265,9 @@ const TYPE_LABELS: Record<string, string> = {
 	NEW_OPPORTUNITY: 'New Opportunities',
 	BADGE_EARNED: 'Badges',
 	FIRST_APPLICATION: 'First Application',
+	REENGAGEMENT: 'Re-engagement',
 };
 
 function formatTypeLabel(type: string): string {
 	return TYPE_LABELS[type] ?? type;
-}
-
-function escapeHtml(str: string): string {
-	return str
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;');
 }
