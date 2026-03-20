@@ -109,6 +109,9 @@ docs/
 - QR check-in: token lib at `src/server/lib/checkin-token.ts`, scanner at `src/app/(app)/app/scan/`, QR display at `src/components/app/qr-checkin-code.tsx`
 - Geo check-in: `src/components/app/geo-checkin.tsx` + `src/server/lib/geo.ts`
 - PWA: `public/manifest.webmanifest`, `public/sw.js`, `src/components/sw-register.tsx`, `src/components/ios-install-prompt.tsx`
+- Org health score: domain at `src/server/domain/org-health.ts`, widget at `src/components/app/org-health-widget.tsx`
+- Activity feed: `src/components/app/activity-feed.tsx` (uses `screener.getActivityFeed` tRPC query)
+- Dashboard: `src/app/(app)/app/page.tsx` — greeting banner + OrgHealthWidget + stat cards + ActivityFeed (Getting Started Checklist removed in v0.14.0)
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.

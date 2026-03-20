@@ -99,6 +99,7 @@ Key files:
 - `billing.ts` — plan tier limits, trial validation (includes `maxShiftTemplates`)
 - `credential-sharing.ts` — share token lifecycle guards, expiry computation
 - `esg-report.ts` — ESG report types, CSV formatting, formula injection defense
+- `org-health.ts` — `computeOrgHealth()` pure domain function — 0-100 org health score with four 25-pt metrics and next actionable tip
 
 ---
 
