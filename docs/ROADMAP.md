@@ -437,7 +437,7 @@ Architecture: BulkImportJob table, CronJobRun table, UserDigestPreference table,
 
 ---
 
-# Phase 10 — Scale & Enterprise Readiness (planned)
+# Phase 10 — Scale & Enterprise Readiness (in progress)
 
 Goal: Fix every known production failure mode, add Sterling background check adapter
 for enterprise nonprofits, and ship observability infrastructure that makes email
@@ -445,17 +445,23 @@ delivery and cron health visible.
 
 Full plan: [`docs/designs/phase-10-scale-enterprise.md`](designs/phase-10-scale-enterprise.md)
 
-Planned (15 deliverables):
+Delivered (v0.13.3):
 
-- Digest cron pagination (100 users/batch, cursor tracking)
+- Digest cron pagination (100 users/batch, cursor tracking via `CronJobRun.resultSummary`)
+- Timezone-aware notification delivery (`Organization.timezone`, hourly cron schedules)
+- Digest per-type email preferences (`NotificationPreference.email` filter)
+- Volunteer re-engagement emails (30/60/90-day segments, `REENGAGEMENT` notification type)
+- Activity tracking (`OrganizationMember.lastActivityAt` on shift signup + application)
+- Backfill script (`pnpm backfill:activity`)
+
+Planned (9 remaining):
+
 - Bulk import durability (`waitUntil()` replacement)
 - AuditLog concurrent index creation
-- Timezone-aware notification delivery
 - Context-switch UI (Org ↔ Company)
 - Sterling background check adapter
 - Encryption key rotation (dual-key support)
 - ESG report integration tests
-- Digest per-type email preferences
 - Stripe webhook reconciliation improvements
 - Shift auto-close cron
 - Org health score widget

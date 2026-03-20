@@ -94,6 +94,9 @@ src/
 │   ├── api/
 │   │   ├── share-card/[userId]/  # OG social share image (@vercel/og) — forest green/sand palette
 │   │   ├── cron/expire-credentials/ # Daily Vercel Cron — expires stale credentials + share tokens
+│   │   ├── cron/email-digests/    # Hourly Vercel Cron — timezone-aware digest emails (cursor-paginated)
+│   │   ├── cron/shift-reminders/  # Hourly Vercel Cron — timezone-aware shift reminder emails
+│   │   ├── cron/volunteer-reengagement/ # Daily Vercel Cron — 30/60/90-day re-engagement emails
 │   │   └── ...                   # stripe webhook, checkr webhook, etc.
 │   ├── apply/[orgSlug]/          # Public volunteer application form
 │   ├── apply/status/             # Email-based status lookup
@@ -185,7 +188,7 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **Shift** — org-scoped volunteer shift with time range, capacity, status, optional opportunity link.
 - **ShiftSignup** — volunteer sign-up for a shift (unique per shift + user). Status: CONFIRMED / CANCELLED / NO_SHOW / ATTENDED / WAITLISTED.
 - **ShiftTemplate** — org-scoped recurring shift pattern (day of week, time range, capacity). Plan-gated to STARTER+.
-- **Notification** — user-scoped, org-scoped notification with type, title, body, optional href, soft delete. Types: APPLICATION_UPDATE, SHIFT_REMINDER, CREDENTIAL_UPDATE, SYSTEM.
+- **Notification** — user-scoped, org-scoped notification with type, title, body, optional href, soft delete. Types: APPLICATION_UPDATE, SHIFT_REMINDER, CREDENTIAL_UPDATE, SYSTEM, BADGE_EARNED, FIRST_APPLICATION, REENGAGEMENT.
 - **NotificationPreference** — per-user, per-org, per-type delivery channel toggles (inApp, email).
 - **BackgroundCheckRequest** — org-scoped background check lifecycle (PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED). FCRA status nested within CONSIDER: NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED. Provider tokens encrypted at rest (AES-256-GCM).
 - **CheckrWebhookEvent** — idempotency table for webhook deduplication (mirrors StripeWebhookEvent pattern).
