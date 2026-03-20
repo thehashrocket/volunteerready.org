@@ -350,25 +350,15 @@ a NextResponse error.
 
 **Effort:** S | **Priority:** P3 | **Depends on:** A third ESG export format being added
 
-### [P2] QR Code Volunteer Check-In (Mobile PWA)
+### ~~[P2] QR Code Volunteer Check-In (Mobile PWA)~~ ✅ Complete
 
-**What:** QR code displayed on `/app/my-shifts` that staff can scan to instantly
-mark a volunteer as ATTENDED, replacing the manual attendance UI.
+**Completed:** v0.13.0 (2026-03-20)
 
-**Why:** At in-person events with 50+ volunteers, staff can't efficiently use the
-web UI to mark attendance one by one. QR scanning is the standard venue solution.
-
-**Context:** Phase 6E adds the PWA manifest (installable on iOS/Android). QR
-check-in is the natural companion. The QR code encodes a per-shift-per-volunteer
-token (signed URL or short-lived token). Staff scans with their phone camera →
-opens a URL that calls `shifts.markAttended` tRPC mutation. The volunteer's phone
-shows the QR; the staff's phone scans it.
-
-**Pros:** Massive operational efficiency at events; differentiates from competitors
-who all use manual check-in.
-**Cons:** Token generation + validation adds complexity; must handle expired QR codes gracefully.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** Phase 6E PWA shipped, Phase 5 attendance tracking in place
+Implemented as Phase 6E with HMAC-SHA256 stateless tokens, staff scanner page
+(`/app/scan`) with camera + search-by-name fallback, volunteer QR display on
+my-shifts, PWA manifest + service worker, geo-fenced auto check-in, real-time
+dashboard, thank-you notifications, check-in analytics, and QR color customization.
+28 new tests covering all check-in paths.
 
 ---
 

@@ -106,6 +106,9 @@ docs/
 - Volunteer applications may be linked to users via `submittedByUserId` (see `screener.myApplications`).
 - User-facing application status routes live at `src/app/(app)/app/my-applications` and `src/app/(app)/app/my-applications/[id]`.
 - Email-based status lookup lives under `src/app/apply/status`.
+- QR check-in: token lib at `src/server/lib/checkin-token.ts`, scanner at `src/app/(app)/app/scan/`, QR display at `src/components/app/qr-checkin-code.tsx`
+- Geo check-in: `src/components/app/geo-checkin.tsx` + `src/server/lib/geo.ts`
+- PWA: `public/manifest.webmanifest`, `public/sw.js`, `src/components/sw-register.tsx`
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.

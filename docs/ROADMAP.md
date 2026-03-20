@@ -257,12 +257,20 @@ Key entities added:
 - `EmployerReportService` — uses raw SQL aggregations (`$queryRaw` with `Prisma.sql`), not per-row queries
 - Structured audit log events for report generation (best-effort with `await` + `catch`)
 
-## 6E — Mobile PWA
+## 6E — Mobile PWA + QR Check-in + Event Command Center ✅ Complete (v0.13.0)
 
-- Progressive Web App manifest — installable on iOS and Android home screens
-- Volunteer check-in via mobile — QR code displayed on `/app/my-shifts`; staff scans to mark
-  ATTENDED
-- Push notification groundwork — shift reminders (implementation deferred to Phase 7)
+- ✅ QR-based volunteer check-in — HMAC-SHA256 stateless tokens with 5-minute rotation, staff scanner page (`/app/scan`), search-by-name a11y fallback
+- ✅ Volunteer QR display on my-shifts — auto-refresh, countdown timer, contextual copy, check-in status polling with QR→checkmark transition
+- ✅ PWA manifest + service worker — installable on iOS/Android, cache-first static assets, network-first API, install prompt
+- ✅ Offline QR codes — 10-minute token prefetch to localStorage with offline badge
+- ✅ Geo-fenced auto check-in — haversine distance, auto-check-in within 100m; `latitude`/`longitude` on Shift model
+- ✅ Real-time check-in counter — live progress bar in shift detail dialog (polls within ±2h)
+- ✅ Post-shift thank-you notifications (`SHIFT_COMPLETED` type) with hours logged
+- ✅ Session summary email to org admins on shift completion
+- ✅ Check-in analytics — method breakdown (QR/manual/geo) + busiest hours on analytics page
+- ✅ QR color customization per org with WCAG contrast validation
+- ✅ Scanner keyboard shortcuts (`/` focuses search, `Esc` returns to camera)
+- Push notification groundwork — deferred (vague scope)
 
 Key new routes:
 
