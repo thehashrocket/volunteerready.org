@@ -136,6 +136,8 @@ export async function getUpcomingSignupsForUserIncludingWaitlist(
 					startTime: true,
 					endTime: true,
 					location: true,
+					latitude: true,
+					longitude: true,
 					isRemote: true,
 					orgId: true,
 					organization: { select: { name: true, slug: true } },

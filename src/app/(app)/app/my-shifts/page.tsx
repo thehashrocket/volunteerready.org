@@ -5,6 +5,8 @@ import { Calendar, Clock, MapPin, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
+import { GeoCheckin } from '@/components/app/geo-checkin';
+import { InstallPrompt } from '@/components/app/install-prompt';
 import { QrCheckinCode } from '@/components/app/qr-checkin-code';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
@@ -48,6 +50,8 @@ export default function MyShiftsPage() {
 				title="My Shifts"
 				description="Your upcoming volunteer shift signups."
 			/>
+
+			<InstallPrompt />
 
 			{isLoading ? (
 				<Card>
@@ -119,12 +123,22 @@ export default function MyShiftsPage() {
 								{signup.status === 'CONFIRMED' &&
 									userId &&
 									isWithin24Hours(signup.shift.startTime) && (
-										<QrCheckinCode
-											shiftId={signup.shift.id}
-											userId={userId}
-											shiftStartTime={new Date(signup.shift.startTime)}
-											shiftLocation={signup.shift.location}
-										/>
+										<>
+											<QrCheckinCode
+												shiftId={signup.shift.id}
+												userId={userId}
+												shiftStartTime={new Date(signup.shift.startTime)}
+												shiftLocation={signup.shift.location}
+											/>
+											{signup.shift.latitude != null &&
+												signup.shift.longitude != null && (
+													<GeoCheckin
+														shiftId={signup.shift.id}
+														shiftLatitude={signup.shift.latitude}
+														shiftLongitude={signup.shift.longitude}
+													/>
+												)}
+										</>
 									)}
 								<Button
 									variant="outline"

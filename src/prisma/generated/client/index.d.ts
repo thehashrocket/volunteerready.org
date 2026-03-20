@@ -31241,10 +31241,14 @@ export namespace Prisma {
   }
 
   export type ShiftAvgAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
     capacity: number | null
   }
 
   export type ShiftSumAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
     capacity: number | null
   }
 
@@ -31256,6 +31260,8 @@ export namespace Prisma {
     title: string | null
     description: string | null
     location: string | null
+    latitude: number | null
+    longitude: number | null
     isRemote: boolean | null
     startTime: Date | null
     endTime: Date | null
@@ -31273,6 +31279,8 @@ export namespace Prisma {
     title: string | null
     description: string | null
     location: string | null
+    latitude: number | null
+    longitude: number | null
     isRemote: boolean | null
     startTime: Date | null
     endTime: Date | null
@@ -31290,6 +31298,8 @@ export namespace Prisma {
     title: number
     description: number
     location: number
+    latitude: number
+    longitude: number
     isRemote: number
     startTime: number
     endTime: number
@@ -31302,10 +31312,14 @@ export namespace Prisma {
 
 
   export type ShiftAvgAggregateInputType = {
+    latitude?: true
+    longitude?: true
     capacity?: true
   }
 
   export type ShiftSumAggregateInputType = {
+    latitude?: true
+    longitude?: true
     capacity?: true
   }
 
@@ -31317,6 +31331,8 @@ export namespace Prisma {
     title?: true
     description?: true
     location?: true
+    latitude?: true
+    longitude?: true
     isRemote?: true
     startTime?: true
     endTime?: true
@@ -31334,6 +31350,8 @@ export namespace Prisma {
     title?: true
     description?: true
     location?: true
+    latitude?: true
+    longitude?: true
     isRemote?: true
     startTime?: true
     endTime?: true
@@ -31351,6 +31369,8 @@ export namespace Prisma {
     title?: true
     description?: true
     location?: true
+    latitude?: true
+    longitude?: true
     isRemote?: true
     startTime?: true
     endTime?: true
@@ -31455,6 +31475,8 @@ export namespace Prisma {
     title: string
     description: string | null
     location: string | null
+    latitude: number | null
+    longitude: number | null
     isRemote: boolean
     startTime: Date
     endTime: Date
@@ -31491,6 +31513,8 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     location?: boolean
+    latitude?: boolean
+    longitude?: boolean
     isRemote?: boolean
     startTime?: boolean
     endTime?: boolean
@@ -31513,6 +31537,8 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     location?: boolean
+    latitude?: boolean
+    longitude?: boolean
     isRemote?: boolean
     startTime?: boolean
     endTime?: boolean
@@ -31533,6 +31559,8 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     location?: boolean
+    latitude?: boolean
+    longitude?: boolean
     isRemote?: boolean
     startTime?: boolean
     endTime?: boolean
@@ -31553,6 +31581,8 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     location?: boolean
+    latitude?: boolean
+    longitude?: boolean
     isRemote?: boolean
     startTime?: boolean
     endTime?: boolean
@@ -31562,7 +31592,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type ShiftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "opportunityId" | "templateId" | "title" | "description" | "location" | "isRemote" | "startTime" | "endTime" | "capacity" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["shift"]>
+  export type ShiftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "opportunityId" | "templateId" | "title" | "description" | "location" | "latitude" | "longitude" | "isRemote" | "startTime" | "endTime" | "capacity" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["shift"]>
   export type ShiftInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     opportunity?: boolean | Shift$opportunityArgs<ExtArgs>
@@ -31597,6 +31627,8 @@ export namespace Prisma {
       title: string
       description: string | null
       location: string | null
+      latitude: number | null
+      longitude: number | null
       isRemote: boolean
       startTime: Date
       endTime: Date
@@ -32038,6 +32070,8 @@ export namespace Prisma {
     readonly title: FieldRef<"Shift", 'String'>
     readonly description: FieldRef<"Shift", 'String'>
     readonly location: FieldRef<"Shift", 'String'>
+    readonly latitude: FieldRef<"Shift", 'Float'>
+    readonly longitude: FieldRef<"Shift", 'Float'>
     readonly isRemote: FieldRef<"Shift", 'Boolean'>
     readonly startTime: FieldRef<"Shift", 'DateTime'>
     readonly endTime: FieldRef<"Shift", 'DateTime'>
@@ -49550,6 +49584,8 @@ export namespace Prisma {
     title: 'title',
     description: 'description',
     location: 'location',
+    latitude: 'latitude',
+    longitude: 'longitude',
     isRemote: 'isRemote',
     startTime: 'startTime',
     endTime: 'endTime',
@@ -51978,6 +52014,8 @@ export namespace Prisma {
     title?: StringFilter<"Shift"> | string
     description?: StringNullableFilter<"Shift"> | string | null
     location?: StringNullableFilter<"Shift"> | string | null
+    latitude?: FloatNullableFilter<"Shift"> | number | null
+    longitude?: FloatNullableFilter<"Shift"> | number | null
     isRemote?: BoolFilter<"Shift"> | boolean
     startTime?: DateTimeFilter<"Shift"> | Date | string
     endTime?: DateTimeFilter<"Shift"> | Date | string
@@ -51999,6 +52037,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
     isRemote?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -52023,6 +52063,8 @@ export namespace Prisma {
     title?: StringFilter<"Shift"> | string
     description?: StringNullableFilter<"Shift"> | string | null
     location?: StringNullableFilter<"Shift"> | string | null
+    latitude?: FloatNullableFilter<"Shift"> | number | null
+    longitude?: FloatNullableFilter<"Shift"> | number | null
     isRemote?: BoolFilter<"Shift"> | boolean
     startTime?: DateTimeFilter<"Shift"> | Date | string
     endTime?: DateTimeFilter<"Shift"> | Date | string
@@ -52044,6 +52086,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
     isRemote?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -52069,6 +52113,8 @@ export namespace Prisma {
     title?: StringWithAggregatesFilter<"Shift"> | string
     description?: StringNullableWithAggregatesFilter<"Shift"> | string | null
     location?: StringNullableWithAggregatesFilter<"Shift"> | string | null
+    latitude?: FloatNullableWithAggregatesFilter<"Shift"> | number | null
+    longitude?: FloatNullableWithAggregatesFilter<"Shift"> | number | null
     isRemote?: BoolWithAggregatesFilter<"Shift"> | boolean
     startTime?: DateTimeWithAggregatesFilter<"Shift"> | Date | string
     endTime?: DateTimeWithAggregatesFilter<"Shift"> | Date | string
@@ -55070,6 +55116,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -55091,6 +55139,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -55106,6 +55156,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -55127,6 +55179,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -55145,6 +55199,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -55159,6 +55215,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -55176,6 +55234,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58018,6 +58078,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     location?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
     isRemote?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -58028,6 +58090,8 @@ export namespace Prisma {
   }
 
   export type ShiftAvgOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
     capacity?: SortOrder
   }
 
@@ -58039,6 +58103,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     location?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
     isRemote?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -58056,6 +58122,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     location?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
     isRemote?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -58066,6 +58134,8 @@ export namespace Prisma {
   }
 
   export type ShiftSumOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
     capacity?: SortOrder
   }
 
@@ -64792,6 +64862,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -64811,6 +64883,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -65362,6 +65436,8 @@ export namespace Prisma {
     title?: StringFilter<"Shift"> | string
     description?: StringNullableFilter<"Shift"> | string | null
     location?: StringNullableFilter<"Shift"> | string | null
+    latitude?: FloatNullableFilter<"Shift"> | number | null
+    longitude?: FloatNullableFilter<"Shift"> | number | null
     isRemote?: BoolFilter<"Shift"> | boolean
     startTime?: DateTimeFilter<"Shift"> | Date | string
     endTime?: DateTimeFilter<"Shift"> | Date | string
@@ -67304,6 +67380,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -67323,6 +67401,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -69143,6 +69223,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -69162,6 +69244,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -69733,6 +69817,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -69753,6 +69839,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -69840,6 +69928,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -69860,6 +69950,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -73757,6 +73849,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -74270,6 +74364,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74289,6 +74385,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74306,6 +74404,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74650,6 +74750,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -74760,6 +74862,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74779,6 +74883,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74796,6 +74902,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75057,6 +75165,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     location?: string | null
+    latitude?: number | null
+    longitude?: number | null
     isRemote?: boolean
     startTime: Date | string
     endTime: Date | string
@@ -75071,6 +75181,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75090,6 +75202,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75107,6 +75221,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isRemote?: BoolFieldUpdateOperationsInput | boolean
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string

@@ -499,6 +499,8 @@ model Shift {
   title         String
   description   String?
   location      String?
+  latitude      Float?
+  longitude     Float?
   isRemote      Boolean        @default(false)
   startTime     DateTime
   endTime       DateTime
