@@ -379,9 +379,7 @@ function TimezoneCard() {
 								<SelectValue placeholder="UTC (default)" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value={UTC_SENTINEL}>
-									UTC (default)
-								</SelectItem>
+								<SelectItem value={UTC_SENTINEL}>UTC (default)</SelectItem>
 								{timezones.map((tz) => (
 									<SelectItem key={tz} value={tz}>
 										{tz.replace(/_/g, ' ')}
