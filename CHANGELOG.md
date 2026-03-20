@@ -13,6 +13,11 @@ All notable changes to this project will be documented in this file.
 - `completeShift()` actorId is now nullable (`string | null`) so the auto-close cron can call it without an actor.
 - Bulk import service uses `waitUntil()` from `@vercel/functions` instead of fire-and-forget `void`, keeping the serverless function alive until processing completes.
 
+### Fixed
+- `completeShift()` TOCTOU guard now uses atomic `updateMany` with status WHERE clause instead of separate read+write — truly race-free under PostgreSQL READ COMMITTED isolation.
+- Shift auto-close cron processes oldest expired shifts first (`orderBy: endTime asc`) instead of non-deterministic planner order.
+- `shifts.complete` tRPC mutation now throws `CONFLICT` error when shift status guard blocks, instead of silently returning null (which caused a false "success" toast).
+
 ## [0.13.3] - 2026-03-20
 
 ### Added
