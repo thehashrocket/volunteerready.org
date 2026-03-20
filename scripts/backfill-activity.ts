@@ -7,9 +7,20 @@
  *
  * Usage: pnpm backfill:activity
  */
+import { config } from 'dotenv';
+config({ path: '.env.local' });
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import { PrismaClient } from '../src/prisma/generated/client';
 
-const prisma = new PrismaClient();
+const datasourceUrl = process.env.DATABASE_URL;
+if (!datasourceUrl) {
+	throw new Error('DATABASE_URL is not set. Create a .env or .env.local file.');
+}
+
+const prisma = new PrismaClient({
+	adapter: new PrismaPg(new Pool({ connectionString: datasourceUrl })),
+});
 const BATCH_SIZE = 500;
 
 async function main() {
