@@ -55,7 +55,10 @@ function verifyResendSignature(rawBody: Buffer, signature: string): boolean {
 		.update(rawBody)
 		.digest('hex');
 
-	return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+	const sigBuf = Buffer.from(signature);
+	const expBuf = Buffer.from(expected);
+	if (sigBuf.length !== expBuf.length) return false;
+	return crypto.timingSafeEqual(sigBuf, expBuf);
 }
 
 export async function POST(req: Request) {
@@ -92,6 +95,15 @@ export async function POST(req: Request) {
 		for (const to of recipients) {
 			const email = to.toLowerCase();
 
+			// Idempotency: skip if this exact event was already processed
+			const existing =
+				resendId &&
+				(await prisma.emailEvent.findFirst({
+					where: { resendId, to: email, eventType },
+					select: { id: true },
+				}));
+			if (existing) continue;
+
 			await prisma.emailEvent.create({
 				data: {
 					resendId,
@@ -102,7 +114,7 @@ export async function POST(req: Request) {
 				},
 			});
 
-			// Bounce management
+			// Bounce management (only runs for genuinely new events)
 			if (eventType === 'BOUNCED' || eventType === 'COMPLAINED') {
 				await prisma.emailBounceStatus.upsert({
 					where: { email },

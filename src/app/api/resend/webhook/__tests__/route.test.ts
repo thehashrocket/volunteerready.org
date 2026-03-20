@@ -5,13 +5,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // ---------------------------------------------------------------------------
 
 const mockCreate = vi.fn();
+const mockFindFirst = vi.fn();
 const mockUpsert = vi.fn();
 const mockFindUnique = vi.fn();
 const mockUpdate = vi.fn();
 
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {
-		emailEvent: { create: (...args: unknown[]) => mockCreate(...args) },
+		emailEvent: {
+			create: (...args: unknown[]) => mockCreate(...args),
+			findFirst: (...args: unknown[]) => mockFindFirst(...args),
+		},
 		emailBounceStatus: {
 			upsert: (...args: unknown[]) => mockUpsert(...args),
 			findUnique: (...args: unknown[]) => mockFindUnique(...args),
@@ -39,6 +43,7 @@ describe('Resend webhook handler', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockCreate.mockResolvedValue({});
+		mockFindFirst.mockResolvedValue(null); // No duplicate by default
 		mockUpsert.mockResolvedValue({});
 		mockFindUnique.mockResolvedValue(null);
 		mockUpdate.mockResolvedValue({});
