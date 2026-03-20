@@ -357,7 +357,7 @@ pnpm seed:dev                # Dev/staging (full demo data + 3 test accounts)
 | 6B | Background Check Integration | Complete |
 | 6C | Portable Credential Sharing | Complete |
 | 6D | Corporate ESG Reporting | Complete |
-| 6E | Mobile PWA | Planned |
+| 6E | Mobile PWA | Complete |
 | 7 | Network Growth & Volunteer Identity | Complete |
 | 8 | Operational Polish & CEO Quick Wins | Complete |
 | 9 | Production-Ready + Activation | Complete |
