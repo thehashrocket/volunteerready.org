@@ -5,7 +5,8 @@ import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
 import { buildMagicLinkEmail } from '@/lib/email/auth';
 import type { CompanyMemberRole, Role } from '@/prisma/generated/client';
-import { getResend } from '@/server/lib/resend';
+import { sendEmail } from '@/server/lib/email';
+import { getFromEmail } from '@/server/lib/resend';
 import { prisma } from '@/server/repositories/prisma';
 
 /** Extended session returned by our callback (custom fields NextAuth doesn't type) */
@@ -20,14 +21,11 @@ type SessionWithExt = Session & {
 	user?: Session['user'] & { id?: string };
 };
 
-const emailFrom =
-	process.env.EMAIL_FROM ?? 'VolunteerMatch <no-reply@volunteeermatch.local>';
-
 export const authOptions: NextAuthOptions = {
 	// biome-ignore lint/suspicious/noExplicitAny: PrismaAdapter expects node_modules PrismaClient, not our generated one
 	adapter: PrismaAdapter(prisma as any),
 	session: { strategy: 'database' },
-	pages: { signIn: '/login' },
+	pages: { signIn: '/login', verifyRequest: '/login/verify-request' },
 	debug: false,
 	logger: {
 		error(code, metadata) {
@@ -48,15 +46,13 @@ export const authOptions: NextAuthOptions = {
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
 		}),
 		EmailProvider({
-			from: emailFrom,
+			from: getFromEmail(),
 			sendVerificationRequest: async ({ identifier, url }) => {
 				const { subject, html } = buildMagicLinkEmail(url);
-				await getResend().emails.send({
-					from: emailFrom,
-					to: identifier,
-					subject,
-					html,
-				});
+				const sent = await sendEmail(identifier, subject, html);
+				if (!sent) {
+					throw new Error(`Failed to send magic link email to ${identifier}`);
+				}
 			},
 		}),
 	],

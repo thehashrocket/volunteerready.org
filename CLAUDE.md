@@ -29,6 +29,9 @@ Current commands:
 - `pnpm seed`: seed local dev database (reads from `.env.local`)
 - `pnpm seed:production`: seed production database (run manually: `source .env.production && pnpm seed:production`)
 - `pnpm seed:dev`: seed with full demo data
+- `pnpm admin:grant <email>`: grant platform admin to a user
+- `pnpm admin:revoke <email>`: revoke platform admin from a user
+- `pnpm seed:platform-admins`: migrate `PLATFORM_ADMIN_IDS` env var to DB column (idempotent)
 
 Note: seeding does NOT run during `pnpm build` / Vercel deploys. After a fresh
 production database setup, run `pnpm seed:production` manually to create the
@@ -101,6 +104,9 @@ docs/
 - server/domain/** = types + invariants + pure functions
 - server/trpc/** = routers + procedures only (thin)
 - screening domain lives in `src/server/domain/volunteer-screening.ts`
+- RBAC permissions: `src/server/domain/permissions.ts` (constants, `hasPermission()`, role maps)
+- Platform admin: `src/server/domain/platform-admin.ts` (`isPlatformAdmin()` with DB + env-var fallback)
+- Advisory permission middleware: `src/server/trpc/advisory-permission-middleware.ts` (global, never blocks, logs mismatches)
 - Background check adapters: `src/server/lib/adapters/background-check/` (Checkr + Sterling), registry at `registry.ts`
 - Sterling webhook: `src/app/api/sterling/webhook/route.ts`
 - Prisma client is generated into `src/prisma/generated/client`
@@ -156,6 +162,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/designs/phase-10-scale-enterprise.md` — Phase 10 plan (scale & enterprise readiness)
 - `docs/designs/phase-11-marketplace-api.md` — Phase 11 plan (volunteer marketplace & API platform)
 - `docs/designs/concierge-activation-engine.md` — Phase 12 plan (concierge activation engine)
+- `docs/designs/rbac-foundation.md` — RBAC foundation design doc (permissions, advisory middleware, platform admin)
 - `docs/TODOS.md` - todos for the current project
 
 ## gstack
