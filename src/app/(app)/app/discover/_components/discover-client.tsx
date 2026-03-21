@@ -282,7 +282,8 @@ export function DiscoverClient() {
 		setAppliedFilters({
 			city: city.trim() || undefined,
 			state: state.trim() || undefined,
-			availability: availability && availability !== '_any' ? availability : undefined,
+			availability:
+				availability && availability !== '_any' ? availability : undefined,
 		});
 	}
 
