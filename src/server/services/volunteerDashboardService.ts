@@ -4,7 +4,7 @@ import { prisma } from '@/server/repositories/prisma';
  * Fetches all data needed for the volunteer dashboard in a single call.
  * Queries are scoped to the authenticated user — no org context required.
  */
-export async function getVolunteerDashboard(userId: string) {
+export async function getVolunteerDashboard(userId: string, email?: string | null) {
 	const now = new Date();
 	const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -45,9 +45,13 @@ export async function getVolunteerDashboard(userId: string) {
 		}),
 
 		// Pending applications (SUBMITTED or REVIEW status)
+		// Include both linked (submittedByUserId) and unlinked (submittedByEmail) applications
 		prisma.volunteerApplication.findMany({
 			where: {
-				submittedByUserId: userId,
+				OR: [
+					{ submittedByUserId: userId },
+					...(email ? [{ submittedByEmail: email, submittedByUserId: null }] : []),
+				],
 				status: { in: ['SUBMITTED', 'REVIEW'] },
 			},
 			orderBy: { submittedAt: 'desc' },
@@ -87,7 +91,13 @@ export async function getVolunteerDashboard(userId: string) {
 		// Impact summary: DB-side aggregation for hours + orgs + shift count
 		Promise.all([
 			prisma.$queryRaw<
-				[{ total_minutes: bigint | null; orgs_served: bigint; shifts_attended: bigint }]
+				[
+					{
+						total_minutes: bigint | null;
+						orgs_served: bigint;
+						shifts_attended: bigint;
+					},
+				]
 			>`
 				SELECT
 					COALESCE(SUM(EXTRACT(EPOCH FROM (s."endTime" - s."startTime")) / 60), 0) AS total_minutes,
@@ -113,7 +123,12 @@ export async function getVolunteerDashboard(userId: string) {
 		// Top 3 recommended opportunities (published, from orgs the volunteer has interacted with)
 		prisma.volunteerApplication
 			.findMany({
-				where: { submittedByUserId: userId },
+				where: {
+					OR: [
+						{ submittedByUserId: userId },
+						...(email ? [{ submittedByEmail: email, submittedByUserId: null }] : []),
+					],
+				},
 				select: { orgId: true },
 				distinct: ['orgId'],
 			})
