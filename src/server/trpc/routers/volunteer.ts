@@ -4,11 +4,13 @@ import {
 	protectedProcedure,
 	requireUserId,
 } from '@/server/trpc/init';
+import { TRPCError } from '@trpc/server';
 
 export const volunteerRouter = createTRPCRouter({
 	/** Volunteer dashboard — upcoming shifts, pending apps, expiring creds, impact, recommendations. */
 	getDashboard: protectedProcedure.query(({ ctx }) => {
-		const session = ctx.session!;
+		const { session } = ctx;
+		if (!session) throw new TRPCError({ code: 'UNAUTHORIZED' });
 		return getVolunteerDashboard(requireUserId(session), session.user?.email);
 	}),
 });
