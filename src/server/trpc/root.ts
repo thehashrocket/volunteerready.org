@@ -22,6 +22,7 @@ import { screenerRouter } from '@/server/trpc/routers/screener';
 import { shiftTemplatesRouter } from '@/server/trpc/routers/shift-templates';
 import { shiftsRouter } from '@/server/trpc/routers/shifts';
 import { statusRouter } from '@/server/trpc/routers/status';
+import { volunteerRouter } from '@/server/trpc/routers/volunteer';
 
 export const appRouter = createTRPCRouter({
 	admin: adminRouter,
@@ -47,6 +48,7 @@ export const appRouter = createTRPCRouter({
 	shiftTemplates: shiftTemplatesRouter,
 	shifts: shiftsRouter,
 	status: statusRouter,
+	volunteer: volunteerRouter,
 });
 
 export type AppRouter = typeof appRouter;
