@@ -22,7 +22,7 @@ export async function getPublicFormByOrgSlug(orgSlug: string): Promise<{
 }> {
 	const org = await prisma.organization.findUnique({
 		where: { slug: orgSlug },
-		select: { id: true, name: true, slug: true },
+		select: { id: true, name: true, slug: true, showPoweredBy: true },
 	});
 
 	if (!org) {

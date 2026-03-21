@@ -18,11 +18,15 @@ import {
 	listMyApplications,
 } from '@/server/services/my-applications';
 import {
+	dismissOnboardingChecklist,
+	getImpactReport,
+	getOnboardingBaseline,
 	getOrgActivityFeed,
 	getOrgApplicationDetailEnriched,
 	getOrgDashboardStats,
 	getPublicScreenerForm,
 	listOrgApplications,
+	saveOnboardingBaseline,
 	updateOrgApplicationStatus,
 } from '@/server/services/screener-queries';
 import { submitVolunteerApplication } from '@/server/services/volunteer-screening';
@@ -197,6 +201,42 @@ export const screenerRouter = createTRPCRouter({
 			throw new Error('Missing org context');
 		}
 		return getOrgDashboardStats(ctx.orgId);
+	}),
+
+	dismissOnboardingChecklist: adminProcedure.mutation(async ({ ctx }) => {
+		if (!ctx.orgId) {
+			throw new Error('Missing org context');
+		}
+		return dismissOnboardingChecklist(ctx.orgId);
+	}),
+
+	getOnboardingBaseline: adminProcedure.query(async ({ ctx }) => {
+		if (!ctx.orgId) {
+			throw new Error('Missing org context');
+		}
+		return getOnboardingBaseline(ctx.orgId);
+	}),
+
+	saveOnboardingBaseline: adminProcedure
+		.input(
+			z.object({
+				volunteerCount: z.number().min(0).max(10000),
+				hoursPerWeek: z.number().min(0).max(168),
+				currentProcess: z.string().max(1000),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			if (!ctx.orgId) {
+				throw new Error('Missing org context');
+			}
+			return saveOnboardingBaseline(ctx.orgId, input);
+		}),
+
+	getImpactReport: adminProcedure.query(async ({ ctx }) => {
+		if (!ctx.orgId) {
+			throw new Error('Missing org context');
+		}
+		return getImpactReport(ctx.orgId);
 	}),
 
 	getActivityFeed: adminProcedure.query(async ({ ctx }) => {

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
@@ -77,6 +78,18 @@ export default async function ApplyPage({
 					/>
 				</ApplyProviders>
 			</div>
+
+			{org.showPoweredBy && (
+				<footer className="mt-12 border-t border-border/50 py-6 text-center">
+					<Link
+						href="/screening"
+						className="text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground"
+					>
+						Powered by <span className="font-semibold">VolunteerReady</span> —
+						Free volunteer management for nonprofits
+					</Link>
+				</footer>
+			)}
 		</main>
 	);
 }

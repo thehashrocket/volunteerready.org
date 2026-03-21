@@ -4,7 +4,9 @@ import { Briefcase, ClipboardList, FileText, Plus, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { ActivityFeed } from '@/components/app/activity-feed';
+import { OnboardingChecklist } from '@/components/app/onboarding-checklist';
 import { OrgHealthWidget } from '@/components/app/org-health-widget';
+import { ReferralPrompt } from '@/components/app/referral-prompt';
 import { VolunteerDashboard } from '@/components/app/volunteer-dashboard';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -91,6 +93,21 @@ function StaffDashboard() {
 					<OrgHealthWidget health={data.health} />
 				) : null}
 			</div>
+
+			{/* ── Onboarding checklist ── */}
+			{!isLoading && data?.onboarding && (
+				<OnboardingChecklist onboarding={data.onboarding} />
+			)}
+
+			{/* ── Referral prompt (shows after first background check) ── */}
+			{!isLoading && data?.onboarding && (
+				<ReferralPrompt
+					orgSlug={data.onboarding.orgSlug}
+					backgroundCheckCompleteCount={
+						data.onboarding.backgroundCheckCompleteCount
+					}
+				/>
+			)}
 
 			<PageHeader
 				title="Dashboard"

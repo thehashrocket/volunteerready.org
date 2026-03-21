@@ -107,6 +107,9 @@ export async function getOrgDashboardStats(orgId: string) {
 		screenerQuestionCount,
 		shiftsWithSignupsCount,
 		credentialsIssuedCount,
+		teamMemberCount,
+		completedBackgroundCheckCount,
+		org,
 	] = await Promise.all([
 		countApplicationsByStatus(orgId),
 		countOpportunitiesByStatus(orgId),
@@ -123,25 +126,36 @@ export async function getOrgDashboardStats(orgId: string) {
 		prisma.volunteerCredential.count({
 			where: { orgId, status: 'VERIFIED' },
 		}),
+		prisma.organizationMember.count({ where: { organizationId: orgId } }),
+		prisma.backgroundCheckRequest.count({
+			where: { orgId, status: { in: ['COMPLETE', 'CONSIDER'] } },
+		}),
+		prisma.organization.findUnique({
+			where: { id: orgId },
+			select: { onboardingComplete: true, slug: true },
+		}),
 	]);
+
+	const appTotal =
+		appCounts.submitted +
+		appCounts.review +
+		appCounts.approved +
+		appCounts.rejected;
+	const oppTotal = oppCounts.draft + oppCounts.published + oppCounts.closed;
 
 	return {
 		opportunities: {
 			draft: oppCounts.draft,
 			published: oppCounts.published,
 			closed: oppCounts.closed,
-			total: oppCounts.draft + oppCounts.published + oppCounts.closed,
+			total: oppTotal,
 		},
 		applications: {
 			submitted: appCounts.submitted,
 			review: appCounts.review,
 			approved: appCounts.approved,
 			rejected: appCounts.rejected,
-			total:
-				appCounts.submitted +
-				appCounts.review +
-				appCounts.approved +
-				appCounts.rejected,
+			total: appTotal,
 		},
 		recentApplications,
 		health: {
@@ -149,6 +163,14 @@ export async function getOrgDashboardStats(orgId: string) {
 			publishedOpportunityCount: oppCounts.published,
 			shiftsWithSignupsCount,
 			credentialsIssuedCount,
+		},
+		onboarding: {
+			complete: org?.onboardingComplete ?? false,
+			orgSlug: org?.slug ?? '',
+			teamMemberCount,
+			opportunityCount: oppTotal,
+			applicationCount: appTotal,
+			backgroundCheckCompleteCount: completedBackgroundCheckCount,
 		},
 	};
 }
@@ -180,4 +202,93 @@ export async function getOrgActivityFeed(orgId: string) {
 	});
 
 	return events;
+}
+
+export async function dismissOnboardingChecklist(orgId: string) {
+	await prisma.organization.update({
+		where: { id: orgId },
+		data: { onboardingComplete: true },
+	});
+	return { success: true };
+}
+
+export async function getOnboardingBaseline(orgId: string) {
+	const org = await prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { onboardingBaseline: true },
+	});
+	return (org?.onboardingBaseline as Record<string, unknown>) ?? null;
+}
+
+export async function saveOnboardingBaseline(
+	orgId: string,
+	data: {
+		volunteerCount: number;
+		hoursPerWeek: number;
+		currentProcess: string;
+	},
+) {
+	await prisma.organization.update({
+		where: { id: orgId },
+		data: { onboardingBaseline: data },
+	});
+	return { success: true };
+}
+
+export async function getImpactReport(orgId: string) {
+	const [org, summary] = await Promise.all([
+		prisma.organization.findUnique({
+			where: { id: orgId },
+			select: {
+				name: true,
+				createdAt: true,
+				onboardingBaseline: true,
+			},
+		}),
+		getOrgLifetimeSummary(orgId),
+	]);
+
+	if (!org) return null;
+
+	return {
+		orgName: org.name,
+		createdAt: org.createdAt,
+		baseline: (org.onboardingBaseline as Record<string, unknown>) ?? null,
+		summary,
+	};
+}
+
+async function getOrgLifetimeSummary(orgId: string) {
+	const [
+		totalVolunteers,
+		backgroundChecksCompleted,
+		shiftsCreated,
+		credentialsIssued,
+		applicationsSubmitted,
+		applicationsApproved,
+	] = await Promise.all([
+		prisma.volunteerApplication.count({
+			where: { orgId, status: 'APPROVED' },
+		}),
+		prisma.backgroundCheckRequest.count({
+			where: { orgId, status: { in: ['COMPLETE', 'CONSIDER'] } },
+		}),
+		prisma.shift.count({ where: { orgId } }),
+		prisma.volunteerCredential.count({
+			where: { orgId, status: 'VERIFIED' },
+		}),
+		prisma.volunteerApplication.count({ where: { orgId } }),
+		prisma.volunteerApplication.count({
+			where: { orgId, status: 'APPROVED' },
+		}),
+	]);
+
+	return {
+		totalVolunteers,
+		backgroundChecksCompleted,
+		shiftsCreated,
+		credentialsIssued,
+		applicationsSubmitted,
+		applicationsApproved,
+	};
 }
