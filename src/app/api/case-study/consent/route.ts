@@ -74,15 +74,16 @@ impact data on our public site.</p>
  */
 export async function POST(req: NextRequest) {
 	const formData = await req.formData();
-	const token = formData.get('token') as string | null;
+	const rawToken = formData.get('token');
+	const token = typeof rawToken === 'string' ? rawToken : null;
 
 	if (!token) {
-		return NextResponse.redirect(new URL('/stories/consent-expired', req.url));
+		return NextResponse.redirect(new URL('/stories/consent-expired', req.url), 303);
 	}
 
 	const orgId = verifyConsentToken(token);
 	if (!orgId) {
-		return NextResponse.redirect(new URL('/stories/consent-expired', req.url));
+		return NextResponse.redirect(new URL('/stories/consent-expired', req.url), 303);
 	}
 
 	const org = await prisma.organization.findUnique({
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
 	});
 
 	if (!org) {
-		return NextResponse.redirect(new URL('/stories/consent-expired', req.url));
+		return NextResponse.redirect(new URL('/stories/consent-expired', req.url), 303);
 	}
 
 	// Set consent via service layer
