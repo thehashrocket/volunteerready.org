@@ -4,7 +4,10 @@ import { prisma } from '@/server/repositories/prisma';
  * Fetches all data needed for the volunteer dashboard in a single call.
  * Queries are scoped to the authenticated user — no org context required.
  */
-export async function getVolunteerDashboard(userId: string, email?: string | null) {
+export async function getVolunteerDashboard(
+	userId: string,
+	email?: string | null,
+) {
 	const now = new Date();
 	const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -50,7 +53,9 @@ export async function getVolunteerDashboard(userId: string, email?: string | nul
 			where: {
 				OR: [
 					{ submittedByUserId: userId },
-					...(email ? [{ submittedByEmail: email, submittedByUserId: null }] : []),
+					...(email
+						? [{ submittedByEmail: email, submittedByUserId: null }]
+						: []),
 				],
 				status: { in: ['SUBMITTED', 'REVIEW'] },
 			},
@@ -126,7 +131,9 @@ export async function getVolunteerDashboard(userId: string, email?: string | nul
 				where: {
 					OR: [
 						{ submittedByUserId: userId },
-						...(email ? [{ submittedByEmail: email, submittedByUserId: null }] : []),
+						...(email
+							? [{ submittedByEmail: email, submittedByUserId: null }]
+							: []),
 					],
 				},
 				select: { orgId: true },
