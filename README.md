@@ -38,7 +38,7 @@ Long-term goals include:
 - Grant opportunity integration (planned)
 - Nonprofit analytics and reporting (shipped)
 
-The current system implements Phases 1 through 9. See `docs/ROADMAP.md` for the full plan.
+The current system implements Phases 1 through 10 (in progress). See `docs/ROADMAP.md` for the full plan.
 
 ---
 
