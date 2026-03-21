@@ -486,6 +486,16 @@ Shipped (PR4 — v0.16.0):
 - Adapter registry pattern via `getAdapter()` factory
 - Sterling API keys included in encryption key rotation script
 
+Shipped (PR5 — v0.16.2):
+
+- Volunteer dashboard (`/app` for non-staff users) — upcoming shifts, pending applications, expiring credentials, impact stats (DB-side SQL aggregation), recommended opportunities from familiar orgs
+- Role-conditional `/app` page — staff see health score + activity feed; volunteers see `VolunteerDashboard`
+- Platform admin onboarding funnel (`/app/admin/onboarding`) — 4-step funnel visualization + per-org progress table
+- `volunteer.getDashboard` tRPC procedure + `admin.onboardingFunnel` procedure
+- Session loading fix (skeleton during `useSession()` resolve)
+- `/app` layout exempt from org-redirect for volunteer-only users
+- 14 new unit tests (8 volunteerDashboardService + 6 onboardingAnalyticsService)
+
 Architecture: Sterling adapter via `BackgroundCheckAdapter` interface,
 `EmailEvent` + `EmailBounceStatus` tables, `Organization.timezone` field (shipped),
 dual-key encryption in `crypto.ts` (shipped v0.15.0). `computeOrgHealth()` pure

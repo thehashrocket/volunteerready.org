@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.3] - 2026-03-21
+
+### Added
+- **Automated cron smoke tests** — 6 new test files covering all cron jobs: credential expiry, shift reminders, email digests, volunteer re-engagement, shift auto-close, and notification cleanup. Each route test verifies auth (no header, wrong header, empty secret → 401), happy-path service delegation with response assertions, and error handling (service throws → 500). Infrastructure test for `withCronAuth` wrapper covers CronJobRun recording for success/failure, duration tracking, and graceful handling when the recording itself fails.
+- **Share token expiry service tests** — Service-level tests for `notifyExpiringShareTokens` covering email delivery, null-email skip, empty results, P2025 race condition handling, error isolation across multiple tokens, and credential type/org name in email body.
+
+### Fixed
+- **Dashboard role detection** — The dashboard now uses the resolved `session.orgId` (which includes fallback to first membership) instead of `session.currentOrgId` (raw DB value). This prevents org members from being incorrectly shown the volunteer dashboard when `currentOrgId` is unset.
+- **Unlinked application visibility** — Volunteer dashboard now includes applications submitted before login (by email only, not yet linked to a user account) in the pending applications list and opportunity recommendations.
+- **Session type completeness** — NextAuth session type declaration now includes all resolved auth fields (`orgId`, `role`, `companyId`, `companyRole`, `currentCompanyId`) that the auth callback populates.
+
 ## [0.16.2] - 2026-03-21
 
 ### Added

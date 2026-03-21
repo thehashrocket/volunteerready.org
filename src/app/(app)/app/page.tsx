@@ -56,7 +56,7 @@ export default function DashboardPage() {
 		);
 	}
 
-	const hasOrgContext = Boolean(session?.currentOrgId);
+	const hasOrgContext = Boolean(session?.orgId);
 
 	if (!hasOrgContext) {
 		return <VolunteerDashboard />;
