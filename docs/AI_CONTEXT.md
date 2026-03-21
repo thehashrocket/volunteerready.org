@@ -469,8 +469,10 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/domain/credential-sharing.ts` | Share token lifecycle guards, expiry computation |
 | `src/server/services/credentialShareService.ts` | Credential sharing workflows (generate, claim, revoke, shareAllOnApply) |
 | `src/server/lib/tokens.ts` | Shared token generation (256-bit) and SHA-256 hashing |
-| `src/server/domain/background-check.ts` | FCRA state machine guards, waiting period helpers, PII sanitization |
-| `src/server/services/backgroundCheckService.ts` | Background check lifecycle, FCRA workflow, token encryption |
+| `src/server/domain/background-check.ts` | FCRA state machine guards, waiting period helpers, PII sanitization, provider-agnostic `mapResultToStatus` |
+| `src/server/services/backgroundCheckService.ts` | Background check lifecycle, FCRA workflow, token encryption; provider-agnostic via shared `initiateProviderCheck` + `handleProviderWebhookEvent` |
+| `src/server/lib/adapters/background-check/registry.ts` | `getAdapter(provider)` factory — returns Checkr or Sterling adapter |
+| `src/server/lib/adapters/background-check/sterling.ts` | Sterling adapter: API integration, HMAC-SHA256 webhook verification, 7 typed error classes |
 | `src/server/lib/crypto.ts` | AES-256-GCM encrypt/decrypt/tryDecrypt for secrets at rest |
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
 
