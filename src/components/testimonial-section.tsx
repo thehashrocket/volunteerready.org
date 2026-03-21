@@ -27,8 +27,8 @@ export function TestimonialSection() {
 					setTestimonial(items[idx] ?? null);
 				}
 			})
-			.catch(() => {
-				// Section hidden silently on error
+			.catch((err) => {
+				console.error('[testimonials] Failed to load testimonials', err);
 			});
 	}, []);
 

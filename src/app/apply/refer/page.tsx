@@ -12,6 +12,12 @@ export const metadata: Metadata = {
 		'A fellow nonprofit recommended VolunteerReady for automated background checks. Get set up free by our founder.',
 };
 
+/**
+ * Fetch referring org name by slug. No consentToPublicize check here because:
+ * - Org names are public knowledge for nonprofits
+ * - The referring org triggered this referral themselves
+ * - Only the name is shown, not metrics or case study data
+ */
 async function getReferringOrgName(slug: string | undefined) {
 	if (!slug) return null;
 	const org = await prisma.organization.findUnique({

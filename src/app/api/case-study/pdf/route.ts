@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 		const pdf = await generateCaseStudyPdf(orgId);
 		if (!pdf) {
 			return NextResponse.json(
-				{ error: 'Organization not found' },
+				{ error: 'Organization not found or has no case study data' },
 				{ status: 404 },
 			);
 		}
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
 	} catch (err) {
 		console.error('[Case Study PDF] Generation failed', {
 			orgId,
-			error: err instanceof Error ? err.message : String(err),
+			error: err instanceof Error ? err.stack : String(err),
 		});
 		return NextResponse.json(
 			{ error: 'Failed to generate PDF' },

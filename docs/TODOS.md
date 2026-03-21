@@ -671,6 +671,28 @@ verification before org creation or after.
 
 ---
 
+### [P3] Feedback Form Server-Side Length Validation
+
+**What:** Add max-length validation on the server side for feedback form responses
+(currently only client-side `maxLength` on `<Textarea>`).
+
+**Why:** The `submitFeedback` server action in `src/app/(public)/screening/feedback/actions.ts`
+accepts arbitrary-length strings. A malicious or accidental submission could store 1MB+ of
+text in the `OrgFeedback.responses` JSON field. Safe during concierge (3 trusted orgs) but
+must be fixed before self-serve signup or public traffic.
+
+**Context:** Add a `MAX_RESPONSE_LENGTH = 2000` constant. In `actions.ts`, truncate or
+reject responses exceeding the limit. The client-side `<Textarea>` already has no explicit
+`maxLength` prop — add one to match. Consider Zod schema validation in the server action
+for consistency with repo conventions.
+
+**Pros:** Prevents oversized payloads; consistent with Zod-everywhere convention.
+**Cons:** Minimal — trivial change.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Feedback form shipped (done)
+
+---
+
 ### [P3] Cron Concurrency Guard — Claim-Based Processing
 
 **What:** Add optimistic locking or claim-based processing to digest and re-engagement

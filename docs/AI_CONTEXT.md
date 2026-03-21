@@ -139,6 +139,7 @@ src/
 │   │   ├── resend.ts             # Shared Resend email client (lazy singleton)
 │   │   ├── email-template.ts     # Branded email wrapper (VolunteerReady header/footer)
 │   │   ├── email.ts              # sendEmail() helper — single entry point for all outbound email
+│   │   ├── html.ts               # escapeHtml() — shared XSS escape for server-rendered HTML (email + consent pages)
 │   │   └── rate-limit.ts         # Upstash Redis rate limiting (lazy singleton, fail-open)
 │   └── domain/                   # Pure types + functions + tests
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)

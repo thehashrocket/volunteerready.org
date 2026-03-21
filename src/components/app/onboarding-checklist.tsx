@@ -44,6 +44,9 @@ export function OnboardingChecklist({
 	const utils = trpc.useUtils();
 	const dismiss = trpc.screener.dismissOnboardingChecklist.useMutation({
 		onSuccess: () => utils.screener.getDashboardStats.invalidate(),
+		onError: (err) => {
+			console.error('[onboarding] Failed to dismiss checklist', err);
+		},
 	});
 
 	if (onboarding.complete) return null;

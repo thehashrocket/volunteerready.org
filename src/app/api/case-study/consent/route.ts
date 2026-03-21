@@ -3,18 +3,9 @@ export const runtime = 'nodejs';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { verifyConsentToken } from '@/server/lib/case-study-token';
+import { escapeHtml } from '@/server/lib/html';
 import { prisma } from '@/server/repositories/prisma';
 import { setOrgConsent } from '@/server/services/caseStudyService';
-
-/** Escape HTML special characters to prevent XSS */
-function escapeHtml(str: string): string {
-	return str
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;');
-}
 
 /**
  * GET — verify token and render a confirmation page.
@@ -78,12 +69,18 @@ export async function POST(req: NextRequest) {
 	const token = typeof rawToken === 'string' ? rawToken : null;
 
 	if (!token) {
-		return NextResponse.redirect(new URL('/stories/consent-expired', req.url), 303);
+		return NextResponse.redirect(
+			new URL('/stories/consent-expired', req.url),
+			303,
+		);
 	}
 
 	const orgId = verifyConsentToken(token);
 	if (!orgId) {
-		return NextResponse.redirect(new URL('/stories/consent-expired', req.url), 303);
+		return NextResponse.redirect(
+			new URL('/stories/consent-expired', req.url),
+			303,
+		);
 	}
 
 	const org = await prisma.organization.findUnique({
@@ -92,11 +89,25 @@ export async function POST(req: NextRequest) {
 	});
 
 	if (!org) {
-		return NextResponse.redirect(new URL('/stories/consent-expired', req.url), 303);
+		return NextResponse.redirect(
+			new URL('/stories/consent-expired', req.url),
+			303,
+		);
 	}
 
 	// Set consent via service layer
-	await setOrgConsent(orgId, true);
+	try {
+		await setOrgConsent(orgId, true);
+	} catch (err) {
+		console.error('[consent] Failed to set org consent', {
+			orgId,
+			error: err instanceof Error ? err.message : String(err),
+		});
+		return NextResponse.redirect(
+			new URL('/stories/consent-expired', req.url),
+			303,
+		);
+	}
 
 	return NextResponse.redirect(
 		new URL(`/stories/consent-confirmed?org=${org.slug}`, req.url),
