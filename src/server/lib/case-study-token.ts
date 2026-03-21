@@ -13,19 +13,18 @@ function hmac(secret: string, data: string): string {
 	return crypto.createHmac('sha256', secret).update(data).digest('hex');
 }
 
-function getSecret(): string {
-	const secret = process.env.CASE_STUDY_CONSENT_SECRET;
-	if (!secret) {
-		throw new Error('CASE_STUDY_CONSENT_SECRET is not configured.');
-	}
-	return secret;
+function getSecret(): string | null {
+	return process.env.CASE_STUDY_CONSENT_SECRET || null;
 }
 
 export function createConsentToken(
 	orgId: string,
-	secret: string = getSecret(),
+	secret: string | null = getSecret(),
 	now: Date = new Date(),
 ): string {
+	if (!secret) {
+		throw new Error('CASE_STUDY_CONSENT_SECRET is not configured.');
+	}
 	const timestamp = now.getTime().toString();
 	const signature = hmac(secret, `${orgId}|${timestamp}`);
 	return `${orgId}|${timestamp}|${signature}`;
@@ -33,10 +32,11 @@ export function createConsentToken(
 
 export function verifyConsentToken(
 	token: string,
-	secret: string = getSecret(),
+	secret: string | null = getSecret(),
 	maxAgeMs: number = DEFAULT_MAX_AGE_MS,
 	now: Date = new Date(),
 ): string | null {
+	if (!secret) return null;
 	const parts = token.split('|');
 	if (parts.length !== 3) return null;
 
