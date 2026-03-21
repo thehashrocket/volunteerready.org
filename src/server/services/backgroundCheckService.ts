@@ -89,7 +89,6 @@ import {
 } from '@/server/lib/adapters/background-check/checkr';
 import {
 	SterlingApiError,
-	SterlingSignatureError,
 	SterlingWebhookError,
 	sterlingAdapter,
 } from '@/server/lib/adapters/background-check/sterling';

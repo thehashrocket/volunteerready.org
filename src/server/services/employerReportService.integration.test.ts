@@ -102,7 +102,9 @@ async function seedCredential(
 	orgId: string,
 	status: 'PENDING' | 'VERIFIED' | 'REJECTED' = 'VERIFIED',
 ) {
-	const type = CREDENTIAL_TYPES[credentialCounter % CREDENTIAL_TYPES.length]!;
+	const type =
+		CREDENTIAL_TYPES[credentialCounter % CREDENTIAL_TYPES.length] ??
+		'BACKGROUND_CHECK';
 	credentialCounter++;
 	return prisma.volunteerCredential.create({
 		data: { userId, orgId, type, status },
