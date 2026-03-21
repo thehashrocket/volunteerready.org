@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { Role } from '@/prisma/generated/client';
+import type { Role } from '@/prisma/generated/client';
 import {
 	acceptInvitation,
 	getInvitationDetails,
@@ -31,13 +31,6 @@ export const membersRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			// ADMIN can only invite STAFF or READONLY; OWNER can invite ADMIN
-			if (ctx.role === Role.ADMIN && input.role === 'ADMIN') {
-				throw new TRPCError({
-					code: 'FORBIDDEN',
-					message: 'Admins can only invite Staff or Read-only members.',
-				});
-			}
 			const baseUrl =
 				process.env.NEXT_PUBLIC_APP_URL ??
 				process.env.NEXTAUTH_URL ??
@@ -48,6 +41,7 @@ export const membersRouter = createTRPCRouter({
 				input.role as Role,
 				baseUrl,
 				ctx.session?.user?.id,
+				ctx.role,
 			);
 		}),
 

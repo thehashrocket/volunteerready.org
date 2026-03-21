@@ -81,9 +81,11 @@ describe('getOrgActivityFeed', () => {
 				'CREDENTIAL_ISSUED',
 				'shift.completed',
 				'MEMBER_INVITED',
+				'MEMBER_REMOVED',
+				'ROLE_CHANGED',
 			]),
 		);
-		expect(args.where.action.in).toHaveLength(5);
+		expect(args.where.action.in).toHaveLength(7);
 	});
 
 	it('orders by createdAt DESC and limits to 20', async () => {

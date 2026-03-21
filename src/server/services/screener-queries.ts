@@ -182,6 +182,8 @@ const ACTIVITY_FEED_ACTIONS = [
 	'CREDENTIAL_ISSUED',
 	'shift.completed',
 	'MEMBER_INVITED',
+	'MEMBER_REMOVED',
+	'ROLE_CHANGED',
 ] as const;
 
 export async function getOrgActivityFeed(orgId: string) {
