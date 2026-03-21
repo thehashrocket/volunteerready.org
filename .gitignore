@@ -60,6 +60,7 @@ docs/.vitepress/dist
 .claude/skills/gstack/node_modules
 .claude/skills/gstack/bin
 VolunteerReady_Action_Plan.docx
+src/prisma/*
 
 # prisma
 prisma/dev.db
