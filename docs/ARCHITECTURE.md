@@ -166,6 +166,7 @@ Shared utilities and external service adapters.
 - `resend.ts` — lazy-initialized Resend email client singleton
 - `email-template.ts` — branded email wrapper (VolunteerReady header/footer matching DESIGN.md)
 - `email.ts` — `sendEmail()` helper — single entry point for all outbound email
+- `html.ts` — `escapeHtml()` shared XSS escape for all server-rendered HTML (email templates + consent pages)
 - `rate-limit.ts` — Upstash Redis rate limiting (lazy singleton, fail-open)
 
 ---
