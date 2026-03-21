@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [0.16.5] - 2026-03-21
 
 ### Added
-- **Phase 11 design document** — Complete vision, architecture decisions, data models, PR sequence, security considerations, and design specifications for the Volunteer Marketplace & API Platform. Reviewed via CEO review, eng review, and design review.
+- **Phase 11 design document** — Full vision for the Volunteer Marketplace & API Platform: 13-item scope across 3 sub-phases, 7 architecture decisions, 8 new data models, 12-PR implementation sequence, security model, and complete design specifications (information architecture, interaction states, responsive specs, accessibility). Reviewed via CEO review, eng review, and design review.
 
 ### Changed
 - **Volunteer router guard** — Replaced non-null assertion with explicit session guard in the volunteer dashboard procedure for safer error handling.
