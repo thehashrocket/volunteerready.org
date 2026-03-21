@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.1] - 2026-03-20
+
+### Fixed
+- Removed unused `beforeEach` and `vi` imports from `checkin-token.test.ts`.
+- Replaced `as any` casts with proper Prisma enum types (`ApplicationStatus`, `ShiftStatus`, `SignupStatus`, `CredentialStatus`) in `orgAnalyticsRepo.integration.test.ts`.
+- Renamed unused `shift` variable to `_shift` in analytics integration test.
+- Added `biome-ignore` directive for `$transaction` mock callback in `volunteerDiscoveryService.test.ts`.
+
 ## [0.14.0] - 2026-03-20
 
 ### Added
