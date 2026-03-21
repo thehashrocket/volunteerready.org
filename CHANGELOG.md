@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.2] - 2026-03-21
+
+### Changed
+- **Error categorization in org feedback cron** — Real email failures now tracked separately from idempotent skips (`failed` counter), with summary log on failures.
+- **Shared `escapeHtml` utility** — Consolidated 3 copies of HTML escaping into `src/server/lib/html.ts` with single-quote coverage.
+- **Runtime type validation** — Replaced unsafe `as` casts with runtime checks in impact report baseline parsing and `getPullQuote` feedback response handling.
+- **URL unification** — Org feedback email fallback URLs unified to `volunteerready.org`.
+
+### Fixed
+- **Consent POST error handling** — DB failures during `setOrgConsent` now caught and redirect to consent-expired instead of 500.
+- **Feedback form error handling** — `prisma.orgFeedback.upsert` failures now return user-visible error instead of hanging loading state.
+- **PDF error logging** — Changed from `err.message` to `err.stack` for full stack traces in case study PDF generation.
+- **Silent error logging** — Added `console.error` to testimonial fetch, onboarding checklist dismiss, and feedback form failures.
+
+### Added
+- **Test coverage** — New test suites for `caseStudyService` (25 tests), `org-feedback-service` (10 tests), and consent route handlers (10 tests).
+- **TODO** — P3 item for feedback form server-side length validation.
+
 ## [0.17.1] - 2026-03-21
 
 ### Added
