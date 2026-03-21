@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-	getCaseStudy,
+	getAllOrgsForCaseStudies,
 	getConsentedCaseStudies,
 	getTestimonials,
 	sendApprovalEmail,
@@ -22,20 +22,7 @@ export const caseStudyRouter = createTRPCRouter({
 	}),
 
 	getAllOrgsForCaseStudies: platformAdminProcedure.query(async () => {
-		const { prisma } = await import('@/server/repositories/prisma');
-		const orgs = await prisma.organization.findMany({
-			select: { id: true, name: true, slug: true, consentToPublicize: true },
-			orderBy: { createdAt: 'desc' },
-		});
-
-		const results = await Promise.all(
-			orgs.map(async (org) => {
-				const data = await getCaseStudy(org.id);
-				return data;
-			}),
-		);
-
-		return results.filter((r) => r !== null);
+		return getAllOrgsForCaseStudies();
 	}),
 
 	setConsent: platformAdminProcedure

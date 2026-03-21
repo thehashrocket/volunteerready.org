@@ -24,6 +24,15 @@ import { getImpactReport } from '@/server/services/screener-queries';
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
 // ---------------------------------------------------------------------------
 // Core: build CaseStudyData for a single org
 // ---------------------------------------------------------------------------
@@ -109,6 +118,20 @@ export async function getConsentedCaseStudies(): Promise<CaseStudyData[]> {
 }
 
 // ---------------------------------------------------------------------------
+// List ALL orgs with case study data (admin view)
+// ---------------------------------------------------------------------------
+
+export async function getAllOrgsForCaseStudies(): Promise<CaseStudyData[]> {
+	const orgs = await prisma.organization.findMany({
+		select: { id: true },
+		orderBy: { createdAt: 'desc' },
+	});
+
+	const results = await Promise.all(orgs.map((o) => getCaseStudy(o.id)));
+	return results.filter((r): r is CaseStudyData => r !== null);
+}
+
+// ---------------------------------------------------------------------------
 // Testimonials for landing page (lightweight)
 // ---------------------------------------------------------------------------
 
@@ -180,9 +203,15 @@ export async function sendApprovalEmail(
 	const baseUrl = process.env.NEXTAUTH_URL ?? 'https://volunteerready.org';
 	const approveUrl = `${baseUrl}/api/case-study/consent?token=${encodeURIComponent(token)}`;
 
+	// Escape user-controlled values to prevent HTML injection in emails
+	const safeName = escapeHtml(org.name);
+	const safeQuote = caseStudy.pullQuote
+		? escapeHtml(caseStudy.pullQuote)
+		: null;
+
 	// Email content: pull quote + 2 top metrics
-	const quoteHtml = caseStudy.pullQuote
-		? `<blockquote style="border-left: 4px solid #C4A882; padding-left: 16px; margin: 16px 0; font-style: italic; color: #3D3B38;">"${caseStudy.pullQuote}"</blockquote>`
+	const quoteHtml = safeQuote
+		? `<blockquote style="border-left: 4px solid #C4A882; padding-left: 16px; margin: 16px 0; font-style: italic; color: #3D3B38;">"${safeQuote}"</blockquote>`
 		: '';
 
 	const metrics = [
@@ -204,7 +233,7 @@ export async function sendApprovalEmail(
 		<h2 style="font-family: Georgia, serif; color: #1B3C2A; margin-bottom: 16px;">
 			Your impact with VolunteerReady
 		</h2>
-		<p>Hi ${org.name} team,</p>
+		<p>Hi ${safeName} team,</p>
 		<p>Here's a preview of how your numbers and feedback could appear on our site:</p>
 		${quoteHtml}
 		<ul style="list-style: none; padding: 0;">

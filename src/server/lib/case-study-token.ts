@@ -49,14 +49,21 @@ export function verifyConsentToken(
 	// Check expiry
 	if (now.getTime() - timestamp > maxAgeMs) return null;
 
-	// Verify HMAC
+	// Verify HMAC — guard against malformed hex that would cause
+	// timingSafeEqual to throw on mismatched buffer lengths
 	const expected = hmac(secret, `${orgId}|${timestampStr}`);
-	if (
-		!crypto.timingSafeEqual(
-			Buffer.from(signature, 'hex'),
-			Buffer.from(expected, 'hex'),
-		)
-	) {
+	if (signature.length !== expected.length) return null;
+
+	try {
+		if (
+			!crypto.timingSafeEqual(
+				Buffer.from(signature, 'hex'),
+				Buffer.from(expected, 'hex'),
+			)
+		) {
+			return null;
+		}
+	} catch {
 		return null;
 	}
 
