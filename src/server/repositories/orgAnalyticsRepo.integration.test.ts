@@ -11,6 +11,12 @@
  */
 
 import { afterEach, describe, expect, it } from 'vitest';
+import type {
+	ApplicationStatus,
+	CredentialStatus,
+	ShiftStatus,
+	SignupStatus,
+} from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 import {
 	getApplicationFunnel,
@@ -46,13 +52,13 @@ async function seedUser(suffix: string) {
 
 async function seedApplication(
 	orgId: string,
-	opts?: { status?: string; submittedAt?: Date },
+	opts?: { status?: ApplicationStatus; submittedAt?: Date },
 ) {
 	return prisma.volunteerApplication.create({
 		data: {
 			orgId,
 			submittedByEmail: `${PREFIX}${Date.now()}@test.example`,
-			status: (opts?.status as any) ?? 'SUBMITTED',
+			status: opts?.status ?? 'SUBMITTED',
 			submittedAt: opts?.submittedAt ?? new Date(),
 		},
 	});
@@ -64,7 +70,7 @@ async function seedShift(
 		startTime?: Date;
 		endTime?: Date;
 		capacity?: number;
-		status?: string;
+		status?: ShiftStatus;
 	},
 ) {
 	const start = opts?.startTime ?? new Date('2026-01-01T09:00:00Z');
@@ -76,7 +82,7 @@ async function seedShift(
 			startTime: start,
 			endTime: end,
 			capacity: opts?.capacity ?? 10,
-			status: (opts?.status as any) ?? 'OPEN',
+			status: opts?.status ?? 'OPEN',
 		},
 	});
 }
@@ -84,13 +90,13 @@ async function seedShift(
 async function seedSignup(
 	shiftId: string,
 	userId: string,
-	opts?: { status?: string; createdAt?: Date },
+	opts?: { status?: SignupStatus; createdAt?: Date },
 ) {
 	return prisma.shiftSignup.create({
 		data: {
 			shiftId,
 			userId,
-			status: (opts?.status as any) ?? 'CONFIRMED',
+			status: opts?.status ?? 'CONFIRMED',
 			createdAt: opts?.createdAt ?? new Date(),
 		},
 	});
@@ -99,14 +105,14 @@ async function seedSignup(
 async function seedCredential(
 	userId: string,
 	orgId: string,
-	opts?: { status?: string; issuedAt?: Date },
+	opts?: { status?: CredentialStatus; issuedAt?: Date },
 ) {
 	return prisma.volunteerCredential.create({
 		data: {
 			userId,
 			orgId,
 			type: 'BACKGROUND_CHECK',
-			status: (opts?.status as any) ?? 'VERIFIED',
+			status: opts?.status ?? 'VERIFIED',
 			issuedAt: opts?.issuedAt ?? new Date(),
 		},
 	});
@@ -508,7 +514,7 @@ describe('getTopVolunteers', () => {
 
 	it('respects the limit parameter', async () => {
 		const org = await seedOrg('topvol-limit');
-		const shift = await seedShift(org.id, {
+		const _shift = await seedShift(org.id, {
 			startTime: new Date('2026-01-10T09:00:00Z'),
 			endTime: new Date('2026-01-10T11:00:00Z'),
 		});

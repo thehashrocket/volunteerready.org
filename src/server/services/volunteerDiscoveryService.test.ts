@@ -97,9 +97,9 @@ describe('inviteToApply', () => {
 		vi.resetAllMocks();
 		// Restore $transaction: calls the callback with the prisma mock itself so
 		// tx.volunteerInvitation.* resolves to the same vi.fn() instances as prisma.*
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		vi.mocked(prisma.$transaction).mockImplementation(async (cb: any) =>
-			cb(prisma),
+		vi.mocked(prisma.$transaction).mockImplementation(
+			// biome-ignore lint/suspicious/noExplicitAny: $transaction callback type is complex; any is acceptable in test mocks
+			async (cb: any) => cb(prisma),
 		);
 	});
 
