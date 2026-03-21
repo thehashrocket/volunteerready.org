@@ -30,6 +30,7 @@ model User {
   notificationPreferences NotificationPreference[]
   digestPreferences       UserDigestPreference[]
   bulkImportJobs          BulkImportJob[]
+  isPlatformAdmin         Boolean                 @default(false)
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
 }

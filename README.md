@@ -313,6 +313,9 @@ CHECKR_CLIENT_SECRET
 CHECKR_DEFAULT_PACKAGE
 CHECKR_TOKEN_ENCRYPTION_KEY
 
+# Platform admin (legacy env-var fallback; prefer DB column)
+PLATFORM_ADMIN_IDS
+
 # Cron
 CRON_SECRET
 ```

@@ -4,17 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## [0.17.3] - 2026-03-21
 
+### Added
+- **RBAC Foundation** — Role-based permission checking via `hasPermission(role, permission)` with TypeScript constants as the source of truth. No DB tables in v1 — fast, in-memory lookups.
+- **Advisory permission middleware** — Every API call now logs a warning if the existing role check and the new permission system disagree. Never blocks requests — just surfaces mismatches for safe migration.
+- **DB-backed platform admin** — Platform admin status is now stored in the database instead of an env var. The old `PLATFORM_ADMIN_IDS` env var still works as a fallback during migration.
+- **CLI escape hatch** — `pnpm admin:grant <email>` / `pnpm admin:revoke <email>` for platform admin management with transactional audit logging.
+- **Seed migration script** — `pnpm seed:platform-admins` migrates `PLATFORM_ADMIN_IDS` env var to DB column (idempotent).
+- **Auth change audit logging** — Inviting, removing, or changing a member's role now writes an audit log entry inside the same database transaction as the change itself — no more gaps between action and record.
+- **Activity feed expansion** — `MEMBER_REMOVED` and `ROLE_CHANGED` events now appear in the admin activity feed.
+- **18 RBAC tests** — Full coverage for permissions, platform admin, audit logging, business rules, and role hierarchy.
+- **Magic link email tests** — 6 new tests covering subject line, branding, CTA link, design tokens, and template structure.
+
+### Changed
+- **ADMIN invite business rule** — Admins can only invite Staff or Read-only members (not other Admins). This rule is now enforced in the service layer with a proper FORBIDDEN error instead of the API layer.
+- **TOCTOU fix** — Member removal and role changes now look up the target inside the transaction, closing a race condition where two concurrent requests could bypass each other's guards.
+- **No-op role change guard** — Changing a member's role to their current role no longer writes a misleading audit log entry.
+- **Branded magic link email** — The sign-in email now matches the VolunteerReady design system: forest green CTA button, warm neutral typography, and safety disclaimer.
+- **Branded "Check your email" page** — After requesting a magic link, users now see a polished verify-request page with the same split-panel layout as the login page instead of an unstyled default.
+
 ### Fixed
 - **Magic link emails now use verified domain** — Sign-in emails were sending from an unverified local domain (`volunteeermatch.local`), causing delivery failures. They now use the `RESEND_FROM_EMAIL` env var like all other emails.
 - **Company invite emails now report delivery failures** — Invite emails use the shared `sendEmail()` helper for consistent bounce suppression and delivery tracking. Staff now see accurate feedback when an invite email fails to send.
 - **Cleaned up stale env var docs** — Removed legacy `EMAIL_FROM` reference from README; only `RESEND_FROM_EMAIL` is documented.
-
-### Changed
-- **Branded magic link email** — The sign-in email now matches the VolunteerReady design system: forest green CTA button, warm neutral typography, and safety disclaimer.
-- **Branded "Check your email" page** — After requesting a magic link, users now see a polished verify-request page with the same split-panel layout as the login page instead of an unstyled default.
-
-### Added
-- **Magic link email tests** — 6 new tests covering subject line, branding, CTA link, design tokens, and template structure.
 
 ## [0.17.2] - 2026-03-21
 
