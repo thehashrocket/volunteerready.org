@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.1] - 2026-03-21
+
+### Added
+- **Content Flywheel** — Case study generation pipeline that composes org usage data (applications, background checks, retention, fill rate, top volunteers) into shareable impact stories. Includes admin management UI at `/app/admin/case-studies`, public story pages at `/stories/[orgSlug]`, PDF export, and testimonial components on the screening landing page.
+- **Two-step consent flow** — HMAC-signed email tokens with 7-day expiry. GET renders a confirmation page (safe for email prefetchers), POST sets consent via service layer with 303 redirect. Consent-expired and consent-confirmed static pages.
+- **Testimonial section** — Live testimonials from consented orgs replace the social proof placeholder on the screening landing page.
+- **Backfill script** — `scripts/backfill-consent.ts` parses existing DAY_30 feedback for affirmative consent strings and sets `consentToPublicize` on matching orgs.
+
+### Fixed
+- **Security: consent mutation on GET** — Consent endpoint split into GET (confirmation page) + POST (state change) to prevent email prefetchers from silently granting consent.
+- **Security: public feedback auto-consent** — Removed unauthenticated consent grant from the public feedback form server action.
+- **Security: XSS in consent HTML** — Org name and token are HTML-escaped in hand-built consent confirmation page.
+- **Security: email HTML injection** — Org name and pull quote escaped in approval email HTML.
+- **Security: timingSafeEqual crash** — Added length check and try/catch around `crypto.timingSafeEqual` to handle malformed hex signatures gracefully.
+- **Graceful handling when CASE_STUDY_CONSENT_SECRET missing** — `verifyConsentToken` returns null instead of throwing when env var is not configured.
+
 ## [0.17.0] - 2026-03-21
 
 ### Added

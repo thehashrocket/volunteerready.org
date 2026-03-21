@@ -12,6 +12,7 @@ import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { PublicHero } from '@/components/public-hero';
 import { SwitchCostCalculator } from '@/components/switch-cost-calculator';
+import { TestimonialSection } from '@/components/testimonial-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 
@@ -184,18 +185,8 @@ export default function ScreeningPage() {
 				<SwitchCostCalculator />
 			</section>
 
-			{/* ── Social proof placeholder ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
-				<div className="mx-auto max-w-2xl text-center">
-					<h2 className="font-display mb-3 text-2xl font-bold text-foreground [text-wrap:balance]">
-						Trusted by nonprofits
-					</h2>
-					<p className="text-muted-foreground">
-						Logos and testimonials from concierge orgs will appear here once
-						permission is granted.
-					</p>
-				</div>
-			</section>
+			{/* ── Social proof (live testimonials from consented orgs) ── */}
+			<TestimonialSection />
 
 			{/* ── CTA ── */}
 			<CTABanner
