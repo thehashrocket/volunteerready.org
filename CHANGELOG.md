@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.0] - 2026-03-20
+
+### Added
+- **Sterling background check adapter** — Full Sterling integration with API key authentication (Bearer token), HMAC-SHA256 webhook signature verification, and `screening.completed` webhook processing. Sterling orgs connect by pasting their API key in admin settings (no OAuth dance).
+- **Admin Sterling settings UI** — New SterlingConnectCard on the Credentials settings page with Account ID + API Key form, connect/disconnect flow, and connection status badge. Mirrors the Checkr card pattern.
+- **Adapter registry** — `getAdapter(provider)` factory returns the correct adapter (Checkr or Sterling) based on the `BackgroundCheckProvider` enum, enabling provider-agnostic service code.
+- **Provider-agnostic service layer** — Refactored `initiateBackgroundCheck` and `handleCheckrWebhookEvent` into shared `initiateProviderCheck` and `handleProviderWebhookEvent` functions. Both Checkr and Sterling use the same DRY business logic with injected adapters and credentials.
+- **Sterling webhook idempotency** — Sterling webhooks now use the same `CheckrWebhookEvent` idempotency table as Checkr, preventing duplicate processing on retries.
+- **Sterling adapter tests** — 22 unit tests covering all error classes, API responses (401/403/422/429/503/timeout), HMAC signature verification (valid/invalid/empty/missing secret/length mismatch), payload parsing, and OAuth stub 501s.
+- **Adapter registry tests** — 3 tests verifying factory returns correct adapter for each provider.
+
+### Changed
+- Renamed `mapCheckrResultToStatus` → `mapResultToStatus` and `sanitizeCheckrPayload` → `sanitizeWebhookPayload` for provider-agnostic naming.
+- `BackgroundCheckRequest.provider` now defaults dynamically based on the adapter used (previously hardcoded to `CHECKR`).
+
+## [0.15.0] - 2026-03-20
+
+### Added
+- **Email delivery tracking** — New `EmailEvent` and `EmailBounceStatus` Prisma models track email delivery lifecycle events (sent, delivered, bounced, complained) via Resend webhooks.
+- **Resend webhook handler** — `/api/resend/webhook` endpoint with HMAC-SHA256 signature verification, event logging, and automatic bounce suppression after 3 bounces. Mirrors Stripe/Checkr webhook error routing pattern (400/200/500).
+- **Unified webhook health dashboard** — Admin health page now shows webhook activity cards for Stripe, Checkr, and Resend with per-type event counts over a configurable time window.
+- **Email bounce management UI** — Admin can view suppressed addresses, re-enable individual addresses, or reset all suppressions (platform admin override). Critical emails (e.g., FCRA notices) bypass suppression.
+- **Encryption key rotation** — Dual-key decryption support in `crypto.ts` with `CHECKR_TOKEN_ENCRYPTION_KEY_NEW` env var for zero-downtime key rotation. Includes `reEncrypt()` with roundtrip verification and `scripts/reencrypt-tokens.ts` batch migration script.
+- **ESG integration tests** — 13 integration tests for employer report service covering shift aggregates, credential counts, distinct employee counts, and full report pipeline.
+- **Resend webhook tests** — 8 unit tests for the webhook handler covering event routing, bounce management, suppression cap, and error paths.
+- **Email send tests** — Updated from 2 to 6 tests covering bounce suppression, critical email bypass, and SENT event logging.
+- **Crypto rotation tests** — 7 new tests for dual-key fallback, primary key preference, reEncrypt roundtrip, and rotation key validation.
+
+### Fixed
+- Integration test env var loading — Vitest 4 forked workers now receive `DATABASE_URL` via config-level dotenv import.
+- Credential seeding in `orgAnalyticsRepo.integration.test.ts` — rotating credential types to avoid unique constraint violations.
+
 ## [0.14.0] - 2026-03-20
 
 ### Added

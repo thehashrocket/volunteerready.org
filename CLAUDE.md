@@ -101,6 +101,8 @@ docs/
 - server/domain/** = types + invariants + pure functions
 - server/trpc/** = routers + procedures only (thin)
 - screening domain lives in `src/server/domain/volunteer-screening.ts`
+- Background check adapters: `src/server/lib/adapters/background-check/` (Checkr + Sterling), registry at `registry.ts`
+- Sterling webhook: `src/app/api/sterling/webhook/route.ts`
 - Prisma client is generated into `src/prisma/generated/client`
 - public apply flow lives under `src/app/apply/[orgSlug]`
 - Volunteer applications may be linked to users via `submittedByUserId` (see `screener.myApplications`).
