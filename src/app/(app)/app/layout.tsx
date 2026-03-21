@@ -43,7 +43,8 @@ export default async function AppLayout({
 		| null;
 	const hasCompany = !!sessionExt?.companyId;
 
-	if (!isExempt && !hasOrg) {
+	// /app itself is exempt — the volunteer dashboard renders for non-org users
+	if (!isExempt && pathname !== '/app' && !hasOrg) {
 		redirect('/app/welcome');
 	}
 
