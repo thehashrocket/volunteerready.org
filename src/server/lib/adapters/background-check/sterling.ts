@@ -111,10 +111,7 @@ class SterlingAdapter implements BackgroundCheckAdapter {
 		accessToken: string,
 	): Promise<{ reportId: string }> {
 		const controller = new AbortController();
-		const timeout = setTimeout(
-			() => controller.abort(),
-			REQUEST_TIMEOUT_MS,
-		);
+		const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
 		try {
 			const res = await fetch(`${STERLING_BASE_URL}/v2/screenings`, {
@@ -150,8 +147,7 @@ class SterlingAdapter implements BackgroundCheckAdapter {
 
 			if (res.status === 429) {
 				const retryAfter =
-					Number.parseInt(res.headers.get('retry-after') ?? '2', 10) *
-					1000;
+					Number.parseInt(res.headers.get('retry-after') ?? '2', 10) * 1000;
 				throw new SterlingRateLimitError(
 					'Sterling rate limit exceeded',
 					retryAfter,
@@ -190,9 +186,7 @@ class SterlingAdapter implements BackgroundCheckAdapter {
 	 */
 	verifyWebhookSignature(rawBody: Buffer, signature: string): void {
 		if (!signature) {
-			throw new SterlingSignatureError(
-				'Missing X-Sterling-Signature header',
-			);
+			throw new SterlingSignatureError('Missing X-Sterling-Signature header');
 		}
 
 		const expected = crypto
@@ -220,9 +214,7 @@ class SterlingAdapter implements BackgroundCheckAdapter {
 		payload: unknown,
 	): { reportId: string; result: string; accountId?: string } | null {
 		if (typeof payload !== 'object' || payload === null) {
-			throw new SterlingWebhookError(
-				'Webhook payload is not an object',
-			);
+			throw new SterlingWebhookError('Webhook payload is not an object');
 		}
 
 		const body = payload as Record<string, unknown>;

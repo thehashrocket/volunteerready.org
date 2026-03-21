@@ -180,7 +180,9 @@ describe('SterlingAdapter.verifyWebhookSignature', () => {
 		const body = Buffer.from('{"type":"screening.completed"}');
 		const sig = sign(body);
 
-		expect(() => sterlingAdapter.verifyWebhookSignature(body, sig)).not.toThrow();
+		expect(() =>
+			sterlingAdapter.verifyWebhookSignature(body, sig),
+		).not.toThrow();
 	});
 
 	it('throws SterlingSignatureError on invalid signature', () => {
@@ -256,9 +258,9 @@ describe('SterlingAdapter.parseActionableWebhookPayload', () => {
 	});
 
 	it('throws SterlingWebhookError when payload is null', () => {
-		expect(() =>
-			sterlingAdapter.parseActionableWebhookPayload(null),
-		).toThrow(SterlingWebhookError);
+		expect(() => sterlingAdapter.parseActionableWebhookPayload(null)).toThrow(
+			SterlingWebhookError,
+		);
 	});
 
 	it('throws SterlingWebhookError when screening.completed has no data.id', () => {
