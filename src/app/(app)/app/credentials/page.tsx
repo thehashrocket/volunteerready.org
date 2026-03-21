@@ -6,6 +6,7 @@ import {
 	AlertTriangle,
 	CheckCircle2,
 	FileWarning,
+	Key,
 	Link2,
 	Link2Off,
 	Plus,
@@ -593,6 +594,147 @@ function CheckrConnectCard() {
 }
 
 // ---------------------------------------------------------------------------
+// Sterling Connect Card — API key paste (no OAuth)
+// ---------------------------------------------------------------------------
+
+function SterlingConnectCard() {
+	const qc = useQueryClient();
+	const statusQ = trpc.backgroundChecks.getSterlingStatus.useQuery();
+	const [apiKey, setApiKey] = useState('');
+	const [accountId, setAccountId] = useState('');
+
+	const connectMutation = trpc.backgroundChecks.connectSterling.useMutation({
+		onSuccess: async () => {
+			toast.success('Sterling account connected.');
+			setApiKey('');
+			setAccountId('');
+			await qc.invalidateQueries();
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to connect Sterling.');
+		},
+	});
+
+	const disconnectMutation =
+		trpc.backgroundChecks.disconnectSterling.useMutation({
+			onSuccess: async () => {
+				toast.success('Sterling account disconnected.');
+				await qc.invalidateQueries();
+			},
+			onError: (err) => {
+				toast.error(err.message ?? 'Failed to disconnect Sterling.');
+			},
+		});
+
+	function handleConnect(e: React.FormEvent) {
+		e.preventDefault();
+		if (!apiKey.trim() || !accountId.trim()) {
+			toast.error('Both API key and Account ID are required.');
+			return;
+		}
+		connectMutation.mutate({
+			apiKey: apiKey.trim(),
+			accountId: accountId.trim(),
+		});
+	}
+
+	const connected = statusQ.data?.connected ?? false;
+	const storedAccountId = statusQ.data?.accountId;
+
+	return (
+		<Card>
+			<CardHeader>
+				<div className="flex items-center justify-between">
+					<div>
+						<CardTitle className="flex items-center gap-2">
+							<Key className="h-5 w-5" />
+							Sterling Integration
+						</CardTitle>
+						<CardDescription>
+							Connect your organization&apos;s Sterling account to run automated
+							background checks via Sterling.
+						</CardDescription>
+					</div>
+					{connected && (
+						<Badge variant="success" className="flex items-center gap-1">
+							<CheckCircle2 className="h-3 w-3" />
+							Connected
+						</Badge>
+					)}
+				</div>
+			</CardHeader>
+			<CardContent>
+				{statusQ.isLoading ? (
+					<div className="space-y-2">
+						<div className="h-4 w-48 animate-pulse rounded bg-muted" />
+						<div className="h-4 w-32 animate-pulse rounded bg-muted" />
+					</div>
+				) : connected ? (
+					<div className="flex items-center justify-between">
+						<p className="text-sm text-muted-foreground">
+							Account ID:{' '}
+							<span className="font-mono text-xs">{storedAccountId}</span>
+						</p>
+						<Button
+							size="sm"
+							variant="outline"
+							className="text-destructive hover:text-destructive"
+							onClick={() => disconnectMutation.mutate()}
+							disabled={disconnectMutation.isPending}
+						>
+							<Link2Off className="mr-1 h-4 w-4" />
+							{disconnectMutation.isPending ? 'Disconnecting…' : 'Disconnect'}
+						</Button>
+					</div>
+				) : (
+					<form onSubmit={handleConnect} className="space-y-3">
+						<p className="text-sm text-muted-foreground">
+							No Sterling account connected. Enter your Sterling API key and
+							Account ID to enable automated background checks.
+						</p>
+						<div className="grid grid-cols-2 gap-3">
+							<div className="space-y-1">
+								<Label htmlFor="sterling-account-id">Account ID</Label>
+								<Input
+									id="sterling-account-id"
+									placeholder="acct_..."
+									value={accountId}
+									onChange={(e) => setAccountId(e.target.value)}
+								/>
+							</div>
+							<div className="space-y-1">
+								<Label htmlFor="sterling-api-key">API Key</Label>
+								<Input
+									id="sterling-api-key"
+									type="password"
+									placeholder="sk_..."
+									value={apiKey}
+									onChange={(e) => setApiKey(e.target.value)}
+								/>
+							</div>
+						</div>
+						<div className="flex justify-end">
+							<Button
+								type="submit"
+								size="sm"
+								disabled={
+									connectMutation.isPending ||
+									!apiKey.trim() ||
+									!accountId.trim()
+								}
+							>
+								<Key className="mr-1 h-4 w-4" />
+								{connectMutation.isPending ? 'Connecting…' : 'Connect Sterling'}
+							</Button>
+						</div>
+					</form>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Background Check Requests Table
 // ---------------------------------------------------------------------------
 
@@ -1016,8 +1158,9 @@ export default function CredentialsPage() {
 				</Card>
 			)}
 
-			{/* Checkr Partner API — connect/disconnect */}
+			{/* Background Check Provider Connections */}
 			<CheckrConnectCard />
+			<SterlingConnectCard />
 
 			{/* Background Check Requests — shown below credentials */}
 			<BackgroundCheckRequestsTable />
