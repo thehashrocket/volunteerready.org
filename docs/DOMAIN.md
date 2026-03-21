@@ -50,6 +50,13 @@ Examples:
 
 Organizations have a plan tier (FREE / STARTER / PRO) and optional Stripe billing.
 
+Activation fields (Phase 12):
+
+- `onboardingBaseline` — JSON blob storing pre-platform baseline data (volunteer count, hours/week, current process)
+- `showPoweredBy` — boolean (default true), controls "Powered by VolunteerReady" footer on public apply pages
+- `onboardingComplete` — boolean (default false), set when org dismisses the onboarding checklist
+- `referralSource` — optional string tracking how the org was referred
+
 Important rule:
 
 All organization-owned records must contain `orgId`.
@@ -362,6 +369,22 @@ Constraint: unique `checkrId`.
 
 ---
 
+## OrgFeedback
+
+Structured feedback record for an organization. Used by the concierge activation engine to track which feedback surveys have been sent.
+
+Type: DAY_7 | DAY_30
+
+Key fields:
+
+- `orgId` — the organization
+- `type` — feedback window (DAY_7 or DAY_30)
+- `responses` — JSON blob of survey answers (nullable, populated when org submits feedback)
+
+Constraint: unique per (orgId, type). Idempotency — creating the record before sending the email ensures each feedback type is sent at most once per org.
+
+---
+
 ## FeatureFlag
 
 Per-organization configuration toggle.
@@ -459,6 +482,8 @@ Use these terms consistently across the codebase:
 - CompanyAccount
 - CompanyMember
 - CompanyNonprofitLink
+- OrgFeedback
+- OrgFeedbackType
 - FeatureFlag
 - AuditLog
 

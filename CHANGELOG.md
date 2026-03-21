@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.0] - 2026-03-21
+
+### Added
+- **Screening landing page** — New marketing page at `/screening` with pain-point messaging, feature highlights, social proof placeholder, and an interactive Switch Cost Calculator that shows nonprofits how much they're spending on manual volunteer management vs. VolunteerReady's $29/mo.
+- **"Powered by VolunteerReady" footer** — Public apply pages now show a branded footer linking back to the screening landing page. Orgs can toggle this off via the `showPoweredBy` setting.
+- **Onboarding checklist** — Staff dashboard shows a 4-milestone checklist (invite team, create opportunity, receive application, complete background check) with a progress bar. Dismissible once complete.
+- **Referral prompt** — After an org completes their first background check, the dashboard shows a prompt to share a referral link. Copy-to-clipboard with localStorage-based dismissal.
+- **Referral landing page** — `/apply/refer?from=[orgSlug]` displays the referring org's name and funnels new nonprofits to a Calendly booking.
+- **Org feedback survey system** — Day-7 and day-30 feedback emails sent automatically to org admins. Public survey form at `/screening/feedback` with tailored questions per window (day-30 adds "would you pay?" and testimonial consent). Day-30 email includes an impact report link.
+- **Org feedback cron** — Daily cron at 10:00 UTC (`/api/cron/org-feedback`) identifies orgs that have passed the 7-day or 30-day mark and sends branded feedback emails. Idempotent via `OrgFeedback` table with unique constraint on (orgId, type).
+- **Onboarding baseline capture** — Settings page at `/app/settings/onboarding` where orgs record their pre-platform volunteer count, admin hours/week, and current tracking process. Data stored as JSON on the Organization model.
+- **Impact report** — `/app/impact-report` shows baseline vs. platform usage metrics so orgs can see the value VolunteerReady delivers over time.
+- **OrgFeedback Prisma model** — New `OrgFeedback` table with `OrgFeedbackType` enum (DAY_7, DAY_30), unique per org + type, with optional JSON responses field.
+- **Organization activation fields** — `onboardingBaseline` (JSON), `showPoweredBy` (boolean), `onboardingComplete` (boolean), `referralSource` (string) added to the Organization model.
+
 ## [0.16.5] - 2026-03-21
 
 ### Added

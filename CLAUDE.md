@@ -113,9 +113,17 @@ docs/
 - PWA: `public/manifest.webmanifest`, `public/sw.js`, `src/components/sw-register.tsx`, `src/components/ios-install-prompt.tsx`
 - Org health score: domain at `src/server/domain/org-health.ts`, widget at `src/components/app/org-health-widget.tsx`
 - Activity feed: `src/components/app/activity-feed.tsx` (uses `screener.getActivityFeed` tRPC query)
-- Dashboard: `src/app/(app)/app/page.tsx` — role-conditional: volunteers see `VolunteerDashboard` (upcoming shifts, pending apps, expiring creds, impact stats, recommendations); staff see greeting banner + OrgHealthWidget + stat cards + ActivityFeed (Getting Started Checklist removed in v0.14.0)
+- Dashboard: `src/app/(app)/app/page.tsx` — role-conditional: volunteers see `VolunteerDashboard` (upcoming shifts, pending apps, expiring creds, impact stats, recommendations); staff see greeting banner + OrgHealthWidget + OnboardingChecklist + ReferralPrompt + stat cards + ActivityFeed (Getting Started Checklist removed in v0.14.0)
 - Volunteer dashboard: service at `src/server/services/volunteerDashboardService.ts`, component at `src/components/app/volunteer-dashboard.tsx`, tRPC router at `src/server/trpc/routers/volunteer.ts` (`volunteer.getDashboard`)
 - Onboarding funnel analytics (platform admin): service at `src/server/services/onboardingAnalyticsService.ts`, page at `src/app/(app)/app/admin/onboarding/page.tsx`, tRPC procedure at `admin.onboardingFunnel`
+- Screening landing page: `src/app/(public)/screening/page.tsx` with `SwitchCostCalculator` at `src/components/switch-cost-calculator.tsx`
+- Onboarding checklist: `src/components/app/onboarding-checklist.tsx` (4-milestone widget, dismissible via `screener.dismissOnboardingChecklist`)
+- Referral prompt: `src/components/app/referral-prompt.tsx` (shows after first background check, localStorage dismissal)
+- Referral landing page: `src/app/apply/refer/page.tsx` — `/apply/refer?from=[orgSlug]` with referrer badge
+- Org feedback survey: `src/app/(public)/screening/feedback/` (public form, day-7 and day-30 questions)
+- Org feedback cron: `src/app/api/cron/org-feedback/route.ts` (daily 10:00 UTC), service at `src/server/services/org-feedback-service.ts`
+- Impact report: `src/app/(app)/app/impact-report/page.tsx` (baseline vs platform usage metrics)
+- Onboarding baseline: `src/app/(app)/app/settings/onboarding/page.tsx` (volunteer count, hours/week, current process)
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.
@@ -142,6 +150,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/designs/phase-9-production-ready.md` — Phase 9 plan (production-ready + activation)
 - `docs/designs/phase-10-scale-enterprise.md` — Phase 10 plan (scale & enterprise readiness)
 - `docs/designs/phase-11-marketplace-api.md` — Phase 11 plan (volunteer marketplace & API platform)
+- `docs/designs/concierge-activation-engine.md` — Phase 12 plan (concierge activation engine)
 - `docs/TODOS.md` - todos for the current project
 
 ## gstack
