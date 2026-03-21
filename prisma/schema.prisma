@@ -118,6 +118,11 @@ model Organization {
   firstApplicationReceivedAt  DateTime?                // First-volunteer celebration trigger
   qrForegroundColor           String?                  // Custom QR code color (hex, e.g. #1B3C2A)
   timezone                    String?                  // IANA timezone (e.g. "America/New_York"). NULL = UTC.
+  // Phase 12 — Concierge Activation Engine
+  onboardingBaseline          Json?                    // Baseline data captured at concierge onboarding
+  showPoweredBy               Boolean                  @default(true) // "Powered by VolunteerReady" footer on apply pages
+  onboardingComplete          Boolean                  @default(false) // Onboarding checklist dismissed
+  referralSource              String?                  // Referral tracking (orgSlug of referring org)
   createdAt                   DateTime                 @default(now())
   updatedAt                   DateTime                 @updatedAt
   members              OrganizationMember[]
@@ -140,6 +145,7 @@ model Organization {
   notificationPreferences NotificationPreference[]
   digestPreferences       UserDigestPreference[]
   bulkImportJobs          BulkImportJob[]
+  feedbacks               OrgFeedback[]
 }
 
 model OrganizationMember {
@@ -939,4 +945,30 @@ model EmailBounceStatus {
   lastBouncedAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Phase 12 — Concierge Activation Engine
+// ---------------------------------------------------------------------------
+
+enum OrgFeedbackType {
+  DAY_7
+  DAY_30
+}
+
+/// Structured feedback from concierge orgs at day 7 and day 30.
+/// The combination of (orgId, type) serves as an idempotency key —
+/// skip sending if a record already exists for this org + feedback type.
+model OrgFeedback {
+  id        String          @id @default(cuid())
+  orgId     String
+  type      OrgFeedbackType
+  sentAt    DateTime        @default(now())
+  responses Json?           // Submitted survey responses (null = sent but not yet completed)
+  createdAt DateTime        @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, type])
+  @@index([orgId])
 }

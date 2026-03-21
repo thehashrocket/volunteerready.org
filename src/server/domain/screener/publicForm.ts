@@ -11,6 +11,7 @@ export type PublicOrgSummary = {
 	id: string;
 	name: string;
 	slug: string;
+	showPoweredBy: boolean;
 };
 
 export type PublicScreenerQuestion = {
