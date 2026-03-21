@@ -131,7 +131,7 @@ Key services:
 - `shiftTemplateService.ts` — recurring shift template CRUD + bulk shift generation
 - `notificationService.ts` — notification delivery with preference checking
 - `orgAnalyticsService.ts` — org engagement dashboard (funnel, retention, fill rate, top volunteers)
-- `backgroundCheckService.ts` — Checkr integration, FCRA workflow, token encryption
+- `backgroundCheckService.ts` — provider-agnostic background check lifecycle (Checkr + Sterling), FCRA workflow, token encryption; shared `initiateProviderCheck` and `handleProviderWebhookEvent` with injected adapters
 - `credentialShareService.ts` — credential sharing: generate, claim, revoke, shareAllOnApply
 - `billingService.ts` — Stripe integration, plan management, billing lifecycle emails (upgrade, payment failed, cancellation)
 - `credential-expiry-service.ts` — daily credential and share token expiry (Vercel Cron)
@@ -158,8 +158,8 @@ Routers should stay thin.
 
 Shared utilities and external service adapters.
 
-- `adapters/background-check/` — `BackgroundCheckAdapter` interface with `CheckrAdapter` implementation
-- `crypto.ts` — AES-256-GCM encrypt/decrypt for Checkr OAuth tokens
+- `adapters/background-check/` — `BackgroundCheckAdapter` interface with `CheckrAdapter` and `SterlingAdapter` implementations; `getAdapter(provider)` registry factory returns the correct adapter by `BackgroundCheckProvider` enum
+- `crypto.ts` — AES-256-GCM encrypt/decrypt for OAuth tokens and API keys at rest (dual-key rotation support)
 - `tokens.ts` — shared token generation (256-bit random) and SHA-256 hashing
 - `resend.ts` — lazy-initialized Resend email client singleton
 - `email-template.ts` — branded email wrapper (VolunteerReady header/footer matching DESIGN.md)
@@ -270,13 +270,24 @@ Each middleware narrows the context type via `next({ ctx: { ... } })`, so downst
 - Webhook handler at `/api/stripe/webhook` (signature verification, idempotency via `StripeWebhookEvent`)
 - Plan tier updates on subscription events
 
-## Checkr (Background Checks)
+## Background Checks (Checkr + Sterling)
 
+Both providers use the `BackgroundCheckAdapter` interface with a `getAdapter(provider)` registry factory.
+
+**Checkr:**
 - OAuth flow for per-org Checkr account connection
 - Background check initiation via Checkr Partner API
 - Webhook handler at `/api/checkr/webhook` (signature verification, idempotency via `CheckrWebhookEvent`)
 - OAuth tokens encrypted at rest (AES-256-GCM)
-- FCRA adverse action email workflow
+
+**Sterling:**
+- API key authentication (Bearer token) — no OAuth dance
+- Admin connects by entering API key + Account ID on credentials page
+- Webhook handler at `/api/sterling/webhook` (HMAC-SHA256 signature verification)
+- Shares `CheckrWebhookEvent` idempotency table for webhook deduplication
+- 7 named error classes (`SterlingAuthError`, `SterlingForbiddenError`, `SterlingValidationError`, `SterlingRateLimitError`, `SterlingTimeoutError`, `SterlingNetworkError`, `SterlingApiError`)
+
+**Shared:** Provider-agnostic `initiateProviderCheck` and `handleProviderWebhookEvent` in `backgroundCheckService.ts`. FCRA adverse action email workflow applies to both providers.
 
 ## Resend (Email)
 

@@ -206,7 +206,7 @@ describe('reEncrypt', () => {
 		// Should now be decryptable with just the new primary key (no rotation)
 		vi.stubEnv('CHECKR_TOKEN_ENCRYPTION_KEY', TEST_KEY);
 		vi.stubEnv('CHECKR_TOKEN_ENCRYPTION_KEY_NEW', '');
-		expect(decrypt(reEncrypted!)).toBe('re-encrypt-me');
+		expect(decrypt(reEncrypted as string)).toBe('re-encrypt-me');
 	});
 
 	it('re-encrypts tokens already on the primary key (new IV)', () => {
@@ -216,7 +216,7 @@ describe('reEncrypt', () => {
 		const reEncrypted = reEncrypt(original);
 		expect(reEncrypted).not.toBeNull();
 		expect(reEncrypted).not.toBe(original); // Different IV
-		expect(decrypt(reEncrypted!)).toBe('already-primary');
+		expect(decrypt(reEncrypted as string)).toBe('already-primary');
 	});
 
 	it('verifies roundtrip integrity', () => {
@@ -225,6 +225,6 @@ describe('reEncrypt', () => {
 
 		const reEncrypted = reEncrypt(original);
 		expect(reEncrypted).not.toBeNull();
-		expect(decrypt(reEncrypted!)).toBe('integrity-check');
+		expect(decrypt(reEncrypted as string)).toBe('integrity-check');
 	});
 });

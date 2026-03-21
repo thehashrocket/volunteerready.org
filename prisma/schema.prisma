@@ -109,6 +109,9 @@ model Organization {
   // Checkr Partner API — per-org OAuth credentials
   checkrAccessToken           String?                  // OAuth access token; store server-side only
   checkrAccountId             String?                  @unique // Checkr account ID for webhook routing
+  // Sterling — per-org API key (pasted by admin, encrypted at rest)
+  sterlingApiKey              String?                  // Encrypted AES-256-GCM (same as Checkr token)
+  sterlingAccountId           String?                  @unique // Sterling account ID for webhook routing
   // Phase 9 — Onboarding & activation
   onboardingProgress          Json?                    // Wizard + checklist shared state
   onboardingDismissedAt       DateTime?                // Checklist dismissed

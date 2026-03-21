@@ -3,9 +3,12 @@ import { z } from 'zod';
 import { checkrAdapter } from '@/server/lib/adapters/background-check/checkr';
 import {
 	cancelBackgroundCheck,
+	connectSterlingAccount,
 	disconnectCheckrAccount,
+	disconnectSterlingAccount,
 	finalizeAdverseAction,
 	getCheckrConnectionStatus,
+	getSterlingConnectionStatus,
 	initiateBackgroundCheck,
 	listOrgBackgroundChecks,
 	resolveFcra,
@@ -132,5 +135,43 @@ export const backgroundChecksRouter = createTRPCRouter({
 	 */
 	disconnectCheckr: adminProcedure.mutation(({ ctx }) =>
 		disconnectCheckrAccount(ctx.orgId, ctx.session?.user?.id ?? ''),
+	),
+
+	// ---------------------------------------------------------------------------
+	// Sterling — API key connect/disconnect (Admin+ only)
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Connect a Sterling account by storing an encrypted API key.
+	 * Sterling uses API keys (not OAuth) — admin pastes the key in settings.
+	 * Admin+ only.
+	 */
+	connectSterling: adminProcedure
+		.input(
+			z.object({
+				apiKey: z.string().min(1, 'API key is required'),
+				accountId: z.string().min(1, 'Account ID is required'),
+			}),
+		)
+		.mutation(({ ctx, input }) =>
+			connectSterlingAccount(
+				ctx.orgId,
+				input.apiKey,
+				input.accountId,
+				ctx.session?.user?.id ?? '',
+			),
+		),
+
+	/** Returns whether this org has connected their Sterling account. Staff+. */
+	getSterlingStatus: staffProcedure.query(({ ctx }) =>
+		getSterlingConnectionStatus(ctx.orgId),
+	),
+
+	/**
+	 * Disconnect the org's Sterling account (remove stored API key).
+	 * Admin+ only. Does not cancel in-flight background checks.
+	 */
+	disconnectSterling: adminProcedure.mutation(({ ctx }) =>
+		disconnectSterlingAccount(ctx.orgId, ctx.session?.user?.id ?? ''),
 	),
 });

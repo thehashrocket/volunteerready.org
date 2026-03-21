@@ -479,14 +479,19 @@ Shipped (PR3 — v0.15.0):
 - Unified webhook health dashboard (Stripe + Checkr + Resend aggregates on `/app/admin/health`)
 - Email bounce management UI (per-address re-enable + platform admin "Reset All" override)
 
-Planned (remaining):
+Shipped (PR4 — v0.16.0):
 
-- Sterling background check adapter
+- Sterling background check adapter (full API integration, HMAC-SHA256 webhook verification, admin UI)
+- Provider-agnostic service refactor (shared `initiateProviderCheck` + `handleProviderWebhookEvent`)
+- Adapter registry pattern via `getAdapter()` factory
+- Sterling API keys included in encryption key rotation script
 
 Architecture: Sterling adapter via `BackgroundCheckAdapter` interface,
 `EmailEvent` + `EmailBounceStatus` tables, `Organization.timezone` field (shipped),
 dual-key encryption in `crypto.ts` (shipped v0.15.0). `computeOrgHealth()` pure
 domain function (shipped v0.14.0). Resend webhook handler at `/api/resend/webhook`.
+Sterling webhook handler at `/api/sterling/webhook`. Provider-agnostic adapter
+registry at `src/server/lib/adapters/background-check/registry.ts`.
 
 ---
 

@@ -67,18 +67,18 @@ export type FcraStatus =
 export const FCRA_WAITING_PERIOD_DAYS = 5;
 
 // ---------------------------------------------------------------------------
-// Status mapping — Checkr result string → internal status
+// Status mapping — provider result string → internal status
 // ---------------------------------------------------------------------------
 
 /**
- * Maps a Checkr report result string to our internal BackgroundCheckStatus.
+ * Maps a background check provider's result string to our internal status.
  *
- * Checkr result values:
+ * Both Checkr and Sterling use the same result vocabulary:
  *   'clear'    → COMPLETE (auto-issue credential)
  *   'consider' → CONSIDER (staff review required)
  *   anything else (e.g. 'adverse_action', 'suspended', 'dispute') → FAILED
  */
-export function mapCheckrResultToStatus(result: string): BackgroundCheckStatus {
+export function mapResultToStatus(result: string): BackgroundCheckStatus {
 	if (result === 'clear') return 'COMPLETE';
 	if (result === 'consider') return 'CONSIDER';
 	return 'FAILED';
@@ -172,7 +172,7 @@ export function waitingPeriodDaysRemaining(sentAt: Date, now: Date): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Known PII field names from Checkr webhook payloads.
+ * Known PII field names from background check webhook payloads.
  * Strip these before storing any payload in the database.
  *
  * IMPORTANT: This function sanitizes recursively to catch nested objects
@@ -188,14 +188,14 @@ const PII_FIELDS = new Set([
 ]);
 
 /**
- * Strips known PII fields from a Checkr webhook payload before DB storage.
+ * Strips known PII fields from a webhook payload before DB storage.
  * Returns a plain Record — cast to Prisma.InputJsonValue at the call site.
  *
  * - Handles nested objects recursively.
  * - Arrays: each element is sanitized if it is an object.
  * - Non-object values are returned as-is.
  */
-export function sanitizeCheckrPayload(
+export function sanitizeWebhookPayload(
 	payload: unknown,
 ): Record<string, unknown> {
 	if (
@@ -216,11 +216,11 @@ export function sanitizeCheckrPayload(
 		if (Array.isArray(value)) {
 			result[key] = value.map((item) =>
 				typeof item === 'object' && item !== null
-					? sanitizeCheckrPayload(item)
+					? sanitizeWebhookPayload(item)
 					: item,
 			);
 		} else if (typeof value === 'object' && value !== null) {
-			result[key] = sanitizeCheckrPayload(value);
+			result[key] = sanitizeWebhookPayload(value);
 		} else {
 			result[key] = value;
 		}
