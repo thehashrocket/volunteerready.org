@@ -42,7 +42,7 @@ interface VolunteerSearchResult {
 }
 
 const AVAILABILITY_OPTIONS = [
-	{ value: '', label: 'Any availability' },
+	{ value: '_any', label: 'Any availability' },
 	{ value: 'WEEKDAYS', label: 'Weekdays' },
 	{ value: 'WEEKENDS', label: 'Weekends' },
 	{ value: 'EVENINGS', label: 'Evenings' },
@@ -244,7 +244,7 @@ export function DiscoverClient() {
 	// Filter state
 	const [city, setCity] = useState('');
 	const [state, setState] = useState('');
-	const [availability, setAvailability] = useState('');
+	const [availability, setAvailability] = useState('_any');
 
 	// Applied filter state (only updated on search)
 	const [appliedFilters, setAppliedFilters] = useState<{
@@ -282,7 +282,8 @@ export function DiscoverClient() {
 		setAppliedFilters({
 			city: city.trim() || undefined,
 			state: state.trim() || undefined,
-			availability: availability || undefined,
+			availability:
+				availability && availability !== '_any' ? availability : undefined,
 		});
 	}
 
@@ -342,7 +343,7 @@ export function DiscoverClient() {
 								</SelectTrigger>
 								<SelectContent>
 									{AVAILABILITY_OPTIONS.map((opt) => (
-										<SelectItem key={opt.value || '_any'} value={opt.value}>
+										<SelectItem key={opt.value} value={opt.value}>
 											{opt.label}
 										</SelectItem>
 									))}
