@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.3] - 2026-03-21
+
+### Added
+- **RBAC Foundation** — TypeScript permission constants (`src/server/domain/permissions.ts`) with `hasPermission(role, permission)` for in-memory role-to-permission lookups. No DB tables in v1.
+- **Advisory permission middleware** — Global tRPC middleware logs warnings when existing middleware and `hasPermission()` disagree. Never blocks. Runs on all procedures for migration verification.
+- **DB-backed platform admin** — `User.isPlatformAdmin` column replaces env-var `PLATFORM_ADMIN_IDS`. Domain utility `isPlatformAdmin()` queries DB with env-var fallback.
+- **CLI escape hatch** — `pnpm admin:grant <email>` / `pnpm admin:revoke <email>` for platform admin management with transactional audit logging.
+- **Seed migration script** — `pnpm seed:platform-admins` migrates `PLATFORM_ADMIN_IDS` env var to DB column (idempotent).
+- **Auth change audit logging** — `MEMBER_INVITED`, `MEMBER_REMOVED`, and `ROLE_CHANGED` events now use `writeAuditLogTx` inside the same transaction as the mutation.
+- **Activity feed expansion** — `MEMBER_REMOVED` and `ROLE_CHANGED` events now appear in the admin activity feed.
+- **18 RBAC tests** — Full coverage for permissions, platform admin, audit logging, business rules, and role hierarchy.
+
+### Changed
+- **ADMIN invite business rule** — Moved from tRPC router to `memberService.inviteMember()` for proper service-layer enforcement. Now throws `TRPCError(FORBIDDEN)` instead of plain `Error`.
+- **TOCTOU fix** — `removeOrgMember` and `updateOrgMemberRole` now run `findFirst` inside the `$transaction` block to prevent check-then-act race conditions.
+- **No-op role change guard** — `updateOrgMemberRole` skips the update and audit log when the new role matches the current role.
+
 ## [0.17.2] - 2026-03-21
 
 ### Changed
