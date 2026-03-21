@@ -7,7 +7,8 @@ import {
 
 export const volunteerRouter = createTRPCRouter({
 	/** Volunteer dashboard — upcoming shifts, pending apps, expiring creds, impact, recommendations. */
-	getDashboard: protectedProcedure.query(({ ctx }) =>
-		getVolunteerDashboard(requireUserId(ctx.session), ctx.session.user?.email),
-	),
+	getDashboard: protectedProcedure.query(({ ctx }) => {
+		const session = ctx.session!;
+		return getVolunteerDashboard(requireUserId(session), session.user?.email);
+	}),
 });

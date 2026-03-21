@@ -498,6 +498,56 @@ the notification query.
 
 ---
 
+## Phase 11 — Volunteer Marketplace & API Platform (Deferred Items)
+
+### [P3] Algolia Migration Monitoring for Marketplace Search
+
+**What:** Monitor PostgreSQL tsvector full-text search performance and establish
+a trigger point for migrating to Algolia.
+
+**Why:** Phase 11 launches with PostgreSQL tsvector + GIN index for marketplace
+search. This is sufficient for the initial launch, but as the opportunity catalog
+grows past ~10K published opportunities or p95 search latency exceeds 200ms,
+dedicated search infrastructure (Algolia) becomes necessary.
+
+**Context:** Marketplace search uses `$queryRaw` with `to_tsvector('english', ...)` and
+`ts_rank()` for relevance scoring. A generated tsvector column with GIN index handles
+the indexing. Monitor via: (1) Vercel function duration logs for the search endpoint,
+(2) `pg_stat_user_indexes` for GIN index size, (3) periodic `EXPLAIN ANALYZE` on the
+search query with representative data. Trigger migration when: >10K published opps OR
+>200ms p95 search latency OR faceted search requirements emerge.
+
+**Pros:** Prevents reactive scramble when search gets slow; Algolia migration is well-understood.
+**Cons:** Monitoring overhead; Algolia adds monthly cost ($1/1K records + search ops).
+
+**Effort:** S (monitoring) → M (migration) | **Priority:** P3 | **Depends on:** Phase 11 PR3 (marketplace search) shipped
+
+---
+
+### [P3] Full Marketplace Moderation Suite
+
+**What:** Comprehensive moderation system beyond the basic report/flag mechanism
+shipped in Phase 11 PR2.
+
+**Why:** Phase 11 PR2 ships a minimal report button + admin flag review. As the marketplace
+grows, more sophisticated moderation is needed: auto-detection of inappropriate content,
+tiered response (warning → temporary hide → permanent removal), org reputation scoring,
+appeal workflow, and cross-org pattern detection.
+
+**Context:** The initial moderation mechanism is an `OpportunityReport` entity with
+`status: OPEN | REVIEWED | DISMISSED | ACTIONED` and a staff review UI on the admin dashboard.
+The full suite would add: (1) keyword/pattern scanning on opportunity creation (pre-publish),
+(2) report volume thresholds for auto-hide (e.g., 3 reports in 24h → auto-hide pending review),
+(3) org reputation score based on report history, (4) appeal workflow for flagged orgs,
+(5) cross-org report aggregation for platform-level trends.
+
+**Pros:** Essential for marketplace trust and safety at scale; prevents bad actors.
+**Cons:** Significant complexity; premature before marketplace reaches critical mass.
+
+**Effort:** L | **Priority:** P3 | **Depends on:** Phase 11 PR2 (basic moderation) shipped, marketplace reaching ~50 active orgs
+
+---
+
 ## Phase 10 — Scale & Enterprise Readiness (Deferred Items)
 
 ### ~~[P3] Volunteer Re-Engagement Emails~~ ✅ Complete
