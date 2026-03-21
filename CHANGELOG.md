@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.3] - 2026-03-21
+
+### Fixed
+- **Magic link emails now use verified domain** — Sign-in emails were sending from an unverified local domain (`volunteeermatch.local`), causing delivery failures. They now use the `RESEND_FROM_EMAIL` env var like all other emails.
+- **Company invite emails now report delivery failures** — Invite emails use the shared `sendEmail()` helper for consistent bounce suppression and delivery tracking. Staff now see accurate feedback when an invite email fails to send.
+- **Cleaned up stale env var docs** — Removed legacy `EMAIL_FROM` reference from README; only `RESEND_FROM_EMAIL` is documented.
+
+### Changed
+- **Branded magic link email** — The sign-in email now matches the VolunteerReady design system: forest green CTA button, warm neutral typography, and safety disclaimer.
+- **Branded "Check your email" page** — After requesting a magic link, users now see a polished verify-request page with the same split-panel layout as the login page instead of an unstyled default.
+
+### Added
+- **Magic link email tests** — 6 new tests covering subject line, branding, CTA link, design tokens, and template structure.
+
 ## [0.17.2] - 2026-03-21
 
 ### Changed

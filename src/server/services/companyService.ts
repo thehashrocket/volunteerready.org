@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { findUniqueSlug, generateSlug } from '@/lib/slug';
 import type { CompanyMemberRole } from '@/prisma/generated/client';
 import { Prisma } from '@/prisma/generated/client';
-import { getResend } from '../lib/resend';
+import { sendEmail } from '../lib/email';
 import { generateToken, hashToken } from '../lib/tokens';
 import { writeAuditLogTx } from '../repositories/auditRepo';
 import {
@@ -232,23 +232,17 @@ export async function inviteCompanyMember(opts: {
 		});
 	});
 
-	const from = process.env.RESEND_FROM_EMAIL;
-	if (!from) throw new Error('RESEND_FROM_EMAIL is not set');
-
-	await getResend().emails.send({
-		from,
-		to: opts.email,
-		subject: `You've been invited to join ${company.name} on VolunteerReady`,
-		html: `
-      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height: 1.4">
+	const sent = await sendEmail(
+		opts.email,
+		`You've been invited to join ${company.name} on VolunteerReady`,
+		`
         <p>You've been invited to join <strong>${company.name}</strong> as <strong>${opts.role}</strong>.</p>
-        <p><a href="${opts.baseUrl}/invite/company/${rawToken}">Accept invitation</a></p>
+        <p><a href="${opts.baseUrl}/invite/company/${rawToken}" style="color: #1B3C2A;">Accept invitation</a></p>
         <p>This invitation expires in ${INVITE_EXPIRY_HOURS} hours. If you didn't expect this, you can ignore this email.</p>
-      </div>
     `,
-	});
+	);
 
-	return { sent: true };
+	return { sent };
 }
 
 export async function acceptCompanyInvite(opts: {
