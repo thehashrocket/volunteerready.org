@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.4] - 2026-03-21
+
+### Fixed
+- **Discover page crash** — Fixed `<SelectItem value="">` crash on the Discover volunteers page. Radix UI's Select component forbids empty string values; replaced the "Any availability" option's empty string with a `_any` sentinel that gets converted back to `undefined` before the API call.
+
 ## [0.16.3] - 2026-03-21
 
 ### Added
