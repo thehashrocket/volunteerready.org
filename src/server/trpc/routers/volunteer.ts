@@ -1,10 +1,10 @@
+import { TRPCError } from '@trpc/server';
 import { getVolunteerDashboard } from '@/server/services/volunteerDashboardService';
 import {
 	createTRPCRouter,
 	protectedProcedure,
 	requireUserId,
 } from '@/server/trpc/init';
-import { TRPCError } from '@trpc/server';
 
 export const volunteerRouter = createTRPCRouter({
 	/** Volunteer dashboard — upcoming shifts, pending apps, expiring creds, impact, recommendations. */
