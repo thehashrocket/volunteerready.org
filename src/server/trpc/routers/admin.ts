@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '@/server/repositories/prisma';
 import { reconcileStripeEvents } from '@/server/services/billingService';
+import { getOnboardingFunnel } from '@/server/services/onboardingAnalyticsService';
 import { createTRPCRouter, platformAdminProcedure } from '@/server/trpc/init';
 
 export const adminRouter = createTRPCRouter({
@@ -158,4 +159,9 @@ export const adminRouter = createTRPCRouter({
 		});
 		return { count: result.count };
 	}),
+
+	/**
+	 * Onboarding funnel analytics: how many orgs have completed each step.
+	 */
+	onboardingFunnel: platformAdminProcedure.query(() => getOnboardingFunnel()),
 });

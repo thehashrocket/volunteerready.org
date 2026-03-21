@@ -2,8 +2,10 @@
 
 import { Briefcase, ClipboardList, FileText, Plus, Users } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { ActivityFeed } from '@/components/app/activity-feed';
 import { OrgHealthWidget } from '@/components/app/org-health-widget';
+import { VolunteerDashboard } from '@/components/app/volunteer-dashboard';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,6 +41,35 @@ function StatCard({ label, value, accent }: StatCardProps) {
 // ---------------------------------------------------------------------------
 
 export default function DashboardPage() {
+	const { data: session, status } = useSession();
+
+	if (status === 'loading') {
+		return (
+			<div className="space-y-8">
+				<Skeleton className="h-24 rounded-xl" />
+				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+					{Array.from({ length: 4 }).map((_, i) => (
+						<Skeleton key={i} className="h-24 rounded-xl" />
+					))}
+				</div>
+			</div>
+		);
+	}
+
+	const hasOrgContext = Boolean(session?.currentOrgId);
+
+	if (!hasOrgContext) {
+		return <VolunteerDashboard />;
+	}
+
+	return <StaffDashboard />;
+}
+
+// ---------------------------------------------------------------------------
+// Staff dashboard (org context required)
+// ---------------------------------------------------------------------------
+
+function StaffDashboard() {
 	const { data, isLoading } = trpc.screener.getDashboardStats.useQuery();
 
 	return (

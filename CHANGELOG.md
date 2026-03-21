@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.2] - 2026-03-21
+
+### Added
+- **Volunteer dashboard** — Users without an org context now see a personalized volunteer dashboard at `/app` with impact stats (hours, orgs served, shifts attended, verified credentials), upcoming shifts, pending applications, expiring credentials, and recommended opportunities from previously interacted organizations. Impact stats use DB-side SQL aggregation for performance.
+- **Onboarding funnel analytics** — Platform admins can view a 4-step org onboarding funnel at `/app/admin/onboarding` showing how many organizations have completed each step (account created → screener set up → opportunity published → first application received), plus a per-org detail table for the 20 most recent organizations.
+
+### Fixed
+- Dashboard no longer flashes the wrong view while the session is loading — a skeleton placeholder renders until the session resolves.
+- Non-org users can now reach the dashboard at `/app` without being redirected to the welcome page.
+
 ## [0.16.1] - 2026-03-20
 
 ### Fixed

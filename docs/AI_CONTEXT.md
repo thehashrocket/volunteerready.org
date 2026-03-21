@@ -129,7 +129,7 @@ src/
 │   │   ├── root.ts               # App router (combines all sub-routers)
 │   │   └── routers/              # auth, health, members, notifications, onboarding,
 │   │                               analytics, opportunities, org, screener,
-│   │                               shift-templates, status
+│   │                               shift-templates, status, volunteer
 │   ├── services/                 # Business logic layer
 │   ├── repositories/             # Prisma data access layer (includes statsRepo for homepage aggregates)
 │   ├── lib/                      # Shared utilities and adapters
