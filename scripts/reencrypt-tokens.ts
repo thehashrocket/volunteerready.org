@@ -1,5 +1,7 @@
 /**
- * Re-encrypt all Checkr OAuth tokens with the current primary encryption key.
+ * Re-encrypt all encrypted tokens/keys with the current primary encryption key.
+ *
+ * Covers: Checkr OAuth tokens AND Sterling API keys (both use AES-256-GCM).
  *
  * Used during key rotation (Step 3 of the 5-step sequence):
  *   1. Set CHECKR_TOKEN_ENCRYPTION_KEY_NEW with the new key
@@ -29,14 +31,50 @@ const prisma = new PrismaClient({
 	adapter: new PrismaPg(new Pool({ connectionString: datasourceUrl })),
 });
 
+async function reEncryptField(
+	org: { id: string; name: string },
+	fieldName: string,
+	value: string | null,
+): Promise<'updated' | 'skipped' | 'error'> {
+	if (!value) return 'skipped';
+
+	try {
+		const reEncrypted = reEncrypt(value);
+		if (!reEncrypted) return 'skipped';
+
+		await prisma.organization.update({
+			where: { id: org.id },
+			data: { [fieldName]: reEncrypted },
+		});
+
+		console.log(`  [ok] ${org.name} (${org.id}) — ${fieldName}`);
+		return 'updated';
+	} catch (err) {
+		console.error(
+			`  [ERROR] ${org.name} (${org.id}) — ${fieldName}: ${err instanceof Error ? err.message : err}`,
+		);
+		return 'error';
+	}
+}
+
 async function main() {
 	const orgs = await prisma.organization.findMany({
-		where: { checkrAccessToken: { not: null } },
-		select: { id: true, name: true, checkrAccessToken: true },
+		where: {
+			OR: [
+				{ checkrAccessToken: { not: null } },
+				{ sterlingApiKey: { not: null } },
+			],
+		},
+		select: {
+			id: true,
+			name: true,
+			checkrAccessToken: true,
+			sterlingApiKey: true,
+		},
 	});
 
 	console.log(
-		`[reencrypt] Found ${orgs.length} org(s) with Checkr tokens to re-encrypt.`,
+		`[reencrypt] Found ${orgs.length} org(s) with encrypted tokens/keys to re-encrypt.`,
 	);
 
 	let updated = 0;
@@ -44,35 +82,14 @@ async function main() {
 	let errors = 0;
 
 	for (const org of orgs) {
-		const token = org.checkrAccessToken;
-		if (!token) {
-			skipped++;
-			continue;
-		}
-
-		try {
-			// tryDecrypt handles both encrypted and legacy plaintext tokens
-			const plaintext = tryDecrypt(token);
-
-			// Re-encrypt with current primary key
-			const reEncrypted = reEncrypt(token);
-			if (!reEncrypted) {
-				skipped++;
-				continue;
-			}
-
-			await prisma.organization.update({
-				where: { id: org.id },
-				data: { checkrAccessToken: reEncrypted },
-			});
-
-			updated++;
-			console.log(`  [ok] ${org.name} (${org.id})`);
-		} catch (err) {
-			errors++;
-			console.error(
-				`  [ERROR] ${org.name} (${org.id}): ${err instanceof Error ? err.message : err}`,
-			);
+		for (const [field, value] of [
+			['checkrAccessToken', org.checkrAccessToken],
+			['sterlingApiKey', org.sterlingApiKey],
+		] as const) {
+			const result = await reEncryptField(org, field, value);
+			if (result === 'updated') updated++;
+			else if (result === 'skipped') skipped++;
+			else errors++;
 		}
 	}
 
