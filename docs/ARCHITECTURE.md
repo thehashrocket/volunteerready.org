@@ -141,6 +141,8 @@ Key services:
 - `reengagement-service.ts` — 30/60/90-day volunteer re-engagement emails (Vercel Cron, daily)
 - `companyService.ts` — corporate account management
 - `employerReportService.ts` — ESG report generation and CSV export
+- `volunteerDashboardService.ts` — volunteer-facing dashboard: upcoming shifts, pending applications, expiring credentials, impact stats, recommended opportunities (user-scoped, no org context)
+- `onboardingAnalyticsService.ts` — platform admin onboarding funnel: 4-step funnel counts + per-org progress detail (last 20 orgs)
 
 ---
 

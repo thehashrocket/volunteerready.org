@@ -113,7 +113,9 @@ docs/
 - PWA: `public/manifest.webmanifest`, `public/sw.js`, `src/components/sw-register.tsx`, `src/components/ios-install-prompt.tsx`
 - Org health score: domain at `src/server/domain/org-health.ts`, widget at `src/components/app/org-health-widget.tsx`
 - Activity feed: `src/components/app/activity-feed.tsx` (uses `screener.getActivityFeed` tRPC query)
-- Dashboard: `src/app/(app)/app/page.tsx` — greeting banner + OrgHealthWidget + stat cards + ActivityFeed (Getting Started Checklist removed in v0.14.0)
+- Dashboard: `src/app/(app)/app/page.tsx` — role-conditional: volunteers see `VolunteerDashboard` (upcoming shifts, pending apps, expiring creds, impact stats, recommendations); staff see greeting banner + OrgHealthWidget + stat cards + ActivityFeed (Getting Started Checklist removed in v0.14.0)
+- Volunteer dashboard: service at `src/server/services/volunteerDashboardService.ts`, component at `src/components/app/volunteer-dashboard.tsx`, tRPC router at `src/server/trpc/routers/volunteer.ts` (`volunteer.getDashboard`)
+- Onboarding funnel analytics (platform admin): service at `src/server/services/onboardingAnalyticsService.ts`, page at `src/app/(app)/app/admin/onboarding/page.tsx`, tRPC procedure at `admin.onboardingFunnel`
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.
