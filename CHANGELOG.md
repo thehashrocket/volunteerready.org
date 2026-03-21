@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.0] - 2026-03-20
+
+### Added
+- **Sterling background check adapter** — Full Sterling integration with API key authentication (Bearer token), HMAC-SHA256 webhook signature verification, and `screening.completed` webhook processing. Sterling orgs connect by pasting their API key in admin settings (no OAuth dance).
+- **Admin Sterling settings UI** — New SterlingConnectCard on the Credentials settings page with Account ID + API Key form, connect/disconnect flow, and connection status badge. Mirrors the Checkr card pattern.
+- **Adapter registry** — `getAdapter(provider)` factory returns the correct adapter (Checkr or Sterling) based on the `BackgroundCheckProvider` enum, enabling provider-agnostic service code.
+- **Provider-agnostic service layer** — Refactored `initiateBackgroundCheck` and `handleCheckrWebhookEvent` into shared `initiateProviderCheck` and `handleProviderWebhookEvent` functions. Both Checkr and Sterling use the same DRY business logic with injected adapters and credentials.
+- **Sterling webhook idempotency** — Sterling webhooks now use the same `CheckrWebhookEvent` idempotency table as Checkr, preventing duplicate processing on retries.
+- **Sterling adapter tests** — 22 unit tests covering all error classes, API responses (401/403/422/429/503/timeout), HMAC signature verification (valid/invalid/empty/missing secret/length mismatch), payload parsing, and OAuth stub 501s.
+- **Adapter registry tests** — 3 tests verifying factory returns correct adapter for each provider.
+
+### Changed
+- Renamed `mapCheckrResultToStatus` → `mapResultToStatus` and `sanitizeCheckrPayload` → `sanitizeWebhookPayload` for provider-agnostic naming.
+- `BackgroundCheckRequest.provider` now defaults dynamically based on the adapter used (previously hardcoded to `CHECKR`).
+
 ## [0.15.0] - 2026-03-20
 
 ### Added

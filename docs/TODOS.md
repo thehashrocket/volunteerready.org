@@ -169,24 +169,19 @@ Implemented in `share-token-expiry-service.ts`. Queries ACTIVE tokens expiring w
 `notifiedAt` for idempotency. Runs as part of the daily `/api/cron/expire-credentials`
 cron job (03:00 UTC). Per-record try/catch with P2025 race handling.
 
-### [P2] Sterling Background Check Provider Integration
+### ~~[P2] Sterling Background Check Provider Integration~~ ✅ Complete
 
-**What:** Implement `SterlingAdapter` implementing the `BackgroundCheckAdapter` interface.
+**Completed:** v0.16.0 (2026-03-21)
 
-**Why:** Some enterprise nonprofit clients prefer Sterling (especially large healthcare/
-social service orgs). The Phase 6 `BackgroundCheckAdapter` interface is already
-defined to support multi-provider; Sterling just needs a concrete implementation.
+Full `SterlingAdapter` implementing `BackgroundCheckAdapter` interface. 7 named error
+classes, HMAC-SHA256 webhook signature verification, API key auth (not OAuth). Prisma
+schema: `sterlingApiKey` + `sterlingAccountId` on Organization. Adapter registry at
+`src/server/lib/adapters/background-check/registry.ts`. Service functions:
+`connectSterlingAccount`, `disconnectSterlingAccount`, `getSterlingConnectionStatus`,
+`initiateSterlingCheck`, `handleSterlingWebhookEvent`. Webhook route at
+`/api/sterling/webhook`. 22 adapter tests covering all error classes + happy path.
 
-**Context:** `BackgroundCheckProvider` enum is `CHECKR | STERLING`. The adapter
-interface lives in `src/server/lib/adapters/background-check/types.ts`. Sterling's
-API is similar to Checkr's (REST + webhooks). Requires a Sterling account and API
-credentials. Start by replicating the `CheckrAdapter` and mapping Sterling's response
-schema to the shared `BackgroundCheckResult` type.
-
-**Pros:** Unlocks a second enterprise segment; no architecture changes needed.
-**Cons:** Sterling API quirks may require adapter interface extension; needs a test account.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** 6B Checkr integration shipped, Sterling API access
+**Effort:** ~~M~~ | **Priority:** ~~P2~~
 
 ---
 
