@@ -630,26 +630,20 @@ route (`/screening/feedback`) would validate before accepting submissions.
 
 ---
 
-### [P2] Content Flywheel — Structured Case Study Generation from Concierge Data
+### ~~[P2] Content Flywheel — Structured Case Study Generation from Concierge Data~~ ✅ Complete
 
-**What:** Service that aggregates concierge org usage data (applications processed,
-time saved, volunteers onboarded) into structured case study templates for marketing.
+**Completed:** v0.17.1 (2026-03-21)
 
-**Why:** The concierge activation engine generates rich usage data from 3 real orgs.
-This data is the most valuable marketing asset VolunteerReady can produce — real
-numbers from real nonprofits. Without a structured system to capture and format this
-data, it gets lost in dashboards and never becomes marketing content.
+Full content flywheel: `caseStudyService.ts` aggregates org usage data (applications,
+background checks, retention, fill rates, top volunteers, feedback pull quotes) into
+`CaseStudyData`. Admin UI at `/app/admin/case-studies` with consent toggle, approval
+email, PDF download, markdown copy. Public stories at `/stories/[orgSlug]`. Two-step
+HMAC consent flow (GET confirmation page + POST mutation). Testimonial components on
+screening landing page. 25 unit tests covering token and domain logic. 7 security
+fixes applied during review (consent-on-GET, auto-consent from feedback, XSS, HTML
+injection, timingSafeEqual crash, missing env var).
 
-**Context:** Data sources: `orgAnalyticsRepo` (application funnel, retention stats,
-fill rates), `computeOrgHealth()` (milestone completion), impact report cron output.
-The service would generate a markdown template with org-specific metrics, before/after
-comparisons, and pull quotes from feedback surveys. Output goes to a `case-studies/`
-directory or admin UI. Requires org consent (add a `consentToPublicize` flag on Organization).
-
-**Pros:** Turns operational data into demand generation; automates tedious marketing work.
-**Cons:** Requires org consent workflow; templates need human editing for voice/tone.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** Concierge activation engine shipped, 30+ days of org usage data
+**Effort:** ~~M~~ | **Priority:** ~~P2~~
 
 ---
 
