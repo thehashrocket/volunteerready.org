@@ -11372,6 +11372,8 @@ export namespace Prisma {
     trialEndsAt: Date | null
     checkrAccessToken: string | null
     checkrAccountId: string | null
+    sterlingApiKey: string | null
+    sterlingAccountId: string | null
     onboardingDismissedAt: Date | null
     firstApplicationReceivedAt: Date | null
     qrForegroundColor: string | null
@@ -11390,6 +11392,8 @@ export namespace Prisma {
     trialEndsAt: Date | null
     checkrAccessToken: string | null
     checkrAccountId: string | null
+    sterlingApiKey: string | null
+    sterlingAccountId: string | null
     onboardingDismissedAt: Date | null
     firstApplicationReceivedAt: Date | null
     qrForegroundColor: string | null
@@ -11408,6 +11412,8 @@ export namespace Prisma {
     trialEndsAt: number
     checkrAccessToken: number
     checkrAccountId: number
+    sterlingApiKey: number
+    sterlingAccountId: number
     onboardingProgress: number
     onboardingDismissedAt: number
     firstApplicationReceivedAt: number
@@ -11429,6 +11435,8 @@ export namespace Prisma {
     trialEndsAt?: true
     checkrAccessToken?: true
     checkrAccountId?: true
+    sterlingApiKey?: true
+    sterlingAccountId?: true
     onboardingDismissedAt?: true
     firstApplicationReceivedAt?: true
     qrForegroundColor?: true
@@ -11447,6 +11455,8 @@ export namespace Prisma {
     trialEndsAt?: true
     checkrAccessToken?: true
     checkrAccountId?: true
+    sterlingApiKey?: true
+    sterlingAccountId?: true
     onboardingDismissedAt?: true
     firstApplicationReceivedAt?: true
     qrForegroundColor?: true
@@ -11465,6 +11475,8 @@ export namespace Prisma {
     trialEndsAt?: true
     checkrAccessToken?: true
     checkrAccountId?: true
+    sterlingApiKey?: true
+    sterlingAccountId?: true
     onboardingProgress?: true
     onboardingDismissedAt?: true
     firstApplicationReceivedAt?: true
@@ -11557,6 +11569,8 @@ export namespace Prisma {
     trialEndsAt: Date | null
     checkrAccessToken: string | null
     checkrAccountId: string | null
+    sterlingApiKey: string | null
+    sterlingAccountId: string | null
     onboardingProgress: JsonValue | null
     onboardingDismissedAt: Date | null
     firstApplicationReceivedAt: Date | null
@@ -11593,6 +11607,8 @@ export namespace Prisma {
     trialEndsAt?: boolean
     checkrAccessToken?: boolean
     checkrAccountId?: boolean
+    sterlingApiKey?: boolean
+    sterlingAccountId?: boolean
     onboardingProgress?: boolean
     onboardingDismissedAt?: boolean
     firstApplicationReceivedAt?: boolean
@@ -11633,6 +11649,8 @@ export namespace Prisma {
     trialEndsAt?: boolean
     checkrAccessToken?: boolean
     checkrAccountId?: boolean
+    sterlingApiKey?: boolean
+    sterlingAccountId?: boolean
     onboardingProgress?: boolean
     onboardingDismissedAt?: boolean
     firstApplicationReceivedAt?: boolean
@@ -11652,6 +11670,8 @@ export namespace Prisma {
     trialEndsAt?: boolean
     checkrAccessToken?: boolean
     checkrAccountId?: boolean
+    sterlingApiKey?: boolean
+    sterlingAccountId?: boolean
     onboardingProgress?: boolean
     onboardingDismissedAt?: boolean
     firstApplicationReceivedAt?: boolean
@@ -11671,6 +11691,8 @@ export namespace Prisma {
     trialEndsAt?: boolean
     checkrAccessToken?: boolean
     checkrAccountId?: boolean
+    sterlingApiKey?: boolean
+    sterlingAccountId?: boolean
     onboardingProgress?: boolean
     onboardingDismissedAt?: boolean
     firstApplicationReceivedAt?: boolean
@@ -11680,7 +11702,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "planTier" | "stripeCustomerId" | "stripeSubscriptionId" | "trialEndsAt" | "checkrAccessToken" | "checkrAccountId" | "onboardingProgress" | "onboardingDismissedAt" | "firstApplicationReceivedAt" | "qrForegroundColor" | "timezone" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
+  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "planTier" | "stripeCustomerId" | "stripeSubscriptionId" | "trialEndsAt" | "checkrAccessToken" | "checkrAccountId" | "sterlingApiKey" | "sterlingAccountId" | "onboardingProgress" | "onboardingDismissedAt" | "firstApplicationReceivedAt" | "qrForegroundColor" | "timezone" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
   export type OrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     members?: boolean | Organization$membersArgs<ExtArgs>
     auditLogs?: boolean | Organization$auditLogsArgs<ExtArgs>
@@ -11741,6 +11763,8 @@ export namespace Prisma {
       trialEndsAt: Date | null
       checkrAccessToken: string | null
       checkrAccountId: string | null
+      sterlingApiKey: string | null
+      sterlingAccountId: string | null
       onboardingProgress: Prisma.JsonValue | null
       onboardingDismissedAt: Date | null
       firstApplicationReceivedAt: Date | null
@@ -12200,6 +12224,8 @@ export namespace Prisma {
     readonly trialEndsAt: FieldRef<"Organization", 'DateTime'>
     readonly checkrAccessToken: FieldRef<"Organization", 'String'>
     readonly checkrAccountId: FieldRef<"Organization", 'String'>
+    readonly sterlingApiKey: FieldRef<"Organization", 'String'>
+    readonly sterlingAccountId: FieldRef<"Organization", 'String'>
     readonly onboardingProgress: FieldRef<"Organization", 'Json'>
     readonly onboardingDismissedAt: FieldRef<"Organization", 'DateTime'>
     readonly firstApplicationReceivedAt: FieldRef<"Organization", 'DateTime'>
@@ -51682,6 +51708,8 @@ export namespace Prisma {
     trialEndsAt: 'trialEndsAt',
     checkrAccessToken: 'checkrAccessToken',
     checkrAccountId: 'checkrAccountId',
+    sterlingApiKey: 'sterlingApiKey',
+    sterlingAccountId: 'sterlingAccountId',
     onboardingProgress: 'onboardingProgress',
     onboardingDismissedAt: 'onboardingDismissedAt',
     firstApplicationReceivedAt: 'firstApplicationReceivedAt',
@@ -53043,6 +53071,8 @@ export namespace Prisma {
     trialEndsAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     checkrAccessToken?: StringNullableFilter<"Organization"> | string | null
     checkrAccountId?: StringNullableFilter<"Organization"> | string | null
+    sterlingApiKey?: StringNullableFilter<"Organization"> | string | null
+    sterlingAccountId?: StringNullableFilter<"Organization"> | string | null
     onboardingProgress?: JsonNullableFilter<"Organization">
     onboardingDismissedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     firstApplicationReceivedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
@@ -53082,6 +53112,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrderInput | SortOrder
     checkrAccessToken?: SortOrderInput | SortOrder
     checkrAccountId?: SortOrderInput | SortOrder
+    sterlingApiKey?: SortOrderInput | SortOrder
+    sterlingAccountId?: SortOrderInput | SortOrder
     onboardingProgress?: SortOrderInput | SortOrder
     onboardingDismissedAt?: SortOrderInput | SortOrder
     firstApplicationReceivedAt?: SortOrderInput | SortOrder
@@ -53117,6 +53149,7 @@ export namespace Prisma {
     stripeCustomerId?: string
     stripeSubscriptionId?: string
     checkrAccountId?: string
+    sterlingAccountId?: string
     AND?: OrganizationWhereInput | OrganizationWhereInput[]
     OR?: OrganizationWhereInput[]
     NOT?: OrganizationWhereInput | OrganizationWhereInput[]
@@ -53124,6 +53157,7 @@ export namespace Prisma {
     planTier?: EnumPlanTierFilter<"Organization"> | $Enums.PlanTier
     trialEndsAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     checkrAccessToken?: StringNullableFilter<"Organization"> | string | null
+    sterlingApiKey?: StringNullableFilter<"Organization"> | string | null
     onboardingProgress?: JsonNullableFilter<"Organization">
     onboardingDismissedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
     firstApplicationReceivedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
@@ -53151,7 +53185,7 @@ export namespace Prisma {
     notificationPreferences?: NotificationPreferenceListRelationFilter
     digestPreferences?: UserDigestPreferenceListRelationFilter
     bulkImportJobs?: BulkImportJobListRelationFilter
-  }, "id" | "slug" | "stripeCustomerId" | "stripeSubscriptionId" | "checkrAccountId">
+  }, "id" | "slug" | "stripeCustomerId" | "stripeSubscriptionId" | "checkrAccountId" | "sterlingAccountId">
 
   export type OrganizationOrderByWithAggregationInput = {
     id?: SortOrder
@@ -53163,6 +53197,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrderInput | SortOrder
     checkrAccessToken?: SortOrderInput | SortOrder
     checkrAccountId?: SortOrderInput | SortOrder
+    sterlingApiKey?: SortOrderInput | SortOrder
+    sterlingAccountId?: SortOrderInput | SortOrder
     onboardingProgress?: SortOrderInput | SortOrder
     onboardingDismissedAt?: SortOrderInput | SortOrder
     firstApplicationReceivedAt?: SortOrderInput | SortOrder
@@ -53188,6 +53224,8 @@ export namespace Prisma {
     trialEndsAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
     checkrAccessToken?: StringNullableWithAggregatesFilter<"Organization"> | string | null
     checkrAccountId?: StringNullableWithAggregatesFilter<"Organization"> | string | null
+    sterlingApiKey?: StringNullableWithAggregatesFilter<"Organization"> | string | null
+    sterlingAccountId?: StringNullableWithAggregatesFilter<"Organization"> | string | null
     onboardingProgress?: JsonNullableWithAggregatesFilter<"Organization">
     onboardingDismissedAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
     firstApplicationReceivedAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
@@ -56196,6 +56234,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -56235,6 +56275,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -56274,6 +56316,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -56313,6 +56357,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -56352,6 +56398,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -56371,6 +56419,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -56390,6 +56440,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -59716,6 +59768,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrder
     checkrAccessToken?: SortOrder
     checkrAccountId?: SortOrder
+    sterlingApiKey?: SortOrder
+    sterlingAccountId?: SortOrder
     onboardingProgress?: SortOrder
     onboardingDismissedAt?: SortOrder
     firstApplicationReceivedAt?: SortOrder
@@ -59735,6 +59789,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrder
     checkrAccessToken?: SortOrder
     checkrAccountId?: SortOrder
+    sterlingApiKey?: SortOrder
+    sterlingAccountId?: SortOrder
     onboardingDismissedAt?: SortOrder
     firstApplicationReceivedAt?: SortOrder
     qrForegroundColor?: SortOrder
@@ -59753,6 +59809,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrder
     checkrAccessToken?: SortOrder
     checkrAccountId?: SortOrder
+    sterlingApiKey?: SortOrder
+    sterlingAccountId?: SortOrder
     onboardingDismissedAt?: SortOrder
     firstApplicationReceivedAt?: SortOrder
     qrForegroundColor?: SortOrder
@@ -66995,6 +67053,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -67033,6 +67093,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -67187,6 +67249,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -67225,6 +67289,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -68449,6 +68515,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -68487,6 +68555,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -68598,6 +68668,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -68636,6 +68708,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -68737,6 +68811,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -68775,6 +68851,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -68923,6 +69001,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -68961,6 +69041,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -69105,6 +69187,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -69143,6 +69227,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -69197,6 +69283,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -69235,6 +69323,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -69273,6 +69363,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -69311,6 +69403,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -69491,6 +69585,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -69529,6 +69625,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -69773,6 +69871,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -69811,6 +69911,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -69865,6 +69967,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -69903,6 +70007,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -69941,6 +70047,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -69979,6 +70087,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -70033,6 +70143,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -70071,6 +70183,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -70109,6 +70223,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -70147,6 +70263,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -70399,6 +70517,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -70437,6 +70557,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -71480,6 +71602,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -71518,6 +71642,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -71561,6 +71687,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -71599,6 +71727,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -71787,6 +71917,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -71825,6 +71957,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -71874,6 +72008,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -71912,6 +72048,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -72007,6 +72145,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -72045,6 +72185,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -72194,6 +72336,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -72232,6 +72376,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -72339,6 +72485,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -72377,6 +72525,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -72549,6 +72699,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -72587,6 +72739,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -73506,6 +73660,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -73544,6 +73700,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -73641,6 +73799,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -73679,6 +73839,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -73717,6 +73879,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -73755,6 +73919,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -73907,6 +74073,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -73945,6 +74113,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -74191,6 +74361,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -74229,6 +74401,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -74393,6 +74567,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -74431,6 +74607,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -74469,6 +74647,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -74507,6 +74687,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -74665,6 +74847,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -74703,6 +74887,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -74914,6 +75100,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -74952,6 +75140,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -75069,6 +75259,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -75107,6 +75299,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -75202,6 +75396,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -75240,6 +75436,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -75357,6 +75555,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -75395,6 +75595,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -75490,6 +75692,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -75528,6 +75732,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -75645,6 +75851,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -75683,6 +75891,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -75721,6 +75931,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -75759,6 +75971,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     checkrAccessToken?: string | null
     checkrAccountId?: string | null
+    sterlingApiKey?: string | null
+    sterlingAccountId?: string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: Date | string | null
     firstApplicationReceivedAt?: Date | string | null
@@ -75870,6 +76084,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -75908,6 +76124,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkrAccessToken?: NullableStringFieldUpdateOperationsInput | string | null
     checkrAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingApiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    sterlingAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingProgress?: NullableJsonNullValueInput | InputJsonValue
     onboardingDismissedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     firstApplicationReceivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

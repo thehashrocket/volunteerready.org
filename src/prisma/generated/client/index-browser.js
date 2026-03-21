@@ -181,6 +181,8 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   trialEndsAt: 'trialEndsAt',
   checkrAccessToken: 'checkrAccessToken',
   checkrAccountId: 'checkrAccountId',
+  sterlingApiKey: 'sterlingApiKey',
+  sterlingAccountId: 'sterlingAccountId',
   onboardingProgress: 'onboardingProgress',
   onboardingDismissedAt: 'onboardingDismissedAt',
   firstApplicationReceivedAt: 'firstApplicationReceivedAt',
