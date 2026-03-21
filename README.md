@@ -9,7 +9,7 @@ The system is being built as the foundation for a larger VolunteerMatch-style ec
 - match volunteers to opportunities using skills
 - manage shifts and attendance
 - issue and verify portable credentials
-- integrate background checks (Checkr)
+- integrate background checks (Checkr + Sterling)
 - manage organizational members and billing
 - support corporate CSR / employer volunteer programs
 
@@ -38,7 +38,7 @@ Long-term goals include:
 - Grant opportunity integration (planned)
 - Nonprofit analytics and reporting (shipped)
 
-The current system implements Phases 1 through 10 (in progress). See `docs/ROADMAP.md` for the full plan.
+The current system implements Phases 1 through 12. See `docs/ROADMAP.md` for the full plan.
 
 ---
 
@@ -361,6 +361,9 @@ pnpm seed:dev                # Dev/staging (full demo data + 3 test accounts)
 | 7 | Network Growth & Volunteer Identity | Complete |
 | 8 | Operational Polish & CEO Quick Wins | Complete |
 | 9 | Production-Ready + Activation | Complete |
+| 10 | Scale & Enterprise Readiness | Complete |
+| 11 | Volunteer Marketplace & API Platform | Planned |
+| 12 | Concierge Activation Engine | Complete |
 
 See `docs/ROADMAP.md` for full detail.
 

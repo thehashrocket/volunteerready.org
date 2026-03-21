@@ -437,7 +437,7 @@ Architecture: BulkImportJob table, CronJobRun table, UserDigestPreference table,
 
 ---
 
-# Phase 10 — Scale & Enterprise Readiness (in progress)
+# Phase 10 — Scale & Enterprise Readiness ✅ Complete
 
 Goal: Fix every known production failure mode, add Sterling background check adapter
 for enterprise nonprofits, and ship observability infrastructure that makes email
@@ -536,7 +536,7 @@ ReferralLink, Grant, OpportunityGrant, VolunteerStreak.
 
 ---
 
-# Phase 12 — Concierge Activation Engine (in progress)
+# Phase 12 — Concierge Activation Engine ✅ Complete
 
 Goal: Build the go-to-market activation system for concierge nonprofit onboarding —
 screening landing page, onboarding tools, referral loop, feedback collection, and
@@ -571,6 +571,13 @@ Delivered (v0.17.1):
 - ✅ Case study PDF export (`/api/case-study/pdf`)
 - ✅ Consent backfill script (`scripts/backfill-consent.ts`)
 - ✅ 9 security fixes (consent-on-GET, auto-consent, XSS, HTML injection, timingSafeEqual, etc.)
+
+Delivered (v0.17.2):
+
+- ✅ Error handling hardening — consent POST, feedback form, PDF generation, testimonial fetch
+- ✅ Shared `escapeHtml()` utility — DRY'd 3 copies into `src/server/lib/html.ts`
+- ✅ Runtime type safety — replaced unsafe `as` casts with runtime checks in impact report + feedback
+- ✅ Test coverage — 45 new tests (caseStudyService, org-feedback-service, consent route)
 
 Key entities added:
 

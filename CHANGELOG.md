@@ -5,16 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [0.17.2] - 2026-03-21
 
 ### Changed
-- **Error categorization in org feedback cron** — Real email failures now tracked separately from idempotent skips (`failed` counter), with summary log on failures.
-- **Shared `escapeHtml` utility** — Consolidated 3 copies of HTML escaping into `src/server/lib/html.ts` with single-quote coverage.
-- **Runtime type validation** — Replaced unsafe `as` casts with runtime checks in impact report baseline parsing and `getPullQuote` feedback response handling.
-- **URL unification** — Org feedback email fallback URLs unified to `volunteerready.org`.
+- **Org feedback cron error visibility** — Real email failures are now tracked separately from idempotent skips, so you can tell the difference between "already sent" and "actually broken."
+- **Shared `escapeHtml` utility** — Three copies of HTML escaping consolidated into one (`src/server/lib/html.ts`) with single-quote coverage for safer output.
+- **Safer type handling** — Impact report baseline parsing and feedback pull-quote extraction now validate data at runtime instead of trusting unchecked casts.
+- **Consistent feedback email URLs** — All org feedback email links now point to `volunteerready.org`.
 
 ### Fixed
-- **Consent POST error handling** — DB failures during `setOrgConsent` now caught and redirect to consent-expired instead of 500.
-- **Feedback form error handling** — `prisma.orgFeedback.upsert` failures now return user-visible error instead of hanging loading state.
-- **PDF error logging** — Changed from `err.message` to `err.stack` for full stack traces in case study PDF generation.
-- **Silent error logging** — Added `console.error` to testimonial fetch, onboarding checklist dismiss, and feedback form failures.
+- **Consent flow resilience** — If the database is unreachable during consent confirmation, orgs now see a clear "expired" page instead of a 500 error.
+- **Feedback form error visibility** — If saving feedback fails, the form now shows an error message instead of spinning forever.
+- **PDF generation debugging** — Case study PDF errors now log full stack traces for faster diagnosis.
+- **Silent failure elimination** — Testimonial fetch, onboarding checklist dismiss, and feedback form failures now log errors instead of swallowing them.
 
 ### Added
 - **Test coverage** — New test suites for `caseStudyService` (25 tests), `org-feedback-service` (10 tests), and consent route handlers (10 tests).
