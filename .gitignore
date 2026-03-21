@@ -60,11 +60,13 @@ docs/.vitepress/dist
 .claude/skills/gstack/node_modules
 .claude/skills/gstack/bin
 VolunteerReady_Action_Plan.docx
+.gstack/
 
 # prisma
 prisma/dev.db
 prisma/dev.db-journal
-.gstack/
+
+src/prisma/*
 
 # Sentry Config File
 .env.sentry-build-plugin

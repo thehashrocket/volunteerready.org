@@ -87,13 +87,7 @@ export async function getVolunteerDashboard(userId: string) {
 		// Impact summary: DB-side aggregation for hours + orgs + shift count
 		Promise.all([
 			prisma.$queryRaw<
-				[
-					{
-						total_minutes: bigint | null;
-						orgs_served: bigint;
-						shifts_attended: bigint;
-					},
-				]
+				[{ total_minutes: bigint | null; orgs_served: bigint; shifts_attended: bigint }]
 			>`
 				SELECT
 					COALESCE(SUM(EXTRACT(EPOCH FROM (s."endTime" - s."startTime")) / 60), 0) AS total_minutes,
