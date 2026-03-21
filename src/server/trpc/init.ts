@@ -116,7 +116,20 @@ export const roleRank: Record<Role, number> = {
 };
 
 export const createTRPCRouter = t.router;
-export const publicProcedure = t.procedure;
+
+/**
+ * Base procedure with advisory RBAC permission check.
+ * Runs for every procedure — looks up the procedure path and, if it's an
+ * org-scoped procedure, logs a warning when hasPermission() disagrees with
+ * middleware. Never blocks. Remove after migration is verified.
+ */
+export const publicProcedure = t.procedure.use(async ({ ctx, next, path }) => {
+	const { runAdvisoryCheck } = await import(
+		'@/server/trpc/advisory-permission-middleware'
+	);
+	runAdvisoryCheck(path, (ctx as { role?: Role }).role);
+	return next();
+});
 
 /** Extract user ID from session or throw UNAUTHORIZED. */
 export function requireUserId(
@@ -127,7 +140,7 @@ export function requireUserId(
 	return id;
 }
 
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+export const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
 	if (!ctx.session?.user?.id) {
 		throw new TRPCError({ code: 'UNAUTHORIZED' });
 	}
@@ -232,19 +245,24 @@ export function companyPlanTierProcedure(requiredTier: PlanTier) {
 }
 
 /**
- * Platform admin procedure — checks userId against PLATFORM_ADMIN_IDS env var.
+ * Platform admin procedure — checks User.isPlatformAdmin in DB (with env-var fallback).
  * Used for cross-org admin tools (Stripe reconciliation, cron health dashboard).
  * Separate from org-scoped `adminProcedure`.
  */
 export const platformAdminProcedure = protectedProcedure.use(
-	({ ctx, next }) => {
-		const adminIds = (process.env.PLATFORM_ADMIN_IDS ?? '')
-			.split(',')
-			.map((id) => id.trim())
-			.filter(Boolean);
+	async ({ ctx, next }) => {
 		const userId = ctx.session?.user?.id;
+		if (!userId) {
+			throw new TRPCError({
+				code: 'UNAUTHORIZED',
+				message: 'Platform admin access required.',
+			});
+		}
 
-		if (!userId || !adminIds.includes(userId)) {
+		const { isPlatformAdmin } = await import('@/server/domain/platform-admin');
+		const isAdmin = await isPlatformAdmin(userId);
+
+		if (!isAdmin) {
 			throw new TRPCError({
 				code: 'FORBIDDEN',
 				message: 'Platform admin access required.',
