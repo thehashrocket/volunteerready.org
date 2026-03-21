@@ -14,6 +14,7 @@ import type {
 } from '@/server/domain/case-study';
 import { createConsentToken } from '@/server/lib/case-study-token';
 import { sendEmail } from '@/server/lib/email';
+import { escapeHtml } from '@/server/lib/html';
 import {
 	getAvgFillRate,
 	getRetentionStats,
@@ -23,15 +24,6 @@ import { prisma } from '@/server/repositories/prisma';
 import { getImpactReport } from '@/server/services/screener-queries';
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
-
-function escapeHtml(str: string): string {
-	return str
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;');
-}
 
 // ---------------------------------------------------------------------------
 // Core: build CaseStudyData for a single org
@@ -311,9 +303,11 @@ async function getPullQuote(orgId: string): Promise<string | null> {
 	});
 
 	for (const fb of feedbacks) {
-		const responses = fb.responses as Record<string, string> | null;
-		if (responses?.working_well) {
-			return responses.working_well;
+		if (!fb.responses || typeof fb.responses !== 'object') continue;
+		const responses = fb.responses as Record<string, unknown>;
+		const quote = responses.working_well;
+		if (typeof quote === 'string' && quote.trim()) {
+			return quote.trim();
 		}
 	}
 

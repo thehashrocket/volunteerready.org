@@ -17,6 +17,7 @@ const FEEDBACK_WINDOWS: { type: OrgFeedbackType; daysAfterCreation: number }[] =
 export async function sendOrgFeedbackEmails() {
 	let sent = 0;
 	let skipped = 0;
+	let failed = 0;
 
 	for (const window of FEEDBACK_WINDOWS) {
 		const cutoffDate = new Date();
@@ -59,7 +60,7 @@ export async function sendOrgFeedbackEmails() {
 					},
 				});
 
-				const surveyUrl = `${process.env.NEXTAUTH_URL ?? 'https://volunteerready.com'}/screening/feedback?org=${org.slug}&type=${window.type}`;
+				const surveyUrl = `${process.env.NEXTAUTH_URL ?? 'https://volunteerready.org'}/screening/feedback?org=${org.slug}&type=${window.type}`;
 				const subject =
 					window.type === 'DAY_7'
 						? `${org.name} — How's your first week going?`
@@ -71,7 +72,7 @@ export async function sendOrgFeedbackEmails() {
 				await sendEmail(adminEmail, subject, html);
 				sent++;
 			} catch (error) {
-				// Unique constraint violation = already sent, skip
+				// Unique constraint violation = already sent (idempotent), skip
 				if (
 					error instanceof Error &&
 					error.message.includes('Unique constraint')
@@ -82,13 +83,19 @@ export async function sendOrgFeedbackEmails() {
 						`[org-feedback] Failed to send ${window.type} feedback to org ${org.id}`,
 						error,
 					);
-					skipped++;
+					failed++;
 				}
 			}
 		}
 	}
 
-	return { sent, skipped };
+	if (failed > 0) {
+		console.error(
+			`[org-feedback] ${failed} email(s) failed to send (sent: ${sent}, skipped: ${skipped})`,
+		);
+	}
+
+	return { sent, skipped, failed };
 }
 
 function buildFeedbackEmailContent(
@@ -122,7 +129,7 @@ function buildFeedbackEmailContent(
     <div style="margin: 24px 0; padding: 16px; background-color: #F5F4F0; border-radius: 8px;">
       <p style="color: #3D3B38; font-weight: 600; margin: 0 0 8px 0;">Your Impact Report is ready</p>
       <p style="color: #5C5955; font-size: 14px; margin: 0 0 12px 0;">See how ${orgName} has used VolunteerReady over the past 30 days.</p>
-      <a href="${process.env.NEXTAUTH_URL ?? 'https://volunteerready.com'}/app/impact-report" style="color: #1B3C2A; font-weight: 600; text-decoration: underline;">View Impact Report</a>
+      <a href="${process.env.NEXTAUTH_URL ?? 'https://volunteerready.org'}/app/impact-report" style="color: #1B3C2A; font-weight: 600; text-decoration: underline;">View Impact Report</a>
     </div>
     `
 			: '';

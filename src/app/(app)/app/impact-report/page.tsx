@@ -53,15 +53,32 @@ export default function ImpactReportPage() {
 		);
 	}
 
-	const baseline = data.baseline as {
-		volunteerCount?: number;
-		hoursPerWeek?: number;
-		currentProcess?: string;
-	} | null;
+	const rawBaseline = data.baseline;
+	const baseline =
+		rawBaseline && typeof rawBaseline === 'object'
+			? {
+					volunteerCount:
+						'volunteerCount' in rawBaseline &&
+						typeof rawBaseline.volunteerCount === 'number'
+							? rawBaseline.volunteerCount
+							: undefined,
+					hoursPerWeek:
+						'hoursPerWeek' in rawBaseline &&
+						typeof rawBaseline.hoursPerWeek === 'number'
+							? rawBaseline.hoursPerWeek
+							: undefined,
+					currentProcess:
+						'currentProcess' in rawBaseline &&
+						typeof rawBaseline.currentProcess === 'string'
+							? rawBaseline.currentProcess
+							: undefined,
+				}
+			: null;
 
-	const daysSinceCreation = Math.floor(
-		(Date.now() - new Date(data.createdAt).getTime()) / (1000 * 60 * 60 * 24),
-	);
+	const createdAtMs = new Date(data.createdAt).getTime();
+	const daysSinceCreation = Number.isNaN(createdAtMs)
+		? 0
+		: Math.floor((Date.now() - createdAtMs) / (1000 * 60 * 60 * 24));
 
 	return (
 		<div className="space-y-6">

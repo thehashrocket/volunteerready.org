@@ -43,17 +43,26 @@ export async function submitFeedback(formData: FormData) {
 	}
 
 	// Upsert: update the existing OrgFeedback with responses
-	await prisma.orgFeedback.upsert({
-		where: {
-			orgId_type: { orgId: org.id, type: feedbackType },
-		},
-		update: { responses },
-		create: {
-			orgId: org.id,
+	try {
+		await prisma.orgFeedback.upsert({
+			where: {
+				orgId_type: { orgId: org.id, type: feedbackType },
+			},
+			update: { responses },
+			create: {
+				orgId: org.id,
+				type: feedbackType,
+				responses,
+			},
+		});
+	} catch (err) {
+		console.error('[feedback] Failed to save feedback', {
+			orgSlug,
 			type: feedbackType,
-			responses,
-		},
-	});
+			error: err instanceof Error ? err.message : String(err),
+		});
+		return { error: 'Something went wrong. Please try again.' };
+	}
 
 	return { success: true };
 }
