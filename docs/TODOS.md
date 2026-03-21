@@ -605,6 +605,78 @@ background functions or a self-hosted worker.
 
 ---
 
+## Concierge Activation Engine (Phase 12)
+
+### [P3] HMAC Survey Tokens for Feedback Form Authentication
+
+**What:** Replace unauthenticated feedback survey with HMAC-signed tokens embedded in
+the email link, so responses are attributable without requiring login.
+
+**Why:** The initial feedback form (Phase 12) skips auth for simplicity with 3 concierge
+orgs. As the platform scales beyond concierge, unauthenticated feedback is exploitable
+(anyone with the URL can submit fake responses). HMAC tokens tie each response to a
+specific org + time window without requiring the org admin to have a VolunteerReady account.
+
+**Context:** Token format: `HMAC-SHA256(orgId + timestamp, SECRET)`. Embed in email link
+as query param. Validate on form submission. Expire after 7 days. Reuse pattern from
+`src/server/lib/checkin-token.ts` (QR check-in already uses HMAC tokens). The feedback
+cron (`/api/cron/org-feedback`) would generate tokens when sending emails. The survey
+route (`/screening/feedback`) would validate before accepting submissions.
+
+**Pros:** Attributable responses; prevents spam/fake submissions; no login friction.
+**Cons:** Token management complexity; need to handle expired token UX gracefully.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Concierge feedback cron shipped
+
+---
+
+### [P2] Content Flywheel — Structured Case Study Generation from Concierge Data
+
+**What:** Service that aggregates concierge org usage data (applications processed,
+time saved, volunteers onboarded) into structured case study templates for marketing.
+
+**Why:** The concierge activation engine generates rich usage data from 3 real orgs.
+This data is the most valuable marketing asset VolunteerReady can produce — real
+numbers from real nonprofits. Without a structured system to capture and format this
+data, it gets lost in dashboards and never becomes marketing content.
+
+**Context:** Data sources: `orgAnalyticsRepo` (application funnel, retention stats,
+fill rates), `computeOrgHealth()` (milestone completion), impact report cron output.
+The service would generate a markdown template with org-specific metrics, before/after
+comparisons, and pull quotes from feedback surveys. Output goes to a `case-studies/`
+directory or admin UI. Requires org consent (add a `consentToPublicize` flag on Organization).
+
+**Pros:** Turns operational data into demand generation; automates tedious marketing work.
+**Cons:** Requires org consent workflow; templates need human editing for voice/tone.
+
+**Effort:** M | **Priority:** P2 | **Depends on:** Concierge activation engine shipped, 30+ days of org usage data
+
+---
+
+### [P2] Self-Serve Org Signup Flow
+
+**What:** Public signup page where nonprofit admins can create their own org account
+without concierge onboarding — the transition from concierge-first to self-serve growth.
+
+**Why:** The concierge model validates demand and refines onboarding, but doesn't scale.
+Once the concierge playbook is proven (3 orgs successfully activated), a self-serve
+flow unlocks organic growth. The landing page (`/screening`) already attracts traffic;
+converting visitors to signups is the next step.
+
+**Context:** Would need: (1) `/signup` route with org name, admin email, org type fields,
+(2) email verification flow, (3) automated org provisioning (create Organization + first
+OrganizationMember with ADMIN role), (4) guided onboarding wizard (reuse OrgHealthWidget
+activation steps), (5) free tier with upgrade path. The concierge onboarding checklist
+becomes the self-serve onboarding wizard. Key decision: whether to require email
+verification before org creation or after.
+
+**Pros:** Unlocks organic growth; removes founder bottleneck from onboarding.
+**Cons:** Requires trust & safety (spam orgs, abuse); support burden increases.
+
+**Effort:** L | **Priority:** P2 | **Depends on:** Concierge playbook validated (3 orgs active), billing integration
+
+---
+
 ### [P3] Cron Concurrency Guard — Claim-Based Processing
 
 **What:** Add optimistic locking or claim-based processing to digest and re-engagement
