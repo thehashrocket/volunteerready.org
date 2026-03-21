@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth';
+import { isPlatformAdmin } from '@/server/domain/platform-admin';
 import { generateCaseStudyPdf } from '@/server/services/caseStudyService';
 
 export async function GET(req: NextRequest) {
@@ -13,12 +14,8 @@ export async function GET(req: NextRequest) {
 		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 	}
 
-	// Platform admin check
-	const adminIds = (process.env.PLATFORM_ADMIN_IDS ?? '')
-		.split(',')
-		.map((id) => id.trim())
-		.filter(Boolean);
-	if (!adminIds.includes(userId)) {
+	const isAdmin = await isPlatformAdmin(userId);
+	if (!isAdmin) {
 		return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 	}
 
