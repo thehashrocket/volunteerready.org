@@ -232,7 +232,7 @@ export async function inviteCompanyMember(opts: {
 		});
 	});
 
-	await sendEmail(
+	const sent = await sendEmail(
 		opts.email,
 		`You've been invited to join ${company.name} on VolunteerReady`,
 		`
@@ -242,7 +242,7 @@ export async function inviteCompanyMember(opts: {
     `,
 	);
 
-	return { sent: true };
+	return { sent };
 }
 
 export async function acceptCompanyInvite(opts: {
