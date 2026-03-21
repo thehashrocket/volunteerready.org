@@ -263,6 +263,50 @@ Use the narrowest access level possible.
 
 Each middleware narrows the context type via `next({ ctx: { ... } })`, so downstream code can use `ctx.orgId` and `ctx.role` without non-null assertions.
 
+### Platform Admin
+
+Platform admin is DB-backed via `User.isPlatformAdmin` (with env-var fallback during migration).
+
+- **Domain utility:** `src/server/domain/platform-admin.ts` — `isPlatformAdmin(userId)` queries DB on demand (no session enrichment)
+- **CLI escape hatch:** `pnpm admin:grant <email>` / `pnpm admin:revoke <email>`
+- **Seed script:** `prisma/scripts/seed-platform-admins.ts` — one-time migration from `PLATFORM_ADMIN_IDS` env var
+- **Audit:** `PLATFORM_ADMIN_GRANTED` / `PLATFORM_ADMIN_REVOKED` logged transactionally
+
+### Permission Model (RBAC Foundation)
+
+TypeScript constants are the source of truth for permissions — no DB tables in v1.
+
+- **Constants:** `src/server/domain/permissions.ts` — flat permission keys (`namespace.action`), role-to-permission mappings
+- **`hasPermission(role, permission)`** — in-memory lookup, no DB query per call
+- **Advisory mode:** Global middleware in `publicProcedure` runs `advisoryPermissionCheck()` for all org-scoped procedures. Logs warnings when middleware and `hasPermission()` disagree. Never blocks.
+- **Procedure map:** `src/server/trpc/advisory-permission-middleware.ts` — maps tRPC procedure paths to permission keys
+
+#### Permission Matrix (Org Roles)
+
+| Permission scope | READONLY | STAFF | ADMIN | OWNER |
+|---|:---:|:---:|:---:|:---:|
+| Org settings, billing, notifications | ✓ | ✓ | ✓ | ✓ |
+| Opportunities, shifts, credentials, discovery | | ✓ | ✓ | ✓ |
+| Screener, members, questions, bulk import | | | ✓ | ✓ |
+| (Business rules in services, not permissions) | | | | ✓ |
+
+**Inline business rules** (enforced in services, not permission constants):
+- ADMIN cannot invite ADMIN (only STAFF/READONLY) — `memberService.inviteMember()`
+- Cannot remove OWNER — `memberService.removeOrgMember()`
+- Cannot change OWNER role or promote to OWNER — `memberService.updateOrgMemberRole()`
+
+### Auth Change Audit Logging
+
+All auth-change events use `writeAuditLogTx` inside the same transaction as the mutation:
+
+| Action | Trigger |
+|---|---|
+| `MEMBER_INVITED` | `memberService.inviteMember()` |
+| `MEMBER_REMOVED` | `memberService.removeOrgMember()` |
+| `ROLE_CHANGED` | `memberService.updateOrgMemberRole()` |
+| `PLATFORM_ADMIN_GRANTED` | `scripts/admin-grant.ts` |
+| `PLATFORM_ADMIN_REVOKED` | `scripts/admin-grant.ts` |
+
 ---
 
 # External Integrations
