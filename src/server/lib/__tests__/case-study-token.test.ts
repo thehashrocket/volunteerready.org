@@ -32,7 +32,12 @@ describe('verifyConsentToken', () => {
 	it('returns orgId for a valid token', () => {
 		const now = new Date();
 		const token = createConsentToken(TEST_ORG_ID, TEST_SECRET, now);
-		const result = verifyConsentToken(token, TEST_SECRET, 7 * 24 * 60 * 60 * 1000, now);
+		const result = verifyConsentToken(
+			token,
+			TEST_SECRET,
+			7 * 24 * 60 * 60 * 1000,
+			now,
+		);
 		expect(result).toBe(TEST_ORG_ID);
 	});
 
@@ -78,7 +83,12 @@ describe('verifyConsentToken', () => {
 		const now = new Date();
 		const timestamp = now.getTime().toString();
 		const badHex = `${TEST_ORG_ID}|${timestamp}|not-valid-hex-at-all!!`;
-		const result = verifyConsentToken(badHex, TEST_SECRET, 7 * 24 * 60 * 60 * 1000, now);
+		const result = verifyConsentToken(
+			badHex,
+			TEST_SECRET,
+			7 * 24 * 60 * 60 * 1000,
+			now,
+		);
 		expect(result).toBeNull();
 	});
 });

@@ -49,7 +49,11 @@ describe('renderMarkdown', () => {
 	it('renders baseline section when present', () => {
 		const data = {
 			...baseCaseStudy,
-			baseline: { volunteerCount: 20, hoursPerWeek: 15, currentProcess: 'Spreadsheets' },
+			baseline: {
+				volunteerCount: 20,
+				hoursPerWeek: 15,
+				currentProcess: 'Spreadsheets',
+			},
 		};
 		const md = renderMarkdown(data);
 		expect(md).toContain('## Before VolunteerReady');
