@@ -561,6 +561,22 @@ Key entities added:
 - OrgFeedbackType enum (DAY_7, DAY_30)
 - Organization gains: `onboardingBaseline`, `showPoweredBy`, `onboardingComplete`, `referralSource`
 
+Delivered (v0.17.1):
+
+- ✅ Content Flywheel — case study generation from org usage data
+- ✅ Two-step HMAC consent flow (GET confirmation + POST mutation, 7-day token expiry)
+- ✅ Admin case study management UI (`/app/admin/case-studies`)
+- ✅ Public story pages (`/stories/[orgSlug]`) with before/after metrics
+- ✅ Testimonial section on screening landing page (live from consented orgs)
+- ✅ Case study PDF export (`/api/case-study/pdf`)
+- ✅ Consent backfill script (`scripts/backfill-consent.ts`)
+- ✅ 9 security fixes (consent-on-GET, auto-consent, XSS, HTML injection, timingSafeEqual, etc.)
+
+Key entities added:
+
+- CaseStudyData (domain type — composed from org, impact report, analytics, feedback)
+- Organization gains: `consentToPublicize`, `logoUrl`
+
 This phase establishes **the concierge onboarding playbook** — white-glove activation
 for the first 3 nonprofits, with built-in feedback loops and referral mechanics.
 

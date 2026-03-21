@@ -57,6 +57,11 @@ Activation fields (Phase 12):
 - `onboardingComplete` — boolean (default false), set when org dismisses the onboarding checklist
 - `referralSource` — optional string tracking how the org was referred
 
+Content Flywheel fields (v0.17.1):
+
+- `consentToPublicize` — boolean (default false), org consented to public case study
+- `logoUrl` — optional string, org logo (Vercel Blob URL) for case study branding
+
 Important rule:
 
 All organization-owned records must contain `orgId`.

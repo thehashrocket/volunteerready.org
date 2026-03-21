@@ -124,6 +124,11 @@ docs/
 - Org feedback cron: `src/app/api/cron/org-feedback/route.ts` (daily 10:00 UTC), service at `src/server/services/org-feedback-service.ts`
 - Impact report: `src/app/(app)/app/impact-report/page.tsx` (baseline vs platform usage metrics)
 - Onboarding baseline: `src/app/(app)/app/settings/onboarding/page.tsx` (volunteer count, hours/week, current process)
+- Content Flywheel: domain at `src/server/domain/case-study.ts`, service at `src/server/services/caseStudyService.ts`, token lib at `src/server/lib/case-study-token.ts`, tRPC router at `src/server/trpc/routers/case-study.ts`
+- Case study admin: `src/app/(app)/app/admin/case-studies/page.tsx` (consent toggle, approval email, PDF download, markdown copy)
+- Public stories: `src/app/(public)/stories/[orgSlug]/page.tsx`, consent pages at `stories/consent-confirmed` and `stories/consent-expired`
+- Case study API: consent flow at `src/app/api/case-study/consent/route.ts` (GET confirmation + POST mutation), PDF at `src/app/api/case-study/pdf/route.ts`
+- Testimonials: `src/components/testimonial-section.tsx` + `src/components/testimonial-block.tsx` (screening landing page)
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.
