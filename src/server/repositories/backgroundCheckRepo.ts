@@ -7,6 +7,7 @@
  */
 
 import type {
+	BackgroundCheckProvider,
 	BackgroundCheckStatus,
 	FcraStatus,
 	Prisma,
@@ -135,9 +136,10 @@ export interface CreateBackgroundCheckInput {
 	userId: string;
 	externalId: string;
 	packageName: string;
+	provider?: BackgroundCheckProvider;
 }
 
-/** Create a new BackgroundCheckRequest. Status defaults to PENDING. */
+/** Create a new BackgroundCheckRequest. Status defaults to PENDING, provider to CHECKR. */
 export async function createBackgroundCheckRequestTx(
 	tx: TxClient,
 	input: CreateBackgroundCheckInput,
@@ -147,7 +149,7 @@ export async function createBackgroundCheckRequestTx(
 			orgId: input.orgId,
 			userId: input.userId,
 			externalId: input.externalId,
-			provider: 'CHECKR',
+			provider: input.provider ?? 'CHECKR',
 			status: 'PENDING',
 		},
 		select: { id: true, externalId: true },

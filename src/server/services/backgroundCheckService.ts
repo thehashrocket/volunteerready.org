@@ -76,8 +76,8 @@ import {
 	canSendPreAdverseNotice,
 	isTerminalStatus,
 	isWaitingPeriodElapsed,
-	mapCheckrResultToStatus,
-	sanitizeCheckrPayload,
+	mapResultToStatus,
+	sanitizeWebhookPayload,
 	shouldAutoIssueCredential,
 	waitingPeriodDaysRemaining,
 } from '@/server/domain/background-check';
@@ -87,6 +87,11 @@ import {
 	CheckrRequeueError,
 	checkrAdapter,
 } from '@/server/lib/adapters/background-check/checkr';
+import {
+	SterlingApiError,
+	SterlingWebhookError,
+	sterlingAdapter,
+} from '@/server/lib/adapters/background-check/sterling';
 import type { CandidatePii } from '@/server/lib/adapters/background-check/types';
 import { encrypt, tryDecrypt } from '@/server/lib/crypto';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
@@ -111,7 +116,7 @@ import {
 	upsertCredential,
 } from '@/server/repositories/volunteerCredentialRepo';
 
-// Re-export error classes so the webhook route can catch them
+// Re-export error classes so the webhook routes can catch them
 export {
 	CheckrBadPayloadError,
 	CheckrRequeueError,
@@ -215,23 +220,47 @@ export async function getCheckrConnectionStatus(
 }
 
 // ---------------------------------------------------------------------------
-// initiateBackgroundCheck
+// Provider-agnostic initiateCheck
 // ---------------------------------------------------------------------------
 
-export async function initiateBackgroundCheck(input: {
+/**
+ * Shared initiateCheck logic for any background check provider.
+ *
+ * Data flow:
+ *   guard: active check? → guard: existing credential? → get credentials →
+ *   adapter.initiateCheck(pii) → persist request + audit log
+ *
+ * Provider-specific concerns are injected via the params:
+ *   - adapter: the BackgroundCheckAdapter to call
+ *   - accessToken: the per-org credential (OAuth token for Checkr, API key for Sterling)
+ *   - provider: the enum value for DB records
+ *   - apiErrorClass: the adapter's base API error class for catch routing
+ */
+async function initiateProviderCheck(input: {
 	orgId: string;
 	userId: string;
 	actorId: string;
 	pii: CandidatePii;
-	packageName?: string;
+	packageName: string;
+	adapter: import('@/server/lib/adapters/background-check/types').BackgroundCheckAdapter;
+	accessToken: string;
+	provider: 'CHECKR' | 'STERLING';
+	apiErrorClass: new (...args: never[]) => Error;
 }): Promise<{ requestId: string }> {
-	const { orgId, userId, actorId, pii } = input;
-	const packageName =
-		input.packageName ??
-		(process.env.CHECKR_DEFAULT_PACKAGE || 'tasker_standard');
+	const {
+		orgId,
+		userId,
+		actorId,
+		pii,
+		packageName,
+		adapter,
+		accessToken,
+		provider,
+		apiErrorClass,
+	} = input;
 
 	console.log(
-		`[bg-check] Initiating check orgId=${orgId} userId=${userId} provider=CHECKR`,
+		`[bg-check] Initiating check orgId=${orgId} userId=${userId} provider=${provider}`,
 	);
 
 	// Guard 1: no active check already in flight (PENDING or CONSIDER)
@@ -257,33 +286,20 @@ export async function initiateBackgroundCheck(input: {
 		});
 	}
 
-	// Guard 3: org must have connected their Checkr account (Partner API)
-	const accessToken = await getOrgCheckrToken(orgId);
-	if (!accessToken) {
-		throw new TRPCError({
-			code: 'BAD_REQUEST',
-			message:
-				'This organization has not connected a Checkr account. Go to Settings → Credentials and click "Connect Checkr".',
-		});
-	}
-
-	// Call Checkr — OUTSIDE transaction (remote side effect, can't roll back)
+	// Call provider — OUTSIDE transaction (remote side effect, can't roll back)
 	let reportId: string;
 	try {
-		const result = await checkrAdapter.initiateCheck(
-			pii,
-			packageName,
-			accessToken,
-		);
+		const result = await adapter.initiateCheck(pii, packageName, accessToken);
 		reportId = result.reportId;
 	} catch (err) {
-		if (err instanceof CheckrApiError) {
+		if (err instanceof apiErrorClass) {
+			const apiErr = err as { status?: number; message: string };
 			// NEVER log pii fields in error context
 			console.error(
-				`[bg-check] Checkr API error code=${err.status} status=${err.status}`,
+				`[bg-check] ${provider} API error status=${apiErr.status ?? 'unknown'}`,
 			);
-			if (err.status === 422) {
-				throw new TRPCError({ code: 'BAD_REQUEST', message: err.message });
+			if (apiErr.status === 422) {
+				throw new TRPCError({ code: 'BAD_REQUEST', message: apiErr.message });
 			}
 			throw new TRPCError({
 				code: 'INTERNAL_SERVER_ERROR',
@@ -301,6 +317,7 @@ export async function initiateBackgroundCheck(input: {
 			userId,
 			externalId: reportId,
 			packageName,
+			provider,
 		});
 		await writeAuditLogTx(tx, {
 			orgId,
@@ -308,7 +325,7 @@ export async function initiateBackgroundCheck(input: {
 			action: 'BACKGROUND_CHECK_INITIATED',
 			entityType: 'BackgroundCheckRequest',
 			entityId: req.id,
-			metadata: { provider: 'CHECKR', externalId: reportId },
+			metadata: { provider, externalId: reportId },
 		});
 		return req;
 	});
@@ -318,6 +335,38 @@ export async function initiateBackgroundCheck(input: {
 	);
 
 	return { requestId: request.id };
+}
+
+// ---------------------------------------------------------------------------
+// initiateBackgroundCheck (Checkr — public API, called by tRPC)
+// ---------------------------------------------------------------------------
+
+export async function initiateBackgroundCheck(input: {
+	orgId: string;
+	userId: string;
+	actorId: string;
+	pii: CandidatePii;
+	packageName?: string;
+}): Promise<{ requestId: string }> {
+	const accessToken = await getOrgCheckrToken(input.orgId);
+	if (!accessToken) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message:
+				'This organization has not connected a Checkr account. Go to Settings → Credentials and click "Connect Checkr".',
+		});
+	}
+
+	return initiateProviderCheck({
+		...input,
+		packageName:
+			input.packageName ??
+			(process.env.CHECKR_DEFAULT_PACKAGE || 'tasker_standard'),
+		adapter: checkrAdapter,
+		accessToken,
+		provider: 'CHECKR',
+		apiErrorClass: CheckrApiError,
+	});
 }
 
 // ---------------------------------------------------------------------------
@@ -370,32 +419,59 @@ export async function cancelBackgroundCheck(
 }
 
 // ---------------------------------------------------------------------------
-// handleCheckrWebhookEvent
+// Provider-agnostic webhook handler
 // ---------------------------------------------------------------------------
 
-export async function handleCheckrWebhookEvent(
-	rawBody: Buffer,
-	signature: string,
-): Promise<void> {
-	// Step 1: Verify signature — throws CheckrSignatureError on failure
-	checkrAdapter.verifyWebhookSignature(rawBody, signature);
+/**
+ * Shared webhook processing logic for any background check provider.
+ *
+ * Data flow:
+ *   verify signature → parse JSON → extract event ID → idempotency check →
+ *   parse actionable payload → find request → skip if terminal →
+ *   atomic update (event + credential + status) → CONSIDER email
+ *
+ * Provider-specific concerns are injected via params:
+ *   - adapter: the BackgroundCheckAdapter for signature/payload parsing
+ *   - provider: enum value for logs and audit
+ *   - badPayloadError: constructor for 400-class errors (caller catches)
+ *   - requeueError: constructor for 500-class errors (provider retries)
+ */
+async function handleProviderWebhookEvent(input: {
+	rawBody: Buffer;
+	signature: string;
+	adapter: import('@/server/lib/adapters/background-check/types').BackgroundCheckAdapter;
+	provider: 'CHECKR' | 'STERLING';
+	badPayloadError: new (msg: string) => Error;
+	requeueError: new (msg: string) => Error;
+}): Promise<void> {
+	const {
+		rawBody,
+		signature,
+		adapter,
+		provider,
+		badPayloadError,
+		requeueError,
+	} = input;
 
-	// Step 2: Parse body — wrap in try/catch to produce 400 on bad JSON
+	// Step 1: Verify signature
+	adapter.verifyWebhookSignature(rawBody, signature);
+
+	// Step 2: Parse body
 	let body: unknown;
 	try {
 		body = JSON.parse(rawBody.toString('utf-8'));
 	} catch {
-		throw new CheckrBadPayloadError('Webhook body is not valid JSON');
+		throw new badPayloadError('Webhook body is not valid JSON');
 	}
 
-	// Extract checkrId for idempotency
-	const checkrId =
+	// Extract event ID for idempotency
+	const eventId =
 		typeof body === 'object' && body !== null
 			? ((body as Record<string, unknown>).id as string | undefined)
 			: undefined;
 
-	if (!checkrId) {
-		throw new CheckrBadPayloadError('Webhook payload missing event id');
+	if (!eventId) {
+		throw new badPayloadError('Webhook payload missing event id');
 	}
 
 	const eventType =
@@ -404,63 +480,67 @@ export async function handleCheckrWebhookEvent(
 			: undefined;
 
 	console.log(
-		`[bg-check] Webhook received checkrId=${checkrId} type=${eventType ?? 'unknown'}`,
+		`[bg-check] ${provider} webhook received eventId=${eventId} type=${eventType ?? 'unknown'}`,
 	);
 
 	// Step 3: Idempotency check — early return if already processed
-	if (await isCheckrWebhookEventProcessed(checkrId)) {
-		console.log(`[bg-check] Webhook duplicate — skipping checkrId=${checkrId}`);
+	if (await isCheckrWebhookEventProcessed(eventId)) {
+		console.log(
+			`[bg-check] ${provider} webhook duplicate — skipping eventId=${eventId}`,
+		);
 		return;
 	}
 
 	// Step 4: Parse actionable payload
-	const actionable = checkrAdapter.parseActionableWebhookPayload(body);
+	const actionable = adapter.parseActionableWebhookPayload(body);
 
 	if (!actionable) {
-		// Non-actionable event type — record it and return
+		// Non-actionable event type — record for idempotency and return
 		await prisma.$transaction(async (tx) => {
 			await markCheckrWebhookEventProcessedTx(tx, {
-				checkrId,
+				checkrId: eventId,
 				type: eventType ?? 'unknown',
-				payload: sanitizeCheckrPayload(body) as Prisma.InputJsonValue,
+				payload: sanitizeWebhookPayload(body) as Prisma.InputJsonValue,
 			});
 		});
 		return;
 	}
 
-	// Step 5: Find the corresponding request by externalId (report ID)
+	// Step 5: Find the corresponding request by externalId
 	const request = await findBackgroundCheckByExternalId(actionable.reportId);
 	if (!request) {
 		console.warn(
-			`[bg-check] Requeue — unknown externalId=${actionable.reportId} (retry expected)`,
+			`[bg-check] ${provider} requeue — unknown externalId=${actionable.reportId}`,
 		);
-		throw new CheckrRequeueError(`Unknown reportId: ${actionable.reportId}`);
+		throw new requeueError(`Unknown reportId: ${actionable.reportId}`);
 	}
 
-	// Step 6: Skip if already in a terminal status (including CANCELLED)
+	// Step 6: Skip if already in a terminal status
 	if (isTerminalStatus(request.status)) {
 		console.log(
-			`[bg-check] Skipping webhook for terminal request requestId=${request.id} status=${request.status}`,
+			`[bg-check] ${provider} skipping webhook for terminal request requestId=${request.id} status=${request.status}`,
 		);
 		await prisma.$transaction(async (tx) => {
 			await markCheckrWebhookEventProcessedTx(tx, {
-				checkrId,
+				checkrId: eventId,
 				type: eventType ?? 'unknown',
-				payload: sanitizeCheckrPayload(body) as Prisma.InputJsonValue,
+				payload: sanitizeWebhookPayload(body) as Prisma.InputJsonValue,
 			});
 		});
 		return;
 	}
 
-	const newStatus = mapCheckrResultToStatus(actionable.result);
-	const sanitizedPayload = sanitizeCheckrPayload(body) as Prisma.InputJsonValue;
+	const newStatus = mapResultToStatus(actionable.result);
+	const sanitizedPayload = sanitizeWebhookPayload(
+		body,
+	) as Prisma.InputJsonValue;
 
 	// Step 7: Atomic transaction — record event + update request + optional credential
 	let credentialIssued = false;
 
 	await prisma.$transaction(async (tx) => {
 		await markCheckrWebhookEventProcessedTx(tx, {
-			checkrId,
+			checkrId: eventId,
 			type: eventType ?? 'unknown',
 			payload: sanitizedPayload,
 		});
@@ -491,21 +571,21 @@ export async function handleCheckrWebhookEvent(
 			entityType: 'BackgroundCheckRequest',
 			entityId: request.id,
 			metadata: {
+				provider,
 				newStatus,
 				wasCredentialIssued: credentialIssued,
-				checkrEventId: checkrId,
+				webhookEventId: eventId,
 			},
 		});
 	});
 
 	console.log(
-		`[bg-check] Webhook result requestId=${request.id} status=${newStatus} wasCredentialIssued=${credentialIssued}`,
+		`[bg-check] ${provider} webhook result requestId=${request.id} status=${newStatus} wasCredentialIssued=${credentialIssued}`,
 	);
 
 	// Step 8: Send CONSIDER email — outside transaction, never rethrows
 	if (newStatus === 'CONSIDER') {
 		try {
-			// Fetch org owner email for notification
 			const org = await prisma.organization.findUnique({
 				where: { id: request.orgId },
 				select: {
@@ -533,11 +613,29 @@ export async function handleCheckrWebhookEvent(
 			}
 		} catch (err) {
 			console.error(
-				`[bg-check] Email failed requestId=${request.id} error=${String(err)}`,
+				`[bg-check] ${provider} email failed requestId=${request.id} error=${String(err)}`,
 			);
 			// DO NOT rethrow — email failure must not fail the webhook
 		}
 	}
+}
+
+// ---------------------------------------------------------------------------
+// handleCheckrWebhookEvent (public API, called by webhook route)
+// ---------------------------------------------------------------------------
+
+export async function handleCheckrWebhookEvent(
+	rawBody: Buffer,
+	signature: string,
+): Promise<void> {
+	return handleProviderWebhookEvent({
+		rawBody,
+		signature,
+		adapter: checkrAdapter,
+		provider: 'CHECKR',
+		badPayloadError: CheckrBadPayloadError,
+		requeueError: CheckrRequeueError,
+	});
 }
 
 // ---------------------------------------------------------------------------
@@ -797,4 +895,142 @@ export async function resolveFcra(
 	console.log(
 		`[bg-check] FCRA resolved favorably requestId=${requestId} userId=${request.userId}`,
 	);
+}
+
+// ---------------------------------------------------------------------------
+// Sterling — connect / disconnect / status
+// ---------------------------------------------------------------------------
+
+async function getOrgSterlingKey(orgId: string): Promise<string | null> {
+	const org = await prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { sterlingApiKey: true },
+	});
+	const raw = org?.sterlingApiKey ?? null;
+	if (!raw) return null;
+	return tryDecrypt(raw);
+}
+
+/**
+ * Connect a Sterling account by storing the encrypted API key.
+ * Sterling uses API keys (not OAuth) — admin pastes the key in settings.
+ */
+export async function connectSterlingAccount(
+	orgId: string,
+	apiKey: string,
+	accountId: string,
+	actorId: string,
+): Promise<void> {
+	const encryptedKey = encrypt(apiKey);
+
+	await prisma.$transaction(async (tx) => {
+		await tx.organization.update({
+			where: { id: orgId },
+			data: { sterlingApiKey: encryptedKey, sterlingAccountId: accountId },
+		});
+		await writeAuditLogTx(tx, {
+			orgId,
+			actorId,
+			action: 'STERLING_CONNECTED',
+			entityType: 'Organization',
+			entityId: orgId,
+			metadata: { accountId },
+		});
+	});
+
+	console.log(
+		`[bg-check] Sterling connected orgId=${orgId} accountId=${accountId}`,
+	);
+}
+
+export async function disconnectSterlingAccount(
+	orgId: string,
+	actorId: string,
+): Promise<void> {
+	await prisma.$transaction(async (tx) => {
+		await tx.organization.update({
+			where: { id: orgId },
+			data: { sterlingApiKey: null, sterlingAccountId: null },
+		});
+		await writeAuditLogTx(tx, {
+			orgId,
+			actorId,
+			action: 'STERLING_DISCONNECTED',
+			entityType: 'Organization',
+			entityId: orgId,
+			metadata: {},
+		});
+	});
+
+	console.log(`[bg-check] Sterling disconnected orgId=${orgId}`);
+}
+
+export async function getSterlingConnectionStatus(
+	orgId: string,
+): Promise<{ connected: boolean; accountId: string | null }> {
+	const org = await prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { sterlingApiKey: true, sterlingAccountId: true },
+	});
+	const connected = !!org?.sterlingApiKey;
+	return { connected, accountId: org?.sterlingAccountId ?? null };
+}
+
+// ---------------------------------------------------------------------------
+// initiateSterlingCheck (public API, called by tRPC)
+// ---------------------------------------------------------------------------
+
+export async function initiateSterlingCheck(input: {
+	orgId: string;
+	userId: string;
+	actorId: string;
+	pii: CandidatePii;
+	packageName?: string;
+}): Promise<{ requestId: string }> {
+	const apiKey = await getOrgSterlingKey(input.orgId);
+	if (!apiKey) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message:
+				'This organization has not connected a Sterling account. Go to Settings → Credentials and enter your Sterling API key.',
+		});
+	}
+
+	return initiateProviderCheck({
+		...input,
+		packageName: input.packageName ?? 'standard_criminal',
+		adapter: sterlingAdapter,
+		accessToken: apiKey,
+		provider: 'STERLING',
+		apiErrorClass: SterlingApiError,
+	});
+}
+
+// ---------------------------------------------------------------------------
+// handleSterlingWebhookEvent (public API, called by webhook route)
+// ---------------------------------------------------------------------------
+
+/**
+ * Sterling requeue error — thrown when we receive a webhook for an unknown
+ * reportId. The webhook route returns 500 so Sterling retries.
+ */
+class SterlingRequeueError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'SterlingRequeueError';
+	}
+}
+
+export async function handleSterlingWebhookEvent(
+	rawBody: Buffer,
+	signature: string,
+): Promise<void> {
+	return handleProviderWebhookEvent({
+		rawBody,
+		signature,
+		adapter: sterlingAdapter,
+		provider: 'STERLING',
+		badPayloadError: SterlingWebhookError,
+		requeueError: SterlingRequeueError,
+	});
 }

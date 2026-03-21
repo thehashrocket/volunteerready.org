@@ -6,43 +6,43 @@ import {
 	FCRA_WAITING_PERIOD_DAYS,
 	isTerminalStatus,
 	isWaitingPeriodElapsed,
-	mapCheckrResultToStatus,
-	sanitizeCheckrPayload,
+	mapResultToStatus,
+	sanitizeWebhookPayload,
 	shouldAutoIssueCredential,
 	waitingPeriodDaysRemaining,
 } from '../background-check';
 
 // ---------------------------------------------------------------------------
-// mapCheckrResultToStatus
+// mapResultToStatus
 // ---------------------------------------------------------------------------
 
-describe('mapCheckrResultToStatus', () => {
+describe('mapResultToStatus', () => {
 	it("maps 'clear' to COMPLETE", () => {
-		expect(mapCheckrResultToStatus('clear')).toBe('COMPLETE');
+		expect(mapResultToStatus('clear')).toBe('COMPLETE');
 	});
 
 	it("maps 'consider' to CONSIDER", () => {
-		expect(mapCheckrResultToStatus('consider')).toBe('CONSIDER');
+		expect(mapResultToStatus('consider')).toBe('CONSIDER');
 	});
 
 	it("maps 'adverse_action' to FAILED", () => {
-		expect(mapCheckrResultToStatus('adverse_action')).toBe('FAILED');
+		expect(mapResultToStatus('adverse_action')).toBe('FAILED');
 	});
 
 	it("maps 'suspended' to FAILED", () => {
-		expect(mapCheckrResultToStatus('suspended')).toBe('FAILED');
+		expect(mapResultToStatus('suspended')).toBe('FAILED');
 	});
 
 	it("maps 'dispute' to FAILED", () => {
-		expect(mapCheckrResultToStatus('dispute')).toBe('FAILED');
+		expect(mapResultToStatus('dispute')).toBe('FAILED');
 	});
 
 	it('maps unknown string to FAILED', () => {
-		expect(mapCheckrResultToStatus('unknown_result')).toBe('FAILED');
+		expect(mapResultToStatus('unknown_result')).toBe('FAILED');
 	});
 
 	it('maps empty string to FAILED', () => {
-		expect(mapCheckrResultToStatus('')).toBe('FAILED');
+		expect(mapResultToStatus('')).toBe('FAILED');
 	});
 });
 
@@ -213,23 +213,23 @@ describe('waitingPeriodDaysRemaining', () => {
 });
 
 // ---------------------------------------------------------------------------
-// sanitizeCheckrPayload
+// sanitizeWebhookPayload
 // ---------------------------------------------------------------------------
 
-describe('sanitizeCheckrPayload', () => {
+describe('sanitizeWebhookPayload', () => {
 	it('strips ssn from payload', () => {
-		const result = sanitizeCheckrPayload({ id: 'rep_123', ssn: '123456789' });
+		const result = sanitizeWebhookPayload({ id: 'rep_123', ssn: '123456789' });
 		expect(result).not.toHaveProperty('ssn');
 		expect(result.id).toBe('rep_123');
 	});
 
 	it('strips dob from payload', () => {
-		const result = sanitizeCheckrPayload({ id: 'rep_123', dob: '1990-01-01' });
+		const result = sanitizeWebhookPayload({ id: 'rep_123', dob: '1990-01-01' });
 		expect(result).not.toHaveProperty('dob');
 	});
 
 	it('strips all known PII fields', () => {
-		const result = sanitizeCheckrPayload({
+		const result = sanitizeWebhookPayload({
 			id: 'rep_123',
 			ssn: '123456789',
 			dob: '1990-01-01',
@@ -247,7 +247,7 @@ describe('sanitizeCheckrPayload', () => {
 	});
 
 	it('preserves non-PII fields', () => {
-		const result = sanitizeCheckrPayload({
+		const result = sanitizeWebhookPayload({
 			id: 'rep_123',
 			status: 'complete',
 			result: 'clear',
@@ -260,7 +260,7 @@ describe('sanitizeCheckrPayload', () => {
 	});
 
 	it('strips PII from nested objects', () => {
-		const result = sanitizeCheckrPayload({
+		const result = sanitizeWebhookPayload({
 			id: 'rep_123',
 			candidate: {
 				id: 'cand_abc',
@@ -277,7 +277,7 @@ describe('sanitizeCheckrPayload', () => {
 	});
 
 	it('strips PII from objects within arrays', () => {
-		const result = sanitizeCheckrPayload({
+		const result = sanitizeWebhookPayload({
 			id: 'rep_123',
 			records: [{ type: 'criminal', ssn: '123456789', case_number: 'CR-001' }],
 		});
@@ -287,15 +287,15 @@ describe('sanitizeCheckrPayload', () => {
 	});
 
 	it('returns empty object for null input', () => {
-		expect(sanitizeCheckrPayload(null)).toEqual({});
+		expect(sanitizeWebhookPayload(null)).toEqual({});
 	});
 
 	it('returns empty object for non-object input', () => {
-		expect(sanitizeCheckrPayload('string')).toEqual({});
-		expect(sanitizeCheckrPayload(42)).toEqual({});
+		expect(sanitizeWebhookPayload('string')).toEqual({});
+		expect(sanitizeWebhookPayload(42)).toEqual({});
 	});
 
 	it('returns empty object for array input', () => {
-		expect(sanitizeCheckrPayload([{ ssn: '123' }])).toEqual({});
+		expect(sanitizeWebhookPayload([{ ssn: '123' }])).toEqual({});
 	});
 });

@@ -89,21 +89,16 @@ Token encryption implemented using AES-256-GCM in `src/server/lib/crypto.ts`.
 
 ---
 
-### [P3] Encryption Key Rotation for Checkr Tokens
+### ~~[P3] Encryption Key Rotation for Checkr Tokens~~ ✅ Complete
 
-**What:** Build a key rotation mechanism — support two keys simultaneously (old + new),
-re-encrypt all tokens with the new key, then retire the old key.
+**Completed:** v0.15.0 (2026-03-20)
 
-**Why:** If the encryption key is ever compromised, you need to rotate it without downtime.
-Currently there's no rotation path — losing the key renders all tokens unreadable (orgs must
-re-connect Checkr).
+Dual-key decryption in `src/server/lib/crypto.ts` with `CHECKR_TOKEN_ENCRYPTION_KEY_NEW`
+env var. `decrypt()` tries primary key first, falls back to rotation key. `reEncrypt()`
+with roundtrip verification. Batch migration script at `scripts/reencrypt-tokens.ts`.
+7 new tests covering dual-key fallback, primary preference, and reEncrypt roundtrip.
 
-**Context:** `src/server/lib/crypto.ts` currently reads a single key from
-`CHECKR_TOKEN_ENCRYPTION_KEY`. Rotation requires: (1) a `CHECKR_TOKEN_ENCRYPTION_KEY_OLD` env
-var, (2) `tryDecrypt` tries the new key first, falls back to old key, (3) a migration script
-re-encrypts all tokens with the new key, (4) remove old key env var.
-
-**Effort:** M | **Priority:** P3 | **Depends on:** ✅ Token encryption shipped
+**Effort:** ~~M~~ | **Priority:** ~~P3~~
 
 ---
 
@@ -150,26 +145,16 @@ shift templates (STARTER). Replaces inline upgrade prompts.
 
 ---
 
-### [P2] Stripe Webhook Event Reconciliation
+### ~~[P2] Stripe Webhook Event Reconciliation~~ ✅ Complete
 
-**What:** Investigate Stripe's event reconciliation API as a recovery mechanism
-for webhooks that fail during a deploy window.
+**Completed:** v0.15.0 (2026-03-20)
 
-**Why:** The `StripeWebhookEvent` idempotency table handles normal retries, but
-if a webhook arrives while the DB is briefly unavailable (e.g., during a migration
-deploy), the event could be lost. Stripe retries for 3 days, but a sustained
-outage could cause permanent loss.
+Admin `stripeReconcile` mutation in `src/server/trpc/routers/admin.ts` replays
+missed Stripe webhook events within a configurable time window (1–720 hours).
+Uses `reconcileStripeEvents()` from `billingService.ts`. Accessible via the
+platform admin health dashboard at `/app/admin/health`.
 
-**Context:** Stripe provides a "list events" API that can be used to poll for
-events within a time window. A recovery script or admin tool could replay missed
-events by checking the idempotency table for gaps. The `StripeWebhookEvent` table
-stores `eventId`, `type`, and `processedAt`.
-
-**Pros:** Prevents revenue/billing state corruption during deploy incidents.
-**Cons:** Additional complexity; Stripe dashboard already shows failed webhooks for
-manual recovery, which is acceptable at Phase 6 scale.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** ✅ 6A Stripe integration shipped
+**Effort:** ~~M~~ | **Priority:** ~~P2~~
 
 ---
 
@@ -184,24 +169,19 @@ Implemented in `share-token-expiry-service.ts`. Queries ACTIVE tokens expiring w
 `notifiedAt` for idempotency. Runs as part of the daily `/api/cron/expire-credentials`
 cron job (03:00 UTC). Per-record try/catch with P2025 race handling.
 
-### [P2] Sterling Background Check Provider Integration
+### ~~[P2] Sterling Background Check Provider Integration~~ ✅ Complete
 
-**What:** Implement `SterlingAdapter` implementing the `BackgroundCheckAdapter` interface.
+**Completed:** v0.16.0 (2026-03-21)
 
-**Why:** Some enterprise nonprofit clients prefer Sterling (especially large healthcare/
-social service orgs). The Phase 6 `BackgroundCheckAdapter` interface is already
-defined to support multi-provider; Sterling just needs a concrete implementation.
+Full `SterlingAdapter` implementing `BackgroundCheckAdapter` interface. 7 named error
+classes, HMAC-SHA256 webhook signature verification, API key auth (not OAuth). Prisma
+schema: `sterlingApiKey` + `sterlingAccountId` on Organization. Adapter registry at
+`src/server/lib/adapters/background-check/registry.ts`. Service functions:
+`connectSterlingAccount`, `disconnectSterlingAccount`, `getSterlingConnectionStatus`,
+`initiateSterlingCheck`, `handleSterlingWebhookEvent`. Webhook route at
+`/api/sterling/webhook`. 22 adapter tests covering all error classes + happy path.
 
-**Context:** `BackgroundCheckProvider` enum is `CHECKR | STERLING`. The adapter
-interface lives in `src/server/lib/adapters/background-check/types.ts`. Sterling's
-API is similar to Checkr's (REST + webhooks). Requires a Sterling account and API
-credentials. Start by replicating the `CheckrAdapter` and mapping Sterling's response
-schema to the shared `BackgroundCheckResult` type.
-
-**Pros:** Unlocks a second enterprise segment; no architecture changes needed.
-**Cons:** Sterling API quirks may require adapter interface extension; needs a test account.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** 6B Checkr integration shipped, Sterling API access
+**Effort:** ~~M~~ | **Priority:** ~~P2~~
 
 ---
 
@@ -299,27 +279,16 @@ Limit of 500 per run prevents unbounded processing.
 
 ## Corporate CSR
 
-### [P2] Context-Switch UI (Org ↔ Company Dashboard)
+### ~~[P2] Context-Switch UI (Org ↔ Company Dashboard)~~ ✅ Complete
 
-**What:** UI for users who are both an `OrganizationMember` (nonprofit staff) and
-a `CompanyMember` (corporate CSR admin) to switch between contexts without logging
-out and back in.
+**Completed:** v0.15.0 (2026-03-20)
 
-**Why:** With the shared `User` table and `currentCompanyId` on `Session`, the
-technical plumbing already supports dual membership. The missing piece is the UX:
-a navbar dropdown or modal that lets the user select which context they're operating in.
+`CompanySwitcher` component at `src/components/company/CompanySwitcher.tsx` mirrors
+`OrgSwitcher` pattern. `company.switchCompany` tRPC mutation sets `Session.currentCompanyId`.
+Integrated into `app-shell.tsx` navbar. Users with both org and company memberships
+can switch contexts without logout.
 
-**Context:** The `Session` model has `currentOrgId` (org context) and `currentCompanyId`
-(company context, added in 6A). A "Switch Account" menu item could show both contexts.
-Switching org: existing `org.switchOrg` tRPC mutation. Switching company: new
-`company.switchCompany` mutation that sets `Session.currentCompanyId`. The
-`companyProcedure` in tRPC reads `ctx.companyId` from session, so switching session
-is sufficient.
-
-**Pros:** Unlocks power users who manage both nonprofit and corporate accounts.
-**Cons:** UI complexity; most users will only ever have one context.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** ✅ 6A CompanyAccount shipped
+**Effort:** ~~M~~ | **Priority:** ~~P2~~
 
 ### ~~[P1] ESG Report PDF Export~~ ✅ Complete
 
@@ -364,28 +333,18 @@ dashboard, thank-you notifications, check-in analytics, and QR color customizati
 
 ## Corporate ESG Reporting (Phase 6D)
 
-### [P2] ESG Report Integration Tests (Raw SQL)
+### ~~[P2] ESG Report Integration Tests (Raw SQL)~~ ✅ Complete
 
-**What:** Integration tests for `getESGShiftAggregates`, `getESGCredentialCounts`,
-and `getESGDistinctEmployeeCount` with a seeded test database.
+**Completed:** v0.15.0 (2026-03-20)
 
-**Why:** These repository functions use raw SQL via `Prisma.$queryRaw` with
-`Prisma.sql` tagged templates. Unlike Prisma's typed queries, raw SQL is not
-checked against the schema at compile time. If columns are renamed or table
-relationships change, the queries will fail silently at runtime. Integration
-tests with real data catch drift before it reaches production.
+13 integration tests in `src/server/services/employerReportService.integration.test.ts`
+covering `getESGShiftAggregates`, `getESGCredentialCounts`, and
+`getESGDistinctEmployeeCount`. Tests cover: multi-org companies, date range filtering
+(from-only, to-only, both, neither), credential-only orgs, empty results, and
+bigint→number conversion. Uses real DB with `vitest.integration.config.mts` and
+dotenv config for forked workers.
 
-**Context:** The three functions join 5 tables (CompanyNonprofitLink, Organization,
-Shift, ShiftSignup, CompanyMember) and use conditional WHERE clauses for date
-filtering. Test cases should cover: company with multiple linked orgs and
-overlapping employees, date range filtering (from-only, to-only, both, neither),
-credential-only orgs (no shifts), and empty results.
-
-**Pros:** Catches schema drift early; validates join logic with real FK constraints;
-tests bigint → number conversion from raw SQL.
-**Cons:** Requires test DB seeding infrastructure; slower than unit tests.
-
-**Effort:** M | **Priority:** P2 | **Depends on:** Phase 6D shipped, test DB seeding infra
+**Effort:** ~~M~~ | **Priority:** ~~P2~~
 
 ---
 
@@ -639,25 +598,15 @@ on the profile page.
 
 ---
 
-### [P3] Email Delivery Tracking Dashboard
+### ~~[P3] Email Delivery Tracking Dashboard~~ ✅ Complete
 
-**What:** Admin dashboard showing email delivery status (sent, bounced, opened) for
-invite emails, digest emails, re-engagement emails, and FCRA notices.
+**Completed:** v0.15.0 (2026-03-20)
 
-**Why:** Currently there is no visibility into whether emails are actually reaching
-volunteers. Bounced invites and silent delivery failures create operational blind spots
-for nonprofit admins. The audit log tracks that emails were *sent*, but not whether
-they were *delivered*.
+Full email delivery tracking system: `EmailEvent` + `EmailBounceStatus` Prisma models,
+Resend webhook handler at `/api/resend/webhook` (HMAC-SHA256 signature verification),
+bounce suppression in `sendEmail()` with 3-bounce cap, unified webhook health dashboard
+on `/app/admin/health` (Stripe + Checkr + Resend event counts), email bounce management
+UI with per-address re-enable + platform admin "Reset All" override. 14 new tests
+(6 email + 8 webhook).
 
-**Context:** Would require integration with the email provider's delivery webhooks
-(e.g., Resend webhooks for bounced/delivered/opened events). Store delivery events
-in a new `EmailDeliveryEvent` table linked to the relevant entity (invitation,
-notification, etc.). Display in a new `/app/settings/email-health` admin page with
-delivery rate, bounce rate, and recent failures.
-
-**Pros:** Gives admins confidence that their volunteer communications are working;
-surfaces bounced email addresses for cleanup.
-**Cons:** New webhook endpoint + table; email provider dependency; adds operational
-complexity.
-
-**Effort:** M | **Priority:** P3 | **Depends on:** Email sending infrastructure stable
+**Effort:** ~~M~~ | **Priority:** ~~P3~~

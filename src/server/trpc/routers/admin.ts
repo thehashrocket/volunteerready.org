@@ -62,4 +62,100 @@ export const adminRouter = createTRPCRouter({
 				windowHours: input.windowHours,
 			});
 		}),
+
+	/**
+	 * Webhook health: aggregate event counts per provider over a rolling window.
+	 * Uses a dynamic provider config array — add new providers to WEBHOOK_PROVIDERS above.
+	 */
+	webhookHealth: platformAdminProcedure
+		.input(
+			z
+				.object({
+					windowHours: z.number().min(1).max(720).default(24),
+				})
+				.default({ windowHours: 24 }),
+		)
+		.query(async ({ input }) => {
+			const since = new Date(Date.now() - input.windowHours * 60 * 60 * 1000);
+
+			const [stripeEvents, checkrEvents, resendEvents] = await Promise.all([
+				prisma.stripeWebhookEvent.groupBy({
+					by: ['type'],
+					where: { processedAt: { gte: since } },
+					_count: { id: true },
+				}),
+				prisma.checkrWebhookEvent.groupBy({
+					by: ['type'],
+					where: { processedAt: { gte: since } },
+					_count: { id: true },
+				}),
+				prisma.emailEvent.groupBy({
+					by: ['eventType'],
+					where: { createdAt: { gte: since } },
+					_count: { id: true },
+				}),
+			]);
+
+			const providers = [
+				{
+					key: 'stripe',
+					label: 'Stripe',
+					total: stripeEvents.reduce((s, e) => s + e._count.id, 0),
+					byType: Object.fromEntries(
+						stripeEvents.map((e) => [e.type, e._count.id]),
+					),
+				},
+				{
+					key: 'checkr',
+					label: 'Checkr',
+					total: checkrEvents.reduce((s, e) => s + e._count.id, 0),
+					byType: Object.fromEntries(
+						checkrEvents.map((e) => [e.type, e._count.id]),
+					),
+				},
+				{
+					key: 'resend',
+					label: 'Resend',
+					total: resendEvents.reduce((s, e) => s + e._count.id, 0),
+					byType: Object.fromEntries(
+						resendEvents.map((e) => [e.eventType, e._count.id]),
+					),
+				},
+			];
+
+			return { providers, windowHours: input.windowHours };
+		}),
+
+	/**
+	 * Email bounce management: list suppressed addresses.
+	 */
+	bouncedEmails: platformAdminProcedure.query(async () => {
+		return prisma.emailBounceStatus.findMany({
+			where: { suppressedAt: { not: null } },
+			orderBy: { lastBouncedAt: 'desc' },
+		});
+	}),
+
+	/**
+	 * Re-enable a single suppressed email address (resets bounceCount and suppressedAt).
+	 */
+	reEnableBounce: platformAdminProcedure
+		.input(z.object({ email: z.string().email() }))
+		.mutation(async ({ input }) => {
+			return prisma.emailBounceStatus.update({
+				where: { email: input.email.toLowerCase() },
+				data: { bounceCount: 0, suppressedAt: null },
+			});
+		}),
+
+	/**
+	 * Reset ALL suppressed email addresses (platform admin override).
+	 */
+	resetAllBounces: platformAdminProcedure.mutation(async () => {
+		const result = await prisma.emailBounceStatus.updateMany({
+			where: { suppressedAt: { not: null } },
+			data: { bounceCount: 0, suppressedAt: null },
+		});
+		return { count: result.count };
+	}),
 });

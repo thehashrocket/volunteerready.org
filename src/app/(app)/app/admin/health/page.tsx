@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, Clock, Loader2, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, Mail, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,15 +39,27 @@ export default function AdminHealthPage() {
 		refetchInterval: 30_000,
 	});
 
+	const webhookHealth = trpc.admin.webhookHealth.useQuery(undefined, {
+		refetchInterval: 30_000,
+	});
+
+	const bouncedEmails = trpc.admin.bouncedEmails.useQuery();
+
 	const [reconcileWindow, setReconcileWindow] = useState('24');
 	const reconcileMutation = trpc.admin.stripeReconcile.useMutation();
+	const reEnableMutation = trpc.admin.reEnableBounce.useMutation({
+		onSuccess: () => bouncedEmails.refetch(),
+	});
+	const resetAllMutation = trpc.admin.resetAllBounces.useMutation({
+		onSuccess: () => bouncedEmails.refetch(),
+	});
 
 	return (
 		<div className="space-y-8">
 			<div>
 				<h1 className="font-display text-3xl font-bold">System Health</h1>
 				<p className="text-muted-foreground mt-1">
-					Cron job status and Stripe reconciliation
+					Cron jobs, webhook activity, and email delivery
 				</p>
 			</div>
 
@@ -304,6 +316,160 @@ export default function AdminHealthPage() {
 									Stripe API error — try again
 								</p>
 							</div>
+						)}
+					</CardContent>
+				</Card>
+			</section>
+
+			{/* Webhook Health */}
+			<section>
+				<h2 className="font-display text-xl font-semibold mb-4">
+					Webhook Activity
+				</h2>
+
+				{webhookHealth.isLoading ? (
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						{[1, 2, 3].map((i) => (
+							<Card key={i} className="bg-warm-50">
+								<CardContent className="p-6">
+									<div className="h-4 bg-neutral-200 rounded animate-pulse mb-2 w-3/4" />
+									<div className="h-3 bg-neutral-200 rounded animate-pulse w-1/2" />
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				) : webhookHealth.data ? (
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						{webhookHealth.data.providers.map((provider) => (
+							<Card key={provider.key} className="bg-warm-50">
+								<CardContent className="p-6">
+									<div className="flex items-center justify-between mb-3">
+										<p className="font-medium">{provider.label}</p>
+										<span className="text-2xl font-semibold tabular-nums">
+											{provider.total}
+										</span>
+									</div>
+									<p className="text-xs text-muted-foreground mb-2">
+										Last {webhookHealth.data.windowHours}h
+									</p>
+									{Object.keys(provider.byType).length > 0 ? (
+										<div className="space-y-1">
+											{Object.entries(provider.byType).map(([type, count]) => (
+												<div
+													key={type}
+													className="flex items-center justify-between text-sm"
+												>
+													<span className="font-mono text-xs truncate mr-2">
+														{type}
+													</span>
+													<span className="tabular-nums text-muted-foreground">
+														{count as number}
+													</span>
+												</div>
+											))}
+										</div>
+									) : (
+										<p className="text-sm text-muted-foreground">
+											No events in window
+										</p>
+									)}
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				) : null}
+			</section>
+
+			{/* Email Bounce Management */}
+			<section>
+				<h2 className="font-display text-xl font-semibold mb-4">
+					Email Bounce Management
+				</h2>
+				<Card className="bg-warm-50">
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<CardTitle className="text-base">Suppressed Addresses</CardTitle>
+							{bouncedEmails.data && bouncedEmails.data.length > 0 && (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => resetAllMutation.mutate()}
+									disabled={resetAllMutation.isPending}
+								>
+									{resetAllMutation.isPending ? (
+										<Loader2 className="mr-2 h-3 w-3 animate-spin" />
+									) : null}
+									Reset All
+								</Button>
+							)}
+						</div>
+					</CardHeader>
+					<CardContent>
+						{bouncedEmails.isLoading ? (
+							<div className="h-8 bg-neutral-200 rounded animate-pulse w-1/2" />
+						) : bouncedEmails.data && bouncedEmails.data.length > 0 ? (
+							<div className="rounded-md border">
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Email</TableHead>
+											<TableHead>Bounces</TableHead>
+											<TableHead>Suppressed</TableHead>
+											<TableHead>Last Bounce</TableHead>
+											<TableHead />
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{bouncedEmails.data.map((bounce) => (
+											<TableRow key={bounce.id}>
+												<TableCell className="font-mono text-sm">
+													{bounce.email}
+												</TableCell>
+												<TableCell className="tabular-nums text-sm">
+													{bounce.bounceCount}
+												</TableCell>
+												<TableCell className="tabular-nums text-sm">
+													{bounce.suppressedAt
+														? formatRelativeTime(bounce.suppressedAt)
+														: '—'}
+												</TableCell>
+												<TableCell className="tabular-nums text-sm">
+													{bounce.lastBouncedAt
+														? formatRelativeTime(bounce.lastBouncedAt)
+														: '—'}
+												</TableCell>
+												<TableCell>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() =>
+															reEnableMutation.mutate({
+																email: bounce.email,
+															})
+														}
+														disabled={reEnableMutation.isPending}
+													>
+														Re-enable
+													</Button>
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</div>
+						) : (
+							<div className="py-6 text-center">
+								<Mail className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+								<p className="text-muted-foreground">
+									No suppressed addresses — all clear
+								</p>
+							</div>
+						)}
+
+						{resetAllMutation.isSuccess && (
+							<p className="mt-3 text-sm text-primary">
+								{resetAllMutation.data.count} address(es) re-enabled
+							</p>
 						)}
 					</CardContent>
 				</Card>
