@@ -505,6 +505,37 @@ registry at `src/server/lib/adapters/background-check/registry.ts`.
 
 ---
 
+# Phase 11 — Volunteer Marketplace & API Platform (planned)
+
+Goal: Transform VolunteerReady from an org-centric SaaS into a two-sided volunteer
+marketplace with network effects, a public REST API, and webhook integrations.
+
+Full plan: [`docs/designs/phase-11-marketplace-api.md`](designs/phase-11-marketplace-api.md)
+
+Planned scope (13 items across 3 sub-phases):
+
+- **11A — Marketplace Foundation:** Cross-org opportunity marketplace with full-text search,
+  org profile pages, basic moderation (report/flag), embeddable opportunity widget
+- **11B — API & Integrations:** Public REST API with SHA-256 hashed API keys, webhook
+  subscriptions with retry (waitUntil + cron sweep), OpenAPI spec via zod-to-openapi,
+  grant/funding tracker for opportunities
+- **11C — Volunteer Experience:** Volunteer-initiated "I'm interested" flow (lighter than
+  full application), referral links with attribution tracking, volunteer streaks and
+  gamification, opportunity digest emails
+
+Architecture decisions: cross-org read via publicProcedure + marketplaceRepository (AD-1),
+SHA-256 hashed API keys (AD-2), webhook retry via waitUntil + cron sweep (AD-3),
+PostgreSQL tsvector for search (AD-4), marketplaceVisible default false (AD-5),
+OpenAPI via zod-to-openapi (AD-6), OpportunityInterest as lightweight alternative
+to full Application (AD-7).
+
+8 new data models: ApiKey, WebhookSubscription, WebhookDelivery, OpportunityInterest,
+ReferralLink, Grant, OpportunityGrant, VolunteerStreak.
+
+12-PR implementation sequence planned across 3 sub-phases.
+
+---
+
 # Platform Principles
 
 Across all phases the platform must maintain:
