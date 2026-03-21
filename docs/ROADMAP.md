@@ -536,6 +536,36 @@ ReferralLink, Grant, OpportunityGrant, VolunteerStreak.
 
 ---
 
+# Phase 12 — Concierge Activation Engine (in progress)
+
+Goal: Build the go-to-market activation system for concierge nonprofit onboarding —
+screening landing page, onboarding tools, referral loop, feedback collection, and
+impact reporting.
+
+Full plan: [`docs/designs/concierge-activation-engine.md`](designs/concierge-activation-engine.md)
+
+Delivered (v0.17.0):
+
+- ✅ Screening wedge landing page (`/screening`) with interactive Switch Cost Calculator
+- ✅ "Powered by VolunteerReady" footer on public apply pages (org-configurable)
+- ✅ Onboarding checklist on staff dashboard (4 milestones, dismissible)
+- ✅ Referral prompt after first background check + referral landing page (`/apply/refer`)
+- ✅ Org feedback survey system — day-7 and day-30 emails with public feedback form
+- ✅ Org feedback cron (`/api/cron/org-feedback`, daily 10:00 UTC)
+- ✅ Onboarding baseline capture (`/app/settings/onboarding`)
+- ✅ Impact report (`/app/impact-report`) — baseline vs platform usage metrics
+
+Key entities added:
+
+- OrgFeedback (orgId, type, responses — unique per org + type)
+- OrgFeedbackType enum (DAY_7, DAY_30)
+- Organization gains: `onboardingBaseline`, `showPoweredBy`, `onboardingComplete`, `referralSource`
+
+This phase establishes **the concierge onboarding playbook** — white-glove activation
+for the first 3 nonprofits, with built-in feedback loops and referral mechanics.
+
+---
+
 # Platform Principles
 
 Across all phases the platform must maintain:
