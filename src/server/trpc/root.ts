@@ -5,6 +5,7 @@ import { authRouter } from '@/server/trpc/routers/auth';
 import { backgroundChecksRouter } from '@/server/trpc/routers/background-checks';
 import { billingRouter } from '@/server/trpc/routers/billing';
 import { bulkImportRouter } from '@/server/trpc/routers/bulk-import';
+import { caseStudyRouter } from '@/server/trpc/routers/case-study';
 import { companyRouter } from '@/server/trpc/routers/company';
 import { credentialSharingRouter } from '@/server/trpc/routers/credentialSharing';
 import { credentialsRouter } from '@/server/trpc/routers/credentials';
@@ -31,6 +32,7 @@ export const appRouter = createTRPCRouter({
 	backgroundChecks: backgroundChecksRouter,
 	billing: billingRouter,
 	bulkImport: bulkImportRouter,
+	caseStudy: caseStudyRouter,
 	company: companyRouter,
 	credentialSharing: credentialSharingRouter,
 	credentials: credentialsRouter,

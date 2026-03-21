@@ -123,6 +123,9 @@ model Organization {
   showPoweredBy               Boolean                  @default(true) // "Powered by VolunteerReady" footer on apply pages
   onboardingComplete          Boolean                  @default(false) // Onboarding checklist dismissed
   referralSource              String?                  // Referral tracking (orgSlug of referring org)
+  // Content Flywheel — case study consent + org branding
+  consentToPublicize          Boolean                  @default(false) // Org consented to public case study
+  logoUrl                     String?                  // Org logo (Vercel Blob URL)
   createdAt                   DateTime                 @default(now())
   updatedAt                   DateTime                 @updatedAt
   members              OrganizationMember[]

@@ -1,5 +1,6 @@
 'use server';
 
+import { isAffirmativeConsent } from '@/server/domain/case-study';
 import { prisma } from '@/server/repositories/prisma';
 
 export async function submitFeedback(formData: FormData) {
@@ -54,6 +55,17 @@ export async function submitFeedback(formData: FormData) {
 			responses,
 		},
 	});
+
+	// Auto-set consentToPublicize when DAY_30 has affirmative consent
+	if (
+		feedbackType === 'DAY_30' &&
+		isAffirmativeConsent(responses.consent_to_publicize)
+	) {
+		await prisma.organization.update({
+			where: { id: org.id },
+			data: { consentToPublicize: true },
+		});
+	}
 
 	return { success: true };
 }
