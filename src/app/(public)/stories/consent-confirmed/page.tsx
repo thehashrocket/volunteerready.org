@@ -1,5 +1,12 @@
 import { CheckCircle } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+	title: 'Consent Confirmed — VolunteerReady',
+	description:
+		'Thank you for agreeing to share your impact story on VolunteerReady.',
+};
 
 type Props = { searchParams: Promise<{ org?: string }> };
 

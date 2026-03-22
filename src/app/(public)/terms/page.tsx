@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 
 export const metadata: Metadata = {
@@ -33,6 +34,12 @@ const sections = [
 export default function TermsPage() {
 	return (
 		<article className="flex flex-col">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: 'Terms of Service', href: '/terms' },
+				]}
+			/>
 			<PublicHero
 				eyebrow="Legal"
 				heading={

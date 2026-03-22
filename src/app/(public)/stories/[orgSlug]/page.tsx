@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { prisma } from '@/server/repositories/prisma';
@@ -25,6 +26,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	return {
 		title: `${org.name} — VolunteerReady Impact Story`,
 		description: `See how ${org.name} transformed their volunteer management with VolunteerReady.`,
+		openGraph: {
+			title: `${org.name} — VolunteerReady Impact Story`,
+			description: `See how ${org.name} transformed their volunteer management with VolunteerReady.`,
+			images: [`/api/og/stories/${orgSlug}`],
+		},
 	};
 }
 
@@ -55,6 +61,12 @@ export default async function StoryPage({ params }: Props) {
 
 	return (
 		<div className="flex flex-col">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: data.orgName, href: `/stories/${orgSlug}` },
+				]}
+			/>
 			{/* ── Hero banner ── */}
 			<section className="bg-[#F5F4F0] px-4 py-20 md:py-24">
 				<div className="mx-auto max-w-2xl">

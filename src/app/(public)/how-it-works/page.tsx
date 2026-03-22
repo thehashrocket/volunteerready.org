@@ -1,6 +1,8 @@
 import { BarChart3, Building2, Heart } from 'lucide-react';
 import type { Metadata } from 'next';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
+import { JsonLdFaq } from '@/components/json-ld-faq';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
@@ -183,6 +185,13 @@ const faqs = [
 export default function HowItWorksPage() {
 	return (
 		<div className="flex flex-col">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: 'How It Works', href: '/how-it-works' },
+				]}
+			/>
+			<JsonLdFaq faqs={faqs.map((f) => ({ question: f.q, answer: f.a }))} />
 			<PublicHero
 				eyebrow="How it works"
 				heading={

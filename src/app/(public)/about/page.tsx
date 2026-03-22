@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
@@ -77,6 +78,12 @@ const milestones = [
 export default function AboutPage() {
 	return (
 		<div className="flex flex-col">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: 'About', href: '/about' },
+				]}
+			/>
 			<PublicHero
 				eyebrow="Our story"
 				heading={

@@ -12,6 +12,7 @@ import {
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
 		title: 'For Nonprofits — VolunteerReady',
 		description:
 			'Screen applicants, run FCRA-compliant background checks, schedule shifts, and issue portable credentials — all in one platform.',
+		images: ['/api/og/page/for-nonprofits'],
 	},
 };
 
@@ -77,6 +79,12 @@ const outcomes = [
 export default function ForNonprofitsPage() {
 	return (
 		<div className="flex flex-col">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: 'For Nonprofits', href: '/for-nonprofits' },
+				]}
+			/>
 			<PublicHero
 				eyebrow="For Nonprofits"
 				heading={

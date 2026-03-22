@@ -2,6 +2,8 @@ import { Check, Minus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
+import { JsonLdFaq } from '@/components/json-ld-faq';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +26,7 @@ export const metadata: Metadata = {
 		title: 'Pricing — VolunteerReady',
 		description:
 			'Simple, transparent pricing for nonprofits and corporations. Free tier available. No credit card required.',
+		images: ['/api/og/page/pricing'],
 	},
 };
 
@@ -111,6 +114,34 @@ const featureComparison: FeatureRow[] = [
 	},
 ];
 
+const pricingFaqs = [
+	{
+		question: 'Is there really a free tier?',
+		answer:
+			'Yes. The Free plan includes up to 3 opportunities, 3 team members, custom screening forms, shift scheduling, and portable credentials — no credit card required.',
+	},
+	{
+		question: 'Can I change plans later?',
+		answer:
+			'Absolutely. You can upgrade or downgrade at any time. Changes take effect immediately and billing is prorated.',
+	},
+	{
+		question: 'What payment methods do you accept?',
+		answer:
+			'We accept all major credit cards. Enterprise customers can pay by invoice with net-30 terms.',
+	},
+	{
+		question: 'Do background checks cost extra?',
+		answer:
+			'Background checks are included in the Pro plan at no additional platform fee. You pay only the provider cost (Checkr or Sterling) per check.',
+	},
+	{
+		question: 'What happens if I exceed my plan limits?',
+		answer:
+			"We'll notify you when you're approaching a limit and suggest an upgrade. We never cut off access to your existing data.",
+	},
+];
+
 function FeatureCell({ value }: { value: string | boolean }) {
 	if (typeof value === 'string')
 		return <span className="text-sm text-foreground">{value}</span>;
@@ -127,6 +158,13 @@ function FeatureCell({ value }: { value: string | boolean }) {
 export default function PricingPage() {
 	return (
 		<div className="flex flex-col">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: 'Pricing', href: '/pricing' },
+				]}
+			/>
+			<JsonLdFaq faqs={pricingFaqs} />
 			<PublicHero
 				eyebrow="Pricing"
 				heading={
@@ -290,6 +328,25 @@ export default function PricingPage() {
 						</Button>
 					</div>
 				</FadeInOnScroll>
+			</section>
+
+			{/* ── FAQ ── */}
+			<section className="mx-auto w-full max-w-2xl px-4 py-20">
+				<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
+					Frequently asked questions
+				</h2>
+				<dl className="space-y-8">
+					{pricingFaqs.map((faq) => (
+						<div key={faq.question}>
+							<dt className="mb-2 font-semibold text-foreground">
+								{faq.question}
+							</dt>
+							<dd className="text-sm leading-relaxed text-muted-foreground">
+								{faq.answer}
+							</dd>
+						</div>
+					))}
+				</dl>
 			</section>
 
 			<CTABanner

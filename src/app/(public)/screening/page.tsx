@@ -10,6 +10,8 @@ import {
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
+import { JsonLdFaq } from '@/components/json-ld-faq';
 import { PublicHero } from '@/components/public-hero';
 import { SwitchCostCalculator } from '@/components/switch-cost-calculator';
 import { TestimonialSection } from '@/components/testimonial-section';
@@ -24,6 +26,7 @@ export const metadata: Metadata = {
 		title: 'Background Checks for Nonprofits — $29/mo | VolunteerReady',
 		description:
 			'Automated volunteer background checks with Checkr & Sterling integration, FCRA compliance, and credential tracking.',
+		images: ['/api/og/page/screening'],
 	},
 };
 
@@ -50,6 +53,29 @@ const features = [
 	},
 ];
 
+const screeningFaqs = [
+	{
+		question: 'What background check providers does VolunteerReady support?',
+		answer:
+			'VolunteerReady integrates with Checkr and Sterling. Connect your existing account in minutes — we handle API integration, status tracking, and webhook processing.',
+	},
+	{
+		question: 'Is the background check process FCRA compliant?',
+		answer:
+			'Yes. VolunteerReady automates the full FCRA compliance workflow including pre-adverse action notices, waiting periods, and final adverse action letters.',
+	},
+	{
+		question: 'How are API keys and credentials stored?',
+		answer:
+			'OAuth tokens and API keys are encrypted at rest with AES-256-GCM. Key rotation is supported. Your provider credentials never sit in plaintext.',
+	},
+	{
+		question: 'Do background check results carry between organizations?',
+		answer:
+			'Yes. Background check results become portable credentials that volunteers carry across every organization on the platform, with configurable expiration dates.',
+	},
+];
+
 const painPoints = [
 	'Manually emailing background check links to each volunteer',
 	'Tracking check statuses in a spreadsheet',
@@ -61,6 +87,13 @@ const painPoints = [
 export default function ScreeningPage() {
 	return (
 		<div className="flex flex-col">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: 'Background Checks', href: '/screening' },
+				]}
+			/>
+			<JsonLdFaq faqs={screeningFaqs} />
 			{/* ── Hero ── */}
 			<PublicHero
 				eyebrow="Background Checks for Nonprofits"
@@ -187,6 +220,25 @@ export default function ScreeningPage() {
 
 			{/* ── Social proof (live testimonials from consented orgs) ── */}
 			<TestimonialSection />
+
+			{/* ── FAQ ── */}
+			<section className="mx-auto w-full max-w-2xl px-4 py-20">
+				<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
+					Frequently asked questions
+				</h2>
+				<dl className="space-y-8">
+					{screeningFaqs.map((faq) => (
+						<div key={faq.question}>
+							<dt className="mb-2 font-semibold text-foreground">
+								{faq.question}
+							</dt>
+							<dd className="text-sm leading-relaxed text-muted-foreground">
+								{faq.answer}
+							</dd>
+						</div>
+					))}
+				</dl>
+			</section>
 
 			{/* ── CTA ── */}
 			<CTABanner

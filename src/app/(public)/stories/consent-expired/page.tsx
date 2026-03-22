@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+	title: 'Link Expired — VolunteerReady',
+	description:
+		'This consent link has expired. Contact us to receive a new one.',
+};
+
 export default function ConsentExpiredPage() {
 	return (
 		<div className="mx-auto max-w-md px-4 py-20">
