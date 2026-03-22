@@ -748,3 +748,30 @@ UI with per-address re-enable + platform admin "Reset All" override. 14 new test
 (6 email + 8 webhook).
 
 **Effort:** ~~M~~ | **Priority:** ~~P3~~
+
+---
+
+## Reference Data & Skill Catalog
+
+### [P3] Admin-Extensible Skill Catalog
+
+**What:** Admin UI + API for orgs to create custom skills scoped to their org, extending
+the platform-wide skill catalog.
+
+**Why:** Different nonprofits need domain-specific skills (e.g., "Equine Therapy" doesn't
+exist in the platform catalog of 14 families / 62 skills). Custom skills unlock org-specific
+matching and make the platform feel tailored to each org's domain.
+
+**Context:** The `Skill` model currently has no `orgId` — all skills are platform-global.
+Custom skills would need either an `orgId` field on `Skill` (nullable, NULL = platform-wide)
+or a separate `OrgSkill` model. The data model decision depends on Phase 3 Matching Engine
+design — the engine will heavily consume skills, and the wrong model forces workarounds.
+The boot guard PR (`thehashrocket/fix-missing-seed-data`) extracts `SKILL_CATALOG` to
+`src/server/domain/reference-data.ts` and adds version tracking via `ReferenceDataMeta`,
+which provides the foundation for catalog extensibility.
+
+**Pros:** Higher matching accuracy; orgs feel the platform fits their domain.
+**Cons:** Complexity in matching engine (org-scoped vs platform skills); moderation concerns
+(inappropriate custom skills); data model decision is blocked by Phase 3 design.
+
+**Effort:** M | **Priority:** P3 | **Depends on:** Phase 3 Matching Engine design decisions
