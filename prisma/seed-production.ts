@@ -1,4 +1,9 @@
-import { prisma, seedSkillCatalog, upsertOrg } from './seed-helpers.js';
+import {
+	backfillDefaultQuestions,
+	prisma,
+	seedSkillCatalog,
+	upsertOrg,
+} from './seed-helpers.js';
 
 // ---------------------------------------------------------------------------
 // Production seed — minimal data required for the app to function.
@@ -24,6 +29,12 @@ export async function seedProduction() {
 	console.log(
 		`   ${skillBySlug.size} skills seeded across ${familyBySlug.size} families\n`,
 	);
+
+	// =========================================================================
+	// 3. Default screener questions for all orgs
+	// =========================================================================
+	console.log('📋 Backfilling default screener questions...');
+	await backfillDefaultQuestions();
 
 	console.log('✅ Production seed complete!');
 	return { skillBySlug, familyBySlug };

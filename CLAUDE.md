@@ -34,8 +34,9 @@ Current commands:
 - `pnpm seed:platform-admins`: migrate `PLATFORM_ADMIN_IDS` env var to DB column (idempotent)
 - `pnpm backfill:default-questions`: seed default screener questions for pre-existing orgs (idempotent, safe to re-run)
 
-Note: the build script (`pnpm build`) runs `pnpm db:seed` and `pnpm backfill:default-questions`
-automatically on every deploy. After a fresh production database setup, also run
+Note: the build script (`pnpm build`) runs `pnpm db:seed` automatically on every deploy,
+which includes the production seed (platform org, skill catalog, and default screener
+question backfill). After a fresh production database setup, also run
 `pnpm seed:production` manually to create the platform org and skill catalog.
 
 ## Test Accounts (dev/staging)
