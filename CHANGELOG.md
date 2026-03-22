@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.8] - 2026-03-22
+
+### Added
+- **Duplicate application prevention** — Authenticated volunteers are blocked from submitting duplicate applications to the same opportunity. A partial unique index on `(submittedByUserId, opportunityId)` enforces this at the DB level, with a P2002 race-condition handler as a safety net.
+- **"Already Applied" badges** — Opportunities listings (`/opportunities/[orgSlug]` and `/app/browse`) show status-aware badges (Pending, In Review, Approved) for opportunities the user has already applied to, with "View My Application" links replacing "Apply now".
+- **Apply form interception** — When an authenticated user navigates to an apply form for an opportunity they've already applied to, they see an interception card with a link to their existing application instead of the form.
+- **Anonymous email soft-block** — Unauthenticated users see a warning when entering an email already used to apply to the same opportunity (advisory only, does not block submission).
+- **Status notification emails** — Branded email notifications sent when application status changes to REVIEW, APPROVED, or REJECTED, with opportunity title and "View My Application" link.
+- **Cross-org applied status** — The browse page (`/app/browse`) fetches applied status across all organizations for the authenticated user.
+- **Migration for dedup constraint** — CTE-based migration that safely removes pre-existing duplicates before adding the partial unique index.
+- **Comprehensive test suite** — 19 backend tests covering dedup guard, P2002 race handling, notification emails, and anonymous checks. 2 component test files for OpportunitiesListing badges and ApplyFormClient interception.
+
+### Fixed
+- **Opportunity ID validation** — Changed `z.string().uuid()` to `z.string().min(1)` on applied-status queries since the project uses CUID IDs, not UUIDs.
+- **Credential sharing on duplicate** — Skip `shareAllOnApply` when a duplicate application is detected, preventing phantom credential-sharing writes.
+
 ## [0.17.7] - 2026-03-22
 
 ### Fixed
