@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ApplyProviders } from '../providers';
 import StatusClient from './status-client';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +23,9 @@ export default function ApplyStatusPage({
 			</p>
 
 			<div className="mt-8">
-				<StatusClient token={searchParams.token ?? null} />
+				<ApplyProviders>
+					<StatusClient token={searchParams.token ?? null} />
+				</ApplyProviders>
 			</div>
 		</main>
 	);
