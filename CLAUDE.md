@@ -37,6 +37,15 @@ Note: seeding does NOT run during `pnpm build` / Vercel deploys. After a fresh
 production database setup, run `pnpm seed:production` manually to create the
 platform org and skill catalog.
 
+## Test Accounts (dev/staging)
+
+`pnpm seed:dev` creates dedicated test accounts for local development and QA:
+- `orgadmin@volunteermatch.local` — Org OWNER (Helping Hands)
+- `companyadmin@volunteermatch.local` — Company Admin
+- `volunteer@volunteermatch.local` — Volunteer
+
+Use the magic link flow to sign in. Auth cookie name: `next-auth.session-token`.
+
 ## Coding Style & Naming Conventions
 
 Prefer 2-space indentation for JavaScript/TypeScript and 4-space for Python.
