@@ -5,7 +5,7 @@ Branch: thehashrocket/fix-missing-seed-data | Mode: SELECTIVE EXPANSION
 
 ## Problem
 
-The skill catalog (14 families, 62 skills) lives entirely in seed data
+The skill catalog (13 families, 62 skills) lives entirely in seed data
 (`prisma/seed-helpers.ts`). Production seeding is manual (`pnpm seed:production`).
 If the seed hasn't run, the `matching.getSkillCatalog` tRPC query returns an
 empty array, and volunteers see an empty combobox on `/app/my-skills` with no
@@ -120,7 +120,7 @@ REQUEST ──▶ tRPC matching.getSkillCatalog
 6. Unit: Concurrent calls await single seeding promise (dedup)
 7. Unit: Re-seeds when CATALOG_VERSION exceeds stored version
 8. Unit: Seeding error does not set _seeded flag, logs error, does not throw
-9. Integration: Call on empty DB → verify 14 families, 62 skills
+9. Integration: Call on empty DB → verify 13 families, 62 skills
 10. Integration: Call twice → verify no duplicates
 11. UI: Catalog empty → shows empty state with auto-retry message
 

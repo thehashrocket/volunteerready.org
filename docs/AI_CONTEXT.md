@@ -145,7 +145,7 @@ src/
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
 │       ├── notification.ts        # Notification types and domain functions
 │       ├── org-health.ts          # Org health score (computeOrgHealth, 0-100, four 25-pt metrics)
-│       ├── reference-data.ts      # SKILL_CATALOG (14 families, 62 skills), CATALOG_VERSION, PLATFORM_ORG_SLUG
+│       ├── reference-data.ts      # SKILL_CATALOG (13 families, 62 skills), CATALOG_VERSION, PLATFORM_ORG_SLUG
 │       ├── screener/
 │       │   ├── configSchema.ts     # Zod schemas for screening question config
 │       │   ├── publicForm.ts       # Public form type mapping

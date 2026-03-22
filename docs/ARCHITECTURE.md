@@ -100,7 +100,7 @@ Key files:
 - `credential-sharing.ts` — share token lifecycle guards, expiry computation
 - `esg-report.ts` — ESG report types, CSV formatting, formula injection defense
 - `org-health.ts` — `computeOrgHealth()` pure domain function — 0-100 org health score with four 25-pt metrics and next actionable tip
-- `reference-data.ts` — `SKILL_CATALOG` constant (14 families, 62 skills), `CATALOG_VERSION`, `PLATFORM_ORG_SLUG`; imported by both `referenceDataService` and `prisma/seed-helpers.ts`
+- `reference-data.ts` — `SKILL_CATALOG` constant (13 families, 62 skills), `CATALOG_VERSION`, `PLATFORM_ORG_SLUG`; imported by both `referenceDataService` and `prisma/seed-helpers.ts`
 
 ---
 

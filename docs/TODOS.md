@@ -759,7 +759,7 @@ UI with per-address re-enable + platform admin "Reset All" override. 14 new test
 the platform-wide skill catalog.
 
 **Why:** Different nonprofits need domain-specific skills (e.g., "Equine Therapy" doesn't
-exist in the platform catalog of 14 families / 62 skills). Custom skills unlock org-specific
+exist in the platform catalog of 13 families / 62 skills). Custom skills unlock org-specific
 matching and make the platform feel tailored to each org's domain.
 
 **Context:** The `Skill` model currently has no `orgId` — all skills are platform-global.
