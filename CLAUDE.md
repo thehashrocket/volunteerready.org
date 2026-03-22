@@ -181,6 +181,37 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/designs/reference-data-boot-guard.md` — Reference Data Boot Guard design doc (self-healing skill catalog + platform org)
 - `docs/TODOS.md` - todos for the current project
 
+## gstack
+
+Use the `/browse` skill from gstack for all web browsing. Never use `mcp__claude-in-chrome__*` tools.
+
+Available gstack skills:
+- `/office-hours` — brainstorm and validate ideas
+- `/plan-ceo-review` — CEO/founder-mode plan review
+- `/plan-eng-review` — engineering architecture review
+- `/plan-design-review` — designer's eye plan review
+- `/design-consultation` — create a design system / DESIGN.md
+- `/review` — pre-landing PR code review
+- `/ship` — ship workflow (test, review, PR)
+- `/land-and-deploy` — merge PR and verify production
+- `/canary` — post-deploy canary monitoring
+- `/benchmark` — performance regression detection
+- `/browse` — headless browser for QA and testing
+- `/qa` — systematically QA test and fix bugs
+- `/qa-only` — QA report without fixes
+- `/design-review` — visual design audit and fixes
+- `/setup-browser-cookies` — import cookies for authenticated testing
+- `/setup-deploy` — configure deployment settings
+- `/retro` — weekly engineering retrospective
+- `/investigate` — systematic debugging with root cause analysis
+- `/document-release` — post-ship documentation update
+- `/codex` — second opinion via OpenAI Codex CLI
+- `/careful` — safety guardrails for destructive commands
+- `/freeze` — restrict edits to a specific directory
+- `/guard` — full safety mode (careful + freeze)
+- `/unfreeze` — remove edit restrictions
+- `/gstack-upgrade` — upgrade gstack to latest version
+
 ## LLMs documentation
 
 - Prisma 7.2.0: <https://www.prisma.io/llms.txt>
