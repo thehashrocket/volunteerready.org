@@ -1,7 +1,7 @@
 import {
 	ApplicationStatus,
 	OpportunityStatus,
-	type Prisma,
+	Prisma,
 	type ScreeningStatus,
 } from '@/prisma/generated/client';
 import { parseConfigJson } from '@/server/domain/screener/configSchema';
@@ -18,7 +18,10 @@ import {
 	findMemberByUserAndOrg,
 	touchMemberActivity,
 } from '@/server/repositories/reengagement-repo';
-import { getActiveQuestions } from '@/server/repositories/volunteer-applications';
+import {
+	findActiveApplicationByUserAndOpportunity,
+	getActiveQuestions,
+} from '@/server/repositories/volunteer-applications';
 import { tryNotify } from '@/server/services/notificationService';
 import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
@@ -28,6 +31,21 @@ interface SubmitVolunteerApplicationPayload {
 	opportunityId?: string | null;
 	profile: VolunteerProfile;
 	responses: ScreenerResponse[];
+}
+
+/** Build a consistent return shape for duplicate application detection. */
+function buildDuplicateResponse(existing: {
+	id: string;
+	status: string;
+	submittedAt: Date;
+}) {
+	return {
+		applicationId: existing.id,
+		status: existing.status as ApplicationStatus,
+		screeningStatus: 'REVIEW' as ScreeningStatus,
+		screeningReasons: [] as string[],
+		duplicate: true as const,
+	};
 }
 
 export function mapQuestion(question: {
@@ -98,52 +116,88 @@ export async function submitVolunteerApplication(
 		validatedOpportunityId = opp?.id ?? null;
 	}
 
-	// Application + answers + audit all committed atomically
-	const application = await prisma.$transaction(async (tx) => {
-		const app = await tx.volunteerApplication.create({
-			data: {
-				orgId,
-				opportunityId: validatedOpportunityId,
-				submittedByUserId: payload.submittedByUserId ?? null,
-				submittedByEmail: payload.submittedByEmail,
-				status: ApplicationStatus.SUBMITTED,
-				screeningStatus,
-				screeningReasons,
-			},
-		});
-
-		if (payload.responses.length > 0) {
-			await tx.volunteerAnswer.createMany({
-				data: payload.responses.map((response) => ({
-					applicationId: app.id,
-					questionId: response.questionId,
-					answerJson: { value: response.value } as Prisma.InputJsonValue,
-				})),
-			});
-		}
-
-		await writeAuditLogTx(tx, {
+	// Dedup guard: prevent duplicate applications for authenticated users
+	if (payload.submittedByUserId && validatedOpportunityId) {
+		const existing = await findActiveApplicationByUserAndOpportunity(
 			orgId,
-			action: 'volunteer_application.submitted',
-			entityType: 'VolunteerApplication',
-			entityId: app.id,
-			metadata: {
-				submittedByEmail: payload.submittedByEmail,
-				opportunityId: validatedOpportunityId,
-				screeningStatus,
-				profile: payload.profile,
-			},
-		});
+			payload.submittedByUserId,
+			validatedOpportunityId,
+		);
+		if (existing) {
+			return buildDuplicateResponse(existing);
+		}
+	}
 
-		// First-volunteer celebration — exactly-once conditional update.
-		// Only sets the timestamp if it hasn't been set yet (WHERE IS NULL).
-		await tx.organization.updateMany({
-			where: { id: orgId, firstApplicationReceivedAt: null },
-			data: { firstApplicationReceivedAt: new Date() },
-		});
+	// Application + answers + audit all committed atomically
+	let application: Awaited<
+		ReturnType<typeof prisma.volunteerApplication.create>
+	>;
+	try {
+		application = await prisma.$transaction(async (tx) => {
+			const app = await tx.volunteerApplication.create({
+				data: {
+					orgId,
+					opportunityId: validatedOpportunityId,
+					submittedByUserId: payload.submittedByUserId ?? null,
+					submittedByEmail: payload.submittedByEmail,
+					status: ApplicationStatus.SUBMITTED,
+					screeningStatus,
+					screeningReasons,
+				},
+			});
 
-		return app;
-	});
+			if (payload.responses.length > 0) {
+				await tx.volunteerAnswer.createMany({
+					data: payload.responses.map((response) => ({
+						applicationId: app.id,
+						questionId: response.questionId,
+						answerJson: { value: response.value } as Prisma.InputJsonValue,
+					})),
+				});
+			}
+
+			await writeAuditLogTx(tx, {
+				orgId,
+				action: 'volunteer_application.submitted',
+				entityType: 'VolunteerApplication',
+				entityId: app.id,
+				metadata: {
+					submittedByEmail: payload.submittedByEmail,
+					opportunityId: validatedOpportunityId,
+					screeningStatus,
+					profile: payload.profile,
+				},
+			});
+
+			// First-volunteer celebration — exactly-once conditional update.
+			// Only sets the timestamp if it hasn't been set yet (WHERE IS NULL).
+			await tx.organization.updateMany({
+				where: { id: orgId, firstApplicationReceivedAt: null },
+				data: { firstApplicationReceivedAt: new Date() },
+			});
+
+			return app;
+		});
+	} catch (e) {
+		// Race condition: another request created the application between our
+		// dedup check and the INSERT. The partial unique index caught it.
+		if (
+			e instanceof Prisma.PrismaClientKnownRequestError &&
+			e.code === 'P2002' &&
+			payload.submittedByUserId &&
+			validatedOpportunityId
+		) {
+			const existing = await findActiveApplicationByUserAndOpportunity(
+				orgId,
+				payload.submittedByUserId,
+				validatedOpportunityId,
+			);
+			if (existing) {
+				return buildDuplicateResponse(existing);
+			}
+		}
+		throw e;
+	}
 
 	// Fire-and-forget: check if this application unlocks a tenure badge.
 	// Only runs for authenticated users (anonymous submissions have no userId).

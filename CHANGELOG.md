@@ -12,9 +12,21 @@ All notable changes to this project will be documented in this file.
 - **Centralized `BASE_URL` constant** — Extracted canonical production URL to `src/lib/constants.ts`, used by sitemap, robots, JSON-LD, OG images, and root layout metadata.
 - **SEO metadata** — Added `openGraph.images` pointing to dynamic OG endpoints on all major public pages.
 - **Test coverage** — 5 new test files (17 tests) covering OG image route, JSON-LD breadcrumb/FAQ components, sitemap, and robots.
+- **Duplicate application prevention** — Volunteers can no longer accidentally apply twice to the same opportunity. The system enforces this at the database level, with a graceful fallback for race conditions.
+- **"Already Applied" badges** — Opportunity listings now show your application status (Pending, In Review, Approved) with a "View My Application" link replacing the Apply button.
+- **Apply form interception** — Navigating to an opportunity you've already applied to shows a friendly "You're already on the list!" card with a link to your existing application.
+- **Anonymous email soft-block** — Unauthenticated applicants see a warning if their email was already used to apply to the same opportunity (advisory only, does not block submission).
+- **Status notification emails** — You now receive branded email notifications when your application status changes to In Review, Approved, or Rejected, with a direct link to view your application.
+- **Cross-org applied status** — The Browse Opportunities page shows your applied status across all organizations, not just the current one.
+- **Safe migration** — Pre-existing duplicate applications are automatically cleaned up when the migration runs.
+- **Comprehensive test suite** — 21 backend tests and 2 component test files covering the full dedup flow, race conditions, notification emails, and input validation.
 
 ### Changed
 - **Biome config** — Added `noDangerouslySetInnerHtml: "error"` rule with targeted biome-ignore comments for legitimate JSON-LD usage.
+
+### Fixed
+- **Applied badges on Browse page** — Fixed a validation error that prevented applied-status badges from appearing on the Browse Opportunities page. The system was rejecting valid opportunity IDs due to an incorrect UUID format check.
+- **Credential sharing on duplicate** — Duplicate applications no longer trigger phantom credential-sharing writes.
 
 ## [0.17.7] - 2026-03-22
 

@@ -2,6 +2,7 @@
 
 import {
 	Calendar,
+	CheckCircle2,
 	Clock,
 	MapPin,
 	Search,
@@ -10,6 +11,7 @@ import {
 	Wifi,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
@@ -18,6 +20,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { formatDateRange } from '@/lib/format-date';
+import { trpc } from '@/lib/trpc/client';
+import type { ApplicationStatus } from '@/prisma/generated/client';
 import type { MatchResult } from '@/server/domain/volunteer-matching';
 import type { listAllPublishedOpportunities } from '@/server/repositories/publicOpportunityRepo';
 
@@ -44,6 +48,33 @@ function tagVariant(name: string): (typeof TAG_PALETTES)[number] {
 		hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
 	return TAG_PALETTES[Math.abs(hash) % TAG_PALETTES.length];
 }
+
+type AppliedApp = {
+	applicationId: string;
+	status: ApplicationStatus;
+	submittedAt: Date | string;
+};
+
+const APPLIED_BADGE_CONFIG: Record<
+	string,
+	{ label: string; textClass: string; borderClass: string }
+> = {
+	SUBMITTED: {
+		label: 'Applied — Pending',
+		textClass: 'text-amber-700 border-amber-700',
+		borderClass: 'border-l-amber-700',
+	},
+	REVIEW: {
+		label: 'Applied — In Review',
+		textClass: 'text-blue-700 border-blue-700',
+		borderClass: 'border-l-blue-700',
+	},
+	APPROVED: {
+		label: 'Applied — Approved',
+		textClass: 'text-[#2D7A4F] border-[#2D7A4F]',
+		borderClass: 'border-l-[#2D7A4F]',
+	},
+};
 
 // ---------------------------------------------------------------------------
 // RequirementChips
@@ -119,14 +150,26 @@ function MatchBadge({ match }: { match: MatchResult }) {
 function OpportunityCard({
 	opp,
 	matchResult,
+	appliedApp,
 }: {
 	opp: Opportunity;
 	matchResult?: MatchResult | null;
+	appliedApp?: AppliedApp | null;
 }) {
 	const dateRange = formatDateRange(opp.startDate, opp.endDate);
+	const isApplied = appliedApp != null;
+	const badgeConfig = isApplied
+		? APPLIED_BADGE_CONFIG[appliedApp.status]
+		: null;
 
 	return (
-		<Card className="group flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+		<Card
+			className={`group flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+				isApplied && badgeConfig
+					? `border-l-[3px] ${badgeConfig.borderClass}`
+					: ''
+			}`}
+		>
 			<CardContent className="flex flex-1 flex-col p-6">
 				{/* Org name */}
 				<p className="mb-2 text-xs font-medium text-muted-foreground">
@@ -148,6 +191,16 @@ function OpportunityCard({
 						</Badge>
 					)}
 					{matchResult && <MatchBadge match={matchResult} />}
+					{isApplied && badgeConfig && (
+						<Badge
+							variant="outline"
+							className={badgeConfig.textClass}
+							aria-label="You have already applied to this opportunity"
+						>
+							<CheckCircle2 className="h-3 w-3" />
+							{badgeConfig.label}
+						</Badge>
+					)}
 				</div>
 
 				{/* Title */}
@@ -200,13 +253,23 @@ function OpportunityCard({
 				{/* Requirements */}
 				<RequirementChips requirements={opp.requirements} />
 
-				<Button asChild className="mt-auto w-full">
+				{/* CTA: Apply now vs View My Application */}
+				{isApplied ? (
 					<Link
-						href={`/apply/${opp.organization.slug}?opportunityId=${opp.id}`}
+						href={`/app/my-applications/${appliedApp.applicationId}`}
+						className="mt-auto inline-flex min-h-[44px] items-center justify-center py-3 text-sm font-medium text-[#2D7A4F] transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
 					>
-						Apply now
+						View My Application &rarr;
 					</Link>
-				</Button>
+				) : (
+					<Button asChild className="mt-auto w-full">
+						<Link
+							href={`/apply/${opp.organization.slug}?opportunityId=${opp.id}`}
+						>
+							Apply now
+						</Link>
+					</Button>
+				)}
 			</CardContent>
 		</Card>
 	);
@@ -246,6 +309,19 @@ export function BrowseOpportunities({
 	const [sortBy, setSortBy] = useState<SortBy>(
 		hasMatching ? 'best-match' : 'newest',
 	);
+
+	// Fetch applied status for authenticated users (cross-org)
+	const { status: authStatus } = useSession();
+	const isAuthenticated = authStatus === 'authenticated';
+	const opportunityIds = useMemo(
+		() => opportunities.map((o) => o.id),
+		[opportunities],
+	);
+	const appliedQuery = trpc.screener.getMyAppliedOpportunitiesCrossOrg.useQuery(
+		{ opportunityIds },
+		{ enabled: isAuthenticated && opportunityIds.length > 0 },
+	);
+	const appliedMap = appliedQuery.data ?? {};
 
 	// Unique orgs
 	const allOrgs = useMemo(() => {
@@ -485,6 +561,7 @@ export function BrowseOpportunities({
 									key={opp.id}
 									opp={opp}
 									matchResult={matchResults?.[opp.id]}
+									appliedApp={appliedMap[opp.id] as AppliedApp | undefined}
 								/>
 							))}
 						</div>
