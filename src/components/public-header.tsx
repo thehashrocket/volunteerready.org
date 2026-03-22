@@ -15,9 +15,9 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
-import { TRPCProvider } from '@/lib/trpc/provider';
 import { trpc } from '@/lib/trpc/client';
+import { TRPCProvider } from '@/lib/trpc/provider';
+import { cn } from '@/lib/utils';
 
 const navLinks = [
 	{ label: 'For Volunteers', href: '/for-volunteers' },
