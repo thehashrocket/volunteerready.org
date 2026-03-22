@@ -14,6 +14,7 @@
 		"seed:production": "cross-env NODE_ENV=production tsx prisma/seed-production.ts",
 		"seed:dev": "tsx prisma/seed-dev.ts",
 		"backfill:activity": "tsx scripts/backfill-activity.ts",
+		"backfill:default-questions": "tsx scripts/backfill-default-questions.ts",
 		"reencrypt-tokens": "tsx scripts/reencrypt-tokens.ts",
 		"admin:grant": "tsx scripts/admin-grant.ts",
 		"admin:revoke": "tsx scripts/admin-grant.ts --revoke",

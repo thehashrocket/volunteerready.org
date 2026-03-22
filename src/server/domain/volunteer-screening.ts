@@ -214,7 +214,7 @@ export const DEFAULT_SCREENER_QUESTIONS: DefaultScreenerQuestion[] = [
 		configJson: {
 			required: true,
 			rules: {
-				disqualifierRule: true,
+				disqualifierRule: { operator: 'equals', value: false },
 				reason: 'Must be 18 years of age or older.',
 			},
 		},
@@ -227,7 +227,7 @@ export const DEFAULT_SCREENER_QUESTIONS: DefaultScreenerQuestion[] = [
 		configJson: {
 			required: true,
 			rules: {
-				disqualifierRule: true,
+				disqualifierRule: { operator: 'equals', value: false },
 				reason: 'Background check consent is required.',
 			},
 		},
