@@ -18,7 +18,11 @@ import {
 	listMyApplications,
 } from '@/server/services/my-applications';
 import {
+	checkAnonymousEmailApplication,
+	checkExistingApplicationForUser,
 	dismissOnboardingChecklist,
+	getAppliedOpportunitiesCrossOrg,
+	getAppliedOpportunitiesForUser,
 	getImpactReport,
 	getOnboardingBaseline,
 	getOrgActivityFeed,
@@ -36,7 +40,10 @@ import {
 	protectedProcedure,
 	publicProcedure,
 } from '@/server/trpc/init';
-import { rateLimitByIp } from '@/server/trpc/rate-limit-middleware';
+import {
+	rateLimitByIp,
+	rateLimitByUser,
+} from '@/server/trpc/rate-limit-middleware';
 
 // ---------------------------------------------------------------------------
 // configJson helpers
@@ -132,9 +139,11 @@ export const screenerRouter = createTRPCRouter({
 
 			// "Bring my credentials" — share all verified creds with this org
 			// Silently ignored for unauthenticated users (no userId to look up)
+			// Skipped for duplicate submissions (no new application was created)
 			// Wrapped in try/catch: credential sharing must not fail the application
+			const isDuplicate = 'duplicate' in result && result.duplicate;
 			const userId = ctx.session?.user?.id;
-			if (input.shareCredentials && userId) {
+			if (input.shareCredentials && userId && !isDuplicate) {
 				try {
 					const { shareAllOnApply } = await import(
 						'@/server/services/credentialShareService'
@@ -282,6 +291,102 @@ export const screenerRouter = createTRPCRouter({
 				throw new Error('Missing session user');
 			}
 			return getMyApplicationStatusTimeline(userId, input.id);
+		}),
+
+	/**
+	 * Check if the current user has already applied to a specific opportunity.
+	 * Used by the apply form to show the interception card.
+	 */
+	checkExistingApplication: protectedProcedure
+		.input(
+			z.object({
+				orgId: z.string().min(1),
+				opportunityId: z.string().min(1),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.session?.user?.id;
+			if (!userId) return null;
+			return checkExistingApplicationForUser(
+				input.orgId,
+				userId,
+				input.opportunityId,
+			);
+		}),
+
+	/**
+	 * For a list of opportunity IDs, return which ones the user has already applied to.
+	 * Used by the opportunities listing to show "Already Applied" badges.
+	 */
+	getMyAppliedOpportunities: protectedProcedure
+		.use(
+			rateLimitByUser({
+				limit: 30,
+				windowSeconds: 60,
+				prefix: 'screener:applied',
+			}),
+		)
+		.input(
+			z.object({
+				orgId: z.string().min(1),
+				opportunityIds: z.array(z.string().min(1)).max(200),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.session?.user?.id;
+			if (!userId) return {};
+			return getAppliedOpportunitiesForUser(
+				input.orgId,
+				userId,
+				input.opportunityIds,
+			);
+		}),
+
+	/**
+	 * Check if an anonymous email has already been used to apply to an opportunity.
+	 * Returns { exists: true } if found; null otherwise. Soft-block only.
+	 */
+	checkAnonymousApplication: publicProcedure
+		.use(
+			rateLimitByIp({
+				limit: 10,
+				windowSeconds: 60,
+				prefix: 'screener:anon-dedup',
+			}),
+		)
+		.input(
+			z.object({
+				orgId: z.string().min(1),
+				email: z.string().email(),
+				opportunityId: z.string().min(1),
+			}),
+		)
+		.query(async ({ input }) => {
+			return checkAnonymousEmailApplication(
+				input.orgId,
+				input.email,
+				input.opportunityId,
+			);
+		}),
+
+	/**
+	 * Cross-org version: returns applied opportunities across all orgs.
+	 * Used by /app/browse which shows opportunities from all organizations.
+	 * Only returns the authenticated user's own data.
+	 */
+	getMyAppliedOpportunitiesCrossOrg: protectedProcedure
+		.use(
+			rateLimitByUser({
+				limit: 30,
+				windowSeconds: 60,
+				prefix: 'screener:applied-cross',
+			}),
+		)
+		.input(z.object({ opportunityIds: z.array(z.string().min(1)).max(200) }))
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.session?.user?.id;
+			if (!userId) return {};
+			return getAppliedOpportunitiesCrossOrg(userId, input.opportunityIds);
 		}),
 
 	// ---- Admin: question management ----

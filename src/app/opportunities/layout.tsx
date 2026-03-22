@@ -1,4 +1,5 @@
 import { PublicHeader } from '@/components/public-header';
+import { OpportunitiesProviders } from './providers';
 
 export default function OpportunitiesLayout({
 	children,
@@ -6,9 +7,9 @@ export default function OpportunitiesLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<>
+		<OpportunitiesProviders>
 			<PublicHeader />
 			{children}
-		</>
+		</OpportunitiesProviders>
 	);
 }

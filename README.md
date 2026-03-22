@@ -92,6 +92,8 @@ Status lifecycle: SUBMITTED -> REVIEW -> APPROVED / REJECTED
 
 Screening result: PASS / REVIEW / FAIL (auto-evaluated by disqualifier and review rules)
 
+Duplicate prevention: authenticated volunteers cannot submit duplicate applications to the same opportunity. A partial unique index enforces this at the database level. Applied-status badges appear on opportunity listings, and the apply form redirects already-applied users to their existing application.
+
 ---
 
 ## ScreenerQuestion

@@ -751,6 +751,55 @@ UI with per-address re-enable + platform admin "Reset All" override. 14 new test
 
 ---
 
+## Dedupe Volunteer Applications
+
+### [P3] Email-Based Dedup for Anonymous Applicants
+
+**What:** Check by email whether an anonymous (unauthenticated) visitor has already applied
+to the same opportunity, and show a warning if so.
+
+**Why:** The auth-only dedup (v1) covers most cases since authenticated volunteers have
+a `submittedByUserId`. But anonymous visitors can submit duplicate applications with the
+same email address, creating extra work for org admins reviewing applications.
+
+**Context:** Deferred from the dedupe-volunteer-apply PR because auth-only dedup covers
+the primary use case. Email matching introduces complexity: typos, aliases (user+tag@),
+shared emails, and privacy implications (confirming an email exists in the system).
+The backend unique constraint is on `(submittedByUserId, opportunityId)` where userId
+is NOT NULL, so anonymous duplicates are not blocked at the DB level.
+
+**Pros:** Catches duplicate submissions from unauthenticated repeat visitors.
+**Cons:** Privacy risk (email existence confirmation); complexity of email normalization;
+edge cases with shared/family email addresses.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Auth-only dedup implementation (this PR)
+
+---
+
+### [P2] Application Withdrawal / Cancel Flow
+
+**What:** Allow volunteers to withdraw/cancel their application from the My Applications
+detail page, adding a self-service "un-apply" capability.
+
+**Why:** With the dedup unique constraint, a volunteer who applied by mistake is permanently
+blocked from that opportunity (unless an admin manually rejects the application). Withdrawal
+gives volunteers control over their own applications and reduces admin burden for accidental
+submissions.
+
+**Context:** Requires a new `WITHDRAWN` status in the `ApplicationStatus` enum and an update
+to the partial unique index to exclude both REJECTED and WITHDRAWN statuses. The My Applications
+detail page (`src/app/(app)/app/my-applications/[id]/page.tsx`) would need a "Withdraw Application"
+button with confirmation dialog. The workaround until this ships: admin rejects the application,
+which enables re-apply via the existing dedup flow.
+
+**Pros:** Self-service for volunteers; reduces admin support requests; natural complement to dedup.
+**Cons:** New status adds to the state machine; partial index needs updating; UX for "are you sure?"
+confirmation; edge case if org has already started processing the application.
+
+**Effort:** S | **Priority:** P2 | **Depends on:** Dedupe volunteer apply PR (partial unique index)
+
+---
+
 ## Reference Data & Skill Catalog
 
 ### [P3] Admin-Extensible Skill Catalog

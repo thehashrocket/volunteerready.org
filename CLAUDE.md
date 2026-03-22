@@ -150,6 +150,9 @@ docs/
 - Public stories: `src/app/(public)/stories/[orgSlug]/page.tsx`, consent pages at `stories/consent-confirmed` and `stories/consent-expired`
 - Case study API: consent flow at `src/app/api/case-study/consent/route.ts` (GET confirmation + POST mutation), PDF at `src/app/api/case-study/pdf/route.ts`
 - Testimonials: `src/components/testimonial-section.tsx` + `src/components/testimonial-block.tsx` (screening landing page)
+- Duplicate application prevention: partial unique index on `(submittedByUserId, opportunityId)` WHERE status NOT IN (REJECTED). P2002 race-condition handler in `volunteer-screening.ts`. Applied-status badges on opportunity listings. Apply form interception for already-applied users.
+- Status notification emails: branded emails sent on application status change (REVIEW/APPROVED/REJECTED) via `sendApplicationStatusEmail()` in `volunteer-screening.ts`
+- Public route auth providers: `src/app/opportunities/providers.tsx` wraps `SessionProvider` + `TRPCProvider` for public route groups that need auth-aware UI (e.g., applied-status badges)
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.
@@ -179,6 +182,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/designs/concierge-activation-engine.md` — Phase 12 plan (concierge activation engine)
 - `docs/designs/rbac-foundation.md` — RBAC foundation design doc (permissions, advisory middleware, platform admin)
 - `docs/designs/reference-data-boot-guard.md` — Reference Data Boot Guard design doc (self-healing skill catalog + platform org)
+- `docs/designs/dedupe-volunteer-apply.md` — Duplicate application prevention design doc (partial unique index, applied badges, status emails)
 - `docs/TODOS.md` - todos for the current project
 
 ## gstack
