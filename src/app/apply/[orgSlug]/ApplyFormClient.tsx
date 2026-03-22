@@ -1,7 +1,16 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar, Clock, MapPin, ShieldCheck, Wifi } from 'lucide-react';
+import {
+	Calendar,
+	Clock,
+	Handshake,
+	MapPin,
+	ShieldCheck,
+	Wifi,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -104,32 +113,7 @@ export default function ApplyFormClient({
 	});
 
 	if (submitted) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>Thanks — we got it.</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-3">
-					<p className="text-muted-foreground">
-						Your application to{' '}
-						<span className="font-medium text-foreground">{org.name}</span>
-						{opportunity && (
-							<>
-								{' '}
-								for{' '}
-								<span className="font-medium text-foreground">
-									{opportunity.title}
-								</span>
-							</>
-						)}{' '}
-						has been submitted.
-					</p>
-					<p className="text-muted-foreground">
-						If they're a match, they'll follow up with next steps.
-					</p>
-				</CardContent>
-			</Card>
-		);
+		return <SuccessCard org={org} opportunity={opportunity} />;
 	}
 
 	function onSubmit(values: FormValues) {
@@ -336,6 +320,79 @@ export default function ApplyFormClient({
 				</CardContent>
 			</Card>
 		</>
+	);
+}
+
+function SuccessCard({
+	org,
+	opportunity,
+}: {
+	org: { name: string; slug: string };
+	opportunity: LinkedOpportunity | null;
+}) {
+	const { data: session, status } = useSession();
+	const isAuthenticated = status === 'authenticated' && !!session?.user;
+
+	return (
+		<Card>
+			<CardHeader>
+				<div className="flex items-center gap-3">
+					<Handshake className="h-6 w-6 text-primary/60" />
+					<CardTitle>Thanks — we got it.</CardTitle>
+				</div>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				<p className="text-muted-foreground">
+					Your application to{' '}
+					<span className="font-medium text-foreground">{org.name}</span>
+					{opportunity && (
+						<>
+							{' '}
+							for{' '}
+							<span className="font-medium text-foreground">
+								{opportunity.title}
+							</span>
+						</>
+					)}{' '}
+					has been submitted.
+				</p>
+
+				{isAuthenticated ? (
+					<>
+						<p className="text-muted-foreground">
+							You can track your application status anytime from your dashboard.
+						</p>
+						<div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
+							<Button asChild>
+								<Link href="/app/my-applications">View My Applications</Link>
+							</Button>
+							<Button variant="outline" asChild>
+								<Link href={`/opportunities/${org.slug}`}>
+									Browse More Opportunities
+								</Link>
+							</Button>
+						</div>
+						<Link
+							href="/app/profile"
+							className="inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
+						>
+							Edit Profile
+						</Link>
+					</>
+				) : (
+					<>
+						<p className="text-muted-foreground">
+							If they're a match, they'll follow up with next steps.
+						</p>
+						<div className="pt-2">
+							<Button variant="outline" asChild>
+								<Link href="/apply/status">Check Application Status</Link>
+							</Button>
+						</div>
+					</>
+				)}
+			</CardContent>
+		</Card>
 	);
 }
 
