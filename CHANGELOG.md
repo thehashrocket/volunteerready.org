@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **Matching router** — `getSkillCatalog` now routes through the service layer (with boot guard) instead of calling the repository directly.
 - **Tenure badge service** — Now calls `ensureReferenceData()` before platform org lookup and imports `PLATFORM_ORG_SLUG` from the canonical domain module.
+- **About page** — Replaced fictional team bios and origin story with the real founder story. Jason and Trisha Shultz are now featured as cofounders with authentic bios and photos from their 35 years of volunteering.
 
 ## [0.17.3] - 2026-03-21
 
