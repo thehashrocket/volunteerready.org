@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.5] - 2026-03-21
+
+### Fixed
+- **Volunteer profile save** — Fixed `AuditLog_orgId_fkey` foreign key constraint error when volunteers save their profile. The audit log was using a bogus `'SYSTEM'` org ID instead of `null` for org-less actions.
+
 ## [0.17.4] - 2026-03-22
 
 ### Added
