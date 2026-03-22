@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 		title: 'Security & Compliance — VolunteerReady',
 		description:
 			'How VolunteerReady protects volunteer data, ensures FCRA compliance, and maintains trust across every organization.',
+		images: [{ url: '/api/og/page/security', width: 1200, height: 630 }],
 	},
 };
 

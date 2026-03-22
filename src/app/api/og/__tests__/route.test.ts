@@ -86,6 +86,11 @@ describe('OG Image Route', () => {
 			'for-nonprofits',
 			'for-volunteers',
 			'for-employers',
+			'about',
+			'how-it-works',
+			'security',
+			'privacy',
+			'terms',
 		];
 		for (const slug of validSlugs) {
 			const res = await GET(...makeRequest('page', slug));

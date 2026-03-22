@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 	openGraph: {
 		title: 'Terms of Service — VolunteerReady',
 		description: 'Terms and conditions for using the VolunteerReady platform.',
+		images: [{ url: '/api/og/page/terms', width: 1200, height: 630 }],
 	},
 };
 

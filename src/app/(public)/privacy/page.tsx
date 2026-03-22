@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 		title: 'Privacy Policy — VolunteerReady',
 		description:
 			'How VolunteerReady collects, uses, stores, and protects your data.',
+		images: [{ url: '/api/og/page/privacy', width: 1200, height: 630 }],
 	},
 };
 

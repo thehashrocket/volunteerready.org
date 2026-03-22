@@ -49,6 +49,26 @@ const PAGE_META: Record<string, { heading: string; subheading: string }> = {
 		heading: 'Track Employee Volunteering & ESG Impact',
 		subheading: 'For Employers',
 	},
+	about: {
+		heading: 'The Story Behind VolunteerReady',
+		subheading: 'About Us',
+	},
+	'how-it-works': {
+		heading: 'From Sign-Up to Verified Service Record',
+		subheading: 'How It Works',
+	},
+	security: {
+		heading: 'Data Protection & FCRA Compliance',
+		subheading: 'Security & Compliance',
+	},
+	privacy: {
+		heading: 'How We Collect, Use & Protect Your Data',
+		subheading: 'Privacy Policy',
+	},
+	terms: {
+		heading: 'Terms & Conditions for the Platform',
+		subheading: 'Terms of Service',
+	},
 };
 
 function getHeading(type: OgType, orgName: string, slug: string): string {

@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 		title: 'About Us — VolunteerReady',
 		description:
 			'The story behind VolunteerReady — why we built the trusted infrastructure for volunteer engagement.',
+		images: [{ url: '/api/og/page/about', width: 1200, height: 630 }],
 	},
 };
 

@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 		title: 'How It Works — VolunteerReady',
 		description:
 			'See how VolunteerReady works for volunteers, nonprofits, and corporate CSR programs.',
+		images: [{ url: '/api/og/page/how-it-works', width: 1200, height: 630 }],
 	},
 };
 
