@@ -382,7 +382,7 @@ export const screenerRouter = createTRPCRouter({
 				prefix: 'screener:applied-cross',
 			}),
 		)
-		.input(z.object({ opportunityIds: z.array(z.string().uuid()).max(200) }))
+		.input(z.object({ opportunityIds: z.array(z.string().min(1)).max(200) }))
 		.query(async ({ ctx, input }) => {
 			const userId = ctx.session?.user?.id;
 			if (!userId) return {};
