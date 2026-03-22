@@ -205,6 +205,85 @@ export async function listApplicationsWithSkills(
 	});
 }
 
+/**
+ * Find an active (non-REJECTED) application by user + opportunity.
+ * Used for dedup checks on the apply form and submit guard.
+ * orgId scopes the query to the tenant boundary.
+ */
+export async function findActiveApplicationByUserAndOpportunity(
+	orgId: string,
+	userId: string,
+	opportunityId: string,
+) {
+	return prisma.volunteerApplication.findFirst({
+		where: {
+			orgId,
+			submittedByUserId: userId,
+			opportunityId,
+			status: { not: 'REJECTED' },
+		},
+		select: {
+			id: true,
+			status: true,
+			submittedAt: true,
+		},
+	});
+}
+
+/**
+ * For a set of opportunity IDs, return which ones the user has already applied to
+ * (with active/non-REJECTED applications). Used by the opportunities listing.
+ * orgId scopes the query to the tenant boundary.
+ */
+export async function listUserAppliedOpportunities(
+	orgId: string,
+	userId: string,
+	opportunityIds: string[],
+) {
+	if (opportunityIds.length === 0) return [];
+
+	return prisma.volunteerApplication.findMany({
+		where: {
+			orgId,
+			submittedByUserId: userId,
+			opportunityId: { in: opportunityIds },
+			status: { not: 'REJECTED' },
+		},
+		select: {
+			id: true,
+			opportunityId: true,
+			status: true,
+			submittedAt: true,
+		},
+	});
+}
+
+/**
+ * For a set of opportunity IDs, return which ones the user has applied to
+ * across ANY org. Used by the cross-org browse page where there's no single orgId.
+ * Safe because it only returns the authenticated user's own application data.
+ */
+export async function listUserAppliedOpportunitiesCrossOrg(
+	userId: string,
+	opportunityIds: string[],
+) {
+	if (opportunityIds.length === 0) return [];
+
+	return prisma.volunteerApplication.findMany({
+		where: {
+			submittedByUserId: userId,
+			opportunityId: { in: opportunityIds },
+			status: { not: 'REJECTED' },
+		},
+		select: {
+			id: true,
+			opportunityId: true,
+			status: true,
+			submittedAt: true,
+		},
+	});
+}
+
 export async function getRecentApplications(orgId: string, limit: number) {
 	return prisma.volunteerApplication.findMany({
 		where: { orgId },

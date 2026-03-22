@@ -1,16 +1,31 @@
 import type { ApplicationStatus } from '@/prisma/generated/client';
+import { sendEmail } from '@/server/lib/email';
+import { buildEmailHtml } from '@/server/lib/email-template';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { countOpportunitiesByStatus } from '@/server/repositories/opportunityRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import {
 	countApplicationsByStatus,
+	findActiveApplicationByUserAndOpportunity,
 	getApplicationDetail,
 	getRecentApplications,
 	getScreenerQuestionsByIds,
 	listApplications,
+	listUserAppliedOpportunities,
+	listUserAppliedOpportunitiesCrossOrg,
 	updateApplicationStatusTx,
 } from '@/server/repositories/volunteer-applications';
+
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
 import {
 	formatAnswerValue,
 	normalizeAnswerValue,
@@ -74,7 +89,7 @@ export async function updateOrgApplicationStatus(
 	status: ApplicationStatus,
 	actorId?: string | null,
 ) {
-	return prisma.$transaction(async (tx) => {
+	const result = await prisma.$transaction(async (tx) => {
 		const { updated, previousStatus } = await updateApplicationStatusTx(
 			tx,
 			orgId,
@@ -91,8 +106,193 @@ export async function updateOrgApplicationStatus(
 			metadata: { from: previousStatus, to: status },
 		});
 
-		return updated;
+		return { updated, previousStatus };
 	});
+
+	// Fire-and-forget: send status change notification email
+	void notifyApplicationStatusChange(
+		result.updated,
+		result.previousStatus,
+		status,
+	);
+
+	return result.updated;
+}
+
+const STATUS_EMAIL_CONFIG: Partial<
+	Record<
+		ApplicationStatus,
+		{
+			subject: (oppTitle: string) => string;
+			heading: string;
+			body: (oppTitle: string) => string;
+		}
+	>
+> = {
+	REVIEW: {
+		subject: (opp) => `Your application for ${opp} is being reviewed`,
+		heading: 'Application update',
+		body: (opp) =>
+			`Good news — your application for <strong>${opp}</strong> is now being reviewed by the team. We'll let you know when there's an update.`,
+	},
+	APPROVED: {
+		subject: (opp) => `Great news! You've been approved for ${opp}`,
+		heading: "You're approved!",
+		body: (opp) =>
+			`Congratulations! Your application for <strong>${opp}</strong> has been approved. The organization will follow up with next steps.`,
+	},
+	REJECTED: {
+		subject: (opp) => `Update on your application for ${opp}`,
+		heading: 'Application update',
+		body: (opp) =>
+			`Thank you for your interest in <strong>${opp}</strong>. Unfortunately, the organization has decided not to move forward with your application at this time. You're welcome to apply for other opportunities.`,
+	},
+};
+
+async function notifyApplicationStatusChange(
+	application: {
+		id: string;
+		submittedByEmail: string;
+		opportunityId: string | null;
+	},
+	previousStatus: ApplicationStatus,
+	newStatus: ApplicationStatus,
+) {
+	try {
+		if (previousStatus === newStatus) return;
+
+		const config = STATUS_EMAIL_CONFIG[newStatus];
+		if (!config) return;
+
+		// Look up opportunity title for the email
+		let oppTitle = 'this opportunity';
+		if (application.opportunityId) {
+			const opp = await prisma.volunteerOpportunity.findUnique({
+				where: { id: application.opportunityId },
+				select: { title: true },
+			});
+			if (opp) oppTitle = escapeHtml(opp.title);
+		}
+
+		const content = `
+			<h2 style="font-size: 20px; margin-bottom: 12px;">${config.heading}</h2>
+			<p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">${config.body(oppTitle)}</p>
+			<a href="${process.env.NEXTAUTH_URL}/app/my-applications/${application.id}"
+				style="display: inline-block; padding: 12px 24px; background-color: #2D7A4F; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">
+				View My Application
+			</a>
+		`;
+
+		await sendEmail(
+			application.submittedByEmail,
+			config.subject(oppTitle),
+			buildEmailHtml(content),
+		);
+	} catch (err) {
+		console.error(
+			'[screener-queries] notifyApplicationStatusChange failed:',
+			err,
+		);
+	}
+}
+
+export async function checkExistingApplicationForUser(
+	orgId: string,
+	userId: string,
+	opportunityId: string,
+) {
+	// Validate the opportunity exists and belongs to this org (prevents cross-org probing)
+	const opp = await prisma.volunteerOpportunity.findFirst({
+		where: { id: opportunityId, orgId },
+		select: { id: true },
+	});
+	if (!opp) return null;
+
+	return findActiveApplicationByUserAndOpportunity(
+		orgId,
+		userId,
+		opportunityId,
+	);
+}
+
+export async function getAppliedOpportunitiesForUser(
+	orgId: string,
+	userId: string,
+	opportunityIds: string[],
+) {
+	const apps = await listUserAppliedOpportunities(
+		orgId,
+		userId,
+		opportunityIds,
+	);
+	return Object.fromEntries(
+		apps
+			.filter((a) => a.opportunityId != null)
+			.map((a) => [
+				a.opportunityId,
+				{
+					applicationId: a.id,
+					status: a.status,
+					submittedAt: a.submittedAt,
+				},
+			]),
+	);
+}
+
+/**
+ * Cross-org version: returns which opportunities the user has applied to
+ * across any org. Used by /app/browse which shows all orgs' opportunities.
+ * Safe because it only returns the authenticated user's own data.
+ */
+export async function getAppliedOpportunitiesCrossOrg(
+	userId: string,
+	opportunityIds: string[],
+) {
+	const apps = await listUserAppliedOpportunitiesCrossOrg(
+		userId,
+		opportunityIds,
+	);
+	return Object.fromEntries(
+		apps
+			.filter((a) => a.opportunityId != null)
+			.map((a) => [
+				a.opportunityId,
+				{
+					applicationId: a.id,
+					status: a.status,
+					submittedAt: a.submittedAt,
+				},
+			]),
+	);
+}
+
+/**
+ * Check if an anonymous email has already been used to apply to a specific opportunity.
+ * Returns a soft-block message; does NOT prevent submission.
+ */
+export async function checkAnonymousEmailApplication(
+	orgId: string,
+	email: string,
+	opportunityId: string,
+) {
+	// Validate opportunity belongs to org
+	const opp = await prisma.volunteerOpportunity.findFirst({
+		where: { id: opportunityId, orgId },
+		select: { id: true },
+	});
+	if (!opp) return null;
+
+	const existing = await prisma.volunteerApplication.findFirst({
+		where: {
+			orgId,
+			submittedByEmail: email,
+			opportunityId,
+			status: { not: 'REJECTED' },
+		},
+		select: { id: true },
+	});
+
+	return existing ? { exists: true } : null;
 }
 
 export async function getPublicScreenerForm(orgSlug: string) {
