@@ -52,13 +52,8 @@ docs/.vitepress/dist
 
 .vercel
 
-# AI tooling — ignore everything except gstack skill
-.claude/*
-!.claude/skills
-.claude/skills/*
-!.claude/skills/gstack
-.claude/skills/gstack/node_modules
-.claude/skills/gstack/bin
+# AI tooling
+.claude/
 VolunteerReady_Action_Plan.docx
 .gstack/
 

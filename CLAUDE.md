@@ -181,30 +181,6 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/designs/reference-data-boot-guard.md` — Reference Data Boot Guard design doc (self-healing skill catalog + platform org)
 - `docs/TODOS.md` - todos for the current project
 
-## gstack
-
-gstack is checked into this repo at `.claude/skills/gstack`. No global install needed — teammates get it automatically.
-
-Use the `/browse` skill from gstack for all web browsing. **Never use `mcp__claude-in-chrome__*` tools.**
-
-Available gstack skills:
-- `/plan-ceo-review` — CEO/founder-mode plan review
-- `/plan-eng-review` — Eng manager-mode plan review
-- `/review` — Pre-landing PR review
-- `/ship` — Ship workflow: merge main, run tests, bump version, create PR
-- `/browse` — Headless browser for QA testing and site dogfooding
-- `/qa` — Systematic QA testing of a web application
-- `/qa-only` — Run QA tests without setup
-- `/setup-browser-cookies` — Import cookies from your real browser into the headless session
-- `/retro` — Weekly engineering retrospective
-- `/document-release` — Document a release
-
-If gstack skills aren't working, run:
-```bash
-cd .claude/skills/gstack && ./setup
-```
-This builds the binary and registers the skills.
-
 ## LLMs documentation
 
 - Prisma 7.2.0: <https://www.prisma.io/llms.txt>
