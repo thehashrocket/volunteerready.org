@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.8] - 2026-03-22
+
+### Added
+- **Dynamic sitemap & robots.txt** — `sitemap.xml` now auto-generates URLs for all public pages plus per-org apply, opportunity, and story routes. `robots.txt` blocks authenticated app routes while allowing the OG image API.
+- **Dynamic OG images** — `/api/og/[type]/[slug]` generates branded Open Graph images using Fraunces + Geist fonts with the VolunteerReady color scheme. Supports page-level images (home, pricing, screening, for-nonprofits, for-volunteers, for-employers) and org-specific images (apply, opportunities, stories).
+- **JSON-LD structured data** — Added `BreadcrumbList` schema to all public pages and `FAQPage` schema to pricing, screening, and how-it-works pages. Organization schema added to root layout.
+- **FAQ sections** — Visible FAQ blocks on pricing (5 questions) and screening (4 questions) pages with matching JSON-LD markup.
+- **Centralized `BASE_URL` constant** — Extracted canonical production URL to `src/lib/constants.ts`, used by sitemap, robots, JSON-LD, OG images, and root layout metadata.
+- **SEO metadata** — Added `openGraph.images` pointing to dynamic OG endpoints on all major public pages.
+- **Test coverage** — 5 new test files (17 tests) covering OG image route, JSON-LD breadcrumb/FAQ components, sitemap, and robots.
+
+### Changed
+- **Biome config** — Added `noDangerouslySetInnerHtml: "error"` rule with targeted biome-ignore comments for legitimate JSON-LD usage.
+
 ## [0.17.7] - 2026-03-22
 
 ### Fixed
