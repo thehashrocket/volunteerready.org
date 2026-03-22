@@ -1,5 +1,6 @@
 import { Heart, Shield, TrendingUp, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { PublicHero } from '@/components/public-hero';
@@ -42,27 +43,6 @@ const values = [
 		name: 'Trust',
 		description:
 			'Nonprofits trust us with their most important resource. Volunteers trust us with their time. We earn both every day.',
-	},
-];
-
-const team = [
-	{
-		name: 'Maya Chen',
-		role: 'Co-Founder & CEO',
-		bio: 'Former nonprofit director who spent years wishing for better tools. Built the platform she always needed.',
-		initials: 'MC',
-	},
-	{
-		name: 'James Okafor',
-		role: 'Co-Founder & CTO',
-		bio: 'Software engineer who volunteered his way through college and never forgot how hard it was to find the right fit.',
-		initials: 'JO',
-	},
-	{
-		name: 'Sofia Reyes',
-		role: 'Head of Community',
-		bio: 'Spent a decade running volunteer programs at food banks and shelters before joining to shape how we build for organizations.',
-		initials: 'SR',
 	},
 ];
 
@@ -113,39 +93,58 @@ export default function AboutPage() {
 				<div className="grid gap-12 sm:grid-cols-2 sm:gap-8">
 					<div>
 						<h2 className="font-display mb-4 text-2xl font-bold text-foreground [text-wrap:balance]">
-							Where we started
+							Why we built this
 						</h2>
 						<p className="leading-relaxed text-muted-foreground">
-							Maya spent years running volunteer programs at a regional food
-							bank. She watched passionate people show up for one shift and
-							disappear — not because they stopped caring, but because the
-							coordination was exhausting. Emails got lost. Paperwork piled up.
-							The wrong people were sent to the wrong roles.
+							For the past 35 years, we've shown up. At food banks. At animal
+							rescues. At spay and neuter clinics in cities we've passed through
+							and towns we've called home. No single cause, just a belief that
+							if you have something to give — time, skill, a pair of hands — you
+							give it.
 						</p>
 						<p className="mt-4 leading-relaxed text-muted-foreground">
-							James had been on the other side — a volunteer who genuinely
-							wanted to help but couldn't figure out which organizations needed
-							what, or how to even get started.
+							Trisha spent decades in animal rescue across California — on the
+							ground, seeing firsthand what organizations need and where they
+							struggle. Jason is a software engineer who put those skills to
+							work for nonprofits that couldn't afford to hire anyone: building
+							websites for animal rescues that needed a real presence without a
+							real budget.
 						</p>
+						<div className="mt-6 overflow-hidden rounded-lg">
+							<Image
+								src="/team/mountain-lake-hike.jpg"
+								alt="Jason and Trisha Shultz hiking at a mountain lake"
+								width={600}
+								height={450}
+								className="h-auto w-full object-cover"
+							/>
+						</div>
 					</div>
 					<div>
 						<h2 className="font-display mb-4 text-2xl font-bold text-foreground [text-wrap:balance]">
-							What we built
+							What it became
 						</h2>
 						<p className="leading-relaxed text-muted-foreground">
-							They met at a community tech night and realized they were
-							describing the same problem from opposite sides. So they built the
-							thing that should have already existed: a platform where
-							nonprofits can screen for fit, schedule shifts, issue credentials,
-							and manage their entire volunteer force — while volunteers can
-							discover causes they care about and carry their record everywhere.
+							This site exists because connecting volunteers with the
+							organizations that need them shouldn't be hard. It should be as
+							easy as showing up.
 						</p>
 						<p className="mt-4 leading-relaxed text-muted-foreground">
-							VolunteerReady launched with one partner organization and a
-							handful of beta volunteers. Today we support dozens of nonprofits,
-							corporate CSR programs, and thousands of people who want to make a
-							difference.
+							So we built the thing that should have already existed: a platform
+							where nonprofits can screen for fit, schedule shifts, issue
+							credentials, and manage their entire volunteer force — while
+							volunteers can discover causes they care about and carry their
+							record everywhere.
 						</p>
+						<div className="mt-6 overflow-hidden rounded-lg">
+							<Image
+								src="/team/hilltop-with-dog.jpg"
+								alt="Jason and Trisha outdoors with their dog on a scenic hilltop"
+								width={600}
+								height={450}
+								className="h-auto w-full object-cover"
+							/>
+						</div>
 					</div>
 				</div>
 			</section>
@@ -217,39 +216,72 @@ export default function AboutPage() {
 				</div>
 			</section>
 
-			{/* ── Team ── */}
+			{/* ── Founders ── */}
 			<section className="bg-[#F5F4F0] px-4 py-16">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-2 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
-						The team
+						The founders
 					</h2>
 					<p className="mb-10 text-center text-muted-foreground">
-						A small group with a big belief: that good people deserve a great
-						way to give back.
+						Two people with a long history of showing up — and the conviction
+						that it should be easier for everyone else to do the same.
 					</p>
-					<div className="grid gap-5 sm:grid-cols-3">
-						{team.map((member, i) => (
-							<FadeInOnScroll key={member.name} delay={i * 75}>
-								<Card className="border-border/70 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-									<CardContent className="flex flex-col items-center gap-4 pb-7 pt-7 text-center">
-										<div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
-											{member.initials}
-										</div>
-										<div>
-											<p className="font-semibold text-foreground">
-												{member.name}
-											</p>
-											<p className="mb-2 text-xs text-primary/80">
-												{member.role}
-											</p>
-											<p className="text-sm leading-relaxed text-muted-foreground">
-												{member.bio}
-											</p>
-										</div>
-									</CardContent>
-								</Card>
-							</FadeInOnScroll>
-						))}
+					<div className="grid gap-5 sm:grid-cols-2">
+						<FadeInOnScroll>
+							<Card className="border-border/70 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
+								<CardContent className="flex flex-col items-center gap-5 pb-8 pt-8 text-center">
+									<div className="relative h-24 w-24 overflow-hidden rounded-full">
+										<Image
+											src="/team/jason-shultz.jpg"
+											alt="Jason Shultz"
+											width={96}
+											height={96}
+											className="h-full w-full object-cover"
+										/>
+									</div>
+									<div>
+										<p className="text-lg font-semibold text-foreground">
+											Jason Shultz
+										</p>
+										<p className="mb-3 text-xs text-primary/80">Cofounder</p>
+										<p className="text-sm leading-relaxed text-muted-foreground">
+											Software engineer and 35-year volunteer. Built websites
+											for animal rescues and nonprofits that needed a real
+											presence without a real budget. Built VolunteerReady
+											because connecting volunteers with organizations shouldn't
+											be hard.
+										</p>
+									</div>
+								</CardContent>
+							</Card>
+						</FadeInOnScroll>
+						<FadeInOnScroll delay={75}>
+							<Card className="border-border/70 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
+								<CardContent className="flex flex-col items-center gap-5 pb-8 pt-8 text-center">
+									<div className="relative h-24 w-24 overflow-hidden rounded-full">
+										<Image
+											src="/team/trisha-shultz.jpg"
+											alt="Trisha Shultz"
+											width={96}
+											height={96}
+											className="h-full w-full object-cover"
+										/>
+									</div>
+									<div>
+										<p className="text-lg font-semibold text-foreground">
+											Trisha Shultz
+										</p>
+										<p className="mb-3 text-xs text-primary/80">Cofounder</p>
+										<p className="text-sm leading-relaxed text-muted-foreground">
+											Decades of experience in animal rescue and volunteering
+											across California. Brings the frontline perspective of
+											what organizations actually need to make volunteer
+											programs work.
+										</p>
+									</div>
+								</CardContent>
+							</Card>
+						</FadeInOnScroll>
 					</div>
 				</div>
 			</section>
