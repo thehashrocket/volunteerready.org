@@ -104,6 +104,8 @@ Status: SUBMITTED | REVIEW | APPROVED | REJECTED
 
 Screening result: PASS | REVIEW | FAIL (auto-evaluated from disqualifier and review rules)
 
+Dedup constraint: partial unique index on `(submittedByUserId, opportunityId)` WHERE `submittedByUserId IS NOT NULL` AND `status NOT IN ('REJECTED')`. Prevents authenticated volunteers from submitting duplicate applications to the same opportunity. Rejected applications are excluded so volunteers can re-apply after rejection. Anonymous (unauthenticated) applications are not covered by this constraint.
+
 ---
 
 ## VolunteerAnswer

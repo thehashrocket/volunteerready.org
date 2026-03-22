@@ -271,6 +271,10 @@ The screening engine lives in `src/server/domain/volunteer-screening.ts`.
 
 The service orchestrator is `src/server/services/volunteer-screening.ts`. It wraps application creation, answer submission, and audit logging in a single `prisma.$transaction`.
 
+**Duplicate prevention:** A partial unique index on `(submittedByUserId, opportunityId)` WHERE `submittedByUserId IS NOT NULL AND status NOT IN ('REJECTED')` prevents authenticated volunteers from double-applying. The service catches P2002 violations as a race-condition safety net. Applied-status badges appear on opportunity listings, and the apply form intercepts already-applied users with a redirect to their existing application.
+
+**Status notification emails:** Branded emails are sent when application status changes to REVIEW, APPROVED, or REJECTED via `sendApplicationStatusEmail()` in the screening service.
+
 ---
 
 ## Matching Engine (Core Domain)

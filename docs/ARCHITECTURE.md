@@ -123,7 +123,7 @@ All DB writes go through services so audit logging is automatic.
 Key services:
 
 - `volunteerApplicationService.ts` — application submission and status
-- `volunteer-screening.ts` — screening evaluation
+- `volunteer-screening.ts` — screening evaluation, duplicate application prevention (P2002 handler), status notification emails (REVIEW/APPROVED/REJECTED)
 - `volunteerMatchingService.ts` — skill matching and recommendations
 - `volunteerProfileService.ts` — profile management
 - `volunteerCredentialService.ts` — credential lifecycle
