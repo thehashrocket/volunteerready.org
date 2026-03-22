@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **Dynamic sitemap & robots.txt** — `sitemap.xml` now auto-generates URLs for all public pages plus per-org apply, opportunity, and story routes. `robots.txt` blocks authenticated app routes while allowing the OG image API.
-- **Dynamic OG images** — `/api/og/[type]/[slug]` generates branded Open Graph images using Fraunces + Geist fonts with the VolunteerReady color scheme. Supports page-level images (home, pricing, screening, for-nonprofits, for-volunteers, for-employers) and org-specific images (apply, opportunities, stories).
+- **Dynamic OG images** — `/api/og/[type]/[slug]` generates branded Open Graph images using Fraunces + Geist fonts with the VolunteerReady color scheme. Supports all 11 public pages (home, about, pricing, screening, how-it-works, for-nonprofits, for-volunteers, for-employers, security, privacy, terms) and org-specific images (apply, opportunities, stories).
 - **JSON-LD structured data** — Added `BreadcrumbList` schema to all public pages and `FAQPage` schema to pricing, screening, and how-it-works pages. Organization schema added to root layout.
 - **FAQ sections** — Visible FAQ blocks on pricing (5 questions) and screening (4 questions) pages with matching JSON-LD markup.
 - **Centralized `BASE_URL` constant** — Extracted canonical production URL to `src/lib/constants.ts`, used by sitemap, robots, JSON-LD, OG images, and root layout metadata.
