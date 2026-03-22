@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.4] - 2026-03-21
+
+### Changed
+- **About page** — Replaced fictional team bios and origin story with the real founder story. Jason and Trisha Shultz are now featured as cofounders with authentic bios and photos from their 35 years of volunteering.
+
 ## [0.17.3] - 2026-03-21
 
 ### Added
