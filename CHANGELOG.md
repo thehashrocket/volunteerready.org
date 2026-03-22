@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.6] - 2026-03-22
+
+### Fixed
+- **Screener question form** — Fixed silent form submission failure when creating BOOLEAN or TEXT screener questions. The Zod schema validated option fields for all question types, but error messages were only visible for SINGLE_CHOICE, causing invisible validation failures.
+
+### Added
+- **Default screener questions** — New orgs are automatically seeded with 5 starter screening questions (age verification, background check consent, availability, prior experience, motivation). Seeded atomically inside the org creation transaction.
+- **Test infrastructure** — Added React Testing Library + jsdom for component tests. 10 new schema/component tests for QuestionDialog, 8 new tests for default screener question catalog.
+
 ## [0.17.5] - 2026-03-21
 
 ### Fixed
