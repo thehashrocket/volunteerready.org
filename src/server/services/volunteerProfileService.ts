@@ -72,7 +72,7 @@ export async function saveVolunteerProfile(input: UpsertProfileInput) {
 		const profile = await upsertProfile(tx, input);
 
 		await writeAuditLogTx(tx, {
-			orgId: 'SYSTEM',
+			orgId: null,
 			actorId: input.userId,
 			action: 'VOLUNTEER_PROFILE_UPDATED',
 			entityType: 'VolunteerProfile',
