@@ -976,3 +976,11 @@ model OrgFeedback {
   @@unique([orgId, type])
   @@index([orgId])
 }
+
+/// Key-value store for reference data version tracking.
+/// Used by the boot guard to detect whether seeded data is current.
+model ReferenceDataMeta {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
