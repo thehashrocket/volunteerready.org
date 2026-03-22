@@ -1,4 +1,9 @@
-import type { Prisma, ScreenerQuestionType } from '@/prisma/generated/client';
+import type {
+	Prisma,
+	PrismaClient,
+	ScreenerQuestionType,
+} from '@/prisma/generated/client';
+import { DEFAULT_SCREENER_QUESTIONS } from '@/server/domain/volunteer-screening';
 import { prisma } from '@/server/repositories/prisma';
 
 export async function listQuestions(
@@ -103,6 +108,33 @@ export async function swapOrders(
 
 export async function deleteQuestion(orgId: string, id: string) {
 	return prisma.screenerQuestion.delete({ where: { id, orgId } });
+}
+
+/**
+ * Seed default screener questions for a new org.
+ * Accepts an optional transaction client so it can run inside createOrg's transaction.
+ */
+export async function seedDefaultQuestions(
+	orgId: string,
+	tx?: Omit<
+		PrismaClient,
+		'$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+	>,
+) {
+	const db = tx ?? prisma;
+	for (const q of DEFAULT_SCREENER_QUESTIONS) {
+		await db.screenerQuestion.create({
+			data: {
+				orgId,
+				key: q.key,
+				prompt: q.prompt,
+				type: q.type,
+				order: q.order,
+				isActive: true,
+				configJson: q.configJson as Prisma.InputJsonValue,
+			},
+		});
+	}
 }
 
 export async function questionHasAnswers(questionId: string): Promise<boolean> {
