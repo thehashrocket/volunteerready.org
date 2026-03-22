@@ -32,10 +32,11 @@ Current commands:
 - `pnpm admin:grant <email>`: grant platform admin to a user
 - `pnpm admin:revoke <email>`: revoke platform admin from a user
 - `pnpm seed:platform-admins`: migrate `PLATFORM_ADMIN_IDS` env var to DB column (idempotent)
+- `pnpm backfill:default-questions`: seed default screener questions for pre-existing orgs (idempotent, safe to re-run)
 
-Note: seeding does NOT run during `pnpm build` / Vercel deploys. After a fresh
-production database setup, run `pnpm seed:production` manually to create the
-platform org and skill catalog.
+Note: the build script (`pnpm build`) runs `pnpm db:seed` and `pnpm backfill:default-questions`
+automatically on every deploy. After a fresh production database setup, also run
+`pnpm seed:production` manually to create the platform org and skill catalog.
 
 ## Test Accounts (dev/staging)
 

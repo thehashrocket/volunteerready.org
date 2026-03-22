@@ -5,10 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [0.17.7] - 2026-03-22
 
 ### Fixed
-- **Default screener question config** — Fixed malformed `disqualifierRule` in seeded BOOLEAN questions (was `true`, should be `{ operator: 'equals', value: false }`). Without this fix, volunteer application submissions would fail with a ZodError for any newly created org.
+- **Volunteer applications now submit correctly for new orgs** — Seeded screening questions had a malformed disqualifier config that caused a silent ZodError on every application submission. New orgs created after v0.17.6 would see applications silently fail to submit.
 
 ### Added
-- **Backfill script** — `pnpm backfill:default-questions` seeds default screener questions for pre-existing orgs. Idempotent via `createMany` + `skipDuplicates`.
+- **Backfill for existing orgs** — `pnpm backfill:default-questions` seeds the 5 default screener questions for any org that was created before v0.17.6. Safe to run multiple times — duplicates are skipped automatically. Also runs on every deploy via the build pipeline.
 
 ## [0.17.6] - 2026-03-22
 
