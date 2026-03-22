@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import { getPublishedOpportunityById } from '@/server/repositories/publicOpportunityRepo';
@@ -18,6 +19,11 @@ export async function generateMetadata({
 	return {
 		title: `Volunteer Application — ${org.name}`,
 		description: `Apply to volunteer with ${org.name}.`,
+		openGraph: {
+			title: `Volunteer Application — ${org.name}`,
+			description: `Apply to volunteer with ${org.name}.`,
+			images: [`/api/og/apply/${orgSlug}`],
+		},
 	};
 }
 
@@ -63,6 +69,12 @@ export default async function ApplyPage({
 
 	return (
 		<main className="mx-auto max-w-2xl px-6 py-10">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: org.name, href: `/apply/${orgSlug}` },
+				]}
+			/>
 			<h1 className="text-2xl font-semibold">Volunteer Application</h1>
 			<p className="mt-2 text-muted-foreground">
 				Applying to{' '}

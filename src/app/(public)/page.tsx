@@ -11,6 +11,7 @@ import {
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
 		title: 'VolunteerReady — Trusted Infrastructure for Volunteer Engagement',
 		description:
 			'Screen, credential, match, and schedule volunteers with the platform that nonprofits, corporations, and volunteers trust.',
+		images: ['/api/og/page/home'],
 	},
 };
 
@@ -80,6 +82,7 @@ export default async function Home() {
 
 	return (
 		<div className="flex flex-col">
+			<JsonLdBreadcrumb items={[{ label: 'Home', href: '/' }]} />
 			<PublicHero
 				eyebrow="VolunteerReady"
 				heading={

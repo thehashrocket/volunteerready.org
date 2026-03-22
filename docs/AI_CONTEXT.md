@@ -92,6 +92,7 @@ src/
 │   │   ├── terms/                # Terms of service page (15 sections)
 │   │   └── v/[userId]/           # Public volunteer identity page (SEO-optimized, share card)
 │   ├── api/
+│   │   ├── og/[type]/[slug]/     # Dynamic OG images for pages + org routes (Fraunces + Geist fonts)
 │   │   ├── share-card/[userId]/  # OG social share image (@vercel/og) — forest green/sand palette
 │   │   ├── cron/expire-credentials/ # Daily Vercel Cron — expires stale credentials + share tokens
 │   │   ├── cron/email-digests/    # Hourly Vercel Cron — timezone-aware digest emails (cursor-paginated)
@@ -104,6 +105,8 @@ src/
 │   ├── credentials/claim/[token]/ # Public credential share claim page
 │   ├── opportunities/[orgSlug]/  # Public opportunity listings
 │   ├── login/                    # Auth page
+│   ├── sitemap.ts                # Dynamic sitemap (all public + per-org routes)
+│   ├── robots.ts                 # Robots.txt (blocks /app/, /api/ except /api/og/)
 │   └── health/                   # Health check endpoint
 │
 ├── components/
@@ -120,7 +123,9 @@ src/
 │   ├── fade-in-on-scroll.tsx     # IntersectionObserver scroll animation
 │   ├── tracked-link.tsx          # Link with Vercel Analytics click tracking
 │   ├── cookie-consent-banner.tsx # GDPR-compliant cookie consent (essential + analytics categories)
-│   └── consented-analytics.tsx   # Vercel Analytics gated behind cookie consent
+│   ├── consented-analytics.tsx   # Vercel Analytics gated behind cookie consent
+│   ├── json-ld-breadcrumb.tsx    # BreadcrumbList JSON-LD structured data
+│   └── json-ld-faq.tsx           # FAQPage JSON-LD structured data
 │
 ├── server/
 │   ├── auth.ts                   # NextAuth config + session helpers

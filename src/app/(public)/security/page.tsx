@@ -10,6 +10,7 @@ import {
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 		title: 'Security & Compliance — VolunteerReady',
 		description:
 			'How VolunteerReady protects volunteer data, ensures FCRA compliance, and maintains trust across every organization.',
+		images: [{ url: '/api/og/page/security', width: 1200, height: 630 }],
 	},
 };
 
@@ -84,6 +86,12 @@ const complianceItems = [
 export default function SecurityPage() {
 	return (
 		<div className="flex flex-col">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: 'Security', href: '/security' },
+				]}
+			/>
 			<PublicHero
 				eyebrow="Security & Compliance"
 				heading={

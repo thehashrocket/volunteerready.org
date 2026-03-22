@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [0.17.8] - 2026-03-22
 
 ### Added
+- **Dynamic sitemap & robots.txt** — `sitemap.xml` now auto-generates URLs for all public pages plus per-org apply, opportunity, and story routes. `robots.txt` blocks authenticated app routes while allowing the OG image API.
+- **Dynamic OG images** — `/api/og/[type]/[slug]` generates branded Open Graph images using Fraunces + Geist fonts with the VolunteerReady color scheme. Supports all 11 public pages (home, about, pricing, screening, how-it-works, for-nonprofits, for-volunteers, for-employers, security, privacy, terms) and org-specific images (apply, opportunities, stories).
+- **JSON-LD structured data** — Added `BreadcrumbList` schema to all public pages and `FAQPage` schema to pricing, screening, and how-it-works pages. Organization schema added to root layout.
+- **FAQ sections** — Visible FAQ blocks on pricing (5 questions) and screening (4 questions) pages with matching JSON-LD markup.
+- **Centralized `BASE_URL` constant** — Extracted canonical production URL to `src/lib/constants.ts`, used by sitemap, robots, JSON-LD, OG images, and root layout metadata.
+- **SEO metadata** — Added `openGraph.images` pointing to dynamic OG endpoints on all major public pages.
+- **Test coverage** — 5 new test files (17 tests) covering OG image route, JSON-LD breadcrumb/FAQ components, sitemap, and robots.
 - **Duplicate application prevention** — Volunteers can no longer accidentally apply twice to the same opportunity. The system enforces this at the database level, with a graceful fallback for race conditions.
 - **"Already Applied" badges** — Opportunity listings now show your application status (Pending, In Review, Approved) with a "View My Application" link replacing the Apply button.
 - **Apply form interception** — Navigating to an opportunity you've already applied to shows a friendly "You're already on the list!" card with a link to your existing application.
@@ -13,6 +20,9 @@ All notable changes to this project will be documented in this file.
 - **Cross-org applied status** — The Browse Opportunities page shows your applied status across all organizations, not just the current one.
 - **Safe migration** — Pre-existing duplicate applications are automatically cleaned up when the migration runs.
 - **Comprehensive test suite** — 21 backend tests and 2 component test files covering the full dedup flow, race conditions, notification emails, and input validation.
+
+### Changed
+- **Biome config** — Added `noDangerouslySetInnerHtml: "error"` rule with targeted biome-ignore comments for legitimate JSON-LD usage.
 
 ### Fixed
 - **Applied badges on Browse page** — Fixed a validation error that prevented applied-status badges from appearing on the Browse Opportunities page. The system was rejecting valid opportunity IDs due to an incorrect UUID format check.

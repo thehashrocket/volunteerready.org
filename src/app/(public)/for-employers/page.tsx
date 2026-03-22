@@ -9,6 +9,7 @@ import {
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
 		title: 'For Employers — Corporate Volunteering & ESG | VolunteerReady',
 		description:
 			'Track employee volunteering, partner with vetted nonprofits, and export ESG impact reports. Built for corporate CSR programs.',
+		images: ['/api/og/page/for-employers'],
 	},
 };
 
@@ -73,6 +75,12 @@ const differentiators = [
 export default function ForEmployersPage() {
 	return (
 		<div className="flex flex-col">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: 'For Employers', href: '/for-employers' },
+				]}
+			/>
 			<PublicHero
 				eyebrow="For Employers"
 				heading={

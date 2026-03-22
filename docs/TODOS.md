@@ -824,3 +824,87 @@ which provides the foundation for catalog extensibility.
 (inappropriate custom skills); data model decision is blocked by Phase 3 design.
 
 **Effort:** M | **Priority:** P3 | **Depends on:** Phase 3 Matching Engine design decisions
+
+---
+
+## SEO & Discoverability
+
+### [P2] Content Hub / Blog Infrastructure
+
+**What:** A `/blog` or `/resources` section for SEO content targeting searches like "how to
+screen volunteers," "volunteer management best practices," and "background check requirements
+for nonprofits." This is the standard SaaS playbook for building organic traffic through
+topic authority — Google and AI assistants favor sites with a full content ecosystem over
+one-off landing pages.
+
+**Why:** VolunteerReady's current public pages are transactional (apply, browse opportunities,
+pricing). There's no content that captures top-of-funnel searches — nonprofit staff researching
+how to improve their volunteer program. A content hub would position VolunteerReady as the
+authoritative source, driving organic traffic that converts to signups.
+
+**Context:** Would need MDX or CMS-backed pages, a listing page with categories, RSS feed,
+and an editorial workflow. Consider starting with MDX (static markdown files in the repo)
+for simplicity, then migrating to a CMS when volume justifies it.
+
+**Pros:** High long-term organic traffic value; builds topic authority; supports AI discoverability
+(GEO); content can be repurposed for social media and email.
+**Cons:** Requires ongoing content creation (not just engineering); needs an editorial owner;
+initial infrastructure is a product feature, not just an SEO fix.
+
+**Effort:** L | **Priority:** P2 | **Depends on:** Content strategy, editorial owner identified
+
+---
+
+### [P3] Programmatic City/Region Landing Pages
+
+**What:** Location-specific pages like `/volunteer/dallas` or `/volunteer/austin` targeting
+"volunteer opportunities in [city]" searches. These would pull from opportunity data to show
+location-filtered volunteer listings with city-specific metadata and structured data.
+
+**Why:** Volunteers overwhelmingly search by location ("volunteer opportunities near me",
+"volunteer in Dallas"). These searches have high intent and low competition for a platform
+like VolunteerReady. Programmatic landing pages capture this long-tail traffic at scale.
+
+**Context:** Requires geographic data on opportunities (city/region fields), enough org
+coverage per city to produce useful pages (thin content pages hurt SEO), and a route
+structure like `src/app/volunteer/[city]/page.tsx` with `generateStaticParams` from
+the opportunity database.
+
+**Pros:** High organic traffic potential; captures volunteer-side searches (currently weak);
+scales automatically as more orgs join in each city.
+**Cons:** Premature without sufficient data density — pages with <3 opportunities look empty
+and may be penalized by Google as thin content; requires geographic normalization.
+
+**Effort:** L | **Priority:** P3 | **Depends on:** >50 orgs across multiple cities; geographic
+data on opportunities
+
+---
+
+### [P3] WebSite JSON-LD with SearchAction
+
+**What:** Add `WebSite` JSON-LD schema to the root layout with a `SearchAction` pointing to
+a public search endpoint (e.g., `/search?q={query}`).
+
+**Why:** Google uses WebSite schema with SearchAction to power sitelinks search boxes in
+search results. This improves discoverability and provides a direct search experience from
+Google.
+
+**Blocked by:** No public search endpoint exists yet. Implement this after building a public
+search feature (e.g., opportunity search across all orgs).
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Public search endpoint
+
+---
+
+### [P3] Sitemap Index Splitting & Tenant Scoping
+
+**What:** The current sitemap queries all organizations and emits all routes in a single
+response. At scale (16k+ orgs), this exceeds the 50,000-URL sitemap limit and risks
+timeouts. Additionally, all org slugs are publicly enumerable via the sitemap.
+
+**When to address:** When org count exceeds ~5,000 or when tenant privacy becomes a concern.
+
+**Fix:** Implement sitemap index (`/sitemap.xml` → `/sitemap-static.xml` + `/sitemap-orgs-1.xml`
+etc.) with pagination. Consider filtering to orgs with published content only.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Org count growth

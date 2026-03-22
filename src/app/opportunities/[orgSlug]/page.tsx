@@ -3,6 +3,7 @@ import { Playfair_Display } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { cache } from 'react';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { authOptions } from '@/server/auth';
 import type { MatchResult } from '@/server/domain/volunteer-matching';
 import { rankOpportunities } from '@/server/domain/volunteer-matching';
@@ -29,6 +30,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	return {
 		title: `Volunteer with ${result.org.name}`,
 		description: `Browse open volunteer opportunities at ${result.org.name}.`,
+		openGraph: {
+			title: `Volunteer with ${result.org.name}`,
+			description: `Browse open volunteer opportunities at ${result.org.name}.`,
+			images: [`/api/og/opportunities/${orgSlug}`],
+		},
 	};
 }
 
@@ -68,6 +74,15 @@ export default async function OpportunitiesPage({ params }: Props) {
 	// The outer div injects --font-playfair CSS variable into the subtree for use via style prop.
 	return (
 		<div className={playfair.variable}>
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{
+						label: result.org.name,
+						href: `/opportunities/${orgSlug}`,
+					},
+				]}
+			/>
 			<OpportunitiesListing
 				org={result.org}
 				opportunities={result.opportunities}

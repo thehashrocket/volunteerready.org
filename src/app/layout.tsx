@@ -6,16 +6,19 @@ import { IosInstallPrompt } from '@/components/ios-install-prompt';
 import { AppToaster } from '@/components/sonner';
 import { SwRegister } from '@/components/sw-register';
 import { SwUpdateBanner } from '@/components/sw-update-banner';
+import { BASE_URL } from '@/lib/constants';
 import './globals.css';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
 	subsets: ['latin'],
+	display: 'swap',
 });
 
 const geistMono = Geist_Mono({
 	variable: '--font-geist-mono',
 	subsets: ['latin'],
+	display: 'swap',
 });
 
 const fraunces = Fraunces({
@@ -23,10 +26,11 @@ const fraunces = Fraunces({
 	subsets: ['latin'],
 	style: ['normal', 'italic'],
 	weight: ['400', '700', '900'],
+	display: 'swap',
 });
 
 export const metadata: Metadata = {
-	metadataBase: new URL('https://www.volunteerready.org'),
+	metadataBase: new URL(BASE_URL),
 	title: 'VolunteerReady',
 	description: 'Find and manage volunteer opportunities.',
 	manifest: '/manifest.webmanifest',
@@ -68,6 +72,21 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} min-h-screen bg-background text-foreground antialiased`}
 			>
 				{children}
+				<script
+					type="application/ld+json"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires innerHTML
+					dangerouslySetInnerHTML={{
+						__html: JSON.stringify({
+							'@context': 'https://schema.org',
+							'@type': 'Organization',
+							name: 'VolunteerReady',
+							url: BASE_URL,
+							logo: `${BASE_URL}/icons/icon-512x512.png`,
+							description:
+								'Trusted infrastructure for volunteer engagement. Screen, credential, match, and schedule volunteers.',
+						}).replace(/</g, '\\u003c'),
+					}}
+				/>
 				<IosInstallPrompt />
 				<SwRegister />
 				<SwUpdateBanner />
