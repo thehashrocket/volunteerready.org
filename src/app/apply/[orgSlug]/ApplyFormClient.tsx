@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
 	Calendar,
+	CheckCircle2,
 	Clock,
 	Handshake,
 	MapPin,
@@ -63,6 +64,34 @@ export default function ApplyFormClient({
 	opportunity,
 }: Props) {
 	const [submitted, setSubmitted] = useState(false);
+	const { data: session, status: authStatus } = useSession();
+	const isAuthenticated = authStatus === 'authenticated' && !!session?.user;
+
+	// Dedup check: if authenticated and applying to a specific opportunity,
+	// check if they already have an active application
+	const dedupQuery = trpc.screener.checkExistingApplication.useQuery(
+		{ orgId: org.id, opportunityId: opportunity?.id ?? '' },
+		{
+			enabled: isAuthenticated && !!opportunity?.id,
+		},
+	);
+
+	// Anonymous email dedup: soft-check when unauthenticated user enters email
+	const [anonEmail, setAnonEmail] = useState('');
+	const anonDedupQuery = trpc.screener.checkAnonymousApplication.useQuery(
+		{
+			orgId: org.id,
+			email: anonEmail,
+			opportunityId: opportunity?.id ?? '',
+		},
+		{
+			enabled:
+				!isAuthenticated &&
+				!!opportunity?.id &&
+				anonEmail.includes('@') &&
+				anonEmail.includes('.'),
+		},
+	);
 
 	const answersSchema = useMemo(() => buildZodSchema(questions), [questions]);
 
@@ -103,7 +132,18 @@ export default function ApplyFormClient({
 	});
 
 	const submitMutation = trpc.screener.submit.useMutation({
-		onSuccess: () => {
+		onSuccess: (data) => {
+			if ('duplicate' in data && data.duplicate) {
+				toast.error("You've already applied to this opportunity", {
+					action: {
+						label: 'View Application',
+						onClick: () => {
+							window.location.href = `/app/my-applications/${data.applicationId}`;
+						},
+					},
+				});
+				return;
+			}
 			setSubmitted(true);
 			toast.success('Application submitted. Thank you!');
 		},
@@ -111,6 +151,18 @@ export default function ApplyFormClient({
 			toast.error(err.message ?? 'Submission failed');
 		},
 	});
+
+	// Show interception card if the user already has an active application
+	if (dedupQuery.data && opportunity) {
+		return (
+			<AlreadyAppliedCard
+				org={org}
+				opportunity={opportunity}
+				applicationId={dedupQuery.data.id}
+				submittedAt={dedupQuery.data.submittedAt}
+			/>
+		);
+	}
 
 	if (submitted) {
 		return <SuccessCard org={org} opportunity={opportunity} />;
@@ -199,13 +251,30 @@ export default function ApplyFormClient({
 									id="profile.email"
 									type="email"
 									autoComplete="email"
-									{...form.register('profile.email')}
+									{...form.register('profile.email', {
+										onBlur: (e) => {
+											if (!isAuthenticated) setAnonEmail(e.target.value);
+										},
+									})}
 								/>
 								{profileErrors?.email?.message ? (
 									<p className="text-sm text-destructive">
 										{String(profileErrors.email.message)}
 									</p>
 								) : null}
+								{anonDedupQuery.data?.exists && (
+									<div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+										An application with this email already exists for this
+										opportunity.{' '}
+										<Link
+											href="/apply/status"
+											className="font-medium underline hover:text-amber-900"
+										>
+											Check your application status
+										</Link>{' '}
+										or use a different email.
+									</div>
+								)}
 							</div>
 
 							<div className="space-y-2">
@@ -393,6 +462,61 @@ function SuccessCard({
 				)}
 			</CardContent>
 		</Card>
+	);
+}
+
+function AlreadyAppliedCard({
+	org,
+	opportunity,
+	applicationId,
+	submittedAt,
+}: {
+	org: { name: string; slug: string };
+	opportunity: LinkedOpportunity;
+	applicationId: string;
+	submittedAt: Date | string;
+}) {
+	const formattedDate = new Date(submittedAt).toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+	});
+
+	return (
+		<div
+			className="mx-auto max-w-[480px] rounded-md bg-[#F5F4F0] p-6"
+			role="status"
+			aria-live="polite"
+		>
+			<div className="mb-4 flex items-center gap-3">
+				<CheckCircle2 className="h-6 w-6 text-[#2D7A4F]" />
+				<h2
+					className="text-2xl font-bold text-[#252422]"
+					style={{
+						fontFamily: 'var(--font-fraunces, var(--font-playfair, serif))',
+					}}
+				>
+					You're already on the list!
+				</h2>
+			</div>
+			<p className="mb-6 text-base leading-relaxed text-muted-foreground">
+				You applied for{' '}
+				<span className="font-medium text-foreground">{opportunity.title}</span>{' '}
+				on {formattedDate}.
+			</p>
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+				<Button asChild>
+					<Link href={`/app/my-applications/${applicationId}`}>
+						View My Application
+					</Link>
+				</Button>
+				<Button variant="outline" asChild>
+					<Link href={`/opportunities/${org.slug}`}>
+						Browse Other Opportunities
+					</Link>
+				</Button>
+			</div>
+		</div>
 	);
 }
 
