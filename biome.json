@@ -23,6 +23,9 @@
 		"rules": {
 			"suspicious": {
 				"noArrayIndexKey": "off"
+			},
+			"security": {
+				"noDangerouslySetInnerHtml": "error"
 			}
 		}
 	},
