@@ -193,6 +193,71 @@ function ruleMatches(rule: DisqualifierRule | ReviewRule, value: unknown) {
 	}
 }
 
+// ---------------------------------------------------------------------------
+// Default screener questions — seeded when a new org is created
+// ---------------------------------------------------------------------------
+
+export interface DefaultScreenerQuestion {
+	key: string;
+	prompt: string;
+	type: ScreenerQuestionType;
+	order: number;
+	configJson: Record<string, unknown>;
+}
+
+export const DEFAULT_SCREENER_QUESTIONS: DefaultScreenerQuestion[] = [
+	{
+		key: 'age-18-plus',
+		prompt: 'Are you 18 years of age or older?',
+		type: 'BOOLEAN',
+		order: 10,
+		configJson: {
+			required: true,
+			rules: {
+				disqualifierRule: { operator: 'equals', value: false },
+				reason: 'Must be 18 years of age or older.',
+			},
+		},
+	},
+	{
+		key: 'background-check-consent',
+		prompt: 'Do you consent to a background check?',
+		type: 'BOOLEAN',
+		order: 20,
+		configJson: {
+			required: true,
+			rules: {
+				disqualifierRule: { operator: 'equals', value: false },
+				reason: 'Background check consent is required.',
+			},
+		},
+	},
+	{
+		key: 'availability',
+		prompt: 'What is your general availability?',
+		type: 'SINGLE_CHOICE',
+		order: 30,
+		configJson: {
+			required: true,
+			options: ['Weekdays', 'Weekends', 'Evenings', 'Flexible'],
+		},
+	},
+	{
+		key: 'prior-experience',
+		prompt: 'Do you have prior volunteer experience?',
+		type: 'BOOLEAN',
+		order: 40,
+		configJson: { required: false },
+	},
+	{
+		key: 'why-volunteer',
+		prompt: 'Why are you interested in volunteering with us?',
+		type: 'TEXT',
+		order: 50,
+		configJson: { required: false, maxLength: 500 },
+	},
+];
+
 export function evaluateScreening(
 	questions: ScreenerQuestion[],
 	responses: ScreenerResponse[],

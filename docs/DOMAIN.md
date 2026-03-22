@@ -131,7 +131,10 @@ Questions support:
 - Review rules — matched answer flags for manual review (REVIEW)
 - Rule operators: equals, includes, lt, lte, gt, gte
 
-Questions are organization-specific.
+Questions are organization-specific. New orgs are seeded with 5 default questions
+(age verification, background check consent, availability, prior experience, motivation)
+via `seedDefaultQuestions()` in `screenerQuestionsRepo.ts`. The defaults are defined in
+`DEFAULT_SCREENER_QUESTIONS` in `volunteer-screening.ts`.
 
 ---
 

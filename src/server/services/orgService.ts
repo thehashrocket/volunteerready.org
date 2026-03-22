@@ -8,6 +8,7 @@ import {
 	userIsMemberOfOrg,
 } from '../repositories/orgRepo';
 import { prisma } from '../repositories/prisma';
+import { seedDefaultQuestions } from '../repositories/screenerQuestionsRepo';
 import { getSessionByToken } from '../repositories/sessionRepo';
 
 /**
@@ -92,6 +93,9 @@ export async function createOrg(opts: {
 				data: { currentOrgId: newOrg.id },
 			});
 
+			// Seed default screener questions
+			await seedDefaultQuestions(newOrg.id, tx);
+
 			// Audit — committed atomically with the create
 			await writeAuditLogTx(tx, {
 				orgId: newOrg.id,
@@ -111,7 +115,7 @@ export async function createOrg(opts: {
 		) {
 			throw new TRPCError({
 				code: 'CONFLICT',
-				message: 'A slug conflict occurred. Please try again.',
+				message: 'A unique-constraint conflict occurred. Please try again.',
 			});
 		}
 		throw e;

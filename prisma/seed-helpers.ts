@@ -196,6 +196,50 @@ export async function seedSkillCatalog(): Promise<{
 	return { skillBySlug, familyBySlug };
 }
 
+// ---------------------------------------------------------------------------
+// Default screener questions — backfill for pre-existing orgs.
+// Idempotent via createMany + skipDuplicates (@@unique([orgId, key])).
+// ---------------------------------------------------------------------------
+
+import { DEFAULT_SCREENER_QUESTIONS } from '../src/server/domain/volunteer-screening.js';
+
+export async function backfillDefaultQuestions() {
+	const orgs = await prisma.organization.findMany({
+		select: { id: true, name: true },
+		orderBy: { createdAt: 'asc' },
+	});
+
+	let totalInserted = 0;
+	let orgsUpdated = 0;
+
+	for (const org of orgs) {
+		const result = await prisma.screenerQuestion.createMany({
+			data: DEFAULT_SCREENER_QUESTIONS.map((q) => ({
+				orgId: org.id,
+				key: q.key,
+				prompt: q.prompt,
+				type: q.type,
+				order: q.order,
+				isActive: true,
+				configJson: q.configJson as Prisma.InputJsonValue,
+			})),
+			skipDuplicates: true,
+		});
+
+		if (result.count > 0) {
+			totalInserted += result.count;
+			orgsUpdated++;
+			console.log(
+				`   ${org.name}: inserted ${result.count} default questions`,
+			);
+		}
+	}
+
+	console.log(
+		`   ${totalInserted} questions across ${orgsUpdated} orgs (${orgs.length - orgsUpdated} already had all defaults)\n`,
+	);
+}
+
 export async function upsertSkills(
 	userId: string,
 	skillSlugs: string[],

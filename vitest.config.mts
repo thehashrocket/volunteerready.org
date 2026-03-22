@@ -12,7 +12,11 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
-		include: ["src/**/*.test.ts"],
+		include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
 		exclude: ["node_modules", ".next", "prisma/generated", "src/**/*.integration.test.ts"],
+		environmentMatchGlobs: [
+			["src/**/*.test.tsx", "jsdom"],
+		],
+		setupFiles: ["src/test-setup.ts"],
 	},
 });

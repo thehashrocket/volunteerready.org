@@ -32,10 +32,21 @@ Current commands:
 - `pnpm admin:grant <email>`: grant platform admin to a user
 - `pnpm admin:revoke <email>`: revoke platform admin from a user
 - `pnpm seed:platform-admins`: migrate `PLATFORM_ADMIN_IDS` env var to DB column (idempotent)
+- `pnpm backfill:default-questions`: seed default screener questions for pre-existing orgs (idempotent, safe to re-run)
 
-Note: seeding does NOT run during `pnpm build` / Vercel deploys. After a fresh
-production database setup, run `pnpm seed:production` manually to create the
-platform org and skill catalog.
+Note: the build script (`pnpm build`) runs `pnpm db:seed` automatically on every deploy,
+which includes the production seed (platform org, skill catalog, and default screener
+question backfill). After a fresh production database setup, also run
+`pnpm seed:production` manually to create the platform org and skill catalog.
+
+## Test Accounts (dev/staging)
+
+`pnpm seed:dev` creates dedicated test accounts for local development and QA:
+- `orgadmin@volunteermatch.local` — Org OWNER (Helping Hands)
+- `companyadmin@volunteermatch.local` — Company Admin
+- `volunteer@volunteermatch.local` — Volunteer
+
+Use the magic link flow to sign in. Auth cookie name: `next-auth.session-token`.
 
 ## Coding Style & Naming Conventions
 
@@ -46,9 +57,11 @@ or linter (Prettier, ESLint, Black), document the exact commands and config.
 
 ## Testing Guidelines
 
-Place tests under `tests/` or alongside source (e.g., `src/foo.test.ts`).
-Use a single test runner per language and document the convention for test file
-names (`*.test.*` or `*_test.*`). State any coverage targets once tooling exists.
+- Test runner: Vitest (`pnpm test`)
+- Unit tests: `src/**/*.test.ts` and `src/**/*.test.tsx` (colocated with source)
+- Component tests: use `@testing-library/react` + jsdom; add `// @vitest-environment jsdom` to `.tsx` test files
+- Test setup: `src/test-setup.ts` (jest-dom matchers + ResizeObserver polyfill)
+- Integration tests excluded from `pnpm test`: `src/**/*.integration.test.ts`
 
 ## Commit & Pull Request Guidelines
 
@@ -104,6 +117,7 @@ docs/
 - server/domain/** = types + invariants + pure functions
 - server/trpc/** = routers + procedures only (thin)
 - screening domain lives in `src/server/domain/volunteer-screening.ts`
+- Default screener questions: `DEFAULT_SCREENER_QUESTIONS` in `volunteer-screening.ts`, seeded on org creation via `seedDefaultQuestions()` in `screenerQuestionsRepo.ts`
 - RBAC permissions: `src/server/domain/permissions.ts` (constants, `hasPermission()`, role maps)
 - Platform admin: `src/server/domain/platform-admin.ts` (`isPlatformAdmin()` with DB + env-var fallback)
 - Advisory permission middleware: `src/server/trpc/advisory-permission-middleware.ts` (global, never blocks, logs mismatches)
