@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { listSkillFamilies } from '@/server/repositories/skillCatalogRepo';
 import { getSkillsForUser } from '@/server/repositories/volunteerSkillRepo';
 import {
 	getMatchedOpportunities,
+	getSkillCatalog,
 	scoreApplicationsForOpportunity,
 	updateVolunteerSkills,
 } from '@/server/services/volunteerMatchingService';
@@ -16,7 +16,7 @@ import {
 
 export const matchingRouter = createTRPCRouter({
 	/** Return the full skill catalog grouped by family. */
-	getSkillCatalog: publicProcedure.query(() => listSkillFamilies()),
+	getSkillCatalog: publicProcedure.query(() => getSkillCatalog()),
 
 	/** Return the authenticated user's skill list. */
 	getMySkills: protectedProcedure.query(({ ctx }) =>

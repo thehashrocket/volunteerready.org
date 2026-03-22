@@ -124,6 +124,11 @@ export default function MySkillsPage() {
 	const isLoading = catalogQuery.isLoading || mySkillsQuery.isLoading;
 	const isError = catalogQuery.isError || mySkillsQuery.isError;
 
+	const catalogEmpty =
+		!catalogQuery.isLoading &&
+		!catalogQuery.isError &&
+		(catalogQuery.data ?? []).length === 0;
+
 	// Flatten catalog into skill options for the combobox
 	const options: SkillOption[] = (catalogQuery.data ?? []).flatMap((family) =>
 		family.skills.map((s) => ({
@@ -216,6 +221,32 @@ export default function MySkillsPage() {
 							}}
 						>
 							Try again
+						</Button>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
+	if (catalogEmpty) {
+		return (
+			<div className="mx-auto max-w-xl space-y-6">
+				<PageHeader
+					title="My Skills"
+					description="Select skills to get matched with volunteer opportunities."
+				/>
+				<Card>
+					<CardContent className="space-y-4 py-8 text-center">
+						<p className="text-sm text-muted-foreground">
+							The skill catalog is loading for the first time. This usually
+							takes just a moment.
+						</p>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => void catalogQuery.refetch()}
+						>
+							Refresh
 						</Button>
 					</CardContent>
 				</Card>
