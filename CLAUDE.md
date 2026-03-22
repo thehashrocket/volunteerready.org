@@ -46,9 +46,11 @@ or linter (Prettier, ESLint, Black), document the exact commands and config.
 
 ## Testing Guidelines
 
-Place tests under `tests/` or alongside source (e.g., `src/foo.test.ts`).
-Use a single test runner per language and document the convention for test file
-names (`*.test.*` or `*_test.*`). State any coverage targets once tooling exists.
+- Test runner: Vitest (`pnpm test`)
+- Unit tests: `src/**/*.test.ts` and `src/**/*.test.tsx` (colocated with source)
+- Component tests: use `@testing-library/react` + jsdom; add `// @vitest-environment jsdom` to `.tsx` test files
+- Test setup: `src/test-setup.ts` (jest-dom matchers + ResizeObserver polyfill)
+- Integration tests excluded from `pnpm test`: `src/**/*.integration.test.ts`
 
 ## Commit & Pull Request Guidelines
 
@@ -104,6 +106,7 @@ docs/
 - server/domain/** = types + invariants + pure functions
 - server/trpc/** = routers + procedures only (thin)
 - screening domain lives in `src/server/domain/volunteer-screening.ts`
+- Default screener questions: `DEFAULT_SCREENER_QUESTIONS` in `volunteer-screening.ts`, seeded on org creation via `seedDefaultQuestions()` in `screenerQuestionsRepo.ts`
 - RBAC permissions: `src/server/domain/permissions.ts` (constants, `hasPermission()`, role maps)
 - Platform admin: `src/server/domain/platform-admin.ts` (`isPlatformAdmin()` with DB + env-var fallback)
 - Advisory permission middleware: `src/server/trpc/advisory-permission-middleware.ts` (global, never blocks, logs mismatches)
