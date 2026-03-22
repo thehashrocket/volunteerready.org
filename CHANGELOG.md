@@ -5,18 +5,18 @@ All notable changes to this project will be documented in this file.
 ## [0.17.8] - 2026-03-22
 
 ### Added
-- **Duplicate application prevention** — Authenticated volunteers are blocked from submitting duplicate applications to the same opportunity. A partial unique index on `(submittedByUserId, opportunityId)` enforces this at the DB level, with a P2002 race-condition handler as a safety net.
-- **"Already Applied" badges** — Opportunities listings (`/opportunities/[orgSlug]` and `/app/browse`) show status-aware badges (Pending, In Review, Approved) for opportunities the user has already applied to, with "View My Application" links replacing "Apply now".
-- **Apply form interception** — When an authenticated user navigates to an apply form for an opportunity they've already applied to, they see an interception card with a link to their existing application instead of the form.
-- **Anonymous email soft-block** — Unauthenticated users see a warning when entering an email already used to apply to the same opportunity (advisory only, does not block submission).
-- **Status notification emails** — Branded email notifications sent when application status changes to REVIEW, APPROVED, or REJECTED, with opportunity title and "View My Application" link.
-- **Cross-org applied status** — The browse page (`/app/browse`) fetches applied status across all organizations for the authenticated user.
-- **Migration for dedup constraint** — CTE-based migration that safely removes pre-existing duplicates before adding the partial unique index.
-- **Comprehensive test suite** — 19 backend tests covering dedup guard, P2002 race handling, notification emails, and anonymous checks. 2 component test files for OpportunitiesListing badges and ApplyFormClient interception.
+- **Duplicate application prevention** — Volunteers can no longer accidentally apply twice to the same opportunity. The system enforces this at the database level, with a graceful fallback for race conditions.
+- **"Already Applied" badges** — Opportunity listings now show your application status (Pending, In Review, Approved) with a "View My Application" link replacing the Apply button.
+- **Apply form interception** — Navigating to an opportunity you've already applied to shows a friendly "You're already on the list!" card with a link to your existing application.
+- **Anonymous email soft-block** — Unauthenticated applicants see a warning if their email was already used to apply to the same opportunity (advisory only, does not block submission).
+- **Status notification emails** — You now receive branded email notifications when your application status changes to In Review, Approved, or Rejected, with a direct link to view your application.
+- **Cross-org applied status** — The Browse Opportunities page shows your applied status across all organizations, not just the current one.
+- **Safe migration** — Pre-existing duplicate applications are automatically cleaned up when the migration runs.
+- **Comprehensive test suite** — 21 backend tests and 2 component test files covering the full dedup flow, race conditions, notification emails, and input validation.
 
 ### Fixed
-- **Opportunity ID validation** — Changed `z.string().uuid()` to `z.string().min(1)` on applied-status queries since the project uses CUID IDs, not UUIDs.
-- **Credential sharing on duplicate** — Skip `shareAllOnApply` when a duplicate application is detected, preventing phantom credential-sharing writes.
+- **Applied badges on Browse page** — Fixed a validation error that prevented applied-status badges from appearing on the Browse Opportunities page. The system was rejecting valid opportunity IDs due to an incorrect UUID format check.
+- **Credential sharing on duplicate** — Duplicate applications no longer trigger phantom credential-sharing writes.
 
 ## [0.17.7] - 2026-03-22
 
