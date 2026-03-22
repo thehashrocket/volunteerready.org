@@ -130,6 +130,7 @@ docs/
 - Org feedback cron: `src/app/api/cron/org-feedback/route.ts` (daily 10:00 UTC), service at `src/server/services/org-feedback-service.ts`
 - Impact report: `src/app/(app)/app/impact-report/page.tsx` (baseline vs platform usage metrics)
 - Onboarding baseline: `src/app/(app)/app/settings/onboarding/page.tsx` (volunteer count, hours/week, current process)
+- Reference data boot guard: domain at `src/server/domain/reference-data.ts` (`SKILL_CATALOG`, `CATALOG_VERSION`, `PLATFORM_ORG_SLUG`), service at `src/server/services/referenceDataService.ts` (`ensureReferenceData()` with promise dedup and `_seeded` module flag), repo at `src/server/repositories/referenceDataRepo.ts`. Call `ensureReferenceData()` in any service that depends on the skill catalog or platform org. Boot guard also runs at Next.js startup via `src/instrumentation.ts`.
 - Content Flywheel: domain at `src/server/domain/case-study.ts`, service at `src/server/services/caseStudyService.ts`, token lib at `src/server/lib/case-study-token.ts`, tRPC router at `src/server/trpc/routers/case-study.ts`
 - Case study admin: `src/app/(app)/app/admin/case-studies/page.tsx` (consent toggle, approval email, PDF download, markdown copy)
 - Public stories: `src/app/(public)/stories/[orgSlug]/page.tsx`, consent pages at `stories/consent-confirmed` and `stories/consent-expired`
@@ -163,6 +164,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/designs/phase-11-marketplace-api.md` — Phase 11 plan (volunteer marketplace & API platform)
 - `docs/designs/concierge-activation-engine.md` — Phase 12 plan (concierge activation engine)
 - `docs/designs/rbac-foundation.md` — RBAC foundation design doc (permissions, advisory middleware, platform admin)
+- `docs/designs/reference-data-boot-guard.md` — Reference Data Boot Guard design doc (self-healing skill catalog + platform org)
 - `docs/TODOS.md` - todos for the current project
 
 ## gstack

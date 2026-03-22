@@ -100,6 +100,7 @@ Key files:
 - `credential-sharing.ts` — share token lifecycle guards, expiry computation
 - `esg-report.ts` — ESG report types, CSV formatting, formula injection defense
 - `org-health.ts` — `computeOrgHealth()` pure domain function — 0-100 org health score with four 25-pt metrics and next actionable tip
+- `reference-data.ts` — `SKILL_CATALOG` constant (14 families, 62 skills), `CATALOG_VERSION`, `PLATFORM_ORG_SLUG`; imported by both `referenceDataService` and `prisma/seed-helpers.ts`
 
 ---
 
@@ -143,6 +144,7 @@ Key services:
 - `employerReportService.ts` — ESG report generation and CSV export
 - `volunteerDashboardService.ts` — volunteer-facing dashboard: upcoming shifts, pending applications, expiring credentials, impact stats, recommended opportunities (user-scoped, no org context)
 - `onboardingAnalyticsService.ts` — platform admin onboarding funnel: 4-step funnel counts + per-org progress detail (last 20 orgs)
+- `referenceDataService.ts` — boot guard (`ensureReferenceData()`) — self-healing runtime check that ensures the skill catalog and platform org exist before serving requests; uses a module-level `_seeded` flag and promise dedup to make subsequent calls free; called by `volunteerMatchingService` and `tenureBadgeService`, and at startup via `src/instrumentation.ts`
 
 ---
 
