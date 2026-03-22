@@ -53,22 +53,34 @@ interface QuestionDialogProps {
 // maxLength uses valueAsNumber:true on the <input>, so RHF stores number|NaN|undefined.
 // The z.nan() branch converts NaN (empty input) to undefined; the input/output types
 // are both `number | undefined`, which avoids the z.preprocess `unknown` problem.
-const schema = z.object({
-	prompt: z.string().min(5, 'At least 5 characters').max(500).trim(),
-	type: z.string().optional(),
-	required: z.boolean(),
-	maxLength: z
-		.union([
-			z.number().int().min(1, 'Must be at least 1'),
-			z.nan().transform((): undefined => undefined),
-		])
-		.optional(),
-	options: z
-		.array(z.object({ value: z.string().min(1, 'Option cannot be empty') }))
-		.optional(),
-	disqualifyIfFalse: z.boolean().optional(),
-	disqualifierReason: z.string().max(200).optional(),
-});
+const schema = z
+	.object({
+		prompt: z.string().min(5, 'At least 5 characters').max(500).trim(),
+		type: z.string().optional(),
+		required: z.boolean(),
+		maxLength: z
+			.union([
+				z.number().int().min(1, 'Must be at least 1'),
+				z.nan().transform((): undefined => undefined),
+			])
+			.optional(),
+		options: z.array(z.object({ value: z.string() })).optional(),
+		disqualifyIfFalse: z.boolean().optional(),
+		disqualifierReason: z.string().max(200).optional(),
+	})
+	.superRefine((data, ctx) => {
+		if (data.type === 'SINGLE_CHOICE') {
+			const valid =
+				data.options?.filter((o) => o.value.trim().length > 0) ?? [];
+			if (valid.length < 2) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: 'At least 2 non-empty options required',
+					path: ['options'],
+				});
+			}
+		}
+	});
 
 type FormValues = z.infer<typeof schema>;
 
