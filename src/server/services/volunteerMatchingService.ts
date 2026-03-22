@@ -11,11 +11,21 @@ import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { getOpportunity } from '@/server/repositories/opportunityRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { listPublishedOpportunities } from '@/server/repositories/publicOpportunityRepo';
+import { listSkillFamilies } from '@/server/repositories/skillCatalogRepo';
 import { listApplicationsWithSkills } from '@/server/repositories/volunteer-applications';
 import {
 	getSkillsForUser,
 	setSkillsForUser,
 } from '@/server/repositories/volunteerSkillRepo';
+import { ensureReferenceData } from '@/server/services/referenceDataService';
+
+/**
+ * Return the full skill catalog, ensuring reference data exists first.
+ */
+export async function getSkillCatalog() {
+	await ensureReferenceData();
+	return listSkillFamilies();
+}
 
 /**
  * Replace a volunteer's skill list, with audit logging.

@@ -390,6 +390,20 @@ Constraint: unique per (orgId, type). Idempotency — creating the record before
 
 ---
 
+## ReferenceDataMeta
+
+Key-value table for tracking the seeded version of global reference data (skill catalog, platform org).
+
+Key fields:
+
+- `key` — identifier for the reference data set (e.g. `"skill_catalog"`)
+- `version` — integer version matching `CATALOG_VERSION` in `src/server/domain/reference-data.ts`
+- `seededAt` — timestamp of the last successful seed
+
+Used by `referenceDataService.ts` to detect stale reference data and trigger re-seeding when `CATALOG_VERSION` is bumped. Not tenant-scoped — global singleton rows.
+
+---
+
 ## FeatureFlag
 
 Per-organization configuration toggle.
@@ -489,6 +503,7 @@ Use these terms consistently across the codebase:
 - CompanyNonprofitLink
 - OrgFeedback
 - OrgFeedbackType
+- ReferenceDataMeta
 - FeatureFlag
 - AuditLog
 

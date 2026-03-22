@@ -21,17 +21,17 @@
  *           └─→ P2002 on concurrent issue → catch + continue
  */
 
+import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
 import { computeTenure, MS_PER_YEAR } from '@/server/domain/volunteer-profile';
 import { prisma } from '@/server/repositories/prisma';
 import { getAttendedShiftsForUser } from '@/server/repositories/shiftSignupRepo';
 import { listUserApplications } from '@/server/repositories/volunteer-applications';
 import { upsertCredential } from '@/server/repositories/volunteerCredentialRepo';
+import { ensureReferenceData } from '@/server/services/referenceDataService';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-const PLATFORM_ORG_SLUG = 'platform';
 
 /** Milestone levels in ascending order — used for sequential badge issuance. */
 const TENURE_MILESTONES = [
@@ -74,6 +74,8 @@ export async function checkAndIssueTenureBadges(userId: string): Promise<void> {
 		});
 		if (!user) return;
 		if (Date.now() - user.createdAt.getTime() < MS_PER_YEAR) return;
+
+		await ensureReferenceData();
 
 		const platformOrgId = await getPlatformOrgId();
 		if (!platformOrgId) {

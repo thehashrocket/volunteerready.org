@@ -145,6 +145,7 @@ src/
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
 │       ├── notification.ts        # Notification types and domain functions
 │       ├── org-health.ts          # Org health score (computeOrgHealth, 0-100, four 25-pt metrics)
+│       ├── reference-data.ts      # SKILL_CATALOG (13 families, 62 skills), CATALOG_VERSION, PLATFORM_ORG_SLUG
 │       ├── screener/
 │       │   ├── configSchema.ts     # Zod schemas for screening question config
 │       │   ├── publicForm.ts       # Public form type mapping
@@ -199,6 +200,7 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **FeatureFlag** — per-org feature toggles.
 - **OrganizationInvitation** — team invite tokens with expiry.
 - **ApplicationStatusToken** — opaque tokens for public status lookups.
+- **ReferenceDataMeta** — key-value table for reference data version tracking (key: string, version: int, seededAt: DateTime). Used by the boot guard to detect when the skill catalog needs re-seeding after a `CATALOG_VERSION` bump.
 
 See `docs/DOMAIN.md` for canonical vocabulary.
 

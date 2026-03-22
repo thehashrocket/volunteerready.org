@@ -2,9 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.17.4] - 2026-03-21
+## [0.17.4] - 2026-03-22
+
+### Added
+- **Reference Data Boot Guard** — Self-healing runtime check that ensures the skill catalog (13 families, 62 skills) and platform org exist before serving requests. Uses a module-level flag + promise lock for zero-cost after first check, with automatic re-seeding on cold starts.
+- **Catalog version tracking** — New `ReferenceDataMeta` table tracks the seeded catalog version. Version mismatches (e.g., after a rollback) trigger automatic re-seeding with strict equality (`===` not `>=`).
+- **Domain extraction** — `SKILL_CATALOG` moved from `prisma/seed-helpers.ts` to `src/server/domain/reference-data.ts` as the single source of truth, importable by both seed scripts and runtime services.
+- **Startup instrumentation** — `instrumentation.ts` now runs `ensureReferenceData()` on Node.js startup as a belt-and-suspenders check alongside the runtime guard.
+- **Empty catalog UI** — My Skills page now shows a friendly empty state with refresh button when the skill catalog is unavailable.
+- **9 unit tests** — Full coverage for boot guard service: fast path, concurrent dedup, error retry, version mismatch re-seed, both-missing seeding, and logging.
 
 ### Changed
+- **Matching router** — `getSkillCatalog` now routes through the service layer (with boot guard) instead of calling the repository directly.
+- **Tenure badge service** — Now calls `ensureReferenceData()` before platform org lookup and imports `PLATFORM_ORG_SLUG` from the canonical domain module.
 - **About page** — Replaced fictional team bios and origin story with the real founder story. Jason and Trisha Shultz are now featured as cofounders with authentic bios and photos from their 35 years of volunteering.
 
 ## [0.17.3] - 2026-03-21
