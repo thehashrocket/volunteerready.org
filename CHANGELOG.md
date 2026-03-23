@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.10] - 2026-03-22
+
+### Changed
+- **Phase 11 plan placed ON HOLD** — All 12 Phase 11 PRs deferred pending first active org/user validation
+- **Grant integration permanently removed** — Removed from Phase 11 plan and TODOS.md with tombstone explaining domain expertise rationale (grant APIs vary wildly by state/funder, integration outside CA/federal is prohibitively difficult)
+- **TODOS.md cleanup** — Grant/Funding Tracker section replaced with permanent removal notice
+
 ## [0.17.9] - 2026-03-22
 
 ### Added
