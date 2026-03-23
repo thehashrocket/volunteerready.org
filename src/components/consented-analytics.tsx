@@ -32,6 +32,12 @@ export function ConsentedAnalytics() {
 		return () => window.removeEventListener('cookie-consent-changed', check);
 	}, []);
 
+	// Disable Google Analytics in-memory when consent is revoked
+	useEffect(() => {
+		(window as Record<string, unknown>)[`ga-disable-${GA_MEASUREMENT_ID}`] =
+			!enabled;
+	}, [enabled]);
+
 	if (!enabled) return null;
 	return (
 		<>
