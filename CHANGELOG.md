@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.9] - 2026-03-22
+
+### Added
+- **Shared `<FaqSection>` component** — Standardized FAQ accordion with `<details>/<summary>`, Fraunces heading, deep-link IDs, chevron animation, and automatic JSON-LD `FAQPage` structured data. Used on 5 pages.
+- **Shared `<PlatformStatsBar>` component** — Async server component showing live platform stats (orgs, credentials, shifts, volunteers) with hide-on-zero filter. Extracted from homepage, now reused on for-nonprofits and for-employers.
+- **Shared `<ScreenshotSection>` component** — Product screenshot with fade-in animation, configurable section/container backgrounds, caption, and graceful error handling. Used on 4 pages.
+- **FAQ sections on audience pages** — Added 6-question FAQ blocks with JSON-LD to for-nonprofits, for-volunteers, and for-employers pages.
+- **Product screenshots on marketing pages** — Added screener, dashboard, profile, and ESG dashboard screenshots to screening, for-nonprofits, for-volunteers, and for-employers pages.
+- **Homepage competitive positioning** — Added "What makes us different" differentiator cluster (founder-led setup, real-time data) below platform pillars with sand left-border accent.
+- **About page "Recently Shipped" section** — Grouped milestones into Platform Capabilities and Recently Shipped clusters with version badges.
+- **`FOUNDER_BOOKING_URL` constant** — Centralized Google Calendar booking link in `src/lib/constants.ts`.
+- **Testimonial teasers** — "More stories coming soon" text below testimonials on for-nonprofits and for-volunteers.
+- **Test coverage** — 3 new test files (10 tests) covering FaqSection, PlatformStatsBar, and ScreenshotSection components.
+
+### Changed
+- **Marketing CTAs** — for-nonprofits and for-employers primary CTAs now link to founder booking instead of in-app onboarding. CTA labels vary per page (screening: "Get Set Up Free", nonprofits: "See It In Action", employers: "Schedule a Demo").
+- **Sterling mentions** — Updated 6 pages to mention both Checkr & Sterling for background check providers.
+- **FAQ standardization** — Refactored existing FAQ sections on how-it-works and screening pages to use the shared `<FaqSection>` component with consistent `{ question, answer }` data shape.
+- **ISR caching** — for-nonprofits and for-employers pages converted to async with `revalidate = 3600` for platform stats.
+
+### Fixed
+- **False CSV export claim** — for-employers FAQ now correctly states CSV exports are available on Pro plans (was "all plans").
+- **False screening claim** — Removed inaccurate per-opportunity screening form claim from for-nonprofits.
+- **False document uploads claim** — Removed inaccurate document uploads claim from for-nonprofits apply flow description.
+- **Hardcoded Calendly URLs** — Replaced 5 hardcoded `calendly.com` links with `FOUNDER_BOOKING_URL` constant across screening, stories, and referral pages.
+- **Removed video placeholder** — Deleted "Founder demo video — embed URL here" placeholder section from screening page.
+
 ## [0.17.8] - 2026-03-22
 
 ### Added

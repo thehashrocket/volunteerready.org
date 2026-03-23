@@ -407,6 +407,29 @@ seed data. Ready for integration into public landing pages.
 
 ---
 
+### [P2] Public Stories Index Page (/stories)
+
+**What:** Create `src/app/(public)/stories/page.tsx` — a public listing of consented org case studies,
+connecting the Content Flywheel to the marketing funnel.
+
+**Why:** The Content Flywheel (case study generation, consent flow, PDF download) is fully built, but
+there's no public index page. Marketing pages show testimonials with "More stories coming soon" teasers
+that currently dead-end. A stories index gives those teasers somewhere to link, adds SEO value through
+long-tail org stories, and leverages existing infrastructure.
+
+**Context:** Individual story pages already exist at `/stories/[orgSlug]`. Consent flow is live
+(`/stories/consent-confirmed`, `/stories/consent-expired`). Case study admin UI is at
+`/app/admin/case-studies`. What's missing is a listing page that queries all published/consented
+case studies and renders them as a browsable grid. Once shipped, update marketing page testimonial
+teasers to link to `/stories` and re-enable the story links dropped by the eng review.
+
+**Pros:** Connects Content Flywheel to conversion funnel; SEO value; leverages existing infrastructure.
+**Cons:** Requires design for the listing page layout; needs at least one consented case study in production.
+
+**Effort:** S | **Priority:** P2 | **Depends on:** At least one consented case study in production
+
+---
+
 ## Volunteer Discovery
 
 ### ~~[P1] HTTP Rate Limiting for volunteer search endpoint~~ ✅ Complete
@@ -908,3 +931,44 @@ timeouts. Additionally, all org slugs are publicly enumerable via the sitemap.
 etc.) with pagination. Consider filtering to orgs with published content only.
 
 **Effort:** S | **Priority:** P3 | **Depends on:** Org count growth
+
+---
+
+## Marketing & Conversion (v0.18+)
+
+### [P2] Founder Demo Video on /screening and Homepage
+
+**What:** Record a 60-90 second Loom-style walkthrough (create org, post opportunity, run
+background check) and embed on `/screening` and the homepage. The video placeholder was
+removed from `/screening` in the marketing page update PR — re-add the section with the
+real embed when the recording is ready.
+
+**Why:** SaaS conversion research (2026) shows founder video is the #1 conversion tool —
+80%+ lift on landing pages. A raw, direct-to-camera walkthrough builds trust faster than
+any amount of copy.
+
+**Context:** The `/screening` page previously had a video placeholder section (lines 137-151)
+showing "Founder demo video — embed URL here." It was removed for being unprofessional.
+When a real video exists, re-add the section using the same layout (aspect-video container,
+caption below). The homepage could use a similar section after the hero or after the
+competitive positioning section.
+
+**Effort:** S (30 min to record, 5 min to embed) | **Priority:** P2 | **Depends on:** Founder recording the video
+
+---
+
+### [P3] G2 and Capterra Review Listings
+
+**What:** Get VolunteerReady listed on G2 and Capterra. Once listed with initial reviews,
+embed live review badges on the homepage and `/screening` page.
+
+**Why:** Third-party review platforms are the strongest trust signal for B2B SaaS buyers.
+Live review feeds from G2/Capterra embedded on landing pages are a top conversion driver
+in 2026.
+
+**Context:** VolunteerReady is not currently listed on any review platform. Getting listed
+requires: (1) creating a vendor profile on G2 and Capterra, (2) getting 5-10 initial reviews
+from real users, (3) embedding the review badge widget on marketing pages. Both platforms
+offer free listing tiers. The embed is typically a `<script>` tag or React component.
+
+**Effort:** M (1 week for listing + first reviews, 5 min to embed) | **Priority:** P3 | **Depends on:** Having real customers to provide reviews
