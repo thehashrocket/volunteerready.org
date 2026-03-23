@@ -34,7 +34,7 @@ export function ConsentedAnalytics() {
 
 	// Disable Google Analytics in-memory when consent is revoked
 	useEffect(() => {
-		(window as Record<string, unknown>)[`ga-disable-${GA_MEASUREMENT_ID}`] =
+		(window as unknown as Record<string, unknown>)[`ga-disable-${GA_MEASUREMENT_ID}`] =
 			!enabled;
 	}, [enabled]);
 
