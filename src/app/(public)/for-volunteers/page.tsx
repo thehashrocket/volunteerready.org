@@ -10,8 +10,10 @@ import {
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
+import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -80,6 +82,39 @@ const steps = [
 		label: 'Show up and earn credentials',
 		detail:
 			'Sign up for shifts, log attendance, and earn verified badges. Your volunteer record grows with every organization you serve.',
+	},
+];
+
+const volunteerFaqs = [
+	{
+		question: 'Is VolunteerReady free for volunteers?',
+		answer:
+			"Yes, always. There's no cost to create a profile, apply to opportunities, track your hours, or earn credentials.",
+	},
+	{
+		question: 'How does matching work?',
+		answer:
+			'Our matching engine evaluates your verified skills, certifications, location, and availability against opportunity requirements. It surfaces the best-fit opportunities for you automatically.',
+	},
+	{
+		question: 'What are portable credentials?',
+		answer:
+			'Verified badges — like background check cleared, training complete, or orientation done — that travel with you across every organization on the platform. Apply once, carry everywhere.',
+	},
+	{
+		question: 'Can I volunteer with multiple organizations?',
+		answer:
+			"Absolutely. Your profile and credentials are portable. Apply to as many organizations as you'd like from a single dashboard.",
+	},
+	{
+		question: 'How do I track my hours?',
+		answer:
+			'Sign up for shifts and check in when you arrive. Your hours are logged automatically and tied to your volunteer profile — no paper timesheets.',
+	},
+	{
+		question: 'What if I need a background check?',
+		answer:
+			'If an organization requires one, the background check runs seamlessly within the screening process. Results become a portable credential you can use across the platform.',
 	},
 ];
 
@@ -204,6 +239,15 @@ export default function ForVolunteersPage() {
 				</div>
 			</section>
 
+			{/* ── Screenshot ── */}
+			<ScreenshotSection
+				src="/marketing/profile.png"
+				alt="VolunteerReady volunteer profile showing portable credentials, upcoming shifts, and impact stats"
+				caption="Your volunteer profile — portable credentials, upcoming shifts, and impact stats."
+				sectionBg="white"
+				containerBg="sand"
+			/>
+
 			{/* ── Testimonial ── */}
 			<section className="mx-auto w-full max-w-2xl px-4 py-20">
 				<FadeInOnScroll>
@@ -233,6 +277,14 @@ export default function ForVolunteersPage() {
 						</CardContent>
 					</Card>
 				</FadeInOnScroll>
+				<p className="mt-4 text-center text-sm text-muted-foreground/60">
+					More stories coming soon
+				</p>
+			</section>
+
+			{/* ── FAQ ── */}
+			<section className="bg-[#F5F4F0] px-4 py-16">
+				<FaqSection faqs={volunteerFaqs} />
 			</section>
 
 			<CTABanner

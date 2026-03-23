@@ -1,8 +1,8 @@
 import { BarChart3, Building2, Heart } from 'lucide-react';
 import type { Metadata } from 'next';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
-import { JsonLdFaq } from '@/components/json-ld-faq';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
@@ -69,7 +69,7 @@ const nonprofitSteps = [
 		number: '03',
 		label: 'Screen and background check',
 		detail:
-			'Build custom questionnaires with auto-pass/fail rules. Run FCRA-compliant Checkr background checks when needed.',
+			'Build custom questionnaires with auto-pass/fail rules. Run FCRA-compliant Checkr & Sterling background checks when needed.',
 	},
 	{
 		number: '04',
@@ -154,32 +154,39 @@ function StepTimeline({
 
 const faqs = [
 	{
-		q: 'Is VolunteerReady free for volunteers?',
-		a: "Yes. Volunteers always use VolunteerReady for free. There's no cost to create a profile, apply to opportunities, or track your history.",
+		question: 'Is VolunteerReady free for volunteers?',
+		answer:
+			"Yes. Volunteers always use VolunteerReady for free. There's no cost to create a profile, apply to opportunities, or track your history.",
 	},
 	{
-		q: 'How does screening work?',
-		a: 'Each nonprofit creates its own screening questionnaire with auto-pass/fail rules. Your answers are evaluated against those rules, and the team sees a result (pass, review, or flag). Humans always make the final call.',
+		question: 'How does screening work?',
+		answer:
+			'Each nonprofit creates its own screening questionnaire with auto-pass/fail rules. Your answers are evaluated against those rules, and the team sees a result (pass, review, or flag). Humans always make the final call.',
 	},
 	{
-		q: 'What about background checks?',
-		a: 'Background checks are powered by Checkr with full FCRA compliance — including adverse action workflows. They run seamlessly within the screening process and results are encrypted at rest.',
+		question: 'What about background checks?',
+		answer:
+			'Background checks are powered by Checkr and Sterling with full FCRA compliance — including adverse action workflows. They run seamlessly within the screening process and results are encrypted at rest.',
 	},
 	{
-		q: 'Can I volunteer with multiple organizations?',
-		a: "Your profile and credentials are portable across every organization on the platform. Apply to as many as you'd like from a single dashboard.",
+		question: 'Can I volunteer with multiple organizations?',
+		answer:
+			"Your profile and credentials are portable across every organization on the platform. Apply to as many as you'd like from a single dashboard.",
 	},
 	{
-		q: 'What credentials can be tracked?',
-		a: 'Background Check Cleared, Training Complete, ID Verified, Reference Check Complete, and Orientation Complete. Each tracks the date issued and can be revoked if circumstances change.',
+		question: 'What credentials can be tracked?',
+		answer:
+			'Background Check Cleared, Training Complete, ID Verified, Reference Check Complete, and Orientation Complete. Each tracks the date issued and can be revoked if circumstances change.',
 	},
 	{
-		q: 'How does the matching engine work?',
-		a: 'On Starter and Pro plans, our matching engine evaluates volunteer skills, certifications, location, and availability against opportunity requirements. It surfaces the best-fit candidates automatically.',
+		question: 'How does the matching engine work?',
+		answer:
+			'On Starter and Pro plans, our matching engine evaluates volunteer skills, certifications, location, and availability against opportunity requirements. It surfaces the best-fit candidates automatically.',
 	},
 	{
-		q: 'How do corporate ESG reports work?',
-		a: 'Pro plan companies see aggregate dashboards of employee volunteering — hours, participation rates, and impact by nonprofit partner. Export CSV reports for sustainability filings.',
+		question: 'How do corporate ESG reports work?',
+		answer:
+			'Pro plan companies see aggregate dashboards of employee volunteering — hours, participation rates, and impact by nonprofit partner. Export CSV reports for sustainability filings.',
 	},
 ];
 
@@ -192,7 +199,6 @@ export default function HowItWorksPage() {
 					{ label: 'How It Works', href: '/how-it-works' },
 				]}
 			/>
-			<JsonLdFaq faqs={faqs.map((f) => ({ question: f.q, answer: f.a }))} />
 			<PublicHero
 				eyebrow="How it works"
 				heading={
@@ -295,29 +301,7 @@ export default function HowItWorksPage() {
 
 			{/* ── FAQ ── */}
 			<section className="bg-[#F5F4F0] px-4 py-16">
-				<div className="mx-auto max-w-2xl">
-					<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
-						Frequently asked questions
-					</h2>
-					<div className="space-y-3">
-						{faqs.map((faq) => (
-							<details
-								key={faq.q}
-								className="group rounded-lg border border-border/60 bg-background px-5 py-4"
-							>
-								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-foreground">
-									{faq.q}
-									<span className="shrink-0 text-muted-foreground transition-transform group-open:rotate-45">
-										+
-									</span>
-								</summary>
-								<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-									{faq.a}
-								</p>
-							</details>
-						))}
-					</div>
-				</div>
+				<FaqSection faqs={faqs} />
 			</section>
 
 			{/* ── Bottom CTA ── */}

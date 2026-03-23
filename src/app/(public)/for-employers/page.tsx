@@ -9,10 +9,16 @@ import {
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
+import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
+import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
 	title: 'For Employers — Corporate Volunteering & ESG | VolunteerReady',
@@ -45,7 +51,7 @@ const features = [
 	{
 		icon: Shield,
 		heading: 'Background checks included',
-		body: 'Checkr-powered screening with FCRA compliance is built into the platform. Your employees get the same trusted vetting process nonprofits rely on.',
+		body: 'Checkr & Sterling-powered screening with FCRA compliance is built into the platform. Your employees get the same trusted vetting process nonprofits rely on.',
 	},
 	{
 		icon: FileSpreadsheet,
@@ -72,7 +78,40 @@ const differentiators = [
 	},
 ];
 
-export default function ForEmployersPage() {
+const employerFaqs = [
+	{
+		question: 'How does ESG reporting work?',
+		answer:
+			'VolunteerReady aggregates volunteer hours, participation rates, and impact metrics across your workforce into a dashboard. Export CSV reports anytime for board decks, sustainability filings, and stakeholder updates.',
+	},
+	{
+		question: 'Can employees use their existing VolunteerReady accounts?',
+		answer:
+			'Yes. If an employee already has a VolunteerReady profile, they can link it to your company. Their existing credentials and volunteer history carry over seamlessly.',
+	},
+	{
+		question: 'What data can I export?',
+		answer:
+			'Everything — volunteer hours, credentials issued, shifts completed, participation rates, and impact by nonprofit partner. CSV exports are available on Pro plans.',
+	},
+	{
+		question: 'How do nonprofit partnerships work?',
+		answer:
+			'Link your company to specific nonprofits on the platform. See which organizations your employees support, track cross-org impact, and coordinate volunteer days directly.',
+	},
+	{
+		question: 'Is there a free trial for companies?',
+		answer:
+			'Yes. Start with a free company profile and explore the platform. Our founder will personally walk you through the setup and help you connect with nonprofit partners.',
+	},
+	{
+		question: 'What size companies use VolunteerReady?',
+		answer:
+			'Companies of all sizes — from startups with 20 employees to enterprises with thousands. The platform scales with your program, and pricing is based on features, not headcount.',
+	},
+];
+
+export default async function ForEmployersPage() {
 	return (
 		<div className="flex flex-col">
 			<JsonLdBreadcrumb
@@ -97,12 +136,12 @@ export default function ForEmployersPage() {
 					<>
 						<Button asChild size="lg" className="rounded-full px-8">
 							<TrackedLink
-								href="/login?callbackUrl=/app/onboarding"
-								eventLabel="Set up your company"
+								href={FOUNDER_BOOKING_URL}
+								eventLabel="Schedule a demo"
 								eventPage="for-employers"
 							>
 								<Building2 className="h-4 w-4" />
-								Set up your company
+								Schedule a Demo
 							</TrackedLink>
 						</Button>
 						<Button
@@ -122,6 +161,9 @@ export default function ForEmployersPage() {
 					</>
 				}
 			/>
+
+			{/* ── Platform stats ── */}
+			<PlatformStatsBar />
 
 			{/* ── Features ── */}
 			<section className="mx-auto w-full max-w-4xl px-4 py-20">
@@ -155,6 +197,15 @@ export default function ForEmployersPage() {
 				</div>
 			</section>
 
+			{/* ── Screenshot ── */}
+			<ScreenshotSection
+				src="/marketing/esg.png"
+				alt="VolunteerReady ESG dashboard showing aggregate volunteer hours and impact metrics"
+				caption="The ESG dashboard — aggregate volunteer hours, impact metrics, and export-ready reports."
+				sectionBg="sand"
+				containerBg="white"
+			/>
+
 			{/* ── Differentiators ── */}
 			<section className="bg-[#F5F4F0] px-4 py-16">
 				<div className="mx-auto max-w-3xl">
@@ -178,6 +229,11 @@ export default function ForEmployersPage() {
 				</div>
 			</section>
 
+			{/* ── FAQ ── */}
+			<section className="px-4 py-20">
+				<FaqSection faqs={employerFaqs} />
+			</section>
+
 			<CTABanner
 				icon={BarChart3}
 				heading="Ready to measure your impact?"
@@ -190,11 +246,11 @@ export default function ForEmployersPage() {
 							className="rounded-full bg-white px-8 text-primary hover:bg-white/90"
 						>
 							<TrackedLink
-								href="/login?callbackUrl=/app/onboarding"
-								eventLabel="Set up company (bottom CTA)"
+								href={FOUNDER_BOOKING_URL}
+								eventLabel="Schedule a demo (bottom CTA)"
 								eventPage="for-employers"
 							>
-								Get started
+								Schedule a Demo
 							</TrackedLink>
 						</Button>
 						<Button

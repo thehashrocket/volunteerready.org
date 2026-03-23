@@ -10,13 +10,15 @@ import {
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
-import { JsonLdFaq } from '@/components/json-ld-faq';
 import { PublicHero } from '@/components/public-hero';
+import { ScreenshotSection } from '@/components/screenshot-section';
 import { SwitchCostCalculator } from '@/components/switch-cost-calculator';
 import { TestimonialSection } from '@/components/testimonial-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
 	title: 'Background Checks for Nonprofits — $29/mo | VolunteerReady',
@@ -93,7 +95,6 @@ export default function ScreeningPage() {
 					{ label: 'Background Checks', href: '/screening' },
 				]}
 			/>
-			<JsonLdFaq faqs={screeningFaqs} />
 			{/* ── Hero ── */}
 			<PublicHero
 				eyebrow="Background Checks for Nonprofits"
@@ -108,7 +109,7 @@ export default function ScreeningPage() {
 					<>
 						<Button asChild size="lg" className="rounded-full px-8">
 							<TrackedLink
-								href="https://calendly.com"
+								href={FOUNDER_BOOKING_URL}
 								eventLabel="Get set up free (hero)"
 								eventPage="screening"
 							>
@@ -133,22 +134,6 @@ export default function ScreeningPage() {
 					</>
 				}
 			/>
-
-			{/* ── Founder video placeholder ── */}
-			<section className="bg-[#F5F4F0] px-4 py-14">
-				<div className="mx-auto max-w-2xl">
-					<div className="aspect-video overflow-hidden rounded-lg border border-border/70 bg-neutral-800">
-						{/* Replace with Loom/YouTube embed URL */}
-						<div className="flex h-full items-center justify-center text-sm text-neutral-400">
-							Founder demo video — embed URL here
-						</div>
-					</div>
-					<p className="mt-3 text-center text-sm text-muted-foreground">
-						2-minute walkthrough: create an org, post an opportunity, run a
-						background check.
-					</p>
-				</div>
-			</section>
 
 			{/* ── Pain points ── */}
 			<section className="mx-auto w-full max-w-2xl px-4 py-20">
@@ -206,6 +191,15 @@ export default function ScreeningPage() {
 				</div>
 			</section>
 
+			{/* ── Screenshot ── */}
+			<ScreenshotSection
+				src="/marketing/screener.png"
+				alt="VolunteerReady screening dashboard showing application review queue"
+				caption="The screening dashboard — review applications, run checks, and track credentials in one view."
+				sectionBg="white"
+				containerBg="sand"
+			/>
+
 			{/* ── Switch Cost Calculator ── */}
 			<section className="mx-auto w-full max-w-xl px-4 py-20">
 				<h2 className="font-display mb-2 text-[32px] font-bold text-foreground [text-wrap:balance]">
@@ -222,22 +216,8 @@ export default function ScreeningPage() {
 			<TestimonialSection />
 
 			{/* ── FAQ ── */}
-			<section className="mx-auto w-full max-w-2xl px-4 py-20">
-				<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
-					Frequently asked questions
-				</h2>
-				<dl className="space-y-8">
-					{screeningFaqs.map((faq) => (
-						<div key={faq.question}>
-							<dt className="mb-2 font-semibold text-foreground">
-								{faq.question}
-							</dt>
-							<dd className="text-sm leading-relaxed text-muted-foreground">
-								{faq.answer}
-							</dd>
-						</div>
-					))}
-				</dl>
+			<section className="px-4 py-20">
+				<FaqSection faqs={screeningFaqs} />
 			</section>
 
 			{/* ── CTA ── */}
@@ -252,7 +232,7 @@ export default function ScreeningPage() {
 						className="rounded-full bg-white px-8 text-primary hover:bg-white/90"
 					>
 						<TrackedLink
-							href="https://calendly.com"
+							href={FOUNDER_BOOKING_URL}
 							eventLabel="Get set up free (bottom CTA)"
 							eventPage="screening"
 						>
