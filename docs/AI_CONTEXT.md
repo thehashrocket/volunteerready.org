@@ -123,7 +123,7 @@ src/
 │   ├── fade-in-on-scroll.tsx     # IntersectionObserver scroll animation
 │   ├── tracked-link.tsx          # Link with Vercel Analytics click tracking
 │   ├── cookie-consent-banner.tsx # GDPR-compliant cookie consent (essential + analytics categories)
-│   ├── consented-analytics.tsx   # Vercel Analytics gated behind cookie consent
+│   ├── consented-analytics.tsx   # Google Analytics gtag.js + Vercel Analytics, consent-gated via cookie banner
 │   ├── json-ld-breadcrumb.tsx    # BreadcrumbList JSON-LD structured data
 │   └── json-ld-faq.tsx           # FAQPage JSON-LD structured data
 │
