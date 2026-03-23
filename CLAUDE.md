@@ -134,6 +134,8 @@ docs/
 - SEO: OG image API at `src/app/api/og/[type]/[slug]/route.tsx` (branded Open Graph images for pages + org routes)
 - SEO: JSON-LD components at `src/components/json-ld-breadcrumb.tsx` and `src/components/json-ld-faq.tsx`
 - SEO: `BASE_URL` constant at `src/lib/constants.ts` — canonical production URL used by sitemap, robots, JSON-LD, OG images
+- Marketing: `FOUNDER_BOOKING_URL` constant at `src/lib/constants.ts` — Google Calendar booking link used by all marketing CTAs
+- Marketing: shared components at `src/components/faq-section.tsx` (FAQ accordion + JSON-LD), `src/components/platform-stats-bar.tsx` (async stats bar), `src/components/screenshot-section.tsx` (product screenshot with error handling)
 - PWA: `public/manifest.webmanifest`, `public/sw.js`, `src/components/sw-register.tsx`, `src/components/ios-install-prompt.tsx`
 - Org health score: domain at `src/server/domain/org-health.ts`, widget at `src/components/app/org-health-widget.tsx`
 - Activity feed: `src/components/app/activity-feed.tsx` (uses `screener.getActivityFeed` tRPC query)
