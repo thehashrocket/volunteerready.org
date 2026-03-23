@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.11] - 2026-03-22
+
+### Added
+- **Nonprofit discovery outreach conversation flow** — Complete conversation scripts for cold email (3-touch sequence), LinkedIn warm outreach, and volunteering-based relationship building. Includes 30-minute discovery interview script with 5 core questions and follow-up probes, conversation logging template, pattern recognition framework, and nonprofit sourcing guide.
+
 ## [0.17.10] - 2026-03-22
 
 ### Changed
