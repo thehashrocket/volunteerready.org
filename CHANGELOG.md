@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.12] - 2026-03-23
+
+### Added
+- **Google Analytics (gtag.js) with consent gating** — Loads Google Analytics measurement tag (`G-8EYQH68KXC`) only when the user grants analytics cookie consent. Sets the `ga-disable-*` window flag to properly disable tracking in-memory when consent is revoked, preventing continued tracking after component unmount.
+
 ## [0.17.11] - 2026-03-22
 
 ### Added
