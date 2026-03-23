@@ -426,7 +426,7 @@ Delivered (v0.12.2):
 - ✅ Privacy policy page (`/privacy`) — 10 sections covering data collection, storage, security, sharing, retention, cookies, user rights, children's privacy; third-party service disclosure table
 - ✅ Terms of service page (`/terms`) — 15 sections with reusable Section component
 - ✅ Cookie consent banner — GDPR-compliant with essential (always on) and analytics (opt-in) categories; expandable preferences panel; localStorage persistence with shape validation
-- ✅ Consented analytics — `<ConsentedAnalytics>` component gates Vercel Analytics behind cookie consent; custom event listener for real-time consent changes
+- ✅ Consented analytics — `<ConsentedAnalytics>` component gates Google Analytics (gtag.js) and Vercel Analytics behind cookie consent; `ga-disable-*` flag for in-memory disable on revoke; custom event listener for real-time consent changes
 - ✅ Seed file refactor — split monolithic `seed.ts` (2,191 lines) into `seed-helpers.ts`, `seed-production.ts`, `seed-dev.ts`, and thin dispatcher; added `seed:production` and `seed:dev` npm scripts
 
 Deferred from Phase 9:
