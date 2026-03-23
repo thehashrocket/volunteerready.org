@@ -1,11 +1,19 @@
 // @vitest-environment jsdom
 
-import { render, act } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock next/script to render a simple span with the src/id
 vi.mock('next/script', () => ({
-	default: ({ src, id, children }: { src?: string; id?: string; children?: string }) => (
+	default: ({
+		src,
+		id,
+		children,
+	}: {
+		src?: string;
+		id?: string;
+		children?: string;
+	}) => (
 		<span data-testid={id ?? 'script'} data-src={src}>
 			{children}
 		</span>
@@ -25,7 +33,9 @@ const GA_MEASUREMENT_ID = 'G-8EYQH68KXC';
 describe('ConsentedAnalytics', () => {
 	beforeEach(() => {
 		localStorage.clear();
-		delete (window as Record<string, unknown>)[`ga-disable-${GA_MEASUREMENT_ID}`];
+		delete (window as Record<string, unknown>)[
+			`ga-disable-${GA_MEASUREMENT_ID}`
+		];
 	});
 
 	afterEach(() => {
