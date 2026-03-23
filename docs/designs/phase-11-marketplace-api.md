@@ -1,7 +1,12 @@
+<!-- /autoplan restore point: /Users/jasonshultz/.gstack/projects/thehashrocket-volunteerready.org/thehashrocket-autoplan-review-autoplan-restore-20260322-200717.md -->
 # Phase 11 — Volunteer Marketplace & API Platform
 
-> Promoted from CEO plan review on 2026-03-21.
-> Branch: thehashrocket/pr7-phase11-vision | Mode: SCOPE EXPANSION
+> **STATUS: ON HOLD** — Deferred pending first active org. CEO review (2026-03-22)
+> concluded: zero users, zero demand evidence. Find one nonprofit first.
+> See: `~/.gstack/projects/thehashrocket-volunteerready.org/jasonshultz-thehashrocket-autoplan-review-design-20260322-204717.md`
+>
+> Originally promoted from CEO plan review on 2026-03-21.
+> Branch: thehashrocket/pr7-phase11-vision | Mode: SCOPE EXPANSION → **SCOPE REDUCTION (2026-03-22)**
 > Source: `~/.gstack/projects/thehashrocket-volunteerready.org/ceo-plans/2026-03-21-phase11-marketplace-api.md`
 
 ## Vision
@@ -63,7 +68,7 @@ they're org-centric tools, not volunteer-centric platforms.
 | Advanced matching + skill badges | — | Yes | Yes |
 | API access (read) | — | — | Yes |
 | API access (write) + webhooks | — | — | Yes |
-| Grant tracking + reporting | — | — | Yes |
+| ~~Grant tracking + reporting~~ | — | — | ~~Yes~~ | REMOVED — see scope item #11 |
 | Embeddable opportunity widget | — | — | Yes |
 
 ENTERPRISE (Phase 12+): SSO/SAML, dedicated support, custom integrations.
@@ -96,7 +101,7 @@ ENTERPRISE (Phase 12+): SSO/SAML, dedicated support, custom integrations.
 
 10. **"Bring a friend" referral** — `ReferralLink` with short token, 30-day expiry, one link = one claim, landing page at `/refer/[token]`, rate limit 5/day/user, referrer credit on impact portfolio.
 
-11. **Grant opportunity integration** — `Grant` + `OpportunityGrant` models, hours accumulate from ATTENDED shifts with cached `hoursAccumulated` counter (updated on shift ATTENDED status change), progress dashboard at `/app/grants`, CSV + PDF export (reuse ESG pattern). PRO tier. **Cross-org invariant:** DB CHECK constraint + service-layer validation ensures `grant.orgId === opportunity.orgId` on every `OpportunityGrant` write.
+11. ~~**Grant opportunity integration**~~ — **REMOVED.** Domain expertise: grant program APIs vary wildly by state and funder; integrating outside California/federal is prohibitively difficult. Not a fit for this platform.
 
 12. **Volunteer streaks & gamification** — `VolunteerStreak` tracking (consecutive weeks with ATTENDED status), milestone badge computation, display on profile and dashboard.
 
@@ -132,7 +137,7 @@ Initial delivery + 1 fast retry (1m delay) via `waitUntil()`. Remaining retries 
 
 **Idempotency:** Cron retry sweep uses atomic `updateMany` with `WHERE status = 'PENDING' AND nextRetryAt <= NOW()` to claim rows, preventing duplicate deliveries from concurrent workers.
 
-**Audit logging:** All new service-layer mutations (API key create/revoke, webhook subscription CRUD, grant CRUD, interest create) must include audit log entries per existing service-layer pattern.
+**Audit logging:** All new service-layer mutations (API key create/revoke, webhook subscription CRUD, interest create) must include audit log entries per existing service-layer pattern.
 
 ### AD-4: Marketplace Search
 
@@ -160,8 +165,8 @@ WebhookSubscription { id, orgId, url, events[], secret (encrypted), active, crea
 WebhookDelivery { id, subscriptionId, event, payload, status, attempts, nextRetryAt?, lastResponseCode?, createdAt }
 OpportunityInterest { id, userId, opportunityId, createdAt } @@unique([userId, opportunityId])
 ReferralLink { id, referrerId, orgId?, shiftId?, token, claimedBy?, claimedAt?, createdAt, expiresAt }
-Grant { id, orgId, name, funder, hoursTarget, hoursAccumulated (cached counter), startDate, endDate, status, createdAt, updatedAt }
-OpportunityGrant { opportunityId, grantId } @@id([opportunityId, grantId])
+~~Grant~~ — REMOVED (see scope item #11)
+~~OpportunityGrant~~ — REMOVED (see scope item #11)
 VolunteerStreak { id, userId (unique), currentStreak, longestStreak, lastActivityWeek, updatedAt }
 ```
 
@@ -198,12 +203,12 @@ Each PR ships its own schema migrations. No big-bang migration.
 | PR5 | Public API v1 + `ApiKey` model + API key management + OpenAPI docs | L |
 | PR6 | Outbound webhooks: `WebhookSubscription` + `WebhookDelivery` models, delivery engine + retry cron + admin UI with delivery health table | M |
 | PR7 | Embeddable opportunity widget (vanilla JS + Shadow DOM + Edge) | M |
-| PR8 | Grant integration: `Grant` + `OpportunityGrant` models (with DB CHECK constraint for cross-org invariant), cached `hoursAccumulated`, CRUD + progress dashboard + CSV/PDF export | M |
+| ~~PR8~~ | ~~Grant integration~~ — **REMOVED** (not deferred — permanently cut per domain expertise) | — |
 
 **PR5 Tests:** API key creation (hash verification, prefix display), key revocation, auth middleware (valid/invalid/revoked/expired), scope checking, rate limit (100 req/min), OpenAPI spec generation
 **PR6 Tests:** HMAC-SHA256 signing correctness, webhook delivery (success/timeout/5xx), retry state machine (PENDING→DELIVERED/FAILED→DEAD), atomic row-claiming (concurrent workers), SSRF URL validation (private IPs, non-HTTPS), delivery health table rendering, cron smoke test
 **PR7 Tests:** widget bundle generation, Shadow DOM isolation, org not visible (empty widget), Edge caching headers
-**PR8 Tests:** grant CRUD, OpportunityGrant cross-org invariant (DB + service), hoursAccumulated cache update on shift ATTENDED, progress dashboard aggregation, CSV/PDF export
+~~**PR8 Tests:**~~ REMOVED with PR8
 
 ### Phase 11C: Volunteer Experience (PRs 9-12)
 
@@ -231,7 +236,7 @@ Each PR ships its own schema migrations. No big-bang migration.
 - **Widget source tracking:** validate `source` enum values server-side.
 - **Marketplace moderation:** rate limit "I'm interested" (50/day), "Report listing" button for platform admin notification. Full moderation suite deferred.
 - **Apply redirect validation:** server-side verification that `opportunityId` belongs to the org identified by `orgSlug` and is PUBLISHED. Prevents URL parameter tampering.
-- **Cross-org grant invariant:** DB CHECK constraint + service-layer validation on `OpportunityGrant` writes to enforce `grant.orgId === opportunity.orgId`.
+- ~~**Cross-org grant invariant:**~~ REMOVED with grant integration.
 
 ---
 
@@ -326,24 +331,7 @@ Each new page has a defined visual hierarchy — what the user sees first, secon
   └─────────────────────────────────────────────────────┘
 ```
 
-#### `/app/grants` — Grant Progress Dashboard
-
-```
-  ┌─────────────────────────────────────────────────────┐
-  │  HEADING + "New Grant" button                        │  ← 1st
-  ├─────────────────────────────────────────────────────┤
-  │  GRANT LIST                                          │  ← 2nd
-  │  Each grant card:                                    │
-  │    Name (Fraunces 600) + Funder                      │
-  │    Progress bar (forest green fill on warm-100 bg)   │
-  │    "142 / 500 hours" (Geist Mono for numbers)        │
-  │    Date range + status badge                         │
-  │    Linked opportunities count                        │
-  │    Export: CSV | PDF buttons                          │
-  └─────────────────────────────────────────────────────┘
-```
-
-**Anti-pattern:** NO circular progress rings. Use horizontal progress bars per DESIGN.md.
+#### ~~`/app/grants` — Grant Progress Dashboard~~ REMOVED
 
 ### Navigation Flow
 
@@ -360,7 +348,7 @@ Each new page has a defined visual hierarchy — what the user sees first, secon
 
   AUTHENTICATED ORG ADMIN:
     /app/settings/webhooks → CRUD subscriptions → delivery health
-    /app/grants → CRUD grants → link opportunities → progress
+    ~~/app/grants~~ REMOVED
     /app/opportunities/[id] → "Interested" tab → "Invite to Apply"
 
   API CONSUMER:
@@ -395,9 +383,7 @@ Each new page has a defined visual hierarchy — what the user sees first, secon
                            |                      |  Send a test event."         |  delivery history."      | badges + timestamps      | partial data
                            |                      |  [Send Test] button          |                          |                          |
   ─────────────────────────|──────────────────────|──────────────────────────────|──────────────────────────|──────────────────────────|──────────────────
-  Grant progress           | Skeleton cards       | "No grants yet. Create one   | Toast with error         | Grant cards with         | Some grants
-                           |                      |  to track funder hours."     |                          | progress bars            | loading hours
-                           |                      |  [Create Grant] button       |                          |                          |
+  ~~Grant progress~~       | REMOVED              | REMOVED                      | REMOVED                  | REMOVED                  | REMOVED
   ─────────────────────────|──────────────────────|──────────────────────────────|──────────────────────────|──────────────────────────|──────────────────
   Impact portfolio         | Skeleton blocks      | "Start volunteering to       | "Could not load          | Full portfolio with      | Some sections
                            |                      |  build your impact           |  portfolio."             | stats, badges, hours     | still loading
@@ -486,9 +472,7 @@ All UI must use DESIGN.md tokens. Key mappings for Phase 11:
 - Mobile: Each row becomes a stacked card — Event on top, Status badge, Attempts, Time stacked vertically. Cards separated by warm-200 border.
 - Desktop: Standard table with columns.
 
-**Grant progress dashboard:**
-- Mobile: Full-width cards stacked. Progress bar spans card width. Export buttons stacked.
-- Desktop: Cards in 2-column grid (max). Progress bar inline.
+~~**Grant progress dashboard:**~~ REMOVED
 
 **Impact portfolio:**
 - Mobile: Stats stacked vertically (not 4-across). Credentials horizontal scroll.
@@ -572,6 +556,12 @@ Weekly branded HTML email sent via Resend:
 
 ## NOT in Scope (Phase 12+)
 
+- **Grant opportunity integration** — PERMANENTLY REMOVED (not deferred). Founder has direct
+  experience building a grant matching application. Grant program APIs vary wildly by state
+  and funder; integrating with anything outside California or federal programs is
+  prohibitively difficult. The `Grant` and `OpportunityGrant` models, `/app/grants`
+  dashboard, and all related specs have been removed from this plan. Do not re-propose
+  without evidence of a standardized grant API ecosystem.
 - SSO/SAML enterprise authentication
 - Real-time event-driven architecture (Inngest/similar)
 - Volunteer-to-volunteer messaging
@@ -584,6 +574,47 @@ Weekly branded HTML email sent via Resend:
 - Algolia search migration (monitor scale trigger first)
 
 ---
+
+<!-- AUTONOMOUS DECISION LOG -->
+## Decision Audit Trail
+
+| # | Phase | Decision | Principle | Rationale | Rejected |
+|---|-------|----------|-----------|-----------|----------|
+| 1 | CEO | Mode: SELECTIVE EXPANSION | P2+P3 | Marketplace foundation has standalone value; API/webhooks premature for 3-5 orgs | SCOPE EXPANSION |
+| 2 | CEO | Defer PR5 (Public API v1) | P3 | No identified API consumers; high maintenance for solo dev | Ship API now |
+| 3 | CEO | Defer PR6 (Webhooks) | P3 | Depends on API; high maintenance; no customer demand | Ship webhooks now |
+| 4 | CEO | Defer PR8 (Grant integration) | P3 | PRO feature with no PRO customers yet | Ship grants now |
+| 5 | CEO | Defer PR10 (Streaks/gamification) | P5 | Gamification before critical mass is premature | Ship streaks now |
+| 6 | CEO | Defer PR11 (Referral links) | P4 | Phase 12 already has referral system | Ship duplicate referral |
+| 7 | CEO | Defer PR12 (Calendar sync) | P3 | Nice-to-have, not adoption-driving | Ship calendar now |
+| 8 | CEO | Add empty marketplace org CTA | P1 | Empty state needs activation hook, not just "check back" | Leave generic empty state |
+| 9 | CEO | Add rate limit user-facing message | P1 | "I'm interested" rate limit needs UX, not silent failure | Silent rate limit |
+| 10 | CEO | Add marketplace SEO to PR2 | P1 | New public pages need sitemap/meta/structured data | Defer SEO |
+| 11 | CEO | Add marketplace analytics | P1 | Can't measure adoption impact without event tracking | Ship without analytics |
+| 12 | CEO | Add org marketplace onboarding | P1 | marketplaceVisible=false needs activation flow | No activation prompt |
+| 13 | Design | Add post-apply navigation flow | P1 | Volunteer needs clear path back after applying from marketplace | Leave unspecified |
+| 14 | Design | Add org admin emotional journey | P1 | Adoption focus requires org admin perspective, not just volunteer | Volunteer-only journey |
+| 15 | Design | Add widget accessibility spec | P1 | Shadow DOM needs independent focus management | Trust embedder's a11y |
+| 16 | Design | Batch interest notification at 5+ threshold | P5 | Per-interest notifications would be noisy; batched threshold is actionable | Per-interest notification |
+| 17 | Eng/Codex | Add Organization schema fields (description, location, causeArea, verified) | P1 | Org discovery page references fields that don't exist | Skip org discovery |
+| 18 | Eng/Codex | New UserMarketplacePreference model for cross-org digest | P5 | Existing UserDigestPreference is org-scoped; marketplace digest is per-user cross-org | Hack nullable orgId |
+| 19 | Eng/Codex | Extend publicOpportunityRepo, don't create marketplaceRepository | P4 | Existing repo + browse page already exists; avoid parallel stack | New separate repo |
+| 20 | Eng/Codex | Add unauthenticated "I'm interested" state | P1 | Marketplace is public but heart toggle only handles auth users | No anonymous behavior |
+| 21 | Eng | Reconcile plan: update PR sequence to match revised scope | P1 | Plan still lists deferred PRs as in-scope | Leave inconsistent |
+| 22 | CEO-2 | SCOPE REDUCTION: Defer ALL Phase 11 PRs pending first active org | P1 | Zero users, zero demand evidence. /office-hours concluded: find one nonprofit first | Ship any Phase 11 PR now |
+| 23 | CEO-2 | PERMANENTLY REMOVE grant integration (PR8) | P1 | Founder domain expertise: grant APIs fragmented outside CA/federal, prohibitively difficult | Keep grants as deferred |
+| 24 | CEO-2 | Mark plan ON HOLD (not archived, not deleted) | P2 | Plan is well-reviewed (4 passes); worth preserving as reference when users are found | Archive or delete plan |
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 2 | ON HOLD | Run 1: trimmed to 7 items. Run 2: SCOPE REDUCTION — all PRs deferred, grants permanently removed |
+| Codex Review | `/codex review` | Independent 2nd opinion | 1 | CLEAN | 10 findings, 4 applied to revised scope |
+| Eng Review | `/plan-eng-review` | Architecture & tests | 1 | STALE | 4 critical fixes — stale due to scope reduction |
+| Design Review | `/plan-design-review` | UI/UX gaps | 1 | STALE | 4 additions — stale due to scope reduction |
+
+**VERDICT:** ON HOLD — Plan deferred pending first active org. /office-hours assignment: find one nonprofit volunteer coordinator. Grants permanently removed (domain expertise). Re-run eng + design reviews when plan is re-activated.
 
 ## Dream State Delta
 
@@ -598,5 +629,5 @@ Phase 11 brings VolunteerReady to ~60% of the 12-month ideal:
   No external integrations →    Widget + calendar + .ics →   App store ecosystem
   Identity page exists     →    Impact portfolio         →   Portable resume
   No growth mechanics      →    Referrals + digest       →   Social + viral loops
-  No grant tracking        →    Basic grant progress     →   Full compliance suite
+  ~~No grant tracking~~    →    ~~Grant progress~~        →   REMOVED — not a platform fit
 ```

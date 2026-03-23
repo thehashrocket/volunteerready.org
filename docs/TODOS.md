@@ -972,3 +972,80 @@ from real users, (3) embedding the review badge widget on marketing pages. Both 
 offer free listing tiers. The embed is typically a `<script>` tag or React component.
 
 **Effort:** M (1 week for listing + first reviews, 5 min to embed) | **Priority:** P3 | **Depends on:** Having real customers to provide reviews
+
+---
+
+## Phase 11 — Deferred Items (from /autoplan review 2026-03-22)
+
+Items deferred from Phase 11 during CEO + Eng review. Original scope was 13 items / 12 PRs.
+Revised scope: 7 items / 6 PRs (marketplace foundation + key volunteer experience).
+Deferred items become Phase 11B when there are API consumers and PRO customers.
+
+### [P2] Public REST API v1
+
+**What:** REST API with SHA-256 hashed API keys, scoped permissions, 100 req/min rate limit.
+Endpoints: opportunities, applications, credentials, shifts, webhooks.
+OpenAPI spec via `zod-to-openapi`, Swagger UI at `/api/v1/docs`.
+
+**Why deferred:** No identified API consumers. High maintenance commitment (versioning,
+backward compat, docs) for a solo operator. Premature until there's customer demand.
+
+**Codex note:** Write endpoints need idempotency keys or hard conflict semantics to prevent
+duplicate side effects from client retries.
+
+**Effort:** L | **Priority:** P2 | **Depends on:** Customer demand for API access
+
+---
+
+### [P2] Outbound Webhooks
+
+**What:** HMAC-SHA256 signed events, initial delivery + retry via waitUntil() + cron sweep.
+Admin UI at `/app/settings/webhooks` with delivery health table.
+
+**Why deferred:** Depends on API. High maintenance (delivery monitoring, retry infrastructure).
+`waitUntil()` context issue: only available in request context, not arbitrary services.
+Retry state machine not fully coherent (1 fast + 4 cron attempts, but 5 intervals specified).
+
+**Effort:** M | **Priority:** P2 | **Depends on:** API v1
+
+---
+
+### ~~[P3] Grant/Funding Tracker~~ — PERMANENTLY REMOVED (2026-03-22)
+
+**Why removed:** Founder has direct experience building a grant matching application.
+Grant program APIs vary wildly by state and funder; integrating outside California or
+federal programs is prohibitively difficult. Not a fit for this platform. Do not
+re-propose without evidence of a standardized grant API ecosystem.
+
+---
+
+### [P3] Volunteer Streaks & Gamification
+
+**What:** `VolunteerStreak` tracking (consecutive weeks with ATTENDED), milestone badge
+computation, display on profile and dashboard.
+
+**Why deferred:** Gamification before marketplace critical mass is premature.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Active volunteer base
+
+---
+
+### [P3] "Bring a Friend" Referral System
+
+**What:** `ReferralLink` with short token, 30-day expiry, landing page, rate limit.
+
+**Why deferred:** Phase 12 already has referral system (`/apply/refer` + referral prompt).
+Duplicating with a slightly different model is unnecessary.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Evaluate if Phase 12 referral is sufficient
+
+---
+
+### [P3] Google Calendar Sync
+
+**What:** "Add to Calendar" links (Google URL + .ics), subscribable `.ics` feed with
+hashed token auth.
+
+**Why deferred:** Nice-to-have, not adoption-driving.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Active volunteer base using shifts
