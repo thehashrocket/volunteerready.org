@@ -55,6 +55,11 @@ export const metadata: Metadata = {
 		description: 'Find and manage volunteer opportunities.',
 		images: ['/images/og-image.png'],
 	},
+	verification: {
+		other: {
+			'msvalidate.01': '9B15CB757D883A353912C47049B56E4E',
+		},
+	},
 };
 
 export const viewport: Viewport = {
