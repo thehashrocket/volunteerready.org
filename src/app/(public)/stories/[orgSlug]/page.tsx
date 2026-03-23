@@ -7,6 +7,7 @@ import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { prisma } from '@/server/repositories/prisma';
 import { getCaseStudy } from '@/server/services/caseStudyService';
 
@@ -246,7 +247,7 @@ export default async function StoryPage({ params }: Props) {
 						className="rounded-full bg-white px-8 text-primary hover:bg-white/90"
 					>
 						<TrackedLink
-							href="https://calendly.com"
+							href={FOUNDER_BOOKING_URL}
 							eventLabel="Get set up free (story CTA)"
 							eventPage="stories"
 						>

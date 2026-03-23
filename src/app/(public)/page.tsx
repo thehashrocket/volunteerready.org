@@ -12,11 +12,11 @@ import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
+import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { getPlatformStats } from '@/server/repositories/statsRepo';
 
 export const revalidate = 3600;
 
@@ -41,7 +41,7 @@ const pillars = [
 	{
 		icon: Shield,
 		heading: 'Background Checks',
-		body: 'Checkr-powered screening with full FCRA compliance, built in — not bolted on.',
+		body: 'Checkr & Sterling-powered screening with full FCRA compliance, built in — not bolted on.',
 	},
 	{
 		icon: CalendarDays,
@@ -65,21 +65,18 @@ const pillars = [
 	},
 ];
 
-function formatStat(n: number): string {
-	if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`;
-	return n.toString();
-}
+const differentiators = [
+	{
+		heading: 'Founder-led setup',
+		body: 'Our founder personally onboards every organization. No ticket queue, no chatbot — a real conversation about what you need.',
+	},
+	{
+		heading: 'Real-time platform data',
+		body: 'Live stats from real organizations, not vanity numbers. Every metric you see on this site comes from production data.',
+	},
+];
 
 export default async function Home() {
-	const stats = await getPlatformStats();
-
-	const statItems = [
-		{ label: 'Organizations', value: stats.orgCount },
-		{ label: 'Verified Credentials', value: stats.credentialCount },
-		{ label: 'Shifts Completed', value: stats.shiftCount },
-		{ label: 'Volunteers', value: stats.volunteerCount },
-	].filter((s) => s.value > 0);
-
 	return (
 		<div className="flex flex-col">
 			<JsonLdBreadcrumb items={[{ label: 'Home', href: '/' }]} />
@@ -123,20 +120,7 @@ export default async function Home() {
 			/>
 
 			{/* ── Platform stats (social proof) ── */}
-			{statItems.length > 0 && (
-				<section className="border-b border-border/40 bg-[#F5F4F0] px-4 py-10">
-					<div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-8 sm:gap-16">
-						{statItems.map((s) => (
-							<div key={s.label} className="text-center">
-								<p className="text-3xl font-bold text-primary">
-									{formatStat(s.value)}
-								</p>
-								<p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
-							</div>
-						))}
-					</div>
-				</section>
-			)}
+			<PlatformStatsBar />
 
 			{/* ── Three-path cards ── */}
 			<section className="mx-auto w-full max-w-4xl px-4 py-16">
@@ -243,7 +227,7 @@ export default async function Home() {
 				</div>
 			</section>
 
-			{/* ── Platform pillars ── */}
+			{/* ── Platform pillars + differentiators ── */}
 			<section className="bg-[#F5F4F0] px-4 py-20">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
@@ -272,6 +256,27 @@ export default async function Home() {
 								</FadeInOnScroll>
 							);
 						})}
+					</div>
+
+					{/* ── What makes us different ── */}
+					<div className="mt-14">
+						<h3 className="font-display mb-8 text-2xl font-bold text-foreground">
+							What makes us different
+						</h3>
+						<div className="space-y-8">
+							{differentiators.map((d, i) => (
+								<FadeInOnScroll key={d.heading} delay={i * 75}>
+									<div className="border-l-2 border-[#C4A882] pl-6">
+										<p className="mb-1 font-semibold text-foreground">
+											{d.heading}
+										</p>
+										<p className="text-sm leading-relaxed text-muted-foreground">
+											{d.body}
+										</p>
+									</div>
+								</FadeInOnScroll>
+							))}
+						</div>
 					</div>
 				</div>
 			</section>

@@ -48,7 +48,7 @@ const values = [
 	},
 ];
 
-const milestones = [
+const platformCapabilities = [
 	{
 		label: 'Skill-based matching engine',
 		detail:
@@ -57,7 +57,7 @@ const milestones = [
 	{
 		label: 'FCRA-compliant background checks',
 		detail:
-			'Checkr-powered screening with encrypted tokens and full adverse action workflows.',
+			'Checkr & Sterling-powered screening with encrypted tokens and full adverse action workflows.',
 	},
 	{
 		label: 'Portable credentials',
@@ -73,6 +73,39 @@ const milestones = [
 		label: 'Corporate ESG reporting',
 		detail:
 			'Aggregate volunteer impact dashboards and CSV exports for corporate sponsors.',
+	},
+];
+
+const recentlyShipped = [
+	{
+		label: 'SEO foundation',
+		version: 'v0.17.8',
+		detail: 'Sitemap, OG images, JSON-LD structured data',
+	},
+	{
+		label: 'Duplicate prevention',
+		version: 'v0.17.8',
+		detail: 'Smart deduplication of volunteer applications',
+	},
+	{
+		label: 'Auth hardening',
+		version: 'v0.17.3',
+		detail: 'RBAC foundation and platform admin controls',
+	},
+	{
+		label: 'Content Flywheel',
+		version: 'v0.17.1',
+		detail: 'Automated case study generation from org data',
+	},
+	{
+		label: 'Volunteer dashboard',
+		version: 'v0.16.2',
+		detail: 'Personalized dashboard with upcoming shifts and impact stats',
+	},
+	{
+		label: 'Sterling integration',
+		version: 'v0.15.0',
+		detail: 'Second background check provider',
 	},
 ];
 
@@ -170,7 +203,7 @@ export default function AboutPage() {
 				</div>
 			</section>
 
-			{/* ── Platform maturity ── */}
+			{/* ── Platform maturity (grouped milestones) ── */}
 			<section className="bg-[#F5F4F0] px-4 py-16">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
@@ -180,8 +213,13 @@ export default function AboutPage() {
 						VolunteerReady isn't a landing page with a waitlist. It's a
 						production platform with real organizations and real volunteers.
 					</p>
+
+					{/* Platform Capabilities */}
+					<p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+						Platform Capabilities
+					</p>
 					<div className="flex flex-col gap-6">
-						{milestones.map((m, i) => (
+						{platformCapabilities.map((m, i) => (
 							<FadeInOnScroll key={m.label} delay={i * 75}>
 								<div className="border-l-2 border-primary/30 pl-6">
 									<p className="font-semibold text-foreground">{m.label}</p>
@@ -191,6 +229,30 @@ export default function AboutPage() {
 								</div>
 							</FadeInOnScroll>
 						))}
+					</div>
+
+					{/* Recently Shipped */}
+					<div className="mt-10">
+						<p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+							Recently Shipped
+						</p>
+						<div className="flex flex-col gap-6">
+							{recentlyShipped.map((m, i) => (
+								<FadeInOnScroll key={m.label} delay={i * 75}>
+									<div className="border-l-2 border-primary/30 pl-6">
+										<div className="flex items-baseline gap-2">
+											<p className="font-semibold text-foreground">{m.label}</p>
+											<span className="text-xs font-mono text-primary/60">
+												{m.version}
+											</span>
+										</div>
+										<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+											{m.detail}
+										</p>
+									</div>
+								</FadeInOnScroll>
+							))}
+						</div>
 					</div>
 				</div>
 			</section>

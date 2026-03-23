@@ -4,6 +4,7 @@ import { CTABanner } from '@/components/cta-banner';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { prisma } from '@/server/repositories/prisma';
 
 export const metadata: Metadata = {
@@ -56,7 +57,7 @@ export default async function ReferralPage({
 						)}
 						<Button asChild size="lg" className="rounded-full px-8">
 							<TrackedLink
-								href="https://calendly.com"
+								href={FOUNDER_BOOKING_URL}
 								eventLabel="Get set up free (referral)"
 								eventPage="screening-referral"
 							>
@@ -79,7 +80,7 @@ export default async function ReferralPage({
 						className="rounded-full bg-white px-8 text-primary hover:bg-white/90"
 					>
 						<TrackedLink
-							href="https://calendly.com"
+							href={FOUNDER_BOOKING_URL}
 							eventLabel="Get set up free (referral bottom)"
 							eventPage="screening-referral"
 						>

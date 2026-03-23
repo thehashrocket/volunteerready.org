@@ -12,11 +12,17 @@ import {
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
+import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
+import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
 	title: 'For Nonprofits — VolunteerReady',
@@ -39,7 +45,7 @@ const features = [
 	{
 		icon: Shield,
 		heading: 'FCRA-compliant background checks',
-		body: 'Checkr-powered screening built in — not bolted on. Full adverse action workflow, encrypted tokens, and audit trails. Protect your organization and the people you serve.',
+		body: 'Checkr & Sterling-powered screening built in — not bolted on. Full adverse action workflow, encrypted tokens, and audit trails. Protect your organization and the people you serve.',
 	},
 	{
 		icon: CalendarDays,
@@ -76,7 +82,40 @@ const outcomes = [
 	},
 ];
 
-export default function ForNonprofitsPage() {
+const nonprofitFaqs = [
+	{
+		question: 'How long does setup take?',
+		answer:
+			'Most organizations are fully set up in under 15 minutes. Our founder personally walks you through the process — create your org, customize screening questions, and invite your team.',
+	},
+	{
+		question: 'Can I customize screening questions?',
+		answer:
+			'Yes. Build custom questionnaires with multiple question types and auto-pass/fail rules. Tailor screening criteria to your organization\u2019s specific needs.',
+	},
+	{
+		question: 'How do background checks work?',
+		answer:
+			'Connect your Checkr or Sterling account and run checks directly from the platform. We handle the full FCRA compliance workflow — pre-adverse action notices, waiting periods, and final letters.',
+	},
+	{
+		question: 'Is there a free plan for small nonprofits?',
+		answer:
+			'Yes. The Free plan includes unlimited volunteers, custom screening questions, and basic credential tracking. Background checks and advanced features are available on paid plans.',
+	},
+	{
+		question: 'How does shift scheduling work?',
+		answer:
+			'Create shifts with dates, times, and capacity limits. Volunteers browse and sign up directly. Track attendance with one-click check-in — no more spreadsheets or group texts.',
+	},
+	{
+		question: 'Can volunteers apply from their phone?',
+		answer:
+			'Absolutely. The entire apply flow — screening form and status tracking — works on any device. Volunteers can even install VolunteerReady as a mobile app.',
+	},
+];
+
+export default async function ForNonprofitsPage() {
 	return (
 		<div className="flex flex-col">
 			<JsonLdBreadcrumb
@@ -98,12 +137,12 @@ export default function ForNonprofitsPage() {
 					<>
 						<Button asChild size="lg" className="rounded-full px-8">
 							<TrackedLink
-								href="/login?callbackUrl=/app/onboarding"
-								eventLabel="Set up your organization"
+								href={FOUNDER_BOOKING_URL}
+								eventLabel="See it in action"
 								eventPage="for-nonprofits"
 							>
 								<Building2 className="h-4 w-4" />
-								Set up your organization
+								See It In Action — Free Setup
 							</TrackedLink>
 						</Button>
 						<Button
@@ -123,6 +162,9 @@ export default function ForNonprofitsPage() {
 					</>
 				}
 			/>
+
+			{/* ── Platform stats ── */}
+			<PlatformStatsBar />
 
 			{/* ── Pain acknowledgment ── */}
 			<section className="bg-[#F5F4F0] px-4 py-14">
@@ -174,6 +216,15 @@ export default function ForNonprofitsPage() {
 					})}
 				</div>
 			</section>
+
+			{/* ── Screenshot ── */}
+			<ScreenshotSection
+				src="/marketing/dashboard.png"
+				alt="VolunteerReady org dashboard showing real-time stats and recent applications"
+				caption="Your org dashboard — real-time stats, recent applications, and quick actions."
+				sectionBg="sand"
+				containerBg="white"
+			/>
 
 			{/* ── Outcomes ── */}
 			<section className="bg-[#F5F4F0] px-4 py-16">
@@ -233,6 +284,14 @@ export default function ForNonprofitsPage() {
 						</CardContent>
 					</Card>
 				</FadeInOnScroll>
+				<p className="mt-4 text-center text-sm text-muted-foreground/60">
+					More stories coming soon
+				</p>
+			</section>
+
+			{/* ── FAQ ── */}
+			<section className="px-4 py-16">
+				<FaqSection faqs={nonprofitFaqs} />
 			</section>
 
 			<CTABanner
@@ -246,11 +305,11 @@ export default function ForNonprofitsPage() {
 						className="rounded-full bg-white px-8 text-primary hover:bg-white/90"
 					>
 						<TrackedLink
-							href="/login?callbackUrl=/app/onboarding"
-							eventLabel="Set up org (bottom CTA)"
+							href={FOUNDER_BOOKING_URL}
+							eventLabel="See it in action (bottom CTA)"
 							eventPage="for-nonprofits"
 						>
-							Set up your organization
+							See It In Action — Free Setup
 						</TrackedLink>
 					</Button>
 				}
