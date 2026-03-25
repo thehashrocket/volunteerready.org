@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.13] - 2026-03-24
+
+### Added
+- **In-app feedback system** — Full feedback pipeline: floating widget (Dialog on desktop, Drawer on mobile) with mood selector (5 moods), message textarea, rate limiting (5/hour), and mood-aware success confirmation. Feedback stored with page context, user agent, and org scope detection.
+- **Feedback admin triage page** (`/app/admin/feedback`) — Platform admin inbox with status/mood filters, collapsible insights panel (mood breakdown bar, top friction pages), responsive list/detail split layout (desktop side-by-side, tablet overlay, mobile full-screen), status dropdown auto-save, reply with email notification to user.
+- **Feedback admin dashboard notice** — "N new feedback items" banner on staff dashboard for platform admins, linking to triage page.
+- **My Feedback page** (`/app/my-feedback`) — Volunteer-facing feedback history with human-friendly status labels (Received, Being reviewed, We took action, Noted), expandable items showing admin replies.
+- **Cookie banner + feedback pill coordination** — CSS custom property (`--cookie-banner-height`) on `:root` for smooth pill repositioning when consent banner is visible.
+- **Platform admin flag in session** — `isPlatformAdmin` exposed in NextAuth session (DB column + `PLATFORM_ADMIN_IDS` env var fallback) for client-side admin UI gating.
+- **Drawer UI component** (shadcn/vaul) — Mobile bottom-sheet component for feedback widget and future mobile-first interactions.
+
 ## [0.17.12] - 2026-03-23
 
 ### Added
