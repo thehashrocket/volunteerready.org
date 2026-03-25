@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { AppShell } from '@/components/app/app-shell';
+import { FeedbackWidget } from '@/components/app/feedback-widget';
 import { AuthFeedback } from '@/components/auth-feedback';
 import { authOptions } from '@/server/auth';
 import { prisma } from '@/server/repositories/prisma';
@@ -15,7 +16,9 @@ const NO_ORG_EXEMPT_PREFIXES = [
 	'/app/my-applications',
 	'/app/my-shifts',
 	'/app/my-skills',
+	'/app/my-feedback',
 	'/app/profile',
+	'/app/admin',
 ];
 
 export default async function AppLayout({
@@ -56,6 +59,7 @@ export default async function AppLayout({
 		>
 			<AuthFeedback />
 			{children}
+			<FeedbackWidget />
 		</AppShell>
 	);
 }

@@ -4,6 +4,7 @@ import { Briefcase, ClipboardList, FileText, Plus, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { ActivityFeed } from '@/components/app/activity-feed';
+import { FeedbackAdminNotice } from '@/components/app/feedback-admin-notice';
 import { OnboardingChecklist } from '@/components/app/onboarding-checklist';
 import { OrgHealthWidget } from '@/components/app/org-health-widget';
 import { ReferralPrompt } from '@/components/app/referral-prompt';
@@ -76,6 +77,9 @@ function StaffDashboard() {
 
 	return (
 		<div className="space-y-8">
+			{/* ── Feedback admin notice (platform admins only) ── */}
+			<FeedbackAdminNotice />
+
 			{/* ── Greeting banner + Health Score ── */}
 			<div className="rounded-xl border border-border/60 bg-[#E8DCC8]/30 px-6 py-5">
 				<p className="font-display text-xl font-bold text-foreground">
