@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [0.17.13] - 2026-03-24
 
 ### Added
-- **In-app feedback system** — Full feedback pipeline: floating widget (Dialog on desktop, Drawer on mobile) with mood selector (5 moods), message textarea, rate limiting (5/hour), and mood-aware success confirmation. Feedback stored with page context, user agent, and org scope detection.
+- **In-app feedback system** — Floating feedback widget (Dialog on desktop, Drawer on mobile) with 5-mood selector, message textarea, rate limiting (5/hour), and mood-aware success confirmation. Captures page context and org scope automatically.
 - **Feedback admin triage page** (`/app/admin/feedback`) — Platform admin inbox with status/mood filters, collapsible insights panel (mood breakdown bar, top friction pages), responsive list/detail split layout (desktop side-by-side, tablet overlay, mobile full-screen), status dropdown auto-save, reply with email notification to user.
 - **Feedback admin dashboard notice** — "N new feedback items" banner on staff dashboard for platform admins, linking to triage page.
 - **My Feedback page** (`/app/my-feedback`) — Volunteer-facing feedback history with human-friendly status labels (Received, Being reviewed, We took action, Noted), expandable items showing admin replies.
