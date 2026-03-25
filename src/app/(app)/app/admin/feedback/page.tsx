@@ -86,6 +86,7 @@ export default function FeedbackAdminPage() {
 	);
 	const [moodFilter, setMoodFilter] = useState<FeedbackMood | 'ALL'>('ALL');
 	const [page, setPage] = useState(1);
+	const [allItems, setAllItems] = useState<FeedbackItem[]>([]);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const isDesktop = useMediaQuery('(min-width: 1024px)');
 	const isTablet = useMediaQuery('(min-width: 768px)');
@@ -102,16 +103,33 @@ export default function FeedbackAdminPage() {
 		staleTime: 60_000,
 	});
 
-	const selectedItem = data?.items?.find(
+	// Accumulate items across pages for "Load more" UX
+	useEffect(() => {
+		if (data?.items) {
+			if (page === 1) {
+				setAllItems(data.items as FeedbackItem[]);
+			} else {
+				setAllItems((prev) => {
+					const existingIds = new Set(prev.map((i) => i.id));
+					const newItems = (data.items as FeedbackItem[]).filter(
+						(i) => !existingIds.has(i.id),
+					);
+					return [...prev, ...newItems];
+				});
+			}
+		}
+	}, [data?.items, page]);
+
+	const selectedItem = allItems.find(
 		(item: FeedbackItem) => item.id === selectedId,
-	) as FeedbackItem | undefined;
+	);
 
 	// Auto-select first item on desktop
 	useEffect(() => {
-		if (isDesktop && data?.items?.length && !selectedId) {
-			setSelectedId((data.items[0] as FeedbackItem).id);
+		if (isDesktop && allItems.length && !selectedId) {
+			setSelectedId(allItems[0].id);
 		}
-	}, [isDesktop, data?.items, selectedId]);
+	}, [isDesktop, allItems, selectedId]);
 
 	const hasMore = data ? page * data.pageSize < data.total : false;
 
@@ -172,6 +190,7 @@ export default function FeedbackAdminPage() {
 					onValueChange={(v) => {
 						setStatusFilter(v as FeedbackStatus | 'ALL');
 						setPage(1);
+						setAllItems([]);
 						setSelectedId(null);
 					}}
 				>
@@ -191,6 +210,7 @@ export default function FeedbackAdminPage() {
 					onValueChange={(v) => {
 						setMoodFilter(v as FeedbackMood | 'ALL');
 						setPage(1);
+						setAllItems([]);
 						setSelectedId(null);
 					}}
 				>
@@ -227,7 +247,7 @@ export default function FeedbackAdminPage() {
 						Retry
 					</Button>
 				</div>
-			) : !data?.items?.length ? (
+			) : !allItems.length ? (
 				<div className="py-12 text-center">
 					<p className="text-xl font-semibold text-foreground">
 						No feedback yet
@@ -242,7 +262,7 @@ export default function FeedbackAdminPage() {
 				<div className="flex gap-0 rounded-lg border border-border/60">
 					<div className="w-[360px] shrink-0 border-r border-border/60">
 						<ListPanel
-							items={data.items as FeedbackItem[]}
+							items={allItems}
 							selectedId={selectedId}
 							onSelect={setSelectedId}
 							hasMore={hasMore}
@@ -284,7 +304,7 @@ export default function FeedbackAdminPage() {
 								}}
 							>
 								<ListPanel
-									items={data.items as FeedbackItem[]}
+									items={allItems}
 									selectedId={selectedId}
 									onSelect={(id) => {
 										setSelectedId(id);
@@ -319,7 +339,7 @@ export default function FeedbackAdminPage() {
 			) : (
 				/* Mobile: full-screen list */
 				<ListPanel
-					items={data.items as FeedbackItem[]}
+					items={allItems}
 					selectedId={selectedId}
 					onSelect={setSelectedId}
 					hasMore={hasMore}

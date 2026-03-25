@@ -137,6 +137,7 @@ export async function listByUser(userId: string) {
 	return prisma.userFeedback.findMany({
 		where: { userId, deletedAt: null },
 		orderBy: { createdAt: 'desc' },
+		take: 100,
 		select: {
 			id: true,
 			mood: true,
