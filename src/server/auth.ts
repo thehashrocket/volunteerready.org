@@ -18,7 +18,7 @@ type SessionWithExt = Session & {
 	role?: Role | null;
 	companyId?: string | null;
 	companyRole?: CompanyMemberRole | null;
-	user?: Session['user'] & { id?: string };
+	user?: Session['user'] & { id?: string; isPlatformAdmin?: boolean };
 };
 
 export const authOptions: NextAuthOptions = {
@@ -62,6 +62,20 @@ export const authOptions: NextAuthOptions = {
 			// user.id is available with database sessions
 			if (s.user && user?.id) {
 				s.user.id = user.id;
+			}
+
+			// Expose isPlatformAdmin to the client
+			// The Prisma adapter loads the full User row, so isPlatformAdmin is already present.
+			// Also check PLATFORM_ADMIN_IDS env var fallback for consistency with platform-admin.ts.
+			if (s.user && user?.id) {
+				const dbFlag =
+					(user as unknown as { isPlatformAdmin?: boolean }).isPlatformAdmin ??
+					false;
+				const envIds = (process.env.PLATFORM_ADMIN_IDS ?? '')
+					.split(',')
+					.map((id) => id.trim())
+					.filter(Boolean);
+				s.user.isPlatformAdmin = dbFlag || envIds.includes(user.id);
 			}
 
 			// NextAuth v4 database sessions do NOT pass sessionToken to this callback.

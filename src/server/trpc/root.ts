@@ -11,6 +11,7 @@ import { credentialSharingRouter } from '@/server/trpc/routers/credentialSharing
 import { credentialsRouter } from '@/server/trpc/routers/credentials';
 import { discoveryRouter } from '@/server/trpc/routers/discovery';
 import { esgReportRouter } from '@/server/trpc/routers/esg-report';
+import { feedbackRouter } from '@/server/trpc/routers/feedback';
 import { healthRouter } from '@/server/trpc/routers/health';
 import { matchingRouter } from '@/server/trpc/routers/matching';
 import { membersRouter } from '@/server/trpc/routers/members';
@@ -38,6 +39,7 @@ export const appRouter = createTRPCRouter({
 	credentials: credentialsRouter,
 	discovery: discoveryRouter,
 	esgReport: esgReportRouter,
+	feedback: feedbackRouter,
 	health: healthRouter,
 	matching: matchingRouter,
 	members: membersRouter,
