@@ -59,6 +59,26 @@ export function CookieConsentBanner() {
 		// else stay 'decided' — banner stays hidden
 	}, []);
 
+	// Set --cookie-banner-height CSS variable so the feedback pill shifts up
+	useEffect(() => {
+		if (state === 'undecided') {
+			// Measure after render
+			const frame = requestAnimationFrame(() => {
+				const banner = document.querySelector(
+					'[aria-label="Cookie preferences"]',
+				);
+				if (banner) {
+					document.documentElement.style.setProperty(
+						'--cookie-banner-height',
+						`${banner.getBoundingClientRect().height}px`,
+					);
+				}
+			});
+			return () => cancelAnimationFrame(frame);
+		}
+		document.documentElement.style.setProperty('--cookie-banner-height', '0px');
+	}, [state]);
+
 	const acceptAll = useCallback(() => {
 		storePreferences({ essential: true, analytics: true });
 		setState('decided');

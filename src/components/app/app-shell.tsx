@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, LogOut, Menu, X } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, MessageSquare, X } from 'lucide-react';
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 import { type ReactNode, useEffect, useState } from 'react';
@@ -88,6 +88,13 @@ export function AppShell({
 									<DropdownMenuLabel>Signed in</DropdownMenuLabel>
 									<DropdownMenuItem disabled>
 										{session?.user?.email ?? 'No email'}
+									</DropdownMenuItem>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem asChild>
+										<Link href="/app/my-feedback">
+											<MessageSquare className="mr-2 h-4 w-4" />
+											My feedback
+										</Link>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator />
 									<DropdownMenuItem onClick={() => signOut()}>

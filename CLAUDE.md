@@ -137,6 +137,13 @@ docs/
 - Marketing: `FOUNDER_BOOKING_URL` constant at `src/lib/constants.ts` — Google Calendar booking link used by all marketing CTAs
 - Marketing: shared components at `src/components/faq-section.tsx` (FAQ accordion + JSON-LD), `src/components/platform-stats-bar.tsx` (async stats bar), `src/components/screenshot-section.tsx` (product screenshot with error handling)
 - Analytics: `src/components/consented-analytics.tsx` (Google Analytics gtag.js + Vercel Analytics, consent-gated via cookie banner, `ga-disable-*` flag on revoke)
+- In-app feedback: domain at `src/server/domain/user-feedback.ts`, service at `src/server/services/feedbackService.ts`, repo at `src/server/repositories/feedbackRepo.ts`, tRPC router at `src/server/trpc/routers/feedback.ts`
+- Feedback widget: `src/components/app/feedback-widget.tsx` (floating pill + Dialog/Drawer, mood selector, mounted in app layout)
+- Feedback UI config: `src/lib/feedback-config.ts` (mood icons, labels, confirmation messages — UI layer, not domain)
+- Feedback admin triage: `src/app/(app)/app/admin/feedback/page.tsx` (list/detail split, status change, reply)
+- Feedback admin notice: `src/components/app/feedback-admin-notice.tsx` (dashboard "N new" banner for platform admins)
+- My Feedback page: `src/app/(app)/app/my-feedback/page.tsx` (user-facing feedback history with volunteer-friendly status labels)
+- Cookie banner sets `--cookie-banner-height` CSS variable on `:root` for feedback pill positioning
 - PWA: `public/manifest.webmanifest`, `public/sw.js`, `src/components/sw-register.tsx`, `src/components/ios-install-prompt.tsx`
 - Org health score: domain at `src/server/domain/org-health.ts`, widget at `src/components/app/org-health-widget.tsx`
 - Activity feed: `src/components/app/activity-feed.tsx` (uses `screener.getActivityFeed` tRPC query)

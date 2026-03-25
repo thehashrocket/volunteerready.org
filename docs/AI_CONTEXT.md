@@ -74,6 +74,8 @@ src/
 │   │   ├── opportunities/        # Staff: manage opportunities
 │   │   ├── analytics/            # Staff: org engagement dashboard (PRO-gated) — funnel, retention, fill rate, top volunteers
 │   │   ├── discover/             # Staff: search PUBLIC volunteers + invite to apply (rate-limited)
+│   │   ├── my-feedback/          # Volunteer: feedback history with admin replies
+│   │   ├── admin/feedback/       # Platform admin: feedback triage inbox (list/detail, status, reply)
 │   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
 │   │   ├── shifts/               # Staff: manage shifts + attendance + templates tab (STARTER-gated)
@@ -111,7 +113,7 @@ src/
 │
 ├── components/
 │   ├── ui/                       # shadcn/ui primitives (button, input, dialog, etc.)
-│   ├── app/                      # Page-specific compound components (notification-bell, shift-templates, org-health-widget, activity-feed)
+│   ├── app/                      # Page-specific compound components (notification-bell, shift-templates, org-health-widget, activity-feed, feedback-widget, feedback-admin-notice)
 │   ├── plan-gate.tsx             # Plan-tier gating UI (lock card with upgrade CTA)
 │   ├── org/                      # Organization management components
 │   ├── my-applications/          # Volunteer application tracking
@@ -125,7 +127,8 @@ src/
 │   ├── cookie-consent-banner.tsx # GDPR-compliant cookie consent (essential + analytics categories)
 │   ├── consented-analytics.tsx   # Google Analytics gtag.js + Vercel Analytics, consent-gated via cookie banner
 │   ├── json-ld-breadcrumb.tsx    # BreadcrumbList JSON-LD structured data
-│   └── json-ld-faq.tsx           # FAQPage JSON-LD structured data
+│   ├── json-ld-faq.tsx           # FAQPage JSON-LD structured data
+│   └── ui/drawer.tsx             # Bottom sheet (shadcn/vaul) — mobile feedback widget
 │
 ├── server/
 │   ├── auth.ts                   # NextAuth config + session helpers
@@ -133,7 +136,7 @@ src/
 │   │   ├── init.ts               # Context creation, procedure definitions
 │   │   ├── root.ts               # App router (combines all sub-routers)
 │   │   └── routers/              # auth, health, members, notifications, onboarding,
-│   │                               analytics, opportunities, org, screener,
+│   │                               analytics, feedback, opportunities, org, screener,
 │   │                               shift-templates, status, volunteer
 │   ├── services/                 # Business logic layer
 │   ├── repositories/             # Prisma data access layer (includes statsRepo for homepage aggregates)
@@ -150,6 +153,7 @@ src/
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
 │       ├── notification.ts        # Notification types and domain functions
 │       ├── org-health.ts          # Org health score (computeOrgHealth, 0-100, four 25-pt metrics)
+│       ├── user-feedback.ts       # Feedback mood/status enums, validation, rate limit constants, Zod schemas
 │       ├── reference-data.ts      # SKILL_CATALOG (13 families, 62 skills), CATALOG_VERSION, PLATFORM_ORG_SLUG
 │       ├── screener/
 │       │   ├── configSchema.ts     # Zod schemas for screening question config
@@ -160,6 +164,8 @@ src/
 ├── lib/
 │   ├── trpc/                     # Client-side tRPC setup + provider
 │   ├── credential-meta.ts        # Shared credential labels + icons (single source of truth)
+│   ├── feedback-config.ts        # Feedback UI config (mood icons, labels, confirmation messages)
+│   ├── hooks/use-media-query.ts  # Responsive media query hook (mobile detection for feedback widget)
 │   ├── slug.ts                   # URL slug utilities
 │   └── utils.ts                  # General utilities (cn, etc.)
 │
@@ -205,6 +211,7 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **FeatureFlag** — per-org feature toggles.
 - **OrganizationInvitation** — team invite tokens with expiry.
 - **ApplicationStatusToken** — opaque tokens for public status lookups.
+- **UserFeedback** — in-app feedback submitted via the floating widget. Mood (HAPPY / NEUTRAL / FRUSTRATED / BUG / IDEA), status lifecycle (NEW → IN_PROGRESS → RESOLVED / DISMISSED), page context, admin reply with email notification. Rate limited to 5/hour per user. Soft-deletable.
 - **ReferenceDataMeta** — key-value table for reference data version tracking (key: string, version: int, seededAt: DateTime). Used by the boot guard to detect when the skill catalog needs re-seeding after a `CATALOG_VERSION` bump.
 
 See `docs/DOMAIN.md` for canonical vocabulary.
@@ -248,6 +255,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `opportunities` | create, update, delete, list, getById |
 | `org` | getCurrentOrg, listOrgs, switchOrg |
 | `discovery` | searchVolunteers (staff), inviteToApply (staff) |
+| `feedback` | submit, myFeedback, listAll (platform admin), updateStatus (platform admin), reply (platform admin), newCount (platform admin) |
 | `profile` | getMyProfile, updateMyProfile, getMyStats, getMyUserId, getPublicProfile (public), getOrgVisibleProfile (staff) |
 | `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail |
 | `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |

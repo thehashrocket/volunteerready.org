@@ -31,6 +31,9 @@ model User {
   digestPreferences       UserDigestPreference[]
   bulkImportJobs          BulkImportJob[]
   isPlatformAdmin         Boolean                 @default(false)
+  feedbacks               UserFeedback[]
+  resolvedFeedbacks       UserFeedback[]          @relation("FeedbackResolver")
+  repliedFeedbacks        UserFeedback[]          @relation("FeedbackReplier")
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
 }
@@ -150,6 +153,7 @@ model Organization {
   digestPreferences       UserDigestPreference[]
   bulkImportJobs          BulkImportJob[]
   feedbacks               OrgFeedback[]
+  userFeedbacks           UserFeedback[]
 }
 
 model OrganizationMember {
@@ -983,4 +987,55 @@ model ReferenceDataMeta {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// In-App Feedback
+// ---------------------------------------------------------------------------
+
+enum FeedbackMood {
+  HAPPY
+  NEUTRAL
+  FRUSTRATED
+  BUG
+  IDEA
+}
+
+enum FeedbackStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  DISMISSED
+}
+
+model UserFeedback {
+  id           String         @id @default(cuid())
+  userId       String?
+  orgId        String?
+  mood         FeedbackMood
+  status       FeedbackStatus @default(NEW)
+  message      String
+  pageUrl      String
+  pageName     String?
+  userAgent    String?
+  userRole     String?
+  replyMessage String?
+  repliedAt    DateTime?
+  repliedBy    String?
+  resolvedAt   DateTime?
+  resolvedBy   String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+
+  user         User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization?  @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  resolver     User?          @relation("FeedbackResolver", fields: [resolvedBy], references: [id])
+  replier      User?          @relation("FeedbackReplier", fields: [repliedBy], references: [id])
+
+  @@index([userId, deletedAt, createdAt])
+  @@index([status, createdAt])
+  @@index([orgId, createdAt])
+  @@index([mood, createdAt])
+  @@index([deletedAt])
 }

@@ -395,6 +395,29 @@ Constraint: unique per (orgId, type). Idempotency — creating the record before
 
 ---
 
+## UserFeedback
+
+In-app feedback submitted by users via the floating feedback widget. Tracks mood, message, page context, and admin triage workflow.
+
+Mood: HAPPY | NEUTRAL | FRUSTRATED | BUG | IDEA
+Status: NEW | IN_PROGRESS | RESOLVED | DISMISSED
+
+Key fields:
+
+- `userId` — the submitting user (nullable — SetNull on delete)
+- `orgId` — the organization context, if on an org-scoped page (nullable)
+- `mood` — one of the 5 mood categories
+- `message` — freetext feedback (max 2000 chars)
+- `pageUrl` / `pageName` — where the feedback was submitted from
+- `userRole` — role at time of submission (defaults to VOLUNTEER)
+- `status` — triage workflow state
+- `replyMessage` / `repliedAt` / `repliedBy` — admin reply (triggers email to user)
+- `resolvedAt` / `resolvedBy` — resolution tracking
+
+Soft-deletable via `deletedAt`. Rate limited to 5 submissions per user per hour. Org tagging is automatic based on page URL (non-org pages like /app/my-shifts get `orgId=null`).
+
+---
+
 ## ReferenceDataMeta
 
 Key-value table for tracking the seeded version of global reference data (skill catalog, platform org).
@@ -508,6 +531,9 @@ Use these terms consistently across the codebase:
 - CompanyNonprofitLink
 - OrgFeedback
 - OrgFeedbackType
+- UserFeedback
+- FeedbackMood
+- FeedbackStatus
 - ReferenceDataMeta
 - FeatureFlag
 - AuditLog
