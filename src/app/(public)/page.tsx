@@ -55,8 +55,8 @@ const pillars = [
 	},
 	{
 		icon: Users,
-		heading: 'Team Management',
-		body: 'Role-based access, team invitations, and audit logging for every action.',
+		heading: 'Compliance Documentation',
+		body: 'Audit logs, credential records, and volunteer hour tracking — always current, always exportable. Everything you need if a funder, insurer, or regulator ever asks for proof.',
 	},
 	{
 		icon: BarChart3,
@@ -69,6 +69,10 @@ const differentiators = [
 	{
 		heading: 'Founder-led setup',
 		body: 'Our founder personally onboards every organization. No ticket queue, no chatbot — a real conversation about what you need.',
+	},
+	{
+		heading: 'Grant-ready by default',
+		body: 'Volunteer hours, headcount, and credential status are always documented and exportable. No more compiling data from paper sign-in sheets the week before a funder report is due.',
 	},
 	{
 		heading: 'Real-time platform data',
@@ -88,7 +92,7 @@ export default async function Home() {
 						<em className="italic text-primary">travel with you.</em>
 					</>
 				}
-				description="Screen volunteers, issue portable credentials, run background checks, and schedule shifts — all in one place. For nonprofits, corporations, and the volunteers who power them."
+				description="If your grant requires it, your funder expects it, or your insurer mandates it — VolunteerReady makes volunteer compliance easier. Screen volunteers, run background checks, track credentials, and document hours for funder reporting, all in one place."
 				actions={
 					<>
 						<Button asChild size="lg" className="rounded-full px-8">
@@ -172,8 +176,9 @@ export default async function Home() {
 										I run a nonprofit
 									</p>
 									<p className="text-sm leading-relaxed text-primary-foreground/75">
-										Screen applicants, run background checks, schedule shifts,
-										and issue credentials — all in one place.
+										Meet your grant and insurer requirements. Screen applicants,
+										run background checks, track credentials, and document
+										volunteer hours — all in one place.
 									</p>
 								</div>
 								<Button

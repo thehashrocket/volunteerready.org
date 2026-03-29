@@ -43,8 +43,8 @@ const benefits = [
 	},
 	{
 		icon: Award,
-		heading: 'Portable credentials that travel with you',
-		body: 'Earn verified badges — background checks, training completions, orientation — that every organization on the platform can see. Build once, use everywhere.',
+		heading: 'Get screened once. Use it everywhere.',
+		body: "Done with redoing the same background check every time you try a new organization? Your verified badges — background check cleared, training complete, orientation done — travel across every org on the platform. Build your record once, carry it everywhere.",
 	},
 	{
 		icon: CalendarDays,
@@ -137,7 +137,7 @@ export default function ForVolunteersPage() {
 						</em>
 					</>
 				}
-				description="Stop sifting through outdated listings and chasing unanswered emails. VolunteerReady matches you with nonprofits that need exactly what you have to offer — and your credentials travel with you."
+				description="Stop sifting through outdated listings, chasing unanswered emails, and redoing the same background check every time you try somewhere new. VolunteerReady matches you with opportunities that fit — and your verified record travels with you."
 				actions={
 					<>
 						<Button asChild size="lg" className="rounded-full px-8">

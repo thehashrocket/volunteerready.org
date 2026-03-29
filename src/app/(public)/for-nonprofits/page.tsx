@@ -27,11 +27,11 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
 	title: 'For Nonprofits — VolunteerReady',
 	description:
-		'Screen applicants, run FCRA-compliant background checks, schedule shifts, and issue portable credentials — all in one platform.',
+		'Meet your grant and insurer requirements. Screen applicants, run FCRA-compliant background checks, track credentials, and document volunteer hours for funder reporting — all in one platform.',
 	openGraph: {
 		title: 'For Nonprofits — VolunteerReady',
 		description:
-			'Screen applicants, run FCRA-compliant background checks, schedule shifts, and issue portable credentials — all in one platform.',
+			'Meet your grant and insurer requirements. Screen applicants, run FCRA-compliant background checks, track credentials, and document volunteer hours for funder reporting — all in one platform.',
 		images: ['/api/og/page/for-nonprofits'],
 	},
 };
@@ -59,8 +59,8 @@ const features = [
 	},
 	{
 		icon: Users,
-		heading: 'Team management and audit logging',
-		body: 'Invite staff with role-based access. Every action — approvals, rejections, credential changes — is logged with timestamps and attribution.',
+		heading: 'Audit-ready documentation',
+		body: 'Every approval, rejection, and credential change is logged with timestamps and attribution. If a funder, insurer, or regulator ever asks for documentation, you\'ll have it — instantly.',
 	},
 ];
 
@@ -74,6 +74,11 @@ const outcomes = [
 		icon: HandHeart,
 		heading: 'Fewer no-shows',
 		body: 'Qualified volunteers who went through a real screening process are more committed to showing up.',
+	},
+	{
+		icon: Shield,
+		heading: 'Grant-ready reporting',
+		body: 'Volunteer hours, headcount, and credential status are always current and exportable. No more compiling from sign-in sheets the week before a funder report is due.',
 	},
 	{
 		icon: Building2,
@@ -113,6 +118,11 @@ const nonprofitFaqs = [
 		answer:
 			'Absolutely. The entire apply flow — screening form and status tracking — works on any device. Volunteers can even install VolunteerReady as a mobile app.',
 	},
+	{
+		question: 'Our grant requires us to track volunteer background checks and hours — does VolunteerReady help with that?',
+		answer:
+			'Yes — this is exactly what VolunteerReady is built for. Background check records, credential status, and volunteer hours are tracked automatically and can be exported for funder reports at any time. Your documentation is always current, not compiled at the last minute.',
+	},
 ];
 
 export default async function ForNonprofitsPage() {
@@ -132,7 +142,7 @@ export default async function ForNonprofitsPage() {
 						<em className="italic text-primary">from a spreadsheet.</em>
 					</>
 				}
-				description="VolunteerReady gives your organization everything it needs to recruit, screen, background check, schedule, and credential volunteers — all in one place."
+				description="If your grant requires it, your funder expects it, or your insurer mandates it — VolunteerReady handles the screening, documentation, and reporting so you're always ready to show your work."
 				actions={
 					<>
 						<Button asChild size="lg" className="rounded-full px-8">
@@ -177,6 +187,12 @@ export default async function ForNonprofitsPage() {
 						a shared inbox. Staff spending half their week on coordination that
 						should take minutes. New volunteers who weren't properly screened,
 						creating risk for your organization and the people you serve.
+					</p>
+					<p className="mt-4 leading-relaxed text-muted-foreground">
+						Or you have a grant that requires volunteer background checks and
+						you're tracking clearances on a spreadsheet — knowing that if your
+						funder ever asks for documentation, you'd be scrambling to pull it
+						together.
 					</p>
 					<p className="mt-4 leading-relaxed text-muted-foreground">
 						You didn't start a nonprofit to manage logistics. VolunteerReady
