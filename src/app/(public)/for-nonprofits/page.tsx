@@ -60,7 +60,7 @@ const features = [
 	{
 		icon: Users,
 		heading: 'Audit-ready documentation',
-		body: 'Every approval, rejection, and credential change is logged with timestamps and attribution. If a funder, insurer, or regulator ever asks for documentation, you\'ll have it — instantly.',
+		body: "Every approval, rejection, and credential change is logged with timestamps and attribution. If a funder, insurer, or regulator ever asks for documentation, you'll have it — instantly.",
 	},
 ];
 
@@ -119,7 +119,8 @@ const nonprofitFaqs = [
 			'Absolutely. The entire apply flow — screening form and status tracking — works on any device. Volunteers can even install VolunteerReady as a mobile app.',
 	},
 	{
-		question: 'Our grant requires us to track volunteer background checks and hours — does VolunteerReady help with that?',
+		question:
+			'Our grant requires us to track volunteer background checks and hours — does VolunteerReady help with that?',
 		answer:
 			'Yes — this is exactly what VolunteerReady is built for. Background check records, credential status, and volunteer hours are tracked automatically and can be exported for funder reports at any time. Your documentation is always current, not compiled at the last minute.',
 	},

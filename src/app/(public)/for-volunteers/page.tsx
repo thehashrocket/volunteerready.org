@@ -44,7 +44,7 @@ const benefits = [
 	{
 		icon: Award,
 		heading: 'Get screened once. Use it everywhere.',
-		body: "Done with redoing the same background check every time you try a new organization? Your verified badges — background check cleared, training complete, orientation done — travel across every org on the platform. Build your record once, carry it everywhere.",
+		body: 'Done with redoing the same background check every time you try a new organization? Your verified badges — background check cleared, training complete, orientation done — travel across every org on the platform. Build your record once, carry it everywhere.',
 	},
 	{
 		icon: CalendarDays,
