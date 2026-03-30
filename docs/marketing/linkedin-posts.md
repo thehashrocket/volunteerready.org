@@ -67,7 +67,7 @@ If you know anyone who coordinates volunteers at a nonprofit, I'd appreciate an 
 
 ---
 
-## On Startups — The Community For Entrepreneurs (POSTED)
+## On Startups — The Community For Entrepreneurs (POSTED — awaiting group approval)
 
 **Title:** Selling to nonprofits as a solo founder — what I'm learning
 
@@ -85,7 +85,7 @@ Still early. Still learning. If anyone else is building for the nonprofit space 
 
 ---
 
-## React Developers / JavaScript Groups (POSTED to both)
+## React Developers / JavaScript Groups (POSTED to both — re-posted this session)
 
 **Title:** Built a full-stack SaaS with Next.js 16, tRPC, and Prisma — lessons from a solo dev
 
@@ -143,28 +143,126 @@ Genuinely curious about the professional perspective on this. I'm a developer ex
 
 ---
 
-## The New Social Worker Magazine — 47K members (PENDING — not yet posted)
+## Young Nonprofit Professionals Network / YNPN — 61K members (POSTED)
+
+*Angle: Founder doing research, open framing. YNPN skews early-career and tends to appreciate transparency.*
 
 ---
 
-## Social Learning & Impact - Corporate Volunteering & CSR — 11K members (PENDING APPROVAL)
+I'm building software for nonprofits that manage volunteers, and I've been spending a lot of time listening before building.
 
-Target audience: CSR managers running employee volunteering programs.
-Post angle: ESG reporting, verified hours, audit-ready data.
-Draft post to be written once approved.
+One pattern keeps coming up: the gap between what funders *require* and what they're willing to *fund*.
 
----
+Grants increasingly require documentation — volunteer hours, headcount, background check status — but the overhead category in most grants doesn't cover the tools to actually collect that data. So orgs end up doing it manually. Spreadsheets, paper sign-in sheets, a coordinator who keeps track in their head.
 
-## Corporate Giving and Volunteering — 2K members (PENDING APPROVAL)
+One person described it as: "We're always compliant in practice, but I'm never confident I could prove it on short notice."
 
-Target audience: Corporate giving/CSR professionals.
-Post angle: Same as above — verified ESG data, not just self-reported hours.
-Draft post to be written once approved.
+For those of you working at nonprofits: does this match your experience? How does your org handle volunteer documentation for grant reporting — is it systematized, or held together with duct tape?
 
 ---
 
-## Corporate Volunteering Network (CVN) — PENDING APPROVAL
+## The New Social Worker Magazine — 47K members (PENDING APPROVAL — draft ready)
 
-Target audience: Professionals organizing employee volunteering opportunities.
-Post angle: Making employee volunteering programs trackable and audit-ready.
-Draft post to be written once approved.
+*Angle: The risk isn't failing to do the screening — it's failing to prove that you did.*
+
+---
+
+A question for social workers who oversee or work alongside volunteer programs:
+
+There's a bind I keep hearing about when it comes to grant compliance. Funders — especially foundations and government contracts — increasingly require documentation of volunteer screening: background check status, training completion, hours logged.
+
+But most orgs I've talked to are meeting those requirements manually. Spreadsheets. Paper sign-in sheets. A coordinator who keeps track in their head.
+
+One person described it this way: "We're always compliant in practice, but I'm never confident I could prove it on short notice."
+
+That's a different kind of risk than most people think about — not *failing* to do the screening, but failing to *document* that you did.
+
+Does this resonate with your experience? How does your org handle the documentation side of volunteer compliance — especially for grant reporting?
+
+---
+
+## Volunteer Jobs, Volunteer Coordinator & Director Jobs — 3K members (PENDING APPROVAL — draft ready)
+
+*Angle: Direct, operational. These ARE volunteer coordinators and directors — use their language.*
+*Priority: HIGHEST. Post this one first once approved.*
+
+---
+
+A question for fellow volunteer coordinators and directors:
+
+How does your org track background check renewals across your full volunteer roster?
+
+I've been talking to volunteer managers at a range of nonprofits lately — from small community orgs to large multi-site agencies — and the approaches vary a lot:
+
+- Batching everyone's renewals in the same month of the year (avoids tracking individual dates, but means some volunteers renew before they need to)
+- Spreadsheet with expiration dates and a monthly manual review
+- Relying on each program director to flag when their volunteers are due (with predictable results)
+- No formal system at all — renewals happen when someone remembers
+
+The orgs working with kids, elderly, or other vulnerable populations feel the stakes most acutely. A missed renewal isn't just an admin headache — it's a compliance gap that can show up in a funder audit or insurance review.
+
+What's working for your org? And where does the process tend to break down?
+
+---
+
+## Social Learning & Impact — Corporate Volunteering & CSR — 11K members (PENDING APPROVAL — draft ready)
+
+*Angle: The documentation gap between what companies need for ESG reporting and what nonprofits provide.*
+
+---
+
+A question for those managing corporate volunteer programs:
+
+When your company volunteers with a nonprofit partner, who owns the documentation?
+
+I've been exploring the gap between what companies need for ESG reporting — verified hours, headcount, participation data — and what most nonprofits are actually set up to provide.
+
+Most nonprofits track volunteer hours on paper sign-in sheets or basic spreadsheets, which works fine internally. But when a corporate partner needs structured data for their CSR report, the friction usually lands on the nonprofit coordinator: manually compiling records, chasing down sign-in sheets from three months ago, formatting data for a partner's specific template.
+
+For those of you on the corporate side: how do you currently collect volunteer hour data from your nonprofit partners? Is it a smooth handoff, or does it usually involve a few awkward email threads?
+
+---
+
+## Corporate Giving and Volunteering — 1.5K members (PENDING APPROVAL — draft ready)
+
+*Angle: The documentation burden from the nonprofit's perspective, framed for a corporate giving audience.*
+
+---
+
+Something I keep hearing from nonprofits that work with corporate volunteer partners:
+
+The ask is easy. The documentation is hard.
+
+A company shows up to volunteer, everyone has a great experience — and then six weeks later the corporate CSR team emails asking for a breakdown of volunteer hours, headcount, and evidence that volunteers completed any required screening.
+
+For smaller nonprofits, pulling that together is a real lift. The records usually live in paper sign-in sheets or a spreadsheet one person maintains.
+
+For those of you managing corporate giving programs: is this friction you encounter on your side? How much time goes toward chasing documentation from nonprofit partners after the fact?
+
+---
+
+## Corporate Volunteering Network (CVN) — 805 members (PENDING APPROVAL — draft ready)
+
+*Angle: Smaller, tighter community — more conversational tone appropriate.*
+
+---
+
+Curious what others in this group are experiencing:
+
+How much friction is there between your corporate volunteer program and the nonprofit partners around documentation and compliance?
+
+I've been talking to both sides of this recently — companies that need verified hours and screening records for ESG reporting, and nonprofits that are doing their best to track that information manually. The gap is real on both ends. Companies need structured, exportable data. Nonprofits have paper sign-in sheets and spreadsheets.
+
+Getting from one to the other usually involves a lot of email.
+
+Is this something your organization has figured out, or is it still an ongoing friction point?
+
+---
+
+## Posting strategy
+
+- **Post order:** YNPN first (can post now) → Volunteer Coordinator & Director Jobs (highest priority, post as soon as approved) → The New Social Worker Magazine → Social Learning & Impact CSR → Corporate Giving → CVN
+- **Spacing:** Wait 2-3 days between posts across different groups
+- **Engagement rule:** Reply to every comment within a few hours — LinkedIn rewards fast replies and dramatically extends reach
+- **If someone gives a detailed comment:** Ask one follow-up question. If they engage twice, offer to continue over DM or a 15-minute call
+- **Note on Social Work Network and Counseling:** Those were posted with the old scheduling/tracking angle. If 3+ weeks have passed, a second post with the compliance/grant angle is reasonable — but don't rush it
