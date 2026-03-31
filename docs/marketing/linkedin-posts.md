@@ -259,6 +259,28 @@ Is this something your organization has figured out, or is it still an ongoing f
 
 ---
 
+## Personal page post: Reddit research insights (POSTED 2026-03-30)
+
+I've been spending the last few weeks in Reddit threads asking nonprofit professionals how they handle volunteer compliance.
+
+Not pitching. Just asking questions and listening to what comes back.
+
+One thing I didn't expect to hear: compliance failures in the nonprofit sector are an open secret. Everyone "knows someone" whose org lost a grant renewal because they couldn't produce volunteer records from two years ago. But nobody talks about it publicly.
+
+Why? Because orgs don't want to look incompetent to other funders. Funders don't want to look heavy-handed. And everyone prefers the narrative that these failures are "rare exceptions."
+
+But behind closed doors, grant professionals absolutely talk about it. The ones who've been burned once become religious about documentation. The ones who haven't operate on hope until something goes wrong.
+
+The part that surprised me most: the real risk isn't losing one grant. It's what happens next. One funder audits you, finds gaps in your volunteer records, and suddenly you're explaining that to every other funder on your next application. You're not fixing a process anymore. You're rebuilding trust.
+
+I'm building VolunteerReady (volunteerready.org) to make this kind of documentation automatic. Screening, background checks, hours, credentials, all tracked as part of the volunteer workflow instead of as a separate compliance task.
+
+Still early. Still learning. If you work in the nonprofit space, I'd love to hear whether this matches what you've seen.
+
+#NonprofitLeadership #VolunteerManagement #GrantCompliance #FounderJourney #NonprofitTech
+
+---
+
 ## Posting strategy
 
 - **Post order:** YNPN first (can post now) → Volunteer Coordinator & Director Jobs (highest priority, post as soon as approved) → The New Social Worker Magazine → Social Learning & Impact CSR → Corporate Giving → CVN
