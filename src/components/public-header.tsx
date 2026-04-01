@@ -15,18 +15,12 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { getNavPages } from '@/lib/public-pages';
 import { trpc } from '@/lib/trpc/client';
 import { TRPCProvider } from '@/lib/trpc/provider';
 import { cn } from '@/lib/utils';
 
-const navLinks = [
-	{ label: 'For Volunteers', href: '/for-volunteers' },
-	{ label: 'For Nonprofits', href: '/for-nonprofits' },
-	{ label: 'For Employers', href: '/for-employers' },
-	{ label: 'How It Works', href: '/how-it-works' },
-	{ label: 'Pricing', href: '/pricing' },
-	{ label: 'About', href: '/about' },
-];
+const navLinks = getNavPages();
 
 function UserAvatar({ initial }: { initial: string }) {
 	return (

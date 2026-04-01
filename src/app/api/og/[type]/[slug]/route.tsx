@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
+import { getOgPageMeta } from '@/lib/public-pages';
 import { prisma } from '@/server/repositories/prisma';
 
 export const runtime = 'nodejs';
@@ -24,52 +25,7 @@ function loadFont(filename: string): Buffer {
 	return buf;
 }
 
-const PAGE_META: Record<string, { heading: string; subheading: string }> = {
-	home: {
-		heading: 'Trusted Infrastructure for Volunteer Engagement',
-		subheading: 'VolunteerReady',
-	},
-	pricing: {
-		heading: 'Simple, Transparent Pricing. No Surprises.',
-		subheading: 'Pricing',
-	},
-	screening: {
-		heading: 'Background Checks for Nonprofits — $29/mo',
-		subheading: 'Volunteer Screening',
-	},
-	'for-nonprofits': {
-		heading: 'Screen, Credential, and Manage Volunteers',
-		subheading: 'For Nonprofits',
-	},
-	'for-volunteers': {
-		heading: 'Find Opportunities. Earn Portable Credentials.',
-		subheading: 'For Volunteers',
-	},
-	'for-employers': {
-		heading: 'Track Employee Volunteering & ESG Impact',
-		subheading: 'For Employers',
-	},
-	about: {
-		heading: 'The Story Behind VolunteerReady',
-		subheading: 'About Us',
-	},
-	'how-it-works': {
-		heading: 'From Sign-Up to Verified Service Record',
-		subheading: 'How It Works',
-	},
-	security: {
-		heading: 'Data Protection & FCRA Compliance',
-		subheading: 'Security & Compliance',
-	},
-	privacy: {
-		heading: 'How We Collect, Use & Protect Your Data',
-		subheading: 'Privacy Policy',
-	},
-	terms: {
-		heading: 'Terms & Conditions for the Platform',
-		subheading: 'Terms of Service',
-	},
-};
+const PAGE_META = getOgPageMeta();
 
 function getHeading(type: OgType, orgName: string, slug: string): string {
 	if (type === 'page') return PAGE_META[slug]?.heading ?? 'VolunteerReady';

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.15] - 2026-03-31
+
+### Changed
+- **Centralized public page registry** — All public page metadata (nav links, footer sections, sitemap entries, OG image config) now lives in a single `src/lib/public-pages.ts` registry. Header, footer, sitemap, and OG image route all consume from one source of truth, eliminating drift when adding new pages.
+- **Search page now discoverable** — `/search` appears in the header nav, the footer Platform section, the sitemap, and the OG image API. Previously it existed but was unreachable from navigation.
+
+### Fixed
+- **Feedback page SEO** — Added OG image metadata, JSON-LD breadcrumbs, and proper `noindex` for invalid/expired feedback links (using `generateMetadata()` instead of invalid `<head>` in page body).
+- **OG image for `/search`** — `/api/og/page/search` no longer returns 404.
+
 ## [0.17.14] - 2026-03-31
 
 ### Added

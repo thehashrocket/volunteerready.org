@@ -22,6 +22,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { NextRequest } from 'next/server';
+import { getOgPageMeta } from '@/lib/public-pages';
 import { prisma } from '@/server/repositories/prisma';
 import { GET } from '../[type]/[slug]/route';
 
@@ -78,20 +79,8 @@ describe('OG Image Route', () => {
 		expect(res).toHaveProperty('element');
 	});
 
-	it('validates all expected page slugs', async () => {
-		const validSlugs = [
-			'home',
-			'pricing',
-			'screening',
-			'for-nonprofits',
-			'for-volunteers',
-			'for-employers',
-			'about',
-			'how-it-works',
-			'security',
-			'privacy',
-			'terms',
-		];
+	it('validates all page slugs from registry', async () => {
+		const validSlugs = Object.keys(getOgPageMeta());
 		for (const slug of validSlugs) {
 			const res = await GET(...makeRequest('page', slug));
 			expect(res).not.toBeInstanceOf(Response);

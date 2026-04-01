@@ -1,66 +1,15 @@
 import type { MetadataRoute } from 'next';
 import { BASE_URL } from '@/lib/constants';
+import { getSitemapPages } from '@/lib/public-pages';
 import { prisma } from '@/server/repositories/prisma';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	// Static public pages
-	const staticRoutes: MetadataRoute.Sitemap = [
-		{
-			url: BASE_URL,
-			changeFrequency: 'daily',
-			priority: 1.0,
-		},
-		{
-			url: `${BASE_URL}/about`,
-			changeFrequency: 'monthly',
-			priority: 0.7,
-		},
-		{
-			url: `${BASE_URL}/how-it-works`,
-			changeFrequency: 'monthly',
-			priority: 0.8,
-		},
-		{
-			url: `${BASE_URL}/for-volunteers`,
-			changeFrequency: 'monthly',
-			priority: 0.8,
-		},
-		{
-			url: `${BASE_URL}/for-nonprofits`,
-			changeFrequency: 'monthly',
-			priority: 0.8,
-		},
-		{
-			url: `${BASE_URL}/for-employers`,
-			changeFrequency: 'monthly',
-			priority: 0.7,
-		},
-		{
-			url: `${BASE_URL}/pricing`,
-			changeFrequency: 'monthly',
-			priority: 0.7,
-		},
-		{
-			url: `${BASE_URL}/screening`,
-			changeFrequency: 'monthly',
-			priority: 0.7,
-		},
-		{
-			url: `${BASE_URL}/security`,
-			changeFrequency: 'yearly',
-			priority: 0.4,
-		},
-		{
-			url: `${BASE_URL}/privacy`,
-			changeFrequency: 'yearly',
-			priority: 0.3,
-		},
-		{
-			url: `${BASE_URL}/terms`,
-			changeFrequency: 'yearly',
-			priority: 0.3,
-		},
-	];
+	// Static public pages (from centralized registry)
+	const staticRoutes: MetadataRoute.Sitemap = getSitemapPages().map((page) => ({
+		url: page.href === '/' ? BASE_URL : `${BASE_URL}${page.href}`,
+		changeFrequency: page.changeFrequency,
+		priority: page.priority,
+	}));
 
 	// Dynamic routes: org-specific public pages
 	const orgs = await prisma.organization.findMany({
