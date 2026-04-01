@@ -6,6 +6,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
+import { getSitemapPages } from '@/lib/public-pages';
 import { prisma } from '@/server/repositories/prisma';
 import sitemap from '../sitemap';
 
@@ -14,16 +15,23 @@ describe('sitemap()', () => {
 		vi.clearAllMocks();
 	});
 
-	it('includes all static routes', async () => {
+	it('includes all static routes from registry', async () => {
 		const result = await sitemap();
 		const urls = result.map((r) => r.url);
-		expect(urls).toContain('https://www.volunteerready.org');
-		expect(urls).toContain('https://www.volunteerready.org/about');
-		expect(urls).toContain('https://www.volunteerready.org/how-it-works');
-		expect(urls).toContain('https://www.volunteerready.org/pricing');
-		expect(urls).toContain('https://www.volunteerready.org/screening');
-		expect(urls).toContain('https://www.volunteerready.org/privacy');
-		expect(urls).toContain('https://www.volunteerready.org/terms');
+		expect(result.length).toBeGreaterThanOrEqual(getSitemapPages().length);
+		for (const page of getSitemapPages()) {
+			const expectedUrl =
+				page.href === '/'
+					? 'https://www.volunteerready.org'
+					: `https://www.volunteerready.org${page.href}`;
+			expect(urls).toContain(expectedUrl);
+		}
+	});
+
+	it('includes /search in sitemap', async () => {
+		const result = await sitemap();
+		const urls = result.map((r) => r.url);
+		expect(urls).toContain('https://www.volunteerready.org/search');
 	});
 
 	it('includes dynamic org routes', async () => {
@@ -57,9 +65,8 @@ describe('sitemap()', () => {
 		);
 	});
 
-	it('returns empty dynamic routes when no orgs exist', async () => {
+	it('returns only static routes when no orgs exist', async () => {
 		const result = await sitemap();
-		// Should only have static routes (11 total)
-		expect(result.length).toBe(11);
+		expect(result.length).toBe(getSitemapPages().length);
 	});
 });

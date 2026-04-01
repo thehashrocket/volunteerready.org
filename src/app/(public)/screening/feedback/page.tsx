@@ -1,16 +1,29 @@
 import type { Metadata } from 'next';
+import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
+import { BASE_URL } from '@/lib/constants';
 import { FeedbackForm } from './feedback-form';
 
-export const metadata: Metadata = {
-	title: 'Share Your Feedback — VolunteerReady',
-	description: 'Help us improve VolunteerReady by sharing your experience.',
+type Props = {
+	searchParams: Promise<{ org?: string; type?: string }>;
 };
 
-export default async function FeedbackPage({
+export async function generateMetadata({
 	searchParams,
-}: {
-	searchParams: Promise<{ org?: string; type?: string }>;
-}) {
+}: Props): Promise<Metadata> {
+	const { org, type } = await searchParams;
+	const isValid = org && type && ['DAY_7', 'DAY_30'].includes(type);
+
+	return {
+		title: 'Share Your Feedback — VolunteerReady',
+		description: 'Help us improve VolunteerReady by sharing your experience.',
+		openGraph: {
+			images: [`${BASE_URL}/api/og/page/screening`],
+		},
+		...(isValid ? {} : { robots: { index: false } }),
+	};
+}
+
+export default async function FeedbackPage({ searchParams }: Props) {
 	const { org, type } = await searchParams;
 
 	if (!org || !type || !['DAY_7', 'DAY_30'].includes(type)) {
@@ -30,6 +43,13 @@ export default async function FeedbackPage({
 
 	return (
 		<div className="mx-auto max-w-xl px-6 py-16">
+			<JsonLdBreadcrumb
+				items={[
+					{ label: 'Home', href: '/' },
+					{ label: 'Screening', href: '/screening' },
+					{ label: 'Feedback', href: '/screening/feedback' },
+				]}
+			/>
 			<h1 className="font-display text-2xl font-bold text-foreground">
 				{feedbackType === 'DAY_7'
 					? "How's your first week?"

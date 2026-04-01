@@ -1,14 +1,10 @@
 import Link from 'next/link';
+import { getFooterPages } from '@/lib/public-pages';
 
 const footerLinks = [
 	{
 		heading: 'Platform',
-		links: [
-			{ label: 'About Us', href: '/about' },
-			{ label: 'How It Works', href: '/how-it-works' },
-			{ label: 'Pricing', href: '/pricing' },
-			{ label: 'Security', href: '/security' },
-		],
+		links: getFooterPages('Platform'),
 	},
 	{
 		heading: 'For Volunteers',
@@ -36,10 +32,7 @@ const footerLinks = [
 	},
 	{
 		heading: 'Legal',
-		links: [
-			{ label: 'Privacy Policy', href: '/privacy' },
-			{ label: 'Terms of Service', href: '/terms' },
-		],
+		links: getFooterPages('Legal'),
 	},
 ];
 
