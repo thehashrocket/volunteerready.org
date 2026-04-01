@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.14] - 2026-03-31
+
+### Added
+- **Public search page** (`/search`) — Site-wide search powered by Google Custom Search Engine, with SEO metadata, JSON-LD breadcrumbs, and the standard public page layout.
+
 ## [0.17.13] - 2026-03-24
 
 ### Added
