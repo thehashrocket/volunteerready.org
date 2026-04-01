@@ -130,6 +130,7 @@ docs/
 - Email-based status lookup lives under `src/app/apply/status`.
 - QR check-in: token lib at `src/server/lib/checkin-token.ts`, scanner at `src/app/(app)/app/scan/`, QR display at `src/components/app/qr-checkin-code.tsx`
 - Geo check-in: `src/components/app/geo-checkin.tsx` + `src/server/lib/geo.ts`
+- SEO: public page registry at `src/lib/public-pages.ts` — single source of truth for nav links, footer sections, sitemap entries, and OG image config. All consumers (header, footer, sitemap, OG route) import from here.
 - SEO: dynamic sitemap at `src/app/sitemap.ts`, robots at `src/app/robots.ts` (served at `/sitemap.xml` and `/robots.txt`)
 - SEO: OG image API at `src/app/api/og/[type]/[slug]/route.tsx` (branded Open Graph images for pages + org routes)
 - SEO: JSON-LD components at `src/components/json-ld-breadcrumb.tsx` and `src/components/json-ld-faq.tsx`
