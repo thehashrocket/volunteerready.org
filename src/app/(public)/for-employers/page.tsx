@@ -257,7 +257,7 @@ export default async function ForEmployersPage() {
 							asChild
 							size="lg"
 							variant="outline"
-							className="rounded-full border-white/30 px-8 text-primary-foreground hover:bg-white/10"
+							className="rounded-full border-white/30 bg-transparent px-8 text-white hover:bg-white/10"
 						>
 							<TrackedLink
 								href="mailto:hello@volunteerready.com?subject=Corporate%20pricing"
