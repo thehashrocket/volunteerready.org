@@ -20,8 +20,8 @@ export default function SearchPage() {
 		<div className="flex flex-col">
 			<JsonLdBreadcrumb
 				items={[
-					{ name: 'Home', href: '/' },
-					{ name: 'Search', href: '/search' },
+					{ label: 'Home', href: '/' },
+					{ label: 'Search', href: '/search' },
 				]}
 			/>
 			<PublicHero
