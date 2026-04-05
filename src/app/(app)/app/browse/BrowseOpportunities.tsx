@@ -71,8 +71,8 @@ const APPLIED_BADGE_CONFIG: Record<
 	},
 	APPROVED: {
 		label: 'Applied — Approved',
-		textClass: 'text-[#2D7A4F] border-[#2D7A4F]',
-		borderClass: 'border-l-[#2D7A4F]',
+		textClass: 'text-success border-success',
+		borderClass: 'border-l-success',
 	},
 };
 
@@ -257,7 +257,7 @@ function OpportunityCard({
 				{isApplied ? (
 					<Link
 						href={`/app/my-applications/${appliedApp.applicationId}`}
-						className="mt-auto inline-flex min-h-[44px] items-center justify-center py-3 text-sm font-medium text-[#2D7A4F] transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+						className="mt-auto inline-flex min-h-[44px] items-center justify-center py-3 text-sm font-medium text-success transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
 					>
 						View My Application &rarr;
 					</Link>

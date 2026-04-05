@@ -40,9 +40,9 @@ export function TestimonialSection() {
 		: undefined;
 
 	return (
-		<section className="bg-[#F5F4F0] px-4 py-16">
+		<section className="bg-muted px-4 py-16">
 			<div className="mx-auto max-w-2xl">
-				<h2 className="font-display mb-6 text-2xl font-bold text-[#252422]">
+				<h2 className="font-display mb-6 text-2xl font-bold text-foreground">
 					Trusted by nonprofits
 				</h2>
 				<TestimonialBlock

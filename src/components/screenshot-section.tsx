@@ -24,11 +24,11 @@ export function ScreenshotSection({
 	if (hasError) return null;
 
 	const sectionClass =
-		sectionBg === 'sand' ? 'bg-[#F5F4F0] px-4 py-12' : 'px-4 py-12';
+		sectionBg === 'sand' ? 'bg-muted px-4 py-12' : 'px-4 py-12';
 	const containerClass =
 		containerBg === 'sand'
-			? 'bg-[#F5F4F0] rounded-lg border border-border/40 shadow-sm'
-			: 'bg-white rounded-lg border border-border/40 shadow-sm';
+			? 'bg-muted rounded-lg border border-border/40 shadow-sm'
+			: 'bg-card rounded-lg border border-border/40 shadow-sm';
 
 	return (
 		<section className={sectionClass}>

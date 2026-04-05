@@ -21,7 +21,7 @@ export async function sendCredentialRequestEmail(opts: {
           requiring you to go through the process again.
         </p>
         <p>
-          <a href="${opts.profileUrl}" style="display: inline-block; padding: 10px 20px; background: #1B3C2A; color: white; text-decoration: none; border-radius: 6px;">
+          <a href="${opts.profileUrl}" style="display: inline-block; padding: 10px 20px; background: #1B3C2A; color: #FAFAF8; text-decoration: none; border-radius: 8px;">
             Share your credentials
           </a>
         </p>

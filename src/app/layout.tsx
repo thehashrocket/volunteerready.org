@@ -6,6 +6,7 @@ import { IosInstallPrompt } from '@/components/ios-install-prompt';
 import { AppToaster } from '@/components/sonner';
 import { SwRegister } from '@/components/sw-register';
 import { SwUpdateBanner } from '@/components/sw-update-banner';
+import { ThemeProvider } from '@/components/theme-provider';
 import { BASE_URL } from '@/lib/constants';
 import './globals.css';
 
@@ -25,7 +26,7 @@ const fraunces = Fraunces({
 	variable: '--font-fraunces',
 	subsets: ['latin'],
 	style: ['normal', 'italic'],
-	weight: ['400', '700', '900'],
+	weight: ['400', '500', '600', '700'],
 	display: 'swap',
 });
 
@@ -72,32 +73,34 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} min-h-screen bg-background text-foreground antialiased`}
 			>
-				{children}
-				<script
-					type="application/ld+json"
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires innerHTML
-					dangerouslySetInnerHTML={{
-						__html: JSON.stringify({
-							'@context': 'https://schema.org',
-							'@type': 'Organization',
-							name: 'VolunteerReady',
-							url: BASE_URL,
-							logo: `${BASE_URL}/icons/icon-512x512.png`,
-							description:
-								'Trusted infrastructure for volunteer engagement. Screen, credential, match, and schedule volunteers.',
-						}).replace(/</g, '\\u003c'),
-					}}
-				/>
-				<IosInstallPrompt />
-				<SwRegister />
-				<SwUpdateBanner />
-				<AppToaster />
-				<ConsentedAnalytics />
-				<CookieConsentBanner />
+				<ThemeProvider>
+					{children}
+					<script
+						type="application/ld+json"
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires innerHTML
+						dangerouslySetInnerHTML={{
+							__html: JSON.stringify({
+								'@context': 'https://schema.org',
+								'@type': 'Organization',
+								name: 'VolunteerReady',
+								url: BASE_URL,
+								logo: `${BASE_URL}/icons/icon-512x512.png`,
+								description:
+									'Trusted infrastructure for volunteer engagement. Screen, credential, match, and schedule volunteers.',
+							}).replace(/</g, '\\u003c'),
+						}}
+					/>
+					<IosInstallPrompt />
+					<SwRegister />
+					<SwUpdateBanner />
+					<AppToaster />
+					<ConsentedAnalytics />
+					<CookieConsentBanner />
+				</ThemeProvider>
 			</body>
 		</html>
 	);

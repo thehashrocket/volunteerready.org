@@ -308,7 +308,7 @@ function ShiftDetailDialog({
 								</span>
 								<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
 									<div
-										className="h-full rounded-full bg-[#1B3C2A] transition-all duration-300"
+										className="h-full rounded-full bg-primary transition-all duration-300"
 										style={{ width: `${checkinStats.rate}%` }}
 									/>
 								</div>

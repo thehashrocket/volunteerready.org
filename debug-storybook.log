@@ -1,0 +1,19 @@
+[17:45:22.314] [INFO] storybook v10.3.4
+[17:45:22.578] [DEBUG] Getting package.json info for /Users/jasonshultz/conductor/workspaces/volunteeermatch.com/porto-v1/package.json...
+[17:45:23.148] [INFO] Starting...
+[17:45:23.174] [WARN] unable to find package.json for radix-ui
+[17:45:23.250] [DEBUG] Starting preview..
+[17:45:23.272] [DEBUG] Using tsconfig paths for react-docgen
+[17:45:23.272] [ERROR] Failed to build the preview
+[17:45:23.273] [ERROR] [38;2;241;97;97mReferenceError: __dirname is not defined[39m
+    at Object.viteFinal (file://./.storybook/main.ts:13:25)
+    at async createViteServer (file://./node_modules/.pnpm/@storybook+builder-vite@10.3.4_esbuild@0.27.4_rollup@4.59.0_storybook@10.3.4_@testing-l_1685bbe8ebb3ac01f1cb424278aa48ca/node_modules/@storybook/builder-vite/dist/index.js:1532:21)
+    at async Module.start (file://./node_modules/.pnpm/@storybook+builder-vite@10.3.4_esbuild@0.27.4_rollup@4.59.0_storybook@10.3.4_@testing-l_1685bbe8ebb3ac01f1cb424278aa48ca/node_modules/@storybook/builder-vite/dist/index.js:1557:17)
+    at async storybookDevServer (file://./node_modules/.pnpm/storybook@10.3.4_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/storybook/dist/core-server/index.js:7503:83)
+    at async buildOrThrow (file://./node_modules/.pnpm/storybook@10.3.4_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/storybook/dist/core-server/index.js:4508:12)
+    at async buildDevStandalone (file://./node_modules/.pnpm/storybook@10.3.4_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/storybook/dist/core-server/index.js:8033:41)
+    at async withTelemetry (file://./node_modules/.pnpm/storybook@10.3.4_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/storybook/dist/_node-chunks/chunk-HUYNFPPD.js:225:12)
+    at async dev (file://./node_modules/.pnpm/storybook@10.3.4_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/storybook/dist/bin/core.js:2736:3)
+    at async _Command.<anonymous> (file://./node_modules/.pnpm/storybook@10.3.4_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/storybook/dist/bin/core.js:2806:92)
+[17:45:23.275] [WARN] Broken build, fix the error above.
+You may need to refresh the browser.

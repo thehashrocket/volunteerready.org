@@ -170,10 +170,10 @@ export function QrCheckinCode({
 	if (isCheckedIn) {
 		return (
 			<div className="flex flex-col items-center gap-2 py-4">
-				<div className="flex h-32 w-32 items-center justify-center rounded-lg bg-[#2D7A4F]/10">
-					<CheckCircle2 className="h-16 w-16 text-[#2D7A4F]" />
+				<div className="flex h-32 w-32 items-center justify-center rounded-lg bg-success/10">
+					<CheckCircle2 className="h-16 w-16 text-success" />
 				</div>
-				<p className="text-sm font-medium text-[#2D7A4F]">
+				<p className="text-sm font-medium text-success">
 					{getContextualCopy(phase)}
 				</p>
 			</div>
@@ -187,7 +187,7 @@ export function QrCheckinCode({
 			{isOffline && (
 				<Badge
 					variant="outline"
-					className="absolute right-0 top-4 text-[#787571]"
+					className="absolute right-0 top-4 text-muted-foreground"
 				>
 					<WifiOff className="mr-1 h-3 w-3" />
 					Offline
@@ -209,7 +209,7 @@ export function QrCheckinCode({
 				{getContextualCopy(phase, shiftLocation)}
 			</p>
 			{isOffline && offlineExpired ? (
-				<p className="text-xs text-[#B8860B]">
+				<p className="text-xs text-warning">
 					Token may be expired. Reconnect to refresh.
 				</p>
 			) : (

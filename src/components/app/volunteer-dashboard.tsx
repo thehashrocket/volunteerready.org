@@ -18,10 +18,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
-// Impact stat
+// KPI Rail
 // ---------------------------------------------------------------------------
 
-function ImpactStat({
+function KpiItem({
 	label,
 	value,
 	icon: Icon,
@@ -31,15 +31,15 @@ function ImpactStat({
 	icon: React.ComponentType<{ className?: string }>;
 }) {
 	return (
-		<div className="flex items-center gap-3">
-			<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/8">
-				<Icon className="h-5 w-5 text-primary" />
+		<div className="flex items-center gap-3 flex-1 min-w-0">
+			<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/8">
+				<Icon className="h-4 w-4 text-primary" />
 			</div>
 			<div>
-				<div className="text-2xl font-bold tabular-nums tracking-tight">
+				<div className="font-mono text-xl font-bold tabular-nums tracking-tight">
 					{value}
 				</div>
-				<div className="text-sm text-muted-foreground">{label}</div>
+				<div className="text-xs text-muted-foreground">{label}</div>
 			</div>
 		</div>
 	);
@@ -53,70 +53,45 @@ export function VolunteerDashboard() {
 	const { data, isLoading } = trpc.volunteer.getDashboard.useQuery();
 
 	return (
-		<div className="space-y-8">
-			{/* ── Greeting banner ── */}
-			<div className="rounded-xl border border-border/60 bg-[#E8DCC8]/30 px-6 py-5">
-				<p className="font-display text-xl font-bold text-foreground">
-					Welcome back.
-				</p>
-				<p className="mt-1 text-sm text-muted-foreground">
-					Here's your volunteering at a glance.
-				</p>
-			</div>
-
+		<div className="space-y-6">
 			<PageHeader
 				title="My Dashboard"
 				description="Your upcoming commitments and impact."
 			/>
 
-			{/* ── Impact summary ── */}
+			{/* ── KPI Rail ── */}
 			{isLoading ? (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<div className="flex gap-6">
 					{Array.from({ length: 4 }).map((_, i) => (
-						<Skeleton key={i} className="h-20 rounded-xl" />
+						<Skeleton key={i} className="h-14 flex-1" />
 					))}
 				</div>
 			) : data?.impact ? (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-					<Card className="border-border/70">
-						<CardContent className="pt-5 pb-4">
-							<ImpactStat
-								label="Hours volunteered"
-								value={data.impact.totalHours}
-								icon={Clock}
-							/>
-						</CardContent>
-					</Card>
-					<Card className="border-border/70">
-						<CardContent className="pt-5 pb-4">
-							<ImpactStat
-								label="Organizations served"
-								value={data.impact.orgsServed}
-								icon={Users}
-							/>
-						</CardContent>
-					</Card>
-					<Card className="border-border/70">
-						<CardContent className="pt-5 pb-4">
-							<ImpactStat
-								label="Shifts attended"
-								value={data.impact.shiftsAttended}
-								icon={Calendar}
-							/>
-						</CardContent>
-					</Card>
-					<Card className="border-border/70">
-						<CardContent className="pt-5 pb-4">
-							<ImpactStat
-								label="Verified credentials"
-								value={data.impact.verifiedCredentials}
-								icon={Award}
-							/>
-						</CardContent>
-					</Card>
+				<div className="flex flex-wrap gap-6 border-b border-border/60 pb-6">
+					<KpiItem
+						label="Hours volunteered"
+						value={data.impact.totalHours}
+						icon={Clock}
+					/>
+					<KpiItem
+						label="Organizations served"
+						value={data.impact.orgsServed}
+						icon={Users}
+					/>
+					<KpiItem
+						label="Shifts attended"
+						value={data.impact.shiftsAttended}
+						icon={Calendar}
+					/>
+					<KpiItem
+						label="Verified credentials"
+						value={data.impact.verifiedCredentials}
+						icon={Award}
+					/>
 				</div>
 			) : null}
 
+			{/* ── Primary content grid ── */}
 			<div className="grid gap-6 lg:grid-cols-2">
 				{/* ── Upcoming shifts ── */}
 				<Card className="border-border/70">

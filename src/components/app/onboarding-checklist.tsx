@@ -55,10 +55,10 @@ export function OnboardingChecklist({
 	const progress = (completed / steps.length) * 100;
 
 	return (
-		<div className="rounded-xl border border-border/60 bg-white px-6 py-5">
+		<div className="rounded-xl border border-border/60 bg-card px-6 py-5">
 			<div className="flex items-start justify-between">
 				<div>
-					<h3 className="font-display text-lg font-bold text-foreground">
+					<h3 className="font-sans text-lg font-bold text-foreground">
 						Get started
 					</h3>
 					<p className="mt-0.5 text-sm text-muted-foreground">
@@ -96,7 +96,7 @@ export function OnboardingChecklist({
 								className="flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-muted/50"
 							>
 								{done ? (
-									<CheckCircle2 className="h-5 w-5 shrink-0 text-[#2D7A4F]" />
+									<CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
 								) : (
 									<Circle className="h-5 w-5 shrink-0 text-muted-foreground/40" />
 								)}

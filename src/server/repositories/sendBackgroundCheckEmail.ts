@@ -20,9 +20,9 @@ export async function sendBackgroundCheckConsiderEmail(input: {
 		`
         <p>The background check for <strong>${input.volunteerName}</strong> at <strong>${input.orgName}</strong> has returned a <strong>Consider</strong> result.</p>
         <p>A "Consider" result means the check found something that requires your review before a decision can be made. Please log in to VolunteerReady to review the details and determine next steps.</p>
-        <p><a href="${reviewUrl}" style="display: inline-block; background: #1B3C2A; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none;">Review Background Check</a></p>
-        <p style="color: #6b7280; font-size: 0.875rem;">Request ID: ${input.requestId}</p>
-        <p style="color: #6b7280; font-size: 0.875rem;">If you have questions, please contact your legal or HR team before taking action.</p>
+        <p><a href="${reviewUrl}" style="display: inline-block; background: #1B3C2A; color: #FAFAF8; padding: 8px 16px; border-radius: 8px; text-decoration: none;">Review Background Check</a></p>
+        <p style="color: #787571; font-size: 0.875rem;">Request ID: ${input.requestId}</p>
+        <p style="color: #787571; font-size: 0.875rem;">If you have questions, please contact your legal or HR team before taking action.</p>
     `,
 	);
 }

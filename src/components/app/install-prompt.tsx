@@ -69,14 +69,14 @@ export function InstallPrompt() {
 	if (!deferredPrompt && !isIos) return null;
 
 	return (
-		<div className="rounded-lg bg-[#E8DCC8] p-4">
+		<div className="rounded-lg bg-muted p-4">
 			<div className="flex items-start gap-3">
-				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#1B3C2A]">
+				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary">
 					<Download className="h-5 w-5 text-white" />
 				</div>
 				<div className="flex-1">
-					<p className="font-medium text-[#252422]">Install VolunteerReady</p>
-					<p className="text-sm text-[#5C5955]">
+					<p className="font-medium text-foreground">Install VolunteerReady</p>
+					<p className="text-sm text-muted-foreground">
 						{isIos
 							? 'Tap the share button, then "Add to Home Screen" for faster access to your shifts.'
 							: 'Get faster access to your shifts.'}
@@ -84,7 +84,7 @@ export function InstallPrompt() {
 					{!isIos && (
 						<Button
 							size="sm"
-							className="mt-2 bg-[#1B3C2A] text-white hover:bg-[#2D5E42]"
+							className="mt-2 bg-primary text-white hover:bg-primary-hover"
 							onClick={handleInstall}
 						>
 							Install
@@ -94,7 +94,7 @@ export function InstallPrompt() {
 				<button
 					type="button"
 					onClick={handleDismiss}
-					className="shrink-0 rounded p-1 text-[#5C5955] hover:bg-[#C4A882]/30"
+					className="shrink-0 rounded p-1 text-muted-foreground hover:bg-accent/30"
 					aria-label="Dismiss install prompt"
 				>
 					<X className="h-4 w-4" />

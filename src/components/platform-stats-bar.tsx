@@ -19,7 +19,7 @@ export async function PlatformStatsBar() {
 
 	return (
 		<section
-			className="border-b border-border/40 bg-[#F5F4F0] px-4 py-10"
+			className="border-b border-border/40 bg-muted px-4 py-10"
 			aria-label="Platform statistics"
 		>
 			<div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-8 sm:gap-16">

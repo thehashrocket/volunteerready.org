@@ -50,7 +50,7 @@ export default async function ReferralPage({
 				actions={
 					<>
 						{referringOrgName && (
-							<div className="mb-2 w-full rounded-lg border border-[#C4A882]/40 bg-[#C4A882]/10 px-4 py-2.5 text-sm text-foreground">
+							<div className="mb-2 w-full rounded-lg border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm text-foreground">
 								Referred by{' '}
 								<span className="font-semibold">{referringOrgName}</span>
 							</div>

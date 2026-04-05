@@ -19,7 +19,7 @@ export function PublicHero({
 	heading,
 	description,
 	actions,
-	gradientClass = 'from-primary/5 via-background to-[#C4A882]/10',
+	gradientClass = 'from-primary/5 via-background to-accent/10',
 }: PublicHeroProps) {
 	return (
 		<section

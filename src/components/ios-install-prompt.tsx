@@ -49,7 +49,7 @@ export function IosInstallPrompt() {
 
 	return (
 		<div className="fixed inset-x-0 bottom-0 z-50 p-4 pb-[env(safe-area-inset-bottom,16px)]">
-			<div className="mx-auto max-w-md rounded-xl border border-neutral-200 bg-white p-4 shadow-lg">
+			<div className="mx-auto max-w-md rounded-xl border border-border bg-card p-4 shadow-lg">
 				<div className="flex items-start gap-3">
 					<div className="flex-1">
 						<p className="font-semibold text-neutral-800 text-sm">
@@ -57,8 +57,8 @@ export function IosInstallPrompt() {
 						</p>
 						<p className="mt-1 text-neutral-600 text-xs leading-relaxed">
 							Tap the{' '}
-							<Share className="mb-0.5 inline-block h-4 w-4 text-[#007AFF]" />{' '}
-							share button, then select{' '}
+							<Share className="mb-0.5 inline-block h-4 w-4 text-info" /> share
+							button, then select{' '}
 							<span className="font-medium">
 								&ldquo;Add to Home Screen&rdquo;
 							</span>

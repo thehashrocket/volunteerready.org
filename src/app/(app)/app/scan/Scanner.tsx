@@ -330,16 +330,16 @@ export default function Scanner() {
 		const noShows = total - attended;
 		return (
 			<div className="space-y-4">
-				<Card className="border-[#2D7A4F]/30 bg-[#2D7A4F]/5">
+				<Card className="border-success/30 bg-success/5">
 					<CardHeader>
-						<CardTitle className="font-display text-xl text-[#2D7A4F]">
+						<CardTitle className="font-sans text-xl text-success">
 							Check-in Complete
 						</CardTitle>
 						<CardDescription>{selectedShift?.title}</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						<div className="flex items-center gap-2 text-lg font-semibold">
-							<CheckCircle2 className="h-5 w-5 text-[#2D7A4F]" />
+							<CheckCircle2 className="h-5 w-5 text-success" />
 							{attended} volunteers checked in
 						</div>
 						{noShows > 0 && (
@@ -388,7 +388,7 @@ export default function Scanner() {
 					</span>
 					<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
 						<div
-							className="h-full rounded-full bg-[#1B3C2A] transition-all duration-300"
+							className="h-full rounded-full bg-primary transition-all duration-300"
 							style={{ width: `${statsQuery.data.rate}%` }}
 						/>
 					</div>
@@ -418,24 +418,24 @@ export default function Scanner() {
 				<div
 					className={`rounded-lg p-4 transition-colors duration-200 ${
 						lastResult.type === 'success'
-							? 'bg-[#2D7A4F]/10'
+							? 'bg-success-muted'
 							: lastResult.type === 'already'
-								? 'bg-[#2D7A4F]/5'
-								: 'bg-[#B8860B]/10'
+								? 'bg-success/5'
+								: 'bg-warning-muted'
 					}`}
 					aria-live="assertive"
 				>
 					<div className="flex items-center gap-3">
 						{lastResult.type === 'success' ? (
-							<CheckCircle2 className="h-6 w-6 shrink-0 text-[#2D7A4F]" />
+							<CheckCircle2 className="h-6 w-6 shrink-0 text-success" />
 						) : lastResult.type === 'already' ? (
-							<CheckCircle2 className="h-6 w-6 shrink-0 text-[#2D7A4F]/60" />
+							<CheckCircle2 className="h-6 w-6 shrink-0 text-success/60" />
 						) : (
-							<XCircle className="h-6 w-6 shrink-0 text-[#B8860B]" />
+							<XCircle className="h-6 w-6 shrink-0 text-warning-foreground" />
 						)}
 						<div>
 							{lastResult.volunteerName && (
-								<p className="font-display text-lg font-semibold">
+								<p className="font-sans text-lg font-semibold">
 									{lastResult.volunteerName}
 								</p>
 							)}

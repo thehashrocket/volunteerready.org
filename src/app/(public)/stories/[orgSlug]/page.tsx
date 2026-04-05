@@ -69,7 +69,7 @@ export default async function StoryPage({ params }: Props) {
 				]}
 			/>
 			{/* ── Hero banner ── */}
-			<section className="bg-[#F5F4F0] px-4 py-20 md:py-24">
+			<section className="bg-muted px-4 py-20 md:py-24">
 				<div className="mx-auto max-w-2xl">
 					{data.logoUrl && (
 						<Image
@@ -81,20 +81,20 @@ export default async function StoryPage({ params }: Props) {
 							unoptimized
 						/>
 					)}
-					<h1 className="font-display text-[32px] font-bold text-[#1B3C2A] md:text-5xl">
+					<h1 className="font-display text-[32px] font-bold text-primary md:text-5xl">
 						{data.orgName}
 					</h1>
-					<p className="mt-2 text-base text-[#787571]">
+					<p className="mt-2 text-base text-muted-foreground">
 						{data.daysOnPlatform} days with VolunteerReady
 					</p>
 
 					{data.pullQuote && (
 						<FadeInOnScroll delay={75}>
-							<blockquote className="mt-8 border-l-4 border-[#C4A882] pl-4">
-								<p className="text-lg italic text-[#252422]">
+							<blockquote className="mt-8 border-l-4 border-accent pl-4">
+								<p className="text-lg italic text-foreground">
 									&ldquo;{data.pullQuote}&rdquo;
 								</p>
-								<footer className="mt-2 text-sm font-semibold text-[#787571]">
+								<footer className="mt-2 text-sm font-semibold text-muted-foreground">
 									— {data.orgName}
 								</footer>
 							</blockquote>
@@ -108,36 +108,36 @@ export default async function StoryPage({ params }: Props) {
 				<div className="mx-auto grid max-w-2xl gap-12 md:grid-cols-2">
 					{data.baseline && (
 						<div>
-							<p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#787571]">
+							<p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 								Before
 							</p>
 							<dl className="space-y-3">
 								{data.baseline.volunteerCount != null && (
 									<div>
-										<dt className="text-xs font-semibold uppercase tracking-widest text-[#787571]">
+										<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 											Volunteers managed
 										</dt>
-										<dd className="font-display text-[32px] font-bold text-[#252422]">
+										<dd className="font-display text-[32px] font-bold text-foreground">
 											{data.baseline.volunteerCount}
 										</dd>
 									</div>
 								)}
 								{data.baseline.hoursPerWeek != null && (
 									<div>
-										<dt className="text-xs font-semibold uppercase tracking-widest text-[#787571]">
+										<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 											Admin hours/week
 										</dt>
-										<dd className="font-display text-[32px] font-bold text-[#252422]">
+										<dd className="font-display text-[32px] font-bold text-foreground">
 											{data.baseline.hoursPerWeek}
 										</dd>
 									</div>
 								)}
 								{data.baseline.currentProcess && (
 									<div>
-										<dt className="text-xs font-semibold uppercase tracking-widest text-[#787571]">
+										<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 											Process
 										</dt>
-										<dd className="text-base text-[#3D3B38]">
+										<dd className="text-base text-muted-foreground">
 											{data.baseline.currentProcess}
 										</dd>
 									</div>
@@ -147,39 +147,39 @@ export default async function StoryPage({ params }: Props) {
 					)}
 
 					<div>
-						<p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#787571]">
+						<p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 							With VolunteerReady
 						</p>
 						<dl className="space-y-3">
 							<div>
-								<dt className="text-xs font-semibold uppercase tracking-widest text-[#787571]">
+								<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 									Applications processed
 								</dt>
-								<dd className="font-display text-[32px] font-bold text-[#252422]">
+								<dd className="font-display text-[32px] font-bold text-foreground">
 									{data.summary.applicationsSubmitted}
 								</dd>
 							</div>
 							<div>
-								<dt className="text-xs font-semibold uppercase tracking-widest text-[#787571]">
+								<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 									Volunteers approved
 								</dt>
-								<dd className="font-display text-[32px] font-bold text-[#252422]">
+								<dd className="font-display text-[32px] font-bold text-foreground">
 									{data.summary.applicationsApproved}
 								</dd>
 							</div>
 							<div>
-								<dt className="text-xs font-semibold uppercase tracking-widest text-[#787571]">
+								<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 									Background checks
 								</dt>
-								<dd className="font-display text-[32px] font-bold text-[#252422]">
+								<dd className="font-display text-[32px] font-bold text-foreground">
 									{data.summary.backgroundChecksCompleted}
 								</dd>
 							</div>
 							<div>
-								<dt className="text-xs font-semibold uppercase tracking-widest text-[#787571]">
+								<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 									Credentials issued
 								</dt>
-								<dd className="font-display text-[32px] font-bold text-[#252422]">
+								<dd className="font-display text-[32px] font-bold text-foreground">
 									{data.summary.credentialsIssued}
 								</dd>
 							</div>
@@ -189,47 +189,51 @@ export default async function StoryPage({ params }: Props) {
 			</section>
 
 			{/* ── Impact metrics row ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<div className="mx-auto flex max-w-2xl flex-wrap items-start gap-8 md:gap-12">
 					{retentionPct !== null ? (
 						<div>
-							<p className="font-display text-2xl font-bold tabular-nums text-[#252422]">
+							<p className="font-display text-2xl font-bold tabular-nums text-foreground">
 								{retentionPct}%
 							</p>
-							<p className="text-sm text-[#787571]">Volunteer retention</p>
+							<p className="text-sm text-muted-foreground">
+								Volunteer retention
+							</p>
 						</div>
 					) : (
 						data.daysOnPlatform < 90 && (
 							<div>
-								<p className="text-sm italic text-[#787571]">
+								<p className="text-sm italic text-muted-foreground">
 									Not enough data yet
 								</p>
-								<p className="text-sm text-[#787571]">Volunteer retention</p>
+								<p className="text-sm text-muted-foreground">
+									Volunteer retention
+								</p>
 							</div>
 						)
 					)}
 					{data.avgFillRate > 0 && (
 						<div>
-							<p className="font-display text-2xl font-bold tabular-nums text-[#252422]">
+							<p className="font-display text-2xl font-bold tabular-nums text-foreground">
 								{data.avgFillRate}%
 							</p>
-							<p className="text-sm text-[#787571]">Shift fill rate</p>
+							<p className="text-sm text-muted-foreground">Shift fill rate</p>
 						</div>
 					)}
 					{savedHours !== null && (
 						<div>
-							<p className="font-display text-2xl font-bold tabular-nums text-[#252422]">
+							<p className="font-display text-2xl font-bold tabular-nums text-foreground">
 								{savedHours}
 							</p>
-							<p className="text-sm text-[#787571]">Hours saved/week</p>
+							<p className="text-sm text-muted-foreground">Hours saved/week</p>
 						</div>
 					)}
 					{data.topVolunteers.length > 0 && (
 						<div>
-							<p className="font-display text-2xl font-bold tabular-nums text-[#252422]">
+							<p className="font-display text-2xl font-bold tabular-nums text-foreground">
 								{data.topVolunteers.length}
 							</p>
-							<p className="text-sm text-[#787571]">Top volunteers</p>
+							<p className="text-sm text-muted-foreground">Top volunteers</p>
 						</div>
 					)}
 				</div>

@@ -23,7 +23,7 @@ export default function AdminCaseStudiesPage() {
 	if (isLoading) {
 		return (
 			<div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-				<h1 className="font-display text-2xl font-bold text-[#252422]">
+				<h1 className="font-sans text-2xl font-bold text-foreground">
 					Case Studies
 				</h1>
 				{[1, 2, 3].map((i) => (
@@ -36,10 +36,10 @@ export default function AdminCaseStudiesPage() {
 	if (error) {
 		return (
 			<div className="mx-auto max-w-3xl px-4 py-8">
-				<h1 className="font-display mb-4 text-2xl font-bold text-[#252422]">
+				<h1 className="font-sans mb-4 text-2xl font-bold text-foreground">
 					Case Studies
 				</h1>
-				<p className="text-[#787571]">Failed to load case studies.</p>
+				<p className="text-muted-foreground">Failed to load case studies.</p>
 				<Button
 					variant="outline"
 					size="sm"
@@ -56,12 +56,12 @@ export default function AdminCaseStudiesPage() {
 
 	return (
 		<div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-			<h1 className="font-display text-2xl font-bold text-[#252422]">
+			<h1 className="font-sans text-2xl font-bold text-foreground">
 				Case Studies
 			</h1>
 
 			{studies.length === 0 && (
-				<p className="text-[#787571]">
+				<p className="text-muted-foreground">
 					No orgs available yet. Once concierge orgs have usage data, their
 					stories will appear here. Send approval emails from each card to
 					request consent.
@@ -126,7 +126,7 @@ function CaseStudyCard({
 	return (
 		<article
 			aria-label={`${study.orgName} case study`}
-			className="rounded-lg border-l-4 border-[#C4A882] bg-[#F5F4F0] p-6"
+			className="rounded-lg border-l-4 border-accent bg-muted p-6"
 		>
 			<div className="flex items-start gap-3">
 				{study.logoUrl && (
@@ -140,22 +140,22 @@ function CaseStudyCard({
 					/>
 				)}
 				<div className="flex-1">
-					<h3 className="font-display text-lg font-bold text-[#252422]">
+					<h3 className="font-sans text-lg font-bold text-foreground">
 						{study.orgName}
 					</h3>
-					<p className="text-sm text-[#787571]">
+					<p className="text-sm text-muted-foreground">
 						Joined {study.daysOnPlatform} days ago
 					</p>
 				</div>
 			</div>
 
 			{study.pullQuote && (
-				<blockquote className="mt-4 border-l-4 border-[#C4A882] pl-3 text-sm italic text-[#3D3B38]">
+				<blockquote className="mt-4 border-l-4 border-accent pl-3 text-sm italic text-muted-foreground">
 					&ldquo;{study.pullQuote}&rdquo;
 				</blockquote>
 			)}
 
-			<div className="mt-4 flex flex-wrap gap-4 text-sm text-[#3D3B38]">
+			<div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
 				<span>
 					<strong>{study.summary.applicationsSubmitted}</strong> applications
 				</span>
@@ -214,13 +214,13 @@ function CaseStudyCard({
 				)}
 			</div>
 
-			<div className="mt-4 flex items-center gap-3 border-t border-[#E8E6E1] pt-4">
+			<div className="mt-4 flex items-center gap-3 border-t border-border pt-4">
 				<Switch
 					checked={study.consentToPublicize}
 					onCheckedChange={onToggleConsent}
 					aria-checked={study.consentToPublicize}
 				/>
-				<span className="text-sm text-[#787571]">
+				<span className="text-sm text-muted-foreground">
 					{study.consentToPublicize ? 'Consent granted' : 'No consent yet'}
 				</span>
 			</div>

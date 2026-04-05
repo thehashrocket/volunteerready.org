@@ -8,7 +8,7 @@ export function buildMagicLinkEmail(url: string) {
 	return {
 		subject: 'Sign in to VolunteerReady',
 		html: `
-      <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 600; color: #252422;">
+      <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 600; color: #141311;">
         Sign in to VolunteerReady
       </h2>
       <p style="margin: 0 0 24px; color: #3D3B38;">
@@ -16,7 +16,7 @@ export function buildMagicLinkEmail(url: string) {
       </p>
       <a
         href="${url}"
-        style="display: inline-block; padding: 12px 24px; background: #1B3C2A; color: #fff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;"
+        style="display: inline-block; padding: 12px 24px; background: #1B3C2A; color: #FAFAF8; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;"
       >
         Sign in
       </a>

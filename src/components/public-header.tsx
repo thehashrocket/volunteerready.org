@@ -7,6 +7,7 @@ import { SessionProvider, signOut, useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { NotificationBell } from '@/components/app/notification-bell';
+import { ThemeToggle } from '@/components/theme-toggle';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -68,7 +69,10 @@ function PublicHeaderInner() {
 	).toUpperCase();
 
 	return (
-		<header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-sm">
+		<header
+			className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-sm"
+			data-theme-transition
+		>
 			<div className="container mx-auto flex h-14 items-center justify-between px-4">
 				{/* Logo */}
 				<Link
@@ -100,6 +104,8 @@ function PublicHeaderInner() {
 							{link.label}
 						</Link>
 					))}
+
+					<ThemeToggle />
 
 					{isLoading && <AvatarSkeleton />}
 

@@ -113,45 +113,41 @@ export default function SecurityPage() {
 					from day one.
 				</p>
 				<div className="flex flex-col gap-8">
-					{securityPractices.map((s, i) => {
+					{securityPractices.map((s) => {
 						const Icon = s.icon;
 						return (
-							<FadeInOnScroll key={s.heading} delay={i * 75}>
-								<div className="flex gap-5">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-										<Icon className="h-5 w-5 text-primary" />
-									</div>
-									<div>
-										<p className="mb-1 text-lg font-semibold text-foreground">
-											{s.heading}
-										</p>
-										<p className="text-sm leading-relaxed text-muted-foreground">
-											{s.body}
-										</p>
-									</div>
+							<div key={s.heading} className="flex gap-5">
+								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+									<Icon className="h-5 w-5 text-primary" />
 								</div>
-							</FadeInOnScroll>
+								<div>
+									<p className="mb-1 text-lg font-semibold text-foreground">
+										{s.heading}
+									</p>
+									<p className="text-sm leading-relaxed text-muted-foreground">
+										{s.body}
+									</p>
+								</div>
+							</div>
 						);
 					})}
 				</div>
 			</section>
 
 			{/* ── Compliance ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-10 text-[32px] font-bold text-foreground [text-wrap:balance]">
 						Compliance and data governance
 					</h2>
 					<div className="flex flex-col gap-8">
-						{complianceItems.map((c, i) => (
-							<FadeInOnScroll key={c.label} delay={i * 75}>
-								<div className="border-l-2 border-primary/30 pl-6">
-									<p className="font-semibold text-foreground">{c.label}</p>
-									<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-										{c.detail}
-									</p>
-								</div>
-							</FadeInOnScroll>
+						{complianceItems.map((c) => (
+							<div key={c.label} className="border-l-2 border-primary/30 pl-6">
+								<p className="font-semibold text-foreground">{c.label}</p>
+								<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+									{c.detail}
+								</p>
+							</div>
 						))}
 					</div>
 				</div>
