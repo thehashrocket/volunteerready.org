@@ -10,6 +10,7 @@ interface ScreenshotSectionProps {
 	caption: string;
 	sectionBg?: 'white' | 'sand';
 	containerBg?: 'white' | 'sand';
+	priority?: boolean;
 }
 
 export function ScreenshotSection({
@@ -18,6 +19,7 @@ export function ScreenshotSection({
 	caption,
 	sectionBg = 'white',
 	containerBg = 'sand',
+	priority = false,
 }: ScreenshotSectionProps) {
 	const [hasError, setHasError] = useState(false);
 
@@ -40,7 +42,7 @@ export function ScreenshotSection({
 						width={1200}
 						height={675}
 						className="w-full"
-						priority={false}
+						priority={priority}
 						onError={() => setHasError(true)}
 					/>
 				</div>
