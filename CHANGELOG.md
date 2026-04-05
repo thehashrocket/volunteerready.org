@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.0.0] - 2026-04-04
+
+### Added
+- **Design system implementation** — Porto warm palette (forest green, warm cream, gold accent) applied across all pages. Dark mode with warm hue-80 neutrals instead of cool blue-gray. Three-state theme toggle (light/dark/system) in both public header and app shell.
+- **Storybook** — Component library with stories for Button, Badge, Card, Skeleton, EmptyState, and ThemeToggle. Configured with dark mode toggle and responsive viewports.
+- **Centralized public page registry** — All public page metadata (nav links, footer sections, sitemap entries, OG image config) consolidated into `src/lib/public-pages.ts`.
+- **Theme toggle test suite** — Unit tests for three-state cycling, SSR skeleton rendering, and keyboard accessibility.
+
+### Changed
+- **Dashboard redesign (staff)** — Replaced greeting banner and stat cards with compact KPI rail and 8/4 grid layout (primary workspace + sidebar context).
+- **Dashboard redesign (volunteer)** — Replaced card-wrapped impact stats with inline KPI rail and region-based layout.
+- **Typography dual personality** — Public/editorial pages use Fraunces (serif) for headlines; app/operational pages use Geist (sans) throughout. Font-display cleaned from ~10 app pages.
+- **Homepage simplified** — Removed 3-card audience grid. Streamlined to hero + pillars + screenshot + CTA.
+- **Error pages restyled** — not-found and error pages now use warm cream background with forest green Fraunces headline. global-error uses inline brand styles (CSS may not load).
+- **Motion capped** — FadeInOnScroll limited to 1-2 intentional moments per page instead of per-item stagger.
+- **246 hardcoded colors replaced** with semantic design tokens across 67+ files.
+- **Email templates rebranded** — Warm cream body, Georgia serif header, consistent link and button colors. Fixed double-wrapping bug where callers pre-wrapped HTML before `buildEmailHtml()`.
+- **Sidebar active state** — Border-left indicator replaces dark mode shadow glow.
+- **Skeleton shimmer** — Custom warm-shimmer keyframes (cream tones in light, warm neutrals in dark).
+- **OG image resilience** — Font loading wrapped in try/catch with system serif fallback.
+
+### Fixed
+- **Dark mode bg-white bugs** — ScreenshotSection, iOS install prompt, and onboarding checklist now use `bg-card` token.
+- **CTA outline button readability** — Text now visible on dark backgrounds.
+- **ScreenshotSection LCP** — Added optional `priority` prop for eager loading when screenshot is the hero image.
+- **Search page discoverability** — `/search` added to header nav, footer, sitemap, and OG image API.
+
 ## [0.17.15] - 2026-03-31
 
 ### Changed
