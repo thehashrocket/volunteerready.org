@@ -54,9 +54,7 @@ async function main() {
 	}
 
 	if (missing.length > 0) {
-		console.warn(
-			`\n⚠ ${missing.length} user ID(s) not found in database:`,
-		);
+		console.warn(`\n⚠ ${missing.length} user ID(s) not found in database:`);
 		for (const id of missing) {
 			console.warn(`  - ${id}`);
 		}

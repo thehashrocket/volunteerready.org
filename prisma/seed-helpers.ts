@@ -7,6 +7,7 @@ dotenv.config({ path: `.env.${env}.local` });
 dotenv.config({ path: '.env.local' });
 dotenv.config({ path: `.env.${env}` });
 dotenv.config();
+
 import crypto from 'node:crypto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
@@ -229,9 +230,7 @@ export async function backfillDefaultQuestions() {
 		if (result.count > 0) {
 			totalInserted += result.count;
 			orgsUpdated++;
-			console.log(
-				`   ${org.name}: inserted ${result.count} default questions`,
-			);
+			console.log(`   ${org.name}: inserted ${result.count} default questions`);
 		}
 	}
 
