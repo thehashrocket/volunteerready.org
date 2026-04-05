@@ -54,11 +54,11 @@ export async function sendPaymentFailedEmail(opts: {
         </p>
         <p>
           <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.volunteerready.com'}/app/billing"
-             style="display: inline-block; padding: 10px 20px; background: #1B3C2A; color: white; text-decoration: none; border-radius: 6px;">
+             style="display: inline-block; padding: 10px 20px; background: #1B3C2A; color: #FAFAF8; text-decoration: none; border-radius: 8px;">
             Update payment method
           </a>
         </p>
-        <p style="color: #6b7280; font-size: 0.875rem;">
+        <p style="color: #787571; font-size: 0.875rem;">
           If you believe this is an error, please contact your payment provider or reach out to us.
         </p>
     `,
@@ -87,7 +87,7 @@ export async function sendCancellationEmail(opts: {
         </p>
         <p>
           <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.volunteerready.com'}/app/billing"
-             style="display: inline-block; padding: 10px 20px; background: #1B3C2A; color: white; text-decoration: none; border-radius: 6px;">
+             style="display: inline-block; padding: 10px 20px; background: #1B3C2A; color: #FAFAF8; text-decoration: none; border-radius: 8px;">
             Resubscribe
           </a>
         </p>

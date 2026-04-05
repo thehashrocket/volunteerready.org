@@ -169,19 +169,19 @@ export default function ForVolunteersPage() {
 			/>
 
 			{/* ── Benefits ── */}
-			<section className="mx-auto w-full max-w-4xl px-4 py-20">
-				<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-					Everything you need to give your best
-				</h2>
-				<p className="mb-12 text-muted-foreground">
-					From discovery to verified service record — here's what you get.
-				</p>
-				<div className="flex flex-col gap-8">
-					{benefits.map((b, i) => {
-						const Icon = b.icon;
-						return (
-							<FadeInOnScroll key={b.heading} delay={i * 75}>
-								<div className="flex gap-5">
+			<FadeInOnScroll>
+				<section className="mx-auto w-full max-w-4xl px-4 py-20">
+					<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+						Everything you need to give your best
+					</h2>
+					<p className="mb-12 text-muted-foreground">
+						From discovery to verified service record — here's what you get.
+					</p>
+					<div className="flex flex-col gap-8">
+						{benefits.map((b) => {
+							const Icon = b.icon;
+							return (
+								<div key={b.heading} className="flex gap-5">
 									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
 										<Icon className="h-5 w-5 text-primary" />
 									</div>
@@ -194,14 +194,14 @@ export default function ForVolunteersPage() {
 										</p>
 									</div>
 								</div>
-							</FadeInOnScroll>
-						);
-					})}
-				</div>
-			</section>
+							);
+						})}
+					</div>
+				</section>
+			</FadeInOnScroll>
 
 			{/* ── Journey steps ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-2 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
 						Your volunteer journey
@@ -211,29 +211,25 @@ export default function ForVolunteersPage() {
 					</p>
 					<div className="relative flex flex-col gap-6">
 						{steps.map((step, i) => (
-							<FadeInOnScroll key={step.number} delay={i * 75}>
-								<div className="flex items-start gap-5">
-									<div className="flex flex-col items-center">
-										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
-											{step.number}
-										</div>
-										{i < steps.length - 1 && (
-											<div
-												className="mt-1 h-full w-px bg-border"
-												style={{ minHeight: '2rem' }}
-											/>
-										)}
+							<div key={step.number} className="flex items-start gap-5">
+								<div className="flex flex-col items-center">
+									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+										{step.number}
 									</div>
-									<div className="pb-2 pt-1.5">
-										<p className="font-semibold text-foreground">
-											{step.label}
-										</p>
-										<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-											{step.detail}
-										</p>
-									</div>
+									{i < steps.length - 1 && (
+										<div
+											className="mt-1 h-full w-px bg-border"
+											style={{ minHeight: '2rem' }}
+										/>
+									)}
 								</div>
-							</FadeInOnScroll>
+								<div className="pb-2 pt-1.5">
+									<p className="font-semibold text-foreground">{step.label}</p>
+									<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+										{step.detail}
+									</p>
+								</div>
+							</div>
 						))}
 					</div>
 				</div>
@@ -253,7 +249,7 @@ export default function ForVolunteersPage() {
 				<FadeInOnScroll>
 					<Card className="border-border/70">
 						<CardContent className="px-8 py-8">
-							<Star className="mb-4 h-5 w-5 text-[#C4A882]" />
+							<Star className="mb-4 h-5 w-5 text-accent" />
 							<blockquote className="text-lg leading-relaxed text-foreground">
 								"I'd tried to get involved with three different shelters over
 								the years. Each time I hit a wall — no response, confusing
@@ -283,7 +279,7 @@ export default function ForVolunteersPage() {
 			</section>
 
 			{/* ── FAQ ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<FaqSection faqs={volunteerFaqs} />
 			</section>
 

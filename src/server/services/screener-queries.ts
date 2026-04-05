@@ -1,6 +1,5 @@
 import type { ApplicationStatus } from '@/prisma/generated/client';
 import { sendEmail } from '@/server/lib/email';
-import { buildEmailHtml } from '@/server/lib/email-template';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { countOpportunitiesByStatus } from '@/server/repositories/opportunityRepo';
 import { prisma } from '@/server/repositories/prisma';
@@ -178,7 +177,7 @@ async function notifyApplicationStatusChange(
 			<h2 style="font-size: 20px; margin-bottom: 12px;">${config.heading}</h2>
 			<p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">${config.body(oppTitle)}</p>
 			<a href="${process.env.NEXTAUTH_URL}/app/my-applications/${application.id}"
-				style="display: inline-block; padding: 12px 24px; background-color: #2D7A4F; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">
+				style="display: inline-block; padding: 12px 24px; background-color: #1B3C2A; color: #FAFAF8; text-decoration: none; border-radius: 6px; font-weight: 600;">
 				View My Application
 			</a>
 		`;
@@ -186,7 +185,7 @@ async function notifyApplicationStatusChange(
 		await sendEmail(
 			application.submittedByEmail,
 			config.subject(oppTitle),
-			buildEmailHtml(content),
+			content,
 		);
 	} catch (err) {
 		console.error(

@@ -494,7 +494,7 @@ describe('notifyApplicationStatusChange', () => {
 		expect(mockSendEmail).toHaveBeenCalledWith(
 			'v@example.com',
 			expect.stringContaining('Garden Cleanup'),
-			expect.stringContaining('<branded>'),
+			expect.stringContaining('View My Application'),
 		);
 	});
 

@@ -67,6 +67,6 @@ describe('ScreenshotSection', () => {
 		);
 
 		const section = container.querySelector('section');
-		expect(section?.className).toContain('bg-[#F5F4F0]');
+		expect(section?.className).toContain('bg-muted');
 	});
 });

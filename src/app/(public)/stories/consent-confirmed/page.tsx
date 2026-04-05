@@ -15,11 +15,11 @@ export default async function ConsentConfirmedPage({ searchParams }: Props) {
 
 	return (
 		<div className="mx-auto max-w-md px-4 py-20" role="status">
-			<CheckCircle className="mb-4 h-8 w-8 text-[#1B3C2A]" />
-			<h2 className="font-display mb-3 text-2xl font-bold text-[#1B3C2A]">
+			<CheckCircle className="mb-4 h-8 w-8 text-primary" />
+			<h2 className="font-display mb-3 text-2xl font-bold text-primary">
 				Thank you!
 			</h2>
-			<p className="mb-6 leading-relaxed text-[#3D3B38]">
+			<p className="mb-6 leading-relaxed text-muted-foreground">
 				Thanks for agreeing to share your story! Your impact data will appear on
 				our site, helping other nonprofits see what&apos;s possible with
 				VolunteerReady.
@@ -27,7 +27,7 @@ export default async function ConsentConfirmedPage({ searchParams }: Props) {
 			{org && (
 				<Link
 					href={`/stories/${org}`}
-					className="text-sm font-semibold text-[#1B3C2A] hover:underline"
+					className="text-sm font-semibold text-primary hover:underline"
 				>
 					See your story &rarr;
 				</Link>

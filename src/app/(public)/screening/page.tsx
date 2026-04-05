@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
-import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
@@ -141,13 +140,11 @@ export default function ScreeningPage() {
 					Sound familiar?
 				</h2>
 				<ul className="space-y-3">
-					{painPoints.map((point, i) => (
-						<FadeInOnScroll key={point} delay={i * 75}>
-							<li className="flex gap-3">
-								<CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#B8860B]" />
-								<span className="text-muted-foreground">{point}</span>
-							</li>
-						</FadeInOnScroll>
+					{painPoints.map((point) => (
+						<li key={point} className="flex gap-3">
+							<CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+							<span className="text-muted-foreground">{point}</span>
+						</li>
 					))}
 				</ul>
 				<p className="mt-6 leading-relaxed text-muted-foreground">
@@ -158,7 +155,7 @@ export default function ScreeningPage() {
 			</section>
 
 			{/* ── Features ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-4xl">
 					<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
 						What you get
@@ -167,24 +164,22 @@ export default function ScreeningPage() {
 						Enterprise-grade screening tools at a price built for nonprofits.
 					</p>
 					<div className="flex flex-col gap-8">
-						{features.map((f, i) => {
+						{features.map((f) => {
 							const Icon = f.icon;
 							return (
-								<FadeInOnScroll key={f.heading} delay={i * 75}>
-									<div className="flex gap-5">
-										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-											<Icon className="h-5 w-5 text-primary" />
-										</div>
-										<div>
-											<p className="mb-1 text-lg font-semibold text-foreground">
-												{f.heading}
-											</p>
-											<p className="text-sm leading-relaxed text-muted-foreground">
-												{f.body}
-											</p>
-										</div>
+								<div key={f.heading} className="flex gap-5">
+									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+										<Icon className="h-5 w-5 text-primary" />
 									</div>
-								</FadeInOnScroll>
+									<div>
+										<p className="mb-1 text-lg font-semibold text-foreground">
+											{f.heading}
+										</p>
+										<p className="text-sm leading-relaxed text-muted-foreground">
+											{f.body}
+										</p>
+									</div>
+								</div>
 							);
 						})}
 					</div>

@@ -1,6 +1,5 @@
 import type { OrgFeedbackType } from '@/prisma/generated/client';
 import { sendEmail } from '@/server/lib/email';
-import { buildEmailHtml } from '@/server/lib/email-template';
 import { prisma } from '@/server/repositories/prisma';
 
 const FEEDBACK_WINDOWS: { type: OrgFeedbackType; daysAfterCreation: number }[] =
@@ -66,8 +65,10 @@ export async function sendOrgFeedbackEmails() {
 						? `${org.name} — How's your first week going?`
 						: `${org.name} — 30-day check-in`;
 
-				const html = buildEmailHtml(
-					buildFeedbackEmailContent(org.name, window.type, surveyUrl),
+				const html = buildFeedbackEmailContent(
+					org.name,
+					window.type,
+					surveyUrl,
 				);
 				await sendEmail(adminEmail, subject, html);
 				sent++;

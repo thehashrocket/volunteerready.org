@@ -107,7 +107,7 @@ export function GeoCheckin({
 
 	if (geoState === 'checked-in') {
 		return (
-			<Badge variant="default" className="bg-[#2D7A4F]">
+			<Badge variant="default" className="bg-success">
 				Auto-checked in
 			</Badge>
 		);
@@ -115,14 +115,14 @@ export function GeoCheckin({
 
 	if (geoState === 'checking-in') {
 		return (
-			<Badge variant="outline" className="text-[#2A6496]">
+			<Badge variant="outline" className="text-info">
 				Checking in...
 			</Badge>
 		);
 	}
 
 	return (
-		<Badge variant="outline" className="text-[#2A6496]">
+		<Badge variant="outline" className="text-info">
 			<MapPin className="mr-1 h-3 w-3" />
 			Auto check-in enabled
 		</Badge>

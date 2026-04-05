@@ -484,14 +484,14 @@ function AlreadyAppliedCard({
 
 	return (
 		<div
-			className="mx-auto max-w-[480px] rounded-md bg-[#F5F4F0] p-6"
+			className="mx-auto max-w-[480px] rounded-md bg-muted p-6"
 			role="status"
 			aria-live="polite"
 		>
 			<div className="mb-4 flex items-center gap-3">
-				<CheckCircle2 className="h-6 w-6 text-[#2D7A4F]" />
+				<CheckCircle2 className="h-6 w-6 text-success" />
 				<h2
-					className="text-2xl font-bold text-[#252422]"
+					className="text-2xl font-bold text-foreground"
 					style={{
 						fontFamily: 'var(--font-fraunces, var(--font-playfair, serif))',
 					}}

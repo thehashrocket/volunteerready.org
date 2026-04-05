@@ -10,7 +10,7 @@ export default function WelcomePage() {
 				<p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
 					Getting started
 				</p>
-				<h1 className="font-display text-3xl font-bold text-foreground">
+				<h1 className="font-sans text-3xl font-bold text-foreground">
 					Welcome to VolunteerReady
 				</h1>
 				<p className="text-muted-foreground">

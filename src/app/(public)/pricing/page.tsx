@@ -179,81 +179,79 @@ export default function PricingPage() {
 			{/* ── Tier cards ── */}
 			<section className="mx-auto w-full max-w-5xl px-4 py-20">
 				<div className="grid gap-6 sm:grid-cols-3">
-					{tiers.map((tier, i) => {
+					{tiers.map((tier) => {
 						const meta = TIER_META[tier];
 						const limits = getPlanLimits(tier);
 						const isPro = tier === 'PRO';
 						return (
-							<FadeInOnScroll key={tier} delay={i * 75}>
-								<Card
-									className={
-										isPro ? 'border-primary shadow-lg' : 'border-border/70'
-									}
-								>
-									<CardHeader>
-										<div className="flex items-center justify-between">
-											<CardTitle>{meta.label}</CardTitle>
-											{isPro && <Badge>Most popular</Badge>}
-										</div>
-										<div className="text-3xl font-bold text-foreground">
-											{meta.price}
-										</div>
-										<CardDescription>{meta.description}</CardDescription>
-									</CardHeader>
-									<CardContent className="space-y-2.5 text-sm text-muted-foreground">
-										<div>
-											Opportunities:{' '}
-											{limits.maxOpportunities === null
-												? 'Unlimited'
-												: `Up to ${limits.maxOpportunities}`}
-										</div>
-										<div>
-											Team members:{' '}
-											{limits.maxMembers === null
-												? 'Unlimited'
-												: `Up to ${limits.maxMembers}`}
-										</div>
-										<div>
-											Volunteer matching: {limits.canMatching ? '✓' : '—'}
-										</div>
-										<div>
-											Background checks:{' '}
-											{limits.canBackgroundChecks ? '✓' : '—'}
-										</div>
-										<div>ESG reports: {limits.canESGReports ? '✓' : '—'}</div>
-									</CardContent>
-									<CardFooter>
-										{tier === 'FREE' ? (
-											<Button asChild variant="outline" className="w-full">
-												<TrackedLink
-													href="/login"
-													eventLabel="Get started free"
-													eventPage="pricing"
-												>
-													Get started free
-												</TrackedLink>
-											</Button>
-										) : (
-											<Button asChild className="w-full">
-												<TrackedLink
-													href={`/login?upgrade=${tier}`}
-													eventLabel={`Upgrade to ${meta.label}`}
-													eventPage="pricing"
-												>
-													Upgrade to {meta.label}
-												</TrackedLink>
-											</Button>
-										)}
-									</CardFooter>
-								</Card>
-							</FadeInOnScroll>
+							<Card
+								key={tier}
+								className={
+									isPro ? 'border-primary shadow-lg' : 'border-border/70'
+								}
+							>
+								<CardHeader>
+									<div className="flex items-center justify-between">
+										<CardTitle>{meta.label}</CardTitle>
+										{isPro && <Badge>Most popular</Badge>}
+									</div>
+									<div className="text-3xl font-bold text-foreground">
+										{meta.price}
+									</div>
+									<CardDescription>{meta.description}</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-2.5 text-sm text-muted-foreground">
+									<div>
+										Opportunities:{' '}
+										{limits.maxOpportunities === null
+											? 'Unlimited'
+											: `Up to ${limits.maxOpportunities}`}
+									</div>
+									<div>
+										Team members:{' '}
+										{limits.maxMembers === null
+											? 'Unlimited'
+											: `Up to ${limits.maxMembers}`}
+									</div>
+									<div>
+										Volunteer matching: {limits.canMatching ? '✓' : '—'}
+									</div>
+									<div>
+										Background checks: {limits.canBackgroundChecks ? '✓' : '—'}
+									</div>
+									<div>ESG reports: {limits.canESGReports ? '✓' : '—'}</div>
+								</CardContent>
+								<CardFooter>
+									{tier === 'FREE' ? (
+										<Button asChild variant="outline" className="w-full">
+											<TrackedLink
+												href="/login"
+												eventLabel="Get started free"
+												eventPage="pricing"
+											>
+												Get started free
+											</TrackedLink>
+										</Button>
+									) : (
+										<Button asChild className="w-full">
+											<TrackedLink
+												href={`/login?upgrade=${tier}`}
+												eventLabel={`Upgrade to ${meta.label}`}
+												eventPage="pricing"
+											>
+												Upgrade to {meta.label}
+											</TrackedLink>
+										</Button>
+									)}
+								</CardFooter>
+							</Card>
 						);
 					})}
 				</div>
 			</section>
 
 			{/* ── Feature comparison table ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-4xl">
 					<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
 						Compare plans side by side
@@ -308,7 +306,7 @@ export default function PricingPage() {
 			{/* ── Corporate section ── */}
 			<section className="mx-auto w-full max-w-2xl px-4 py-20">
 				<FadeInOnScroll>
-					<div className="rounded-xl border border-[#C4A882]/30 bg-[#C4A882]/10 p-8 sm:p-10">
+					<div className="rounded-xl border border-accent/30 bg-accent/10 p-8 sm:p-10">
 						<h2 className="font-display mb-2 text-2xl font-bold text-foreground [text-wrap:balance]">
 							Corporate & enterprise
 						</h2>

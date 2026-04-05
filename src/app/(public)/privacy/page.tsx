@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 
@@ -125,20 +124,18 @@ export default function PrivacyPage() {
 			</nav>
 
 			{/* ── 1. Information We Collect ── */}
-			<section id="information-we-collect" className="bg-[#F5F4F0] px-4 py-20">
+			<section id="information-we-collect" className="bg-muted px-4 py-20">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<Eye className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									1. Information We Collect
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<Eye className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								1. Information We Collect
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>
 							<strong className="text-foreground">Account information:</strong>{' '}
@@ -185,18 +182,16 @@ export default function PrivacyPage() {
 			{/* ── 2. How We Use Data ── */}
 			<section id="how-we-use-data" className="px-4 py-20">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<Settings className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									2. How We Use Your Data
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<Settings className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								2. How We Use Your Data
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>We use the information we collect to:</p>
 						<ul className="list-disc space-y-2 pl-6">
@@ -234,20 +229,18 @@ export default function PrivacyPage() {
 			</section>
 
 			{/* ── 3. How We Share Data ── */}
-			<section id="how-we-share-data" className="bg-[#F5F4F0] px-4 py-16">
+			<section id="how-we-share-data" className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<Share2 className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									3. How We Share Your Data
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<Share2 className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								3. How We Share Your Data
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>
 							We share your data only with the third-party services necessary to
@@ -292,18 +285,16 @@ export default function PrivacyPage() {
 			{/* ── 4. Data Storage & Security ── */}
 			<section id="data-storage-security" className="px-4 py-20">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<Lock className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									4. Data Storage & Security
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<Lock className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								4. Data Storage & Security
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>
 							Your data is stored in PostgreSQL databases hosted on secure, SOC
@@ -354,20 +345,18 @@ export default function PrivacyPage() {
 			</section>
 
 			{/* ── 5. Data Retention & Deletion ── */}
-			<section id="data-retention-deletion" className="bg-[#F5F4F0] px-4 py-16">
+			<section id="data-retention-deletion" className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<Trash2 className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									5. Data Retention & Deletion
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<Trash2 className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								5. Data Retention & Deletion
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>
 							We retain your personal data for as long as your account is active
@@ -420,18 +409,16 @@ export default function PrivacyPage() {
 			{/* ── 6. Cookies & Tracking ── */}
 			<section id="cookies-tracking" className="px-4 py-20">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<Settings className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									6. Cookies & Tracking
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<Settings className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								6. Cookies & Tracking
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>We use two categories of cookies:</p>
 						<ul className="list-disc space-y-2 pl-6">
@@ -461,20 +448,18 @@ export default function PrivacyPage() {
 			</section>
 
 			{/* ── 7. Your Rights ── */}
-			<section id="your-rights" className="bg-[#F5F4F0] px-4 py-16">
+			<section id="your-rights" className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<UserCheck className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									7. Your Rights
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<UserCheck className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								7. Your Rights
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>
 							Depending on your location, you may have the following rights
@@ -519,18 +504,16 @@ export default function PrivacyPage() {
 			{/* ── 8. Children's Privacy ── */}
 			<section id="childrens-privacy" className="px-4 py-20">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<ShieldAlert className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									8. Children's Privacy
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<ShieldAlert className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								8. Children's Privacy
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>
 							VolunteerReady is not intended for use by individuals under the
@@ -551,20 +534,18 @@ export default function PrivacyPage() {
 			</section>
 
 			{/* ── 9. Changes to Policy ── */}
-			<section id="changes-to-policy" className="bg-[#F5F4F0] px-4 py-16">
+			<section id="changes-to-policy" className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<FileText className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									9. Changes to This Policy
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<FileText className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								9. Changes to This Policy
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>
 							We may update this privacy policy from time to time. When we make
@@ -608,18 +589,16 @@ export default function PrivacyPage() {
 			{/* ── 10. Contact Us ── */}
 			<section id="contact-us" className="px-4 py-20">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<div className="flex gap-5">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-								<Mail className="h-5 w-5 text-primary" />
-							</div>
-							<div>
-								<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-									10. Contact Us
-								</h2>
-							</div>
+					<div className="flex gap-5">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+							<Mail className="h-5 w-5 text-primary" />
 						</div>
-					</FadeInOnScroll>
+						<div>
+							<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+								10. Contact Us
+							</h2>
+						</div>
+					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>
 							If you have questions about this privacy policy or our data

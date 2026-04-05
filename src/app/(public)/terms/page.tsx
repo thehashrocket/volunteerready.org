@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 
@@ -317,13 +316,11 @@ export default function TermsPage() {
 			</Section>
 
 			{/* ── 15. Contact ── */}
-			<section id="contact" className="bg-[#F5F4F0] px-4 py-16">
+			<section id="contact" className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
-					<FadeInOnScroll>
-						<h2 className="font-display mb-6 text-[32px] font-bold text-foreground [text-wrap:balance]">
-							15. Contact
-						</h2>
-					</FadeInOnScroll>
+					<h2 className="font-display mb-6 text-[32px] font-bold text-foreground [text-wrap:balance]">
+						15. Contact
+					</h2>
 					<div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>If you have questions about these Terms, contact us at:</p>
 						<div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-6">
@@ -371,16 +368,14 @@ function Section({
 	heading: string;
 	children: React.ReactNode;
 }) {
-	const bgClass = bg === 'muted' ? 'bg-[#F5F4F0]' : '';
+	const bgClass = bg === 'muted' ? 'bg-muted' : '';
 	const pyClass = bg === 'muted' ? 'py-16' : 'py-20';
 	return (
 		<section id={id} className={`${bgClass} px-4 ${pyClass}`}>
 			<div className="mx-auto max-w-3xl">
-				<FadeInOnScroll>
-					<h2 className="font-display mb-6 text-[32px] font-bold text-foreground [text-wrap:balance]">
-						{heading}
-					</h2>
-				</FadeInOnScroll>
+				<h2 className="font-display mb-6 text-[32px] font-bold text-foreground [text-wrap:balance]">
+					{heading}
+				</h2>
 				<div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
 					{children}
 				</div>

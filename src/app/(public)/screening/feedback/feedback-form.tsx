@@ -47,7 +47,7 @@ export function FeedbackForm({ orgSlug, feedbackType }: Props) {
 		return (
 			<Card className="border-border/70">
 				<CardContent className="px-6 py-10 text-center">
-					<CheckCircle2 className="mx-auto mb-4 h-10 w-10 text-[#2D7A4F]" />
+					<CheckCircle2 className="mx-auto mb-4 h-10 w-10 text-success" />
 					<h2 className="font-display text-xl font-bold text-foreground">
 						Thank you!
 					</h2>

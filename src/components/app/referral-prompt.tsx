@@ -40,7 +40,7 @@ export function ReferralPrompt({
 	}
 
 	return (
-		<div className="rounded-xl border border-[#C4A882]/40 bg-[#C4A882]/10 px-5 py-4">
+		<div className="rounded-xl border border-accent/40 bg-accent/10 px-5 py-4">
 			<div className="flex items-start gap-3">
 				<Share2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
 				<div className="flex-1">

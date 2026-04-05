@@ -178,7 +178,7 @@ export default async function ForNonprofitsPage() {
 			<PlatformStatsBar />
 
 			{/* ── Pain acknowledgment ── */}
-			<section className="bg-[#F5F4F0] px-4 py-14">
+			<section className="bg-muted px-4 py-14">
 				<div className="mx-auto max-w-2xl">
 					<h2 className="font-display mb-4 text-2xl font-bold text-foreground [text-wrap:balance]">
 						We've heard the stories
@@ -211,24 +211,22 @@ export default async function ForNonprofitsPage() {
 					Everything from intake to compliance — without switching tools.
 				</p>
 				<div className="flex flex-col gap-8">
-					{features.map((f, i) => {
+					{features.map((f) => {
 						const Icon = f.icon;
 						return (
-							<FadeInOnScroll key={f.heading} delay={i * 75}>
-								<div className="flex gap-5">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-										<Icon className="h-5 w-5 text-primary" />
-									</div>
-									<div>
-										<p className="mb-1 text-lg font-semibold text-foreground">
-											{f.heading}
-										</p>
-										<p className="text-sm leading-relaxed text-muted-foreground">
-											{f.body}
-										</p>
-									</div>
+							<div key={f.heading} className="flex gap-5">
+								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+									<Icon className="h-5 w-5 text-primary" />
 								</div>
-							</FadeInOnScroll>
+								<div>
+									<p className="mb-1 text-lg font-semibold text-foreground">
+										{f.heading}
+									</p>
+									<p className="text-sm leading-relaxed text-muted-foreground">
+										{f.body}
+									</p>
+								</div>
+							</div>
 						);
 					})}
 				</div>
@@ -244,28 +242,26 @@ export default async function ForNonprofitsPage() {
 			/>
 
 			{/* ── Outcomes ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
 						What you get back
 					</h2>
 					<div className="grid gap-10 sm:grid-cols-3">
-						{outcomes.map((o, i) => {
+						{outcomes.map((o) => {
 							const Icon = o.icon;
 							return (
-								<FadeInOnScroll key={o.heading} delay={i * 75}>
-									<div>
-										<div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-											<Icon className="h-5 w-5 text-primary" />
-										</div>
-										<h3 className="mb-1 font-semibold text-foreground [text-wrap:balance]">
-											{o.heading}
-										</h3>
-										<p className="text-sm leading-relaxed text-muted-foreground">
-											{o.body}
-										</p>
+								<div key={o.heading}>
+									<div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+										<Icon className="h-5 w-5 text-primary" />
 									</div>
-								</FadeInOnScroll>
+									<h3 className="mb-1 font-semibold text-foreground [text-wrap:balance]">
+										{o.heading}
+									</h3>
+									<p className="text-sm leading-relaxed text-muted-foreground">
+										{o.body}
+									</p>
+								</div>
 							);
 						})}
 					</div>
@@ -277,7 +273,7 @@ export default async function ForNonprofitsPage() {
 				<FadeInOnScroll>
 					<Card className="border-border/70">
 						<CardContent className="px-8 py-8">
-							<Star className="mb-4 h-5 w-5 text-[#C4A882]" />
+							<Star className="mb-4 h-5 w-5 text-accent" />
 							<blockquote className="text-lg leading-relaxed text-foreground">
 								"Before VolunteerReady, our coordinator was spending 12+ hours a
 								week just on intake and scheduling. Now we can focus that time

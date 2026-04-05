@@ -26,7 +26,7 @@ export default function NewCompanyPage() {
 	return (
 		<div className="max-w-md space-y-6">
 			<div>
-				<h1 className="font-display text-2xl font-bold">
+				<h1 className="font-sans text-2xl font-bold">
 					Create a company account
 				</h1>
 				<p className="text-muted-foreground">

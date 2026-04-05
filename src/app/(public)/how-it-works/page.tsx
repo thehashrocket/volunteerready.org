@@ -1,6 +1,5 @@
 import { BarChart3, Building2, Heart } from 'lucide-react';
 import type { Metadata } from 'next';
-import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
@@ -124,29 +123,27 @@ function StepTimeline({
 	return (
 		<div className="flex flex-col gap-6">
 			{steps.map((step, i) => (
-				<FadeInOnScroll key={step.number} delay={i * 75}>
-					<div className="flex items-start gap-5">
-						<div className="flex flex-col items-center">
+				<div key={step.number} className="flex items-start gap-5">
+					<div className="flex flex-col items-center">
+						<div
+							className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${accentClass}`}
+						>
+							{step.number}
+						</div>
+						{i < steps.length - 1 && (
 							<div
-								className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${accentClass}`}
-							>
-								{step.number}
-							</div>
-							{i < steps.length - 1 && (
-								<div
-									className="mt-1 w-px bg-border"
-									style={{ minHeight: '1.5rem' }}
-								/>
-							)}
-						</div>
-						<div className="pb-2 pt-1">
-							<p className="font-semibold text-foreground">{step.label}</p>
-							<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-								{step.detail}
-							</p>
-						</div>
+								className="mt-1 w-px bg-border"
+								style={{ minHeight: '1.5rem' }}
+							/>
+						)}
 					</div>
-				</FadeInOnScroll>
+					<div className="pb-2 pt-1">
+						<p className="font-semibold text-foreground">{step.label}</p>
+						<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+							{step.detail}
+						</p>
+					</div>
+				</div>
 			))}
 		</div>
 	);
@@ -272,8 +269,8 @@ export default function HowItWorksPage() {
 					{/* Employers */}
 					<div>
 						<div className="mb-8 flex items-center gap-3">
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C4A882]/20">
-								<BarChart3 className="h-5 w-5 text-[#8B7355]" />
+							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/20">
+								<BarChart3 className="h-5 w-5 text-accent" />
 							</div>
 							<h2 className="font-display text-2xl font-bold text-foreground">
 								Employers
@@ -281,7 +278,7 @@ export default function HowItWorksPage() {
 						</div>
 						<StepTimeline
 							steps={employerSteps}
-							accentClass="bg-[#C4A882]/20 text-[#8B7355]"
+							accentClass="bg-accent/20 text-accent"
 						/>
 						<div className="mt-8">
 							<Button asChild variant="outline" className="rounded-full px-6">
@@ -300,7 +297,7 @@ export default function HowItWorksPage() {
 			</section>
 
 			{/* ── FAQ ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<FaqSection faqs={faqs} />
 			</section>
 

@@ -57,7 +57,7 @@ export default function AdminHealthPage() {
 	return (
 		<div className="space-y-8">
 			<div>
-				<h1 className="font-display text-3xl font-bold">System Health</h1>
+				<h1 className="font-sans text-3xl font-bold">System Health</h1>
 				<p className="text-muted-foreground mt-1">
 					Cron jobs, webhook activity, and email delivery
 				</p>
@@ -65,7 +65,7 @@ export default function AdminHealthPage() {
 
 			{/* Cron Job Status Cards */}
 			<section>
-				<h2 className="font-display text-xl font-semibold mb-4">Cron Jobs</h2>
+				<h2 className="font-sans text-xl font-semibold mb-4">Cron Jobs</h2>
 
 				{cronHealth.isLoading ? (
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -200,7 +200,7 @@ export default function AdminHealthPage() {
 
 			{/* Stripe Reconciliation */}
 			<section>
-				<h2 className="font-display text-xl font-semibold mb-4">
+				<h2 className="font-sans text-xl font-semibold mb-4">
 					Stripe Reconciliation
 				</h2>
 				<Card className="bg-warm-50">
@@ -323,7 +323,7 @@ export default function AdminHealthPage() {
 
 			{/* Webhook Health */}
 			<section>
-				<h2 className="font-display text-xl font-semibold mb-4">
+				<h2 className="font-sans text-xl font-semibold mb-4">
 					Webhook Activity
 				</h2>
 
@@ -382,7 +382,7 @@ export default function AdminHealthPage() {
 
 			{/* Email Bounce Management */}
 			<section>
-				<h2 className="font-display text-xl font-semibold mb-4">
+				<h2 className="font-sans text-xl font-semibold mb-4">
 					Email Bounce Management
 				</h2>
 				<Card className="bg-warm-50">

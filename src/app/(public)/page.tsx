@@ -1,7 +1,6 @@
 import {
 	Award,
 	BarChart3,
-	Building2,
 	CalendarDays,
 	Heart,
 	Search,
@@ -10,13 +9,11 @@ import {
 } from 'lucide-react';
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
-import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 
 export const revalidate = 3600;
 
@@ -126,114 +123,8 @@ export default async function Home() {
 			{/* ── Platform stats (social proof) ── */}
 			<PlatformStatsBar />
 
-			{/* ── Three-path cards ── */}
-			<section className="mx-auto w-full max-w-4xl px-4 py-16">
-				<h2 className="font-display mb-10 text-center text-[32px] font-bold leading-tight text-foreground [text-wrap:balance]">
-					One platform, three audiences
-				</h2>
-				<div className="grid gap-5 sm:grid-cols-3">
-					<FadeInOnScroll>
-						<Card className="group relative overflow-hidden border-border/70 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-							<div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-success to-primary" />
-							<CardContent className="flex flex-col gap-5 pb-7 pt-7">
-								<div className="flex h-11 w-11 items-center justify-center rounded-full bg-success/15">
-									<Heart className="h-5 w-5 text-success-foreground" />
-								</div>
-								<div className="space-y-1.5">
-									<p className="font-semibold text-foreground">
-										I'm a volunteer
-									</p>
-									<p className="text-sm leading-relaxed text-muted-foreground">
-										Find opportunities matched to your skills, earn portable
-										credentials, and track your entire volunteer journey.
-									</p>
-								</div>
-								<Button
-									asChild
-									variant="outline"
-									className="mt-auto min-h-[44px] w-full rounded-lg"
-								>
-									<TrackedLink
-										href="/for-volunteers"
-										eventLabel="Learn more — volunteer"
-										eventPage="homepage"
-									>
-										Learn more
-									</TrackedLink>
-								</Button>
-							</CardContent>
-						</Card>
-					</FadeInOnScroll>
-
-					<FadeInOnScroll delay={75}>
-						<Card className="group relative overflow-hidden border-primary/20 bg-primary text-primary-foreground transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-							<CardContent className="flex flex-col gap-5 pb-7 pt-7">
-								<div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15">
-									<Building2 className="h-5 w-5 text-primary-foreground" />
-								</div>
-								<div className="space-y-1.5">
-									<p className="font-semibold text-primary-foreground">
-										I run a nonprofit
-									</p>
-									<p className="text-sm leading-relaxed text-primary-foreground/75">
-										Meet your grant and insurer requirements. Screen applicants,
-										run background checks, track credentials, and document
-										volunteer hours — all in one place.
-									</p>
-								</div>
-								<Button
-									asChild
-									className="mt-auto min-h-[44px] w-full rounded-lg bg-white text-primary hover:bg-white/90"
-								>
-									<TrackedLink
-										href="/for-nonprofits"
-										eventLabel="Learn more — nonprofit"
-										eventPage="homepage"
-									>
-										Learn more
-									</TrackedLink>
-								</Button>
-							</CardContent>
-						</Card>
-					</FadeInOnScroll>
-
-					<FadeInOnScroll delay={150}>
-						<Card className="group relative overflow-hidden border-[#C4A882]/30 bg-[#C4A882]/10 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-							<div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#C4A882] to-primary" />
-							<CardContent className="flex flex-col gap-5 pb-7 pt-7">
-								<div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#C4A882]/20">
-									<BarChart3 className="h-5 w-5 text-[#8B7355]" />
-								</div>
-								<div className="space-y-1.5">
-									<p className="font-semibold text-foreground">
-										I manage a CSR program
-									</p>
-									<p className="text-sm leading-relaxed text-muted-foreground">
-										Track employee volunteering, partner with nonprofits, and
-										export ESG impact reports.
-									</p>
-								</div>
-								<Button
-									asChild
-									variant="outline"
-									className="mt-auto min-h-[44px] w-full rounded-lg"
-								>
-									<TrackedLink
-										href="/for-employers"
-										eventLabel="Learn more — employer"
-										eventPage="homepage"
-									>
-										Learn more
-									</TrackedLink>
-								</Button>
-							</CardContent>
-						</Card>
-					</FadeInOnScroll>
-				</div>
-			</section>
-
 			{/* ── Platform pillars + differentiators ── */}
-			<section className="bg-[#F5F4F0] px-4 py-20">
+			<section className="bg-muted px-4 py-20">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
 						Built for trust, not just convenience
@@ -243,22 +134,20 @@ export default async function Home() {
 						one platform.
 					</p>
 					<div className="space-y-10">
-						{pillars.map((pillar, i) => {
+						{pillars.map((pillar) => {
 							const Icon = pillar.icon;
 							return (
-								<FadeInOnScroll key={pillar.heading} delay={i * 75}>
-									<div className="flex gap-5">
-										<Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-										<div>
-											<p className="mb-1 font-semibold text-foreground">
-												{pillar.heading}
-											</p>
-											<p className="text-sm leading-relaxed text-muted-foreground">
-												{pillar.body}
-											</p>
-										</div>
+								<div key={pillar.heading} className="flex gap-5">
+									<Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+									<div>
+										<p className="mb-1 font-semibold text-foreground">
+											{pillar.heading}
+										</p>
+										<p className="text-sm leading-relaxed text-muted-foreground">
+											{pillar.body}
+										</p>
 									</div>
-								</FadeInOnScroll>
+								</div>
 							);
 						})}
 					</div>
@@ -269,17 +158,15 @@ export default async function Home() {
 							What makes us different
 						</h3>
 						<div className="space-y-8">
-							{differentiators.map((d, i) => (
-								<FadeInOnScroll key={d.heading} delay={i * 75}>
-									<div className="border-l-2 border-[#C4A882] pl-6">
-										<p className="mb-1 font-semibold text-foreground">
-											{d.heading}
-										</p>
-										<p className="text-sm leading-relaxed text-muted-foreground">
-											{d.body}
-										</p>
-									</div>
-								</FadeInOnScroll>
+							{differentiators.map((d) => (
+								<div key={d.heading} className="border-l-2 border-accent pl-6">
+									<p className="mb-1 font-semibold text-foreground">
+										{d.heading}
+									</p>
+									<p className="text-sm leading-relaxed text-muted-foreground">
+										{d.body}
+									</p>
+								</div>
 							))}
 						</div>
 					</div>

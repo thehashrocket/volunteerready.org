@@ -124,7 +124,7 @@ export default function OnboardingBaselinePage() {
 						</Button>
 
 						{save.isSuccess && (
-							<p className="text-sm text-[#2D7A4F]">Baseline saved.</p>
+							<p className="text-sm text-success">Baseline saved.</p>
 						)}
 					</form>
 				</CardContent>

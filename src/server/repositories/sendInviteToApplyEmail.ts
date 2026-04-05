@@ -20,12 +20,12 @@ export async function sendInviteToApplyEmail(input: {
         <p style="margin: 24px 0;">
           <a
             href="${input.opportunityLink}"
-            style="background-color: #1B3C2A; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;"
+            style="background-color: #1B3C2A; color: #FAFAF8; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;"
           >
             View &amp; Apply
           </a>
         </p>
-        <p style="color: #6b7280; font-size: 14px;">
+        <p style="color: #787571; font-size: 14px;">
           If you didn't expect this email or don't recognize this organization, you can safely ignore it.
         </p>
     `,

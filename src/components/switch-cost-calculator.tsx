@@ -16,7 +16,7 @@ export function SwitchCostCalculator() {
 	const savings = annualCost - annualPlatform;
 
 	return (
-		<Card className="border-border/70 bg-[#F5F4F0]">
+		<Card className="border-border/70 bg-muted">
 			<CardContent className="space-y-8 px-6 py-8 sm:px-8">
 				<div>
 					<div className="mb-3 flex items-baseline justify-between">
@@ -87,7 +87,7 @@ export function SwitchCostCalculator() {
 						{savings > 0 && (
 							<p className="mt-1 text-sm text-muted-foreground">
 								That's{' '}
-								<span className="font-semibold text-[#2D7A4F]">
+								<span className="font-semibold text-success">
 									${savings.toLocaleString()} back
 								</span>{' '}
 								in your budget every year.

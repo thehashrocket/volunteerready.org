@@ -58,8 +58,8 @@ export async function sendPreAdverseActionEmail(input: {
         <p>For more information about your rights under the FCRA, please review the
         <a href="${FTC_FCRA_RIGHTS_URL}" style="color: #1B3C2A;">Summary of Your Rights Under the Fair Credit Reporting Act</a>.</p>
 
-        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-        <p style="color: #6b7280; font-size: 0.875rem;">
+        <hr style="border: none; border-top: 1px solid #E8E6E1; margin: 24px 0;" />
+        <p style="color: #787571; font-size: 0.875rem;">
           This notice is sent on behalf of ${input.orgName} via VolunteerReady.
           If you have questions, please contact ${input.orgName} directly.
         </p>
@@ -114,8 +114,8 @@ export async function sendAdverseActionEmail(input: {
         <p>For more information about your rights under the FCRA, please review the
         <a href="${FTC_FCRA_RIGHTS_URL}" style="color: #1B3C2A;">Summary of Your Rights Under the Fair Credit Reporting Act</a>.</p>
 
-        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-        <p style="color: #6b7280; font-size: 0.875rem;">
+        <hr style="border: none; border-top: 1px solid #E8E6E1; margin: 24px 0;" />
+        <p style="color: #787571; font-size: 0.875rem;">
           This notice is sent on behalf of ${input.orgName} via VolunteerReady.
         </p>
     `),

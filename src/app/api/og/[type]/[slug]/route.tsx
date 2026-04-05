@@ -79,15 +79,24 @@ export async function GET(
 		orgName = truncate(org.name, 60);
 	}
 
-	const frauncesBold = loadFont('fraunces-bold.ttf');
-	const geistRegular = loadFont('geist-regular.ttf');
-	const geistSemibold = loadFont('geist-semibold.ttf');
-
-	const fonts = [
-		{ name: 'Fraunces', data: frauncesBold, weight: 700 as const },
-		{ name: 'Geist', data: geistRegular, weight: 400 as const },
-		{ name: 'Geist', data: geistSemibold, weight: 600 as const },
-	];
+	let fonts: {
+		name: string;
+		data: Buffer;
+		weight: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
+	}[];
+	try {
+		const frauncesBold = loadFont('fraunces-bold.ttf');
+		const geistRegular = loadFont('geist-regular.ttf');
+		const geistSemibold = loadFont('geist-semibold.ttf');
+		fonts = [
+			{ name: 'Fraunces', data: frauncesBold, weight: 700 },
+			{ name: 'Geist', data: geistRegular, weight: 400 },
+			{ name: 'Geist', data: geistSemibold, weight: 600 },
+		];
+	} catch (e) {
+		console.warn('[OG] Font loading failed, using system fallback:', e);
+		fonts = [];
+	}
 
 	const heading = getHeading(ogType, orgName, slug);
 	const subheading = getSubheading(ogType, slug);

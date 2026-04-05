@@ -204,7 +204,7 @@ export default function AboutPage() {
 			</section>
 
 			{/* ── Platform maturity (grouped milestones) ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
 						What we've built so far
@@ -219,15 +219,13 @@ export default function AboutPage() {
 						Platform Capabilities
 					</p>
 					<div className="flex flex-col gap-6">
-						{platformCapabilities.map((m, i) => (
-							<FadeInOnScroll key={m.label} delay={i * 75}>
-								<div className="border-l-2 border-primary/30 pl-6">
-									<p className="font-semibold text-foreground">{m.label}</p>
-									<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-										{m.detail}
-									</p>
-								</div>
-							</FadeInOnScroll>
+						{platformCapabilities.map((m) => (
+							<div key={m.label} className="border-l-2 border-primary/30 pl-6">
+								<p className="font-semibold text-foreground">{m.label}</p>
+								<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+									{m.detail}
+								</p>
+							</div>
 						))}
 					</div>
 
@@ -237,20 +235,21 @@ export default function AboutPage() {
 							Recently Shipped
 						</p>
 						<div className="flex flex-col gap-6">
-							{recentlyShipped.map((m, i) => (
-								<FadeInOnScroll key={m.label} delay={i * 75}>
-									<div className="border-l-2 border-primary/30 pl-6">
-										<div className="flex items-baseline gap-2">
-											<p className="font-semibold text-foreground">{m.label}</p>
-											<span className="text-xs font-mono text-primary/60">
-												{m.version}
-											</span>
-										</div>
-										<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-											{m.detail}
-										</p>
+							{recentlyShipped.map((m) => (
+								<div
+									key={m.label}
+									className="border-l-2 border-primary/30 pl-6"
+								>
+									<div className="flex items-baseline gap-2">
+										<p className="font-semibold text-foreground">{m.label}</p>
+										<span className="text-xs font-mono text-primary/60">
+											{m.version}
+										</span>
 									</div>
-								</FadeInOnScroll>
+									<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+										{m.detail}
+									</p>
+								</div>
 							))}
 						</div>
 					</div>
@@ -263,31 +262,29 @@ export default function AboutPage() {
 					What guides us
 				</h2>
 				<div className="grid gap-8 sm:grid-cols-2">
-					{values.map((value, i) => {
+					{values.map((value) => {
 						const Icon = value.icon;
 						return (
-							<FadeInOnScroll key={value.name} delay={i * 75}>
-								<div className="flex gap-5">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-										<Icon className="h-5 w-5 text-primary" />
-									</div>
-									<div>
-										<p className="mb-1 text-lg font-semibold text-foreground">
-											{value.name}
-										</p>
-										<p className="text-sm leading-relaxed text-muted-foreground">
-											{value.description}
-										</p>
-									</div>
+							<div key={value.name} className="flex gap-5">
+								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+									<Icon className="h-5 w-5 text-primary" />
 								</div>
-							</FadeInOnScroll>
+								<div>
+									<p className="mb-1 text-lg font-semibold text-foreground">
+										{value.name}
+									</p>
+									<p className="text-sm leading-relaxed text-muted-foreground">
+										{value.description}
+									</p>
+								</div>
+							</div>
 						);
 					})}
 				</div>
 			</section>
 
 			{/* ── Founders ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
+			<section className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-2 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
 						The founders
@@ -296,8 +293,8 @@ export default function AboutPage() {
 						Two people with a long history of showing up — and the conviction
 						that it should be easier for everyone else to do the same.
 					</p>
-					<div className="grid gap-5 sm:grid-cols-2">
-						<FadeInOnScroll>
+					<FadeInOnScroll>
+						<div className="grid gap-5 sm:grid-cols-2">
 							<Card className="border-border/70 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
 								<CardContent className="flex flex-col items-center gap-5 pb-8 pt-8 text-center">
 									<div className="relative h-24 w-24 overflow-hidden rounded-full">
@@ -324,8 +321,6 @@ export default function AboutPage() {
 									</div>
 								</CardContent>
 							</Card>
-						</FadeInOnScroll>
-						<FadeInOnScroll delay={75}>
 							<Card className="border-border/70 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
 								<CardContent className="flex flex-col items-center gap-5 pb-8 pt-8 text-center">
 									<div className="relative h-24 w-24 overflow-hidden rounded-full">
@@ -351,8 +346,8 @@ export default function AboutPage() {
 									</div>
 								</CardContent>
 							</Card>
-						</FadeInOnScroll>
-					</div>
+						</div>
+					</FadeInOnScroll>
 				</div>
 			</section>
 

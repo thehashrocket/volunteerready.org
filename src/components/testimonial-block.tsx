@@ -18,14 +18,14 @@ export function TestimonialBlock({
 	storyUrl,
 }: TestimonialBlockProps) {
 	return (
-		<blockquote className="border-l-4 border-[#C4A882] pl-4">
-			<p className="text-base italic text-[#252422] md:text-lg">
+		<blockquote className="border-l-4 border-accent pl-4">
+			<p className="text-base italic text-foreground md:text-lg">
 				&ldquo;{quote}&rdquo;
 			</p>
 			<footer className="mt-3 flex flex-wrap items-center gap-3">
-				<span className="text-sm font-bold text-[#252422]">{orgName}</span>
+				<span className="text-sm font-bold text-foreground">{orgName}</span>
 				{statLabel && statValue && (
-					<span className="rounded-full bg-[rgba(196,168,130,0.15)] px-3 py-0.5 text-sm text-[#3D3B38]">
+					<span className="rounded-full bg-accent/15 px-3 py-0.5 text-sm text-muted-foreground">
 						{statLabel}: {statValue}
 					</span>
 				)}
@@ -33,7 +33,7 @@ export function TestimonialBlock({
 			{storyUrl && (
 				<Link
 					href={storyUrl}
-					className="mt-2 inline-block text-sm font-semibold text-[#1B3C2A] hover:underline"
+					className="mt-2 inline-block text-sm font-semibold text-primary hover:underline"
 				>
 					Read their story &rarr;
 				</Link>

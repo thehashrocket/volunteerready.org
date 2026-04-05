@@ -131,7 +131,7 @@ export default async function ForEmployersPage() {
 					</>
 				}
 				description="Track employee volunteering, partner with vetted nonprofits, and export audit-ready ESG reports. VolunteerReady is the infrastructure your corporate social responsibility program has been missing."
-				gradientClass="from-[#C4A882]/10 via-background to-primary/5"
+				gradientClass="from-accent/10 via-background to-primary/5"
 				actions={
 					<>
 						<Button asChild size="lg" className="rounded-full px-8">
@@ -166,21 +166,21 @@ export default async function ForEmployersPage() {
 			<PlatformStatsBar />
 
 			{/* ── Features ── */}
-			<section className="mx-auto w-full max-w-4xl px-4 py-20">
-				<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-					Built for corporate volunteering programs
-				</h2>
-				<p className="mb-12 text-muted-foreground">
-					From employee engagement to board-ready reporting.
-				</p>
-				<div className="flex flex-col gap-8">
-					{features.map((f, i) => {
-						const Icon = f.icon;
-						return (
-							<FadeInOnScroll key={f.heading} delay={i * 75}>
-								<div className="flex gap-5">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#C4A882]/15">
-										<Icon className="h-5 w-5 text-[#8B7355]" />
+			<FadeInOnScroll>
+				<section className="mx-auto w-full max-w-4xl px-4 py-20">
+					<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
+						Built for corporate volunteering programs
+					</h2>
+					<p className="mb-12 text-muted-foreground">
+						From employee engagement to board-ready reporting.
+					</p>
+					<div className="flex flex-col gap-8">
+						{features.map((f) => {
+							const Icon = f.icon;
+							return (
+								<div key={f.heading} className="flex gap-5">
+									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/15">
+										<Icon className="h-5 w-5 text-accent" />
 									</div>
 									<div>
 										<p className="mb-1 text-lg font-semibold text-foreground">
@@ -191,11 +191,11 @@ export default async function ForEmployersPage() {
 										</p>
 									</div>
 								</div>
-							</FadeInOnScroll>
-						);
-					})}
-				</div>
-			</section>
+							);
+						})}
+					</div>
+				</section>
+			</FadeInOnScroll>
 
 			{/* ── Screenshot ── */}
 			<ScreenshotSection
@@ -207,15 +207,15 @@ export default async function ForEmployersPage() {
 			/>
 
 			{/* ── Differentiators ── */}
-			<section className="bg-[#F5F4F0] px-4 py-16">
-				<div className="mx-auto max-w-3xl">
-					<h2 className="font-display mb-10 text-[32px] font-bold text-foreground [text-wrap:balance]">
-						Why VolunteerReady for corporate programs
-					</h2>
-					<div className="flex flex-col gap-8">
-						{differentiators.map((d, i) => (
-							<FadeInOnScroll key={d.label} delay={i * 75}>
-								<div>
+			<FadeInOnScroll>
+				<section className="bg-muted px-4 py-16">
+					<div className="mx-auto max-w-3xl">
+						<h2 className="font-display mb-10 text-[32px] font-bold text-foreground [text-wrap:balance]">
+							Why VolunteerReady for corporate programs
+						</h2>
+						<div className="flex flex-col gap-8">
+							{differentiators.map((d) => (
+								<div key={d.label}>
 									<p className="mb-1 text-lg font-semibold text-foreground">
 										{d.label}
 									</p>
@@ -223,11 +223,11 @@ export default async function ForEmployersPage() {
 										{d.detail}
 									</p>
 								</div>
-							</FadeInOnScroll>
-						))}
+							))}
+						</div>
 					</div>
-				</div>
-			</section>
+				</section>
+			</FadeInOnScroll>
 
 			{/* ── FAQ ── */}
 			<section className="px-4 py-20">

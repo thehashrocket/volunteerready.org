@@ -8,6 +8,7 @@ import { AppSidebar } from '@/components/app/app-sidebar';
 import { NotificationBell } from '@/components/app/notification-bell';
 import { CompanySwitcher } from '@/components/company/CompanySwitcher';
 import { OrgSwitcher } from '@/components/org/OrgSwitcher';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
@@ -39,8 +40,14 @@ export function AppShell({
 	useEffect(() => setMounted(true), []);
 
 	return (
-		<div className="min-h-screen bg-background text-foreground">
-			<header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-sm">
+		<div
+			className="min-h-screen bg-background text-foreground"
+			data-theme-transition
+		>
+			<header
+				className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-sm"
+				data-theme-transition
+			>
 				<div className="flex h-14 items-center justify-between px-4">
 					<div className="flex items-center gap-3">
 						{/* Mobile sidebar toggle */}
@@ -70,6 +77,7 @@ export function AppShell({
 						<CompanySwitcher />
 					</div>
 					<div className="flex items-center gap-1">
+						<ThemeToggle />
 						<NotificationBell />
 						{mounted ? (
 							<DropdownMenu>
