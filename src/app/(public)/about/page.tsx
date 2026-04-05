@@ -293,8 +293,8 @@ export default function AboutPage() {
 						Two people with a long history of showing up — and the conviction
 						that it should be easier for everyone else to do the same.
 					</p>
-					<div className="grid gap-5 sm:grid-cols-2">
-						<FadeInOnScroll>
+					<FadeInOnScroll>
+						<div className="grid gap-5 sm:grid-cols-2">
 							<Card className="border-border/70 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
 								<CardContent className="flex flex-col items-center gap-5 pb-8 pt-8 text-center">
 									<div className="relative h-24 w-24 overflow-hidden rounded-full">
@@ -321,8 +321,6 @@ export default function AboutPage() {
 									</div>
 								</CardContent>
 							</Card>
-						</FadeInOnScroll>
-						<FadeInOnScroll delay={75}>
 							<Card className="border-border/70 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
 								<CardContent className="flex flex-col items-center gap-5 pb-8 pt-8 text-center">
 									<div className="relative h-24 w-24 overflow-hidden rounded-full">
@@ -348,8 +346,8 @@ export default function AboutPage() {
 									</div>
 								</CardContent>
 							</Card>
-						</FadeInOnScroll>
-					</div>
+						</div>
+					</FadeInOnScroll>
 				</div>
 			</section>
 
