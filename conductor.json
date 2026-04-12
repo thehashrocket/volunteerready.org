@@ -1,7 +1,7 @@
 {
     "scripts": {
-        "setup": "cp $CONDUCTOR_ROOT_PATH/.env.local .env.local && cp -r $CONDUCTOR_ROOT_PATH/.vercel . && pnpm install",
-        "run": "pnpm prisma migrate dev && pnpm prisma generate && pnpm db:seed && pnpm run dev",
+        "setup": "export NVM_DIR=\"$HOME/.nvm\" && . \"$NVM_DIR/nvm.sh\" && nvm use 24.11 && cp $CONDUCTOR_ROOT_PATH/.env.local .env.local && cp -r $CONDUCTOR_ROOT_PATH/.vercel . && pnpm install",
+        "run": "export NVM_DIR=\"$HOME/.nvm\" && . \"$NVM_DIR/nvm.sh\" && nvm use 24.11 && pnpm prisma migrate dev && pnpm prisma generate && pnpm db:seed && pnpm run dev",
         "archive": ""
     }
 }
