@@ -2,12 +2,19 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
+import { getLocation } from '@/lib/locations';
 import { getOgPageMeta } from '@/lib/public-pages';
 import { prisma } from '@/server/repositories/prisma';
 
 export const runtime = 'nodejs';
 
-const VALID_TYPES = ['apply', 'opportunities', 'stories', 'page'] as const;
+const VALID_TYPES = [
+	'apply',
+	'opportunities',
+	'stories',
+	'page',
+	'location',
+] as const;
 type OgType = (typeof VALID_TYPES)[number];
 
 function truncate(text: string, max: number): string {
@@ -29,6 +36,10 @@ const PAGE_META = getOgPageMeta();
 
 function getHeading(type: OgType, orgName: string, slug: string): string {
 	if (type === 'page') return PAGE_META[slug]?.heading ?? 'VolunteerReady';
+	if (type === 'location') {
+		const loc = getLocation(slug);
+		return loc?.og.heading ?? 'VolunteerReady';
+	}
 	switch (type) {
 		case 'apply':
 			return `Apply to volunteer with ${orgName}`;
@@ -41,6 +52,10 @@ function getHeading(type: OgType, orgName: string, slug: string): string {
 
 function getSubheading(type: OgType, slug: string): string {
 	if (type === 'page') return PAGE_META[slug]?.subheading ?? '';
+	if (type === 'location') {
+		const loc = getLocation(slug);
+		return loc?.og.subheading ?? '';
+	}
 	switch (type) {
 		case 'apply':
 			return 'Volunteer Application';
@@ -67,6 +82,10 @@ export async function GET(
 	if (ogType === 'page') {
 		if (!PAGE_META[slug]) {
 			return new Response('Unknown page', { status: 404 });
+		}
+	} else if (ogType === 'location') {
+		if (!getLocation(slug)) {
+			return new Response('Unknown location', { status: 404 });
 		}
 	} else {
 		const org = await prisma.organization.findUnique({

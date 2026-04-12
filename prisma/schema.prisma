@@ -1039,3 +1039,20 @@ model UserFeedback {
   @@index([mood, createdAt])
   @@index([deletedAt])
 }
+
+model LeadCapture {
+  id             String    @id @default(cuid())
+  locationSlug   String
+  orgName        String
+  contactEmail   String
+  volunteerCount String?
+  currentProcess String?
+  painPoints     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  @@unique([contactEmail, locationSlug])
+  @@index([locationSlug, createdAt])
+  @@index([deletedAt])
+}

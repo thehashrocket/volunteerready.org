@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.0.0] - 2026-04-11
+
+### Added
+- **Geo-targeted landing pages** — 5 location-specific pages for Stockton, Modesto, San Joaquin County, Stanislaus County, and Sacramento, each with unique content, pain points, comparison tables, FAQs, and local nonprofit data.
+- **Location index page** — `/locations` directory page listing all available location pages with descriptions.
+- **Lead capture system** — Public form with org name, email, volunteer count, current process, and pain points. Honeypot spam protection, rate limiting (5/hr/IP), and consent-aware analytics tracking.
+- **Founder lead notifications** — Fire-and-forget email notification to founder on each new lead submission with full context (HTML-escaped for security).
+- **Lead admin dashboard** — Platform admin page at `/app/admin/leads` with location filtering and lead triage.
+- **Location OG images** — Dynamic Open Graph images for each location page via the existing OG image API.
+- **Sitemap integration** — All location pages included in the dynamic sitemap.
+- **Analytics utility** — Consent-aware `trackEvent()` function that respects cookie consent preferences before firing gtag events.
+- **LeadCapture database model** — New table with upsert-on-duplicate (email + location), soft delete, and indexed queries.
+
 ## [0.18.0.0] - 2026-04-04
 
 ### Added

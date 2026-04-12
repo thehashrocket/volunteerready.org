@@ -6,6 +6,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
+import { LOCATIONS } from '@/lib/locations';
 import { getSitemapPages } from '@/lib/public-pages';
 import { prisma } from '@/server/repositories/prisma';
 import sitemap from '../sitemap';
@@ -67,6 +68,8 @@ describe('sitemap()', () => {
 
 	it('returns only static routes when no orgs exist', async () => {
 		const result = await sitemap();
-		expect(result.length).toBe(getSitemapPages().length);
+		// static pages + location index + per-location pages
+		const expectedCount = getSitemapPages().length + 1 + LOCATIONS.length;
+		expect(result.length).toBe(expectedCount);
 	});
 });

@@ -23,7 +23,7 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:integration": "vitest run --config vitest.integration.config.mts",
-		"prepare": "git config core.hooksPath .githooks",
+		"prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
 		"docs:dev": "vitepress dev docs",
 		"docs:build": "vitepress build docs",
 		"docs:preview": "vitepress preview docs",

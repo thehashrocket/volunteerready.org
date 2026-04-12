@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { BASE_URL } from '@/lib/constants';
+import { LOCATIONS } from '@/lib/locations';
 import { getSitemapPages } from '@/lib/public-pages';
 import { prisma } from '@/server/repositories/prisma';
 
@@ -39,8 +40,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			priority: 0.5,
 		}));
 
+	const locationIndexRoute: MetadataRoute.Sitemap = [
+		{
+			url: `${BASE_URL}/locations`,
+			changeFrequency: 'monthly',
+			priority: 0.6,
+		},
+	];
+
+	const locationRoutes: MetadataRoute.Sitemap = LOCATIONS.map((loc) => ({
+		url: `${BASE_URL}/locations/${loc.slug}`,
+		changeFrequency: 'monthly' as const,
+		priority: 0.7,
+	}));
+
 	return [
 		...staticRoutes,
+		...locationIndexRoute,
+		...locationRoutes,
 		...applyRoutes,
 		...opportunityRoutes,
 		...storyRoutes,
