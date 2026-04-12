@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
 	AlertTriangle,
 	CheckCircle2,
+	ClipboardCheck,
 	FileWarning,
 	Key,
 	Link2,
@@ -282,6 +283,121 @@ function IssueCredentialDialog({
 						</Button>
 						<Button type="submit" disabled={mutation.isPending}>
 							{mutation.isPending ? 'Issuing…' : 'Issue'}
+						</Button>
+					</div>
+				</form>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Review & Issue Dialog — CONSIDER row action (atomic credential + FCRA)
+// ---------------------------------------------------------------------------
+
+const reviewIssueSchema = z.object({
+	notes: z.string().max(500).optional(),
+	expiresAt: z.string().optional(),
+});
+
+type ReviewIssueFormValues = z.infer<typeof reviewIssueSchema>;
+
+function ReviewIssueDialog({
+	requestId,
+	volunteerName,
+}: {
+	requestId: string;
+	volunteerName: string;
+}) {
+	const qc = useQueryClient();
+	const [open, setOpen] = useState(false);
+
+	const form = useForm<ReviewIssueFormValues>({
+		resolver: zodResolver(reviewIssueSchema),
+		defaultValues: { notes: '', expiresAt: '' },
+	});
+
+	const mutation = trpc.backgroundChecks.issueAndResolve.useMutation({
+		onSuccess: async () => {
+			toast.success('Credential issued and background check resolved.');
+			await qc.invalidateQueries();
+			setOpen(false);
+			form.reset();
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to issue credential.');
+		},
+	});
+
+	function onSubmit(values: ReviewIssueFormValues) {
+		mutation.mutate({
+			requestId,
+			notes: values.notes || null,
+			expiresAt: values.expiresAt
+				? new Date(`${values.expiresAt}T23:59:59`)
+				: null,
+		});
+	}
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button size="sm" variant="default">
+					<ClipboardCheck className="mr-1 h-4 w-4" />
+					Review &amp; Issue
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Review &amp; Issue Credential</DialogTitle>
+					<DialogDescription>
+						Issue a verified Background Check credential for{' '}
+						<span className="font-medium text-foreground">{volunteerName}</span>{' '}
+						and resolve the FCRA review.
+					</DialogDescription>
+				</DialogHeader>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					<div className="rounded-md border bg-muted/50 p-3">
+						<div className="flex items-center gap-2 text-sm">
+							<ShieldCheck className="h-4 w-4 text-muted-foreground" />
+							<span className="text-muted-foreground">Type:</span>
+							<span className="font-medium">Background Check</span>
+						</div>
+						<div className="mt-1 flex items-center gap-2 text-sm">
+							<CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+							<span className="text-muted-foreground">Status:</span>
+							<Badge variant="success">Verified</Badge>
+						</div>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="review-expiresAt">Expires (optional)</Label>
+						<Input
+							id="review-expiresAt"
+							type="date"
+							min={new Date().toISOString().split('T')[0]}
+							{...form.register('expiresAt')}
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="review-notes">Notes (optional)</Label>
+						<Textarea
+							id="review-notes"
+							maxLength={500}
+							rows={2}
+							placeholder="e.g., Clear result with minor record noted"
+							{...form.register('notes')}
+						/>
+					</div>
+					<div className="flex justify-end gap-2">
+						<Button
+							type="button"
+							variant="ghost"
+							onClick={() => setOpen(false)}
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={mutation.isPending}>
+							{mutation.isPending ? 'Issuing…' : 'Issue Credential'}
 						</Button>
 					</div>
 				</form>
@@ -776,16 +892,6 @@ function BackgroundCheckRequestsTable() {
 			},
 		});
 
-	const resolveFcraMutation = trpc.backgroundChecks.resolveFcra.useMutation({
-		onSuccess: async () => {
-			toast.success('FCRA process resolved.');
-			await qc.invalidateQueries();
-		},
-		onError: (err) => {
-			toast.error(err.message ?? 'Failed to resolve FCRA status.');
-		},
-	});
-
 	if (query.isLoading) {
 		return (
 			<Card>
@@ -839,7 +945,8 @@ function BackgroundCheckRequestsTable() {
 							const isConsider = req.status === 'CONSIDER';
 							const canSendPreAdverse = isConsider && fcra === 'NONE';
 							const canFinalize = isConsider && fcra === 'PRE_ADVERSE_SENT';
-							const canIssueCredential = isConsider;
+							const canIssueCredential =
+								isConsider && (fcra === 'NONE' || fcra === 'PRE_ADVERSE_SENT');
 
 							return (
 								<TableRow key={req.id}>
@@ -913,16 +1020,11 @@ function BackgroundCheckRequestsTable() {
 												</Button>
 											)}
 
-											{/* CONSIDER → Issue Credential (resolves FCRA) */}
+											{/* CONSIDER → Review & Issue (atomic credential + FCRA) */}
 											{canIssueCredential && (
-												<IssueCredentialDialog
-													defaultUserId={req.user.id}
-													defaultType="BACKGROUND_CHECK"
-													onIssued={() => {
-														resolveFcraMutation.mutate({
-															requestId: req.id,
-														});
-													}}
+												<ReviewIssueDialog
+													requestId={req.id}
+													volunteerName={req.user.name ?? 'Unknown'}
 												/>
 											)}
 

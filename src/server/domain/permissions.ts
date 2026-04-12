@@ -114,6 +114,7 @@ export const PERMISSIONS = {
 	'backgroundChecks.finalizeAdverseAction':
 		'backgroundChecks.finalizeAdverseAction',
 	'backgroundChecks.resolveFcra': 'backgroundChecks.resolveFcra',
+	'backgroundChecks.issueAndResolve': 'backgroundChecks.issueAndResolve',
 	'backgroundChecks.getCheckrOAuthUrl': 'backgroundChecks.getCheckrOAuthUrl',
 	'backgroundChecks.getCheckrStatus': 'backgroundChecks.getCheckrStatus',
 	'backgroundChecks.disconnectCheckr': 'backgroundChecks.disconnectCheckr',
@@ -225,6 +226,7 @@ const STAFF_PERMISSIONS: ReadonlySet<string> = new Set([
 	PERMISSIONS['backgroundChecks.sendPreAdverseNotice'],
 	PERMISSIONS['backgroundChecks.finalizeAdverseAction'],
 	PERMISSIONS['backgroundChecks.resolveFcra'],
+	PERMISSIONS['backgroundChecks.issueAndResolve'],
 	PERMISSIONS['backgroundChecks.getCheckrStatus'],
 	PERMISSIONS['backgroundChecks.getSterlingStatus'],
 	PERMISSIONS['discovery.searchVolunteers'],

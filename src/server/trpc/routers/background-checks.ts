@@ -10,6 +10,7 @@ import {
 	getCheckrConnectionStatus,
 	getSterlingConnectionStatus,
 	initiateBackgroundCheck,
+	issueCredentialAndResolveFcra,
 	listOrgBackgroundChecks,
 	resolveFcra,
 	sendPreAdverseNotice,
@@ -111,6 +112,33 @@ export const backgroundChecksRouter = createTRPCRouter({
 		.input(z.object({ requestId: z.string().min(1) }))
 		.mutation(({ ctx, input }) =>
 			resolveFcra(input.requestId, ctx.orgId, ctx.session?.user?.id ?? ''),
+		),
+
+	/** Atomically issue a BACKGROUND_CHECK credential and resolve FCRA. Staff+. */
+	issueAndResolve: staffProcedure
+		.input(
+			z.object({
+				requestId: z.string().min(1),
+				notes: z.string().max(500).nullable().optional(),
+				expiresAt: z.coerce
+					.date()
+					.refine((d) => d > new Date(), {
+						message: 'Expiration date must be in the future',
+					})
+					.nullable()
+					.optional(),
+			}),
+		)
+		.mutation(({ ctx, input }) =>
+			issueCredentialAndResolveFcra(
+				input.requestId,
+				ctx.orgId,
+				ctx.session?.user?.id ?? '',
+				{
+					notes: input.notes,
+					expiresAt: input.expiresAt,
+				},
+			),
 		),
 
 	// ---------------------------------------------------------------------------
