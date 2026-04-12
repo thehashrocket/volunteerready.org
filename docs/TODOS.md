@@ -1054,19 +1054,10 @@ hashed token auth.
 
 ## Geo-Targeted Landing Pages (Deferred from CEO Review 2026-04-11)
 
-### [P2] Lead Analytics Dashboard
+### ~~[P2] Lead Analytics Dashboard~~ **Completed:** v0.19.0 (2026-04-11)
 
-**What:** Admin page at `/app/admin/leads` showing lead count by location slug, date range,
-and conversion status. Simple table + summary stats. No charts needed initially.
-
-**Why deferred:** Core lead capture pipeline ships first. Analytics layer adds value once
-leads are actually flowing and founder needs to compare location performance.
-
-**Context:** `LeadCapture` model stores `locationSlug`, `createdAt`, and contact info.
-Query is straightforward: group by locationSlug, count, filter by date range. Platform
-admin gate via existing `isPlatformAdmin()` check.
-
-**Effort:** S | **Priority:** P2 | **Depends on:** LeadCapture model shipped
+Built as `/app/admin/leads` with location filtering, total count, and lead detail cards.
+Platform admin gated via `platformAdminProcedure`.
 
 ---
 
