@@ -1049,3 +1049,53 @@ hashed token auth.
 **Why deferred:** Nice-to-have, not adoption-driving.
 
 **Effort:** S | **Priority:** P3 | **Depends on:** Active volunteer base using shifts
+
+---
+
+## Geo-Targeted Landing Pages (Deferred from CEO Review 2026-04-11)
+
+### [P2] Lead Analytics Dashboard
+
+**What:** Admin page at `/app/admin/leads` showing lead count by location slug, date range,
+and conversion status. Simple table + summary stats. No charts needed initially.
+
+**Why deferred:** Core lead capture pipeline ships first. Analytics layer adds value once
+leads are actually flowing and founder needs to compare location performance.
+
+**Context:** `LeadCapture` model stores `locationSlug`, `createdAt`, and contact info.
+Query is straightforward: group by locationSlug, count, filter by date range. Platform
+admin gate via existing `isPlatformAdmin()` check.
+
+**Effort:** S | **Priority:** P2 | **Depends on:** LeadCapture model shipped
+
+---
+
+### [P3] Email Retry Queue for Lead Notifications
+
+**What:** Dead letter table or scheduled reprocess for failed lead notification emails
+(both instant response to lead and founder notification).
+
+**Why deferred:** Fire-and-forget with logging is acceptable at zero traffic. Retry
+mechanism matters once lead volume makes silent failures costly.
+
+**Context:** Lead capture service uses Nodemailer fire-and-forget. Failures are logged
+but not retried. A `FailedEmail` table with a cron reprocess (similar to existing
+`org-feedback` cron pattern) would close the gap.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Lead capture pipeline shipped, observed email failures
+
+---
+
+### [P3] Automated Nonprofit Count Refresh
+
+**What:** Periodic refresh of county nonprofit counts from IRS NTEE data or Census API.
+Update `locations.ts` registry or move counts to a DB table with a refresh cron.
+
+**Why deferred:** Hardcoded counts from manual research are fine for 5 pages. Automation
+matters if location pages scale beyond Central Valley.
+
+**Context:** Current design uses a TypeScript registry (`src/lib/locations.ts`) with
+hardcoded `nonprofitCount` per location. IRS Exempt Organizations Business Master File
+(BMF) is the canonical source. Refresh cadence: quarterly would be sufficient.
+
+**Effort:** M | **Priority:** P3 | **Depends on:** Initial location pages validated, decision to scale beyond 5 pages
