@@ -115,6 +115,7 @@ import {
 	findCredentialByUserOrgType,
 	upsertCredential,
 } from '@/server/repositories/volunteerCredentialRepo';
+import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
 // Re-export error classes so the webhook routes can catch them
 export {
@@ -894,6 +895,107 @@ export async function resolveFcra(
 
 	console.log(
 		`[bg-check] FCRA resolved favorably requestId=${requestId} userId=${request.userId}`,
+	);
+}
+
+// ---------------------------------------------------------------------------
+// FCRA — issueCredentialAndResolveFcra (atomic review & issue)
+// ---------------------------------------------------------------------------
+
+/**
+ * Atomically issue a BACKGROUND_CHECK credential AND resolve the FCRA process.
+ * Eliminates the partial-success trap where credential issuance succeeds but
+ * FCRA resolution fails (or vice versa) when called as two separate mutations.
+ */
+export async function issueCredentialAndResolveFcra(
+	requestId: string,
+	orgId: string,
+	actorId: string,
+	input: {
+		notes?: string | null;
+		expiresAt?: Date | null;
+	},
+): Promise<void> {
+	const request = await findBackgroundCheckById(requestId);
+	if (!request || request.orgId !== orgId) {
+		throw new TRPCError({ code: 'NOT_FOUND' });
+	}
+
+	if (request.status !== 'CONSIDER') {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: `Cannot issue credential for a check in ${request.status} status.`,
+		});
+	}
+
+	if (!canResolveFcra(request.fcraStatus)) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: `Cannot resolve FCRA (status: ${request.fcraStatus}).`,
+		});
+	}
+
+	await prisma.$transaction(async (tx) => {
+		// 1. Issue the BACKGROUND_CHECK credential
+		const cred = await upsertCredential(tx, {
+			userId: request.userId,
+			orgId,
+			type: 'BACKGROUND_CHECK',
+			status: 'VERIFIED',
+			issuedById: actorId,
+			notes: input.notes,
+			expiresAt: input.expiresAt,
+		});
+
+		await writeAuditLogTx(tx, {
+			orgId,
+			actorId,
+			action: 'CREDENTIAL_ISSUED',
+			entityType: 'VolunteerCredential',
+			entityId: cred.id,
+			metadata: {
+				userId: request.userId,
+				type: 'BACKGROUND_CHECK',
+				status: 'VERIFIED',
+				backgroundCheckRequestId: requestId,
+			},
+		});
+
+		// 2. Transition status CONSIDER → COMPLETE + resolve FCRA (CAS guard)
+		const { count } = await tx.backgroundCheckRequest.updateMany({
+			where: {
+				id: requestId,
+				status: 'CONSIDER',
+				fcraStatus: { in: ['NONE', 'PRE_ADVERSE_SENT'] },
+			},
+			data: { status: 'COMPLETE', fcraStatus: 'RESOLVED' },
+		});
+		if (count === 0) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message:
+					'Background check status or FCRA status was already changed.',
+			});
+		}
+
+		await writeAuditLogTx(tx, {
+			orgId,
+			actorId,
+			action: 'FCRA_RESOLVED',
+			entityType: 'BackgroundCheckRequest',
+			entityId: requestId,
+			metadata: {
+				previousFcraStatus: request.fcraStatus,
+				credentialId: cred.id,
+			},
+		});
+	});
+
+	// Fire-and-forget: a new VERIFIED credential may unlock a tenure badge.
+	void checkAndIssueTenureBadges(request.userId);
+
+	console.log(
+		`[bg-check] Credential issued + FCRA resolved requestId=${requestId} userId=${request.userId}`,
 	);
 }
 

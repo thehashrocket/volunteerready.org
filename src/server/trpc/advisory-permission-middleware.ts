@@ -89,6 +89,7 @@ const PROCEDURE_PERMISSION_MAP: Record<string, string> = {
 	'backgroundChecks.finalizeAdverseAction':
 		'backgroundChecks.finalizeAdverseAction',
 	'backgroundChecks.resolveFcra': 'backgroundChecks.resolveFcra',
+	'backgroundChecks.issueAndResolve': 'backgroundChecks.issueAndResolve',
 	'backgroundChecks.getCheckrOAuthUrl': 'backgroundChecks.getCheckrOAuthUrl',
 	'backgroundChecks.getCheckrStatus': 'backgroundChecks.getCheckrStatus',
 	'backgroundChecks.disconnectCheckr': 'backgroundChecks.disconnectCheckr',
