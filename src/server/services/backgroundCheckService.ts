@@ -973,8 +973,7 @@ export async function issueCredentialAndResolveFcra(
 		if (count === 0) {
 			throw new TRPCError({
 				code: 'CONFLICT',
-				message:
-					'Background check status or FCRA status was already changed.',
+				message: 'Background check status or FCRA status was already changed.',
 			});
 		}
 

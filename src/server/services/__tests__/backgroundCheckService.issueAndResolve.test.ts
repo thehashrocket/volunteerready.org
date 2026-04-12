@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock modules before importing the service under test
