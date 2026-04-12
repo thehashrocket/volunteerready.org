@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.1.0] - 2026-04-11
+
+### Added
+- **Atomic Review & Issue action** — CONSIDER background check rows now have a "Review & Issue" button that issues a VERIFIED credential and resolves FCRA in a single database transaction, eliminating the partial-success trap where one could succeed without the other.
+- **Status transition on review** — Resolving a CONSIDER check now transitions it to COMPLETE, so the row no longer shows "Needs Review" after action is taken.
+- **Tenure badge support** — Credentials issued via the Review & Issue flow now trigger tenure badge evaluation, matching the standard credential issuance path.
+
+### Fixed
+- Review & Issue button no longer appears on rows where adverse action was already sent (ADVERSE_ACTION_SENT or RESOLVED FCRA status).
+- Expiration date picker now uses end-of-day local time instead of UTC midnight, preventing off-by-one date display in US timezones.
+- Server-side validation rejects past expiration dates on credential issuance.
+
 ## [0.19.0.0] - 2026-04-11
 
 ### Added
