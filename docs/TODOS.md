@@ -19,26 +19,14 @@ enforcement, and staff UI buttons on CONSIDER rows.
 
 ---
 
-### [P2] CONSIDER State Review UI Action (partially superseded)
+### ~~[P2] CONSIDER State Review UI Action~~ ✅ Done
 
-**What:** "Review" button on CONSIDER rows in the Background Check Requests table that
-pre-fills the existing `IssueCredentialDialog` with the volunteer's userId and
-`type=BACKGROUND_CHECK`.
-
-**Why:** Staff currently must navigate to the credential issue dialog separately. A contextual
-action on the CONSIDER row removes friction for the most common post-check workflow.
-
-**Context:** The `BackgroundCheckRequestsTable` in `src/app/(app)/app/credentials/page.tsx`
-already renders `IssueCredentialDialog` for CONSIDER rows but wrapped as a trigger — the
-current implementation opens the dialog inline. This TODO tracks making the UX more prominent
-(e.g., a dedicated "Review & Issue" action that pre-populates all fields and focuses the modal).
-No new backend code needed — `credentials.issue` tRPC mutation already exists.
-
-**Note:** Partially superseded by the FCRA adverse action buttons added in the token encryption +
-FCRA PR. CONSIDER rows now have "Pre-Adverse Notice", "Finalize Adverse Action", and "Issue
-Credential" action buttons. A further UX polish pass could still improve the pre-fill experience.
-
-**Effort:** S | **Priority:** P2 | **Depends on:** ✅ Phase 6B UI shipped
+Replaced the generic "Issue Credential" dialog on CONSIDER rows with a dedicated
+"Review & Issue" dialog (`ReviewIssueDialog`) that shows the volunteer's name, locks
+type to BACKGROUND_CHECK / VERIFIED, and calls the new atomic
+`backgroundChecks.issueAndResolve` tRPC procedure. This eliminates the partial-success
+trap where credential issuance could succeed but FCRA resolution could fail as separate
+client-side mutations. Both operations now run in a single DB transaction.
 
 ---
 
