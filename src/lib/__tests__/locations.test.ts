@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LOCATIONS, getLocation, getLocationSlugs } from '../locations';
+import { getLocation, getLocationSlugs, LOCATIONS } from '../locations';
 
 describe('LOCATIONS', () => {
 	it('contains 5 locations', () => {

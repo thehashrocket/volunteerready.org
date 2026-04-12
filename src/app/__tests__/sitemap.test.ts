@@ -69,8 +69,7 @@ describe('sitemap()', () => {
 	it('returns only static routes when no orgs exist', async () => {
 		const result = await sitemap();
 		// static pages + location index + per-location pages
-		const expectedCount =
-			getSitemapPages().length + 1 + LOCATIONS.length;
+		const expectedCount = getSitemapPages().length + 1 + LOCATIONS.length;
 		expect(result.length).toBe(expectedCount);
 	});
 });

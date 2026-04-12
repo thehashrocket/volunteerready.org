@@ -14,8 +14,8 @@ vi.mock('@/lib/locations', () => ({
 	),
 }));
 
-import { upsertLead } from '@/server/repositories/leadCaptureRepo';
 import { sendEmail } from '@/server/lib/email';
+import { upsertLead } from '@/server/repositories/leadCaptureRepo';
 import { submitLead } from '../leadCaptureService';
 
 describe('submitLead', () => {

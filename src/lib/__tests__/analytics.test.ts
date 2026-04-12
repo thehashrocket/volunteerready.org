@@ -21,10 +21,7 @@ describe('trackEvent', () => {
 	});
 
 	it('fires gtag when analytics consent is granted', () => {
-		localStorage.setItem(
-			'cookie-consent',
-			JSON.stringify({ analytics: true }),
-		);
+		localStorage.setItem('cookie-consent', JSON.stringify({ analytics: true }));
 		trackEvent('test_event', { location_slug: 'stockton' });
 		expect(gtagMock).toHaveBeenCalledWith('event', 'test_event', {
 			location_slug: 'stockton',
@@ -47,10 +44,7 @@ describe('trackEvent', () => {
 	});
 
 	it('does not fire when gtag is not available', () => {
-		localStorage.setItem(
-			'cookie-consent',
-			JSON.stringify({ analytics: true }),
-		);
+		localStorage.setItem('cookie-consent', JSON.stringify({ analytics: true }));
 		delete (window as unknown as Record<string, unknown>).gtag;
 		trackEvent('test_event');
 		// Should not throw
