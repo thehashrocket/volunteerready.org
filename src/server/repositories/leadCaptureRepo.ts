@@ -23,6 +23,7 @@ export async function upsertLead(data: {
 			volunteerCount: data.volunteerCount ?? null,
 			currentProcess: data.currentProcess ?? null,
 			painPoints: data.painPoints ?? null,
+			deletedAt: null,
 			// UTM fields intentionally omitted — first-touch attribution
 		},
 		create: {
