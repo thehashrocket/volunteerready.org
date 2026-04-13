@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.1.1] - 2026-04-12
+
+### Fixed
+- "Book a Call" button on geo landing pages is now readable — added `bg-transparent` to override the outline variant's light background, matching the homepage CTA pattern.
+
 ## [0.19.1.0] - 2026-04-11
 
 ### Added
