@@ -16,13 +16,19 @@ function slugify(text: string): string {
 		.replace(/(^-|-$)/g, '');
 }
 
-export function FaqSection({ faqs }: { faqs: FaqItem[] }) {
+export function FaqSection({
+	faqs,
+	heading = 'Frequently asked questions',
+}: {
+	faqs: FaqItem[];
+	heading?: string;
+}) {
 	return (
 		<>
 			<JsonLdFaq faqs={faqs} />
 			<div className="mx-auto max-w-2xl">
 				<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
-					Frequently asked questions
+					{heading}
 				</h2>
 				<div className="flex flex-col">
 					{faqs.map((faq, i) => (

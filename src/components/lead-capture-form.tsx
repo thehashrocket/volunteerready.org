@@ -1,7 +1,8 @@
 'use client';
 
 import { Check } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ import { trpc } from '@/lib/trpc/client';
 
 type LeadCaptureFormProps = {
 	locationSlug: string;
+	successContent?: ReactNode;
 };
 
 type FieldErrors = {
@@ -27,7 +29,11 @@ type FieldErrors = {
 	contactEmail?: string;
 };
 
-export function LeadCaptureForm({ locationSlug }: LeadCaptureFormProps) {
+export function LeadCaptureForm({
+	locationSlug,
+	successContent,
+}: LeadCaptureFormProps) {
+	const searchParams = useSearchParams();
 	const [submitted, setSubmitted] = useState(false);
 	const [errors, setErrors] = useState<FieldErrors>({});
 	const [serverError, setServerError] = useState(false);
@@ -110,6 +116,11 @@ export function LeadCaptureForm({ locationSlug }: LeadCaptureFormProps) {
 
 		trackEvent('lead_form_submit', { location_slug: locationSlug });
 
+		// Read UTM params from URL
+		const utmSource = searchParams.get('utm_source') || undefined;
+		const utmCampaign = searchParams.get('utm_campaign') || undefined;
+		const utmContent = searchParams.get('utm_content') || undefined;
+
 		mutation.mutate({
 			locationSlug,
 			orgName,
@@ -122,11 +133,22 @@ export function LeadCaptureForm({ locationSlug }: LeadCaptureFormProps) {
 				| 'Other'
 				| undefined,
 			painPoints,
+			utmSource,
+			utmCampaign,
+			utmContent,
 			org_phone,
 		});
 	}
 
 	if (submitted) {
+		if (successContent) {
+			return (
+				<section id="lead-form" className="bg-muted/50 px-4 py-16">
+					{successContent}
+				</section>
+			);
+		}
+
 		return (
 			<section id="lead-form" className="bg-muted/50 px-4 py-16">
 				<Card
