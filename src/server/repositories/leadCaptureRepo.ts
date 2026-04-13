@@ -7,6 +7,9 @@ export async function upsertLead(data: {
 	volunteerCount?: string;
 	currentProcess?: string;
 	painPoints?: string;
+	utmSource?: string;
+	utmCampaign?: string;
+	utmContent?: string;
 }) {
 	return prisma.leadCapture.upsert({
 		where: {
@@ -21,6 +24,7 @@ export async function upsertLead(data: {
 			currentProcess: data.currentProcess ?? null,
 			painPoints: data.painPoints ?? null,
 			deletedAt: null,
+			// UTM fields intentionally omitted — first-touch attribution
 		},
 		create: {
 			locationSlug: data.locationSlug,
@@ -29,6 +33,9 @@ export async function upsertLead(data: {
 			volunteerCount: data.volunteerCount ?? null,
 			currentProcess: data.currentProcess ?? null,
 			painPoints: data.painPoints ?? null,
+			utmSource: data.utmSource ?? null,
+			utmCampaign: data.utmCampaign ?? null,
+			utmContent: data.utmContent ?? null,
 		},
 	});
 }

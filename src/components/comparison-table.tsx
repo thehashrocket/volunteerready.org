@@ -8,12 +8,18 @@ type ComparisonItem = {
 	after: string;
 };
 
-export function ComparisonTable({ items }: { items: ComparisonItem[] }) {
+export function ComparisonTable({
+	items,
+	heading = 'What changes',
+}: {
+	items: ComparisonItem[];
+	heading?: string;
+}) {
 	return (
 		<section className="bg-muted px-4 py-16">
 			<div className="mx-auto max-w-3xl">
 				<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
-					What changes
+					{heading}
 				</h2>
 
 				{/* Desktop table */}

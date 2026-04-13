@@ -124,7 +124,7 @@ export default function ForVolunteersPage() {
 			<JsonLdBreadcrumb
 				items={[
 					{ label: 'Home', href: '/' },
-					{ label: 'For Volunteers', href: '/for-volunteers' },
+					{ label: 'For Volunteers', href: '/for/volunteers' },
 				]}
 			/>
 			<PublicHero

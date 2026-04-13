@@ -50,8 +50,18 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		},
 	},
 	{
+		slug: 'for',
+		href: '/for',
+		label: 'For',
+		sitemap: { changeFrequency: 'monthly', priority: 0.6 },
+		og: {
+			heading: 'Who VolunteerReady Is For',
+			subheading: 'Audiences',
+		},
+	},
+	{
 		slug: 'for-volunteers',
-		href: '/for-volunteers',
+		href: '/for/volunteers',
 		label: 'For Volunteers',
 		nav: true,
 		sitemap: { changeFrequency: 'monthly', priority: 0.8 },
@@ -62,7 +72,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
 	},
 	{
 		slug: 'for-nonprofits',
-		href: '/for-nonprofits',
+		href: '/for/nonprofits',
 		label: 'For Nonprofits',
 		nav: true,
 		sitemap: { changeFrequency: 'monthly', priority: 0.8 },
@@ -73,13 +83,23 @@ export const PUBLIC_PAGES: PublicPage[] = [
 	},
 	{
 		slug: 'for-employers',
-		href: '/for-employers',
+		href: '/for/employers',
 		label: 'For Employers',
 		nav: true,
 		sitemap: { changeFrequency: 'monthly', priority: 0.7 },
 		og: {
 			heading: 'Track Employee Volunteering & ESG Impact',
 			subheading: 'For Employers',
+		},
+	},
+	{
+		slug: 'for-animal-shelters',
+		href: '/for/animal-shelters',
+		label: 'For Animal Shelters',
+		sitemap: { changeFrequency: 'monthly', priority: 0.8 },
+		og: {
+			heading: 'Volunteer Screening for Animal Shelters',
+			subheading: 'Animal Shelters',
 		},
 	},
 	{

@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.0.0] - 2026-04-13
+
+### Added
+- **Animal shelter vertical page** at `/for/animal-shelters` — vertical-specific landing page with pain point acknowledgment, screening flow diagram, shelter-tailored FAQ, and custom lead form success state.
+- **`/for` index page** with card grid linking to all audience pages (volunteers, nonprofits, employers, animal shelters).
+- **UTM campaign attribution** — lead capture forms now read `utm_source`, `utm_campaign`, and `utm_content` from the URL and store them in the database. First-touch attribution preserves original source on resubmission.
+- **Vertical slug registry** — `VERTICAL_SLUGS` array and `getValidLeadSlugs()` for Zod validation; `getLeadSourceLabel()` for human-readable display across admin and notifications.
+- **Admin lead filter** — segmented control (All / Geo / Animal Shelters) replaces the location dropdown, with geo sub-filter for specific locations.
+- **Screening flow diagram** — new `ScreeningFlowDiagram` component showing 4-step volunteer screening process (horizontal on desktop, vertical on mobile).
+- **Cold email template** for shelter outreach in `docs/cold-email-template.md` with UTM link format and personalization placeholders.
+
+### Changed
+- **URL hierarchy** — `/for-volunteers`, `/for-nonprofits`, `/for-employers` moved to `/for/volunteers`, `/for/nonprofits`, `/for/employers` with permanent 301 redirects from old URLs.
+- **Geo page CTAs** now use founding-organization positioning ("Be the first nonprofit in {location} on VolunteerReady").
+- `ComparisonTable` and `FaqSection` accept optional `heading` prop for vertical-specific customization.
+- `LeadCaptureForm` accepts `successContent` render prop for custom post-submission UI.
+- Vertical lead notifications include follow-up guidance for higher-intent outreach.
+
 ## [0.19.1.1] - 2026-04-12
 
 ### Fixed

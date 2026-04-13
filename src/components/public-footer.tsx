@@ -9,14 +9,14 @@ const footerLinks = [
 	{
 		heading: 'For Volunteers',
 		links: [
-			{ label: 'Why VolunteerReady', href: '/for-volunteers' },
+			{ label: 'Why VolunteerReady', href: '/for/volunteers' },
 			{ label: 'Sign in', href: '/login' },
 		],
 	},
 	{
 		heading: 'For Nonprofits',
 		links: [
-			{ label: 'Why VolunteerReady', href: '/for-nonprofits' },
+			{ label: 'Why VolunteerReady', href: '/for/nonprofits' },
 			{
 				label: 'Set up your organization',
 				href: '/login?callbackUrl=/app/onboarding',
@@ -26,7 +26,7 @@ const footerLinks = [
 	{
 		heading: 'For Employers',
 		links: [
-			{ label: 'Why VolunteerReady', href: '/for-employers' },
+			{ label: 'Why VolunteerReady', href: '/for/employers' },
 			{ label: 'Corporate Pricing', href: '/pricing' },
 		],
 	},

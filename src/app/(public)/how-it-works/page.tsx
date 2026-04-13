@@ -283,7 +283,7 @@ export default function HowItWorksPage() {
 						<div className="mt-8">
 							<Button asChild variant="outline" className="rounded-full px-6">
 								<TrackedLink
-									href="/for-employers"
+									href="/for/employers"
 									eventLabel="Learn more employer"
 									eventPage="how-it-works"
 								>

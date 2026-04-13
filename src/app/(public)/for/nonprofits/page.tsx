@@ -132,7 +132,7 @@ export default async function ForNonprofitsPage() {
 			<JsonLdBreadcrumb
 				items={[
 					{ label: 'Home', href: '/' },
-					{ label: 'For Nonprofits', href: '/for-nonprofits' },
+					{ label: 'For Nonprofits', href: '/for/nonprofits' },
 				]}
 			/>
 			<PublicHero

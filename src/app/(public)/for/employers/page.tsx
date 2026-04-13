@@ -117,7 +117,7 @@ export default async function ForEmployersPage() {
 			<JsonLdBreadcrumb
 				items={[
 					{ label: 'Home', href: '/' },
-					{ label: 'For Employers', href: '/for-employers' },
+					{ label: 'For Employers', href: '/for/employers' },
 				]}
 			/>
 			<PublicHero

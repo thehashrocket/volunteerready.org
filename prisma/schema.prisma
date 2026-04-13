@@ -1048,6 +1048,9 @@ model LeadCapture {
   volunteerCount String?
   currentProcess String?
   painPoints     String?
+  utmSource      String?
+  utmCampaign    String?
+  utmContent     String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   deletedAt      DateTime?
