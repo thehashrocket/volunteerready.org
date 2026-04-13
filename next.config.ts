@@ -12,6 +12,23 @@ const nextConfig: NextConfig = {
 			],
 		},
 	],
+	redirects: async () => [
+		{
+			source: '/for-volunteers',
+			destination: '/for/volunteers',
+			permanent: true,
+		},
+		{
+			source: '/for-nonprofits',
+			destination: '/for/nonprofits',
+			permanent: true,
+		},
+		{
+			source: '/for-employers',
+			destination: '/for/employers',
+			permanent: true,
+		},
+	],
 };
 
 export default withSentryConfig(nextConfig, {
