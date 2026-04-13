@@ -2,6 +2,7 @@ import { Check } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import { ComparisonTable } from '@/components/comparison-table';
 import { CTABanner } from '@/components/cta-banner';
 import { FaqSection } from '@/components/faq-section';
@@ -91,7 +92,9 @@ export default async function LocationPage({
 			</section>
 
 			{/* 3. Lead capture form */}
-			<LeadCaptureForm locationSlug={slug} />
+			<Suspense>
+				<LeadCaptureForm locationSlug={slug} />
+			</Suspense>
 
 			{/* 4. Comparison table */}
 			<ComparisonTable items={location.comparisonItems} />
@@ -106,8 +109,8 @@ export default async function LocationPage({
 
 			{/* 7. CTA banner */}
 			<CTABanner
-				heading="Ready to modernize your volunteer program?"
-				description="Join nonprofits across the Central Valley who are replacing spreadsheets with VolunteerReady."
+				heading={`Be the first nonprofit in ${location.name} on VolunteerReady`}
+				description="Founding organizations get white-glove onboarding, priority support, and a locked-in rate. We're looking for our first partners in your area."
 				actions={
 					<>
 						<Button
