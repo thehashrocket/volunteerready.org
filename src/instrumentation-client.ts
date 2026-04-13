@@ -26,6 +26,38 @@ Sentry.init({
 	// Enable sending user PII (Personally Identifiable Information)
 	// https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
 	sendDefaultPii: true,
+
+	// Filter known browser extension and third-party noise.
+	// These patterns generate false-positive alerts that drown real errors.
+	ignoreErrors: [
+		// Password manager extensions (LastPass, Bitwarden, 1Password)
+		/Object Not Found Matching Id:\d+/,
+		// Benign browser warning, not an error
+		/ResizeObserver loop completed with undelivered notifications/,
+		/ResizeObserver loop limit exceeded/,
+		// Browser extensions throwing strings instead of Error objects
+		/Non-Error promise rejection captured with value/,
+		// Network failures on visitor devices (flaky connections, nav away mid-fetch)
+		/Failed to fetch/,
+		/Load failed/,
+		/NetworkError when attempting to fetch resource/,
+		/ChunkLoadError/,
+		/Loading chunk [\d]+ failed/,
+		// Legacy browser globals
+		'top.GLOBALS',
+		'originalCreateNotification',
+		'canvas.contentDocument',
+	],
+
+	denyUrls: [
+		// Browser extensions inject scripts that throw errors in the page context
+		/extensions\//i,
+		/^chrome-extension:\/\//,
+		/^moz-extension:\/\//,
+		/^safari-extension:\/\//,
+		// Cloudflare scripts
+		/cdn-cgi/,
+	],
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

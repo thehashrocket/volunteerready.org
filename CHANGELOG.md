@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.0.1] - 2026-04-13
+
+### Fixed
+- **Sentry noise reduction** — added `ignoreErrors` and `denyUrls` filters to the client-side Sentry config to suppress false-positive alerts from browser extensions (password managers, ad blockers), ResizeObserver warnings, and network failures on visitor devices. Filters applied to the correct Next.js instrumentation file (`src/instrumentation-client.ts`).
+
 ## [0.20.0.0] - 2026-04-13
 
 ### Added
