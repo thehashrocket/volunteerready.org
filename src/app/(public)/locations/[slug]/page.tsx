@@ -121,7 +121,7 @@ export default async function LocationPage({
 						<Button
 							size="lg"
 							variant="outline"
-							className="rounded-full border-primary-foreground/30 px-8 text-primary-foreground hover:bg-primary-foreground/10"
+							className="rounded-full border-white/30 bg-transparent px-8 text-white hover:bg-white/10"
 							asChild
 						>
 							<a
