@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		select: { name: true, consentToPublicize: true },
 	});
 
-	if (!org || !org.consentToPublicize) {
+	if (!org?.consentToPublicize) {
 		return { title: 'Story not found — VolunteerReady' };
 	}
 
@@ -42,7 +42,7 @@ export default async function StoryPage({ params }: Props) {
 		select: { id: true, consentToPublicize: true },
 	});
 
-	if (!org || !org.consentToPublicize) notFound();
+	if (!org?.consentToPublicize) notFound();
 
 	const data = await getCaseStudy(org.id);
 	if (!data) notFound();

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.22.0.0] - 2026-04-17
+
+### Added
+- **Platform Admin Catalog Editor (Tier 2)** — new `/app/admin/platform/catalog` surface with tabs for Skill Families, Skills, and Default Screener Questions. CRUD on the reference-data catalog without shipping code, with audit rows for every mutation (`SKILL_FAMILY_CREATED/UPDATED/DEACTIVATED/REACTIVATED`, `SKILL_CREATED/UPDATED/DEACTIVATED/REACTIVATED`, `DEFAULT_QUESTION_CREATED/UPDATED/DEACTIVATED/REACTIVATED`).
+- **Template screener questions** — `ScreenerQuestion.isTemplate` flag marks platform-org rows that serve as defaults for new-org onboarding. Admins edit templates in the catalog UI; new orgs created after an edit get the updated wording.
+- **Catalog soft-delete** — `isActive` + `order` on `SkillFamily` and `Skill`; deactivating an entry removes it from active catalog views without losing audit history.
+- **`platformCatalog` tRPC router** guarded by `platformAdminProcedure`: `getCatalog`, `createSkillFamily`, `updateSkillFamily`, `createSkill`, `updateSkill`, `getDefaultQuestions`, `createDefaultQuestion`, `updateDefaultQuestion`.
+- **Name + slug uniqueness pre-checks** on skill families and skills with friendly `CONFLICT` error messages.
+
+### Changed
+- **`ensureReferenceData()` is now create-only** — boot-time seeding no longer overwrites admin DB edits, even across `CATALOG_VERSION` bumps. The TS constant (`SKILL_CATALOG`) becomes a bootstrap source only.
+- **`seedDefaultQuestions()` reads templates from the DB** (`isTemplate=true, isActive=true`) instead of the TS constant, so admin edits propagate to new orgs immediately. Also guards against seeding onto the platform org itself (prevents `(orgId,key)` self-collision).
+- **Boot guard seeds platform template questions** on first run from the TS constant, then never overwrites them.
+- **Regular screener routes filter out template rows** — `listQuestions`, `getQuestion`, `getMaxOrder`, `updateQuestion`, `deleteQuestion`, `findAdjacentQuestion`, `swapOrders` in `screenerQuestionsRepo.ts` scope to `isTemplate: false` so platform-org admins cannot edit templates via non-catalog routes (bypassing audit).
+- **Default-question backfill script** excludes the platform org to avoid collisions with template rows.
+
+### Fixed
+- **Inactive templates no longer leak into new orgs** — `seedDefaultQuestions()` filters `isActive: true` on the source query; deactivating a template in the catalog UI now honors the promise "inactive templates are not copied into new orgs."
+- **Empty-template warning** — `seedDefaultQuestions()` emits a structured `console.warn` if no active templates exist (fresh install or all deactivated), instead of silently creating an org with zero screener questions.
+
 ## [0.21.0.0] - 2026-04-17
 
 ### Added

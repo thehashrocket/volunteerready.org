@@ -1,6 +1,7 @@
 import {
 	backfillDefaultQuestions,
 	prisma,
+	seedPlatformTemplateQuestions,
 	seedSkillCatalog,
 	upsertOrg,
 } from './seed-helpers.js';
@@ -31,7 +32,13 @@ export async function seedProduction() {
 	);
 
 	// =========================================================================
-	// 3. Default screener questions for all orgs
+	// 3. Platform org template screener questions
+	// =========================================================================
+	console.log('🧩 Seeding platform template screener questions...');
+	await seedPlatformTemplateQuestions();
+
+	// =========================================================================
+	// 4. Default screener questions for all other orgs (backfill)
 	// =========================================================================
 	console.log('📋 Backfilling default screener questions...');
 	await backfillDefaultQuestions();

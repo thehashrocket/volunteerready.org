@@ -17,7 +17,7 @@ describe('JsonLdFaq', () => {
 		);
 		expect(script).toBeTruthy();
 
-		const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, '<'));
+		const data = JSON.parse(script?.textContent?.replace(/\\u003c/g, '<'));
 		expect(data['@type']).toBe('FAQPage');
 		expect(data.mainEntity).toHaveLength(2);
 		expect(data.mainEntity[0]['@type']).toBe('Question');
@@ -30,7 +30,7 @@ describe('JsonLdFaq', () => {
 		const script = container.querySelector(
 			'script[type="application/ld+json"]',
 		);
-		const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, '<'));
+		const data = JSON.parse(script?.textContent?.replace(/\\u003c/g, '<'));
 		expect(data.mainEntity).toHaveLength(0);
 	});
 });

@@ -17,7 +17,7 @@ describe('JsonLdBreadcrumb', () => {
 		);
 		expect(script).toBeTruthy();
 
-		const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, '<'));
+		const data = JSON.parse(script?.textContent?.replace(/\\u003c/g, '<'));
 		expect(data['@type']).toBe('BreadcrumbList');
 		expect(data.itemListElement).toHaveLength(2);
 		expect(data.itemListElement[0].position).toBe(1);
@@ -31,7 +31,7 @@ describe('JsonLdBreadcrumb', () => {
 		const script = container.querySelector(
 			'script[type="application/ld+json"]',
 		);
-		const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, '<'));
+		const data = JSON.parse(script?.textContent?.replace(/\\u003c/g, '<'));
 		expect(data.itemListElement).toHaveLength(0);
 	});
 });

@@ -28,6 +28,12 @@ import {
 	type ShiftStatus,
 	type SignupStatus,
 } from '../src/prisma/generated/client/index.js';
+import {
+	CATALOG_VERSION,
+	PLATFORM_ORG_SLUG,
+	SKILL_CATALOG,
+} from '../src/server/domain/reference-data.js';
+import { DEFAULT_SCREENER_QUESTIONS } from '../src/server/domain/volunteer-screening.js';
 
 const datasourceUrl = process.env.DATABASE_URL;
 if (!datasourceUrl) throw new Error('DATABASE_URL is not set');
@@ -148,12 +154,7 @@ export async function upsertProfile(
 // Skill catalog (SkillFamily + Skill) — canonical data lives in domain layer.
 // ---------------------------------------------------------------------------
 
-export { SKILL_CATALOG } from '../src/server/domain/reference-data.js';
-
-import {
-	CATALOG_VERSION,
-	SKILL_CATALOG,
-} from '../src/server/domain/reference-data.js';
+export { SKILL_CATALOG };
 
 /** Seed skill catalog and return a slug->id lookup map for all skills and families. */
 export async function seedSkillCatalog(): Promise<{
@@ -202,10 +203,11 @@ export async function seedSkillCatalog(): Promise<{
 // Idempotent via createMany + skipDuplicates (@@unique([orgId, key])).
 // ---------------------------------------------------------------------------
 
-import { DEFAULT_SCREENER_QUESTIONS } from '../src/server/domain/volunteer-screening.js';
-
 export async function backfillDefaultQuestions() {
+	// Skip the platform org: its ScreenerQuestion rows are template rows
+	// (isTemplate=true), seeded separately by the runtime boot guard.
 	const orgs = await prisma.organization.findMany({
+		where: { slug: { not: PLATFORM_ORG_SLUG } },
 		select: { id: true, name: true },
 		orderBy: { createdAt: 'asc' },
 	});
@@ -237,6 +239,44 @@ export async function backfillDefaultQuestions() {
 	console.log(
 		`   ${totalInserted} questions across ${orgsUpdated} orgs (${orgs.length - orgsUpdated} already had all defaults)\n`,
 	);
+}
+
+/**
+ * Seed the platform org's template screener questions (isTemplate=true).
+ * Create-only: existing template rows are never overwritten — admin edits
+ * via the platform admin catalog editor are preserved across re-runs.
+ */
+export async function seedPlatformTemplateQuestions() {
+	const platformOrg = await prisma.organization.findUnique({
+		where: { slug: PLATFORM_ORG_SLUG },
+		select: { id: true, name: true },
+	});
+	if (!platformOrg) {
+		console.warn(
+			`   platform org (slug="${PLATFORM_ORG_SLUG}") not found — run upsertOrg first`,
+		);
+		return;
+	}
+
+	const result = await prisma.screenerQuestion.createMany({
+		data: DEFAULT_SCREENER_QUESTIONS.map((q) => ({
+			orgId: platformOrg.id,
+			key: q.key,
+			prompt: q.prompt,
+			type: q.type,
+			order: q.order,
+			isActive: true,
+			isTemplate: true,
+			configJson: q.configJson as Prisma.InputJsonValue,
+		})),
+		skipDuplicates: true,
+	});
+
+	if (result.count > 0) {
+		console.log(
+			`   ${platformOrg.name}: inserted ${result.count} template screener questions`,
+		);
+	}
 }
 
 export async function upsertSkills(

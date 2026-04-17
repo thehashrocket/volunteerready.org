@@ -94,7 +94,7 @@ describe('issueCredentialAndResolveFcra', () => {
 
 		// Status + FCRA resolved via CAS update
 		expect(mockUpdateMany).toHaveBeenCalledOnce();
-		expect(mockUpdateMany.mock.calls[0]![0]).toMatchObject({
+		expect(mockUpdateMany.mock.calls[0]?.[0]).toMatchObject({
 			where: {
 				id: 'req-1',
 				status: 'CONSIDER',
