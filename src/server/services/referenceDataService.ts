@@ -1,16 +1,22 @@
 /**
  * Reference Data Boot Guard — self-healing runtime check.
  *
- * Ensures the skill catalog and platform org exist before serving requests.
- * Uses a module-level `_seeded` flag to avoid re-checking after first success.
- * Concurrent cold-start calls are deduplicated via a shared promise.
+ * Ensures the skill catalog, platform org, and template screener questions
+ * exist before serving requests. Uses a module-level `_seeded` flag to avoid
+ * re-checking after first success. Concurrent cold-start calls are
+ * deduplicated via a shared promise.
+ *
+ * All seed functions are create-only: DB edits via the platform admin
+ * catalog editor are never overwritten by boot-time seeding.
  */
 
 import {
+	areTemplateQuestionsSeeded,
 	isCatalogSeeded,
 	isPlatformOrgSeeded,
 	seedCatalog,
 	seedPlatformOrg,
+	seedPlatformTemplateQuestions,
 } from '@/server/repositories/referenceDataRepo';
 
 let _seeded = false;
@@ -21,12 +27,11 @@ let _seedingPromise: Promise<void> | null = null;
  * success, subsequent calls return immediately (0ms).
  *
  * On Vercel cold starts, re-checks the DB (~1ms). If data is missing, seeds
- * it automatically using idempotent upserts.
+ * it automatically using create-only semantics (never overwrites DB edits).
  */
 export async function ensureReferenceData(): Promise<void> {
 	if (_seeded) return;
 
-	// Deduplicate concurrent calls during cold start
 	if (_seedingPromise) return _seedingPromise;
 
 	_seedingPromise = _ensureReferenceDataInner();
@@ -39,12 +44,13 @@ export async function ensureReferenceData(): Promise<void> {
 
 async function _ensureReferenceDataInner(): Promise<void> {
 	try {
-		const [catalogOk, platformOrgOk] = await Promise.all([
+		const [catalogOk, platformOrgOk, templatesOk] = await Promise.all([
 			isCatalogSeeded(),
 			isPlatformOrgSeeded(),
+			areTemplateQuestionsSeeded(),
 		]);
 
-		if (catalogOk && platformOrgOk) {
+		if (catalogOk && platformOrgOk && templatesOk) {
 			_seeded = true;
 			return;
 		}
@@ -65,9 +71,15 @@ async function _ensureReferenceDataInner(): Promise<void> {
 			);
 		}
 
+		if (!templatesOk) {
+			const result = await seedPlatformTemplateQuestions();
+			console.warn(
+				`[referenceDataService] Boot guard seeded ${result.created} template screener questions (${Date.now() - start}ms)`,
+			);
+		}
+
 		_seeded = true;
 	} catch (err) {
-		// Don't set _seeded — next request will retry
 		console.error(
 			'[referenceDataService] Boot guard failed — will retry on next request:',
 			err,

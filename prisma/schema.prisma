@@ -248,13 +248,16 @@ model ScreenerQuestion {
   disqualifierJson Json?
   configJson       Json
   isActive         Boolean              @default(true)
+  isTemplate       Boolean              @default(false)
   order            Int
   createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
 
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, key])
   @@index([orgId, isActive, order])
+  @@index([isTemplate])
 }
 
 enum ApplicationStatus {
@@ -372,10 +375,14 @@ model SkillFamily {
   id           String                   @id @default(cuid())
   name         String                   @unique
   slug         String                   @unique
+  isActive     Boolean                  @default(true)
+  order        Int                      @default(0)
   skills       Skill[]
   requirements OpportunityRequirement[]
   createdAt    DateTime                 @default(now())
   updatedAt    DateTime                 @updatedAt
+
+  @@index([isActive, order])
 }
 
 model Skill {
@@ -383,6 +390,8 @@ model Skill {
   name            String                   @unique
   slug            String                   @unique
   familyId        String
+  isActive        Boolean                  @default(true)
+  order           Int                      @default(0)
   family          SkillFamily              @relation(fields: [familyId], references: [id])
   volunteerSkills VolunteerSkill[]
   requirements    OpportunityRequirement[]
@@ -390,6 +399,7 @@ model Skill {
   updatedAt       DateTime                 @updatedAt
 
   @@index([familyId])
+  @@index([isActive, order])
 }
 
 model VolunteerSkill {

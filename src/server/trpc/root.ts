@@ -21,6 +21,7 @@ import { onboardingRouter } from '@/server/trpc/routers/onboarding';
 import { opportunitiesRouter } from '@/server/trpc/routers/opportunities';
 import { orgRouter } from '@/server/trpc/routers/org';
 import { platformAdminRouter } from '@/server/trpc/routers/platformAdmin';
+import { platformCatalogRouter } from '@/server/trpc/routers/platformCatalog';
 import { profileRouter } from '@/server/trpc/routers/profile';
 import { screenerRouter } from '@/server/trpc/routers/screener';
 import { shiftTemplatesRouter } from '@/server/trpc/routers/shift-templates';
@@ -51,6 +52,7 @@ export const appRouter = createTRPCRouter({
 	opportunities: opportunitiesRouter,
 	org: orgRouter,
 	platformAdmin: platformAdminRouter,
+	platformCatalog: platformCatalogRouter,
 	profile: profileRouter,
 	screener: screenerRouter,
 	shiftTemplates: shiftTemplatesRouter,

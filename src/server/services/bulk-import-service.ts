@@ -57,7 +57,7 @@ export function parseCsv(csv: string): ParseResult {
 		const cols = line.split(',').map((c) => c.trim());
 		const email = cols[emailIdx]?.toLowerCase() ?? '';
 
-		if (!email || !email.includes('@')) {
+		if (!email?.includes('@')) {
 			errors.push({ row: i + 1, error: `Invalid email: "${email}"` });
 			continue;
 		}

@@ -4,7 +4,7 @@
  * These test the core logic by importing and executing the scripts
  * with mocked Prisma and process.argv.
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 // Since the scripts use `new PrismaClient()` directly (standalone scripts),
 // we test them at a higher level by verifying the expected DB operations
