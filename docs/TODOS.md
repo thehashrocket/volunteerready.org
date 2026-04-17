@@ -5,6 +5,49 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Platform Admin Console — follow-ups from Tier 1 ship (2026-04-17)
+
+Deferred from the Tier 1 adversarial review. None block the Tier 1 ship; all
+are quality-of-life improvements for admins or observability.
+
+- **[P2] Banner error surfacing** — `impersonation-banner.tsx:43–51` currently
+  redirects in a `finally` even when the end-session `fetch` fails. Fixing
+  CRITICAL #1 (cookie always clears server-side) makes this safe, but the
+  banner still shouldn't navigate away if the server returned a user-visible
+  error. Branch on `res.ok`; on failure, show the error inline and keep the
+  banner visible.
+- **[P2] `handleImpersonate` error parsing** —
+  `src/app/(app)/app/admin/platform/users/[id]/page.tsx:~88`, replace
+  `await res.json().catch(() => ({}))` with a variant that preserves non-JSON
+  response bodies and the Zod `issues` array so admins see why start failed.
+- **[P2] Audit page error state** —
+  `src/app/(app)/app/admin/platform/audit/page.tsx` has no `isError` branch
+  in the render; add a visible failure state so pagination errors don't read
+  as "no data".
+- **[P2] Org detail error state** — when `getOrg` `Promise.all` fails on one
+  branch, the detail page currently falls back to "Organization not found",
+  which is a lie. Differentiate `isError` from "not found" in
+  `src/app/(app)/app/admin/platform/orgs/[id]/page.tsx`.
+- **[P3] `UserAuditList` shows actor-only rows** —
+  `users/[id]/page.tsx:~494` queries `actorId: userId`; also surface rows
+  where `entityId: userId` (actions *against* the user) so "SESSIONS_REVOKED"
+  / "PLATFORM_ADMIN_GRANTED" show up where admins expect them.
+- **[P3] Banner reload-on-expiry guard** — `impersonation-banner.tsx:34–38`
+  could loop on clock skew. Add a one-shot flag so we reload at most once per
+  mount, or reload with `?expired=1` and let the server honor it.
+- **[P3] Sensitive-key audit detection → Sentry** —
+  `auditQueryService.ts:13–34` uses `console.warn`; route through the project's
+  structured logger (or `Sentry.captureMessage`) so these hit the dashboard.
+- **[P3] Structured error logging on `resolveImpersonation`** —
+  `src/server/trpc/init.ts` — wrap the call in try/catch and `logError` with
+  an `IMPERSONATION_RESOLVE_FAILED` tag before re-raising, so regressions are
+  visible in Sentry.
+- **[P3] Self-demotion guard** — `platformUserService.setPlatformAdmin`
+  currently logs `selfAction: true` but does not block an admin from demoting
+  themselves. Consider requiring a second admin, or at least warning in the UI.
+
+---
+
 ## Background Check Integration (Phase 6B)
 
 ### ~~[P1] FCRA Adverse Action Notices~~ ✅ Complete

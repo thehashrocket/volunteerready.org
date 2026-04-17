@@ -12,6 +12,7 @@ import {
 	QrCode,
 	Search,
 	Settings,
+	Shield,
 	Star,
 	TrendingUp,
 	User,
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -92,8 +94,22 @@ interface AppSidebarProps {
 	companyId?: string | null;
 }
 
+const PLATFORM_ADMIN_NAV: NavItem[] = [
+	{
+		label: 'Organizations',
+		href: '/app/admin/platform/orgs',
+		icon: Building2,
+	},
+	{ label: 'Users', href: '/app/admin/platform/users', icon: Users },
+	{ label: 'Audit log', href: '/app/admin/platform/audit', icon: FileText },
+];
+
 export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 	const pathname = usePathname();
+	const { data: session } = useSession();
+	const isPlatformAdmin =
+		(session?.user as { isPlatformAdmin?: boolean } | undefined)
+			?.isPlatformAdmin === true;
 
 	return (
 		<nav className="flex flex-col gap-1">
@@ -129,6 +145,19 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 						Company
 					</p>
 					{getCompanyNav(companyId).map((item) => (
+						<NavLink key={item.href} item={item} pathname={pathname} />
+					))}
+				</>
+			)}
+
+			{isPlatformAdmin && (
+				<>
+					<div className="my-3 border-t" />
+					<p className="mb-1 flex items-center gap-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+						<Shield className="h-3 w-3" />
+						Platform admin
+					</p>
+					{PLATFORM_ADMIN_NAV.map((item) => (
 						<NavLink key={item.href} item={item} pathname={pathname} />
 					))}
 				</>

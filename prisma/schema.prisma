@@ -34,6 +34,8 @@ model User {
   feedbacks               UserFeedback[]
   resolvedFeedbacks       UserFeedback[]          @relation("FeedbackResolver")
   repliedFeedbacks        UserFeedback[]          @relation("FeedbackReplier")
+  impersonationsAsAdmin   ImpersonationSession[]  @relation("ImpersonationAdmin")
+  impersonationsAsTarget  ImpersonationSession[]  @relation("ImpersonationTarget")
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
 }
@@ -1058,4 +1060,22 @@ model LeadCapture {
   @@unique([contactEmail, locationSlug])
   @@index([locationSlug, createdAt])
   @@index([deletedAt])
+}
+
+model ImpersonationSession {
+  id           String    @id @default(cuid())
+  adminUserId  String
+  targetUserId String
+  reason       String
+  startedAt    DateTime  @default(now())
+  expiresAt    DateTime
+  endedAt      DateTime?
+  endedReason  String?
+
+  admin  User @relation("ImpersonationAdmin", fields: [adminUserId], references: [id], onDelete: Cascade)
+  target User @relation("ImpersonationTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId])
+  @@index([targetUserId])
+  @@index([expiresAt])
 }
