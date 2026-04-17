@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.21.0.0] - 2026-04-17
+
+### Added
+- **Platform Admin Console (Tier 1)** — new `/app/admin/platform` surface for platform admins with three tabs: Organizations, Users, and Audit log. Users and orgs support search and detail views; user detail shows memberships, sessions, submitted applications, and per-user audit history.
+- **Platform admin actions** — grant/revoke the `isPlatformAdmin` flag on any user (with mandatory reason) and revoke all active sessions for a user. Every action writes an audit row with `selfAction` tracking.
+- **Support impersonation flow** — platform admins can impersonate any non-admin user for up to 30 minutes. Impersonation emits `IMPERSONATION_START` / `IMPERSONATION_END` audit rows, binds a signed cookie to the admin, and shows a sticky `ImpersonationBanner` with a live countdown and End-session control.
+- **`platformAdminProcedure`** — tRPC middleware that enforces platform-admin access, using `realUserId` so admins retain console access while impersonating another user.
+- **REST `/api/platform-admin/impersonation/{start,end}`** — session-authenticated endpoints with platform-admin re-checks, Zod input validation, httpOnly cookie, and structured error mapping. Unexpected errors return 500 with a generic message (no internal detail leak).
+- **Audit query service** — filterable log (actor/entity/action/org/date range/impersonation-only) with sensitive-key redaction before rows leave the server.
+
+### Changed
+- **tRPC context** resolves impersonation on every request: `realUserId` always points at the admin, `session.user.id` swaps to the impersonation target, and `platformAdminProcedure` checks `realUserId` so admin procedures still succeed.
+- `getUser` (platform user service) now loads submitted application summary in parallel with user detail, surfaced on the user detail page's Applications tab.
+
+### Fixed
+- **SEC-1:** `endImpersonation` now rejects callers who are not the admin who started the session, preventing one platform admin from terminating another's active impersonation by passing a known session id.
+- **SEC-2:** `/api/platform-admin/impersonation/end` clears the cookie even when the service throws, so a failed end request cannot silently leave the admin impersonating after the UI redirects them away.
+
 ## [0.20.0.1] - 2026-04-13
 
 ### Fixed

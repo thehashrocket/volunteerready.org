@@ -76,6 +76,7 @@ src/
 │   │   ├── discover/             # Staff: search PUBLIC volunteers + invite to apply (rate-limited)
 │   │   ├── my-feedback/          # Volunteer: feedback history with admin replies
 │   │   ├── admin/feedback/       # Platform admin: feedback triage inbox (list/detail, status, reply)
+│   │   ├── admin/platform/       # Platform admin console (Tier 1): orgs, users, audit viewer, impersonation launch
 │   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
 │   │   ├── shifts/               # Staff: manage shifts + attendance + templates tab (STARTER-gated)
@@ -207,7 +208,8 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 - **NotificationPreference** — per-user, per-org, per-type delivery channel toggles (inApp, email).
 - **BackgroundCheckRequest** — org-scoped background check lifecycle (PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED). FCRA status nested within CONSIDER: NONE → PRE_ADVERSE_SENT → ADVERSE_ACTION_SENT / RESOLVED. Provider tokens encrypted at rest (AES-256-GCM).
 - **CheckrWebhookEvent** — idempotency table for webhook deduplication (mirrors StripeWebhookEvent pattern).
-- **AuditLog** — append-only, immutable activity log per org.
+- **AuditLog** — append-only, immutable activity log per org. Also carries platform-level actions (IMPERSONATION_START/END, PLATFORM_ADMIN_GRANTED/REVOKED, SESSIONS_REVOKED) where `orgId` is null.
+- **ImpersonationSession** — platform-admin impersonation record. Fields: `adminUserId`, `targetUserId`, `reason`, `startedAt`, `expiresAt`, `endedAt`, `endedReason`. Indexed on all three for active-lookup + per-user history. Hard-capped at 30 minutes — no refresh, start a new session instead.
 - **FeatureFlag** — per-org feature toggles.
 - **OrganizationInvitation** — team invite tokens with expiry.
 - **ApplicationStatusToken** — opaque tokens for public status lookups.
@@ -233,8 +235,11 @@ See `docs/DOMAIN.md` for canonical vocabulary.
 | `orgProcedure` | Authenticated + org membership | `orgId: string` (non-null) |
 | `staffProcedure` | STAFF, ADMIN, or OWNER role | `role: Role` (non-null) |
 | `adminProcedure` | ADMIN or OWNER role | `role: Role` (non-null) |
+| `platformAdminProcedure` | `ctx.realUserId` is a platform admin (checked against real session, not impersonated one) | — |
 
 Each middleware narrows the context type via `next({ ctx: { ... } })`, so downstream code can use `ctx.orgId` and `ctx.role` without non-null assertions. Always use the **narrowest** access level possible.
+
+**Impersonation.** A platform admin can temporarily act as another user via `/app/admin/platform/users/[id]`. The tRPC context resolves an impersonation cookie to swap `session.user.id` to the target user while preserving `realUserId` (the admin). `platformAdminProcedure` uses `realUserId` so admins retain platform access while impersonating. All platform-admin actions call `requireRealUserId(ctx)` so audit rows attribute to the real admin, never the effective user.
 
 ---
 
@@ -256,6 +261,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `org` | getCurrentOrg, listOrgs, switchOrg |
 | `discovery` | searchVolunteers (staff), inviteToApply (staff) |
 | `feedback` | submit, myFeedback, listAll (platform admin), updateStatus (platform admin), reply (platform admin), newCount (platform admin) |
+| `platformAdmin` | `orgs.{list,get}`, `users.{list,get,setPlatformAdmin,revokeAllSessions}`, `impersonation.{start,end,current,history}`, `audit.{query,options}` — all `platformAdminProcedure`. Audit metadata is redacted by `auditQueryService` before return. |
 | `profile` | getMyProfile, updateMyProfile, getMyStats, getMyUserId, getPublicProfile (public), getOrgVisibleProfile (staff) |
 | `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail |
 | `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |
@@ -461,7 +467,16 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/trpc/routers/screener.ts` | Largest router — shows tRPC patterns |
 | `src/middleware.ts` | Auth middleware for route protection |
 | `src/server/auth.ts` | NextAuth configuration + session org resolution |
-| `src/server/repositories/auditRepo.ts` | Audit logging (both standalone and transactional variants) |
+| `src/server/repositories/auditRepo.ts` | Audit logging (both standalone and transactional variants) + cursor-paginated query API for the platform-admin viewer |
+| `src/server/domain/impersonation.ts` | Impersonation constants, reason Zod schema, `EffectiveUser` type, audit action constants |
+| `src/server/services/impersonationService.ts` | `startImpersonation` (txn: session + audit), `endImpersonation` (idempotent), `resolveImpersonation` (security: cookie must be bound to admin's real session) |
+| `src/server/services/platformUserService.ts` | List/get users, grant/revoke platform admin, revoke all sessions — reason required, audits every mutation |
+| `src/server/services/platformOrgService.ts` | Platform-wide org list/detail with counts and recent applications |
+| `src/server/services/auditQueryService.ts` | Query + metadata redaction (sensitive keys replaced with `[REDACTED]`, warned once per key) for the audit viewer |
+| `src/server/lib/impersonation-context.ts` | Server-Component helper that reads the impersonation cookie and returns banner metadata |
+| `src/components/app/impersonation-banner.tsx` | Sticky top banner with countdown + end-session button; renders above `AppShell` when impersonating |
+| `src/app/(app)/app/admin/platform/` | Platform admin console pages: orgs, users, audit viewer, impersonation launch |
+| `src/app/api/platform-admin/impersonation/{start,end}/route.ts` | Cookie-setting endpoints — cookie is HTTP-only, scoped to the impersonation session id, 30-min max-age |
 | `src/server/domain/screener/configSchema.ts` | Zod schemas for screening question configuration |
 | `src/server/domain/volunteer-matching.ts` | Pure matching/scoring logic (case-insensitive, 0–100 scores) |
 | `src/server/services/volunteerMatchingService.ts` | Matching service orchestration |

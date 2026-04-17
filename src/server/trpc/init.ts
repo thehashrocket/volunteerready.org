@@ -9,9 +9,11 @@ import type {
 } from '@/prisma/generated/client';
 import { authOptions } from '@/server/auth';
 import { assertPlanAtLeast } from '@/server/domain/billing';
+import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
 import { getCompanyPlanTier } from '@/server/repositories/companyRepo';
 import { getOrgPlanTier } from '@/server/repositories/orgRepo';
 import { prisma } from '@/server/repositories/prisma';
+import { resolveImpersonation } from '@/server/services/impersonationService';
 
 /** Extended session shape produced by our auth callback */
 type SessionExt = {
@@ -23,8 +25,8 @@ type SessionExt = {
 };
 
 export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
-	const session = await getServerSession(authOptions);
-	const ext = session as (typeof session & SessionExt) | null;
+	const realSession = await getServerSession(authOptions);
+	const ext = realSession as (typeof realSession & SessionExt) | null;
 	// NextAuth v4 database sessions do NOT pass sessionToken to the session
 	// callback, so orgId/role/companyId/companyRole may be null after the
 	// callback runs. Fall back to reading the token from the cookie header and
@@ -32,34 +34,102 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 	const sessionToken =
 		ext?.sessionToken ?? getSessionTokenFromHeaders(_opts.req);
 
-	let orgId: string | null = ext?.orgId ?? null;
-	let role: Role | null = ext?.role ?? null;
-	let companyId: string | null = ext?.companyId ?? null;
-	let companyRole: CompanyMemberRole | null = ext?.companyRole ?? null;
+	const realUserId = realSession?.user?.id ?? null;
+	const impersonationCookie = getImpersonationCookieFromHeaders(_opts.req);
 
-	if (!orgId && sessionToken) {
-		const dbSession = await prisma.session.findUnique({
-			where: { sessionToken },
-			select: {
-				currentOrgId: true,
-				currentCompanyId: true,
-				user: {
-					select: {
-						memberships: {
-							select: { organizationId: true, role: true },
-							orderBy: { createdAt: 'asc' },
-						},
-						companyMemberships: {
-							select: { companyId: true, role: true },
-							orderBy: { createdAt: 'asc' },
-						},
-					},
-				},
-			},
-		});
+	// Resolve impersonation — if the admin is acting as another user, all
+	// downstream org/role lookups should use the target user. The admin's
+	// real session is still available via `session` so audit writes can tag
+	// `impersonatedBy`.
+	let impersonation: Awaited<ReturnType<typeof resolveImpersonation>> = {
+		effective: null,
+		shouldClearCookie: false,
+	};
+	if (realUserId && impersonationCookie) {
+		impersonation = await resolveImpersonation(realUserId, impersonationCookie);
+	}
 
-		const memberships = dbSession?.user?.memberships ?? [];
-		const currentOrgId = dbSession?.currentOrgId ?? null;
+	const effectiveUserId = impersonation.effective?.userId ?? realUserId;
+	const isImpersonating = impersonation.effective !== null;
+
+	// Build the session object exposed to procedures. When impersonating,
+	// swap the user id so org-scoped checks pick the target user — but keep
+	// the real session available as `realSession` for audit logging.
+	const session = realSession
+		? ({
+				...realSession,
+				user: realSession.user
+					? { ...realSession.user, id: effectiveUserId ?? undefined }
+					: realSession.user,
+			} as typeof realSession)
+		: realSession;
+
+	let orgId: string | null = isImpersonating ? null : (ext?.orgId ?? null);
+	let role: Role | null = isImpersonating ? null : (ext?.role ?? null);
+	let companyId: string | null = isImpersonating
+		? null
+		: (ext?.companyId ?? null);
+	let companyRole: CompanyMemberRole | null = isImpersonating
+		? null
+		: (ext?.companyRole ?? null);
+
+	if (!orgId && effectiveUserId && (sessionToken || isImpersonating)) {
+		// When impersonating we don't have a session token for the target
+		// user — resolve their default org/company directly.
+		const dbSessionPromise =
+			sessionToken && !isImpersonating
+				? prisma.session.findUnique({
+						where: { sessionToken },
+						select: {
+							currentOrgId: true,
+							currentCompanyId: true,
+							user: {
+								select: {
+									memberships: {
+										select: { organizationId: true, role: true },
+										orderBy: { createdAt: 'asc' },
+									},
+									companyMemberships: {
+										select: { companyId: true, role: true },
+										orderBy: { createdAt: 'asc' },
+									},
+								},
+							},
+						},
+					})
+				: prisma.user.findUnique({
+						where: { id: effectiveUserId },
+						select: {
+							memberships: {
+								select: { organizationId: true, role: true },
+								orderBy: { createdAt: 'asc' },
+							},
+							companyMemberships: {
+								select: { companyId: true, role: true },
+								orderBy: { createdAt: 'asc' },
+							},
+						},
+					});
+
+		const resolved = await dbSessionPromise;
+
+		const memberships =
+			(
+				resolved as {
+					user?: {
+						memberships?: Array<{ organizationId: string; role: Role }>;
+					};
+				} | null
+			)?.user?.memberships ??
+			(
+				resolved as {
+					memberships?: Array<{ organizationId: string; role: Role }>;
+				} | null
+			)?.memberships ??
+			[];
+		const currentOrgId =
+			(resolved as { currentOrgId?: string | null } | null)?.currentOrgId ??
+			null;
 
 		if (currentOrgId) {
 			const match = memberships.find((m) => m.organizationId === currentOrgId);
@@ -70,8 +140,29 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 			role = memberships[0]?.role ?? null;
 		}
 
-		const companyMemberships = dbSession?.user?.companyMemberships ?? [];
-		const currentCompanyId = dbSession?.currentCompanyId ?? null;
+		const companyMemberships =
+			(
+				resolved as {
+					user?: {
+						companyMemberships?: Array<{
+							companyId: string;
+							role: CompanyMemberRole;
+						}>;
+					};
+				} | null
+			)?.user?.companyMemberships ??
+			(
+				resolved as {
+					companyMemberships?: Array<{
+						companyId: string;
+						role: CompanyMemberRole;
+					}>;
+				} | null
+			)?.companyMemberships ??
+			[];
+		const currentCompanyId =
+			(resolved as { currentCompanyId?: string | null } | null)
+				?.currentCompanyId ?? null;
 
 		if (currentCompanyId) {
 			const match = companyMemberships.find(
@@ -92,6 +183,9 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 
 	return {
 		session,
+		realSession,
+		realUserId,
+		impersonation: impersonation.effective,
 		orgId,
 		role,
 		companyId,
@@ -138,6 +232,16 @@ export function requireUserId(
 	const id = session?.user?.id;
 	if (!id) throw new TRPCError({ code: 'UNAUTHORIZED' });
 	return id;
+}
+
+/**
+ * Extract the REAL admin user id from the ctx (ignores impersonation).
+ * Use this for audit logging so the audit row attributes the action to the
+ * admin, not the impersonated target.
+ */
+export function requireRealUserId(ctx: { realUserId?: string | null }): string {
+	if (!ctx.realUserId) throw new TRPCError({ code: 'UNAUTHORIZED' });
+	return ctx.realUserId;
 }
 
 export const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
@@ -251,7 +355,10 @@ export function companyPlanTierProcedure(requiredTier: PlanTier) {
  */
 export const platformAdminProcedure = protectedProcedure.use(
 	async ({ ctx, next }) => {
-		const userId = ctx.session?.user?.id;
+		// Check the REAL user (the admin), not the impersonated target.
+		// Otherwise an admin who is impersonating would lose access to their
+		// own admin surface.
+		const userId = ctx.realUserId ?? ctx.session?.user?.id;
 		if (!userId) {
 			throw new TRPCError({
 				code: 'UNAUTHORIZED',
@@ -290,4 +397,16 @@ function getSessionTokenFromHeaders(req: Request) {
 	}
 
 	return decodeURIComponent(entry.split('=').slice(1).join('='));
+}
+
+function getImpersonationCookieFromHeaders(req: Request) {
+	const cookie = req.headers.get('cookie');
+	if (!cookie) return null;
+
+	const prefix = `${IMPERSONATION_COOKIE}=`;
+	const pairs = cookie.split(';').map((part) => part.trim());
+	const entry = pairs.find((pair) => pair.startsWith(prefix));
+	if (!entry) return null;
+
+	return decodeURIComponent(entry.slice(prefix.length));
 }
