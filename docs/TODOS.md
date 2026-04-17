@@ -45,6 +45,48 @@ are quality-of-life improvements for admins or observability.
 - **[P3] Self-demotion guard** — `platformUserService.setPlatformAdmin`
   currently logs `selfAction: true` but does not block an admin from demoting
   themselves. Consider requiring a second admin, or at least warning in the UI.
+- **[P3] `PlatformConfig.catalogRevision` singleton** — deferred from Tier 2
+  design review. A revision counter bumped on every skill/screener-default
+  edit would let clients cache-bust the catalog. Not needed until we see
+  actual stale-data bugs in admin UIs or opportunity-matching. Revisit if
+  admins report "I edited a skill but the opportunity form still shows the
+  old name." Current boot-guard merge-on-version-bump stays untouched.
+
+---
+
+## Platform Admin Console — Tier 2 (Catalog Editors) ✅ Shipped
+
+**Completed:** 2026-04-17
+
+Platform admin UI for editing skill families, skills, and default screener
+question templates from the browser — replaces the "edit TS constant →
+redeploy" loop. Routes under `/app/admin/platform/catalog/`:
+
+- `/catalog/skills` — skill family + skill CRUD (add, rename, deactivate/reactivate)
+- `/catalog/screener-defaults` — default screener question template CRUD
+
+Key design choices:
+- **`isTemplate` flag on `ScreenerQuestion`** — templates stored as
+  `isTemplate=true` rows on the platform org. All regular screener
+  repository functions (`listQuestions`, `getQuestion`, `updateQuestion`,
+  `deleteQuestion`, `swapOrders`, …) explicitly scope to
+  `isTemplate: false` so platform-org admins cannot edit templates via
+  non-catalog routes (bypassing audit).
+- **Create-only boot-guard semantics** — `seedCatalog()` +
+  `seedPlatformTemplateQuestions()` use `findUnique`/`create` patterns (no
+  upserts that overwrite). Admin edits survive version bumps.
+- **`seedDefaultQuestions()` reads from DB templates**, not the TS constant.
+  The constant (`DEFAULT_SCREENER_QUESTIONS`) is only used by the boot guard
+  to seed first-time templates.
+- **No retro-push** — editing a template never mutates any existing org's
+  screener. Templates apply only when a new org is created.
+
+Follow-ups (all P3):
+- Drag-and-drop reordering (currently order is edited numerically).
+- Diff view in AuditLog entries for catalog edits (currently `before`/`after`
+  JSON blobs; could render side-by-side).
+- "Revert to platform default" action on org screener questions when a
+  template changes — deferred until admins ask for it.
 
 ---
 
