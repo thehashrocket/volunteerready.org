@@ -41,17 +41,19 @@ export function TestimonialSection() {
 
 	return (
 		<section className="bg-muted px-4 py-16">
-			<div className="mx-auto max-w-2xl">
-				<h2 className="font-display mb-6 text-2xl font-bold text-foreground">
-					Trusted by nonprofits
-				</h2>
-				<TestimonialBlock
-					quote={testimonial.pullQuote}
-					orgName={testimonial.orgName}
-					statLabel={statLabel}
-					statValue={statValue}
-					storyUrl={`/stories/${testimonial.orgSlug}`}
-				/>
+			<div className="mx-auto grid max-w-[1040px] grid-cols-1 gap-12 md:grid-cols-[5fr_7fr] md:items-start">
+				<div className="md:col-start-2">
+					<h2 className="font-display mb-6 text-2xl font-bold text-foreground">
+						Trusted by nonprofits
+					</h2>
+					<TestimonialBlock
+						quote={testimonial.pullQuote}
+						orgName={testimonial.orgName}
+						statLabel={statLabel}
+						statValue={statValue}
+						storyUrl={`/stories/${testimonial.orgSlug}`}
+					/>
+				</div>
 			</div>
 		</section>
 	);

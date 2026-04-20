@@ -27,7 +27,7 @@ export function FaqSection({
 		<>
 			<JsonLdFaq faqs={faqs} />
 			<div className="mx-auto max-w-2xl">
-				<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
+				<h2 className="font-display mb-10 text-[32px] font-bold text-foreground [text-wrap:balance]">
 					{heading}
 				</h2>
 				<div className="flex flex-col">
