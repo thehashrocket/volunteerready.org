@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.1.2] - 2026-04-19
+
+### Changed
+- **Design tokens realigned to DESIGN.md hex spec** — every OKLCH color variable in `src/app/globals.css` is now a faithful conversion of the hex values canonicalized in `DESIGN.md`, with inline hex comments on each line so future drift is catchable in diff review. Most visible shifts: `--accent` is now the intended burnished gold `#C4A882` (previously ~2.5× over-saturated, rendering closer to mustard), `--success` now the darker forest `#2D7A4F` (previously too light), `--primary-hover` now matches the lighter hover green the spec calls for. Dark-mode tokens follow the DESIGN.md dark table (`#111110` bg, `#3D8B5F` primary, etc.). No component files touched; changes propagate via `var(--…)`.
+- **Semantic `-foreground` tokens stay dark on muted backgrounds** — `--success-foreground`, `--warning-foreground`, and `--info-foreground` intentionally remain dark-in-light-mode / light-in-dark-mode so that the codebase's primary usage (`bg-{color}-muted text-{color}-foreground` in `src/components/ui/badge.tsx` and `bg-{color}/XX text-{color}-foreground` in inline status indicators) renders with adequate contrast. Added a comment block at the light-mode status tokens explaining this pairing rule.
+
 ## [0.23.1.1] - 2026-04-19
 
 ### Changed
