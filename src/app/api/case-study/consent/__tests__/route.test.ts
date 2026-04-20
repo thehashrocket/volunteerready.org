@@ -52,7 +52,7 @@ describe('GET /api/case-study/consent', () => {
 	it('redirects to consent-expired when no token param', async () => {
 		const res = await GET(makeGetRequest());
 		expect(res.status).toBe(307);
-		expect(new URL(res.headers.get('location')!).pathname).toBe(
+		expect(new URL(res.headers.get('location') ?? '').pathname).toBe(
 			'/stories/consent-expired',
 		);
 	});
@@ -62,7 +62,7 @@ describe('GET /api/case-study/consent', () => {
 
 		const res = await GET(makeGetRequest('bad-token'));
 		expect(res.status).toBe(307);
-		expect(new URL(res.headers.get('location')!).pathname).toBe(
+		expect(new URL(res.headers.get('location') ?? '').pathname).toBe(
 			'/stories/consent-expired',
 		);
 	});
@@ -73,7 +73,7 @@ describe('GET /api/case-study/consent', () => {
 
 		const res = await GET(makeGetRequest('valid-token'));
 		expect(res.status).toBe(307);
-		expect(new URL(res.headers.get('location')!).pathname).toBe(
+		expect(new URL(res.headers.get('location') ?? '').pathname).toBe(
 			'/stories/consent-expired',
 		);
 	});
@@ -82,7 +82,7 @@ describe('GET /api/case-study/consent', () => {
 		vi.mocked(verifyConsentToken).mockReturnValue('org-123');
 		vi.mocked(prisma.organization.findUnique).mockResolvedValue({
 			name: 'Helping Hands',
-		} as any);
+		} as Awaited<ReturnType<typeof prisma.organization.findUnique>>);
 
 		const res = await GET(makeGetRequest('valid-token'));
 		expect(res.status).toBe(200);
@@ -98,7 +98,7 @@ describe('GET /api/case-study/consent', () => {
 		vi.mocked(verifyConsentToken).mockReturnValue('org-xss');
 		vi.mocked(prisma.organization.findUnique).mockResolvedValue({
 			name: '<script>alert("xss")</script>',
-		} as any);
+		} as Awaited<ReturnType<typeof prisma.organization.findUnique>>);
 		vi.mocked(escapeHtml).mockImplementation((s: string) =>
 			s
 				.replace(/&/g, '&amp;')
@@ -124,7 +124,7 @@ describe('POST /api/case-study/consent', () => {
 	it('redirects 303 to consent-expired when no token in form body', async () => {
 		const res = await POST(makePostRequest());
 		expect(res.status).toBe(303);
-		expect(new URL(res.headers.get('location')!).pathname).toBe(
+		expect(new URL(res.headers.get('location') ?? '').pathname).toBe(
 			'/stories/consent-expired',
 		);
 	});
@@ -134,7 +134,7 @@ describe('POST /api/case-study/consent', () => {
 
 		const res = await POST(makePostRequest('bad-token'));
 		expect(res.status).toBe(303);
-		expect(new URL(res.headers.get('location')!).pathname).toBe(
+		expect(new URL(res.headers.get('location') ?? '').pathname).toBe(
 			'/stories/consent-expired',
 		);
 	});
@@ -145,7 +145,7 @@ describe('POST /api/case-study/consent', () => {
 
 		const res = await POST(makePostRequest('valid-token'));
 		expect(res.status).toBe(303);
-		expect(new URL(res.headers.get('location')!).pathname).toBe(
+		expect(new URL(res.headers.get('location') ?? '').pathname).toBe(
 			'/stories/consent-expired',
 		);
 	});
@@ -154,14 +154,14 @@ describe('POST /api/case-study/consent', () => {
 		vi.mocked(verifyConsentToken).mockReturnValue('org-123');
 		vi.mocked(prisma.organization.findUnique).mockResolvedValue({
 			slug: 'helping-hands',
-		} as any);
+		} as Awaited<ReturnType<typeof prisma.organization.findUnique>>);
 
 		const res = await POST(makePostRequest('valid-token'));
 
 		expect(setOrgConsent).toHaveBeenCalledWith('org-123', true);
 		expect(res.status).toBe(303);
 
-		const location = new URL(res.headers.get('location')!);
+		const location = new URL(res.headers.get('location') ?? '');
 		expect(location.pathname).toBe('/stories/consent-confirmed');
 		expect(location.searchParams.get('org')).toBe('helping-hands');
 	});
@@ -170,7 +170,7 @@ describe('POST /api/case-study/consent', () => {
 		vi.mocked(verifyConsentToken).mockReturnValue('org-123');
 		vi.mocked(prisma.organization.findUnique).mockResolvedValue({
 			slug: 'helping-hands',
-		} as any);
+		} as Awaited<ReturnType<typeof prisma.organization.findUnique>>);
 		vi.mocked(setOrgConsent).mockRejectedValue(new Error('DB connection lost'));
 
 		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -178,7 +178,7 @@ describe('POST /api/case-study/consent', () => {
 		const res = await POST(makePostRequest('valid-token'));
 
 		expect(res.status).toBe(303);
-		expect(new URL(res.headers.get('location')!).pathname).toBe(
+		expect(new URL(res.headers.get('location') ?? '').pathname).toBe(
 			'/stories/consent-expired',
 		);
 		expect(errorSpy).toHaveBeenCalledWith(

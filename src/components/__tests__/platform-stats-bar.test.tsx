@@ -23,7 +23,7 @@ describe('PlatformStatsBar', () => {
 		});
 
 		const Component = await PlatformStatsBar();
-		const { container } = render(Component);
+		render(Component);
 
 		expect(screen.getByText('12')).toBeTruthy();
 		expect(screen.getByText('150')).toBeTruthy();
@@ -53,7 +53,7 @@ describe('PlatformStatsBar', () => {
 		});
 
 		const Component = await PlatformStatsBar();
-		const { container } = render(Component);
+		render(Component);
 
 		expect(screen.getByText('1k')).toBeTruthy();
 		expect(screen.getByText('5.2k')).toBeTruthy();

@@ -83,7 +83,7 @@ describe('issueCredentialAndResolveFcra', () => {
 
 		// Credential issued with correct type+status
 		expect(mockUpsertCredential).toHaveBeenCalledOnce();
-		const [, credArgs] = mockUpsertCredential.mock.calls[0]!;
+		const [, credArgs] = mockUpsertCredential.mock.calls[0] ?? [];
 		expect(credArgs).toMatchObject({
 			userId: 'user-1',
 			orgId: 'org-1',
@@ -114,7 +114,7 @@ describe('issueCredentialAndResolveFcra', () => {
 			expiresAt: expires,
 		});
 
-		const [, credArgs] = mockUpsertCredential.mock.calls[0]!;
+		const [, credArgs] = mockUpsertCredential.mock.calls[0] ?? [];
 		expect(credArgs.notes).toBe('Clear with minor record');
 		expect(credArgs.expiresAt).toBe(expires);
 	});

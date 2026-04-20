@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks — use vi.hoisted so they're available in vi.mock factories
 // ---------------------------------------------------------------------------
 
-const { mockTransaction, mockCreate } = vi.hoisted(() => {
+const { mockTransaction } = vi.hoisted(() => {
 	const mockCreate = vi.fn().mockResolvedValue({ id: 'audit-1' });
 	const mockTransaction = vi.fn(
 		async (fn: (tx: unknown) => Promise<unknown>) => {
@@ -25,7 +25,7 @@ const { mockTransaction, mockCreate } = vi.hoisted(() => {
 			return fn(tx);
 		},
 	);
-	return { mockTransaction, mockCreate };
+	return { mockTransaction };
 });
 
 vi.mock('@/server/repositories/prisma', () => ({
