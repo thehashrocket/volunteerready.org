@@ -1,19 +1,13 @@
-import {
-	Award,
-	BarChart3,
-	CalendarDays,
-	Heart,
-	Search,
-	Shield,
-	Users,
-} from 'lucide-react';
+import { Award, BarChart3, CalendarClock, Shield } from 'lucide-react';
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
+import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 
 export const revalidate = 3600;
 
@@ -31,34 +25,19 @@ export const metadata: Metadata = {
 
 const pillars = [
 	{
-		icon: Search,
-		heading: 'Skill-Based Matching',
-		body: 'Volunteers are matched to opportunities based on verified skills, not guesswork.',
-	},
-	{
 		icon: Shield,
-		heading: 'Background Checks',
-		body: 'Checkr & Sterling-powered screening with full FCRA compliance, built in — not bolted on.',
-	},
-	{
-		icon: CalendarDays,
-		heading: 'Shift Scheduling',
-		body: 'Create shifts, track attendance, and manage capacity without spreadsheets.',
+		heading: 'Background checks, built in',
+		body: 'Checkr and Sterling run inside the platform with full FCRA compliance. Most checks return same-day, and results are tied to the volunteer record automatically.',
 	},
 	{
 		icon: Award,
-		heading: 'Portable Credentials',
-		body: 'Volunteers earn verified badges that travel across every organization they serve.',
-	},
-	{
-		icon: Users,
-		heading: 'Compliance Documentation',
-		body: 'Audit logs, credential records, and volunteer hour tracking — always current, always exportable. Everything you need if a funder, insurer, or regulator ever asks for proof.',
+		heading: 'Portable credentials',
+		body: 'Verified badges follow volunteers between organizations. Less re-screening, faster activation, fewer applicants lost to paperwork.',
 	},
 	{
 		icon: BarChart3,
-		heading: 'ESG Reporting',
-		body: 'Corporate sponsors get aggregate volunteer impact dashboards and CSV exports.',
+		heading: 'Funder-ready reports',
+		body: 'Hours, headcount, and credential status stay export-ready. When a funder, insurer, or auditor asks, the data is already organized.',
 	},
 ];
 
@@ -94,12 +73,14 @@ export default async function Home() {
 					<>
 						<Button asChild size="lg" className="rounded-full px-8">
 							<TrackedLink
-								href="/login?callbackUrl=/app/my-applications"
-								eventLabel="Start volunteering"
+								href={FOUNDER_BOOKING_URL}
+								eventLabel="Book a setup call (hero)"
 								eventPage="homepage"
+								target="_blank"
+								rel="noopener noreferrer"
 							>
-								<Heart className="h-4 w-4" />
-								Start volunteering
+								<CalendarClock className="h-4 w-4" />
+								Book a setup call
 							</TrackedLink>
 						</Button>
 						<Button
@@ -109,74 +90,98 @@ export default async function Home() {
 							className="rounded-full px-8"
 						>
 							<TrackedLink
-								href="/login?callbackUrl=/app/onboarding"
-								eventLabel="Set up your organization"
+								href="/how-it-works"
+								eventLabel="See how it works (hero)"
 								eventPage="homepage"
 							>
-								Set up your organization
+								See how it works
 							</TrackedLink>
 						</Button>
 					</>
 				}
+				side={{
+					label: 'What makes it work',
+					note: (
+						<>
+							Background checks, credential records, and hour logs stay{' '}
+							<em className="italic">always export-ready</em>. When a funder
+							asks, the data is already organized.
+						</>
+					),
+				}}
 			/>
 
-			{/* ── Platform stats (social proof) ── */}
+			<ScreenshotSection
+				src="/marketing/dashboard.png"
+				alt="VolunteerReady dashboard showing volunteer roster, credential status, and shift coverage"
+				caption="The dashboard coordinators open every morning."
+				priority
+			/>
+
 			<PlatformStatsBar />
 
-			{/* ── Platform pillars + differentiators ── */}
-			<section className="bg-muted px-4 py-20">
-				<div className="mx-auto max-w-3xl">
-					<h2 className="font-display mb-3 text-[32px] font-bold text-foreground [text-wrap:balance]">
-						Built for trust, not just convenience
+			<section className="bg-background px-4 py-20">
+				<div className="mx-auto max-w-[1040px]">
+					<h2 className="font-display mb-3 text-[32px] font-bold leading-tight text-foreground [text-wrap:balance]">
+						What it does, day to day
 					</h2>
-					<p className="mb-14 text-muted-foreground">
-						Everything nonprofits, volunteers, and corporate sponsors need — in
-						one platform.
+					<p className="mb-12 max-w-2xl text-muted-foreground">
+						Three things every volunteer coordinator needs to stop worrying
+						about — and the funder reports that follow from them.
 					</p>
-					<div className="space-y-10">
+					<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 						{pillars.map((pillar) => {
 							const Icon = pillar.icon;
 							return (
-								<div key={pillar.heading} className="flex gap-5">
-									<Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-									<div>
-										<p className="mb-1 font-semibold text-foreground">
-											{pillar.heading}
-										</p>
-										<p className="text-sm leading-relaxed text-muted-foreground">
-											{pillar.body}
-										</p>
+								<div
+									key={pillar.heading}
+									className="rounded-lg border border-border/60 bg-card p-6"
+								>
+									<div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-md bg-accent/15 text-primary">
+										<Icon className="h-5 w-5" />
 									</div>
+									<h3 className="mb-2 font-semibold text-foreground">
+										{pillar.heading}
+									</h3>
+									<p className="text-sm leading-relaxed text-muted-foreground">
+										{pillar.body}
+									</p>
 								</div>
 							);
 						})}
 					</div>
+				</div>
+			</section>
 
-					{/* ── What makes us different ── */}
-					<div className="mt-14">
-						<h3 className="font-display mb-8 text-2xl font-bold text-foreground">
-							What makes us different
-						</h3>
-						<div className="space-y-8">
-							{differentiators.map((d) => (
-								<div key={d.heading} className="border-l-2 border-accent pl-6">
-									<p className="mb-1 font-semibold text-foreground">
-										{d.heading}
-									</p>
-									<p className="text-sm leading-relaxed text-muted-foreground">
-										{d.body}
-									</p>
-								</div>
-							))}
-						</div>
+			<section className="bg-muted px-4 py-20">
+				<div className="mx-auto grid max-w-[1040px] grid-cols-1 gap-12 md:grid-cols-[5fr_7fr] md:items-start">
+					<div>
+						<p className="mb-3 font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+							How we&rsquo;re different
+						</p>
+						<h2 className="font-display text-[32px] font-bold leading-tight text-foreground [text-wrap:balance]">
+							Three things you won&rsquo;t find in the rest of the category.
+						</h2>
+					</div>
+					<div className="space-y-8">
+						{differentiators.map((d) => (
+							<div key={d.heading} className="border-l-2 border-accent pl-6">
+								<h3 className="mb-1 font-semibold text-foreground">
+									{d.heading}
+								</h3>
+								<p className="text-sm leading-relaxed text-muted-foreground">
+									{d.body}
+								</p>
+							</div>
+						))}
 					</div>
 				</div>
 			</section>
 
 			<CTABanner
-				icon={Heart}
-				heading="Ready to get started?"
-				description="Create a free account in under a minute. No credit card required."
+				icon={CalendarClock}
+				heading="Set up your org in one call"
+				description="Coordinators get a guided walkthrough — pricing, screening, scheduling, all explained. No demo loop, no sales pitch."
 				actions={
 					<>
 						<Button
@@ -185,11 +190,13 @@ export default async function Home() {
 							className="rounded-full bg-white px-8 text-primary hover:bg-white/90"
 						>
 							<TrackedLink
-								href="/login?callbackUrl=/app/my-applications"
-								eventLabel="Start volunteering (bottom CTA)"
+								href={FOUNDER_BOOKING_URL}
+								eventLabel="Book a setup call (bottom CTA)"
 								eventPage="homepage"
+								target="_blank"
+								rel="noopener noreferrer"
 							>
-								Start volunteering
+								Book a setup call
 							</TrackedLink>
 						</Button>
 						<Button
@@ -199,11 +206,11 @@ export default async function Home() {
 							className="rounded-full border-white/30 bg-transparent px-8 text-white hover:bg-white/10"
 						>
 							<TrackedLink
-								href="/login?callbackUrl=/app/onboarding"
-								eventLabel="Set up org (bottom CTA)"
+								href="/how-it-works"
+								eventLabel="See how it works (bottom CTA)"
 								eventPage="homepage"
 							>
-								Set up your organization
+								See how it works
 							</TrackedLink>
 						</Button>
 					</>
