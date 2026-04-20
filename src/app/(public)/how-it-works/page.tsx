@@ -1,8 +1,10 @@
 import { BarChart3, Building2, Heart } from 'lucide-react';
 import type { Metadata } from 'next';
+import { CTABanner } from '@/components/cta-banner';
 import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
+import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 
@@ -126,7 +128,7 @@ function StepTimeline({
 				<div key={step.number} className="flex items-start gap-5">
 					<div className="flex flex-col items-center">
 						<div
-							className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${accentClass}`}
+							className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-mono text-sm font-bold ${accentClass}`}
 						>
 							{step.number}
 						</div>
@@ -138,8 +140,10 @@ function StepTimeline({
 						)}
 					</div>
 					<div className="pb-2 pt-1">
-						<p className="font-semibold text-foreground">{step.label}</p>
-						<p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+						<p className="text-[14.5px] font-semibold text-foreground">
+							{step.label}
+						</p>
+						<p className="mt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
 							{step.detail}
 						</p>
 					</div>
@@ -196,15 +200,28 @@ export default function HowItWorksPage() {
 					{ label: 'How It Works', href: '/how-it-works' },
 				]}
 			/>
+
 			<PublicHero
 				eyebrow="How it works"
 				heading={
 					<>
 						Simple by design.{' '}
-						<em className="italic text-primary">Powerful under the hood.</em>
+						<em className="italic text-primary" style={{ fontWeight: 500 }}>
+							Powerful under the hood.
+						</em>
 					</>
 				}
 				description="Whether you're a volunteer, a nonprofit, or a corporate CSR program — the path forward is clear. Here's exactly how VolunteerReady works."
+				side={{
+					label: 'Three journeys, one system',
+					note: (
+						<>
+							Volunteers, nonprofits, and employers each have{' '}
+							<em className="italic">their own front door</em> — and the same
+							shared source of truth underneath.
+						</>
+					),
+				}}
 			/>
 
 			{/* ── Three audience journeys ── */}
@@ -212,11 +229,11 @@ export default function HowItWorksPage() {
 				<div className="grid gap-16 lg:grid-cols-3">
 					{/* Volunteers */}
 					<div>
-						<div className="mb-8 flex items-center gap-3">
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/15">
+						<div className="mb-6 flex items-center gap-3 border-b border-border pb-4">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success/15">
 								<Heart className="h-5 w-5 text-success-foreground" />
 							</div>
-							<h2 className="font-display text-2xl font-bold text-foreground">
+							<h2 className="font-display text-2xl font-semibold text-foreground">
 								Volunteers
 							</h2>
 						</div>
@@ -240,11 +257,11 @@ export default function HowItWorksPage() {
 
 					{/* Nonprofits */}
 					<div>
-						<div className="mb-8 flex items-center gap-3">
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+						<div className="mb-6 flex items-center gap-3 border-b border-border pb-4">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
 								<Building2 className="h-5 w-5 text-primary" />
 							</div>
-							<h2 className="font-display text-2xl font-bold text-foreground">
+							<h2 className="font-display text-2xl font-semibold text-foreground">
 								Nonprofits
 							</h2>
 						</div>
@@ -268,11 +285,11 @@ export default function HowItWorksPage() {
 
 					{/* Employers */}
 					<div>
-						<div className="mb-8 flex items-center gap-3">
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/20">
+						<div className="mb-6 flex items-center gap-3 border-b border-border pb-4">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/20">
 								<BarChart3 className="h-5 w-5 text-accent" />
 							</div>
-							<h2 className="font-display text-2xl font-bold text-foreground">
+							<h2 className="font-display text-2xl font-semibold text-foreground">
 								Employers
 							</h2>
 						</div>
@@ -296,22 +313,37 @@ export default function HowItWorksPage() {
 				</div>
 			</section>
 
+			{/* ── Dashboard product shot ── */}
+			<ScreenshotSection
+				src="/marketing/dashboard.png"
+				alt="VolunteerReady application queue dashboard"
+				caption="What your application queue looks like once the pipeline is live."
+				sectionBg="sand"
+				containerBg="white"
+			/>
+
 			{/* ── FAQ ── */}
-			<section className="bg-muted px-4 py-16">
+			<section className="bg-background px-4 py-16">
 				<FaqSection faqs={faqs} />
 			</section>
 
 			{/* ── Bottom CTA ── */}
-			<section className="px-4 py-20">
-				<div className="mx-auto max-w-xl text-center">
-					<h2 className="font-display mb-3 text-2xl font-bold text-foreground [text-wrap:balance]">
-						Which describes you?
-					</h2>
-					<p className="mb-8 text-muted-foreground">
-						All paths start with a single click. No credit card, no commitment.
-					</p>
-					<div className="flex flex-wrap items-center justify-center gap-3">
-						<Button asChild size="lg" className="rounded-full px-8">
+			<CTABanner
+				heading={
+					<>
+						Which describes{' '}
+						<em className="italic text-primary-foreground/90">you?</em>
+					</>
+				}
+				description="All paths start with a single click. No credit card, no commitment."
+				actions={
+					<>
+						<Button
+							asChild
+							size="lg"
+							variant="secondary"
+							className="rounded-full px-8"
+						>
 							<TrackedLink
 								href="/login?callbackUrl=/app/my-applications"
 								eventLabel="I'm a volunteer"
@@ -323,9 +355,9 @@ export default function HowItWorksPage() {
 						</Button>
 						<Button
 							asChild
-							variant="outline"
 							size="lg"
-							className="rounded-full px-8"
+							variant="outline"
+							className="rounded-full border-primary-foreground/30 px-8 text-primary-foreground hover:bg-primary-foreground/10"
 						>
 							<TrackedLink
 								href="/login?callbackUrl=/app/onboarding"
@@ -335,9 +367,9 @@ export default function HowItWorksPage() {
 								<Building2 className="h-4 w-4" />I run a nonprofit
 							</TrackedLink>
 						</Button>
-					</div>
-				</div>
-			</section>
+					</>
+				}
+			/>
 		</div>
 	);
 }
