@@ -6,16 +6,15 @@ import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { JsonLdFaq } from '@/components/json-ld-faq';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
 	Card,
 	CardContent,
-	CardDescription,
 	CardFooter,
 	CardHeader,
-	CardTitle,
 } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import type { PlanTier } from '@/prisma/generated/client';
 import { getPlanLimits } from '@/server/domain/billing';
 
 export const metadata: Metadata = {
@@ -32,26 +31,68 @@ export const metadata: Metadata = {
 
 const tiers = ['FREE', 'STARTER', 'PRO'] as const;
 
-const TIER_META: Record<
-	string,
-	{ label: string; price: string; description: string }
-> = {
+type TierMeta = {
+	label: string;
+	price: string;
+	unit: string;
+	description: string;
+};
+
+const TIER_META: Record<PlanTier, TierMeta> = {
 	FREE: {
 		label: 'Free',
-		price: '$0/mo',
+		price: '$0',
+		unit: '/month',
 		description: 'Get started managing volunteers.',
 	},
 	STARTER: {
 		label: 'Starter',
-		price: '$49/mo',
+		price: '$49',
+		unit: '/month',
 		description: 'For growing nonprofits with more volunteers.',
 	},
 	PRO: {
 		label: 'Pro',
-		price: '$149/mo',
+		price: '$149',
+		unit: '/month',
 		description: 'Unlimited scale + background checks + ESG.',
 	},
 };
+
+type TierFeature = {
+	label: string;
+	included: boolean;
+	detail?: string;
+};
+
+function buildTierFeatures(tier: PlanTier): TierFeature[] {
+	const limits = getPlanLimits(tier);
+	return [
+		{
+			label: 'Opportunities',
+			included: true,
+			detail:
+				limits.maxOpportunities === null
+					? 'Unlimited'
+					: `Up to ${limits.maxOpportunities}`,
+		},
+		{
+			label: 'Team members',
+			included: true,
+			detail:
+				limits.maxMembers === null ? 'Unlimited' : `Up to ${limits.maxMembers}`,
+		},
+		{ label: 'Custom screening forms', included: true },
+		{ label: 'Shift scheduling & attendance', included: true },
+		{ label: 'Portable volunteer credentials', included: true },
+		{ label: 'Volunteer matching engine', included: limits.canMatching },
+		{
+			label: 'FCRA-compliant background checks',
+			included: limits.canBackgroundChecks,
+		},
+		{ label: 'ESG reporting dashboard', included: limits.canESGReports },
+	];
+}
 
 type FeatureRow = {
 	label: string;
@@ -142,14 +183,14 @@ const pricingFaqs = [
 	},
 ];
 
-function FeatureCell({ value }: { value: string | boolean }) {
+function ComparisonCell({ value }: { value: string | boolean }) {
 	if (typeof value === 'string')
 		return <span className="text-sm text-foreground">{value}</span>;
 	if (value)
-		return <Check className="h-4 w-4 text-success" aria-label="Included" />;
+		return <Check className="h-4 w-4 text-primary" aria-label="Included" />;
 	return (
 		<Minus
-			className="h-4 w-4 text-muted-foreground/40"
+			className="h-4 w-4 text-muted-foreground/20"
 			aria-label="Not included"
 		/>
 	);
@@ -173,53 +214,94 @@ export default function PricingPage() {
 						<em className="italic text-primary">No surprises.</em>
 					</>
 				}
-				description="Everything nonprofits need to recruit, screen, and manage volunteers. Start free, upgrade when you're ready."
+				description="Everything nonprofits need to recruit, screen, and manage volunteers. Start free. Upgrade when the grant requires it."
+				side={{
+					label: 'No hidden fees',
+					note: (
+						<>
+							Background checks billed at cost.{' '}
+							<em className="italic">No per-seat taxes.</em> No surprise charges
+							when your volunteer count doubles during the holidays.
+						</>
+					),
+				}}
 			/>
 
 			{/* ── Tier cards ── */}
-			<section className="mx-auto w-full max-w-5xl px-4 py-20">
+			<section className="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
 				<div className="grid gap-6 sm:grid-cols-3">
 					{tiers.map((tier) => {
 						const meta = TIER_META[tier];
-						const limits = getPlanLimits(tier);
+						const features = buildTierFeatures(tier);
 						const isPro = tier === 'PRO';
 						return (
 							<Card
 								key={tier}
-								className={
-									isPro ? 'border-primary shadow-lg' : 'border-border/70'
-								}
+								className={cn(
+									'relative flex flex-col',
+									isPro
+										? 'border-[1.5px] border-primary shadow-lg'
+										: 'border-border/70',
+								)}
 							>
-								<CardHeader>
-									<div className="flex items-center justify-between">
-										<CardTitle>{meta.label}</CardTitle>
-										{isPro && <Badge>Most popular</Badge>}
+								{isPro && (
+									<div className="pointer-events-none absolute -top-3 right-6 inline-flex items-center rounded-full bg-primary px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-primary-foreground shadow-sm">
+										Most popular
 									</div>
-									<div className="text-3xl font-bold text-foreground">
-										{meta.price}
+								)}
+								<CardHeader className="space-y-4">
+									<p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+										{meta.label}
+									</p>
+									<div className="flex items-baseline gap-1.5">
+										<span className="font-display text-[48px] font-semibold leading-none text-foreground">
+											{meta.price}
+										</span>
+										<span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+											{meta.unit}
+										</span>
 									</div>
-									<CardDescription>{meta.description}</CardDescription>
+									<p className="text-sm leading-relaxed text-muted-foreground">
+										{meta.description}
+									</p>
 								</CardHeader>
-								<CardContent className="space-y-2.5 text-sm text-muted-foreground">
-									<div>
-										Opportunities:{' '}
-										{limits.maxOpportunities === null
-											? 'Unlimited'
-											: `Up to ${limits.maxOpportunities}`}
-									</div>
-									<div>
-										Team members:{' '}
-										{limits.maxMembers === null
-											? 'Unlimited'
-											: `Up to ${limits.maxMembers}`}
-									</div>
-									<div>
-										Volunteer matching: {limits.canMatching ? '✓' : '—'}
-									</div>
-									<div>
-										Background checks: {limits.canBackgroundChecks ? '✓' : '—'}
-									</div>
-									<div>ESG reports: {limits.canESGReports ? '✓' : '—'}</div>
+								<CardContent className="flex-1">
+									<ul className="flex flex-col gap-2.5 text-sm">
+										{features.map((f) => (
+											<li
+												key={f.label}
+												className={cn(
+													'flex items-start gap-2.5',
+													f.included
+														? 'text-foreground'
+														: 'text-muted-foreground/60',
+												)}
+											>
+												{f.included ? (
+													<Check
+														className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+														aria-hidden
+													/>
+												) : (
+													<span
+														aria-hidden
+														className="mt-0.5 w-4 shrink-0 text-center font-mono text-muted-foreground/40"
+													>
+														—
+													</span>
+												)}
+												<span className="leading-relaxed">
+													{f.label}
+													{f.detail && (
+														<span className="text-muted-foreground">
+															{' '}
+															· {f.detail}
+														</span>
+													)}
+												</span>
+											</li>
+										))}
+									</ul>
 								</CardContent>
 								<CardFooter>
 									{tier === 'FREE' ? (
@@ -250,26 +332,29 @@ export default function PricingPage() {
 				</div>
 			</section>
 
-			{/* ── Feature comparison table ── */}
-			<section className="bg-muted px-4 py-16">
+			{/* ── Feature comparison ── */}
+			<section className="bg-muted px-4 py-14 md:py-20">
 				<div className="mx-auto max-w-4xl">
-					<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
-						Compare plans side by side
+					<p className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+						Compare plans
+					</p>
+					<h2 className="font-display mb-10 text-[32px] font-semibold text-foreground [text-wrap:balance]">
+						Every feature, side by side.
 					</h2>
 					<div className="overflow-x-auto">
 						<table className="w-full text-left">
 							<thead>
 								<tr className="border-b border-border/60">
-									<th className="pb-3 pr-4 text-sm font-semibold text-foreground">
+									<th className="pb-3 pr-4 font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
 										Feature
 									</th>
-									<th className="pb-3 px-4 text-center text-sm font-semibold text-foreground">
+									<th className="px-4 pb-3 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
 										Free
 									</th>
-									<th className="pb-3 px-4 text-center text-sm font-semibold text-foreground">
+									<th className="px-4 pb-3 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
 										Starter
 									</th>
-									<th className="pb-3 pl-4 text-center text-sm font-semibold text-foreground">
+									<th className="pb-3 pl-4 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
 										Pro
 									</th>
 								</tr>
@@ -277,22 +362,22 @@ export default function PricingPage() {
 							<tbody>
 								{featureComparison.map((row) => (
 									<tr key={row.label} className="border-b border-border/30">
-										<td className="py-3 pr-4 text-sm text-muted-foreground">
+										<td className="py-3 pr-4 text-sm text-foreground">
 											{row.label}
 										</td>
-										<td className="py-3 px-4 text-center">
+										<td className="px-4 py-3 text-center">
 											<div className="flex justify-center">
-												<FeatureCell value={row.free} />
+												<ComparisonCell value={row.free} />
 											</div>
 										</td>
-										<td className="py-3 px-4 text-center">
+										<td className="px-4 py-3 text-center">
 											<div className="flex justify-center">
-												<FeatureCell value={row.starter} />
+												<ComparisonCell value={row.starter} />
 											</div>
 										</td>
 										<td className="py-3 pl-4 text-center">
 											<div className="flex justify-center">
-												<FeatureCell value={row.pro} />
+												<ComparisonCell value={row.pro} />
 											</div>
 										</td>
 									</tr>
@@ -303,14 +388,18 @@ export default function PricingPage() {
 				</div>
 			</section>
 
-			{/* ── Corporate section ── */}
-			<section className="mx-auto w-full max-w-2xl px-4 py-20">
+			{/* ── Corporate band ── */}
+			<section className="mx-auto w-full max-w-2xl px-4 py-14 md:py-20">
 				<FadeInOnScroll>
-					<div className="rounded-xl border border-accent/30 bg-accent/10 p-8 sm:p-10">
-						<h2 className="font-display mb-2 text-2xl font-bold text-foreground [text-wrap:balance]">
+					<div className="border-l-2 border-accent bg-background p-8 sm:p-10">
+						<p className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
 							Corporate & enterprise
+						</p>
+						<h2 className="font-display mb-4 text-[28px] font-semibold text-foreground [text-wrap:balance]">
+							A CSR program that{' '}
+							<em className="italic text-primary">scales with you.</em>
 						</h2>
-						<p className="mb-6 text-muted-foreground">
+						<p className="mb-6 leading-relaxed text-muted-foreground">
 							Running a CSR program with hundreds of employees? Need custom
 							integrations, SSO, or dedicated support? We'll build a package
 							that fits.
@@ -328,27 +417,36 @@ export default function PricingPage() {
 				</FadeInOnScroll>
 			</section>
 
-			{/* ── FAQ ── */}
-			<section className="mx-auto w-full max-w-2xl px-4 py-20">
-				<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
-					Frequently asked questions
-				</h2>
-				<dl className="space-y-8">
-					{pricingFaqs.map((faq) => (
-						<div key={faq.question}>
-							<dt className="mb-2 font-semibold text-foreground">
-								{faq.question}
-							</dt>
-							<dd className="text-sm leading-relaxed text-muted-foreground">
-								{faq.answer}
-							</dd>
-						</div>
-					))}
-				</dl>
+			{/* ── Pricing FAQ ── */}
+			<section className="bg-muted px-4 py-14 md:py-20">
+				<div className="mx-auto max-w-2xl">
+					<p className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+						Pricing FAQ
+					</p>
+					<h2 className="font-display mb-10 text-[32px] font-semibold text-foreground [text-wrap:balance]">
+						Questions, answered.
+					</h2>
+					<dl className="space-y-8">
+						{pricingFaqs.map((faq) => (
+							<div key={faq.question}>
+								<dt className="mb-2 font-semibold text-foreground">
+									{faq.question}
+								</dt>
+								<dd className="text-sm leading-relaxed text-muted-foreground">
+									{faq.answer}
+								</dd>
+							</div>
+						))}
+					</dl>
+				</div>
 			</section>
 
 			<CTABanner
-				heading="Start free. Upgrade when you're ready."
+				heading={
+					<>
+						Start free. Upgrade <em className="italic">when you're ready.</em>
+					</>
+				}
 				description="No credit card required. Set up your organization in under a minute."
 				actions={
 					<Button
