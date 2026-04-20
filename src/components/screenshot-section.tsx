@@ -26,7 +26,9 @@ export function ScreenshotSection({
 	if (hasError) return null;
 
 	const sectionClass =
-		sectionBg === 'sand' ? 'bg-muted px-4 py-12' : 'px-4 py-12';
+		sectionBg === 'sand'
+			? 'bg-muted px-4 py-14 md:py-20'
+			: 'px-4 py-14 md:py-20';
 	const containerClass =
 		containerBg === 'sand'
 			? 'bg-muted rounded-lg border border-border/40 shadow-sm'
@@ -35,7 +37,7 @@ export function ScreenshotSection({
 	return (
 		<section className={sectionClass}>
 			<FadeInOnScroll>
-				<div className={`mx-auto max-w-3xl overflow-hidden ${containerClass}`}>
+				<div className={`mx-auto max-w-5xl overflow-hidden ${containerClass}`}>
 					<Image
 						src={src}
 						alt={alt}

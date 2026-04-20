@@ -41,6 +41,7 @@ describe('PublicHero', () => {
 
 		const grid = container.querySelector('[class*="grid-cols-[7fr_5fr]"]');
 		expect(grid).not.toBeNull();
+		expect(grid?.className).toMatch(/max-w-\[1040px\]/);
 
 		const label = screen.getByText('Coordinators say');
 		expect(label.className).toMatch(/font-mono/);
