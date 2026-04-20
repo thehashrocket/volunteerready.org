@@ -57,7 +57,7 @@ export function PublicHero({
 	return (
 		<section
 			className={cn(
-				'relative overflow-hidden px-4 py-20 sm:py-28',
+				'relative overflow-hidden px-4 py-14 md:py-20',
 				`bg-gradient-to-br ${gradientClass}`,
 			)}
 		>
@@ -65,7 +65,7 @@ export function PublicHero({
 				className={cn(
 					'relative mx-auto',
 					sideContent
-						? 'grid max-w-[1120px] grid-cols-1 gap-10 md:grid-cols-[7fr_5fr] md:items-end md:gap-14'
+						? 'grid max-w-[1040px] grid-cols-1 gap-10 md:grid-cols-[7fr_5fr] md:items-end md:gap-14'
 						: 'max-w-2xl',
 				)}
 			>

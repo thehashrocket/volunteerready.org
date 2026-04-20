@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 type CTABannerProps = {
 	icon?: LucideIcon;
-	heading: string;
+	heading: ReactNode;
 	description: string;
 	actions: ReactNode;
 };

@@ -26,6 +26,9 @@ pids
 
 # testing
 coverage
+playwright-report
+test-results
+.playwright
 
 # misc
 .DS_Store
