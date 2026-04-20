@@ -99,6 +99,7 @@ vi.mock('@/server/repositories/publicApplyRepo', () => ({
 // Use the hoisted mock class directly — the real runtime library can't be resolved in tests
 const PrismaClientKnownRequestError = MockPrismaClientKnownRequestError;
 
+import type { ApplicationStatus } from '@/prisma/generated/client';
 import { sendEmail } from '@/server/lib/email';
 import { prisma } from '@/server/repositories/prisma';
 import {
@@ -456,7 +457,11 @@ describe('notifyApplicationStatusChange', () => {
 
 		const { updateOrgApplicationStatus } = await import('../screener-queries');
 		// Status change REVIEW -> REVIEW (no actual change)
-		await updateOrgApplicationStatus('org-1', 'app-1', 'REVIEW' as any);
+		await updateOrgApplicationStatus(
+			'org-1',
+			'app-1',
+			'REVIEW' as ApplicationStatus,
+		);
 
 		expect(mockSendEmail).not.toHaveBeenCalled();
 	});
@@ -482,7 +487,7 @@ describe('notifyApplicationStatusChange', () => {
 		await updateOrgApplicationStatus(
 			'org-1',
 			'app-1',
-			'APPROVED' as any,
+			'APPROVED' as ApplicationStatus,
 			'actor-1',
 		);
 
@@ -513,7 +518,11 @@ describe('notifyApplicationStatusChange', () => {
 		});
 
 		const { updateOrgApplicationStatus } = await import('../screener-queries');
-		await updateOrgApplicationStatus('org-1', 'app-2', 'REJECTED' as any);
+		await updateOrgApplicationStatus(
+			'org-1',
+			'app-2',
+			'REJECTED' as ApplicationStatus,
+		);
 
 		await vi.waitFor(() => {
 			expect(mockSendEmail).toHaveBeenCalledTimes(1);
@@ -541,7 +550,11 @@ describe('notifyApplicationStatusChange', () => {
 		});
 
 		const { updateOrgApplicationStatus } = await import('../screener-queries');
-		await updateOrgApplicationStatus('org-1', 'app-3', 'SUBMITTED' as any);
+		await updateOrgApplicationStatus(
+			'org-1',
+			'app-3',
+			'SUBMITTED' as ApplicationStatus,
+		);
 
 		// Give fire-and-forget a tick
 		await new Promise((r) => setTimeout(r, 50));
@@ -573,7 +586,7 @@ describe('notifyApplicationStatusChange', () => {
 			updateOrgApplicationStatus(
 				'org-1',
 				'app-4',
-				'APPROVED' as any,
+				'APPROVED' as ApplicationStatus,
 				'actor-1',
 			),
 		).resolves.not.toThrow();

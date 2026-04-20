@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.22.0.1] - 2026-04-19
+
+### Changed
+- **Cleaned up biome warnings in test files** — replaced forbidden non-null assertions (`!`) on `res.headers.get('location')` with `?? ''` fallbacks in the case-study consent route tests, replaced `as any` casts with proper type assertions (`Awaited<ReturnType<...>>` for Prisma mocks, `ApplicationStatus` for screener-queries tests), removed unused `container` destructuring in platform-stats-bar tests, swapped `mock.calls[0]!` for `?? []` fallbacks in backgroundCheckService tests, and removed an unused `mockCreate` hoist in memberService audit tests. Zero biome warnings remain across `src docs prisma/schema.prisma`.
+
 ## [0.22.0.0] - 2026-04-17
 
 ### Added
