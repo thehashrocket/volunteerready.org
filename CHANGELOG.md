@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.0.0] - 2026-04-19
+
+### Added
+- **Impersonation alerting (Tier 3)** — platform admins who start an impersonation session now trigger an email notification to `PLATFORM_ADMIN_ALERT_EMAIL`, creating an auditable out-of-band signal in addition to the `IMPERSONATION_STARTED` audit row. Centralized helper `src/server/lib/admin-alerts.ts` handles delivery; failures log and continue (alerting must never block admin workflows).
+- **Org suspend / unsuspend (Tier 3)** — new `Organization.suspendedAt`, `suspendedReason`, and `suspendedById` columns, paired with suspend/unsuspend modals on `/app/admin/platform/orgs/[id]`. `orgProcedure` in `src/server/trpc/init.ts` now blocks suspended-org tRPC calls with a primary-key lookup, while still allowing platform admins through for unsuspend + triage. New `ORG_SUSPENDED` and `ORG_UNSUSPENDED` audit actions.
+- **Per-org feature flags (Tier 3)** — `FEATURE_FLAG_REGISTRY` (`src/server/domain/feature-flags.ts`) defines the typed catalog; `featureFlagService.setFeatureFlag` updates `Organization.featureFlags` transactionally with an `FEATURE_FLAG_SET` audit row and required reason. `isFeatureEnabled(orgId, key)` reads per-org overrides with registry defaults. New Flags tab on the org detail page with toggle Switches + reason modal.
+- **Billing delinquency view (Tier 3)** — new `/app/admin/platform/billing` page groups recent Stripe `invoice.payment_failed` webhook events by customer, showing org name, last-failure date, amount due, and a direct link to the Stripe customer. Backed by `platformBillingRepo.ts` + `platformBillingService.ts`.
+
+### Changed
+- **`orgProcedure` hardened** — switches from `findFirst({ where: { id } })` to `findUnique({ where: { id } })` for PK-scoped org lookups, and checks `suspendedAt` before returning the org context. Platform admins bypass the suspension block.
+- **Audit action catalog** extends with `ORG_SUSPENDED`, `ORG_UNSUSPENDED`, and `FEATURE_FLAG_SET`.
+
 ## [0.22.0.1] - 2026-04-19
 
 ### Changed

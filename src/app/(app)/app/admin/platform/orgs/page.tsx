@@ -70,6 +70,11 @@ export default function PlatformOrgsPage() {
 									<span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">
 										{org.planTier}
 									</span>
+									{org.suspendedAt && (
+										<span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-destructive">
+											Suspended
+										</span>
+									)}
 								</div>
 								<div className="text-xs text-muted-foreground mt-0.5">
 									{org.memberCount} members · {org.opportunityCount} opps ·{' '}

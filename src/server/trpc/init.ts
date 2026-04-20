@@ -252,9 +252,30 @@ export const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
 	return next();
 });
 
-export const orgProcedure = protectedProcedure.use(({ ctx, next }) => {
+export const orgProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 	if (!ctx.orgId) {
 		throw new TRPCError({ code: 'FORBIDDEN' });
+	}
+
+	// Tier 3: enforce org suspension. One indexed PK lookup per org-scoped call.
+	// Platform admins bypass so they can still operate (e.g., unsuspend).
+	const status = await prisma.organization.findUnique({
+		where: { id: ctx.orgId },
+		select: { suspendedAt: true },
+	});
+
+	if (status?.suspendedAt) {
+		const { isPlatformAdmin } = await import('@/server/domain/platform-admin');
+		const allowed = ctx.realUserId
+			? await isPlatformAdmin(ctx.realUserId)
+			: false;
+		if (!allowed) {
+			throw new TRPCError({
+				code: 'FORBIDDEN',
+				message:
+					'This organization is suspended. Contact support@volunteerready.org.',
+			});
+		}
 	}
 
 	return next({ ctx: { orgId: ctx.orgId } });

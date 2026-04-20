@@ -15,6 +15,7 @@ const {
 	mockGetHistory,
 	mockWriteAuditLog,
 	mockWriteAuditLogTx,
+	mockSendImpersonationStartAlert,
 } = vi.hoisted(() => {
 	const mockCreateSessionTx = vi.fn();
 	const mockFindActiveSession = vi.fn();
@@ -24,6 +25,7 @@ const {
 	const mockWriteAuditLogTx = vi.fn().mockResolvedValue({ id: 'audit-1' });
 	const mockFindUnique = vi.fn();
 	const mockIsPlatformAdmin = vi.fn();
+	const mockSendImpersonationStartAlert = vi.fn().mockResolvedValue(undefined);
 	const mockTransaction = vi.fn(async (fn: (tx: unknown) => Promise<unknown>) =>
 		fn({}),
 	);
@@ -37,6 +39,7 @@ const {
 		mockGetHistory,
 		mockWriteAuditLog,
 		mockWriteAuditLogTx,
+		mockSendImpersonationStartAlert,
 	};
 });
 
@@ -61,6 +64,10 @@ vi.mock('@/server/repositories/impersonationRepo', () => ({
 vi.mock('@/server/repositories/auditRepo', () => ({
 	writeAuditLog: mockWriteAuditLog,
 	writeAuditLogTx: mockWriteAuditLogTx,
+}));
+
+vi.mock('@/server/lib/admin-alerts', () => ({
+	sendImpersonationStartAlert: mockSendImpersonationStartAlert,
 }));
 
 import {
@@ -121,11 +128,13 @@ describe('impersonationService.startImpersonation', () => {
 
 	it('creates session + audit row in the same transaction on happy path', async () => {
 		mockIsPlatformAdmin.mockResolvedValueOnce(true); // caller
-		mockFindUnique.mockResolvedValueOnce({
-			id: 'target-1',
-			isPlatformAdmin: false,
-			email: 't@example.com',
-		});
+		mockFindUnique
+			.mockResolvedValueOnce({
+				id: 'target-1',
+				isPlatformAdmin: false,
+				email: 't@example.com',
+			})
+			.mockResolvedValueOnce({ email: 'admin@example.com' }); // admin lookup for alert
 		mockIsPlatformAdmin.mockResolvedValueOnce(false); // target
 		mockCreateSessionTx.mockResolvedValueOnce({ id: 'session-1' });
 
@@ -160,6 +169,62 @@ describe('impersonationService.startImpersonation', () => {
 		);
 		expect(result.sessionId).toBe('session-1');
 		expect(result.targetUserId).toBe('target-1');
+	});
+
+	it('fires a fire-and-forget security alert with admin + target emails', async () => {
+		mockIsPlatformAdmin.mockResolvedValueOnce(true);
+		mockFindUnique
+			.mockResolvedValueOnce({
+				id: 'target-1',
+				isPlatformAdmin: false,
+				email: 't@example.com',
+			})
+			.mockResolvedValueOnce({ email: 'admin@example.com' });
+		mockIsPlatformAdmin.mockResolvedValueOnce(false);
+		mockCreateSessionTx.mockResolvedValueOnce({ id: 'session-1' });
+
+		await startImpersonation('admin-1', 'target-1', 'debugging volunteer flow');
+
+		// Wait one microtask tick so the void-IIFE alert resolves before assertion
+		await new Promise((r) => setImmediate(r));
+
+		expect(mockSendImpersonationStartAlert).toHaveBeenCalledWith(
+			expect.objectContaining({
+				adminEmail: 'admin@example.com',
+				adminUserId: 'admin-1',
+				targetEmail: 't@example.com',
+				targetUserId: 'target-1',
+				reason: 'debugging volunteer flow',
+				sessionId: 'session-1',
+			}),
+		);
+	});
+
+	it('does not fail the action when the alert hook throws', async () => {
+		mockIsPlatformAdmin.mockResolvedValueOnce(true);
+		mockFindUnique
+			.mockResolvedValueOnce({
+				id: 'target-1',
+				isPlatformAdmin: false,
+				email: 't@example.com',
+			})
+			.mockResolvedValueOnce({ email: 'admin@example.com' });
+		mockIsPlatformAdmin.mockResolvedValueOnce(false);
+		mockCreateSessionTx.mockResolvedValueOnce({ id: 'session-1' });
+		mockSendImpersonationStartAlert.mockRejectedValueOnce(
+			new Error('SMTP down'),
+		);
+		const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const result = await startImpersonation(
+			'admin-1',
+			'target-1',
+			'debugging volunteer flow',
+		);
+
+		expect(result.sessionId).toBe('session-1');
+		await new Promise((r) => setImmediate(r));
+		errSpy.mockRestore();
 	});
 });
 

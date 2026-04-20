@@ -1,4 +1,4 @@
-import { BookOpen, Building2, FileText, Users } from 'lucide-react';
+import { BookOpen, Building2, CreditCard, FileText, Users } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
@@ -34,6 +34,13 @@ const TILES = [
 		description:
 			'Edit skill families, skills, and default screener question templates.',
 		icon: BookOpen,
+	},
+	{
+		href: '/app/admin/platform/billing',
+		title: 'Billing',
+		description:
+			'Orgs with recent payment failures or delinquent subscriptions.',
+		icon: CreditCard,
 	},
 ];
 
