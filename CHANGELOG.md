@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.1.3] - 2026-04-20
+
+### Changed
+- **For Nonprofits page refreshed to the V2 editorial voice.** The `/for/nonprofits` page now matches the homepage rhythm: asymmetric 7/5 hero with an "Audit-ready by default" side note, mono-eyebrow pain band that names "The quiet crisis in volunteer management", divided feature list with bumped headings, outcomes trimmed to three pillars (Hours saved, Fewer no-shows, Grant-ready reports), 5/7 testimonial grid with italic emphasis on "actually training volunteers", and a refreshed CTA banner that asks "Ready to build your volunteer team?" with a secondary "See pricing" link.
+- **Applications queue replaces the dashboard screenshot on /for/nonprofits.** The screenshot caption now reads "Your application queue — always current, always exportable." The image asset (`/marketing/applications-queue.png`) is a pre-merge follow-up; `ScreenshotSection` already hides the section via its `onError` fallback until the asset lands, so no visual breakage in the interim.
+
+### Added
+- **Smoke test coverage for /for/nonprofits.** `e2e/for-nonprofits.spec.ts` locks in the hero heading (with italic "from a spreadsheet." emphasis), both hero CTAs, the "Audit-ready by default" side-note label, and the bottom CTA's `/pricing` link.
+
 ## [0.23.1.2] - 2026-04-19
 
 ### Changed

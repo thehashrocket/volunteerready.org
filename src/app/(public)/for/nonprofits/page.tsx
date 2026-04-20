@@ -6,7 +6,6 @@ import {
 	Clock,
 	HandHeart,
 	Shield,
-	Star,
 	Users,
 } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -19,7 +18,6 @@ import { PublicHero } from '@/components/public-hero';
 import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 
 export const revalidate = 3600;
@@ -77,13 +75,8 @@ const outcomes = [
 	},
 	{
 		icon: Shield,
-		heading: 'Grant-ready reporting',
+		heading: 'Grant-ready reports',
 		body: 'Volunteer hours, headcount, and credential status are always current and exportable. No more compiling from sign-in sheets the week before a funder report is due.',
-	},
-	{
-		icon: Building2,
-		heading: 'Deeper relationships',
-		body: 'A clear volunteer record — applications, shifts, credentials — means you know who your most reliable people are.',
 	},
 ];
 
@@ -172,16 +165,29 @@ export default async function ForNonprofitsPage() {
 						</Button>
 					</>
 				}
+				side={{
+					label: 'Audit-ready by default',
+					note: (
+						<>
+							Every screening decision, shift, and credential{' '}
+							<em className="italic">timestamped and exportable</em> — for the
+							funder, the insurer, the board, the next audit.
+						</>
+					),
+				}}
 			/>
 
 			{/* ── Platform stats ── */}
 			<PlatformStatsBar />
 
 			{/* ── Pain acknowledgment ── */}
-			<section className="bg-muted px-4 py-14">
+			<section className="bg-muted px-4 py-14 md:py-20">
 				<div className="mx-auto max-w-2xl">
-					<h2 className="font-display mb-4 text-2xl font-bold text-foreground [text-wrap:balance]">
+					<p className="mb-4 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
 						We've heard the stories
+					</p>
+					<h2 className="font-display mb-6 text-[32px] font-bold text-foreground [text-wrap:balance]">
+						The quiet crisis in volunteer management.
 					</h2>
 					<p className="leading-relaxed text-muted-foreground">
 						Volunteers who sign up and never show. Application emails buried in
@@ -195,7 +201,7 @@ export default async function ForNonprofitsPage() {
 						funder ever asks for documentation, you'd be scrambling to pull it
 						together.
 					</p>
-					<p className="mt-4 leading-relaxed text-muted-foreground">
+					<p className="mt-4 font-medium leading-relaxed text-foreground">
 						You didn't start a nonprofit to manage logistics. VolunteerReady
 						handles it — so you can focus on the work that only you can do.
 					</p>
@@ -210,16 +216,19 @@ export default async function ForNonprofitsPage() {
 				<p className="mb-12 text-muted-foreground">
 					Everything from intake to compliance — without switching tools.
 				</p>
-				<div className="flex flex-col gap-8">
+				<div className="flex flex-col divide-y divide-border/60">
 					{features.map((f) => {
 						const Icon = f.icon;
 						return (
-							<div key={f.heading} className="flex gap-5">
+							<div
+								key={f.heading}
+								className="flex gap-5 py-6 first:pt-0 last:pb-0"
+							>
 								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
 									<Icon className="h-5 w-5 text-primary" />
 								</div>
 								<div>
-									<p className="mb-1 text-lg font-semibold text-foreground">
+									<p className="mb-1 text-[17px] font-semibold text-foreground">
 										{f.heading}
 									</p>
 									<p className="text-sm leading-relaxed text-muted-foreground">
@@ -234,15 +243,15 @@ export default async function ForNonprofitsPage() {
 
 			{/* ── Screenshot ── */}
 			<ScreenshotSection
-				src="/marketing/dashboard.png"
-				alt="VolunteerReady org dashboard showing real-time stats and recent applications"
-				caption="Your org dashboard — real-time stats, recent applications, and quick actions."
+				src="/marketing/applications-queue.png"
+				alt="VolunteerReady application queue showing pending, approved, and rejected applications with timestamps"
+				caption="Your application queue — always current, always exportable."
 				sectionBg="sand"
 				containerBg="white"
 			/>
 
 			{/* ── Outcomes ── */}
-			<section className="bg-muted px-4 py-16">
+			<section className="bg-background px-4 py-20">
 				<div className="mx-auto max-w-3xl">
 					<h2 className="font-display mb-10 text-center text-[32px] font-bold text-foreground [text-wrap:balance]">
 						What you get back
@@ -269,19 +278,26 @@ export default async function ForNonprofitsPage() {
 			</section>
 
 			{/* ── Testimonial ── */}
-			<section className="mx-auto w-full max-w-2xl px-4 py-20">
+			<section className="bg-muted px-4 py-20">
 				<FadeInOnScroll>
-					<Card className="border-border/70">
-						<CardContent className="px-8 py-8">
-							<Star className="mb-4 h-5 w-5 text-accent" />
-							<blockquote className="text-lg leading-relaxed text-foreground">
+					<div className="mx-auto grid max-w-[1040px] grid-cols-1 gap-10 md:grid-cols-[5fr_7fr] md:gap-14">
+						<div>
+							<p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+								From a coordinator
+							</p>
+						</div>
+						<div>
+							<blockquote className="font-display text-2xl leading-relaxed text-foreground [text-wrap:balance] sm:text-[28px]">
 								"Before VolunteerReady, our coordinator was spending 12+ hours a
 								week just on intake and scheduling. Now we can focus that time
-								on actually training and supporting volunteers. The smart
-								screening alone saved us from placing three unqualified
-								candidates in sensitive roles."
+								on{' '}
+								<em className="italic text-primary">
+									actually training volunteers
+								</em>
+								. The smart screening alone saved us from placing three
+								unqualified candidates in sensitive roles."
 							</blockquote>
-							<div className="mt-5 flex items-center gap-3">
+							<div className="mt-6 flex items-center gap-3">
 								<div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
 									TP
 								</div>
@@ -294,37 +310,54 @@ export default async function ForNonprofitsPage() {
 									</p>
 								</div>
 							</div>
-						</CardContent>
-					</Card>
+						</div>
+					</div>
 				</FadeInOnScroll>
-				<p className="mt-4 text-center text-sm text-muted-foreground/60">
-					More stories coming soon
-				</p>
 			</section>
 
 			{/* ── FAQ ── */}
-			<section className="px-4 py-16">
+			<section className="px-4 py-20">
 				<FaqSection faqs={nonprofitFaqs} />
 			</section>
 
 			<CTABanner
 				icon={Building2}
-				heading="Ready to build your volunteer team?"
+				heading={
+					<>
+						Ready to build your <em className="italic">volunteer team?</em>
+					</>
+				}
 				description="Set up your organization in minutes. No contract, no credit card required to get started."
 				actions={
-					<Button
-						asChild
-						size="lg"
-						className="rounded-full bg-white px-8 text-primary hover:bg-white/90"
-					>
-						<TrackedLink
-							href={FOUNDER_BOOKING_URL}
-							eventLabel="See it in action (bottom CTA)"
-							eventPage="for-nonprofits"
+					<>
+						<Button
+							asChild
+							size="lg"
+							className="rounded-full bg-white px-8 text-primary hover:bg-white/90"
 						>
-							See It In Action — Free Setup
-						</TrackedLink>
-					</Button>
+							<TrackedLink
+								href={FOUNDER_BOOKING_URL}
+								eventLabel="See it in action (bottom CTA)"
+								eventPage="for-nonprofits"
+							>
+								See It In Action — Free Setup
+							</TrackedLink>
+						</Button>
+						<Button
+							asChild
+							size="lg"
+							variant="outline"
+							className="rounded-full border-white/30 bg-transparent px-8 text-white hover:bg-white/10"
+						>
+							<TrackedLink
+								href="/pricing"
+								eventLabel="See pricing (bottom CTA)"
+								eventPage="for-nonprofits"
+							>
+								See pricing
+							</TrackedLink>
+						</Button>
+					</>
 				}
 			/>
 		</div>
