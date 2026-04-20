@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.1.1] - 2026-04-19
+
+### Changed
+- **V2 home editorial consolidation** — homepage rewritten to the post-review 7-section scope: hero (7/5 with content-bearing "What makes it work" side note), dashboard screenshot, platform stats bar, "What it does" 3-pillar grid (Background checks, Portable credentials, Funder-ready reports), "How we're different" 5/7 diff band, dark-primary CTA banner. Cut: editorial testimonial section and Volunteer Record / Dana Lindstrom mock card (deferred; testimonial returns once consented copy lands in DB).
+- **Hero side label is content-bearing** — "What makes it work" replaces the prior "Built for X" pattern (DESIGN.md anti-pattern).
+- **Pillar grid breakpoint** — `grid-cols-1 md:grid-cols-3` so tablets get the 3-up grid instead of stacking until `lg`.
+- **External booking CTAs open in a new tab** — both "Book a setup call" buttons now carry `target="_blank" rel="noopener noreferrer"` since `FOUNDER_BOOKING_URL` points at Google Calendar.
+- **Pillar/differentiator titles use `<h3>`** for proper a11y heading hierarchy under the section `<h2>`.
+
+### Added
+- **`PublicHero` regression test** — `src/components/public-hero.test.tsx` locks in the `isStructuredSide()` branching: undefined `side` → single-column, `{ label, note }` → mono label + accent-bordered note, arbitrary ReactNode → 7/5 right column with no border treatment.
+
 ## [0.23.1.0] - 2026-04-19
 
 ### Changed
