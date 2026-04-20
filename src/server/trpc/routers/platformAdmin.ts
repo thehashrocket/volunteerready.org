@@ -9,12 +9,22 @@ import {
 	queryAudit,
 } from '@/server/services/auditQueryService';
 import {
+	listOrgFeatureFlags,
+	setFeatureFlag,
+} from '@/server/services/featureFlagService';
+import {
 	endImpersonation,
 	getCurrentImpersonation,
 	listImpersonationHistory,
 	startImpersonation,
 } from '@/server/services/impersonationService';
-import { getOrg, listOrgs } from '@/server/services/platformOrgService';
+import { listDelinquentOrgs } from '@/server/services/platformBillingService';
+import {
+	getOrg,
+	listOrgs,
+	suspendOrg,
+	unsuspendOrg,
+} from '@/server/services/platformOrgService';
 import {
 	getUser,
 	listUsers,
@@ -64,6 +74,59 @@ export const platformAdminRouter = createTRPCRouter({
 			.input(idInputSchema)
 			.query(async ({ input }) => {
 				return getOrg(input.id);
+			}),
+		suspend: platformAdminProcedure
+			.input(
+				z.object({
+					id: z.string().cuid(),
+					reason: z.string().min(10).max(500),
+				}),
+			)
+			.mutation(async ({ ctx, input }) => {
+				const actorId = requireRealUserId(ctx);
+				return suspendOrg({ ...input, actorId });
+			}),
+		unsuspend: platformAdminProcedure
+			.input(
+				z.object({
+					id: z.string().cuid(),
+					reason: z.string().min(5).max(500),
+				}),
+			)
+			.mutation(async ({ ctx, input }) => {
+				const actorId = requireRealUserId(ctx);
+				return unsuspendOrg({ ...input, actorId });
+			}),
+	}),
+	billing: createTRPCRouter({
+		delinquent: platformAdminProcedure
+			.input(
+				z
+					.object({ limit: z.number().int().min(1).max(500).optional() })
+					.optional(),
+			)
+			.query(async ({ input }) => {
+				return listDelinquentOrgs({ limit: input?.limit });
+			}),
+	}),
+	flags: createTRPCRouter({
+		list: platformAdminProcedure
+			.input(z.object({ orgId: z.string().cuid() }))
+			.query(async ({ input }) => {
+				return listOrgFeatureFlags(input.orgId);
+			}),
+		set: platformAdminProcedure
+			.input(
+				z.object({
+					orgId: z.string().cuid(),
+					key: z.string().min(1).max(100),
+					enabled: z.boolean(),
+					reason: z.string().min(5).max(500),
+				}),
+			)
+			.mutation(async ({ ctx, input }) => {
+				const actorId = requireRealUserId(ctx);
+				return setFeatureFlag({ ...input, actorId });
 			}),
 	}),
 	users: createTRPCRouter({
