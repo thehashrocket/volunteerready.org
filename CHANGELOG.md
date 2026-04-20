@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.1.0] - 2026-04-19
+
+### Changed
+- **V2 asymmetric 7/5 hero layout** — `PublicHero` now accepts an optional `side` prop (ReactNode or `{ label, note }`). When provided, the hero renders a 7/5 grid with left-aligned copy on the left and a context note on the right bordered in accent with a mono uppercase label; collapses to single column under `md:`. Default single-column variant is now left-aligned (no more centered hero text) to align with DESIGN.md.
+- **`CTABanner` adopts the same 7/5 rhythm** — heading and description on the left (max-widths 560/520), actions bottom-right, with the accent radial-gradient overlay preserved on the dark-primary background. Collapses to single column on mobile.
+- **`TestimonialSection` offsets content into the right 7 columns** of a 5/7 grid so the whitespace sits left, matching DESIGN.md's "no centered-everything" rule.
+- **`FaqSection` heading left-aligned** — removed `text-center` from the section heading.
+
 ## [0.23.0.0] - 2026-04-19
 
 ### Added
