@@ -36,6 +36,8 @@ model User {
   repliedFeedbacks        UserFeedback[]          @relation("FeedbackReplier")
   impersonationsAsAdmin   ImpersonationSession[]  @relation("ImpersonationAdmin")
   impersonationsAsTarget  ImpersonationSession[]  @relation("ImpersonationTarget")
+  suspendedOrgs           Organization[]          @relation("OrgSuspendedBy")
+  updatedFeatureFlags     FeatureFlag[]           @relation("FeatureFlagUpdatedBy")
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
 }
@@ -132,6 +134,11 @@ model Organization {
   // Content Flywheel — case study consent + org branding
   consentToPublicize          Boolean                  @default(false) // Org consented to public case study
   logoUrl                     String?                  // Org logo (Vercel Blob URL)
+  // Tier 3 — platform admin suspension (freeze tenant without delete)
+  suspendedAt                 DateTime?                // NULL = active; non-NULL = suspended
+  suspendedReason             String?                  // Free-text justification (audit-redundant but UI-handy)
+  suspendedById               String?                  // Platform admin who suspended (FK to User)
+  suspendedBy                 User?                    @relation("OrgSuspendedBy", fields: [suspendedById], references: [id], onDelete: SetNull)
   createdAt                   DateTime                 @default(now())
   updatedAt                   DateTime                 @updatedAt
   members              OrganizationMember[]
@@ -156,6 +163,8 @@ model Organization {
   bulkImportJobs          BulkImportJob[]
   feedbacks               OrgFeedback[]
   userFeedbacks           UserFeedback[]
+
+  @@index([suspendedAt])
 }
 
 model OrganizationMember {
@@ -196,13 +205,16 @@ model AuditLog {
 }
 
 model FeatureFlag {
-  id        String   @id @default(cuid())
-  orgId     String
-  key       String
-  enabled   Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  orgId       String
+  key         String
+  enabled     Boolean   @default(false)
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  updatedBy    User?        @relation("FeatureFlagUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@unique([orgId, key])
 }
