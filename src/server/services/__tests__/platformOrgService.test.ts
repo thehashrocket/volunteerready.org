@@ -6,13 +6,26 @@ const {
 	mockListOrgOpportunities,
 	mockListOrgApplications,
 	mockListOrgsPage,
-} = vi.hoisted(() => ({
-	mockGetOrgDetail: vi.fn(),
-	mockListOrgMembers: vi.fn(),
-	mockListOrgOpportunities: vi.fn(),
-	mockListOrgApplications: vi.fn(),
-	mockListOrgsPage: vi.fn(),
-}));
+	mockSetOrgSuspendedTx,
+	mockOrgFindUnique,
+	mockTransaction,
+	mockWriteAuditLogTx,
+} = vi.hoisted(() => {
+	const mockOrgFindUnique = vi.fn();
+	return {
+		mockGetOrgDetail: vi.fn(),
+		mockListOrgMembers: vi.fn(),
+		mockListOrgOpportunities: vi.fn(),
+		mockListOrgApplications: vi.fn(),
+		mockListOrgsPage: vi.fn(),
+		mockSetOrgSuspendedTx: vi.fn(),
+		mockOrgFindUnique,
+		mockTransaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) =>
+			fn({ organization: { findUnique: mockOrgFindUnique } }),
+		),
+		mockWriteAuditLogTx: vi.fn().mockResolvedValue({ id: 'audit-1' }),
+	};
+});
 
 vi.mock('@/server/repositories/platformOrgRepo', () => ({
 	getOrgDetail: mockGetOrgDetail,
@@ -20,9 +33,23 @@ vi.mock('@/server/repositories/platformOrgRepo', () => ({
 	listOrgOpportunities: mockListOrgOpportunities,
 	listOrgApplications: mockListOrgApplications,
 	listOrgsPage: mockListOrgsPage,
+	setOrgSuspendedTx: mockSetOrgSuspendedTx,
 }));
 
-import { getOrg, listOrgs } from '../platformOrgService';
+vi.mock('@/server/repositories/prisma', () => ({
+	prisma: { $transaction: mockTransaction },
+}));
+
+vi.mock('@/server/repositories/auditRepo', () => ({
+	writeAuditLogTx: mockWriteAuditLogTx,
+}));
+
+import {
+	getOrg,
+	listOrgs,
+	suspendOrg,
+	unsuspendOrg,
+} from '../platformOrgService';
 
 describe('platformOrgService.getOrg', () => {
 	beforeEach(() => {
@@ -75,5 +102,148 @@ describe('platformOrgService.listOrgs', () => {
 			cursor: 'c-1',
 			limit: 10,
 		});
+	});
+});
+
+describe('platformOrgService.suspendOrg', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockOrgFindUnique.mockReset();
+		mockSetOrgSuspendedTx.mockReset();
+	});
+
+	it('throws NOT_FOUND when org does not exist', async () => {
+		mockOrgFindUnique.mockResolvedValueOnce(null);
+
+		await expect(
+			suspendOrg({
+				id: 'org-1',
+				reason: 'payment failed',
+				actorId: 'admin-1',
+			}),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+		expect(mockSetOrgSuspendedTx).not.toHaveBeenCalled();
+	});
+
+	it('throws BAD_REQUEST when already suspended (idempotent guard)', async () => {
+		mockOrgFindUnique.mockResolvedValueOnce({
+			id: 'org-1',
+			suspendedAt: new Date(),
+		});
+
+		await expect(
+			suspendOrg({
+				id: 'org-1',
+				reason: 'payment failed',
+				actorId: 'admin-1',
+			}),
+		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+	});
+
+	it('writes update + audit row in same transaction on happy path', async () => {
+		mockOrgFindUnique.mockResolvedValueOnce({
+			id: 'org-1',
+			suspendedAt: null,
+		});
+		mockSetOrgSuspendedTx.mockResolvedValueOnce({
+			id: 'org-1',
+			slug: 'helping',
+			suspendedAt: new Date(),
+			suspendedReason: 'payment failed 3x',
+			suspendedById: 'admin-1',
+		});
+
+		await suspendOrg({
+			id: 'org-1',
+			reason: 'payment failed 3x',
+			actorId: 'admin-1',
+		});
+
+		expect(mockSetOrgSuspendedTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				id: 'org-1',
+				suspendedAt: expect.any(Date),
+				suspendedReason: 'payment failed 3x',
+				suspendedById: 'admin-1',
+			}),
+		);
+		expect(mockWriteAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				actorId: 'admin-1',
+				orgId: 'org-1',
+				action: 'ORG_SUSPENDED',
+				entityType: 'Organization',
+				entityId: 'org-1',
+				metadata: expect.objectContaining({
+					reason: 'payment failed 3x',
+					slug: 'helping',
+				}),
+			}),
+		);
+	});
+});
+
+describe('platformOrgService.unsuspendOrg', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockOrgFindUnique.mockReset();
+		mockSetOrgSuspendedTx.mockReset();
+	});
+
+	it('throws BAD_REQUEST when org is not suspended', async () => {
+		mockOrgFindUnique.mockResolvedValueOnce({
+			id: 'org-1',
+			suspendedAt: null,
+			suspendedReason: null,
+		});
+
+		await expect(
+			unsuspendOrg({ id: 'org-1', reason: 'fixed', actorId: 'admin-1' }),
+		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+	});
+
+	it('clears suspension and writes audit on happy path', async () => {
+		const priorSuspendedAt = new Date(Date.now() - 60_000);
+		mockOrgFindUnique.mockResolvedValueOnce({
+			id: 'org-1',
+			suspendedAt: priorSuspendedAt,
+			suspendedReason: 'payment failed',
+		});
+		mockSetOrgSuspendedTx.mockResolvedValueOnce({
+			id: 'org-1',
+			slug: 'helping',
+			suspendedAt: null,
+			suspendedReason: null,
+			suspendedById: null,
+		});
+
+		await unsuspendOrg({
+			id: 'org-1',
+			reason: 'payment cleared',
+			actorId: 'admin-1',
+		});
+
+		expect(mockSetOrgSuspendedTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				id: 'org-1',
+				suspendedAt: null,
+				suspendedReason: null,
+				suspendedById: null,
+			}),
+		);
+		expect(mockWriteAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				action: 'ORG_UNSUSPENDED',
+				metadata: expect.objectContaining({
+					reason: 'payment cleared',
+					priorSuspendedReason: 'payment failed',
+					priorSuspendedAt: priorSuspendedAt.toISOString(),
+				}),
+			}),
+		);
 	});
 });

@@ -11,7 +11,11 @@ vi.mock('@/server/repositories/orgRepo', () => ({
 }));
 
 vi.mock('@/server/repositories/prisma', () => ({
-	prisma: {},
+	prisma: {
+		organization: {
+			findUnique: vi.fn().mockResolvedValue({ suspendedAt: null }),
+		},
+	},
 }));
 
 vi.mock('next-auth', () => ({

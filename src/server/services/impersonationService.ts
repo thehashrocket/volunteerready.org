@@ -8,6 +8,7 @@ import {
 	IMPERSONATION_START_ACTION,
 } from '@/server/domain/impersonation';
 import { isPlatformAdmin } from '@/server/domain/platform-admin';
+import { sendImpersonationStartAlert } from '@/server/lib/admin-alerts';
 import {
 	writeAuditLog,
 	writeAuditLogTx,
@@ -70,7 +71,7 @@ export async function startImpersonation(
 
 	const expiresAt = new Date(Date.now() + IMPERSONATION_MAX_DURATION_MS);
 
-	return prisma.$transaction(async (tx) => {
+	const result = await prisma.$transaction(async (tx) => {
 		const session = await createImpersonationSessionTx(tx, {
 			adminUserId,
 			targetUserId,
@@ -97,6 +98,30 @@ export async function startImpersonation(
 			expiresAt,
 		};
 	});
+
+	// Fire-and-forget alert to other platform admins. Never blocks the action;
+	// audit row is the source of truth, alert is best-effort.
+	void (async () => {
+		try {
+			const admin = await prisma.user.findUnique({
+				where: { id: adminUserId },
+				select: { email: true },
+			});
+			await sendImpersonationStartAlert({
+				adminEmail: admin?.email ?? null,
+				adminUserId,
+				targetEmail: target.email ?? null,
+				targetUserId,
+				reason,
+				expiresAt,
+				sessionId: result.sessionId,
+			});
+		} catch (err) {
+			console.error('[impersonationService] Alert failed:', err);
+		}
+	})();
+
+	return result;
 }
 
 /**

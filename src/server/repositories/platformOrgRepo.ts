@@ -32,6 +32,7 @@ export async function listOrgsPage(options: {
 			slug: true,
 			name: true,
 			planTier: true,
+			suspendedAt: true,
 			createdAt: true,
 			_count: {
 				select: {
@@ -53,6 +54,7 @@ export async function listOrgsPage(options: {
 			slug: o.slug,
 			name: o.name,
 			planTier: o.planTier,
+			suspendedAt: o.suspendedAt,
 			createdAt: o.createdAt,
 			memberCount: o._count.members,
 			opportunityCount: o._count.opportunities,
@@ -81,6 +83,10 @@ export async function getOrgDetail(id: string) {
 			firstApplicationReceivedAt: true,
 			checkrAccountId: true,
 			sterlingAccountId: true,
+			suspendedAt: true,
+			suspendedReason: true,
+			suspendedById: true,
+			suspendedBy: { select: { id: true, email: true, name: true } },
 			createdAt: true,
 			updatedAt: true,
 			_count: {
@@ -143,5 +149,44 @@ export async function listOrgApplications(orgId: string, limit = 50) {
 			submittedAt: true,
 			opportunity: { select: { id: true, title: true } },
 		},
+	});
+}
+
+type Tx = Prisma.TransactionClient;
+
+export async function setOrgSuspendedTx(
+	tx: Tx,
+	args: {
+		id: string;
+		suspendedAt: Date | null;
+		suspendedReason: string | null;
+		suspendedById: string | null;
+	},
+) {
+	return tx.organization.update({
+		where: { id: args.id },
+		data: {
+			suspendedAt: args.suspendedAt,
+			suspendedReason: args.suspendedReason,
+			suspendedById: args.suspendedById,
+		},
+		select: {
+			id: true,
+			slug: true,
+			name: true,
+			suspendedAt: true,
+			suspendedReason: true,
+			suspendedById: true,
+		},
+	});
+}
+
+export async function getOrgSuspensionStatus(orgId: string): Promise<{
+	suspendedAt: Date | null;
+	suspendedReason: string | null;
+} | null> {
+	return prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { suspendedAt: true, suspendedReason: true },
 	});
 }
