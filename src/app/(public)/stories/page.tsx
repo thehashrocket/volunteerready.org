@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { CTABanner } from '@/components/cta-banner';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { Button } from '@/components/ui/button';
-import { BASE_URL, FOUNDER_BOOKING_URL } from '@/lib/constants';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { listConsentedOrgSummaries } from '@/server/services/caseStudyService';
 
 export const metadata: Metadata = {

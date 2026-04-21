@@ -85,9 +85,22 @@ export default function PlatformUserDetailPage({
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ targetId: id, reason: impersonateReason }),
 			});
-			const payload = await res.json().catch(() => ({}));
 			if (!res.ok) {
-				throw new Error(payload?.error ?? 'Failed to start impersonation');
+				let message = 'Failed to start impersonation';
+				const contentType = res.headers.get('content-type') ?? '';
+				if (contentType.includes('application/json')) {
+					const payload = await res.json().catch(() => ({}));
+					const issues = Array.isArray(payload?.issues)
+						? payload.issues
+								.map((i: { message: string }) => i.message)
+								.join('; ')
+						: null;
+					message = issues ?? payload?.error ?? message;
+				} else {
+					const text = await res.text().catch(() => '');
+					if (text) message = text;
+				}
+				throw new Error(message);
 			}
 			window.location.href = '/app';
 		} catch (err) {

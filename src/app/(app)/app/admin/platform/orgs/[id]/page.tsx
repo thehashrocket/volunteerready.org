@@ -63,10 +63,20 @@ export default function PlatformOrgDetailPage({
 		);
 	}
 
-	if (isError || !data) {
+	if (isError) {
 		return (
 			<div className="mx-auto max-w-5xl p-6">
 				<Card className="p-6 text-sm text-destructive">
+					Failed to load organization. Please try again.
+				</Card>
+			</div>
+		);
+	}
+
+	if (!data) {
+		return (
+			<div className="mx-auto max-w-5xl p-6">
+				<Card className="p-6 text-sm text-muted-foreground">
 					Organization not found.
 				</Card>
 			</div>
