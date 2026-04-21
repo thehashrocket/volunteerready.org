@@ -95,6 +95,36 @@ export async function getCaseStudy(
 }
 
 // ---------------------------------------------------------------------------
+// Lightweight summary for the public stories index (one query, no aggregations)
+// ---------------------------------------------------------------------------
+
+export type OrgStorySummary = {
+	slug: string;
+	name: string;
+	logoUrl: string | null;
+	applicationsSubmitted: number;
+};
+
+export async function listConsentedOrgSummaries(): Promise<OrgStorySummary[]> {
+	const orgs = await prisma.organization.findMany({
+		where: { consentToPublicize: true },
+		orderBy: { updatedAt: 'desc' },
+		select: {
+			slug: true,
+			name: true,
+			logoUrl: true,
+			_count: { select: { applications: true } },
+		},
+	});
+	return orgs.map((o) => ({
+		slug: o.slug,
+		name: o.name,
+		logoUrl: o.logoUrl,
+		applicationsSubmitted: o._count.applications,
+	}));
+}
+
+// ---------------------------------------------------------------------------
 // List all consented orgs with case study data
 // ---------------------------------------------------------------------------
 
