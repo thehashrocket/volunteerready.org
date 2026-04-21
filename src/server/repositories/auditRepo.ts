@@ -76,7 +76,10 @@ export async function queryAuditLog(
 
 	const where: Prisma.AuditLogWhereInput = {};
 	if (filters.subjectId) {
-		where.OR = [{ actorId: filters.subjectId }, { entityId: filters.subjectId }];
+		where.OR = [
+			{ actorId: filters.subjectId },
+			{ entityId: filters.subjectId },
+		];
 	} else {
 		if (filters.actorId) where.actorId = filters.actorId;
 		if (filters.entityId) where.entityId = filters.entityId;
