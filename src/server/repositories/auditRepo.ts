@@ -3,6 +3,8 @@ import { prisma } from './prisma';
 
 export type AuditQueryFilters = {
 	actorId?: string | null;
+	/** Bidirectional subject filter — returns rows where actorId OR entityId matches. */
+	subjectId?: string | null;
 	entityType?: string | null;
 	entityId?: string | null;
 	action?: string | null;
@@ -73,9 +75,13 @@ export async function queryAuditLog(
 	);
 
 	const where: Prisma.AuditLogWhereInput = {};
-	if (filters.actorId) where.actorId = filters.actorId;
+	if (filters.subjectId) {
+		where.OR = [{ actorId: filters.subjectId }, { entityId: filters.subjectId }];
+	} else {
+		if (filters.actorId) where.actorId = filters.actorId;
+		if (filters.entityId) where.entityId = filters.entityId;
+	}
 	if (filters.entityType) where.entityType = filters.entityType;
-	if (filters.entityId) where.entityId = filters.entityId;
 	if (filters.action) where.action = filters.action;
 	if (filters.orgId) where.orgId = filters.orgId;
 	if (filters.dateFrom || filters.dateTo) {

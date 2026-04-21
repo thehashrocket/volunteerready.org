@@ -3,6 +3,7 @@
 import { ChevronLeft, Loader2, ShieldCheck, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import { use, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -36,6 +37,8 @@ export default function PlatformUserDetailPage({
 }) {
 	const { id } = use(params);
 	const [tab, setTab] = useState('overview');
+	const { data: session } = useSession();
+	const currentUserId = session?.user?.id;
 
 	const utils = trpc.useUtils();
 	const { data, isLoading, isError } = trpc.platformAdmin.users.get.useQuery({
@@ -160,6 +163,12 @@ export default function PlatformUserDetailPage({
 						setAdminReason('');
 						setAdminModalOpen(true);
 					}}
+					disabled={data.isPlatformAdmin && currentUserId === id}
+					title={
+						data.isPlatformAdmin && currentUserId === id
+							? 'You cannot revoke your own platform admin status'
+							: undefined
+					}
 				>
 					{data.isPlatformAdmin
 						? 'Revoke platform admin'
@@ -505,7 +514,7 @@ export default function PlatformUserDetailPage({
 
 function UserAuditList({ userId }: { userId: string }) {
 	const { data, isLoading } = trpc.platformAdmin.audit.query.useQuery({
-		filters: { actorId: userId },
+		filters: { subjectId: userId },
 		limit: 50,
 	});
 
