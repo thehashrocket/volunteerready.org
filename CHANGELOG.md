@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.2.0] - 2026-04-21
+
+### Added
+- **Volunteers can now withdraw their applications.** A "Withdraw application" button appears on `/app/my-applications/[id]` for applications in SUBMITTED or REVIEW status. Clicking it opens a confirmation dialog; on confirm, the application moves to WITHDRAWN status, the volunteer receives a confirmation email, and org admins receive an in-app notification.
+- **WITHDRAWN application status.** New `WITHDRAWN` enum value added to `ApplicationStatus`. DB migration adds the value and recreates the dedup partial unique index to exclude both REJECTED and WITHDRAWN from the active-application constraint, so volunteers can re-apply after withdrawing.
+- **Public customer stories index at `/stories`.** Lists all orgs that have consented to a case study with their logo, name, and application count. Includes JSON-LD breadcrumb and a CTA to be featured.
+- **Withdrawal service and tRPC procedure.** `volunteerApplicationService.withdrawVolunteerApplication()` owns the withdrawal business logic (status guard, audit log, fire-and-forget email + in-app notification). Exposed via `screener.withdrawApplication` protected procedure.
+- **17 new tests.** Service unit tests for all withdrawal paths (NOT_FOUND, FORBIDDEN, SUBMITTED success, REVIEW success, audit log); component tests for the withdrawal dialog (button visibility per status, dialog open/cancel/confirm/error/loading states); one new impersonation banner test for the error path.
+
+### Fixed
+- **Platform admin: impersonate error parsing now reads the response body.** The impersonation endpoint returns JSON (Zod issues) or plain text; the user-facing UI now surfaces the actual message instead of silently swallowing the failure.
+- **Platform admin: impersonation banner shows an inline error instead of silently failing.** When "End session" fails (non-2xx), an error message appears below the banner and the button re-enables so admins can retry.
+- **Platform admin: audit log page shows an error state.** Previously rendered an empty list on query failure; now shows a destructive card with the error message.
+- **Platform admin: org detail page differentiates 404 from load errors.** `isError` shows "Failed to load organization. Please try again." in destructive styling; `!data` (not found) shows "Organization not found." in muted styling.
+
 ## [0.23.1.3] - 2026-04-20
 
 ### Changed
