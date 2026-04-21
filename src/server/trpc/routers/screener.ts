@@ -283,6 +283,17 @@ export const screenerRouter = createTRPCRouter({
 			);
 		}),
 
+	withdrawApplication: protectedProcedure
+		.input(z.object({ id: z.string().min(1) }))
+		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session?.user?.id;
+			if (!userId) throw new TRPCError({ code: 'UNAUTHORIZED' });
+			const { withdrawVolunteerApplication } = await import(
+				'@/server/services/volunteerApplicationService'
+			);
+			return withdrawVolunteerApplication(userId, input.id);
+		}),
+
 	myApplicationTimeline: protectedProcedure
 		.input(z.object({ id: z.string().min(1) }))
 		.query(async ({ ctx, input }) => {

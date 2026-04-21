@@ -26,6 +26,7 @@ export function ImpersonationBanner({
 		return new Date(expiresAt).getTime() - Date.now();
 	});
 	const [ending, setEnding] = useState(false);
+	const [endError, setEndError] = useState<string | null>(null);
 
 	useEffect(() => {
 		const iv = setInterval(() => {
@@ -43,10 +44,21 @@ export function ImpersonationBanner({
 	async function handleEnd() {
 		if (ending) return;
 		setEnding(true);
+		setEndError(null);
 		try {
-			await fetch('/api/platform-admin/impersonation/end', { method: 'POST' });
-		} finally {
+			const res = await fetch('/api/platform-admin/impersonation/end', {
+				method: 'POST',
+			});
+			if (!res.ok) {
+				const body = await res.text().catch(() => 'Unknown error');
+				setEndError(body || 'Failed to end session. Try again.');
+				setEnding(false);
+				return;
+			}
 			window.location.href = '/app/admin/platform/users';
+		} catch {
+			setEndError('Network error. Check your connection and try again.');
+			setEnding(false);
 		}
 	}
 
@@ -55,31 +67,35 @@ export function ImpersonationBanner({
 		: (targetEmail ?? 'user');
 
 	return (
-		<div
-			role="status"
-			aria-live="polite"
-			className="sticky top-0 z-[9999] flex flex-wrap items-center justify-between gap-3 border-b-2 border-warning bg-warning/15 px-4 py-2 text-sm text-warning-foreground"
-		>
-			<div className="flex items-center gap-2 font-medium">
-				<AlertTriangle className="h-4 w-4 shrink-0" />
-				<span>
-					Impersonating <span className="font-semibold">{label}</span> · expires
-					in <span className="tabular-nums">{formatRemaining(remaining)}</span>
-				</span>
+		<div role="status" aria-live="polite" className="sticky top-0 z-[9999]">
+			<div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-warning bg-warning/15 px-4 py-2 text-sm text-warning-foreground">
+				<div className="flex items-center gap-2 font-medium">
+					<AlertTriangle className="h-4 w-4 shrink-0" />
+					<span>
+						Impersonating <span className="font-semibold">{label}</span> ·
+						expires in{' '}
+						<span className="tabular-nums">{formatRemaining(remaining)}</span>
+					</span>
+				</div>
+				<button
+					type="button"
+					onClick={handleEnd}
+					disabled={ending}
+					className="inline-flex items-center gap-1.5 rounded-md border border-warning/40 bg-background/70 px-2.5 py-1 text-xs font-medium transition hover:bg-background disabled:opacity-60"
+				>
+					{ending ? (
+						<Loader2 className="h-3.5 w-3.5 animate-spin" />
+					) : (
+						<LogOut className="h-3.5 w-3.5" />
+					)}
+					End session
+				</button>
 			</div>
-			<button
-				type="button"
-				onClick={handleEnd}
-				disabled={ending}
-				className="inline-flex items-center gap-1.5 rounded-md border border-warning/40 bg-background/70 px-2.5 py-1 text-xs font-medium transition hover:bg-background disabled:opacity-60"
-			>
-				{ending ? (
-					<Loader2 className="h-3.5 w-3.5 animate-spin" />
-				) : (
-					<LogOut className="h-3.5 w-3.5" />
-				)}
-				End session
-			</button>
+			{endError && (
+				<div className="border-b border-destructive/20 bg-destructive/10 px-4 py-1.5 text-xs text-destructive">
+					{endError}
+				</div>
+			)}
 		</div>
 	);
 }

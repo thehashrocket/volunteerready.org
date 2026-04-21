@@ -103,6 +103,17 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		},
 	},
 	{
+		slug: 'stories',
+		href: '/stories',
+		label: 'Stories',
+		footerSection: 'Platform',
+		sitemap: { changeFrequency: 'weekly', priority: 0.6 },
+		og: {
+			heading: 'Real Impact from Real Nonprofits',
+			subheading: 'Customer Stories',
+		},
+	},
+	{
 		slug: 'pricing',
 		href: '/pricing',
 		label: 'Pricing',

@@ -1,4 +1,10 @@
-import { AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import {
+	AlertCircle,
+	CheckCircle2,
+	Clock,
+	MinusCircle,
+	XCircle,
+} from 'lucide-react';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ApplicationStatus } from '@/prisma/generated/client';
@@ -26,6 +32,11 @@ const statusConfig: Record<
 		label: 'Rejected',
 		icon: XCircle,
 		variant: 'destructive',
+	},
+	WITHDRAWN: {
+		label: 'Withdrawn',
+		icon: MinusCircle,
+		variant: 'secondary',
 	},
 };
 

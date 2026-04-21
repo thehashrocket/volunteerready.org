@@ -213,6 +213,10 @@ export default function PlatformAuditPage() {
 				<div className="flex items-center justify-center py-12">
 					<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
 				</div>
+			) : query.isError ? (
+				<Card className="p-6 text-sm text-destructive">
+					Failed to load audit log. {query.error.message}
+				</Card>
 			) : allRows.length === 0 ? (
 				<Card className="p-6 text-sm text-muted-foreground">
 					No audit entries match.

@@ -10,24 +10,10 @@ Each item includes enough context for a future engineer to pick it up cold.
 Deferred from the Tier 1 adversarial review. None block the Tier 1 ship; all
 are quality-of-life improvements for admins or observability.
 
-- **[P2] Banner error surfacing** — `impersonation-banner.tsx:43–51` currently
-  redirects in a `finally` even when the end-session `fetch` fails. Fixing
-  CRITICAL #1 (cookie always clears server-side) makes this safe, but the
-  banner still shouldn't navigate away if the server returned a user-visible
-  error. Branch on `res.ok`; on failure, show the error inline and keep the
-  banner visible.
-- **[P2] `handleImpersonate` error parsing** —
-  `src/app/(app)/app/admin/platform/users/[id]/page.tsx:~88`, replace
-  `await res.json().catch(() => ({}))` with a variant that preserves non-JSON
-  response bodies and the Zod `issues` array so admins see why start failed.
-- **[P2] Audit page error state** —
-  `src/app/(app)/app/admin/platform/audit/page.tsx` has no `isError` branch
-  in the render; add a visible failure state so pagination errors don't read
-  as "no data".
-- **[P2] Org detail error state** — when `getOrg` `Promise.all` fails on one
-  branch, the detail page currently falls back to "Organization not found",
-  which is a lie. Differentiate `isError` from "not found" in
-  `src/app/(app)/app/admin/platform/orgs/[id]/page.tsx`.
+- ~~**[P2] Banner error surfacing**~~ ✅ **Completed v0.23.2.0 (2026-04-21)** — `impersonation-banner.tsx` now branches on `res.ok`; on failure, shows the error text inline and re-enables the button so admins can retry without losing context.
+- ~~**[P2] `handleImpersonate` error parsing**~~ ✅ **Completed v0.23.2.0 (2026-04-21)** — `platform/users/[id]/page.tsx` now checks `Content-Type` and extracts the Zod `issues` array (JSON) or reads the plain-text body so admins see why impersonation start failed.
+- ~~**[P2] Audit page error state**~~ ✅ **Completed v0.23.2.0 (2026-04-21)** — `platform/audit/page.tsx` now has an `isError` branch rendering a destructive card with the error message.
+- ~~**[P2] Org detail error state**~~ ✅ **Completed v0.23.2.0 (2026-04-21)** — `platform/orgs/[id]/page.tsx` now differentiates `isError` (failed load, destructive) from `!data` (not found, muted).
 - **[P3] `UserAuditList` shows actor-only rows** —
   `users/[id]/page.tsx:~494` queries `actorId: userId`; also surface rows
   where `entityId: userId` (actions *against* the user) so "SESSIONS_REVOKED"
@@ -480,26 +466,11 @@ seed data. Ready for integration into public landing pages.
 
 ---
 
-### [P2] Public Stories Index Page (/stories)
+### ~~[P2] Public Stories Index Page (/stories)~~ ✅ Completed v0.23.2.0 (2026-04-21)
 
-**What:** Create `src/app/(public)/stories/page.tsx` — a public listing of consented org case studies,
-connecting the Content Flywheel to the marketing funnel.
+`src/app/(public)/stories/page.tsx` ships. Queries `listConsentedOrgSummaries()` (single query with `_count` for application volume), renders a grid of org cards with logo/name/count, JSON-LD breadcrumb, empty state, and CTA banner. Route registered in `public-pages.ts` with sitemap config.
 
-**Why:** The Content Flywheel (case study generation, consent flow, PDF download) is fully built, but
-there's no public index page. Marketing pages show testimonials with "More stories coming soon" teasers
-that currently dead-end. A stories index gives those teasers somewhere to link, adds SEO value through
-long-tail org stories, and leverages existing infrastructure.
-
-**Context:** Individual story pages already exist at `/stories/[orgSlug]`. Consent flow is live
-(`/stories/consent-confirmed`, `/stories/consent-expired`). Case study admin UI is at
-`/app/admin/case-studies`. What's missing is a listing page that queries all published/consented
-case studies and renders them as a browsable grid. Once shipped, update marketing page testimonial
-teasers to link to `/stories` and re-enable the story links dropped by the eng review.
-
-**Pros:** Connects Content Flywheel to conversion funnel; SEO value; leverages existing infrastructure.
-**Cons:** Requires design for the listing page layout; needs at least one consented case study in production.
-
-**Effort:** S | **Priority:** P2 | **Depends on:** At least one consented case study in production
+**Effort:** S | **Priority:** P2 | **Completed:** v0.23.2.0 (2026-04-21)
 
 ---
 
@@ -872,27 +843,11 @@ edge cases with shared/family email addresses.
 
 ---
 
-### [P2] Application Withdrawal / Cancel Flow
+### ~~[P2] Application Withdrawal / Cancel Flow~~ ✅ Completed v0.23.2.0 (2026-04-21)
 
-**What:** Allow volunteers to withdraw/cancel their application from the My Applications
-detail page, adding a self-service "un-apply" capability.
+Full withdrawal flow shipped: `WITHDRAWN` enum value added, partial unique index updated to exclude both REJECTED and WITHDRAWN, `withdrawVolunteerApplication()` service with status guard (SUBMITTED/REVIEW only), audit log, volunteer email, and org admin in-app notification. `screener.withdrawApplication` tRPC procedure. Withdrawal button + confirmation dialog on My Applications detail page. 17 tests (service unit + component).
 
-**Why:** With the dedup unique constraint, a volunteer who applied by mistake is permanently
-blocked from that opportunity (unless an admin manually rejects the application). Withdrawal
-gives volunteers control over their own applications and reduces admin burden for accidental
-submissions.
-
-**Context:** Requires a new `WITHDRAWN` status in the `ApplicationStatus` enum and an update
-to the partial unique index to exclude both REJECTED and WITHDRAWN statuses. The My Applications
-detail page (`src/app/(app)/app/my-applications/[id]/page.tsx`) would need a "Withdraw Application"
-button with confirmation dialog. The workaround until this ships: admin rejects the application,
-which enables re-apply via the existing dedup flow.
-
-**Pros:** Self-service for volunteers; reduces admin support requests; natural complement to dedup.
-**Cons:** New status adds to the state machine; partial index needs updating; UX for "are you sure?"
-confirmation; edge case if org has already started processing the application.
-
-**Effort:** S | **Priority:** P2 | **Depends on:** Dedupe volunteer apply PR (partial unique index)
+**Effort:** S | **Priority:** P2 | **Completed:** v0.23.2.0 (2026-04-21)
 
 ---
 

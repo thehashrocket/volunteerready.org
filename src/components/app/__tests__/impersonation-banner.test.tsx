@@ -141,6 +141,35 @@ describe('ImpersonationBanner', () => {
 		expect(hrefSetter).toHaveBeenCalledWith('/app/admin/platform/users');
 	});
 
+	it('shows inline error and does not navigate when end-session fetch fails', async () => {
+		const { hrefSetter } = mockLocation();
+		const fetchMock = vi.fn().mockResolvedValue({
+			ok: false,
+			text: vi.fn().mockResolvedValue('Session already ended.'),
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		render(
+			<ImpersonationBanner
+				targetEmail="v@example.com"
+				targetName={null}
+				expiresAt={new Date('2026-04-17T14:30:00Z').toISOString()}
+			/>,
+		);
+
+		const button = screen.getByRole('button', { name: /end session/i });
+
+		await act(async () => {
+			button.click();
+			await vi.runAllTimersAsync();
+		});
+
+		expect(hrefSetter).not.toHaveBeenCalled();
+		expect(screen.getByText(/Session already ended/)).toBeInTheDocument();
+		// Button should be re-enabled so admin can retry
+		expect(button).not.toBeDisabled();
+	});
+
 	it('shows "expired" label when remaining drops to zero before tick', () => {
 		mockLocation();
 		// Already-expired timestamp
