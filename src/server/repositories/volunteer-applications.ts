@@ -171,15 +171,42 @@ export async function getActiveQuestions(orgId: string) {
 }
 
 export async function countApplicationsByStatus(orgId: string) {
-	const [submitted, review, approved, rejected] = await Promise.all([
+	const [submitted, review, approved, rejected, withdrawn] = await Promise.all([
 		prisma.volunteerApplication.count({
 			where: { orgId, status: 'SUBMITTED' },
 		}),
 		prisma.volunteerApplication.count({ where: { orgId, status: 'REVIEW' } }),
 		prisma.volunteerApplication.count({ where: { orgId, status: 'APPROVED' } }),
 		prisma.volunteerApplication.count({ where: { orgId, status: 'REJECTED' } }),
+		prisma.volunteerApplication.count({
+			where: { orgId, status: 'WITHDRAWN' },
+		}),
 	]);
-	return { submitted, review, approved, rejected };
+	return { submitted, review, approved, rejected, withdrawn };
+}
+
+export async function withdrawApplication(
+	userId: string,
+	applicationId: string,
+) {
+	return prisma.volunteerApplication.findFirst({
+		where: { id: applicationId, submittedByUserId: userId },
+		select: {
+			id: true,
+			orgId: true,
+			status: true,
+			opportunityId: true,
+			submittedByEmail: true,
+			opportunity: { select: { title: true } },
+		},
+	});
+}
+
+export async function setApplicationWithdrawn(applicationId: string) {
+	return prisma.volunteerApplication.update({
+		where: { id: applicationId },
+		data: { status: 'WITHDRAWN' },
+	});
 }
 
 export async function listApplicationsWithSkills(
@@ -220,7 +247,7 @@ export async function findActiveApplicationByUserAndOpportunity(
 			orgId,
 			submittedByUserId: userId,
 			opportunityId,
-			status: { not: 'REJECTED' },
+			status: { notIn: ['REJECTED', 'WITHDRAWN'] },
 		},
 		select: {
 			id: true,
@@ -247,7 +274,7 @@ export async function listUserAppliedOpportunities(
 			orgId,
 			submittedByUserId: userId,
 			opportunityId: { in: opportunityIds },
-			status: { not: 'REJECTED' },
+			status: { notIn: ['REJECTED', 'WITHDRAWN'] },
 		},
 		select: {
 			id: true,
@@ -273,7 +300,7 @@ export async function listUserAppliedOpportunitiesCrossOrg(
 		where: {
 			submittedByUserId: userId,
 			opportunityId: { in: opportunityIds },
-			status: { not: 'REJECTED' },
+			status: { notIn: ['REJECTED', 'WITHDRAWN'] },
 		},
 		select: {
 			id: true,
