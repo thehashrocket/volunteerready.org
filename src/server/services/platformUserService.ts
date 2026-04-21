@@ -43,6 +43,13 @@ export async function setPlatformAdmin(input: {
 		});
 	}
 
+	if (input.actorId === input.id && !input.value) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: 'Platform admins cannot revoke their own admin status.',
+		});
+	}
+
 	const target = await prisma.user.findUnique({
 		where: { id: input.id },
 		select: { id: true, isPlatformAdmin: true, email: true },
