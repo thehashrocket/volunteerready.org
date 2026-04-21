@@ -1,7 +1,7 @@
 'use client';
 
 import { AlertTriangle, Loader2, LogOut } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface ImpersonationBannerProps {
 	targetEmail: string | null;
@@ -27,6 +27,7 @@ export function ImpersonationBanner({
 	});
 	const [ending, setEnding] = useState(false);
 	const [endError, setEndError] = useState<string | null>(null);
+	const hasNavigated = useRef(false);
 
 	useEffect(() => {
 		const iv = setInterval(() => {
@@ -34,8 +35,10 @@ export function ImpersonationBanner({
 			setRemaining(next);
 			if (next <= 0) {
 				clearInterval(iv);
-				// Reload so server-side recognizes expiry and clears cookie
-				window.location.reload();
+				if (!hasNavigated.current) {
+					hasNavigated.current = true;
+					window.location.href = '/app/admin/platform/users';
+				}
 			}
 		}, 1000);
 		return () => clearInterval(iv);

@@ -49,6 +49,7 @@ const auditQuerySchema = z.object({
 	filters: z
 		.object({
 			actorId: z.string().optional().nullable(),
+			subjectId: z.string().optional().nullable(),
 			entityType: z.string().optional().nullable(),
 			entityId: z.string().optional().nullable(),
 			action: z.string().optional().nullable(),

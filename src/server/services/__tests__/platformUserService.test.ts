@@ -170,31 +170,21 @@ describe('platformUserService.setPlatformAdmin', () => {
 		);
 	});
 
-	it('flags selfAction=true when actor demotes themselves', async () => {
-		mockFindUnique.mockResolvedValueOnce({
-			id: 'a1',
-			isPlatformAdmin: true,
-			email: 'admin@example.com',
-		});
-		mockUpdatePlatformAdminTx.mockResolvedValueOnce({
-			id: 'a1',
-			isPlatformAdmin: false,
-			email: 'admin@example.com',
-		});
-
-		await setPlatformAdmin({
-			id: 'a1',
-			value: false,
-			reason: 'stepping down',
-			actorId: 'a1',
-		});
-
-		expect(mockWriteAuditLogTx).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.objectContaining({
-				metadata: expect.objectContaining({ selfAction: true }),
+	it('rejects when actor attempts to revoke their own admin status', async () => {
+		await expect(
+			setPlatformAdmin({
+				id: 'a1',
+				value: false,
+				reason: 'stepping down',
+				actorId: 'a1',
 			}),
-		);
+		).rejects.toMatchObject({
+			code: 'BAD_REQUEST',
+			message: 'Platform admins cannot revoke their own admin status.',
+		});
+
+		expect(mockTransaction).not.toHaveBeenCalled();
+		expect(mockWriteAuditLogTx).not.toHaveBeenCalled();
 	});
 });
 

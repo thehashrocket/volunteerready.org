@@ -93,8 +93,8 @@ describe('ImpersonationBanner', () => {
 		expect(screen.getByText(/0m 29s/)).toBeInTheDocument();
 	});
 
-	it('reloads the page when the session expires', () => {
-		const { reload } = mockLocation();
+	it('navigates to the users list when the session expires', () => {
+		const { hrefSetter } = mockLocation();
 		const expiresAt = new Date('2026-04-17T14:00:05Z').toISOString(); // +5s
 
 		render(
@@ -105,13 +105,14 @@ describe('ImpersonationBanner', () => {
 			/>,
 		);
 
-		expect(reload).not.toHaveBeenCalled();
+		expect(hrefSetter).not.toHaveBeenCalled();
 
 		act(() => {
 			vi.advanceTimersByTime(6_000);
 		});
 
-		expect(reload).toHaveBeenCalledTimes(1);
+		expect(hrefSetter).toHaveBeenCalledWith('/app/admin/platform/users');
+		expect(hrefSetter).toHaveBeenCalledTimes(1);
 	});
 
 	it('calls end endpoint and navigates on End button click', async () => {
@@ -161,7 +162,9 @@ describe('ImpersonationBanner', () => {
 
 		await act(async () => {
 			button.click();
-			await vi.runAllTimersAsync();
+			// Advance only enough to settle the fetch promise microtasks without
+			// expiring the 30-minute session, which would trigger navigation.
+			await vi.advanceTimersByTimeAsync(100);
 		});
 
 		expect(hrefSetter).not.toHaveBeenCalled();

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import {
 	type AuditQueryFilters,
 	listDistinctActions,
@@ -29,8 +30,10 @@ export function redactAuditMetadata(value: unknown): unknown {
 		if (SENSITIVE_KEY_PATTERN.test(key)) {
 			if (!warnedKeys.has(key)) {
 				warnedKeys.add(key);
-				console.warn(
+				// per-process dedup: Sentry may still deduplicate across processes
+				Sentry.captureMessage(
 					`[auditQueryService] sensitive-looking key "${key}" encountered in audit metadata — check upstream writer`,
+					'warning',
 				);
 			}
 			out[key] = REDACTED_VALUE;

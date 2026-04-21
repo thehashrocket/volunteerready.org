@@ -36,7 +36,21 @@ export async function getImpersonationContext(): Promise<ImpersonationContext> {
 		};
 	}
 
-	const resolved = await resolveImpersonation(realUserId, cookieValue);
+	let resolved: Awaited<ReturnType<typeof resolveImpersonation>>;
+	try {
+		resolved = await resolveImpersonation(realUserId, cookieValue);
+	} catch (err) {
+		const { captureException } = await import('@sentry/nextjs');
+		captureException(err, { tags: { source: 'IMPERSONATION_RESOLVE_FAILED' } });
+		return {
+			realUserId,
+			effectiveUserId: realUserId,
+			isImpersonating: false,
+			sessionId: null,
+			expiresAt: null,
+			targetUser: null,
+		};
+	}
 	if (!resolved.effective) {
 		return {
 			realUserId,

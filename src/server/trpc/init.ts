@@ -46,7 +46,18 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 		shouldClearCookie: false,
 	};
 	if (realUserId && impersonationCookie) {
-		impersonation = await resolveImpersonation(realUserId, impersonationCookie);
+		try {
+			impersonation = await resolveImpersonation(
+				realUserId,
+				impersonationCookie,
+			);
+		} catch (err) {
+			const { captureException } = await import('@sentry/nextjs');
+			captureException(err, {
+				tags: { source: 'IMPERSONATION_RESOLVE_FAILED' },
+			});
+			// Fail open: treat as not impersonating rather than 500ing the request
+		}
 	}
 
 	const effectiveUserId = impersonation.effective?.userId ?? realUserId;

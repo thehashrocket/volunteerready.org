@@ -14,23 +14,34 @@ are quality-of-life improvements for admins or observability.
 - ~~**[P2] `handleImpersonate` error parsing**~~ ✅ **Completed v0.23.2.0 (2026-04-21)** — `platform/users/[id]/page.tsx` now checks `Content-Type` and extracts the Zod `issues` array (JSON) or reads the plain-text body so admins see why impersonation start failed.
 - ~~**[P2] Audit page error state**~~ ✅ **Completed v0.23.2.0 (2026-04-21)** — `platform/audit/page.tsx` now has an `isError` branch rendering a destructive card with the error message.
 - ~~**[P2] Org detail error state**~~ ✅ **Completed v0.23.2.0 (2026-04-21)** — `platform/orgs/[id]/page.tsx` now differentiates `isError` (failed load, destructive) from `!data` (not found, muted).
-- **[P3] `UserAuditList` shows actor-only rows** —
-  `users/[id]/page.tsx:~494` queries `actorId: userId`; also surface rows
-  where `entityId: userId` (actions *against* the user) so "SESSIONS_REVOKED"
-  / "PLATFORM_ADMIN_GRANTED" show up where admins expect them.
-- **[P3] Banner reload-on-expiry guard** — `impersonation-banner.tsx:34–38`
-  could loop on clock skew. Add a one-shot flag so we reload at most once per
-  mount, or reload with `?expired=1` and let the server honor it.
-- **[P3] Sensitive-key audit detection → Sentry** —
-  `auditQueryService.ts:13–34` uses `console.warn`; route through the project's
-  structured logger (or `Sentry.captureMessage`) so these hit the dashboard.
-- **[P3] Structured error logging on `resolveImpersonation`** —
-  `src/server/trpc/init.ts` — wrap the call in try/catch and `logError` with
-  an `IMPERSONATION_RESOLVE_FAILED` tag before re-raising, so regressions are
-  visible in Sentry.
-- **[P3] Self-demotion guard** — `platformUserService.setPlatformAdmin`
-  currently logs `selfAction: true` but does not block an admin from demoting
-  themselves. Consider requiring a second admin, or at least warning in the UI.
+- ~~**[P3] `UserAuditList` shows actor-only rows**~~ ✅ **Completed v0.23.2.1 (2026-04-21)** — `users/[id]/page.tsx` now passes `subjectId: userId` to get bidirectional rows; `auditRepo.ts` uses `OR: [actorId, entityId]`; two new DB indexes added; tRPC Zod schema updated.
+- ~~**[P3] Banner reload-on-expiry guard**~~ ✅ **Completed v0.23.2.1 (2026-04-21)** — one-shot `useRef` guard navigates to `/app/admin/platform/users` exactly once on expiry instead of calling `reload()`.
+- ~~**[P3] Sensitive-key audit detection → Sentry**~~ ✅ **Completed v0.23.2.1 (2026-04-21)** — `auditQueryService.ts` now calls `Sentry.captureMessage` instead of `console.warn`.
+- ~~**[P3] Structured error logging on `resolveImpersonation`**~~ ✅ **Completed v0.23.2.1 (2026-04-21)** — both `init.ts` and `impersonation-context.ts` wrap `resolveImpersonation()` in try/catch, report to Sentry with `IMPERSONATION_RESOLVE_FAILED` tag, and fail open.
+- ~~**[P3] Self-demotion guard**~~ ✅ **Completed v0.23.2.1 (2026-04-21)** — `platformUserService.setPlatformAdmin` throws `BAD_REQUEST` when actor === target and `value` is `false`; UI button is disabled with tooltip.
+- **[P3] Require second admin before demotion** —
+  `platformUserService.setPlatformAdmin` hard-blocks self-demotion (shipped in
+  P3 PR), but an admin can still demote the only other platform admin, leaving the
+  platform unmanageable. Before allowing any demotion (self or other), verify at
+  least one other `isPlatformAdmin=true` user remains. Query `prisma.user.count({
+  where: { isPlatformAdmin: true, id: { not: input.id } } })` and reject with
+  `'Cannot revoke the last platform admin. Promote another admin first.'` if zero.
+
+  **Why:** Prevents accidental lockout from any path, not just self-demotion.
+  **Effort:** S | **Priority:** P3 | **Depends on:** Self-demotion hard block (P3 PR)
+
+- **[P3] Move sensitive-key audit detection to write sites** —
+  `auditQueryService.redactAuditMetadata` currently fires `Sentry.captureMessage`
+  on the READ path. Old bad rows in the DB re-alert on every admin browse and on
+  every deploy (the `warnedKeys` Set only dedupes per process). The correct fix
+  is to validate audit metadata at every `writeAuditLog` / `writeAuditLogTx` call
+  site so the signal fires once, at the producer. The `warnedKeys` de-dup on the
+  read path can then be removed.
+
+  **Why:** Accurate, low-noise Sentry signals. Current read-path implementation
+  acceptable short-term (per-process dedup with documented caveat).
+  **Effort:** S | **Priority:** P3 | **Depends on:** Sentry captureMessage shipped (P3 PR)
+
 - **[P3] `PlatformConfig.catalogRevision` singleton** — deferred from Tier 2
   design review. A revision counter bumped on every skill/screener-default
   edit would let clients cache-bust the catalog. Not needed until we see
