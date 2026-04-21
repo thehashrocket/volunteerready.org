@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.2.1] - 2026-04-21
+
+### Fixed
+- **Platform admin: audit log now shows both actor and subject rows.** The user detail page previously only showed rows where the user was the actor. It now uses a bidirectional `subjectId` filter returning rows where the user acted or was acted upon (e.g., had their admin status changed). New `@@index([actorId])` and `@@index([entityId])` indexes added to `AuditLog` for query performance.
+- **Platform admin: impersonation session expiry no longer loops.** The countdown banner previously called `window.location.reload()` on expiry, which could loop if the cookie hadn't cleared yet. It now uses a one-shot `useRef` guard to navigate to `/app/admin/platform/users` exactly once.
+- **Platform admin: impersonation context errors are handled gracefully.** Errors in `resolveImpersonation()` (called from both the tRPC context builder and server component helpers) are caught, reported to Sentry, and fail open — the request continues as if the user is not impersonating rather than returning a 500.
+- **Platform admin: sensitive key detection in audit metadata now alerts via Sentry.** The `console.warn` call in `auditQueryService` is replaced with `Sentry.captureMessage` so sensitive-key detections surface in the monitoring dashboard rather than disappearing into server logs.
+- **Platform admin: admins cannot revoke their own platform admin status.** `setPlatformAdmin` now throws `BAD_REQUEST` when the actor and target are the same user and `value` is `false`. The UI button is disabled with a tooltip in the same scenario.
+
 ## [0.23.2.0] - 2026-04-21
 
 ### Added
