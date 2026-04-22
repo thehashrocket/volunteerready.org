@@ -37,6 +37,7 @@
 		"**/*.spec.ts",
 		"src/test/**",
 		"vitest*.config.*",
-		"vitest*.setup.*"
+		"vitest*.setup.*",
+		"playwright.config.ts"
 	]
 }
