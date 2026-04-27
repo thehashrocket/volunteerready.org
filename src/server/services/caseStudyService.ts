@@ -222,7 +222,7 @@ export async function sendApprovalEmail(
 	if (!caseStudy) return { sent: false, to: null };
 
 	const token = createConsentToken(orgId);
-	const baseUrl = process.env.NEXTAUTH_URL ?? 'https://volunteerready.org';
+	const baseUrl = process.env.NEXTAUTH_URL ?? 'https://www.volunteerready.org';
 	const approveUrl = `${baseUrl}/api/case-study/consent?token=${encodeURIComponent(token)}`;
 
 	// Escape user-controlled values to prevent HTML injection in emails

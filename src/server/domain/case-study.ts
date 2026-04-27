@@ -116,7 +116,7 @@ export function renderMarkdown(data: CaseStudyData): string {
 	lines.push('---');
 	lines.push('');
 	lines.push(
-		'Ready to automate your volunteer management? [Get started with VolunteerReady](https://volunteerready.org/screening)',
+		'Ready to automate your volunteer management? [Get started with VolunteerReady](https://www.volunteerready.org/screening)',
 	);
 	lines.push('');
 

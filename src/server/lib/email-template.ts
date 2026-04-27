@@ -10,7 +10,7 @@ export function buildEmailHtml(content: string): string {
       </div>
       <div style="background-color: #F5F4F0; padding: 20px 24px; border-radius: 0 0 8px 8px;">
         <p style="color: #787571; font-size: 13px; margin: 0;">
-          Sent via <a href="https://volunteerready.org" style="color: #1B3C2A; text-decoration: none; font-weight: 500;">VolunteerReady</a>
+          Sent via <a href="https://www.volunteerready.org" style="color: #1B3C2A; text-decoration: none; font-weight: 500;">VolunteerReady</a>
         </p>
       </div>
     </div>
