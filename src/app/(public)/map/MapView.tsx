@@ -53,7 +53,7 @@ function groupByCoord(opportunities: Opportunity[]): PinGroup[] {
 				opportunities: [],
 			});
 		}
-		groups.get(key)!.opportunities.push(opp);
+		groups.get(key)?.opportunities.push(opp);
 	}
 	return Array.from(groups.values());
 }
