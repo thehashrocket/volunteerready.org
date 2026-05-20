@@ -136,6 +136,18 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		},
 	},
 	{
+		slug: 'map',
+		href: '/map',
+		label: 'Map',
+		nav: true,
+		footerSection: 'Platform',
+		sitemap: { changeFrequency: 'daily', priority: 0.8 },
+		og: {
+			heading: 'Find Volunteer Opportunities Near You',
+			subheading: 'Volunteer Map',
+		},
+	},
+	{
 		slug: 'search',
 		href: '/search',
 		label: 'Search',

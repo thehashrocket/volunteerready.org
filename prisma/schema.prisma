@@ -331,6 +331,13 @@ enum RequirementLevel {
   PREFERRED
 }
 
+enum GeocodeStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
 model VolunteerOpportunity {
   id              String            @id @default(cuid())
   orgId           String
@@ -343,6 +350,9 @@ model VolunteerOpportunity {
   endDate         DateTime?
   commitmentHours Float?
   capacity        Int?
+  lat             Float?
+  lng             Float?
+  geocodeStatus   GeocodeStatus     @default(PENDING)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
@@ -356,6 +366,7 @@ model VolunteerOpportunity {
 
   @@index([orgId])
   @@index([status])
+  @@index([status, geocodeStatus])
 }
 
 model OpportunityTag {
