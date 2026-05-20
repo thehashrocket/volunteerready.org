@@ -3,7 +3,8 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Link from 'next/link';
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { useEffect } from 'react';
+import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 
 // Fix Leaflet's default marker icons broken by webpack asset hashing
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)
@@ -28,11 +29,24 @@ type PinGroup = {
 	}[];
 };
 
+function MapCenterUpdater({
+	center,
+	zoom,
+}: {
+	center: [number, number];
+	zoom: number;
+}) {
+	const map = useMap();
+	useEffect(() => {
+		map.setView(center, zoom);
+	}, [map, center, zoom]);
+	return null;
+}
+
 type Props = {
 	pins: PinGroup[];
 	center: [number, number];
 	zoom: number;
-	onPinClick?: (key: string) => void;
 };
 
 export function LeafletMap({ pins, center, zoom }: Props) {
@@ -43,6 +57,7 @@ export function LeafletMap({ pins, center, zoom }: Props) {
 			className="h-full w-full"
 			scrollWheelZoom
 		>
+			<MapCenterUpdater center={center} zoom={zoom} />
 			<TileLayer
 				attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 				url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
