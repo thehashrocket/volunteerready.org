@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { trackEvent } from '@/lib/analytics';
-import { haversineDistance } from '@/server/lib/geo';
+import { haversineDistance } from '@/lib/geo';
 import type { listForMap } from '@/server/repositories/publicOpportunityRepo';
 
 const LeafletMap = dynamic(
