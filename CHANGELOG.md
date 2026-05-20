@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.24.0.0] - 2026-05-19
+
+### Added
+- **Interactive volunteer map at `/map`.** Volunteers can now browse all geocoded opportunities on a Leaflet map. The page shows a filter toolbar (by tag), a "Use my location" button that sorts the sidebar list by distance, and popup cards linking to each org's opportunities page. The map re-centers imperatively via `useMap()` when the user grants location access.
+- **Geocoding pipeline for opportunities.** When an opportunity is created or updated with a location, the address is geocoded via OpenCage in the background (fire-and-forget). Results (`lat`, `lng`, `geocodeStatus`) are stored on `VolunteerOpportunity`. Status can be `PENDING`, `SUCCESS`, `FAILED`, or `SKIPPED` (no key or blank address).
+- **Mini location map on public opportunity cards.** If an opportunity has a geocoded location (`geocodeStatus: SUCCESS`), a compact Leaflet mini-map is rendered on its card in the `/opportunities/[orgSlug]` listing — no marker click required, just a visual pin on the address.
+- **Geocode backfill script** (`scripts/geocode-backfill.ts`). Processes all published opportunities with `geocodeStatus: PENDING` in configurable batches with a per-request delay to respect API rate limits.
+- **`/map` added to public nav, footer, and sitemap.** Change-frequency `daily`, priority `0.8`.
+
+### Changed
+- `createOpportunity` and `updateOpportunity` in the tRPC router now route through `opportunityService` (new service layer) instead of calling `opportunityRepo` directly, so geocoding fires automatically without router changes.
+
 ## [0.23.2.1] - 2026-04-21
 
 ### Fixed
