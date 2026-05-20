@@ -13,13 +13,15 @@ function isPrismaNotFound(err: unknown): boolean {
 }
 
 import {
-	createOpportunity,
 	deleteOpportunity,
 	getOpportunity,
 	listOpportunities,
-	updateOpportunity,
 	updateOpportunityStatus,
 } from '@/server/repositories/opportunityRepo';
+import {
+	createOpportunity,
+	updateOpportunity,
+} from '@/server/services/opportunityService';
 import { createTRPCRouter, staffProcedure } from '@/server/trpc/init';
 
 const opportunityInput = z.object({

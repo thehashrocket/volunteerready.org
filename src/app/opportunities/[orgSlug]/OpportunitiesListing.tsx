@@ -10,9 +10,19 @@ import {
 	Users,
 	Wifi,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
+
+const OpportunityLocationMap = dynamic(
+	() =>
+		import('@/components/opportunity-location-map').then(
+			(m) => m.OpportunityLocationMap,
+		),
+	{ ssr: false },
+);
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -215,6 +225,15 @@ function OpportunityCard({
 				<h3 className="mb-2 text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
 					{opp.title}
 				</h3>
+
+				{/* Mini location map */}
+				{opp.lat != null && opp.lng != null && (
+					<OpportunityLocationMap
+						lat={opp.lat}
+						lng={opp.lng}
+						location={opp.location}
+					/>
+				)}
 
 				{/* Description */}
 				<p className="mb-4 line-clamp-3 flex-1 text-sm leading-relaxed text-muted-foreground">

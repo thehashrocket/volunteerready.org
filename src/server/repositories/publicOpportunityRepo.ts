@@ -1,4 +1,4 @@
-import { OpportunityStatus } from '@/prisma/generated/client';
+import { GeocodeStatus, OpportunityStatus } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
 const requirementSelect = {
@@ -59,6 +59,9 @@ export async function listPublishedOpportunities(orgSlug: string) {
 			title: true,
 			description: true,
 			location: true,
+			lat: true,
+			lng: true,
+			geocodeStatus: true,
 			isRemote: true,
 			startDate: true,
 			endDate: true,
@@ -71,6 +74,31 @@ export async function listPublishedOpportunities(orgSlug: string) {
 	});
 
 	return { org, opportunities };
+}
+
+/**
+ * List all geocoded published opportunities for the public /map page.
+ * Only returns opportunities with geocodeStatus SUCCESS and valid lat/lng.
+ */
+export async function listForMap() {
+	return prisma.volunteerOpportunity.findMany({
+		where: {
+			status: OpportunityStatus.PUBLISHED,
+			geocodeStatus: GeocodeStatus.SUCCESS,
+			lat: { not: null },
+			lng: { not: null },
+		},
+		select: {
+			id: true,
+			title: true,
+			location: true,
+			lat: true,
+			lng: true,
+			tags: { select: { id: true, name: true } },
+			organization: { select: { name: true, slug: true } },
+		},
+		orderBy: { organization: { name: 'asc' } },
+	});
 }
 
 /**
