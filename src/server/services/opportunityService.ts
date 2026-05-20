@@ -6,9 +6,11 @@ import {
 } from '@/server/repositories/opportunityRepo';
 import { prisma } from '@/server/repositories/prisma';
 
-async function geocodeOpportunity(opportunityId: string): Promise<void> {
-	const key = getGeocodeApiKey();
-	if (!key) {
+async function geocodeOpportunity(
+	opportunityId: string,
+	location: string | null | undefined,
+): Promise<void> {
+	if (!getGeocodeApiKey() || !location?.trim()) {
 		await prisma.volunteerOpportunity.update({
 			where: { id: opportunityId },
 			data: { geocodeStatus: 'SKIPPED' },
@@ -16,20 +18,7 @@ async function geocodeOpportunity(opportunityId: string): Promise<void> {
 		return;
 	}
 
-	const opp = await prisma.volunteerOpportunity.findUnique({
-		where: { id: opportunityId },
-		select: { location: true },
-	});
-
-	if (!opp?.location?.trim()) {
-		await prisma.volunteerOpportunity.update({
-			where: { id: opportunityId },
-			data: { geocodeStatus: 'SKIPPED' },
-		});
-		return;
-	}
-
-	const result = await geocodeLocation(opp.location);
+	const result = await geocodeLocation(location);
 
 	await prisma.volunteerOpportunity.update({
 		where: { id: opportunityId },
@@ -59,11 +48,9 @@ export async function createOpportunity(input: {
 }) {
 	const result = await repoCreate(input);
 
-	if (input.location?.trim()) {
-		geocodeOpportunity(result.id).catch((err) =>
-			console.error('[geocode] create failed for', result.id, err),
-		);
-	}
+	geocodeOpportunity(result.id, input.location).catch((err) =>
+		console.error('[geocode] create failed for', result.id, err),
+	);
 
 	return result;
 }
@@ -91,7 +78,7 @@ export async function updateOpportunity(
 	const result = await repoUpdate(id, orgId, input);
 
 	if ('location' in input) {
-		geocodeOpportunity(id).catch((err) =>
+		geocodeOpportunity(id, input.location).catch((err) =>
 			console.error('[geocode] update failed for', id, err),
 		);
 	}
