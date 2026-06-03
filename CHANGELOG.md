@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.0.0] - 2026-06-03
+
+### Added
+- **Weekly opportunity digest emails.** Volunteers who have hearted at least one marketplace opportunity now receive a branded email every Monday with up to 5 fresh opportunities tailored to their interests — excluding ones they've already applied to or hearted.
+- **One-click unsubscribe for digest emails.** Each digest email includes an unsubscribe link secured with an HMAC-SHA256 token. Clicking it immediately sets digest frequency to OFF — no login required. Token validation uses timing-safe comparison to prevent attacks.
+- **Application source tracking.** Applications now record where they originated (`DIRECT`, `MARKETPLACE`). Clicking Apply from the public marketplace automatically tags the application as `MARKETPLACE`, making attribution accurate in the admin dashboard.
+- **New DB indexes** on `UserMarketplacePreference(digestFrequency, lastDigestSentAt)` and `VolunteerOpportunity(status, createdAt)` for efficient digest and marketplace queries.
+
+### Changed
+- `toggleInterest` moved to a dedicated `marketplaceService` (extracted from the tRPC router). Behavior is unchanged; the router is now a thin wrapper.
+- Marketplace tRPC procedures and services now use typed Prisma enums (`OpportunityStatus.PUBLISHED`, `DigestFrequency.WEEKLY`) instead of raw string literals.
+- Source input on the public apply form is now restricted to `DIRECT` and `MARKETPLACE` — other enum values can no longer be set via URL manipulation.
+
+### Fixed
+- Apply-from-marketplace links now correctly pass `?source=MARKETPLACE` (was `?source=marketplace` lowercase, which caused Zod validation to silently reject the application).
+- Digest cron now processes all eligible users per run instead of stopping after the first 100 — resolves a pagination bug that would have caused most users to never receive a second email.
+- Unsubscribe endpoint now returns a human-readable HTML confirmation page instead of raw JSON when opened in a browser from an email client.
+- Unsubscribe URL now applies `encodeURIComponent` to userId and token parameters.
+
 ## [0.25.0.0] - 2026-06-03
 
 ### Added

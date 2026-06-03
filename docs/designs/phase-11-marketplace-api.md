@@ -1,12 +1,11 @@
 <!-- /autoplan restore point: /Users/jasonshultz/.gstack/projects/thehashrocket-volunteerready.org/thehashrocket-autoplan-review-autoplan-restore-20260322-200717.md -->
 # Phase 11 — Volunteer Marketplace & API Platform
 
-> **STATUS: ON HOLD** — Deferred pending first active org. CEO review (2026-03-22)
-> concluded: zero users, zero demand evidence. Find one nonprofit first.
-> See: `~/.gstack/projects/thehashrocket-volunteerready.org/jasonshultz-thehashrocket-autoplan-review-design-20260322-204717.md`
+> **STATUS: IN PROGRESS** — 11A shipped (v0.25.0.0). Eng review 2026-06-03 approved
+> 11C foundation: opportunity digest email + apply-from-marketplace source tracking.
 >
 > Originally promoted from CEO plan review on 2026-03-21.
-> Branch: thehashrocket/pr7-phase11-vision | Mode: SCOPE EXPANSION → **SCOPE REDUCTION (2026-03-22)**
+> Branch: thehashrocket/pr7-phase11-vision | Mode: SCOPE EXPANSION → SCOPE REDUCTION (2026-03-22) → **RESUMED (2026-06-03)**
 > Source: `~/.gstack/projects/thehashrocket-volunteerready.org/ceo-plans/2026-03-21-phase11-marketplace-api.md`
 
 ## Vision
@@ -605,16 +604,112 @@ Weekly branded HTML email sent via Resend:
 | 23 | CEO-2 | PERMANENTLY REMOVE grant integration (PR8) | P1 | Founder domain expertise: grant APIs fragmented outside CA/federal, prohibitively difficult | Keep grants as deferred |
 | 24 | CEO-2 | Mark plan ON HOLD (not archived, not deleted) | P2 | Plan is well-reviewed (4 passes); worth preserving as reference when users are found | Archive or delete plan |
 
+## Phase 11C Foundation — Implementation Plan (eng review 2026-06-03)
+
+### Scope: Opportunity Digest Email + Apply-from-Marketplace Source Tracking
+
+**Architecture decisions:**
+- D2: Engaged users only — upsert `UserMarketplacePreference` on first interest toggle (WEEKLY default)
+- D3 (revised by Codex): Read `?source=marketplace` URL param from existing marketplace link; validate server-side (downgrade to DIRECT if org not marketplace-visible). Server does NOT infer from `marketplaceVisible` alone — would mis-attribute org-page applications.
+- D4: Fix Prisma-in-router: extract `toggleInterest` to new `marketplaceService.ts` + upsert logic
+- D7: Fixed UTC delivery — Monday 8am UTC (no per-user timezone until Volunteer Profiles)
+
+**What already exists (no rebuild needed):**
+- `UserMarketplacePreference` model with `digestFrequency` + `lastDigestSentAt`
+- `MarketplaceListing.tsx:218,295` already writes `?source=marketplace` in apply links
+- `digest-service.ts` cursor-based cron pattern (steal wholesale)
+- `case-study-token.ts` HMAC pattern (for unsubscribe token)
+- `getPublishedOpportunityById` org-ownership validation (already secure for apply flow)
+
+### Implementation Tasks
+
+- [ ] **T1 (P1, human: ~1h / CC: ~10min)** — Source tracking — apply page → router → service
+  - Surfaced by: Architecture Review D3 + Codex cross-model tension (MarketplaceListing.tsx already sets ?source=marketplace; apply page drops it)
+  - Files: `src/app/apply/[orgSlug]/page.tsx` (read `source` from searchParams), `ApplyFormClient.tsx` (pass as prop), `src/server/trpc/routers/screener.ts` (add `source` to input schema), `src/server/services/volunteer-screening.ts` (validate + write to create call)
+  - Verify: Apply from marketplace → `VolunteerApplication.source = MARKETPLACE`. Apply from org page → `source = DIRECT`.
+
+- [ ] **T2 (P1, human: ~1h / CC: ~10min)** — Extract toggleInterest to marketplaceService.ts
+  - Surfaced by: Architecture Review D4 + prior learning `router-calls-repo-directly` (10/10 confidence)
+  - Files: new `src/server/services/marketplaceService.ts`, `src/server/trpc/routers/marketplace.ts` (remove Prisma, call service)
+  - Closes ROADMAP.md "Service layer migration for marketplace tRPC procedures (P3)"
+  - Verify: `marketplace.ts` imports zero Prisma. `UserMarketplacePreference` row created on first interest toggle.
+
+- [ ] **T3 (P1, human: ~20min / CC: ~5min)** — Schema migration: 2 missing indexes
+  - Surfaced by: Performance Review — both are blocking for the digest cron query
+  - Files: `prisma/schema.prisma` (`@@index([digestFrequency, lastDigestSentAt])` on `UserMarketplacePreference`, `@@index([status, createdAt])` on `VolunteerOpportunity`), new migration
+  - Closes ROADMAP.md "Composite index on `VolunteerOpportunity(status, createdAt)` (P2)"
+  - Verify: `pnpm prisma migrate dev`, indexes appear in `pg_indexes`
+
+- [ ] **T4 (P1, human: ~2h / CC: ~15min)** — Opportunity digest service
+  - Depends on: T3
+  - Files: new `src/server/services/opportunityDigestService.ts`
+  - Pattern: cursor-based (follow `digest-service.ts`), Monday 8am UTC delivery window, top-5 PUBLISHED + marketplaceVisible opps excluding user's applied/interested, branded email (forest green header, sand rows), unsubscribe link pointing to `/api/unsubscribe/digest?token=X`
+  - Verify: Mocked tests pass (T7). Test email renders correctly.
+
+- [ ] **T5 (P1, human: ~20min / CC: ~5min)** — Cron route + Vercel config
+  - Depends on: T4
+  - Files: new `src/app/api/cron/opportunity-digest/route.ts` (follow `volunteer-reengagement` pattern), `vercel.json` (add `{ "path": "/api/cron/opportunity-digest", "schedule": "0 8 * * 1" }`)
+  - Verify: Cron route returns 200. vercel.json validates.
+
+- [ ] **T6 (P1, human: ~1h / CC: ~10min)** — One-click unsubscribe endpoint + token lib
+  - Files: new `src/server/lib/digest-unsubscribe-token.ts` (HMAC-SHA256, no expiry, `DIGEST_UNSUBSCRIBE_SECRET`), new `src/app/api/unsubscribe/digest/route.ts` (validate token → upsert UserMarketplacePreference with NEVER), `.env.example`
+  - Verify: GET `/api/unsubscribe/digest?token=valid` → 200, digestFrequency=NEVER. Invalid token → 400.
+
+- [ ] **T7 (P2, human: ~2h / CC: ~15min)** — Tests (17 paths, 0 currently covered)
+  - Files: new `src/server/services/volunteer-screening.test.ts` (4 source tracking paths), new `src/server/services/marketplaceService.test.ts` (7 toggleInterest paths), new `src/server/services/opportunityDigestService.test.ts` (9 digest paths)
+  - Pattern: vitest + mocked Prisma (follow `volunteerDashboardService.test.ts`)
+  - Verify: `pnpm test` passes with no regressions.
+
+### NOT in Scope
+
+- Digest preferences settings UI (settings page for frequency toggle — users use unsubscribe link for now)
+- Per-user timezone delivery (deferred to Volunteer Profiles, Phase 3/4)
+- `digestFrequency=DAILY` for marketplace digest (weekly-only for v1)
+- Skill-based opportunity matching in digest (serve newest 5, not skill-scored — no volunteer profiles yet)
+- Volunteer impact portfolio enhancements (Phase 11C tail)
+- Google Calendar sync (Phase 11C tail)
+- Public REST API v1 / webhooks (Phase 11B — still deferred, no API consumers)
+
+### Parallelization
+
+```
+Lane A: T1 (source tracking)
+Lane B: T2 (marketplaceService.ts)
+Lane C: T3 (migration) → T4 (digest service) → T5 (cron) → T6 (unsubscribe)
+─────────────────────────────────────────────────────────────────────────────
+A + B + C launch in parallel.
+Merge A, B, C when done. Then T7 (tests for all three lanes).
+```
+
+### Failure Modes
+
+| Path | Test | Error handling | User impact |
+|------|------|----------------|-------------|
+| `sendEmail()` throws in digest | T7 | per-record catch + log | Silent miss, next week works |
+| Unsubscribe token invalid | T7 | 400 with message | User sees error, email retains opt-out link |
+| `source=MARKETPLACE` but org disabled marketplace | T7 | Downgrade to DIRECT silently | Application succeeds, source = DIRECT |
+| Interest toggle P2002/P2025 race | T7 | Explicit Prisma error catch | Idempotent correct state |
+
+**Critical gaps: 0**
+
+---
+
 ## GSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
-| CEO Review | `/plan-ceo-review` | Scope & strategy | 2 | ON HOLD | Run 1: trimmed to 7 items. Run 2: SCOPE REDUCTION — all PRs deferred, grants permanently removed |
-| Codex Review | `/codex review` | Independent 2nd opinion | 1 | CLEAN | 10 findings, 4 applied to revised scope |
-| Eng Review | `/plan-eng-review` | Architecture & tests | 1 | STALE | 4 critical fixes — stale due to scope reduction |
-| Design Review | `/plan-design-review` | UI/UX gaps | 1 | STALE | 4 additions — stale due to scope reduction |
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 2 | STALE (11A shipped, plan resumed) | Run 1: trimmed to 7 items. Run 2: SCOPE REDUCTION |
+| Codex Review | `/codex review` | Independent 2nd opinion | 2 | CLEAN | Prior: 10 findings. 2026-06-03: caught D3 source-inference error + digest timezone gap |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 2 | CLEAR | 2026-06-03: 6 decisions, 0 critical gaps, 17 test paths mapped |
+| Design Review | `/plan-design-review` | UI/UX gaps | 1 | STALE | 4 additions from 2026-03-21 |
 
-**VERDICT:** ON HOLD — Plan deferred pending first active org. /office-hours assignment: find one nonprofit volunteer coordinator. Grants permanently removed (domain expertise). Re-run eng + design reviews when plan is re-activated.
+**CODEX (2026-06-03):** Overturned D3 (server inference) — `MarketplaceListing.tsx:218,295` already writes `?source=marketplace`; inference from `marketplaceVisible` would mis-attribute org-page links. Also caught missing delivery-time model for cross-org digest.
+
+**CROSS-MODEL:** Review initially chose server inference (B); Codex correctly identified existing URL signal and mis-attribution risk → revised to client-passed with server validation (C from D3 options). Both models agree on final approach.
+
+**UNRESOLVED:** 0
+
+**VERDICT:** ENG REVIEW CLEARED — 11C Foundation ready to implement. Run /ship when T1–T7 are complete.
 
 ## Dream State Delta
 
