@@ -180,6 +180,9 @@ docs/
 - `UserMarketplacePreference` model: per-user marketplace UI preferences (stored for future use)
 - Marketplace fields on `Organization`: `marketplaceVisible` (default false), `description`, `location`, `causeAreaTags`, `verified`
 - `VolunteerOpportunity.searchVector`: tsvector column with GIN index for PostgreSQL full-text search across marketplace
+- Opportunity digest emails: service at `src/server/services/opportunityDigestService.ts` (weekly, up to 5 fresh opps per user based on hearted interests), cron at `src/app/api/cron/opportunity-digest/route.ts` (runs Mondays)
+- Digest unsubscribe: token lib at `src/server/lib/digest-unsubscribe-token.ts` (HMAC-SHA256, timing-safe), endpoint at `src/app/api/unsubscribe/digest/route.ts` (sets `DigestFrequency.OFF`, renders HTML confirmation)
+- Marketplace interest → digest enrollment: `toggleInterest` in `marketplaceService.ts` auto-upserts `UserMarketplacePreference` with `digestFrequency: WEEKLY` on first heart
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.

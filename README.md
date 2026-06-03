@@ -35,7 +35,8 @@ Long-term goals include:
 - Corporate ESG reporting (shipped)
 - Cross-organization volunteer identity (shipped)
 - In-app notifications and shift templates (shipped)
-- Grant opportunity integration (planned)
+- Volunteer marketplace with cross-org opportunity browse and org discovery (shipped)
+- Weekly opportunity digest emails with one-click unsubscribe (shipped)
 - Nonprofit analytics and reporting (shipped)
 
 The current system implements Phases 1 through 12. See `docs/ROADMAP.md` for the full plan.
@@ -366,7 +367,7 @@ pnpm seed:dev                # Dev/staging (full demo data + 3 test accounts)
 | 8 | Operational Polish & CEO Quick Wins | Complete |
 | 9 | Production-Ready + Activation | Complete |
 | 10 | Scale & Enterprise Readiness | Complete |
-| 11 | Volunteer Marketplace & API Platform | Planned |
+| 11 | Volunteer Marketplace & API Platform | In Progress |
 | 12 | Concierge Activation Engine | Complete |
 
 See `docs/ROADMAP.md` for full detail.

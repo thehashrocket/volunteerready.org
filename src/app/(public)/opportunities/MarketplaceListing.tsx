@@ -215,7 +215,7 @@ export function MarketplaceListing({
 						{thisWeekend.map((opp) => (
 							<Link
 								key={opp.id}
-								href={`/apply/${opp.organization.slug}?opportunityId=${opp.id}&source=marketplace`}
+								href={`/apply/${opp.organization.slug}?opportunityId=${opp.id}&source=MARKETPLACE`}
 								className="min-w-[220px] flex-shrink-0 rounded-lg border bg-background p-3 text-sm hover:shadow-sm transition-shadow"
 							>
 								<p className="font-semibold line-clamp-1 text-foreground">
@@ -292,7 +292,7 @@ export function MarketplaceListing({
 							>
 								<div className="flex items-start gap-4">
 									<Link
-										href={`/apply/${opp.organization.slug}?opportunityId=${opp.id}&source=marketplace`}
+										href={`/apply/${opp.organization.slug}?opportunityId=${opp.id}&source=MARKETPLACE`}
 										className="block min-w-0 flex-1"
 										onClick={() =>
 											trackEvent('marketplace_opportunity_click', {

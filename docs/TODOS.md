@@ -578,6 +578,28 @@ the notification query.
 
 ## Phase 11 — Volunteer Marketplace & API Platform (Deferred Items)
 
+### [P3] Timezone-Aware Opportunity Digest Delivery
+
+**What:** Switch the weekly marketplace opportunity digest from fixed Monday 8am UTC
+to per-user local-time delivery (e.g., Monday 8am in the volunteer's timezone).
+
+**Why:** The 11C Foundation digest ships with a fixed UTC send window because
+`UserMarketplacePreference` has no timezone reference (cross-org model, unlike
+`UserDigestPreference` which uses `Organization.timezone`). A volunteer in Sydney
+currently receives the digest at 6pm Sunday local time, not Monday morning.
+
+**Context:** Depends on Volunteer Profiles (Phase 3/4) landing a `User.timezone`
+field. When that ships, add `timezone` to `UserMarketplacePreference` (migration),
+populate it from the volunteer's profile on upsert, and update `opportunityDigestService.ts`
+to use the same `getTimezonesMatchingHour()` pattern as `digest-service.ts`.
+
+**Pros:** Better delivery timing → higher open rates. Consistent UX with the org digest.
+**Cons:** Requires Volunteer Profiles work first; migration to backfill existing rows.
+
+**Effort:** S | **Priority:** P3 | **Depends on:** Volunteer Profiles (Phase 3/4), `User.timezone` field
+
+---
+
 ### [P3] Algolia Migration Monitoring for Marketplace Search
 
 **What:** Monitor PostgreSQL tsvector full-text search performance and establish

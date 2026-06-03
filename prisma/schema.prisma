@@ -385,6 +385,7 @@ model VolunteerOpportunity {
   @@index([orgId])
   @@index([status])
   @@index([status, geocodeStatus])
+  @@index([status, createdAt])
 }
 
 model OpportunityTag {
@@ -949,6 +950,8 @@ model UserMarketplacePreference {
   updatedAt        DateTime        @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([digestFrequency, lastDigestSentAt])
 }
 
 // Phase 11 — lightweight "I'm interested" signal on a marketplace opportunity

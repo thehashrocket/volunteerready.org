@@ -1,4 +1,5 @@
 import {
+	ApplicationSource,
 	ApplicationStatus,
 	OpportunityStatus,
 	Prisma,
@@ -31,6 +32,7 @@ interface SubmitVolunteerApplicationPayload {
 	opportunityId?: string | null;
 	profile: VolunteerProfile;
 	responses: ScreenerResponse[];
+	source?: ApplicationSource | null;
 }
 
 /** Build a consistent return shape for duplicate application detection. */
@@ -116,6 +118,20 @@ export async function submitVolunteerApplication(
 		validatedOpportunityId = opp?.id ?? null;
 	}
 
+	// Validate source: downgrade MARKETPLACE to DIRECT if org is not marketplace-visible
+	let validatedSource: ApplicationSource = ApplicationSource.DIRECT;
+	if (payload.source === ApplicationSource.MARKETPLACE) {
+		const org = await prisma.organization.findUnique({
+			where: { id: orgId },
+			select: { marketplaceVisible: true },
+		});
+		validatedSource = org?.marketplaceVisible
+			? ApplicationSource.MARKETPLACE
+			: ApplicationSource.DIRECT;
+	} else if (payload.source) {
+		validatedSource = payload.source;
+	}
+
 	// Dedup guard: prevent duplicate applications for authenticated users
 	if (payload.submittedByUserId && validatedOpportunityId) {
 		const existing = await findActiveApplicationByUserAndOpportunity(
@@ -143,6 +159,7 @@ export async function submitVolunteerApplication(
 					status: ApplicationStatus.SUBMITTED,
 					screeningStatus,
 					screeningReasons,
+					source: validatedSource,
 				},
 			});
 
