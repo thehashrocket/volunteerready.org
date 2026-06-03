@@ -1,8 +1,9 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { Globe, Plus, X } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import { ActivityFeed } from '@/components/app/activity-feed';
 import { FeedbackAdminNotice } from '@/components/app/feedback-admin-notice';
 import { OnboardingChecklist } from '@/components/app/onboarding-checklist';
@@ -63,6 +64,49 @@ function KpiItem({ label, value }: { label: string; value: number }) {
 }
 
 // ---------------------------------------------------------------------------
+// Marketplace activation banner
+// ---------------------------------------------------------------------------
+
+function MarketplaceActivationBanner() {
+	const [dismissed, setDismissed] = useState(false);
+	const orgQuery = trpc.org.getCurrentOrg.useQuery();
+
+	// Only show when org is loaded and not yet on the marketplace
+	if (dismissed || orgQuery.isLoading || orgQuery.data?.marketplaceVisible) {
+		return null;
+	}
+
+	return (
+		<div className="relative flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+			<Globe className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+			<div className="flex-1">
+				<span className="font-medium text-foreground">
+					Get discovered by volunteers —{' '}
+				</span>
+				<span className="text-muted-foreground">
+					list your org on the public marketplace so anyone can find your
+					opportunities.{' '}
+				</span>
+				<Link
+					href="/app/settings/team#marketplace"
+					className="font-medium text-primary underline-offset-2 hover:underline"
+				>
+					Enable marketplace listing
+				</Link>
+			</div>
+			<button
+				type="button"
+				onClick={() => setDismissed(true)}
+				aria-label="Dismiss"
+				className="text-muted-foreground hover:text-foreground"
+			>
+				<X className="h-4 w-4" />
+			</button>
+		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Staff dashboard (org context required)
 // ---------------------------------------------------------------------------
 
@@ -73,6 +117,9 @@ function StaffDashboard() {
 		<div className="space-y-6">
 			{/* ── Feedback admin notice (platform admins only) ── */}
 			<FeedbackAdminNotice />
+
+			{/* ── Marketplace activation banner ── */}
+			<MarketplaceActivationBanner />
 
 			<PageHeader
 				title="Dashboard"
