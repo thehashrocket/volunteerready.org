@@ -136,6 +136,29 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		},
 	},
 	{
+		slug: 'opportunities',
+		href: '/opportunities',
+		label: 'Opportunities',
+		nav: true,
+		footerSection: 'Volunteers',
+		sitemap: { changeFrequency: 'daily', priority: 0.9 },
+		og: {
+			heading: 'Find Volunteer Opportunities Near You',
+			subheading: 'Volunteer Opportunities',
+		},
+	},
+	{
+		slug: 'organizations',
+		href: '/organizations',
+		label: 'Organizations',
+		footerSection: 'Volunteers',
+		sitemap: { changeFrequency: 'weekly', priority: 0.7 },
+		og: {
+			heading: 'Discover Nonprofits Looking for Volunteers',
+			subheading: 'Nonprofit Organizations',
+		},
+	},
+	{
 		slug: 'map',
 		href: '/map',
 		label: 'Map',

@@ -172,6 +172,14 @@ docs/
 - Duplicate application prevention: partial unique index on `(submittedByUserId, opportunityId)` WHERE status NOT IN (REJECTED). P2002 race-condition handler in `volunteer-screening.ts`. Applied-status badges on opportunity listings. Apply form interception for already-applied users.
 - Status notification emails: branded emails sent on application status change (REVIEW/APPROVED/REJECTED) via `sendApplicationStatusEmail()` in `volunteer-screening.ts`
 - Public route auth providers: `src/app/opportunities/providers.tsx` wraps `SessionProvider` + `TRPCProvider` for public route groups that need auth-aware UI (e.g., applied-status badges)
+- Volunteer marketplace: public pages at `src/app/(public)/opportunities/` (browse) and `src/app/(public)/organizations/` (org discovery); tRPC router at `src/server/trpc/routers/marketplace.ts`; repository at `src/server/repositories/publicOpportunityRepo.ts`
+- Marketplace settings: org staff enable marketplace listing from `/app/settings/team` (description, location, cause-area tags)
+- Org activation banner: `src/app/(app)/app/page.tsx` — dismissible nudge for staff whose org hasn't enabled the marketplace
+- `ApplicationSource` enum on `VolunteerApplication`: `DIRECT`, `MARKETPLACE`, `REFERRAL`, `WIDGET` — tracks where each application originated
+- `OpportunityInterest` model: logged-in volunteers heart-toggle interest in marketplace opportunities; unique per (userId, opportunityId), cascades on delete
+- `UserMarketplacePreference` model: per-user marketplace UI preferences (stored for future use)
+- Marketplace fields on `Organization`: `marketplaceVisible` (default false), `description`, `location`, `causeAreaTags`, `verified`
+- `VolunteerOpportunity.searchVector`: tsvector column with GIN index for PostgreSQL full-text search across marketplace
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.

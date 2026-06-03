@@ -62,6 +62,14 @@ Content Flywheel fields (v0.17.1):
 - `consentToPublicize` — boolean (default false), org consented to public case study
 - `logoUrl` — optional string, org logo (Vercel Blob URL) for case study branding
 
+Marketplace fields (v0.25.0.0):
+
+- `marketplaceVisible` — boolean (default false), opt-in to appear in the public volunteer marketplace
+- `description` — optional string, org description shown on marketplace listing card
+- `location` — optional string, city/region for marketplace display
+- `causeAreaTags` — string array, cause-area labels (e.g. "food security", "education") for filtering
+- `verified` — boolean (default false), platform-verified org badge on marketplace
+
 Important rule:
 
 All organization-owned records must contain `orgId`.
@@ -100,11 +108,13 @@ An application contains answers to screener questions and may be linked to a Vol
 
 Applications are organization-scoped.
 
-Status: SUBMITTED | REVIEW | APPROVED | REJECTED
+Status: SUBMITTED | REVIEW | APPROVED | REJECTED | WITHDRAWN
 
 Screening result: PASS | REVIEW | FAIL (auto-evaluated from disqualifier and review rules)
 
-Dedup constraint: partial unique index on `(submittedByUserId, opportunityId)` WHERE `submittedByUserId IS NOT NULL` AND `status NOT IN ('REJECTED')`. Prevents authenticated volunteers from submitting duplicate applications to the same opportunity. Rejected applications are excluded so volunteers can re-apply after rejection. Anonymous (unauthenticated) applications are not covered by this constraint.
+Source: `ApplicationSource` enum (v0.25.0.0) — `DIRECT` (default), `MARKETPLACE` (applied from marketplace page), `REFERRAL` (referral link), `WIDGET` (embeddable widget). Marketplace apply links pass `?source=marketplace`.
+
+Dedup constraint: partial unique index on `(submittedByUserId, opportunityId)` WHERE `submittedByUserId IS NOT NULL` AND `status NOT IN ('REJECTED', 'WITHDRAWN')`. Prevents authenticated volunteers from submitting duplicate applications to the same opportunity. Rejected and withdrawn applications are excluded so volunteers can re-apply. Anonymous (unauthenticated) applications are not covered by this constraint.
 
 ---
 
@@ -149,6 +159,10 @@ Status lifecycle: DRAFT -> PUBLISHED -> CLOSED
 Key fields: title, description, location, remote flag, start/end dates, commitment hours, capacity.
 
 Opportunities have tags (free-text, up to 10) and skill requirements (REQUIRED / PREFERRED).
+
+Marketplace field (v0.25.0.0):
+
+- `searchVector` — tsvector column populated by a PostgreSQL trigger from title, description, and tags. GIN-indexed for full-text search on the public marketplace.
 
 ---
 
@@ -487,6 +501,34 @@ Token is hashed before storage.
 
 ---
 
+## OpportunityInterest
+
+Lightweight "I'm interested" signal from an authenticated volunteer on a marketplace opportunity.
+
+An alternative to a full application — lower friction, no screener questions.
+
+Key fields:
+
+- `userId` — the volunteer expressing interest
+- `opportunityId` — the target opportunity
+- `createdAt` — when interest was expressed
+
+Constraint: unique per (userId, opportunityId). Cascades on delete.
+
+Rules: target opportunity must be PUBLISHED and marketplace-visible before interest is accepted. Concurrent toggle races (P2002/P2025) are handled idempotently. `getMyInterests` only returns records for currently PUBLISHED, marketplace-visible opportunities.
+
+---
+
+## UserMarketplacePreference
+
+Per-user marketplace UI preferences (reserved for future use — e.g., preferred cause areas, location radius, remote-only toggle).
+
+Key fields:
+
+- `userId` — the user (1:1)
+
+---
+
 # Tenant Boundary
 
 The organization is the tenant boundary.
@@ -537,5 +579,8 @@ Use these terms consistently across the codebase:
 - ReferenceDataMeta
 - FeatureFlag
 - AuditLog
+- OpportunityInterest
+- UserMarketplacePreference
+- ApplicationSource
 
 Do not introduce alternate terminology unless intentionally extending the model.

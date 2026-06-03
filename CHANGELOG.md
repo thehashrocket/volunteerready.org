@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.25.0.0] - 2026-06-03
+
+### Added
+- **Public volunteer marketplace at `/opportunities`.** Anyone can now browse and search published opportunities across all marketplace-visible organizations — no login required. Full-text search with 300ms debounce, remote/in-person filter, cursor-based "Load more" pagination, and a "This Weekend" strip for opportunities starting within 3 days.
+- **Organization discovery page at `/organizations`.** Lists nonprofits participating in the marketplace with verified-only filter, location, cause-area tags, and opportunity/member counts. Each org card links to its public opportunity listing.
+- **"I'm interested" heart toggle.** Authenticated volunteers can express interest in any marketplace opportunity. The heart button appears only for logged-in users and persists interest in a new `OpportunityInterest` table (unique per user/opportunity, cascades on delete).
+- **Marketplace settings on team settings page.** Org staff can enable their org on the marketplace, set a description, location, and cause-area tags — all from `/app/settings/team`.
+- **Org activation banner on the staff dashboard.** A dismissible banner nudges orgs that haven't enabled the marketplace to set up their listing.
+- **`ApplicationSource` enum on `VolunteerApplication`.** New applications now track where they originated: `DIRECT`, `MARKETPLACE`, `REFERRAL`, or `WIDGET`. Marketplace apply links pass `?source=marketplace`.
+- **Analytics events for marketplace interactions.** Page views, search queries, opportunity clicks, interest toggles, and org clicks are all tracked via the consent-aware `trackEvent()` utility.
+- **Schema additions:** `Organization.marketplaceVisible`, `description`, `location`, `causeAreaTags`, `verified`; `VolunteerOpportunity.searchVector` (tsvector GIN-indexed for full-text search); `OpportunityInterest` model; `UserMarketplacePreference` model.
+- **`/opportunities` and `/organizations` added to sitemap, footer, and OG image config.**
+
+### Changed
+- Marketplace tRPC procedures (`searchOpportunities`, `getThisWeekend`, `getOrganizations`) are rate-limited at 120 req/min per IP. Interest procedures (`getMyInterests`, `toggleInterest`) are rate-limited at 60 req/min per user.
+- `toggleInterest` validates that the target opportunity is PUBLISHED and marketplace-visible before recording interest, and handles concurrent toggle races (P2002/P2025) idempotently.
+- `getMyInterests` filters to only return interest records for currently PUBLISHED, marketplace-visible opportunities.
+
 ## [0.24.0.0] - 2026-05-19
 
 ### Added

@@ -183,7 +183,7 @@ Entities:
 - Organization / OrganizationMember
 - VolunteerApplication / VolunteerAnswer
 - ScreenerQuestion
-- VolunteerOpportunity / OpportunityTag / OpportunityRequirement
+- VolunteerOpportunity / OpportunityTag / OpportunityRequirement / OpportunityInterest
 - Skill / SkillFamily / VolunteerSkill
 - VolunteerProfile
 - VolunteerCredential
@@ -193,6 +193,7 @@ Entities:
 - CredentialShareToken
 - CompanyAccount / CompanyMember / CompanyNonprofitLink
 - UserFeedback
+- UserMarketplacePreference
 - FeatureFlag
 - AuditLog
 
@@ -207,7 +208,8 @@ User
  │         │    └─ VolunteerAnswer
  │         ├─ VolunteerOpportunity
  │         │    ├─ OpportunityTag
- │         │    └─ OpportunityRequirement
+ │         │    ├─ OpportunityRequirement
+ │         │    └─ OpportunityInterest
  │         ├─ Shift
  │         │    └─ ShiftSignup
  │         ├─ ShiftTemplate

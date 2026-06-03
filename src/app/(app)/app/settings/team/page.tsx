@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronsUpDown, RefreshCw, Users } from 'lucide-react';
+import { Check, ChevronsUpDown, Globe, RefreshCw, Users } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -33,6 +33,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import {
 	Table,
 	TableBody,
@@ -41,6 +42,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
@@ -312,6 +314,9 @@ export default function TeamPage() {
 
 			{/* Timezone settings */}
 			<TimezoneCard />
+
+			{/* Marketplace settings */}
+			<MarketplaceCard />
 		</div>
 	);
 }
@@ -336,6 +341,150 @@ const COMMON_TIMEZONES = [
 	'Asia/Kolkata',
 	'Australia/Sydney',
 ];
+
+// ---------------------------------------------------------------------------
+// Marketplace Card
+// ---------------------------------------------------------------------------
+
+function MarketplaceCard() {
+	const orgQuery = trpc.org.getCurrentOrg.useQuery();
+	const qc = useQueryClient();
+
+	const updateMutation = trpc.org.updateMarketplaceSettings.useMutation({
+		onSuccess: () => {
+			toast.success('Marketplace settings saved.');
+			void qc.invalidateQueries();
+		},
+		onError: (err) => {
+			toast.error(err.message ?? 'Failed to save marketplace settings.');
+		},
+	});
+
+	const org = orgQuery.data;
+	const isLoading = orgQuery.isLoading || updateMutation.isPending;
+
+	if (orgQuery.isLoading) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Globe className="h-4 w-4" />
+						Marketplace
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<Skeleton className="h-8 w-full" />
+				</CardContent>
+			</Card>
+		);
+	}
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<Globe className="h-4 w-4" />
+					Marketplace
+				</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				{/* Visibility toggle */}
+				<div className="flex items-start justify-between gap-4">
+					<div className="space-y-1">
+						<Label
+							htmlFor="marketplace-visible"
+							className="text-sm font-medium"
+						>
+							List on public marketplace
+						</Label>
+						<p className="text-xs text-muted-foreground">
+							When enabled, your published opportunities appear on{' '}
+							<a href="/opportunities" className="underline">
+								volunteerready.org/opportunities
+							</a>{' '}
+							for anyone to find.
+						</p>
+					</div>
+					<Switch
+						id="marketplace-visible"
+						checked={org?.marketplaceVisible ?? false}
+						disabled={isLoading}
+						onCheckedChange={(checked) =>
+							updateMutation.mutate({ marketplaceVisible: checked })
+						}
+					/>
+				</div>
+
+				{org?.marketplaceVisible && (
+					<>
+						{/* Description */}
+						<div className="space-y-1.5">
+							<Label htmlFor="org-description">Organization description</Label>
+							<Textarea
+								id="org-description"
+								rows={3}
+								maxLength={500}
+								placeholder="A short description of your organization and the work you do…"
+								defaultValue={org?.description ?? ''}
+								disabled={isLoading}
+								onBlur={(e) => {
+									const val = e.target.value.trim() || null;
+									if (val !== (org?.description ?? null)) {
+										updateMutation.mutate({ description: val });
+									}
+								}}
+							/>
+							<p className="text-xs text-muted-foreground">
+								Shown on the organizations discovery page. Max 500 characters.
+							</p>
+						</div>
+
+						{/* Location */}
+						<div className="space-y-1.5">
+							<Label htmlFor="org-location">Location</Label>
+							<Input
+								id="org-location"
+								placeholder="e.g. Fresno, CA"
+								maxLength={100}
+								defaultValue={org?.location ?? ''}
+								disabled={isLoading}
+								onBlur={(e) => {
+									const val = e.target.value.trim() || null;
+									if (val !== (org?.location ?? null)) {
+										updateMutation.mutate({ location: val });
+									}
+								}}
+							/>
+						</div>
+
+						{/* Cause area tags */}
+						<div className="space-y-1.5">
+							<Label htmlFor="org-cause-tags">Cause areas</Label>
+							<Input
+								id="org-cause-tags"
+								placeholder="e.g. Environment, Education, Animals"
+								maxLength={200}
+								defaultValue={(org?.causeAreaTags ?? []).join(', ')}
+								disabled={isLoading}
+								onBlur={(e) => {
+									const tags = e.target.value
+										.split(',')
+										.map((t) => t.trim())
+										.filter(Boolean)
+										.slice(0, 10);
+									updateMutation.mutate({ causeAreaTags: tags });
+								}}
+							/>
+							<p className="text-xs text-muted-foreground">
+								Comma-separated. Up to 10 tags.
+							</p>
+						</div>
+					</>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
 
 function getTimezoneOptions(): string[] {
 	try {
