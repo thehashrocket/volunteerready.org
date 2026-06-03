@@ -7,9 +7,9 @@
 Add a composite index on `VolunteerOpportunity(status, createdAt)` and ensure `Organization.marketplaceVisible` participates in query planning. The `browseMarketplace` and `getThisWeekendOpportunities` queries will table-scan as the marketplace grows.
 Deferred from: v0.25.0.0 (Phase 11A)
 
-### P3 — Marketplace service layer migration
+### P3 — Marketplace service layer migration (partial)
 **Priority:** P3
-`getMyInterests`, `toggleInterest`, and `updateMarketplaceSettings` call Prisma directly in tRPC routers, bypassing the service layer (CLAUDE.md rule: routers → services → repositories). Refactor to add a `marketplaceService.ts` and `orgMarketplaceService.ts`.
+`getMyInterests` and `toggleInterest` have been extracted to `marketplaceService.ts` (v0.26.0.0). `updateMarketplaceSettings` in `src/server/trpc/routers/org.ts` still calls Prisma directly in the tRPC router, bypassing the service layer (CLAUDE.md rule: routers → services → repositories). Refactor to add an `orgMarketplaceService.ts` and route through it.
 Deferred from: v0.25.0.0 (Phase 11A)
 
 ### P3 — Member count privacy on org discovery
