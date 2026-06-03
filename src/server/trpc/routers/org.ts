@@ -121,4 +121,32 @@ export const orgRouter = createTRPCRouter({
 				data: { timezone: input.timezone },
 			});
 		}),
+
+	/** Update org marketplace visibility and profile fields (staff only). */
+	updateMarketplaceSettings: staffProcedure
+		.input(
+			z.object({
+				marketplaceVisible: z.boolean().optional(),
+				description: z.string().max(500).nullish(),
+				location: z.string().max(100).nullish(),
+				causeAreaTags: z.array(z.string().max(50)).max(10).optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			return ctx.prisma.organization.update({
+				where: { id: ctx.orgId },
+				data: {
+					...(input.marketplaceVisible !== undefined
+						? { marketplaceVisible: input.marketplaceVisible }
+						: {}),
+					...(input.description !== undefined
+						? { description: input.description }
+						: {}),
+					...(input.location !== undefined ? { location: input.location } : {}),
+					...(input.causeAreaTags !== undefined
+						? { causeAreaTags: input.causeAreaTags }
+						: {}),
+				},
+			});
+		}),
 });
