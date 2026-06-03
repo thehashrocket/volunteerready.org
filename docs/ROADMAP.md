@@ -505,34 +505,55 @@ registry at `src/server/lib/adapters/background-check/registry.ts`.
 
 ---
 
-# Phase 11 — Volunteer Marketplace & API Platform (planned)
+# Phase 11 — Volunteer Marketplace & API Platform (in progress)
 
 Goal: Transform VolunteerReady from an org-centric SaaS into a two-sided volunteer
 marketplace with network effects, a public REST API, and webhook integrations.
 
 Full plan: [`docs/designs/phase-11-marketplace-api.md`](designs/phase-11-marketplace-api.md)
 
-Planned scope (13 items across 3 sub-phases):
+## 11A — Marketplace Foundation ✅ Complete (v0.25.0.0)
 
-- **11A — Marketplace Foundation:** Cross-org opportunity marketplace with full-text search,
-  org profile pages, basic moderation (report/flag), embeddable opportunity widget
-- **11B — API & Integrations:** Public REST API with SHA-256 hashed API keys, webhook
+- ✅ Public volunteer marketplace at `/opportunities` — cross-org browse with full-text search (PostgreSQL tsvector + GIN index), 300ms debounce, remote/in-person filter, cursor-based "Load more" pagination, "This Weekend" strip
+- ✅ Organization discovery page at `/organizations` — lists marketplace-visible nonprofits with verified-only filter, location, cause-area tags, opportunity and member counts
+- ✅ "I'm interested" heart toggle — authenticated volunteers express lightweight interest via `OpportunityInterest` model; idempotent P2002/P2025 race handling
+- ✅ Marketplace settings on `/app/settings/team` — orgs set description, location, cause-area tags, and enable marketplace visibility
+- ✅ Org activation banner on staff dashboard — dismissible nudge for orgs that haven't enabled the marketplace
+- ✅ `ApplicationSource` enum on `VolunteerApplication` — `DIRECT`, `MARKETPLACE`, `REFERRAL`, `WIDGET`
+- ✅ Analytics events for marketplace page views, search queries, opportunity clicks, interest toggles, and org clicks
+- ✅ `/opportunities` and `/organizations` added to sitemap, footer, and OG image config
+- ✅ Rate limiting: marketplace browse at 120 req/min per IP; interest procedures at 60 req/min per user
+
+Key entities added:
+
+- `OpportunityInterest` (userId, opportunityId — unique; cascades on delete)
+- `UserMarketplacePreference` (userId 1:1; reserved for future preferences)
+- `ApplicationSource` enum (DIRECT / MARKETPLACE / REFERRAL / WIDGET)
+- `Organization` gains: `marketplaceVisible`, `description`, `location`, `causeAreaTags`, `verified`
+- `VolunteerOpportunity` gains: `searchVector` (tsvector, GIN-indexed)
+
+Deferred to follow-up:
+- Composite index on `VolunteerOpportunity(status, createdAt)` (P2 — see TODOS.md)
+- Service layer migration for marketplace tRPC procedures (P3 — see TODOS.md)
+- Member count privacy threshold on org discovery page (P3)
+- Timezone-aware "This Weekend" window (P3)
+
+## 11B — API & Integrations (planned)
+
+- **API & Integrations:** Public REST API with SHA-256 hashed API keys, webhook
   subscriptions with retry (waitUntil + cron sweep), OpenAPI spec via zod-to-openapi,
   grant/funding tracker for opportunities
-- **11C — Volunteer Experience:** Volunteer-initiated "I'm interested" flow (lighter than
-  full application), referral links with attribution tracking, volunteer streaks and
+
+## 11C — Volunteer Experience (planned)
+
+- **Volunteer Experience:** Referral links with attribution tracking, volunteer streaks and
   gamification, opportunity digest emails
 
 Architecture decisions: cross-org read via publicProcedure + marketplaceRepository (AD-1),
 SHA-256 hashed API keys (AD-2), webhook retry via waitUntil + cron sweep (AD-3),
-PostgreSQL tsvector for search (AD-4), marketplaceVisible default false (AD-5),
+PostgreSQL tsvector for search (AD-4 — shipped), marketplaceVisible default false (AD-5 — shipped),
 OpenAPI via zod-to-openapi (AD-6), OpportunityInterest as lightweight alternative
-to full Application (AD-7).
-
-8 new data models: ApiKey, WebhookSubscription, WebhookDelivery, OpportunityInterest,
-ReferralLink, Grant, OpportunityGrant, VolunteerStreak.
-
-12-PR implementation sequence planned across 3 sub-phases.
+to full Application (AD-7 — shipped).
 
 ---
 
