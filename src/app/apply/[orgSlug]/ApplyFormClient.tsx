@@ -56,7 +56,7 @@ type Props = {
 	org: { id: string; name: string; slug: string };
 	questions: PublicQuestion[];
 	opportunity: LinkedOpportunity | null;
-	source?: string;
+	source?: 'DIRECT' | 'MARKETPLACE';
 };
 
 export default function ApplyFormClient({
