@@ -29,6 +29,8 @@ model User {
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
   digestPreferences       UserDigestPreference[]
+  interests               OpportunityInterest[]
+  marketplacePreference   UserMarketplacePreference?
   bulkImportJobs          BulkImportJob[]
   isPlatformAdmin         Boolean                 @default(false)
   feedbacks               UserFeedback[]
@@ -139,6 +141,12 @@ model Organization {
   suspendedReason             String?                  // Free-text justification (audit-redundant but UI-handy)
   suspendedById               String?                  // Platform admin who suspended (FK to User)
   suspendedBy                 User?                    @relation("OrgSuspendedBy", fields: [suspendedById], references: [id], onDelete: SetNull)
+  // Phase 11 — Volunteer Marketplace
+  marketplaceVisible          Boolean                  @default(false)  // Org opts in to cross-org marketplace listing
+  description                 String?                  // Short org description shown on discovery page
+  location                    String?                  // Display location, e.g. "Fresno, CA"
+  causeAreaTags               String[]                 @default([])     // e.g. ["Environment", "Education"]
+  verified                    Boolean                  @default(false)  // Platform-verified org (set by platform admin)
   createdAt                   DateTime                 @default(now())
   updatedAt                   DateTime                 @updatedAt
   members              OrganizationMember[]
@@ -231,6 +239,7 @@ model VolunteerApplication {
   screeningStatus   ScreeningStatus   @default(REVIEW)
   screeningReasons  Json              @default("[]")
   submittedAt       DateTime          @default(now())
+  source            ApplicationSource @default(DIRECT)
 
   organization    Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
   opportunity     VolunteerOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
@@ -280,6 +289,13 @@ enum ApplicationStatus {
   APPROVED
   REJECTED
   WITHDRAWN
+}
+
+enum ApplicationSource {
+  DIRECT
+  MARKETPLACE
+  REFERRAL
+  WIDGET
 }
 
 enum ScreeningStatus {
@@ -353,6 +369,7 @@ model VolunteerOpportunity {
   lat             Float?
   lng             Float?
   geocodeStatus   GeocodeStatus     @default(PENDING)
+  searchVector    Unsupported("tsvector")?  // GIN-indexed for full-text search (Phase 11)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
@@ -363,6 +380,7 @@ model VolunteerOpportunity {
   shifts                Shift[]
   shiftTemplates        ShiftTemplate[]
   volunteerInvitations  VolunteerInvitation[]
+  interests             OpportunityInterest[]
 
   @@index([orgId])
   @@index([status])
@@ -919,6 +937,33 @@ model UserDigestPreference {
 
   @@unique([userId, orgId])
   @@index([digestFrequency, lastDigestSentAt])
+}
+
+// Phase 11 — cross-org marketplace digest preference (one per user, not per org)
+model UserMarketplacePreference {
+  id               String          @id @default(cuid())
+  userId           String          @unique
+  digestFrequency  DigestFrequency @default(WEEKLY)
+  lastDigestSentAt DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Phase 11 — lightweight "I'm interested" signal on a marketplace opportunity
+model OpportunityInterest {
+  id            String   @id @default(cuid())
+  userId        String
+  opportunityId String
+  createdAt     DateTime @default(now())
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunity VolunteerOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, opportunityId])
+  @@index([userId])
+  @@index([opportunityId])
 }
 
 enum BulkImportStatus {
