@@ -56,12 +56,14 @@ type Props = {
 	org: { id: string; name: string; slug: string };
 	questions: PublicQuestion[];
 	opportunity: LinkedOpportunity | null;
+	source?: string;
 };
 
 export default function ApplyFormClient({
 	org,
 	questions,
 	opportunity,
+	source,
 }: Props) {
 	const [submitted, setSubmitted] = useState(false);
 	const { data: session, status: authStatus } = useSession();
@@ -181,6 +183,7 @@ export default function ApplyFormClient({
 			profile: values.profile,
 			responses,
 			shareCredentials: values.shareCredentials,
+			source,
 		});
 	}
 

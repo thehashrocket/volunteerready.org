@@ -30,6 +30,12 @@ vi.mock('@/prisma/generated/client', () => ({
 		APPROVED: 'APPROVED',
 		REJECTED: 'REJECTED',
 	},
+	ApplicationSource: {
+		DIRECT: 'DIRECT',
+		MARKETPLACE: 'MARKETPLACE',
+		REFERRAL: 'REFERRAL',
+		WIDGET: 'WIDGET',
+	},
 	OpportunityStatus: {
 		PUBLISHED: 'PUBLISHED',
 		DRAFT: 'DRAFT',

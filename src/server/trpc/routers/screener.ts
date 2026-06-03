@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { generateSlug } from '@/lib/slug';
 import {
+	ApplicationSource,
 	ApplicationStatus,
 	type Prisma,
 	ScreenerQuestionType,
@@ -119,6 +120,9 @@ export const screenerRouter = createTRPCRouter({
 				profile: volunteerProfileSchema,
 				responses: z.array(screenerResponseSchema),
 				shareCredentials: z.boolean().optional(),
+				source: z
+					.enum([ApplicationSource.DIRECT, ApplicationSource.MARKETPLACE])
+					.optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -135,6 +139,7 @@ export const screenerRouter = createTRPCRouter({
 				opportunityId: input.opportunityId ?? null,
 				profile: input.profile,
 				responses: input.responses,
+				source: input.source ?? null,
 			});
 
 			// "Bring my credentials" — share all verified creds with this org

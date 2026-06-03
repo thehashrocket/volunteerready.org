@@ -32,10 +32,10 @@ export default async function ApplyPage({
 	searchParams,
 }: {
 	params: Promise<{ orgSlug: string }>;
-	searchParams: Promise<{ opportunityId?: string }>;
+	searchParams: Promise<{ opportunityId?: string; source?: string }>;
 }) {
 	const { orgSlug } = await params;
-	const { opportunityId } = await searchParams;
+	const { opportunityId, source } = await searchParams;
 	const { org, questions } = await getPublicFormByOrgSlug(orgSlug);
 
 	if (!org) {
@@ -87,6 +87,7 @@ export default async function ApplyPage({
 						org={org}
 						questions={questions}
 						opportunity={opportunity ?? null}
+						source={source}
 					/>
 				</ApplyProviders>
 			</div>
