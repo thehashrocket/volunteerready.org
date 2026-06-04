@@ -272,7 +272,9 @@ describe('sendOpportunityDigestEmails', () => {
 		expect(result.emailsSent).toBe(0);
 		expect(result.usersProcessed).toBe(1);
 		expect(mockPrefUpdate).toHaveBeenCalledWith(
-			expect.objectContaining({ data: expect.objectContaining({ lastDigestSentAt: expect.any(Date) }) }),
+			expect.objectContaining({
+				data: expect.objectContaining({ lastDigestSentAt: expect.any(Date) }),
+			}),
 		);
 		expect(mockSendEmail).not.toHaveBeenCalled();
 	});
@@ -280,7 +282,10 @@ describe('sendOpportunityDigestEmails', () => {
 	it('resumes from cursor by passing skip:1 + cursor to findMany', async () => {
 		mockPrefFindMany.mockResolvedValue([]);
 
-		await sendOpportunityDigestEmails({ skipWindowCheck: true, cursor: 'pref-50' });
+		await sendOpportunityDigestEmails({
+			skipWindowCheck: true,
+			cursor: 'pref-50',
+		});
 
 		expect(mockPrefFindMany).toHaveBeenCalledWith(
 			expect.objectContaining({

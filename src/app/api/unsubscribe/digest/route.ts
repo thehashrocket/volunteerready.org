@@ -4,10 +4,10 @@ import { validateUnsubscribeTokenFromEnv } from '@/server/lib/digest-unsubscribe
 import { prisma } from '@/server/repositories/prisma';
 
 function htmlError(status: number, message: string): NextResponse {
-	return new NextResponse(
-		`<html><body><p>${message}</p></body></html>`,
-		{ status, headers: { 'Content-Type': 'text/html' } },
-	);
+	return new NextResponse(`<html><body><p>${message}</p></body></html>`, {
+		status,
+		headers: { 'Content-Type': 'text/html' },
+	});
 }
 
 function validateParams(searchParams: URLSearchParams): {
@@ -43,7 +43,10 @@ export async function GET(request: Request): Promise<NextResponse> {
 
 	const valid = validateToken(params.userId, params.token);
 	if (valid === 'error')
-		return htmlError(500, 'Unsubscribe service is temporarily unavailable. Please try again later.');
+		return htmlError(
+			500,
+			'Unsubscribe service is temporarily unavailable. Please try again later.',
+		);
 	if (!valid) return htmlError(400, 'Invalid or expired unsubscribe link.');
 
 	const confirmUrl = `/api/unsubscribe/digest?userId=${encodeURIComponent(params.userId)}&token=${encodeURIComponent(params.token)}`;
@@ -75,7 +78,10 @@ export async function POST(request: Request): Promise<NextResponse> {
 
 	const valid = validateToken(params.userId, params.token);
 	if (valid === 'error')
-		return htmlError(500, 'Unsubscribe service is temporarily unavailable. Please try again later.');
+		return htmlError(
+			500,
+			'Unsubscribe service is temporarily unavailable. Please try again later.',
+		);
 	if (!valid) return htmlError(400, 'Invalid or expired unsubscribe link.');
 
 	try {

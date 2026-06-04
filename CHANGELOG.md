@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.1.1] - 2026-06-03
+
+### Added
+- **Tag-aware full-text search.** Opportunity tags are now included in the PostgreSQL `searchVector` column. Searching for "animals" or "environment" returns opportunities tagged with those cause areas, not just opportunities that mention the word in the title or description.
+- **`orgMarketplaceService`** extracted from the tRPC router. Marketplace settings (visibility, description, location, cause-area tags) are now updated through a dedicated service layer instead of raw Prisma calls in the router.
+- **Test coverage** for the unsubscribe endpoint (GET/POST paths), `orgMarketplaceService`, and `suspendedAt: null` guards across all marketplace queries.
+
+### Changed
+- Unsubscribe endpoint (`GET /api/unsubscribe/digest`) now shows a confirmation form instead of immediately mutating. `POST` performs the unsubscribe. This prevents email link prefetchers (Apple Mail, Gmail) from silently unsubscribing users who never clicked.
+- `getMyInterests` now filters out opportunities from suspended organizations (same guard applied to all other marketplace queries in v0.26.0.0).
+- Map page (`listForMap`) now excludes opportunities from suspended organizations.
+- Interest toggle atomically wraps both the interest create and the digest preference upsert in a transaction. A P2002 error on the create no longer silently suppresses the preference upsert.
+- GIN index creation for `searchVector` split into a separate migration that can be run with `CREATE INDEX CONCURRENTLY` to avoid locking the `VolunteerOpportunity` table during deploys.
+- `searchVector` trigger now fires on all column updates (not just `title` and `description`), so publishing a DRAFT opportunity makes it immediately discoverable in full-text search.
+
+### Fixed
+- Newly published opportunities were invisible in marketplace search until a title or description edit. Fixed by broadening the trigger column list.
+- A P2002 error during concurrent interest toggling could roll back both DB writes but still return `{ interested: true }` — leaving the user's digest preference un-enrolled silently.
+
 ## [0.26.1.0] - 2026-06-03
 
 ### Fixed

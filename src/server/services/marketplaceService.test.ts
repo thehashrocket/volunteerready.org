@@ -49,7 +49,8 @@ vi.mock('@/server/repositories/prisma', () => ({
 			upsert: (...args: unknown[]) => mockPrefUpsert(...args),
 		},
 		// Execute the callback immediately with the tx client (no real transaction needed in unit tests)
-		$transaction: (cb: (tx: typeof txClient) => Promise<unknown>) => cb(txClient),
+		$transaction: (cb: (tx: typeof txClient) => Promise<unknown>) =>
+			cb(txClient),
 	},
 }));
 
