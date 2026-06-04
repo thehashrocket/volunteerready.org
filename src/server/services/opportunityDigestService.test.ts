@@ -262,6 +262,39 @@ describe('sendOpportunityDigestEmails', () => {
 		expect(result.nextCursor).toBe('pref-99');
 	});
 
+	it('stamps lastDigestSentAt and skips email when user has no email address', async () => {
+		mockPrefFindMany.mockResolvedValue([
+			makePref({ user: { id: 'user-1', email: null, name: null } }),
+		]);
+
+		const result = await sendOpportunityDigestEmails({ skipWindowCheck: true });
+
+		expect(result.emailsSent).toBe(0);
+		expect(result.usersProcessed).toBe(1);
+		expect(mockPrefUpdate).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({ lastDigestSentAt: expect.any(Date) }),
+			}),
+		);
+		expect(mockSendEmail).not.toHaveBeenCalled();
+	});
+
+	it('resumes from cursor by passing skip:1 + cursor to findMany', async () => {
+		mockPrefFindMany.mockResolvedValue([]);
+
+		await sendOpportunityDigestEmails({
+			skipWindowCheck: true,
+			cursor: 'pref-50',
+		});
+
+		expect(mockPrefFindMany).toHaveBeenCalledWith(
+			expect.objectContaining({
+				cursor: { id: 'pref-50' },
+				skip: 1,
+			}),
+		);
+	});
+
 	it('skips outside Monday 8am UTC when window check is enabled', async () => {
 		// Pin clock to a known non-Monday time (Wednesday) for deterministic behavior
 		vi.useFakeTimers();

@@ -91,6 +91,7 @@ export async function listForMap() {
 			geocodeStatus: GeocodeStatus.SUCCESS,
 			lat: { not: null },
 			lng: { not: null },
+			organization: { suspendedAt: null },
 		},
 		select: {
 			id: true,
@@ -106,15 +107,17 @@ export async function listForMap() {
 }
 
 /**
- * List ALL published opportunities across marketplace-visible organizations.
- * Used by authenticated volunteer browse and the new public marketplace page.
+ * List published marketplace opportunities for the authenticated browse page.
+ * Capped at 200 to prevent SSR OOM as the marketplace grows. Long-term: move
+ * skill-match ranking server-side so this can be replaced with cursor pagination.
  */
 export async function listAllPublishedOpportunities() {
 	return prisma.volunteerOpportunity.findMany({
 		where: {
 			status: OpportunityStatus.PUBLISHED,
-			organization: { marketplaceVisible: true },
+			organization: { marketplaceVisible: true, suspendedAt: null },
 		},
+		take: 200,
 		select: {
 			id: true,
 			title: true,
@@ -200,7 +203,7 @@ async function browseMarketplace(
 ) {
 	const where: Prisma.VolunteerOpportunityWhereInput = {
 		status: OpportunityStatus.PUBLISHED,
-		organization: { marketplaceVisible: true },
+		organization: { marketplaceVisible: true, suspendedAt: null },
 		...(isRemote !== undefined ? { isRemote } : {}),
 	};
 
@@ -252,6 +255,7 @@ async function searchWithTsvector(
 		JOIN "Organization" org ON org.id = o."orgId"
 		WHERE o.status = 'PUBLISHED'
 		  AND org."marketplaceVisible" = true
+		  AND org."suspendedAt" IS NULL
 		  AND o."searchVector" @@ to_tsquery('english', ${tsquery})
 		  ${remoteClause}
 		ORDER BY ts_rank(o."searchVector", to_tsquery('english', ${tsquery})) DESC
@@ -284,7 +288,7 @@ export async function getThisWeekendOpportunities() {
 	return prisma.volunteerOpportunity.findMany({
 		where: {
 			status: OpportunityStatus.PUBLISHED,
-			organization: { marketplaceVisible: true },
+			organization: { marketplaceVisible: true, suspendedAt: null },
 			startDate: { gte: now, lte: in3Days },
 		},
 		select: {

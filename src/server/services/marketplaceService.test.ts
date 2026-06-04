@@ -24,6 +24,16 @@ const mockInterestDelete = vi.fn();
 const mockInterestFindMany = vi.fn();
 const mockPrefUpsert = vi.fn();
 
+// Build the tx client object shared between the real prisma mock and $transaction's callback arg
+const txClient = {
+	opportunityInterest: {
+		create: (...args: unknown[]) => mockInterestCreate(...args),
+	},
+	userMarketplacePreference: {
+		upsert: (...args: unknown[]) => mockPrefUpsert(...args),
+	},
+};
+
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {
 		volunteerOpportunity: {
@@ -38,19 +48,11 @@ vi.mock('@/server/repositories/prisma', () => ({
 		userMarketplacePreference: {
 			upsert: (...args: unknown[]) => mockPrefUpsert(...args),
 		},
+		// Execute the callback immediately with the tx client (no real transaction needed in unit tests)
+		$transaction: (cb: (tx: typeof txClient) => Promise<unknown>) =>
+			cb(txClient),
 	},
 }));
-
-// Prisma error class factory
-function makePrismaError(code: string) {
-	const err = new Error('Prisma error') as Error & { code: string };
-	err.code = code;
-	// Simulate PrismaClientKnownRequestError instanceof check
-	Object.setPrototypeOf(err, {
-		constructor: { name: 'PrismaClientKnownRequestError' },
-	});
-	return err;
-}
 
 import { getMyInterests, toggleInterest } from './marketplaceService';
 
@@ -139,6 +141,16 @@ describe('toggleInterest', () => {
 		expect(result).toEqual({ interested: false });
 		expect(mockInterestCreate).not.toHaveBeenCalled();
 		expect(mockPrefUpsert).not.toHaveBeenCalled();
+	});
+
+	it('queries opportunity with suspendedAt:null to exclude suspended orgs', async () => {
+		await toggleInterest('user-1', 'opp-1');
+
+		const callArgs = mockOppFindFirst.mock.calls[0][0];
+		expect(callArgs.where.organization).toMatchObject({
+			marketplaceVisible: true,
+			suspendedAt: null,
+		});
 	});
 
 	it('rethrows non-P2002 errors on create', async () => {

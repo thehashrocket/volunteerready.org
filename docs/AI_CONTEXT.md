@@ -490,6 +490,7 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/services/volunteerDiscoveryService.ts` | Volunteer search + invite-to-apply — rate-limited, TOCTOU-safe transaction, audit logged |
 | `src/server/services/notificationService.ts` | Notification delivery — checks preferences, creates notifications, fire-and-forget wrapper |
 | `src/server/services/shiftTemplateService.ts` | Shift template CRUD + bulk shift generation with plan-tier enforcement |
+| `src/server/services/orgMarketplaceService.ts` | Org marketplace settings — `updateMarketplaceSettings()` (visibility, description, location, causeAreaTags); extracted from org router to enforce service-layer boundary |
 | `src/server/services/orgAnalyticsService.ts` | Org analytics dashboard — orchestrates 4 parallel queries; days=null skips retention and uses epoch fromDate |
 | `src/server/repositories/orgAnalyticsRepo.ts` | Raw SQL analytics queries (Prisma.sql parameterized); getApplicationFunnel, getRetentionStats, getAvgFillRate, getTopVolunteers |
 | `src/server/repositories/volunteerDiscoveryRepo.ts` | `searchPublicProfiles()` — `visibility = PUBLIC` hardcoded invariant, cursor pagination, credential/skill/location filters |
@@ -530,6 +531,9 @@ pnpm docs:dev               # VitePress dev server
 | 7 — Network Growth & Volunteer Identity | ✅ Complete |
 | 8 — Operational Polish & CEO Quick Wins | ✅ Complete |
 | 9 — Production-Ready + Activation | ✅ Complete |
+| 11A — Volunteer Marketplace (browse + map) | ✅ Complete |
+| 11B — Marketplace Interest + Digest | ✅ Complete |
+| 11C — Marketplace Phase Review | ✅ Complete |
 
 Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses, volunteer discovery (`/app/discover`) with invite-to-apply (rate-limited), org analytics dashboard (`/app/analytics`, PRO-gated).
 
@@ -538,6 +542,8 @@ Phase 8 delivered: in-app notifications (bell + preferences), plan gate componen
 Phase 9 delivered: onboarding wizard, getting-started checklist, shift reminder emails, application status timeline, email digests (daily/weekly), bulk CSV import, Stripe webhook reconciliation, credential expiry notifications, cron health dashboard, product screenshots, design system compliance fixes, privacy policy page, terms of service page, GDPR-compliant cookie consent banner, consented analytics.
 
 Phase 10 (partial) delivered: shift auto-close cron (TOCTOU-safe), AuditLog/Shift composite indexes (CONCURRENTLY), bulk import durability (`waitUntil`), timezone-aware notification delivery, re-engagement emails, digest cursor pagination — and (v0.14.0) org health score widget, admin activity feed, dashboard rewrite (Getting Started Checklist replaced by OrgHealthWidget + ActivityFeed), audit log improvements (MEMBER_INVITED event, shift.completed metadata, try-catch resilience).
+
+Phase 11C delivered: tag-aware searchVector (trigger includes title + description + tags; GIN index split to separate migration for zero-downtime), `orgMarketplaceService.ts` extraction, RFC 8058 unsubscribe split (GET=form, POST=mutate), `suspendedAt: null` guards on all marketplace queries, P2002 catch scoped inside transaction for `toggleInterest`.
 
 See `docs/ROADMAP.md` for details.
 

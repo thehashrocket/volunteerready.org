@@ -22,7 +22,7 @@ export async function toggleInterest(
 		where: {
 			id: opportunityId,
 			status: OpportunityStatus.PUBLISHED,
-			organization: { marketplaceVisible: true },
+			organization: { marketplaceVisible: true, suspendedAt: null },
 		},
 		select: { id: true },
 	});
@@ -53,23 +53,29 @@ export async function toggleInterest(
 		return { interested: false };
 	}
 
-	try {
-		await prisma.opportunityInterest.create({
-			data: { userId, opportunityId },
+	// Atomic: both writes succeed or both roll back. Without a transaction,
+	// a failure on the preference upsert leaves an orphan interest row; the next
+	// toggle call finds the orphan and deletes it, silently un-hearting.
+	await prisma.$transaction(async (tx) => {
+		try {
+			await tx.opportunityInterest.create({
+				data: { userId, opportunityId },
+			});
+		} catch (e) {
+			// P2002: concurrent request already created the interest — idempotently continue
+			if (
+				!(
+					e instanceof Prisma.PrismaClientKnownRequestError &&
+					e.code === 'P2002'
+				)
+			)
+				throw e;
+		}
+		await tx.userMarketplacePreference.upsert({
+			where: { userId },
+			create: { userId, digestFrequency: DigestFrequency.WEEKLY },
+			update: {},
 		});
-	} catch (e) {
-		// P2002: concurrent request already created it — idempotently "interested"
-		if (
-			!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')
-		)
-			throw e;
-	}
-
-	// Upsert marketplace preference with WEEKLY digest on first interest toggle
-	await prisma.userMarketplacePreference.upsert({
-		where: { userId },
-		create: { userId, digestFrequency: DigestFrequency.WEEKLY },
-		update: {},
 	});
 
 	return { interested: true };
@@ -82,7 +88,7 @@ export async function getMyInterests(userId: string): Promise<string[]> {
 			userId,
 			opportunity: {
 				status: OpportunityStatus.PUBLISHED,
-				organization: { marketplaceVisible: true },
+				organization: { marketplaceVisible: true, suspendedAt: null },
 			},
 		},
 		select: { opportunityId: true },

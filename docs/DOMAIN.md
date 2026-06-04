@@ -515,7 +515,7 @@ Key fields:
 
 Constraint: unique per (userId, opportunityId). Cascades on delete.
 
-Rules: target opportunity must be PUBLISHED and marketplace-visible before interest is accepted. Concurrent toggle races (P2002/P2025) are handled idempotently. `getMyInterests` only returns records for currently PUBLISHED, marketplace-visible opportunities.
+Rules: target opportunity must be PUBLISHED, marketplace-visible, and from a non-suspended org before interest is accepted. `getMyInterests` and `listForMap` also filter `suspendedAt: null` so suspended-org opportunities disappear from all volunteer-facing views. Concurrent toggle races: the interest create + preference upsert are wrapped in `prisma.$transaction`; P2002 (concurrent duplicate create) is caught inside the transaction and treated as idempotent success.
 
 ---
 

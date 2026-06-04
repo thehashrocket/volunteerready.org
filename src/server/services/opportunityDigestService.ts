@@ -6,7 +6,10 @@ import { escapeHtml } from '../lib/html';
 import { prisma } from '../repositories/prisma';
 
 const BATCH_SIZE = 100;
-const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+// 2-hour grace period so users stamped anywhere in the Monday 8–9am window
+// are still eligible at 8:00am the following Monday (exactly 7 days later
+// would require millisecond precision; 6h55m leeway is acceptable for a newsletter).
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000 - 2 * 60 * 60 * 1000;
 const OPPORTUNITIES_PER_DIGEST = 5;
 
 /**
@@ -100,7 +103,7 @@ export async function sendOpportunityDigestEmails(opts?: {
 			const opportunities = await prisma.volunteerOpportunity.findMany({
 				where: {
 					status: OpportunityStatus.PUBLISHED,
-					organization: { marketplaceVisible: true },
+					organization: { marketplaceVisible: true, suspendedAt: null },
 					...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
 				},
 				orderBy: { createdAt: 'desc' },
@@ -151,8 +154,8 @@ export async function sendOpportunityDigestEmails(opts?: {
 				.join('');
 
 			const html = `
-				<h2 style="font-size: 22px; color: #1B3C2A; margin: 0 0 4px;">Your weekly opportunities</h2>
-				<p style="color: #6B5E4F; margin: 0 0 24px;">Matched to your interests${name ? `, ${escapeHtml(name)}` : ''}.</p>
+				<h2 style="font-size: 22px; color: #1B3C2A; margin: 0 0 4px;">New opportunities this week</h2>
+				<p style="color: #6B5E4F; margin: 0 0 24px;">Fresh volunteer opportunities you haven't seen yet${name ? `, ${escapeHtml(name)}` : ''}.</p>
 
 				${opportunitiesHtml}
 

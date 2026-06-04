@@ -369,7 +369,7 @@ model VolunteerOpportunity {
   lat             Float?
   lng             Float?
   geocodeStatus   GeocodeStatus     @default(PENDING)
-  searchVector    Unsupported("tsvector")?  // GIN-indexed for full-text search (Phase 11)
+  searchVector    Unsupported("tsvector")?  // GIN-indexed; maintained by trg_opportunity_search_vector (includes title, description, tags)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 

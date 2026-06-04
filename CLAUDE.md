@@ -179,10 +179,12 @@ docs/
 - `OpportunityInterest` model: logged-in volunteers heart-toggle interest in marketplace opportunities; unique per (userId, opportunityId), cascades on delete
 - `UserMarketplacePreference` model: per-user marketplace UI preferences (stored for future use)
 - Marketplace fields on `Organization`: `marketplaceVisible` (default false), `description`, `location`, `causeAreaTags`, `verified`
-- `VolunteerOpportunity.searchVector`: tsvector column with GIN index for PostgreSQL full-text search across marketplace
+- `VolunteerOpportunity.searchVector`: trigger-maintained tsvector column (title + description + tags) with GIN index for full-text search across the marketplace. Trigger `trg_opportunity_search_vector` fires on VolunteerOpportunity INSERT/UPDATE and OpportunityTag INSERT/UPDATE/DELETE. GIN index created CONCURRENTLY in a separate migration for zero-downtime deploys.
+- Org marketplace settings: extracted into `src/server/services/orgMarketplaceService.ts` (`updateMarketplaceSettings`); org tRPC router delegates to this service.
+- Suspended org guard: all marketplace queries (`listAllPublishedOpportunities`, `listForMap`, `browseMarketplace`, `searchWithTsvector`, `getThisWeekendOpportunities`, `getMyInterests`, `toggleInterest`) filter `organization: { suspendedAt: null }` to prevent surfacing opportunities from suspended orgs.
 - Opportunity digest emails: service at `src/server/services/opportunityDigestService.ts` (weekly, up to 5 fresh opps per user based on hearted interests), cron at `src/app/api/cron/opportunity-digest/route.ts` (runs Mondays)
-- Digest unsubscribe: token lib at `src/server/lib/digest-unsubscribe-token.ts` (HMAC-SHA256, timing-safe), endpoint at `src/app/api/unsubscribe/digest/route.ts` (sets `DigestFrequency.OFF`, renders HTML confirmation)
-- Marketplace interest → digest enrollment: `toggleInterest` in `marketplaceService.ts` auto-upserts `UserMarketplacePreference` with `digestFrequency: WEEKLY` on first heart
+- Digest unsubscribe: token lib at `src/server/lib/digest-unsubscribe-token.ts` (HMAC-SHA256, timing-safe), endpoint at `src/app/api/unsubscribe/digest/route.ts` — GET renders a branded confirmation page (RFC 8058: prevents link-prefetcher unsubscribes), POST performs the actual `DigestFrequency.OFF` mutation.
+- Marketplace interest → digest enrollment: `toggleInterest` in `marketplaceService.ts` auto-upserts `UserMarketplacePreference` with `digestFrequency: WEEKLY` on first heart; the interest create + preference upsert are wrapped in `prisma.$transaction` so they succeed or roll back atomically. P2002 (concurrent duplicate) is caught inside the transaction, not outside.
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.
