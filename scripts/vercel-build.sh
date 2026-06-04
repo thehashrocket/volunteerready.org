@@ -7,6 +7,8 @@ set -e
 if [ "$VERCEL_ENV" = "production" ]; then
   echo "Production build: running prisma migrate deploy..."
   pnpm prisma migrate deploy
+else
+  echo "Preview/development build: skipping prisma migrate deploy (schema already applied)"
 fi
 
 pnpm prisma generate
