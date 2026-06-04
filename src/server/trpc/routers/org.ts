@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { updateMarketplaceSettings } from '@/server/services/orgMarketplaceService';
 import { switchOrgForSession } from '@/server/services/orgService';
 import {
 	createTRPCRouter,
@@ -133,20 +134,6 @@ export const orgRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			return ctx.prisma.organization.update({
-				where: { id: ctx.orgId },
-				data: {
-					...(input.marketplaceVisible !== undefined
-						? { marketplaceVisible: input.marketplaceVisible }
-						: {}),
-					...(input.description !== undefined
-						? { description: input.description }
-						: {}),
-					...(input.location !== undefined ? { location: input.location } : {}),
-					...(input.causeAreaTags !== undefined
-						? { causeAreaTags: input.causeAreaTags }
-						: {}),
-				},
-			});
+			await updateMarketplaceSettings(ctx.orgId, input);
 		}),
 });

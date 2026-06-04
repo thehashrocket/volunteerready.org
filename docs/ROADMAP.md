@@ -544,10 +544,16 @@ Deferred to follow-up:
   subscriptions with retry (waitUntil + cron sweep), OpenAPI spec via zod-to-openapi,
   grant/funding tracker for opportunities
 
-## 11C — Volunteer Experience (planned)
+## 11C — Volunteer Experience (partial — v0.26.0.0)
 
-- **Volunteer Experience:** Referral links with attribution tracking, volunteer streaks and
-  gamification, opportunity digest emails
+Delivered:
+- ✅ Weekly opportunity digest emails — HMAC-SHA256 one-click unsubscribe, cursor-paginated cron loop, window guard (Monday 8am UTC), branded HTML email
+- ✅ ApplicationSource tracking — `?source=MARKETPLACE` on apply links, server-side validation with org.marketplaceVisible downgrade guard
+- ✅ Service layer — `marketplaceService.ts` (`toggleInterest`, `getMyInterests`); `org.updateMarketplaceSettings` routed through `orgMarketplaceService.ts`
+
+Still planned:
+- Referral links with attribution tracking
+- Volunteer streaks and gamification
 
 Architecture decisions: cross-org read via publicProcedure + marketplaceRepository (AD-1),
 SHA-256 hashed API keys (AD-2), webhook retry via waitUntil + cron sweep (AD-3),

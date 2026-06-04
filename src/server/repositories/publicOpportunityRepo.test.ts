@@ -215,6 +215,15 @@ describe('searchMarketplaceOpportunities — no query (browse mode)', () => {
 		expect(where.status).toBe('PUBLISHED');
 		expect(where.organization.marketplaceVisible).toBe(true);
 	});
+
+	it('applies suspendedAt:null to exclude suspended orgs in browse mode', async () => {
+		mocks.oppFindMany.mockResolvedValueOnce([]);
+
+		await searchMarketplaceOpportunities({});
+
+		const where = mocks.oppFindMany.mock.calls[0][0].where;
+		expect(where.organization.suspendedAt).toBeNull();
+	});
 });
 
 describe('searchMarketplaceOpportunities — with query (tsvector mode)', () => {
@@ -312,6 +321,33 @@ describe('listMarketplaceOrgs', () => {
 	});
 });
 
+describe('listAllPublishedOpportunities', () => {
+	it('filters by PUBLISHED + marketplaceVisible + suspendedAt:null', async () => {
+		mocks.oppFindMany.mockResolvedValueOnce([]);
+
+		const { listAllPublishedOpportunities } = await import(
+			'./publicOpportunityRepo'
+		);
+		await listAllPublishedOpportunities();
+
+		const where = mocks.oppFindMany.mock.calls[0][0].where;
+		expect(where.status).toBe('PUBLISHED');
+		expect(where.organization.marketplaceVisible).toBe(true);
+		expect(where.organization.suspendedAt).toBeNull();
+	});
+
+	it('caps results at 200 rows', async () => {
+		mocks.oppFindMany.mockResolvedValueOnce([]);
+
+		const { listAllPublishedOpportunities } = await import(
+			'./publicOpportunityRepo'
+		);
+		await listAllPublishedOpportunities();
+
+		expect(mocks.oppFindMany.mock.calls[0][0].take).toBe(200);
+	});
+});
+
 describe('getThisWeekendOpportunities', () => {
 	it('returns opportunities within 3 days', async () => {
 		const opp = {
@@ -338,6 +374,15 @@ describe('getThisWeekendOpportunities', () => {
 		const where = mocks.oppFindMany.mock.calls[0][0].where;
 		expect(where.status).toBe('PUBLISHED');
 		expect(where.organization.marketplaceVisible).toBe(true);
+	});
+
+	it('applies suspendedAt:null to exclude suspended orgs', async () => {
+		mocks.oppFindMany.mockResolvedValueOnce([]);
+
+		await getThisWeekendOpportunities();
+
+		const where = mocks.oppFindMany.mock.calls[0][0].where;
+		expect(where.organization.suspendedAt).toBeNull();
 	});
 
 	it('limits to 10 results', async () => {
