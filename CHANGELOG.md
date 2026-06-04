@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.1.0] - 2026-06-03
+
+### Fixed
+- **Vercel deployment no longer fails on TypeScript type errors.** The `source` prop on the apply form client was typed as `string` but tRPC expected `'DIRECT' | 'MARKETPLACE'`. Both the client component and the page now use the narrowed type.
+- **Session non-null assertion in marketplace router.** The `protectedProcedure` middleware guarantees `ctx.session` is non-null; added `!` assertion to satisfy TypeScript's post-compilation type check (which Turbopack skips but `next build` does not).
+- **Prisma advisory lock race condition on concurrent Vercel deployments.** `prisma migrate deploy` now runs only on production builds (`VERCEL_ENV=production`). Preview builds skip migration to prevent competing for the same Postgres advisory lock when both deployments target the same Neon database.
+- **`DATABASE_URL_UNPOOLED` now takes precedence over legacy `DIRECT_DATABASE_URL`** in `prisma.config.ts`. Previously the legacy env var silently shadowed the new canonical name set by the Neon Vercel integration.
+
+### Changed
+- Build script extracted to `scripts/vercel-build.sh` and wired into `package.json`'s `build` command. Preview builds now log explicitly that migration is skipped.
+
 ## [0.26.0.0] - 2026-06-03
 
 ### Added

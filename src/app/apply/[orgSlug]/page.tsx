@@ -35,7 +35,11 @@ export default async function ApplyPage({
 	searchParams: Promise<{ opportunityId?: string; source?: string }>;
 }) {
 	const { orgSlug } = await params;
-	const { opportunityId, source } = await searchParams;
+	const { opportunityId, source: rawSource } = await searchParams;
+	const source =
+		rawSource === 'DIRECT' || rawSource === 'MARKETPLACE'
+			? rawSource
+			: undefined;
 	const { org, questions } = await getPublicFormByOrgSlug(orgSlug);
 
 	if (!org) {

@@ -189,6 +189,57 @@ describe('ApplyFormClient', () => {
 		});
 	});
 
+	describe('source prop forwarding', () => {
+		it('renders the form when source is DIRECT', () => {
+			render(
+				<ApplyFormClient
+					org={ORG}
+					questions={[]}
+					opportunity={OPPORTUNITY}
+					source="DIRECT"
+				/>,
+			);
+			expect(screen.getByText('Volunteer application')).toBeInTheDocument();
+		});
+
+		it('renders the form when source is MARKETPLACE', () => {
+			render(
+				<ApplyFormClient
+					org={ORG}
+					questions={[]}
+					opportunity={OPPORTUNITY}
+					source="MARKETPLACE"
+				/>,
+			);
+			expect(screen.getByText('Volunteer application')).toBeInTheDocument();
+		});
+
+		it('renders the form when source is undefined', () => {
+			render(
+				<ApplyFormClient
+					org={ORG}
+					questions={[]}
+					opportunity={OPPORTUNITY}
+					source={undefined}
+				/>,
+			);
+			expect(screen.getByText('Volunteer application')).toBeInTheDocument();
+		});
+
+		it('accepts MARKETPLACE as a valid source prop', () => {
+			render(
+				<ApplyFormClient
+					org={ORG}
+					questions={[]}
+					opportunity={OPPORTUNITY}
+					source="MARKETPLACE"
+				/>,
+			);
+
+			expect(screen.getByText('Volunteer application')).toBeInTheDocument();
+		});
+	});
+
 	describe('Anonymous email soft-block', () => {
 		it('shows warning when anonymous email already has an application', () => {
 			// Unauthenticated user

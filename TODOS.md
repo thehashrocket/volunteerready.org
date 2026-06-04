@@ -2,9 +2,8 @@
 
 ## Marketplace
 
-### P2 — Composite index for marketplace browse queries
-**Priority:** P2
-Add a composite index on `VolunteerOpportunity(status, createdAt)` and ensure `Organization.marketplaceVisible` participates in query planning. The `browseMarketplace` and `getThisWeekendOpportunities` queries will table-scan as the marketplace grows.
+### ~~P2 — Composite index for marketplace browse queries~~ ✅ Completed v0.26.0.0 (2026-06-03)
+`CREATE INDEX IF NOT EXISTS "VolunteerOpportunity_status_createdAt_idx"` shipped in migration `20260603110000_add_digest_and_status_indexes`. Also added `UserMarketplacePreference(digestFrequency, lastDigestSentAt)` index for digest queries.
 Deferred from: v0.25.0.0 (Phase 11A)
 
 ### P3 — Marketplace service layer migration (partial)

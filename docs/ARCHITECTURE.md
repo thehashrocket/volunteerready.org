@@ -147,6 +147,8 @@ Key services:
 - `onboardingAnalyticsService.ts` — platform admin onboarding funnel: 4-step funnel counts + per-org progress detail (last 20 orgs)
 - `feedbackService.ts` — in-app feedback lifecycle: submit (rate-limited 5/hr), list with filters (status/mood), update status, reply with email notification, admin triage
 - `referenceDataService.ts` — boot guard (`ensureReferenceData()`) — self-healing runtime check that ensures the skill catalog and platform org exist before serving requests; uses a module-level `_seeded` flag and promise dedup to make subsequent calls free; called by `volunteerMatchingService` and `tenureBadgeService`, and at startup via `src/instrumentation.ts`
+- `marketplaceService.ts` — volunteer marketplace: `toggleInterest` (heart-toggle with auto-enroll into weekly digest, idempotent P2002/P2025 handling), extracted from the tRPC router so the router stays thin
+- `opportunityDigestService.ts` — weekly opportunity digest: selects up to 5 fresh published opportunities per user based on hearted interests, excludes already-applied/hearted opps, sends branded email, updates `lastDigestSentAt` for idempotency; cursor-based pagination handles all eligible users per run (Vercel Cron, Mondays)
 
 ---
 
@@ -172,6 +174,7 @@ Shared utilities and external service adapters.
 - `email.ts` — `sendEmail()` helper — single entry point for all outbound email
 - `html.ts` — `escapeHtml()` shared XSS escape for all server-rendered HTML (email templates + consent pages)
 - `rate-limit.ts` — Upstash Redis rate limiting (lazy singleton, fail-open)
+- `digest-unsubscribe-token.ts` — HMAC-SHA256 signed unsubscribe tokens for the opportunity digest; `generate(userId)` / `verify(userId, token)` with timing-safe comparison
 
 ---
 
