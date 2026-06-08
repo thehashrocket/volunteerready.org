@@ -33,6 +33,7 @@ Current commands:
 - `pnpm admin:revoke <email>`: revoke platform admin from a user
 - `pnpm seed:platform-admins`: migrate `PLATFORM_ADMIN_IDS` env var to DB column (idempotent)
 - `pnpm backfill:default-questions`: seed default screener questions for pre-existing orgs (idempotent, safe to re-run)
+- `pnpm test:scripts`: run unit tests for files under `scripts/` (uses `vitest.scripts.config.ts`, excluded from the main Vitest suite)
 
 Note: the build script (`pnpm build`) runs `pnpm db:seed` automatically on every deploy,
 which includes the production seed (platform org, skill catalog, and default screener
@@ -62,6 +63,7 @@ or linter (Prettier, ESLint, Black), document the exact commands and config.
 - Component tests: use `@testing-library/react` + jsdom; add `// @vitest-environment jsdom` to `.tsx` test files
 - Test setup: `src/test-setup.ts` (jest-dom matchers + ResizeObserver polyfill)
 - Integration tests excluded from `pnpm test`: `src/**/*.integration.test.ts`
+- Scripts tests (separate suite): `scripts/**/*.test.ts` — run with `pnpm test:scripts`; config at `vitest.scripts.config.ts`
 
 ## Commit & Pull Request Guidelines
 
@@ -124,6 +126,7 @@ docs/
 - Background check adapters: `src/server/lib/adapters/background-check/` (Checkr + Sterling), registry at `registry.ts`
 - Sterling webhook: `src/app/api/sterling/webhook/route.ts`
 - Prisma client is generated into `src/prisma/generated/client`
+- Scripts Prisma client: `scripts/prisma-client.ts` — shared helper that wires the `PrismaPg` adapter (required by Prisma 7.x); all maintenance scripts under `scripts/` import from here instead of calling `new PrismaClient()` directly
 - public apply flow lives under `src/app/apply/[orgSlug]`
 - Volunteer applications may be linked to users via `submittedByUserId` (see `screener.myApplications`).
 - User-facing application status routes live at `src/app/(app)/app/my-applications` and `src/app/(app)/app/my-applications/[id]`.
