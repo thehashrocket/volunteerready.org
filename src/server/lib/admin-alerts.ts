@@ -25,9 +25,7 @@ async function sendAdminAlert(subject: string, html: string): Promise<void> {
 		return;
 	}
 
-	await Promise.all(
-		recipients.map((email) => sendEmail(email, subject, html)),
-	);
+	await Promise.all(recipients.map((email) => sendEmail(email, subject, html)));
 }
 
 // ---------------------------------------------------------------------------

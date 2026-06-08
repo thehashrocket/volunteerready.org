@@ -66,7 +66,10 @@ export async function createCompany(opts: {
 
 		sendNewCompanyAlert({ id: company.id, name: opts.name, slug }).catch(
 			(err) =>
-				console.error('[companyService] Failed to send new company alert:', err),
+				console.error(
+					'[companyService] Failed to send new company alert:',
+					err,
+				),
 		);
 
 		return company;

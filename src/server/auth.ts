@@ -5,8 +5,8 @@ import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
 import { buildMagicLinkEmail } from '@/lib/email/auth';
 import type { CompanyMemberRole, Role } from '@/prisma/generated/client';
-import { sendEmail } from '@/server/lib/email';
 import { sendNewUserAlert } from '@/server/lib/admin-alerts';
+import { sendEmail } from '@/server/lib/email';
 import { getFromEmail } from '@/server/lib/resend';
 import { prisma } from '@/server/repositories/prisma';
 
