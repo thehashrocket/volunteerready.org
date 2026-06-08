@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.2.1] - 2026-06-08
+
+### Fixed
+- **Vercel build advisory lock race condition.** Production deployments were failing with Prisma `P1002` (postgres advisory lock timeout) because `prisma migrate deploy` ran on every build — including preview builds that run concurrently with production. The fix wires `scripts/vercel-build.sh` (created in v0.26.1.0 for this exact purpose but never activated) as the Vercel `buildCommand`. Migrate now runs only on `VERCEL_ENV=production`; preview builds skip it. Updated `package.json` build script to match.
+
 ## [0.26.2.0] - 2026-06-08
 
 ### Added
