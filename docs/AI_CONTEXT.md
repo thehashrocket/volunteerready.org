@@ -149,6 +149,8 @@ src/
 │   │   ├── email-template.ts     # Branded email wrapper (VolunteerReady header/footer)
 │   │   ├── email.ts              # sendEmail() helper — single entry point for all outbound email
 │   │   ├── html.ts               # escapeHtml() — shared XSS escape for server-rendered HTML (email + consent pages)
+│   │   ├── admin-alerts.ts       # sendNewUserAlert / sendNewOrgAlert / sendNewCompanyAlert / sendImpersonationStartAlert — fire-and-forget admin emails
+│   │   ├── admin-recipients.ts   # getAdminEmails() — resolves admin recipients from PLATFORM_ADMIN_ALERT_EMAIL env var or DB isPlatformAdmin flag; 5-min cache
 │   │   └── rate-limit.ts         # Upstash Redis rate limiting (lazy singleton, fail-open)
 │   └── domain/                   # Pure types + functions + tests
 │       ├── volunteer-screening.ts  # Core screening logic (evaluateScreening, validateResponses)
@@ -544,6 +546,8 @@ Phase 9 delivered: onboarding wizard, getting-started checklist, shift reminder 
 Phase 10 (partial) delivered: shift auto-close cron (TOCTOU-safe), AuditLog/Shift composite indexes (CONCURRENTLY), bulk import durability (`waitUntil`), timezone-aware notification delivery, re-engagement emails, digest cursor pagination — and (v0.14.0) org health score widget, admin activity feed, dashboard rewrite (Getting Started Checklist replaced by OrgHealthWidget + ActivityFeed), audit log improvements (MEMBER_INVITED event, shift.completed metadata, try-catch resilience).
 
 Phase 11C delivered: tag-aware searchVector (trigger includes title + description + tags; GIN index split to separate migration for zero-downtime), `orgMarketplaceService.ts` extraction, RFC 8058 unsubscribe split (GET=form, POST=mutate), `suspendedAt: null` guards on all marketplace queries, P2002 catch scoped inside transaction for `toggleInterest`.
+
+v0.26.2.0 delivered: admin signup notification emails (`sendNewUserAlert`, `sendNewOrgAlert`, `sendNewCompanyAlert` in `admin-alerts.ts`), shared admin recipient resolver (`admin-recipients.ts`, `getAdminEmails()` with 5-min cache), feedback notifications refactored to use shared helper, `PLATFORM_ADMIN_ALERT_EMAIL` now controls all admin notification recipients, CRLF injection fix in email subjects.
 
 See `docs/ROADMAP.md` for details.
 

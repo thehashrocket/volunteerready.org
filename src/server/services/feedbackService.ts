@@ -1,6 +1,7 @@
 import type { FeedbackStatus } from '@/prisma/generated/client';
 import type { FeedbackSubmitInput } from '@/server/domain/user-feedback';
 import { resolvePageName } from '@/server/domain/user-feedback';
+import { getAdminEmails } from '@/server/lib/admin-recipients';
 import { sendEmail } from '@/server/lib/email';
 import { escapeHtml } from '@/server/lib/html';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
@@ -14,52 +15,6 @@ import {
 	updateFeedbackReply,
 } from '@/server/repositories/feedbackRepo';
 import { prisma } from '@/server/repositories/prisma';
-
-// ---------------------------------------------------------------------------
-// Platform admin email cache (5-min TTL)
-// ---------------------------------------------------------------------------
-
-let _adminEmailsCache: string[] | null = null;
-let _adminEmailsCacheExpiry = 0;
-
-async function getPlatformAdminEmails(): Promise<string[]> {
-	// Env var override — send all notifications to this address instead
-	const override = process.env.FEEDBACK_NOTIFY_EMAIL;
-	if (override) return [override];
-
-	const now = Date.now();
-	if (_adminEmailsCache && now < _adminEmailsCacheExpiry) {
-		return _adminEmailsCache;
-	}
-
-	// Check DB column
-	const dbAdmins = await prisma.user.findMany({
-		where: { isPlatformAdmin: true },
-		select: { id: true, email: true },
-	});
-
-	// Also check PLATFORM_ADMIN_IDS env var fallback (consistent with platform-admin.ts)
-	const envIds = (process.env.PLATFORM_ADMIN_IDS ?? '')
-		.split(',')
-		.map((id) => id.trim())
-		.filter(Boolean);
-	const dbAdminIds = new Set(dbAdmins.map((a) => a.id));
-	const missingEnvIds = envIds.filter((id) => !dbAdminIds.has(id));
-
-	let envAdmins: { email: string | null }[] = [];
-	if (missingEnvIds.length > 0) {
-		envAdmins = await prisma.user.findMany({
-			where: { id: { in: missingEnvIds } },
-			select: { email: true },
-		});
-	}
-
-	_adminEmailsCache = [...dbAdmins, ...envAdmins]
-		.map((a) => a.email)
-		.filter((e): e is string => !!e);
-	_adminEmailsCacheExpiry = now + 5 * 60 * 1000;
-	return _adminEmailsCache;
-}
 
 // ---------------------------------------------------------------------------
 // Org-scoped route prefixes (feedback from non-org pages gets orgId=null)
@@ -137,7 +92,7 @@ export async function submitFeedback(
 	});
 
 	// Send notification email to platform admins (fire-and-forget)
-	getPlatformAdminEmails()
+	getAdminEmails()
 		.then(async (emails) => {
 			if (emails.length === 0) {
 				console.warn('[feedbackService] No platform admin emails found');

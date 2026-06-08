@@ -1,51 +1,101 @@
 import { sendEmail } from '@/server/lib/email';
 import { escapeHtml } from '@/server/lib/html';
-import { prisma } from '@/server/repositories/prisma';
+import {
+	_resetAdminEmailsCacheForTests,
+	getAdminEmails,
+} from './admin-recipients';
 
-let _adminEmailsCache: string[] | null = null;
-let _adminEmailsCacheExpiry = 0;
-const CACHE_TTL_MS = 5 * 60 * 1000;
+export { _resetAdminEmailsCacheForTests };
 
-export function _resetPlatformAdminEmailsCacheForTests() {
-	_adminEmailsCache = null;
-	_adminEmailsCacheExpiry = 0;
-}
+// ---------------------------------------------------------------------------
+// Generic helper
+// ---------------------------------------------------------------------------
 
-export async function getPlatformAdminEmails(): Promise<string[]> {
-	const override = process.env.PLATFORM_ADMIN_ALERT_EMAIL;
-	if (override) return [override];
-
-	const now = Date.now();
-	if (_adminEmailsCache && now < _adminEmailsCacheExpiry) {
-		return _adminEmailsCache;
+async function sendAdminAlert(subject: string, html: string): Promise<void> {
+	let recipients: string[];
+	try {
+		recipients = await getAdminEmails();
+	} catch (err) {
+		console.error('[adminAlerts] Failed to resolve admin recipients:', err);
+		return;
 	}
 
-	const dbAdmins = await prisma.user.findMany({
-		where: { isPlatformAdmin: true },
-		select: { id: true, email: true },
-	});
-
-	const envIds = (process.env.PLATFORM_ADMIN_IDS ?? '')
-		.split(',')
-		.map((id) => id.trim())
-		.filter(Boolean);
-	const dbAdminIds = new Set(dbAdmins.map((a) => a.id));
-	const missingEnvIds = envIds.filter((id) => !dbAdminIds.has(id));
-
-	let envAdmins: { email: string | null }[] = [];
-	if (missingEnvIds.length > 0) {
-		envAdmins = await prisma.user.findMany({
-			where: { id: { in: missingEnvIds } },
-			select: { email: true },
-		});
+	if (recipients.length === 0) {
+		console.warn('[adminAlerts] No recipients configured — alert not sent.');
+		return;
 	}
 
-	_adminEmailsCache = [...dbAdmins, ...envAdmins]
-		.map((a) => a.email)
-		.filter((e): e is string => !!e);
-	_adminEmailsCacheExpiry = now + CACHE_TTL_MS;
-	return _adminEmailsCache;
+	await Promise.all(recipients.map((email) => sendEmail(email, subject, html)));
 }
+
+// ---------------------------------------------------------------------------
+// Signup alerts
+// ---------------------------------------------------------------------------
+
+function sanitizeSubject(value: string): string {
+	return value.replace(/[\r\n]+/g, ' ');
+}
+
+export async function sendNewUserAlert(user: {
+	id: string;
+	email: string | null;
+	name: string | null;
+}): Promise<void> {
+	const appUrl = process.env.NEXTAUTH_URL ?? '';
+	const subject = `New user signed up: ${sanitizeSubject(user.email ?? user.id)}`;
+	const html = `
+		<p>A new user just signed up on VolunteerReady.</p>
+		<table style="border-collapse: collapse; margin: 16px 0;">
+			<tr><td style="padding: 4px 8px;"><strong>Name:</strong></td><td style="padding: 4px 8px;">${escapeHtml(user.name ?? '—')}</td></tr>
+			<tr><td style="padding: 4px 8px;"><strong>Email:</strong></td><td style="padding: 4px 8px;">${escapeHtml(user.email ?? '—')}</td></tr>
+			<tr><td style="padding: 4px 8px;"><strong>User ID:</strong></td><td style="padding: 4px 8px;">${escapeHtml(user.id)}</td></tr>
+		</table>
+		${appUrl ? `<p><a href="${appUrl}/app/admin/platform/users/${escapeHtml(user.id)}" style="color: #1B3C2A;">View user &rarr;</a></p>` : ''}
+	`;
+	await sendAdminAlert(subject, html);
+}
+
+export async function sendNewOrgAlert(org: {
+	id: string;
+	name: string;
+	slug: string;
+}): Promise<void> {
+	const appUrl = process.env.NEXTAUTH_URL ?? '';
+	const subject = `New nonprofit registered: ${sanitizeSubject(org.name)}`;
+	const html = `
+		<p>A new nonprofit organization was created on VolunteerReady.</p>
+		<table style="border-collapse: collapse; margin: 16px 0;">
+			<tr><td style="padding: 4px 8px;"><strong>Name:</strong></td><td style="padding: 4px 8px;">${escapeHtml(org.name)}</td></tr>
+			<tr><td style="padding: 4px 8px;"><strong>Slug:</strong></td><td style="padding: 4px 8px;">${escapeHtml(org.slug)}</td></tr>
+			<tr><td style="padding: 4px 8px;"><strong>Org ID:</strong></td><td style="padding: 4px 8px;">${escapeHtml(org.id)}</td></tr>
+		</table>
+		${appUrl ? `<p><a href="${appUrl}/app/admin/platform/orgs/${escapeHtml(org.id)}" style="color: #1B3C2A;">View organization &rarr;</a></p>` : ''}
+	`;
+	await sendAdminAlert(subject, html);
+}
+
+export async function sendNewCompanyAlert(company: {
+	id: string;
+	name: string;
+	slug: string;
+}): Promise<void> {
+	const appUrl = process.env.NEXTAUTH_URL ?? '';
+	const subject = `New company registered: ${sanitizeSubject(company.name)}`;
+	const html = `
+		<p>A new corporate partner account was created on VolunteerReady.</p>
+		<table style="border-collapse: collapse; margin: 16px 0;">
+			<tr><td style="padding: 4px 8px;"><strong>Name:</strong></td><td style="padding: 4px 8px;">${escapeHtml(company.name)}</td></tr>
+			<tr><td style="padding: 4px 8px;"><strong>Slug:</strong></td><td style="padding: 4px 8px;">${escapeHtml(company.slug)}</td></tr>
+			<tr><td style="padding: 4px 8px;"><strong>Company ID:</strong></td><td style="padding: 4px 8px;">${escapeHtml(company.id)}</td></tr>
+		</table>
+		${appUrl ? `<p><a href="${appUrl}/app/admin/platform" style="color: #1B3C2A;">View platform admin &rarr;</a></p>` : ''}
+	`;
+	await sendAdminAlert(subject, html);
+}
+
+// ---------------------------------------------------------------------------
+// Security alerts
+// ---------------------------------------------------------------------------
 
 export type ImpersonationAlertInput = {
 	adminEmail: string | null;
@@ -62,7 +112,7 @@ export async function sendImpersonationStartAlert(
 ): Promise<void> {
 	let recipients: string[];
 	try {
-		recipients = await getPlatformAdminEmails();
+		recipients = await getAdminEmails();
 	} catch (err) {
 		console.error('[adminAlerts] Failed to resolve admin recipients:', err);
 		return;
@@ -82,7 +132,7 @@ export async function sendImpersonationStartAlert(
 	}
 
 	const appUrl = process.env.NEXTAUTH_URL ?? '';
-	const subject = `[Security] Impersonation started by ${input.adminEmail ?? input.adminUserId}`;
+	const subject = `[Security] Impersonation started by ${sanitizeSubject(input.adminEmail ?? input.adminUserId)}`;
 	const html = `
 		<p>A platform admin started an impersonation session.</p>
 		<table style="border-collapse: collapse; margin: 16px 0;">

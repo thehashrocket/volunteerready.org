@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { findUniqueSlug, generateSlug } from '@/lib/slug';
 import type { CompanyMemberRole } from '@/prisma/generated/client';
 import { Prisma } from '@/prisma/generated/client';
+import { sendNewCompanyAlert } from '../lib/admin-alerts';
 import { sendEmail } from '../lib/email';
 import { generateToken, hashToken } from '../lib/tokens';
 import { writeAuditLogTx } from '../repositories/auditRepo';
@@ -62,6 +63,14 @@ export async function createCompany(opts: {
 
 			return newCompany;
 		});
+
+		sendNewCompanyAlert({ id: company.id, name: opts.name, slug }).catch(
+			(err) =>
+				console.error(
+					'[companyService] Failed to send new company alert:',
+					err,
+				),
+		);
 
 		return company;
 	} catch (e) {

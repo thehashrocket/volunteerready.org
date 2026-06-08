@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.2.0] - 2026-06-08
+
+### Added
+- **Admin signup notifications.** Platform admins now receive an email whenever a new user signs up, a new nonprofit organization registers, or a new corporate partner account is created. Emails include the name, ID, and a deep-link to the relevant admin page. Set `PLATFORM_ADMIN_ALERT_EMAIL` in Vercel to activate.
+- **Shared admin recipient resolver** (`admin-recipients.ts`). A single `getAdminEmails()` helper, used by all alert functions and feedback notifications, resolves recipients from `PLATFORM_ADMIN_ALERT_EMAIL` (env override) or the `isPlatformAdmin` DB flag with `PLATFORM_ADMIN_IDS` fallback. Results are cached for 5 minutes.
+
+### Changed
+- Feedback notifications now use the shared `getAdminEmails()` helper instead of a duplicate resolver. `PLATFORM_ADMIN_ALERT_EMAIL` now controls both feedback and signup alert recipients (replaces `FEEDBACK_NOTIFY_EMAIL`, which still works if set).
+
+### Fixed
+- Email subject lines in all admin alert emails now strip `\r\n` characters to prevent SMTP header injection.
+
 ## [0.26.1.1] - 2026-06-03
 
 ### Added

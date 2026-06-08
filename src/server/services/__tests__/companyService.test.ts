@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Prisma } from '@/prisma/generated/client';
 
 // ---------------------------------------------------------------------------
@@ -61,6 +61,11 @@ vi.mock('resend', () => ({
 	}),
 }));
 
+const mockSendNewCompanyAlert = vi.fn(async () => undefined);
+vi.mock('@/server/lib/admin-alerts', () => ({
+	sendNewCompanyAlert: (...args: unknown[]) => mockSendNewCompanyAlert(...args),
+}));
+
 // ---------------------------------------------------------------------------
 // Import after mocks are set up
 // ---------------------------------------------------------------------------
@@ -68,6 +73,11 @@ vi.mock('resend', () => ({
 import * as companyRepo from '@/server/repositories/companyRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { createCompany, switchCompanyForSession } from '../companyService';
+
+beforeEach(() => {
+	mockSendNewCompanyAlert.mockReset();
+	mockSendNewCompanyAlert.mockResolvedValue(undefined);
+});
 
 describe('createCompany', () => {
 	it('creates company and returns it', async () => {
@@ -78,6 +88,37 @@ describe('createCompany', () => {
 		});
 
 		expect(result).toEqual({ id: 'company-1', slug: 'test-company' });
+	});
+
+	it('fires sendNewCompanyAlert after successful creation', async () => {
+		await createCompany({
+			name: 'Test Company',
+			userId: 'user-1',
+			sessionToken: 'tok-1',
+		});
+
+		await Promise.resolve();
+
+		expect(mockSendNewCompanyAlert).toHaveBeenCalledWith({
+			id: 'company-1',
+			name: 'Test Company',
+			slug: 'test-company',
+		});
+	});
+
+	it('does not fire alert when transaction fails', async () => {
+		vi.mocked(prisma.$transaction).mockRejectedValueOnce(new Error('DB error'));
+
+		await expect(
+			createCompany({
+				name: 'Test Co',
+				userId: 'user-1',
+				sessionToken: 'tok-1',
+			}),
+		).rejects.toThrow();
+
+		await Promise.resolve();
+		expect(mockSendNewCompanyAlert).not.toHaveBeenCalled();
 	});
 
 	it('throws BAD_REQUEST when name produces empty slug', async () => {
