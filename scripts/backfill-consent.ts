@@ -9,10 +9,9 @@
  * Logs unmatched non-empty values for manual founder review.
  */
 
-import { Prisma, PrismaClient } from '../src/prisma/generated/client/index.js';
+import { Prisma } from '../src/prisma/generated/client/index.js';
 import { isAffirmativeConsent } from '../src/server/domain/case-study.js';
-
-const prisma = new PrismaClient();
+import { prisma } from './prisma-client';
 
 async function main() {
 	const feedbacks = await prisma.orgFeedback.findMany({
