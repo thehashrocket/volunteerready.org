@@ -1,7 +1,5 @@
-import { PrismaClient } from '../src/prisma/generated/client/index.js';
 import { randomUUID } from 'crypto';
-
-const prisma = new PrismaClient();
+import { prisma } from './prisma-client';
 
 async function main() {
 	const user = await prisma.user.findUnique({

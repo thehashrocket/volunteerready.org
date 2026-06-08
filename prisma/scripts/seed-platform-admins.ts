@@ -6,9 +6,7 @@
  *
  * Idempotent — safe to rerun. Validates user IDs exist, warns on missing.
  */
-import { PrismaClient } from '../../src/prisma/generated/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../scripts/prisma-client';
 
 async function main() {
 	const raw = process.env.PLATFORM_ADMIN_IDS ?? '';

@@ -7,9 +7,7 @@
  *
  * Never get locked out of your own platform.
  */
-import { PrismaClient } from '../src/prisma/generated/client';
-
-const prisma = new PrismaClient();
+import { prisma } from './prisma-client';
 
 async function main() {
 	const args = process.argv.slice(2);

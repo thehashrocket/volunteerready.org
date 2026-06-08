@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.2.2] - 2026-06-08
+
+### Fixed
+- **Admin and maintenance scripts now connect to the database correctly.** Running `pnpm admin:grant`, `pnpm seed:platform-admins`, or other `scripts/` utilities against a real database (local or production) no longer throws `PrismaClientInitializationError`. Root cause: Prisma 7.x requires a `PrismaPg` adapter — bare `new PrismaClient()` fails without one. A shared `scripts/prisma-client.ts` helper now constructs the client correctly with the `pg` pool adapter, and all four affected scripts import from it.
+
+### Changed
+- Added `pnpm test:scripts` command and `vitest.scripts.config.ts` to run unit tests for files under `scripts/` (excluded from the main Vitest suite by design). Covers `scripts/prisma-client.ts` guard and adapter wiring.
+
 ## [0.26.2.1] - 2026-06-08
 
 ### Fixed
