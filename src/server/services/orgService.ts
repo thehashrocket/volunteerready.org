@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { findUniqueSlug, generateSlug } from '@/lib/slug';
 import { Prisma } from '@/prisma/generated/client';
+import { sendNewOrgAlert } from '@/server/lib/admin-alerts';
 import { writeAuditLogTx } from '../repositories/auditRepo';
 import {
 	findOrgBySlug,
@@ -120,6 +121,10 @@ export async function createOrg(opts: {
 		}
 		throw e;
 	}
+
+	sendNewOrgAlert(org).catch((err) =>
+		console.error('[orgService] Failed to send new org alert:', err),
+	);
 
 	return org;
 }

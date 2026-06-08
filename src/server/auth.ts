@@ -6,6 +6,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import { buildMagicLinkEmail } from '@/lib/email/auth';
 import type { CompanyMemberRole, Role } from '@/prisma/generated/client';
 import { sendEmail } from '@/server/lib/email';
+import { sendNewUserAlert } from '@/server/lib/admin-alerts';
 import { getFromEmail } from '@/server/lib/resend';
 import { prisma } from '@/server/repositories/prisma';
 
@@ -56,6 +57,17 @@ export const authOptions: NextAuthOptions = {
 			},
 		}),
 	],
+	events: {
+		createUser: async ({ user }) => {
+			sendNewUserAlert({
+				id: user.id,
+				email: user.email ?? null,
+				name: user.name ?? null,
+			}).catch((err) =>
+				console.error('[auth] Failed to send new user alert:', err),
+			);
+		},
+	},
 	callbacks: {
 		session: async ({ session, user }) => {
 			const s = session as SessionWithExt;
