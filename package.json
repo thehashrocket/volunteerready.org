@@ -1,6 +1,6 @@
 {
   "name": "volunteeermatch-app",
-  "version": "0.26.2.2",
+  "version": "0.26.2.3",
   "private": true,
   "scripts": {
     "dev": "cross-env PORT=3005 next dev --turbo",

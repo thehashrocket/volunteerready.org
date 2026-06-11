@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.2.3] - 2026-06-11
+
+### Fixed
+- **Login page attribution renders correctly.** An encoding pass that updated curly quotes in the login and verify-request pages accidentally double-encoded the em-dash in "— Mahatma Gandhi" and box-drawing characters in JSX comments, producing visible mojibake (â characters) in browsers. The correct Unicode codepoints are now restored.
+- **Theme toggle no longer causes layout shift on load.** The SSR skeleton placeholder was 32px while the hydrated button is 44px, creating a 12px cumulative layout shift (CLS) on every page load containing the theme toggle. The skeleton now matches the 44px button size.
+- **Marketplace empty state links to org discovery.** When no volunteer opportunities are published yet, the marketplace page now shows a "Browse organizations" action instead of a dead-end message.
+
+### Changed
+- **Typography system applied globally.** The Geist Sans body font is now applied in the CSS `@layer base` so all pages inherit it correctly instead of falling back to the system-ui stack.
+- **Pricing page excluded-feature contrast improved.** Excluded feature rows now use full `text-muted-foreground` rather than a faded 60% opacity, making them easier to read at a glance.
+- **Design tokens replace ad-hoc Tailwind colors throughout.** Hardcoded palette classes (`amber-700`, `blue-700`, `green-500`, `warm-50`, `orange-500`, etc.) have been replaced with semantic design tokens (`warning`, `info`, `success`, `muted`, etc.) across the marketplace listing, org browsing, apply flow, admin health page, and company team pages.
+- **Touch targets meet 44px minimum.** The theme toggle and mobile hamburger buttons now meet the WCAG 2.5.5 recommended 44×44px touch target size on all screen sizes.
+- **Display font (Fraunces) applied to apply-flow headings.** Page and section headings in the volunteer application flow now use the intended display typeface for visual consistency with the rest of the marketing site.
+- **Admin feedback drawer animation wired up.** The `slideInLeft` keyframe animation referenced by the admin feedback drawer is now defined in `globals.css`, so the panel animates in on open instead of appearing instantly.
+- **Curly quotes on login blockquote.** The Mahatma Gandhi quote on the login page now uses typographic curly quotes ("…") for polished rendering.
+
 ## [0.26.2.2] - 2026-06-08
 
 ### Fixed
