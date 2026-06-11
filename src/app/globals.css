@@ -181,6 +181,13 @@
   * {
     @apply border-border;
   }
+  /* The next/font variables (--font-geist-sans etc.) are scoped to <body>
+     via its className, so Tailwind preflight's html-level font-family can't
+     resolve them and falls back to ui-sans-serif. Apply the stack on body,
+     where the variables exist. */
+  body {
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  }
   *:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
