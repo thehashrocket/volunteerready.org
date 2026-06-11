@@ -13,7 +13,7 @@ export default function LoginPage() {
 
 	return (
 		<div className="grid min-h-[calc(100vh-3.5rem)] lg:grid-cols-[3fr_2fr]">
-			{/* ââ Left decorative panel (desktop only) ââ */}
+			{/* ── Left decorative panel (desktop only) ── */}
 			<div
 				aria-hidden="true"
 				className="relative hidden overflow-hidden bg-primary lg:flex lg:flex-col lg:justify-between lg:p-12"
@@ -36,7 +36,7 @@ export default function LoginPage() {
 							of others.”
 						</p>
 					</blockquote>
-					<p className="text-sm text-white/60">â Mahatma Gandhi</p>
+					<p className="text-sm text-white/60">— Mahatma Gandhi</p>
 					<p className="max-w-sm text-base leading-relaxed text-white/80">
 						Join thousands of volunteers making a difference in their
 						communities. Every application you submit, every hour you give,
@@ -52,7 +52,7 @@ export default function LoginPage() {
 				</div>
 			</div>
 
-			{/* ââ Right form panel ââ */}
+			{/* ── Right form panel ── */}
 			<div className="flex items-center justify-center bg-background px-6 py-16 lg:px-12">
 				<div className="w-full max-w-sm space-y-8">
 					<Suspense fallback={null}>
