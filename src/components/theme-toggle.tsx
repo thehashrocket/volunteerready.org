@@ -15,7 +15,7 @@ export function ThemeToggle() {
 	useEffect(() => setMounted(true), []);
 
 	if (!mounted) {
-		return <Skeleton className="h-8 w-8 rounded-full" />;
+		return <Skeleton className="h-11 w-11 rounded-full" />;
 	}
 
 	const currentIndex = CYCLE.indexOf(theme as (typeof CYCLE)[number]);
