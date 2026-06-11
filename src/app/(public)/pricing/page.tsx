@@ -274,7 +274,7 @@ export default function PricingPage() {
 													'flex items-start gap-2.5',
 													f.included
 														? 'text-foreground'
-														: 'text-muted-foreground/60',
+														: 'text-muted-foreground',
 												)}
 											>
 												{f.included ? (
@@ -285,7 +285,7 @@ export default function PricingPage() {
 												) : (
 													<span
 														aria-hidden
-														className="mt-0.5 w-4 shrink-0 text-center font-mono text-muted-foreground/40"
+														className="mt-0.5 w-4 shrink-0 text-center font-mono text-muted-foreground/70"
 													>
 														—
 													</span>
