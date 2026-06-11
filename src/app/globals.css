@@ -222,3 +222,16 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Drawer entrance used by the admin feedback list panel (tablet breakpoint).
+   Referenced via inline style; keep transform/opacity only. */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
