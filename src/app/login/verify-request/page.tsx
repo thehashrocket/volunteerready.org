@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function VerifyRequestPage() {
 	return (
 		<div className="grid min-h-[calc(100vh-3.5rem)] lg:grid-cols-[3fr_2fr]">
-			{/* ── Left decorative panel (desktop only) ── */}
+			{/* ââ Left decorative panel (desktop only) ââ */}
 			<div
 				aria-hidden="true"
 				className="relative hidden overflow-hidden bg-primary lg:flex lg:flex-col lg:justify-between lg:p-12"
@@ -27,11 +27,11 @@ export default function VerifyRequestPage() {
 				<div className="relative z-10 space-y-6">
 					<blockquote>
 						<p className="font-display text-4xl font-bold italic leading-snug text-white">
-							"The best way to find yourself is to lose yourself in the service
-							of others."
+							“The best way to find yourself is to lose yourself in the service
+							of others.”
 						</p>
 					</blockquote>
-					<p className="text-sm text-white/60">— Mahatma Gandhi</p>
+					<p className="text-sm text-white/60">â Mahatma Gandhi</p>
 					<p className="max-w-sm text-base leading-relaxed text-white/80">
 						Join thousands of volunteers making a difference in their
 						communities. Every application you submit, every hour you give,
@@ -47,7 +47,7 @@ export default function VerifyRequestPage() {
 				</div>
 			</div>
 
-			{/* ── Right content panel ── */}
+			{/* ââ Right content panel ââ */}
 			<div className="flex items-center justify-center bg-background px-6 py-16 lg:px-12">
 				<div className="w-full max-w-sm space-y-8 text-center">
 					<div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
