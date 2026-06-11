@@ -27,8 +27,8 @@ export default function VerifyRequestPage() {
 				<div className="relative z-10 space-y-6">
 					<blockquote>
 						<p className="font-display text-4xl font-bold italic leading-snug text-white">
-							"The best way to find yourself is to lose yourself in the service
-							of others."
+							“The best way to find yourself is to lose yourself in the service
+							of others.”
 						</p>
 					</blockquote>
 					<p className="text-sm text-white/60">— Mahatma Gandhi</p>

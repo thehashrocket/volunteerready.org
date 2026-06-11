@@ -171,7 +171,7 @@ function PublicHeaderInner() {
 				{/* Mobile hamburger */}
 				<button
 					type="button"
-					className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground md:hidden"
+					className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground md:hidden"
 					aria-label={open ? 'Close menu' : 'Open menu'}
 					onClick={() => setOpen((v) => !v)}
 				>

@@ -136,7 +136,7 @@ export function OrgsListing({ initialItems, initialNextCursor }: Props) {
 					{displayItems.map((org) => (
 						<li
 							key={org.id}
-							className="group py-5 -mx-2 px-2 rounded transition-colors hover:bg-warm-50/40"
+							className="group py-5 -mx-2 px-2 rounded transition-colors hover:bg-muted/40"
 						>
 							<Link
 								href={`/apply/${org.slug}`}
@@ -168,7 +168,7 @@ export function OrgsListing({ initialItems, initialNextCursor }: Props) {
 											</h3>
 											{org.verified && (
 												<BadgeCheck
-													className="h-4 w-4 flex-shrink-0 text-green-600"
+													className="h-4 w-4 flex-shrink-0 text-success"
 													aria-label="Verified organization"
 												/>
 											)}

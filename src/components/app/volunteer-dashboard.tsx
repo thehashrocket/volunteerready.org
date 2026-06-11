@@ -242,7 +242,7 @@ export function VolunteerDashboard() {
 				<Card className="border-border/70">
 					<CardHeader className="pb-3">
 						<CardTitle className="flex items-center gap-2 text-base font-semibold">
-							<Shield className="h-4 w-4 text-error" />
+							<Shield className="h-4 w-4 text-destructive" />
 							Credentials expiring soon
 						</CardTitle>
 					</CardHeader>

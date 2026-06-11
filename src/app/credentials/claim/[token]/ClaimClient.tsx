@@ -81,7 +81,7 @@ export default function ClaimClient({ token }: { token: string }) {
 			<div className="mx-auto max-w-md py-20">
 				<Card>
 					<CardContent className="space-y-4 py-12 text-center">
-						<CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
+						<CheckCircle2 className="mx-auto h-12 w-12 text-success" />
 						<h2 className="text-lg font-semibold">Credential claimed</h2>
 						<p className="text-sm text-muted-foreground">
 							The <span className="font-medium">{meta.label}</span> credential

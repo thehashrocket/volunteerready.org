@@ -1151,3 +1151,29 @@ hardcoded `nonprofitCount` per location. IRS Exempt Organizations Business Maste
 (BMF) is the canonical source. Refresh cadence: quarterly would be sufficient.
 
 **Effort:** M | **Priority:** P3 | **Depends on:** Initial location pages validated, decision to scale beyond 5 pages
+
+---
+
+## Design review follow-ups (/design-review, 2026-06-11, branch thehashrocket/design-review)
+
+Nine findings were fixed atomically on the branch (Geist body font, pricing
+contrast, undefined token classes, 44px touch targets, Fraunces on apply flow,
+slideInLeft keyframes, marketplace empty-state CTA, off-palette colors,
+curly quotes). The following were deferred — too broad or needing an owner call:
+
+- **[P2] Arbitrary type sizes** — ~46 instances of `text-[32px]` plus 10px/11px
+  one-offs on public pages. 32px isn't in the DESIGN.md scale (nearest: 30/36).
+  Sweep to the defined scale tokens.
+- **[P2] Card-led app UI** — volunteer dashboard, `/app/welcome`, and platform
+  admin compose as stacked/tiled cards instead of layout regions (flagged by
+  both Codex and Claude outside voices as the "stacked cards instead of layout"
+  rejection). Structural redesign of app entry points.
+- **[P3] Fixed-width panels** — admin feedback split view hardcodes 360px
+  panels (`admin/feedback/page.tsx`), my-skills hardcodes a 400px popover; not
+  mobile-safe.
+- **[P3] Hardcoded content widths** — `w-[1040px]` and bespoke max-widths drift
+  from the 1120px DESIGN.md content width; consolidate to one container token.
+- **[P3] Login copy claim** — "Join thousands of volunteers" on `/login` is an
+  unbacked claim at current scale; founder copy decision.
+
+Full report: `~/.gstack/projects/thehashrocket-volunteerready.org/designs/design-audit-20260611/`

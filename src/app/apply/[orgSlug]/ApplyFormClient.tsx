@@ -196,12 +196,12 @@ export default function ApplyFormClient({
 	return (
 		<>
 			{opportunity && (
-				<div className="mb-6 rounded-xl border border-stone-200 bg-stone-50 p-4">
-					<p className="mb-1 text-xs font-semibold uppercase tracking-widest text-green-700">
+				<div className="mb-6 rounded-xl border border-border bg-card p-4">
+					<p className="mb-1 text-xs font-semibold uppercase tracking-widest text-primary">
 						Applying for
 					</p>
-					<p className="font-semibold text-stone-900">{opportunity.title}</p>
-					<div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-500">
+					<p className="font-semibold text-foreground">{opportunity.title}</p>
+					<div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
 						{opportunity.isRemote && (
 							<span className="flex items-center gap-1">
 								<Wifi className="h-3 w-3" />

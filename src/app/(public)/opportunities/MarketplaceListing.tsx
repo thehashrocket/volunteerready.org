@@ -288,7 +288,7 @@ export function MarketplaceListing({
 						return (
 							<li
 								key={opp.id}
-								className="group py-5 transition-colors hover:bg-warm-50/40 -mx-2 px-2 rounded"
+								className="group py-5 transition-colors hover:bg-muted/40 -mx-2 px-2 rounded"
 							>
 								<div className="flex items-start gap-4">
 									<Link
@@ -402,6 +402,9 @@ export function MarketplaceListing({
 					<p className="mt-1 text-sm">
 						Check back soon — organizations are joining every week.
 					</p>
+					<Button asChild variant="outline" className="mt-6">
+						<Link href="/organizations">Browse organizations</Link>
+					</Button>
 				</div>
 			)}
 
