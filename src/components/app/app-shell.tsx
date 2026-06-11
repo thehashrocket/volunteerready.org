@@ -53,8 +53,8 @@ export function AppShell({
 						{/* Mobile sidebar toggle */}
 						<Button
 							variant="ghost"
-							size="sm"
-							className="lg:hidden"
+							size="icon"
+							className="h-11 w-11 lg:hidden"
 							onClick={() => setSidebarOpen(!sidebarOpen)}
 							aria-label="Toggle navigation"
 						>

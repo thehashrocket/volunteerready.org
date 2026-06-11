@@ -41,7 +41,7 @@ export function ThemeToggle() {
 		<Button
 			variant="ghost"
 			size="icon"
-			className="h-8 w-8"
+			className="h-11 w-11"
 			role="switch"
 			aria-checked={theme === 'dark'}
 			aria-label={label}
