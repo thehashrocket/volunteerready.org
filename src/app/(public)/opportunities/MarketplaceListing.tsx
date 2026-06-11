@@ -402,6 +402,9 @@ export function MarketplaceListing({
 					<p className="mt-1 text-sm">
 						Check back soon — organizations are joining every week.
 					</p>
+					<Button asChild variant="outline" className="mt-6">
+						<Link href="/organizations">Browse organizations</Link>
+					</Button>
 				</div>
 			)}
 
