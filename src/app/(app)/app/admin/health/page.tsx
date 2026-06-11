@@ -70,7 +70,7 @@ export default function AdminHealthPage() {
 				{cronHealth.isLoading ? (
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						{[1, 2, 3].map((i) => (
-							<Card key={i} className="bg-warm-50">
+							<Card key={i} className="bg-muted">
 								<CardContent className="p-6">
 									<div className="h-4 bg-neutral-200 rounded animate-pulse mb-2 w-3/4" />
 									<div className="h-3 bg-neutral-200 rounded animate-pulse w-1/2" />
@@ -81,7 +81,7 @@ export default function AdminHealthPage() {
 				) : cronHealth.data ? (
 					<>
 						{Object.keys(cronHealth.data.latestByJob).length === 0 ? (
-							<Card className="bg-warm-50">
+							<Card className="bg-muted">
 								<CardContent className="p-8 text-center">
 									<Clock className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
 									<p className="text-muted-foreground">
@@ -93,7 +93,7 @@ export default function AdminHealthPage() {
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 								{Object.entries(cronHealth.data.latestByJob).map(
 									([jobName, run]) => (
-										<Card key={jobName} className="bg-warm-50">
+										<Card key={jobName} className="bg-muted">
 											<CardContent className="p-6">
 												<div className="flex items-center justify-between">
 													<p className="font-medium font-mono text-sm">
@@ -203,7 +203,7 @@ export default function AdminHealthPage() {
 				<h2 className="font-sans text-xl font-semibold mb-4">
 					Stripe Reconciliation
 				</h2>
-				<Card className="bg-warm-50">
+				<Card className="bg-muted">
 					<CardHeader>
 						<CardTitle className="text-base">
 							Check for missed webhook events
@@ -330,7 +330,7 @@ export default function AdminHealthPage() {
 				{webhookHealth.isLoading ? (
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						{[1, 2, 3].map((i) => (
-							<Card key={i} className="bg-warm-50">
+							<Card key={i} className="bg-muted">
 								<CardContent className="p-6">
 									<div className="h-4 bg-neutral-200 rounded animate-pulse mb-2 w-3/4" />
 									<div className="h-3 bg-neutral-200 rounded animate-pulse w-1/2" />
@@ -341,7 +341,7 @@ export default function AdminHealthPage() {
 				) : webhookHealth.data ? (
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						{webhookHealth.data.providers.map((provider) => (
-							<Card key={provider.key} className="bg-warm-50">
+							<Card key={provider.key} className="bg-muted">
 								<CardContent className="p-6">
 									<div className="flex items-center justify-between mb-3">
 										<p className="font-medium">{provider.label}</p>
@@ -385,7 +385,7 @@ export default function AdminHealthPage() {
 				<h2 className="font-sans text-xl font-semibold mb-4">
 					Email Bounce Management
 				</h2>
-				<Card className="bg-warm-50">
+				<Card className="bg-muted">
 					<CardHeader>
 						<div className="flex items-center justify-between">
 							<CardTitle className="text-base">Suppressed Addresses</CardTitle>

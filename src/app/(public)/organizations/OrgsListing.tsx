@@ -136,7 +136,7 @@ export function OrgsListing({ initialItems, initialNextCursor }: Props) {
 					{displayItems.map((org) => (
 						<li
 							key={org.id}
-							className="group py-5 -mx-2 px-2 rounded transition-colors hover:bg-warm-50/40"
+							className="group py-5 -mx-2 px-2 rounded transition-colors hover:bg-muted/40"
 						>
 							<Link
 								href={`/apply/${org.slug}`}

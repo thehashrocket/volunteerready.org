@@ -229,7 +229,7 @@ function FeedbackFormContent({ onClose }: { onClose: () => void }) {
 						type="button"
 						onClick={handleSubmit}
 						disabled={!message.trim() || state === 'submitting'}
-						className="flex h-11 w-full items-center justify-center rounded-full bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary-light disabled:opacity-50"
+						className="flex h-11 w-full items-center justify-center rounded-full bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
 					>
 						{state === 'submitting' ? (
 							<Loader2 className="h-4 w-4 animate-spin" />
@@ -268,7 +268,7 @@ export function FeedbackWidget() {
 				ref={pillRef}
 				type="button"
 				onClick={() => setOpen(true)}
-				className="fixed right-4 z-40 flex h-11 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg transition-all duration-150 hover:scale-[1.02] hover:bg-primary-light focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+				className="fixed right-4 z-40 flex h-11 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg transition-all duration-150 hover:scale-[1.02] hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
 				style={{
 					bottom:
 						'calc(16px + var(--cookie-banner-height, 0px) + env(safe-area-inset-bottom, 0px))',
