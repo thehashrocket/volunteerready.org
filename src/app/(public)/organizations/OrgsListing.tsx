@@ -168,7 +168,7 @@ export function OrgsListing({ initialItems, initialNextCursor }: Props) {
 											</h3>
 											{org.verified && (
 												<BadgeCheck
-													className="h-4 w-4 flex-shrink-0 text-green-600"
+													className="h-4 w-4 flex-shrink-0 text-success"
 													aria-label="Verified organization"
 												/>
 											)}

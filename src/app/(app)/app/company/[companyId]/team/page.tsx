@@ -205,25 +205,25 @@ export default function ESGTeamDashboardPage() {
 						label="Employees Active"
 						value={summary?.totalEmployeesActive ?? 0}
 						icon={Users}
-						accent="bg-blue-500"
+						accent="bg-info"
 					/>
 					<StatCard
 						label="Organizations"
 						value={summary?.totalOrgsSupported ?? 0}
 						icon={Building2}
-						accent="bg-green-500"
+						accent="bg-success"
 					/>
 					<StatCard
 						label="Shifts Completed"
 						value={summary?.totalShifts ?? 0}
 						icon={BarChart3}
-						accent="bg-purple-500"
+						accent="bg-accent"
 					/>
 					<StatCard
 						label="Total Hours"
 						value={summary?.totalHours ?? 0}
 						icon={Clock}
-						accent="bg-orange-500"
+						accent="bg-warning"
 					/>
 				</div>
 			)}

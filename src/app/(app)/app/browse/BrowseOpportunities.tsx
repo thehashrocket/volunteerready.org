@@ -61,13 +61,13 @@ const APPLIED_BADGE_CONFIG: Record<
 > = {
 	SUBMITTED: {
 		label: 'Applied — Pending',
-		textClass: 'text-amber-700 border-amber-700',
-		borderClass: 'border-l-amber-700',
+		textClass: 'text-warning border-warning',
+		borderClass: 'border-l-warning',
 	},
 	REVIEW: {
 		label: 'Applied — In Review',
-		textClass: 'text-blue-700 border-blue-700',
-		borderClass: 'border-l-blue-700',
+		textClass: 'text-info border-info',
+		borderClass: 'border-l-info',
 	},
 	APPROVED: {
 		label: 'Applied — Approved',

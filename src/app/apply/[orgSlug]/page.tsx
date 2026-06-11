@@ -55,7 +55,9 @@ export default async function ApplyPage({
 			<div className="mx-auto max-w-2xl px-6 py-10">
 				<Card>
 					<CardHeader>
-						<h1 className="font-display text-2xl font-semibold">Applications paused</h1>
+						<h1 className="font-display text-2xl font-semibold">
+							Applications paused
+						</h1>
 						<p className="text-sm text-muted-foreground">
 							{org.name} is not accepting volunteer applications right now.
 						</p>
@@ -79,7 +81,9 @@ export default async function ApplyPage({
 					{ label: org.name, href: `/apply/${orgSlug}` },
 				]}
 			/>
-			<h1 className="font-display text-2xl font-semibold">Volunteer Application</h1>
+			<h1 className="font-display text-2xl font-semibold">
+				Volunteer Application
+			</h1>
 			<p className="mt-2 text-muted-foreground">
 				Applying to{' '}
 				<span className="font-medium text-foreground">{org.name}</span>
