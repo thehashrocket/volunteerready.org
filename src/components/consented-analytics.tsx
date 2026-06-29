@@ -32,29 +32,33 @@ export function ConsentedAnalytics() {
 		return () => window.removeEventListener('cookie-consent-changed', check);
 	}, []);
 
-	// Disable Google Analytics in-memory when consent is revoked
+	// Gate data collection via the ga-disable flag — the script always loads
+	// so Google's detection tool can find it, but no hits are sent until
+	// the user grants analytics consent.
 	useEffect(() => {
 		(window as unknown as Record<string, unknown>)[
 			`ga-disable-${GA_MEASUREMENT_ID}`
 		] = !enabled;
 	}, [enabled]);
 
-	if (!enabled) return null;
 	return (
 		<>
+			{/* Load gtag unconditionally so Google can detect the tag.
+			    The ga-disable-* flag above prevents data collection until consent. */}
 			<Script
 				src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
 				strategy="afterInteractive"
 			/>
 			<Script id="gtag-init" strategy="afterInteractive">
 				{`
+					window['ga-disable-${GA_MEASUREMENT_ID}'] = true;
 					window.dataLayer = window.dataLayer || [];
 					function gtag(){dataLayer.push(arguments);}
 					gtag('js', new Date());
 					gtag('config', '${GA_MEASUREMENT_ID}');
 				`}
 			</Script>
-			<Analytics />
+			{enabled && <Analytics />}
 		</>
 	);
 }
