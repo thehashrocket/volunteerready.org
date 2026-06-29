@@ -42,9 +42,10 @@ describe('ConsentedAnalytics', () => {
 		vi.restoreAllMocks();
 	});
 
-	it('renders nothing when no consent is stored', () => {
-		const { container } = render(<ConsentedAnalytics />);
-		expect(container.innerHTML).toBe('');
+	it('always renders the gtag script (for Google detection)', () => {
+		const { getByTestId } = render(<ConsentedAnalytics />);
+		expect(getByTestId('gtag-init')).toBeDefined();
+		expect(getByTestId('script')).toBeDefined();
 	});
 
 	it('sets ga-disable flag to true when consent is not given', () => {
@@ -77,26 +78,30 @@ describe('ConsentedAnalytics', () => {
 		).toBe(false);
 	});
 
-	it('renders nothing when analytics consent is false', () => {
+	it('renders scripts but not Vercel Analytics when consent is false', () => {
 		localStorage.setItem(
 			COOKIE_CONSENT_STORAGE_KEY,
 			JSON.stringify({ essential: true, analytics: false }),
 		);
 
-		const { container } = render(<ConsentedAnalytics />);
-		expect(container.innerHTML).toBe('');
+		const { getByTestId, queryByTestId } = render(<ConsentedAnalytics />);
+		expect(getByTestId('gtag-init')).toBeDefined();
+		expect(queryByTestId('vercel-analytics')).toBeNull();
 	});
 
-	it('renders nothing when stored JSON is invalid', () => {
+	it('renders scripts but not Vercel Analytics when stored JSON is invalid', () => {
 		localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, '{bad json');
 
-		const { container } = render(<ConsentedAnalytics />);
-		expect(container.innerHTML).toBe('');
+		const { getByTestId, queryByTestId } = render(<ConsentedAnalytics />);
+		expect(getByTestId('gtag-init')).toBeDefined();
+		expect(queryByTestId('vercel-analytics')).toBeNull();
 	});
 
 	it('responds to cookie-consent-changed events', () => {
-		const { container, getByTestId } = render(<ConsentedAnalytics />);
-		expect(container.innerHTML).toBe('');
+		const { getByTestId, queryByTestId } = render(<ConsentedAnalytics />);
+		// Script always present, but Vercel Analytics not yet
+		expect(getByTestId('gtag-init')).toBeDefined();
+		expect(queryByTestId('vercel-analytics')).toBeNull();
 
 		// Grant consent via localStorage + event
 		localStorage.setItem(
@@ -109,5 +114,6 @@ describe('ConsentedAnalytics', () => {
 		});
 
 		expect(getByTestId('gtag-init')).toBeDefined();
+		expect(getByTestId('vercel-analytics')).toBeDefined();
 	});
 });

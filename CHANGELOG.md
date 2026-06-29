@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.2.4] - 2026-06-29
+
+### Fixed
+- **Google Analytics tag now detectable by Google's verification tool.** The `ConsentedAnalytics` component previously rendered nothing until the user granted cookie consent, which meant Google's "Test Installation" bot (which visits the page fresh, with no consent) could never find the tag. The gtag script now loads unconditionally on every page load, with the `ga-disable-*` flag set to `true` by default inside the inline init script. The flag is cleared only after consent is confirmed from localStorage. This makes the tag visible to Google's detection tool while preserving the existing GDPR-compliant behavior: no analytics data is collected or sent until the user explicitly accepts cookies.
+
 ## [0.26.2.3] - 2026-06-11
 
 ### Fixed
