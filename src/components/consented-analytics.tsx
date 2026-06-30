@@ -32,28 +32,39 @@ export function ConsentedAnalytics() {
 		return () => window.removeEventListener('cookie-consent-changed', check);
 	}, []);
 
-	// Gate data collection via the ga-disable flag — the script always loads
-	// so Google's detection tool can find it, but no hits are sent until
-	// the user grants analytics consent.
+	// Consent Mode v2: gtag loads with analytics storage denied by default, so
+	// it still sends a cookieless ping (which Google's tag detection requires)
+	// without setting cookies or collecting analytics. When the user grants
+	// consent we upgrade the state, which unlocks full measurement.
 	useEffect(() => {
-		(window as unknown as Record<string, unknown>)[
-			`ga-disable-${GA_MEASUREMENT_ID}`
-		] = !enabled;
+		const w = window as unknown as {
+			gtag?: (...args: unknown[]) => void;
+		};
+		w.gtag?.('consent', 'update', {
+			analytics_storage: enabled ? 'granted' : 'denied',
+		});
 	}, [enabled]);
 
 	return (
 		<>
-			{/* Load gtag unconditionally so Google can detect the tag.
-			    The ga-disable-* flag above prevents data collection until consent. */}
+			{/* Load gtag unconditionally so Google can detect the tag. Consent Mode
+			    (set in gtag-init below) keeps analytics storage denied until the
+			    user opts in, so no cookies are set and no analytics data is
+			    collected before consent — only a cookieless detection ping. */}
 			<Script
 				src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
 				strategy="afterInteractive"
 			/>
 			<Script id="gtag-init" strategy="afterInteractive">
 				{`
-					window['ga-disable-${GA_MEASUREMENT_ID}'] = true;
 					window.dataLayer = window.dataLayer || [];
 					function gtag(){dataLayer.push(arguments);}
+					gtag('consent', 'default', {
+						ad_storage: 'denied',
+						ad_user_data: 'denied',
+						ad_personalization: 'denied',
+						analytics_storage: 'denied',
+					});
 					gtag('js', new Date());
 					gtag('config', '${GA_MEASUREMENT_ID}');
 				`}
