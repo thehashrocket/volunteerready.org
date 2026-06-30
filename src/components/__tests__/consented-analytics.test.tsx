@@ -28,18 +28,20 @@ vi.mock('@vercel/analytics/next', () => ({
 import { ConsentedAnalytics } from '../consented-analytics';
 import { COOKIE_CONSENT_STORAGE_KEY } from '../cookie-consent-banner';
 
-const GA_MEASUREMENT_ID = 'G-8EYQH68KXC';
-
 describe('ConsentedAnalytics', () => {
+	let gtag: ReturnType<typeof vi.fn>;
+
 	beforeEach(() => {
 		localStorage.clear();
-		delete (window as Record<string, unknown>)[
-			`ga-disable-${GA_MEASUREMENT_ID}`
-		];
+		// gtag is normally defined by the inline init script; stub it so we can
+		// assert the Consent Mode update calls fired by the component.
+		gtag = vi.fn();
+		(window as Record<string, unknown>).gtag = gtag;
 	});
 
 	afterEach(() => {
 		vi.restoreAllMocks();
+		delete (window as Record<string, unknown>).gtag;
 	});
 
 	it('always renders the gtag script (for Google detection)', () => {
@@ -48,11 +50,18 @@ describe('ConsentedAnalytics', () => {
 		expect(getByTestId('script')).toBeDefined();
 	});
 
-	it('sets ga-disable flag to true when consent is not given', () => {
+	it('sets Consent Mode default to denied in the init script', () => {
+		const { getByTestId } = render(<ConsentedAnalytics />);
+		const init = getByTestId('gtag-init').textContent ?? '';
+		expect(init).toContain("gtag('consent', 'default'");
+		expect(init).toContain("analytics_storage: 'denied'");
+	});
+
+	it('updates Consent Mode to denied when consent is not given', () => {
 		render(<ConsentedAnalytics />);
-		expect(
-			(window as Record<string, unknown>)[`ga-disable-${GA_MEASUREMENT_ID}`],
-		).toBe(true);
+		expect(gtag).toHaveBeenCalledWith('consent', 'update', {
+			analytics_storage: 'denied',
+		});
 	});
 
 	it('renders scripts when analytics consent is true', () => {
@@ -66,16 +75,16 @@ describe('ConsentedAnalytics', () => {
 		expect(getByTestId('vercel-analytics')).toBeDefined();
 	});
 
-	it('sets ga-disable flag to false when consent is granted', () => {
+	it('updates Consent Mode to granted when consent is granted', () => {
 		localStorage.setItem(
 			COOKIE_CONSENT_STORAGE_KEY,
 			JSON.stringify({ essential: true, analytics: true }),
 		);
 
 		render(<ConsentedAnalytics />);
-		expect(
-			(window as Record<string, unknown>)[`ga-disable-${GA_MEASUREMENT_ID}`],
-		).toBe(false);
+		expect(gtag).toHaveBeenCalledWith('consent', 'update', {
+			analytics_storage: 'granted',
+		});
 	});
 
 	it('renders scripts but not Vercel Analytics when consent is false', () => {
@@ -115,5 +124,8 @@ describe('ConsentedAnalytics', () => {
 
 		expect(getByTestId('gtag-init')).toBeDefined();
 		expect(getByTestId('vercel-analytics')).toBeDefined();
+		expect(gtag).toHaveBeenCalledWith('consent', 'update', {
+			analytics_storage: 'granted',
+		});
 	});
 });

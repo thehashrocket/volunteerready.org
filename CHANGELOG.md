@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.2.5] - 2026-06-29
+
+### Fixed
+- **Google Analytics tag now actually detectable by Google's verification tool.** The previous fix (0.26.2.4) loaded the gtag script unconditionally but gated data collection with the `ga-disable-G-8EYQH68KXC` flag set to `true` by default. That flag suppresses *all* measurement hits, so Google's "Test Installation" bot — which looks for a real beacon to `google-analytics.com/g/collect`, not just the script download — still saw nothing fire and reported the tag as undetected (confirmed via headless browser: gtag.js loaded 200, but no `/g/collect` request). Replaced the `ga-disable` approach with **Google Consent Mode v2**: gtag now loads with `analytics_storage: 'denied'` (and ad storage denied) by default, which still sends a privacy-safe cookieless ping that Google's detector recognizes, without setting cookies or collecting analytics. When the user accepts the cookie banner, `gtag('consent', 'update', { analytics_storage: 'granted' })` upgrades to full measurement. This both fixes detection and aligns with Google's recommended EEA consent pattern.
+
 ## [0.26.2.4] - 2026-06-29
 
 ### Fixed
