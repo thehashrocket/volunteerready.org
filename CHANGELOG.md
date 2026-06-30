@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.2.6] - 2026-06-29
+
+### Security
+- **Resolved 20 of 21 open Dependabot alerts (all transitive dependencies).** Every alert traced to a transitive dependency — zero direct deps were affected, and the production blast radius was effectively nil (the highest-severity items, e.g. the hono CORS-wildcard advisory, descend from `@prisma/dev`, a dev-only server that never runs in production; the rest come from test/build tooling like `jsdom`→`vitest`, storybook, and vitepress). Fixed via `pnpm.overrides` (the pattern this repo already uses) pinned conservatively to the patched version within each package's current major, plus a `@sentry/nextjs` bump (`^10.49.0` → `^10.62.0`) to pull `@opentelemetry/core` ≥ 2.8.0. Cleared packages: `hono` (≥4.12.25), `@hono/node-server` (≥1.19.13), `form-data` (≥4.0.6), `postcss` (≥8.5.10), `@babel/core` (≥7.29.6), `vite` (≥7.3.5), `esbuild` (≥0.28.1), `@opentelemetry/core` (≥2.8.0). Lockfile-verified with a scan confirming no vulnerable versions remain. All 1201 tests, the Next.js build, and the Storybook build pass under the new versions.
+- **Deferred:** the `uuid` alert (8.3.2, bounds-check in v3/v5/v6 when `buf` is provided) is consciously not fixed — it is not reachable on the only path that pulls it (`next-auth` v4, which uses uuid v4 random), and forcing the 8→11 major bump risks next-auth's CJS/ESM interop. Revisit at the Auth.js v5 migration.
+
 ## [0.26.2.5] - 2026-06-29
 
 ### Fixed
