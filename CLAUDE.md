@@ -278,3 +278,9 @@ Key routing rules:
 - Design system, brand → invoke design-consultation
 - Visual audit, design polish → invoke design-review
 - Architecture review → invoke plan-eng-review
+
+## Solopreneur OS for Claude
+This folder runs Solopreneur OS for Claude. Before doing any work for the user,
+read `solopreneur-profile.md` in this folder and apply its audience, offers,
+content pillars, and voice rules to everything you write. If the file does not
+exist, run the solopreneur-onboard skill first.

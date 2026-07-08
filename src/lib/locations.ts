@@ -406,6 +406,77 @@ export const LOCATIONS: LocationData[] = [
 			subheading: 'Sacramento, CA',
 		},
 	},
+	{
+		slug: 'fresno',
+		name: 'Fresno, CA',
+		county: 'Fresno County',
+		region: 'Central Valley',
+		metaTitle:
+			'Volunteer Screening & Management for Fresno Nonprofits | VolunteerReady',
+		metaDescription:
+			"Volunteer screening and management for Fresno's nonprofit and animal welfare organizations. Automated background checks, credential tracking, and compliance documentation built for the Central Valley's largest nonprofit community.",
+		heroHeadline: "Volunteer Screening for the Valley's Largest Nonprofit Community",
+		heroDescription:
+			"Fresno's nonprofits serve a county of nearly a million people with a small fraction of the staff a city this size would suggest. VolunteerReady automates screening, tracks credentials, and keeps volunteer coordination from eating the week.",
+		painPoints: [
+			'A county-sized service area spanning Fresno, Clovis, Sanger, and Selma makes volunteer coordination across sites hard to track manually',
+			'Agricultural-economy seasonality drives volunteer surges that overwhelm spreadsheet-based intake',
+			'Animal welfare and shelter organizations juggle foster, TNR, and adoption-event volunteers across multiple uncoordinated channels',
+			'Grant and county-contract reporting requires volunteer hours and screening documentation assembled from scattered sign-in sheets',
+		],
+		comparisonItems: [
+			{
+				before: 'Volunteer sign-ups tracked separately at each program site',
+				after: 'One dashboard covering every site and program across the county',
+			},
+			{
+				before: 'Background check requests emailed one at a time',
+				after: 'Automated screening invitations triggered on application',
+			},
+			{
+				before: 'Seasonal volunteer surges overwhelm manual intake',
+				after: 'Self-service applications that scale with demand',
+			},
+			{
+				before: 'Grant and county-contract compliance docs compiled by hand',
+				after: 'Exportable compliance reports ready when funders ask',
+			},
+		],
+		faqs: [
+			{
+				question:
+					'Do Fresno-area animal welfare organizations need volunteer background checks?',
+				answer:
+					'Most do not need FCRA-compliant screening for general animal care volunteers, but any program involving minors (youth humane education, junior volunteer programs) or requiring insurance documentation typically does. VolunteerReady handles both the screening and the credential tracking either way.',
+			},
+			{
+				question:
+					'Can VolunteerReady handle volunteer coordination across multiple Fresno County cities?',
+				answer:
+					"Yes. Organizations serving Fresno, Clovis, Sanger, Selma, and surrounding communities can manage volunteers across every site from one dashboard, without duplicating records or losing track of who's covering what location.",
+			},
+			{
+				question: 'How does VolunteerReady support grant and county-contract reporting for Fresno nonprofits?',
+				answer:
+					'VolunteerReady tracks volunteer hours and screening status automatically as volunteers check in, so compliance reports for county contracts and grant funders are a export instead of a week of manual compilation before a deadline.',
+			},
+		],
+		localProof: {
+			nonprofitCount: 1500,
+			nonprofitCountSource: 'IRS NTEE 2024',
+			namedOrgs: [
+				'Poverello House',
+				'Central California SPCA',
+				'Central Valley Community Foundation',
+			],
+			localContext:
+				"Fresno anchors the Central Valley's largest nonprofit community, from Poverello House's homelessness services to Central California SPCA, the region's leading animal welfare organization since 1946. A county population approaching a million, spread across Fresno, Clovis, Sanger, and Selma, means volunteer programs run larger and more distributed than in neighboring Central Valley counties.",
+		},
+		og: {
+			heading: 'Volunteer Screening for Fresno Nonprofits',
+			subheading: 'Fresno, CA',
+		},
+	},
 ];
 
 /** Look up a location by slug. Returns undefined for unknown slugs. */
