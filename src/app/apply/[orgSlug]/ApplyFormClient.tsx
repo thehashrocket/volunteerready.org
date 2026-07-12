@@ -230,11 +230,7 @@ export default function ApplyFormClient({
 				</div>
 			)}
 			<Card>
-				<CardHeader>
-					<CardTitle>Volunteer application</CardTitle>
-				</CardHeader>
-
-				<CardContent>
+				<CardContent className="pt-6">
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 						{/* Profile */}
 						<div className="space-y-4">
