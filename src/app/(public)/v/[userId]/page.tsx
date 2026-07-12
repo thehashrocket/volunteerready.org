@@ -61,7 +61,7 @@ export default async function VolunteerPublicProfilePage({
 	const memberYear = new Date(profile.memberSince).getFullYear();
 
 	return (
-		<main className="min-h-screen bg-background">
+		<div className="min-h-screen bg-background">
 			{/* Hero */}
 			<section className="border-b border-border bg-card px-4 py-12 sm:px-6 lg:px-8">
 				<div className="mx-auto max-w-3xl">
@@ -169,7 +169,7 @@ export default async function VolunteerPublicProfilePage({
 					</p>
 				</div>
 			</section>
-		</main>
+		</div>
 	);
 }
 

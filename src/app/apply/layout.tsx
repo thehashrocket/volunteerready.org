@@ -16,7 +16,7 @@ export default function ApplyLayout({
 	return (
 		<div style={editorialStyles}>
 			<PublicHeader />
-			{children}
+			<main>{children}</main>
 		</div>
 	);
 }

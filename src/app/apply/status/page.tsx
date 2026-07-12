@@ -15,7 +15,7 @@ export default function ApplyStatusPage({
 	searchParams: { token?: string };
 }) {
 	return (
-		<main className="mx-auto max-w-2xl px-6 py-10">
+		<div className="mx-auto max-w-2xl px-6 py-10">
 			<h1 className="font-display text-2xl font-semibold">
 				Check application status
 			</h1>
@@ -29,6 +29,6 @@ export default function ApplyStatusPage({
 					<StatusClient token={searchParams.token ?? null} />
 				</ApplyProviders>
 			</div>
-		</main>
+		</div>
 	);
 }

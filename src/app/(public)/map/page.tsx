@@ -12,8 +12,8 @@ export default async function MapPage() {
 	const opportunities = await listForMap();
 
 	return (
-		<main className="flex h-[calc(100vh-3.5rem)] flex-col">
+		<div className="flex h-[calc(100vh-3.5rem)] flex-col">
 			<MapView opportunities={opportunities} />
-		</main>
+		</div>
 	);
 }
