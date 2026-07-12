@@ -6,6 +6,7 @@ import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -127,6 +128,35 @@ export default function AboutPage() {
 					</>
 				}
 				description="Too many people who want to give back get stuck in outdated systems. Too many nonprofits lose great volunteers to friction. We built VolunteerReady to change that."
+				actions={
+					<>
+						<Button asChild size="lg" className="rounded-full px-8">
+							<TrackedLink
+								href={FOUNDER_BOOKING_URL}
+								eventLabel="Book a setup call (hero)"
+								eventPage="about"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								Book a setup call
+							</TrackedLink>
+						</Button>
+						<Button
+							asChild
+							variant="outline"
+							size="lg"
+							className="rounded-full px-8"
+						>
+							<TrackedLink
+								href="/how-it-works"
+								eventLabel="See how it works (hero)"
+								eventPage="about"
+							>
+								See how it works
+							</TrackedLink>
+						</Button>
+					</>
+				}
 			/>
 
 			{/* ── Origin Story ── */}

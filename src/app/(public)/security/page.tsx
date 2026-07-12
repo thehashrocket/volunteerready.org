@@ -13,6 +13,7 @@ import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
@@ -101,6 +102,35 @@ export default function SecurityPage() {
 					</>
 				}
 				description="VolunteerReady handles sensitive information — background checks, personal records, organizational data. Here's exactly how we protect it."
+				actions={
+					<>
+						<Button asChild size="lg" className="rounded-full px-8">
+							<TrackedLink
+								href={FOUNDER_BOOKING_URL}
+								eventLabel="Book a setup call (hero)"
+								eventPage="security"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								Book a setup call
+							</TrackedLink>
+						</Button>
+						<Button
+							asChild
+							variant="outline"
+							size="lg"
+							className="rounded-full px-8"
+						>
+							<TrackedLink
+								href="/privacy"
+								eventLabel="Read the privacy policy (hero)"
+								eventPage="security"
+							>
+								Read the privacy policy
+							</TrackedLink>
+						</Button>
+					</>
+				}
 			/>
 
 			{/* ── Security practices ── */}
