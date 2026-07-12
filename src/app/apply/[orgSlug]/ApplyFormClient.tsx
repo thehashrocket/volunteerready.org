@@ -493,12 +493,7 @@ function AlreadyAppliedCard({
 		>
 			<div className="mb-4 flex items-center gap-3">
 				<CheckCircle2 className="h-6 w-6 text-success" />
-				<h2
-					className="text-2xl font-bold text-foreground"
-					style={{
-						fontFamily: 'var(--font-fraunces, var(--font-playfair, serif))',
-					}}
-				>
+				<h2 className="font-display text-2xl font-bold text-foreground">
 					You're already on the list!
 				</h2>
 			</div>
