@@ -185,7 +185,9 @@ describe('ApplyFormClient', () => {
 			expect(
 				screen.queryByText("You're already on the list!"),
 			).not.toBeInTheDocument();
-			expect(screen.getByText('Volunteer application')).toBeInTheDocument();
+			expect(
+				screen.getByRole('button', { name: /submit application/i }),
+			).toBeInTheDocument();
 		});
 	});
 
@@ -199,7 +201,9 @@ describe('ApplyFormClient', () => {
 					source="DIRECT"
 				/>,
 			);
-			expect(screen.getByText('Volunteer application')).toBeInTheDocument();
+			expect(
+				screen.getByRole('button', { name: /submit application/i }),
+			).toBeInTheDocument();
 		});
 
 		it('renders the form when source is MARKETPLACE', () => {
@@ -211,7 +215,9 @@ describe('ApplyFormClient', () => {
 					source="MARKETPLACE"
 				/>,
 			);
-			expect(screen.getByText('Volunteer application')).toBeInTheDocument();
+			expect(
+				screen.getByRole('button', { name: /submit application/i }),
+			).toBeInTheDocument();
 		});
 
 		it('renders the form when source is undefined', () => {
@@ -223,7 +229,9 @@ describe('ApplyFormClient', () => {
 					source={undefined}
 				/>,
 			);
-			expect(screen.getByText('Volunteer application')).toBeInTheDocument();
+			expect(
+				screen.getByRole('button', { name: /submit application/i }),
+			).toBeInTheDocument();
 		});
 
 		it('accepts MARKETPLACE as a valid source prop', () => {
@@ -236,7 +244,9 @@ describe('ApplyFormClient', () => {
 				/>,
 			);
 
-			expect(screen.getByText('Volunteer application')).toBeInTheDocument();
+			expect(
+				screen.getByRole('button', { name: /submit application/i }),
+			).toBeInTheDocument();
 		});
 	});
 
