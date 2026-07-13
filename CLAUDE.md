@@ -150,7 +150,7 @@ docs/
 - SEO: JSON-LD components at `src/components/json-ld-breadcrumb.tsx` and `src/components/json-ld-faq.tsx`
 - SEO: `BASE_URL` constant at `src/lib/constants.ts` — canonical production URL used by sitemap, robots, JSON-LD, OG images
 - Marketing: `FOUNDER_BOOKING_URL` constant at `src/lib/constants.ts` — Google Calendar booking link used by all marketing CTAs
-- Marketing: shared components at `src/components/faq-section.tsx` (FAQ accordion + JSON-LD), `src/components/platform-stats-bar.tsx` (async stats bar), `src/components/screenshot-section.tsx` (product screenshot with error handling)
+- Marketing: shared components at `src/components/faq-section.tsx` (FAQ accordion + JSON-LD), `src/components/platform-stats-bar.tsx` (async stats bar), `src/components/screenshot-section.tsx` (product screenshot with error handling), `src/components/editorial-list.tsx` (static heading/body row list — DESIGN.md-compliant replacement for card grids; see `docs/designs/banned-grid-patterns.md`)
 - Analytics: `src/components/consented-analytics.tsx` (Google Analytics gtag.js + Vercel Analytics, consent-gated via cookie banner, `ga-disable-*` flag on revoke)
 - In-app feedback: domain at `src/server/domain/user-feedback.ts`, service at `src/server/services/feedbackService.ts`, repo at `src/server/repositories/feedbackRepo.ts`, tRPC router at `src/server/trpc/routers/feedback.ts`
 - Feedback widget: `src/components/app/feedback-widget.tsx` (floating pill + Dialog/Drawer, mood selector, mounted in app layout)
@@ -229,6 +229,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/designs/rbac-foundation.md` — RBAC foundation design doc (permissions, advisory middleware, platform admin)
 - `docs/designs/reference-data-boot-guard.md` — Reference Data Boot Guard design doc (self-healing skill catalog + platform org)
 - `docs/designs/dedupe-volunteer-apply.md` — Duplicate application prevention design doc (partial unique index, applied badges, status emails)
+- `docs/designs/banned-grid-patterns.md` — Banned grid patterns design doc (homepage `pillars`/`differentiators` → `EditorialList`, `/for` audience index → `/locations`-style link rows)
 - `docs/TODOS.md` - todos for the current project
 
 ## gstack

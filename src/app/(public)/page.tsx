@@ -1,6 +1,7 @@
-import { Award, BarChart3, CalendarClock, Shield } from 'lucide-react';
+import { CalendarClock } from 'lucide-react';
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
+import { EditorialList } from '@/components/editorial-list';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
@@ -25,17 +26,14 @@ export const metadata: Metadata = {
 
 const pillars = [
 	{
-		icon: Shield,
 		heading: 'Background checks, built in',
 		body: 'Checkr and Sterling run inside the platform with full FCRA compliance. Most checks return same-day, and results are tied to the volunteer record automatically.',
 	},
 	{
-		icon: Award,
 		heading: 'Portable credentials',
 		body: 'Verified badges follow volunteers between organizations. Less re-screening, faster activation, fewer applicants lost to paperwork.',
 	},
 	{
-		icon: BarChart3,
 		heading: 'Funder-ready reports',
 		body: 'Hours, headcount, and credential status stay export-ready. When a funder, insurer, or auditor asks, the data is already organized.',
 	},
@@ -129,27 +127,7 @@ export default async function Home() {
 						Three things every volunteer coordinator needs to stop worrying
 						about — and the funder reports that follow from them.
 					</p>
-					<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-						{pillars.map((pillar) => {
-							const Icon = pillar.icon;
-							return (
-								<div
-									key={pillar.heading}
-									className="rounded-lg border border-border/60 bg-card p-6"
-								>
-									<div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-md bg-accent/15 text-primary">
-										<Icon className="h-5 w-5" />
-									</div>
-									<h3 className="mb-2 font-semibold text-foreground">
-										{pillar.heading}
-									</h3>
-									<p className="text-sm leading-relaxed text-muted-foreground">
-										{pillar.body}
-									</p>
-								</div>
-							);
-						})}
-					</div>
+					<EditorialList items={pillars} />
 				</div>
 			</section>
 
@@ -163,18 +141,7 @@ export default async function Home() {
 							Three things you won&rsquo;t find in the rest of the category.
 						</h2>
 					</div>
-					<div className="space-y-8">
-						{differentiators.map((d) => (
-							<div key={d.heading} className="border-l-2 border-accent pl-6">
-								<h3 className="mb-1 font-semibold text-foreground">
-									{d.heading}
-								</h3>
-								<p className="text-sm leading-relaxed text-muted-foreground">
-									{d.body}
-								</p>
-							</div>
-						))}
-					</div>
+					<EditorialList items={differentiators} />
 				</div>
 			</section>
 
