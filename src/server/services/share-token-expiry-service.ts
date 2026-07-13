@@ -66,7 +66,7 @@ export async function notifyExpiringShareTokens(): Promise<{
 				<p>Your <strong>${escapeHtml(credType)}</strong> share link for <strong>${escapeHtml(orgName)}</strong> expires in ${daysLeft} days.</p>
 				<p>If you still need to share this credential, you can create a new share link from your credentials page.</p>
 				<p style="margin-top: 24px;">
-					<a href="${process.env.NEXTAUTH_URL}/app/credentials"
+					<a href="${process.env.NEXTAUTH_URL}/app/settings/background-checks"
 					   style="background-color: #1B3C2A; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
 						Manage credentials
 					</a>

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { findCurrentSlugByHistory } from '@/server/repositories/orgRepo';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import { getPublishedOpportunityById } from '@/server/repositories/publicOpportunityRepo';
 import { ApplyProviders } from '../providers';
@@ -32,10 +33,16 @@ export default async function ApplyPage({
 	searchParams,
 }: {
 	params: Promise<{ orgSlug: string }>;
-	searchParams: Promise<{ opportunityId?: string; source?: string }>;
+	searchParams: Promise<
+		{ opportunityId?: string; source?: string } & Record<
+			string,
+			string | string[] | undefined
+		>
+	>;
 }) {
 	const { orgSlug } = await params;
-	const { opportunityId, source: rawSource } = await searchParams;
+	const allSearchParams = await searchParams;
+	const { opportunityId, source: rawSource } = allSearchParams;
 	const source =
 		rawSource === 'DIRECT' || rawSource === 'MARKETPLACE'
 			? rawSource
@@ -43,6 +50,21 @@ export default async function ApplyPage({
 	const { org, questions } = await getPublicFormByOrgSlug(orgSlug);
 
 	if (!org) {
+		// Renamed org? Old slugs stay live via OrgSlugHistory — printed QR
+		// flyers and shared links redirect (307 — NOT 308: a rename-back A→B→A would loop against browser-cached 308s) to the current apply URL instead of 404.
+		const currentSlug = await findCurrentSlugByHistory(orgSlug);
+		if (currentSlug) {
+			// Forward the FULL query string (utm_* attribution included), not
+			// just the params this page reads.
+			const query = new URLSearchParams();
+			for (const [key, value] of Object.entries(allSearchParams)) {
+				if (typeof value === 'string') query.set(key, value);
+				else if (Array.isArray(value))
+					for (const v of value) query.append(key, v);
+			}
+			const suffix = query.size > 0 ? `?${query.toString()}` : '';
+			redirect(`/apply/${currentSlug}${suffix}`);
+		}
 		notFound();
 	}
 

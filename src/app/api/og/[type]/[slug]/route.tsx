@@ -88,10 +88,24 @@ export async function GET(
 			return new Response('Unknown location', { status: 404 });
 		}
 	} else {
-		const org = await prisma.organization.findUnique({
+		let org = await prisma.organization.findUnique({
 			where: { slug },
 			select: { name: true },
 		});
+		if (!org) {
+			// Social platforms cache absolute og:image URLs — pre-rename shares
+			// still request the old slug's image after the org renames.
+			const { findCurrentSlugByHistory } = await import(
+				'@/server/repositories/orgRepo'
+			);
+			const currentSlug = await findCurrentSlugByHistory(slug);
+			if (currentSlug) {
+				org = await prisma.organization.findUnique({
+					where: { slug: currentSlug },
+					select: { name: true },
+				});
+			}
+		}
 		if (!org) {
 			return new Response('Not found', { status: 404 });
 		}

@@ -89,7 +89,9 @@ export default function ClaimClient({ token }: { token: string }) {
 							has been added to your organization.
 						</p>
 						<Button asChild>
-							<Link href="/app/credentials">View credentials</Link>
+							<Link href="/app/settings/background-checks">
+								View credentials
+							</Link>
 						</Button>
 					</CardContent>
 				</Card>

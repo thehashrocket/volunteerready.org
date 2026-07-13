@@ -12,7 +12,7 @@ export async function sendBackgroundCheckConsiderEmail(input: {
 }): Promise<void> {
 	const appUrl =
 		process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.volunteerready.com';
-	const reviewUrl = `${appUrl}/app/credentials`;
+	const reviewUrl = `${appUrl}/app/settings/background-checks`;
 
 	await sendEmail(
 		input.to,
