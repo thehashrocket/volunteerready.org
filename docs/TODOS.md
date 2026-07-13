@@ -1216,6 +1216,17 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   growth). Start: `src/app/(app)/app/settings/page.tsx`, approved mockups at
   `~/.gstack/projects/thehashrocket-volunteerready.org/designs/settings-hub-20260712/`.
   **Effort:** M | **Priority:** P3 | **Depends on:** settings hub shipping (issue #127).
+- **[P1] Local `pnpm build` fails prerender with React useContext null** —
+  (found by /ship of issue #127, 2026-07-13; confirmed PRE-EXISTING on main
+  78c1847.) `next build` compiles successfully but static prerender/export
+  dies with `TypeError: Cannot read properties of null (reading 'useContext')`
+  on varying (app) pages (/app/dev, /app/admin/case-studies on main;
+  /app/discover, /apply/refer on branches) plus "unique key prop" warnings
+  from <html>/<head> renders — smells like duplicate React instances in the
+  build worker. Vercel builds are unaffected (main deploys fine), so this
+  blocks only local production-build verification. Start: compare React
+  resolution (`pnpm why react`), Next 16 build-worker dedupe, sentry wrapper.
+  **Effort:** M | **Priority:** P1 | **Depends on:** —
 - **[P3] OrgSlugHistory permanent namespace lock needs an admin release tool** —
   (from /ship adversarial review of issue #127, 2026-07-13.) Slug history rows
   persist forever and now block BOTH new-org creation (`slugExistsInHistory`)
