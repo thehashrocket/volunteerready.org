@@ -261,6 +261,31 @@ describe('searchMarketplaceOpportunities — with query (tsvector mode)', () => 
 		// findMany should NOT be called (early return after empty rows)
 		expect(mocks.oppFindMany).not.toHaveBeenCalled();
 	});
+
+	// The remote filter is a NULL-checked scalar param, never a composed
+	// Prisma.sql fragment (fragments break under Turbopack dev — CLAUDE.md Rules).
+	it('passes isRemote as a boolean param in search mode', async () => {
+		mocks.queryRaw.mockResolvedValueOnce([]);
+
+		await searchMarketplaceOpportunities({ query: 'food', isRemote: true });
+
+		const params = mocks.queryRaw.mock.calls[0].slice(1);
+		expect(params).toContain(true);
+		expect(
+			params.every((p: unknown) => typeof p !== 'object' || p === null),
+		).toBe(true); // scalars only — no Sql fragment objects
+	});
+
+	it('passes null for isRemote when undefined in search mode', async () => {
+		mocks.queryRaw.mockResolvedValueOnce([]);
+
+		await searchMarketplaceOpportunities({ query: 'food' });
+
+		const params = mocks.queryRaw.mock.calls[0].slice(1);
+		expect(params).toContain(null);
+		expect(params).not.toContain(true);
+		expect(params).not.toContain(false);
+	});
 });
 
 describe('listMarketplaceOrgs', () => {

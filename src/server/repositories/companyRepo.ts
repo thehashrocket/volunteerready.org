@@ -1,9 +1,8 @@
-import {
-	type CompanyMemberRole,
-	type CompanyNonprofitLinkStatus,
-	type PlanTier,
-	Prisma,
-	type PrismaClient,
+import type {
+	CompanyMemberRole,
+	CompanyNonprofitLinkStatus,
+	PlanTier,
+	PrismaClient,
 } from '@/prisma/generated/client';
 import { prisma } from './prisma';
 
@@ -194,25 +193,19 @@ type ESGShiftRow = {
  * Only counts shifts where the volunteer is both:
  *   1. A member of the company
  *   2. Signed up with ATTENDED status at a linked nonprofit
+ *
+ * Optional date filters are NULL-checked inside a single static template
+ * instead of composed with Prisma.sql/Prisma.join — composed Sql fragments
+ * break under `next dev` (Turbopack duplicates the generated client's Sql
+ * class across module graphs, `instanceof` fails, and the fragment is sent
+ * to Postgres as one literal parameter). See CLAUDE.md Rules.
  */
 export async function getESGShiftAggregates(
 	companyId: string,
 	dateRange: { from?: Date | null; to?: Date | null },
 ): Promise<ESGShiftRow[]> {
-	const conditions = [
-		Prisma.sql`cnl."companyId" = ${companyId}`,
-		Prisma.sql`cnl."status" = 'ACTIVE'`,
-		Prisma.sql`ss."status" = 'ATTENDED'`,
-	];
-
-	if (dateRange.from) {
-		conditions.push(Prisma.sql`s."startTime" >= ${dateRange.from}`);
-	}
-	if (dateRange.to) {
-		conditions.push(Prisma.sql`s."endTime" <= ${dateRange.to}`);
-	}
-
-	const where = Prisma.join(conditions, ' AND ');
+	const from = dateRange.from ?? null;
+	const to = dateRange.to ?? null;
 
 	const rows = await prisma.$queryRaw<
 		{
@@ -237,7 +230,11 @@ export async function getESGShiftAggregates(
 		JOIN "ShiftSignup" ss     ON ss."shiftId" = s."id"
 		JOIN "CompanyMember" cm   ON cm."userId" = ss."userId"
 		                         AND cm."companyId" = cnl."companyId"
-		WHERE ${where}
+		WHERE cnl."companyId" = ${companyId}
+		  AND cnl."status" = 'ACTIVE'
+		  AND ss."status" = 'ATTENDED'
+		  AND s."startTime" >= COALESCE(${from}::timestamp, '-infinity'::timestamp)
+		  AND s."endTime" <= COALESCE(${to}::timestamp, 'infinity'::timestamp)
 		GROUP BY o."id", o."name"
 		ORDER BY o."name"
 	`;
@@ -297,25 +294,16 @@ export async function getESGCredentialCounts(
 /**
  * Cross-org deduplicated count of company employees who attended shifts
  * at any linked nonprofit within the date range.
+ *
+ * Same static-template pattern as getESGShiftAggregates — no Sql fragment
+ * composition (breaks under Turbopack dev, see that function's doc comment).
  */
 export async function getESGDistinctEmployeeCount(
 	companyId: string,
 	dateRange: { from?: Date | null; to?: Date | null },
 ): Promise<number> {
-	const conditions = [
-		Prisma.sql`cnl."companyId" = ${companyId}`,
-		Prisma.sql`cnl."status" = 'ACTIVE'`,
-		Prisma.sql`ss."status" = 'ATTENDED'`,
-	];
-
-	if (dateRange.from) {
-		conditions.push(Prisma.sql`s."startTime" >= ${dateRange.from}`);
-	}
-	if (dateRange.to) {
-		conditions.push(Prisma.sql`s."endTime" <= ${dateRange.to}`);
-	}
-
-	const where = Prisma.join(conditions, ' AND ');
+	const from = dateRange.from ?? null;
+	const to = dateRange.to ?? null;
 
 	const result = await prisma.$queryRaw<{ count: bigint }[]>`
 		SELECT COUNT(DISTINCT cm."userId") AS "count"
@@ -324,7 +312,11 @@ export async function getESGDistinctEmployeeCount(
 		JOIN "ShiftSignup" ss     ON ss."shiftId" = s."id"
 		JOIN "CompanyMember" cm   ON cm."userId" = ss."userId"
 		                         AND cm."companyId" = cnl."companyId"
-		WHERE ${where}
+		WHERE cnl."companyId" = ${companyId}
+		  AND cnl."status" = 'ACTIVE'
+		  AND ss."status" = 'ATTENDED'
+		  AND s."startTime" >= COALESCE(${from}::timestamp, '-infinity'::timestamp)
+		  AND s."endTime" <= COALESCE(${to}::timestamp, 'infinity'::timestamp)
 	`;
 
 	return Number(result[0]?.count ?? 0);
