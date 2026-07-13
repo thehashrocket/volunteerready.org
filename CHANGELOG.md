@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.3.0] - 2026-07-13
+
+### Changed
+- **The `/for` and `/locations` pages' clickable row lists (the audience picker and the location listing) now share one underlying component instead of duplicated code.** (#140) No visible change on either page — this is a maintenance follow-up to the #128 design fix, which introduced the same row-link pattern independently on both pages. The new `LinkRowList` component ships with its own unit test suite. Also closes a test-coverage gap: the `/locations` page's navigation previously had no automated coverage at all — e2e smoke coverage now visits the `/locations` index and every one of its 6 location pages, up from a single hardcoded slug.
+
 ## [0.27.2.0] - 2026-07-13
 
 ### Changed
