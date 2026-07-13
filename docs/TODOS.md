@@ -1311,7 +1311,7 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   `locations/page.tsx` link-row pattern (divide-y, alternating stripe,
   hover, ArrowRight) instead of a grid. Design doc:
   `docs/designs/banned-grid-patterns.md`. See below for spun-off follow-ups.
-- **[P3] Annotated product imagery for homepage/`/for`** — DESIGN.md's
+- **[P3] Annotated product imagery for homepage/`/for`** (issue #139) — DESIGN.md's
   stated visual hero is real product screenshots ("product data as visual
   hero"), not icons or lists. Once the P2 grid fix above ships, consider
   replacing the editorial-list/link-row layouts with annotated screenshots
@@ -1320,7 +1320,7 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   C" during eng review, not built — P2 above uses the editorial-list
   approach instead). **Effort:** M (content) + S (integration) |
   **Priority:** P3 | **Depends on:** P2 grid fix above shipping first.
-- **[P3] Shared link-row component for `/for` + `/locations`** — once the
+- **[P3] Shared link-row component for `/for` + `/locations`** (issue #140) — once the
   P2 grid fix ships, `/for/page.tsx` and `/locations/page.tsx` will both
   have the same row-link pattern (divide-y, alternating stripe, hover,
   ArrowRight) as separate inline JSX. Extract into one shared component.
