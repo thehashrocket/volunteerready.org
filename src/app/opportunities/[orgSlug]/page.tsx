@@ -65,7 +65,7 @@ export default async function OpportunitiesPage({ params }: Props) {
 	}
 
 	return (
-		<div>
+		<>
 			<JsonLdBreadcrumb
 				items={[
 					{ label: 'Home', href: '/' },
@@ -80,6 +80,6 @@ export default async function OpportunitiesPage({ params }: Props) {
 				opportunities={result.opportunities}
 				matchResults={matchResults}
 			/>
-		</div>
+		</>
 	);
 }

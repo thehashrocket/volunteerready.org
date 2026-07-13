@@ -461,7 +461,7 @@ export const LOCATIONS: LocationData[] = [
 				question:
 					'How does VolunteerReady support grant and county-contract reporting for Fresno nonprofits?',
 				answer:
-					'VolunteerReady tracks volunteer hours and screening status automatically as volunteers check in, so compliance reports for county contracts and grant funders are a export instead of a week of manual compilation before a deadline.',
+					'VolunteerReady tracks volunteer hours and screening status automatically as volunteers check in, so compliance reports for county contracts and grant funders are an export instead of a week of manual compilation before a deadline.',
 			},
 		],
 		localProof: {

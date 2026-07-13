@@ -133,7 +133,7 @@ docs/
 - Email-based status lookup lives under `src/app/apply/status`.
 - QR check-in: token lib at `src/server/lib/checkin-token.ts`, scanner at `src/app/(app)/app/scan/`, QR display at `src/components/app/qr-checkin-code.tsx`
 - Geo check-in: `src/components/app/geo-checkin.tsx` + `src/server/lib/geo.ts`
-- Geo landing pages: location data at `src/lib/locations.ts` (5 Central Valley locations), pages at `src/app/(public)/locations/`, components at `src/components/location-hero.tsx`, `comparison-table.tsx`, `local-proof-section.tsx`, `lead-capture-form.tsx`
+- Geo landing pages: location data at `src/lib/locations.ts` (6 Central Valley locations), pages at `src/app/(public)/locations/`, components at `src/components/location-hero.tsx`, `comparison-table.tsx`, `local-proof-section.tsx`, `lead-capture-form.tsx`
 - Lead capture: domain at `src/server/domain/lead-capture.ts`, service at `src/server/services/leadCaptureService.ts`, repo at `src/server/repositories/leadCaptureRepo.ts`, tRPC router at `src/server/trpc/routers/leads.ts`
 - Lead capture admin: `src/app/(app)/app/admin/leads/page.tsx` (platform admin lead triage with location filtering)
 - Analytics events: `src/lib/analytics.ts` (consent-aware `trackEvent()` utility, checks `cookie-consent` localStorage)

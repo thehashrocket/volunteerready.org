@@ -119,21 +119,21 @@ async function seedDev() {
 
 	// --- Helping Hands staff ---
 	const sarah = await upsertUser(
-		'sarah.chen@helpinghands.org',
+		'sarah.chen@helpinghands.example',
 		'Sarah Chen',
 		'https://i.pravatar.cc/150?u=sarah',
 	);
 	const marcus = await upsertUser(
-		'marcus.johnson@helpinghands.org',
+		'marcus.johnson@helpinghands.example',
 		'Marcus Johnson',
 		'https://i.pravatar.cc/150?u=marcus',
 	);
 	const priya = await upsertUser(
-		'priya.patel@helpinghands.org',
+		'priya.patel@helpinghands.example',
 		'Priya Patel',
 		'https://i.pravatar.cc/150?u=priya',
 	);
-	const tom = await upsertUser('tom.wright@helpinghands.org', 'Tom Wright');
+	const tom = await upsertUser('tom.wright@helpinghands.example', 'Tom Wright');
 
 	await upsertMember(helpingHands.id, sarah.id, Role.OWNER);
 	await upsertMember(helpingHands.id, marcus.id, Role.ADMIN);
@@ -142,11 +142,11 @@ async function seedDev() {
 
 	// --- Green City Parks staff ---
 	const elena = await upsertUser(
-		'elena.vasquez@greencityparks.org',
+		'elena.vasquez@greencityparks.example',
 		'Elena Vasquez',
 		'https://i.pravatar.cc/150?u=elena',
 	);
-	const james = await upsertUser('james.ko@greencityparks.org', 'James Ko');
+	const james = await upsertUser('james.ko@greencityparks.example', 'James Ko');
 
 	await upsertMember(greenCity.id, elena.id, Role.OWNER);
 	await upsertMember(greenCity.id, james.id, Role.STAFF);
@@ -155,7 +155,7 @@ async function seedDev() {
 
 	// --- Youth Futures staff ---
 	const diana = await upsertUser(
-		'diana.okafor@youthfutures.org',
+		'diana.okafor@youthfutures.example',
 		'Diana Okafor',
 		'https://i.pravatar.cc/150?u=diana',
 	);
@@ -172,41 +172,41 @@ async function seedDev() {
 	console.log('🙋 Creating volunteers...');
 
 	const vol1 = await upsertUser(
-		'alex.rivera@gmail.com',
+		'alex.rivera@example.com',
 		'Alex Rivera',
 		'https://i.pravatar.cc/150?u=alex',
 	);
 	const vol2 = await upsertUser(
-		'jordan.lee@outlook.com',
+		'jordan.lee@example.com',
 		'Jordan Lee',
 		'https://i.pravatar.cc/150?u=jordan',
 	);
 	const vol3 = await upsertUser(
-		'maya.thompson@yahoo.com',
+		'maya.thompson@example.com',
 		'Maya Thompson',
 		'https://i.pravatar.cc/150?u=maya',
 	);
-	const vol4 = await upsertUser('sam.nguyen@gmail.com', 'Sam Nguyen');
+	const vol4 = await upsertUser('sam.nguyen@example.com', 'Sam Nguyen');
 	const vol5 = await upsertUser(
-		'olivia.martinez@gmail.com',
+		'olivia.martinez@example.com',
 		'Olivia Martinez',
 		'https://i.pravatar.cc/150?u=olivia',
 	);
-	const vol6 = await upsertUser('liam.chen@proton.me', 'Liam Chen');
+	const vol6 = await upsertUser('liam.chen@example.com', 'Liam Chen');
 	const vol7 = await upsertUser(
-		'ava.jackson@gmail.com',
+		'ava.jackson@example.com',
 		'Ava Jackson',
 		'https://i.pravatar.cc/150?u=ava',
 	);
 	// biome-ignore lint/correctness/noUnusedVariables: seeded for data completeness
-	const vol8 = await upsertUser('noah.williams@outlook.com', 'Noah Williams');
+	const vol8 = await upsertUser('noah.williams@example.com', 'Noah Williams');
 	const vol9 = await upsertUser(
-		'emma.garcia@gmail.com',
+		'emma.garcia@example.com',
 		'Emma Garcia',
 		'https://i.pravatar.cc/150?u=emma',
 	);
 	// biome-ignore lint/correctness/noUnusedVariables: seeded for data completeness
-	const vol10 = await upsertUser('ethan.brown@yahoo.com', 'Ethan Brown');
+	const vol10 = await upsertUser('ethan.brown@example.com', 'Ethan Brown');
 
 	// =========================================================================
 	// 6. Volunteer profiles (varying completeness)
@@ -1552,7 +1552,7 @@ async function seedDev() {
 		.create({
 			data: {
 				orgId: helpingHands.id,
-				email: 'newstaff@helpinghands.org',
+				email: 'newstaff@helpinghands.example',
 				role: Role.STAFF,
 				tokenHash: 'seed-invite-token-pending-hh',
 				expiresAt: daysFromNow(7),
@@ -1567,7 +1567,7 @@ async function seedDev() {
 		.create({
 			data: {
 				orgId: greenCity.id,
-				email: 'expired-invite@greencityparks.org',
+				email: 'expired-invite@greencityparks.example',
 				role: Role.STAFF,
 				tokenHash: 'seed-invite-token-expired-gc',
 				expiresAt: daysAgo(5),
