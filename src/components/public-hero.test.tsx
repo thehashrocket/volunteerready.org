@@ -44,7 +44,7 @@ describe('PublicHero', () => {
 		expect(grid?.className).toMatch(/max-w-\[1040px\]/);
 
 		const label = screen.getByText('Coordinators say');
-		expect(label.className).toMatch(/font-mono/);
+		expect(label.className).toMatch(/text-muted-foreground/);
 		expect(label.className).toMatch(/uppercase/);
 
 		const noteContainer = container.querySelector(

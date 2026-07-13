@@ -23,6 +23,7 @@ const OpportunityLocationMap = dynamic(
 	{ ssr: false },
 );
 
+import { Eyebrow } from '@/components/eyebrow';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -108,9 +109,7 @@ function RequirementChips({
 		<div className={`mb-5 space-y-2.5 pt-3 ${separator ? 'border-t' : ''}`}>
 			{required.length > 0 && (
 				<div>
-					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-						Skills needed
-					</p>
+					<Eyebrow className="mb-1.5">Skills needed</Eyebrow>
 					<div className="flex flex-wrap gap-1.5">
 						{required.map((r) => (
 							<span
@@ -125,9 +124,7 @@ function RequirementChips({
 			)}
 			{preferred.length > 0 && (
 				<div>
-					<p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-						Nice to have
-					</p>
+					<Eyebrow className="mb-1.5">Nice to have</Eyebrow>
 					<div className="flex flex-wrap gap-1.5">
 						{preferred.map((r) => (
 							<span
@@ -435,9 +432,9 @@ export function OpportunitiesListing({
 		<div className="min-h-[calc(100vh-3.5rem)]">
 			{/* Hero */}
 			<div className="border-b bg-background px-4 py-14 text-center">
-				<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary">
+				<Eyebrow tone="primary" className="mb-3">
 					Volunteer opportunities
-				</p>
+				</Eyebrow>
 				<h1 className="mx-auto max-w-2xl text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
 					Volunteer with {org.name}
 				</h1>

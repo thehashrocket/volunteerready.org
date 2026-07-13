@@ -2,6 +2,7 @@ import { CalendarClock } from 'lucide-react';
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
 import { EditorialList } from '@/components/editorial-list';
+import { Eyebrow } from '@/components/eyebrow';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
@@ -134,9 +135,9 @@ export default async function Home() {
 			<section className="bg-muted px-4 py-20">
 				<div className="mx-auto grid max-w-[1040px] grid-cols-1 gap-12 md:grid-cols-[5fr_7fr] md:items-start">
 					<div>
-						<p className="mb-3 font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+						<Eyebrow tone="primary" className="mb-3">
 							How we&rsquo;re different
-						</p>
+						</Eyebrow>
 						<h2 className="font-display text-[32px] font-bold leading-tight text-foreground [text-wrap:balance]">
 							Three things you won&rsquo;t find in the rest of the category.
 						</h2>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Eyebrow } from '@/components/eyebrow';
 import { getFooterPages } from '@/lib/public-pages';
 
 const footerLinks = [
@@ -60,9 +61,9 @@ export function PublicFooter() {
 					{/* Link columns */}
 					{footerLinks.map((col) => (
 						<div key={col.heading}>
-							<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/70">
+							<Eyebrow className="mb-3 text-foreground/70">
 								{col.heading}
-							</p>
+							</Eyebrow>
 							<ul className="space-y-1">
 								{col.links.map((link) => (
 									<li key={link.href}>

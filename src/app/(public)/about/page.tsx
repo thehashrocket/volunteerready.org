@@ -2,6 +2,7 @@ import { Heart, Shield, TrendingUp, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { CTABanner } from '@/components/cta-banner';
+import { Eyebrow } from '@/components/eyebrow';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
@@ -223,9 +224,9 @@ export default function AboutPage() {
 			{/* ── Mission ── */}
 			<section className="bg-primary px-4 py-16 text-primary-foreground">
 				<div className="mx-auto max-w-2xl text-center">
-					<p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-primary-foreground/60">
+					<Eyebrow tone="primary" className="mb-4 text-primary-foreground/60">
 						Our mission
-					</p>
+					</Eyebrow>
 					<blockquote className="font-display text-2xl font-bold leading-snug [text-wrap:balance] sm:text-3xl">
 						"To make volunteering as easy as it is meaningful — for the people
 						who give their time and the organizations that depend on it."
@@ -245,9 +246,9 @@ export default function AboutPage() {
 					</p>
 
 					{/* Platform Capabilities */}
-					<p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+					<Eyebrow tone="primary" className="mb-6">
 						Platform Capabilities
-					</p>
+					</Eyebrow>
 					<div className="flex flex-col gap-6">
 						{platformCapabilities.map((m) => (
 							<div key={m.label} className="border-l-2 border-primary/30 pl-6">
@@ -261,9 +262,9 @@ export default function AboutPage() {
 
 					{/* Recently Shipped */}
 					<div className="mt-10">
-						<p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+						<Eyebrow tone="primary" className="mb-6">
 							Recently Shipped
-						</p>
+						</Eyebrow>
 						<div className="flex flex-col gap-6">
 							{recentlyShipped.map((m) => (
 								<div

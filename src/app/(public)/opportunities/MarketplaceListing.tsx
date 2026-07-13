@@ -4,6 +4,7 @@ import { keepPreviousData } from '@tanstack/react-query';
 import { Calendar, Clock, Heart, MapPin, Search, Wifi, X } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Eyebrow } from '@/components/eyebrow';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -208,9 +209,9 @@ export function MarketplaceListing({
 					className="mb-8 rounded-xl px-5 py-4"
 					style={{ backgroundColor: 'rgb(196 168 130 / 0.10)' }}
 				>
-					<h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+					<Eyebrow as="h2" className="mb-3">
 						This Weekend
-					</h2>
+					</Eyebrow>
 					<div className="flex gap-3 overflow-x-auto pb-1">
 						{thisWeekend.map((opp) => (
 							<Link
