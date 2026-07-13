@@ -34,7 +34,7 @@ Current commands:
 - `pnpm seed:platform-admins`: migrate `PLATFORM_ADMIN_IDS` env var to DB column (idempotent)
 - `pnpm backfill:default-questions`: seed default screener questions for pre-existing orgs (idempotent, safe to re-run)
 - `pnpm test:scripts`: run unit tests for files under `scripts/` (uses `vitest.scripts.config.ts`, excluded from the main Vitest suite)
-- `pnpm e2e`: run Playwright e2e specs in `e2e/` (boots `pnpm dev` via `playwright.config.ts`; set `PLAYWRIGHT_BASE_URL` to target a running server instead)
+- `pnpm e2e`: run Playwright e2e specs in `e2e/` (boots `pnpm dev` via `playwright.config.ts`; set `PLAYWRIGHT_BASE_URL` to target a running server instead — authenticated specs skip non-localhost targets)
 
 Note: the build script (`pnpm build`) runs `pnpm db:seed` automatically on every deploy,
 which includes the production seed (platform org, skill catalog, and default screener
@@ -65,7 +65,7 @@ or linter (Prettier, ESLint, Black), document the exact commands and config.
 - Test setup: `src/test-setup.ts` (jest-dom matchers + ResizeObserver polyfill)
 - Integration tests excluded from `pnpm test`: `src/**/*.integration.test.ts`
 - Scripts tests (separate suite): `scripts/**/*.test.ts` — run with `pnpm test:scripts`; config at `vitest.scripts.config.ts`
-- E2E tests: Playwright specs in `e2e/` (`pnpm e2e`). Authenticated specs seed a NextAuth database session via `e2e/utils/db.ts` (refuses non-local `DATABASE_URL`); the dev server is the only environment that reproduces Turbopack-dev-only bugs, so bundler-sensitive fixes get e2e coverage.
+- E2E tests: Playwright specs in `e2e/` (`pnpm e2e`). Authenticated specs seed a NextAuth database session via `e2e/utils/db.ts` (refuses non-local `DATABASE_URL` unless `E2E_ALLOW_REMOTE_DB=1`); the dev server is the only environment that reproduces Turbopack-dev-only bugs, so bundler-sensitive fixes get e2e coverage.
 
 ## Commit & Pull Request Guidelines
 

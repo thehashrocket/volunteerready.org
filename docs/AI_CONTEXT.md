@@ -433,8 +433,8 @@ pnpm format               # Biome format
 pnpm typecheck            # tsc --noEmit
 pnpm test                 # Vitest (run once)
 pnpm test:watch           # Vitest (watch mode)
-pnpm e2e                  # Playwright e2e (boots the dev server; PLAYWRIGHT_BASE_URL targets a running one)
-pnpm check                # typecheck + lint + test (full CI suite)
+pnpm e2e                  # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
+pnpm check                # Biome check on src/docs/prisma (applies safe fixes)
 pnpm prisma migrate deploy  # Apply migrations
 pnpm prisma db seed         # Seed data (production or dev based on NODE_ENV)
 pnpm seed:production        # Production seed only (platform org + skill catalog)
@@ -516,7 +516,7 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/domain/esg-report.ts` | ESG report domain — `esgReportInputSchema` + `normalizeESGDateRange` (end-of-day `to` bounds, inverted-range rejection), `computeESGSummary`, CSV formatting |
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
 | `playwright.config.ts` | E2E configuration (boots `pnpm dev`; `PLAYWRIGHT_BASE_URL` override) |
-| `e2e/utils/db.ts` | Playwright auth harness — seeds a NextAuth database session for authenticated e2e specs; refuses non-local `DATABASE_URL` |
+| `e2e/utils/db.ts` | Playwright auth harness — seeds a NextAuth database session for authenticated e2e specs; refuses non-local `DATABASE_URL` unless `E2E_ALLOW_REMOTE_DB=1` |
 
 ---
 

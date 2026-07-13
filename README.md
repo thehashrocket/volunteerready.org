@@ -285,8 +285,9 @@ pnpm start          # Production server
 pnpm lint           # Biome lint
 pnpm format         # Biome format
 pnpm test           # Vitest (run once)
-pnpm e2e            # Playwright e2e (boots the dev server; set PLAYWRIGHT_BASE_URL to target a running one)
-pnpm check          # typecheck + lint + test
+pnpm e2e            # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
+pnpm typecheck      # tsc --noEmit
+pnpm check          # Biome check on src/docs/prisma (applies safe fixes)
 ```
 
 ---
