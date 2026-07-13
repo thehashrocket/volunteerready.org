@@ -73,3 +73,35 @@ export async function updateOrgPlanTx(
 		select: { id: true, planTier: true },
 	});
 }
+
+export async function getOrgProfile(orgId: string) {
+	return prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { id: true, name: true, slug: true },
+	});
+}
+
+/**
+ * Resolve an old (renamed-away) slug to the org's CURRENT slug via
+ * OrgSlugHistory. Callers must check the current slug first — a live org
+ * slug always wins over history. Returns null when no history matches or
+ * the org is suspended.
+ */
+export async function findCurrentSlugByHistory(oldSlug: string) {
+	const row = await prisma.orgSlugHistory.findFirst({
+		where: { oldSlug },
+		orderBy: { createdAt: 'desc' },
+		select: { organization: { select: { slug: true, suspendedAt: true } } },
+	});
+	if (!row || row.organization.suspendedAt) return null;
+	return row.organization.slug;
+}
+
+/** True when any org (including suspended) has ever held this slug. */
+export async function slugExistsInHistory(slug: string) {
+	const row = await prisma.orgSlugHistory.findFirst({
+		where: { oldSlug: slug },
+		select: { id: true },
+	});
+	return row !== null;
+}

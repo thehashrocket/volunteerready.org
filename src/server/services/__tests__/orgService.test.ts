@@ -17,6 +17,7 @@ vi.mock('@/server/repositories/orgRepo', () => ({
 	findOrgBySlug: vi.fn(async () => null),
 	userIsMemberOfOrg: vi.fn(async () => ({ role: 'OWNER' as const })),
 	getFirstOrgForUser: vi.fn(async () => null),
+	slugExistsInHistory: vi.fn(async () => false),
 }));
 
 vi.mock('@/server/repositories/auditRepo', () => ({
@@ -44,6 +45,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 				},
 				organizationMember: { create: vi.fn(async () => ({})) },
 				session: { update: vi.fn(async () => ({})) },
+				orgSlugHistory: { findFirst: vi.fn(async () => null) },
 			}),
 		),
 		session: { update: vi.fn(async () => ({})) },
