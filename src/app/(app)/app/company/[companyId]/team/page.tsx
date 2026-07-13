@@ -1,17 +1,19 @@
 'use client';
 
 import {
+	AlertTriangle,
 	BarChart3,
 	Building2,
 	Clock,
 	Download,
 	FileText,
+	RefreshCw,
 	ShieldCheck,
 	Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -57,6 +59,68 @@ function StatCard({
 }
 
 // ---------------------------------------------------------------------------
+// Query error card
+// ---------------------------------------------------------------------------
+
+// tRPC error codes safe to show verbatim. Anything else (INTERNAL_SERVER_ERROR
+// and friends) may carry raw database/internal detail — show generic copy.
+const CLIENT_SAFE_ERROR_CODES = new Set([
+	'BAD_REQUEST',
+	'UNAUTHORIZED',
+	'FORBIDDEN',
+	'NOT_FOUND',
+	'CONFLICT',
+	'PRECONDITION_FAILED',
+	'TOO_MANY_REQUESTS',
+]);
+
+function safeErrorMessage(
+	error: { message: string; data?: { code?: string } | null } | null,
+): string | undefined {
+	if (!error?.data?.code) return undefined;
+	return CLIENT_SAFE_ERROR_CODES.has(error.data.code)
+		? error.message
+		: undefined;
+}
+
+function QueryErrorCard({
+	title,
+	message,
+	onRetry,
+	isRetrying = false,
+}: {
+	title: string;
+	message?: string;
+	onRetry: () => void;
+	isRetrying?: boolean;
+}) {
+	return (
+		<Card role="alert">
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<AlertTriangle className="h-5 w-5 text-destructive" />
+					{title}
+				</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-4 text-sm text-muted-foreground">
+				<p>{message || 'Something went wrong. Please try again.'}</p>
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={onRetry}
+					disabled={isRetrying}
+				>
+					<RefreshCw
+						className={`mr-2 h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`}
+					/>
+					Try again
+				</Button>
+			</CardContent>
+		</Card>
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -68,12 +132,16 @@ export default function ESGTeamDashboardPage() {
 	const company = companyQ.data;
 	const isPro = company?.planTier === 'PRO';
 
+	// Don't fire the query mid-edit with an inverted range — the server would
+	// reject via the schema refine and the card would show a raw Zod message.
+	const rangeValid = !from || !to || from <= to;
+
 	const esgQ = trpc.esgReport.getSummary.useQuery(
 		{
 			from: from ? new Date(from) : undefined,
 			to: to ? new Date(to) : undefined,
 		},
-		{ enabled: isPro },
+		{ enabled: isPro && rangeValid },
 	);
 
 	const summary = esgQ.data;
@@ -88,6 +156,21 @@ export default function ESGTeamDashboardPage() {
 						<Skeleton key={`skel-${i}`} className="h-28" />
 					))}
 				</div>
+			</div>
+		);
+	}
+
+	// A failed company lookup must never fall through to the upgrade gate —
+	// isPro is false on error, and "Upgrade to PRO" would be a lie.
+	if (companyQ.isError) {
+		return (
+			<div className="mx-auto max-w-lg py-16">
+				<QueryErrorCard
+					title="We couldn’t load your company"
+					message={safeErrorMessage(companyQ.error)}
+					onRetry={() => companyQ.refetch()}
+					isRetrying={companyQ.isRefetching}
+				/>
 			</div>
 		);
 	}
@@ -140,7 +223,7 @@ export default function ESGTeamDashboardPage() {
 					<Button
 						variant="outline"
 						onClick={handleExportCsv}
-						disabled={esgQ.isLoading}
+						disabled={esgQ.isLoading || esgQ.isError || !rangeValid}
 					>
 						<Download className="mr-2 h-4 w-4" />
 						Export CSV
@@ -148,7 +231,7 @@ export default function ESGTeamDashboardPage() {
 					<Button
 						variant="outline"
 						onClick={handleExportPdf}
-						disabled={esgQ.isLoading}
+						disabled={esgQ.isLoading || esgQ.isError || !rangeValid}
 					>
 						<FileText className="mr-2 h-4 w-4" />
 						Export PDF
@@ -192,106 +275,126 @@ export default function ESGTeamDashboardPage() {
 				)}
 			</div>
 
-			{/* Stat cards */}
-			{esgQ.isLoading ? (
-				<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-					{Array.from({ length: 4 }).map((_, i) => (
-						<Skeleton key={`stat-skel-${i}`} className="h-28" />
-					))}
-				</div>
+			{/* Inverted range: the query is disabled (idle, no data), so falling
+			    through would render fabricated zeros. Show a validation state. */}
+			{!rangeValid ? (
+				<p role="alert" className="text-sm text-destructive">
+					End date must be on or after the start date.
+				</p>
+			) : esgQ.isError ? (
+				<QueryErrorCard
+					title="We couldn’t load your ESG report"
+					message={safeErrorMessage(esgQ.error)}
+					onRetry={() => esgQ.refetch()}
+					isRetrying={esgQ.isRefetching}
+				/>
 			) : (
-				<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-					<StatCard
-						label="Employees Active"
-						value={summary?.totalEmployeesActive ?? 0}
-						icon={Users}
-						accent="bg-info"
-					/>
-					<StatCard
-						label="Organizations"
-						value={summary?.totalOrgsSupported ?? 0}
-						icon={Building2}
-						accent="bg-success"
-					/>
-					<StatCard
-						label="Shifts Completed"
-						value={summary?.totalShifts ?? 0}
-						icon={BarChart3}
-						accent="bg-accent"
-					/>
-					<StatCard
-						label="Total Hours"
-						value={summary?.totalHours ?? 0}
-						icon={Clock}
-						accent="bg-warning"
-					/>
-				</div>
-			)}
+				<>
+					{/* Stat cards */}
+					{esgQ.isLoading ? (
+						<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+							{Array.from({ length: 4 }).map((_, i) => (
+								<Skeleton key={`stat-skel-${i}`} className="h-28" />
+							))}
+						</div>
+					) : (
+						<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+							<StatCard
+								label="Employees Active"
+								value={summary?.totalEmployeesActive ?? 0}
+								icon={Users}
+								accent="bg-info"
+							/>
+							<StatCard
+								label="Organizations"
+								value={summary?.totalOrgsSupported ?? 0}
+								icon={Building2}
+								accent="bg-success"
+							/>
+							<StatCard
+								label="Shifts Completed"
+								value={summary?.totalShifts ?? 0}
+								icon={BarChart3}
+								accent="bg-accent"
+							/>
+							<StatCard
+								label="Total Hours"
+								value={summary?.totalHours ?? 0}
+								icon={Clock}
+								accent="bg-warning"
+							/>
+						</div>
+					)}
 
-			{/* Per-org breakdown table */}
-			{esgQ.isLoading ? (
-				<Skeleton className="h-64" />
-			) : summary && summary.rows.length > 0 ? (
-				<Card>
-					<CardContent className="p-0">
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Organization</TableHead>
-									<TableHead className="text-right">Employees</TableHead>
-									<TableHead className="text-right">Shifts</TableHead>
-									<TableHead className="text-right">Hours</TableHead>
-									<TableHead className="text-right">Credentials</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{summary.rows.map((row) => (
-									<TableRow key={row.orgId}>
-										<TableCell className="font-medium">{row.orgName}</TableCell>
-										<TableCell className="text-right tabular-nums">
-											{row.employeeCount}
-										</TableCell>
-										<TableCell className="text-right tabular-nums">
-											{row.shiftCount}
-										</TableCell>
-										<TableCell className="text-right tabular-nums">
-											{Math.round(row.totalHours * 100) / 100}
-										</TableCell>
-										<TableCell className="text-right tabular-nums">
-											{row.verifiedCredentialCount}
-										</TableCell>
-									</TableRow>
-								))}
-								{/* Totals row */}
-								<TableRow className="border-t-2 font-semibold">
-									<TableCell>Total</TableCell>
-									<TableCell className="text-right tabular-nums">
-										{summary.totalEmployeesActive}
-									</TableCell>
-									<TableCell className="text-right tabular-nums">
-										{summary.totalShifts}
-									</TableCell>
-									<TableCell className="text-right tabular-nums">
-										{summary.totalHours}
-									</TableCell>
-									<TableCell className="text-right tabular-nums">
-										{summary.totalVerifiedCredentials}
-									</TableCell>
-								</TableRow>
-							</TableBody>
-						</Table>
-					</CardContent>
-				</Card>
-			) : (
-				<div className="rounded-lg border border-dashed p-12 text-center">
-					<ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
-					<h3 className="mt-4 font-semibold">
-						No volunteer activity recorded yet
-					</h3>
-					<p className="mt-1 text-sm text-muted-foreground">
-						Link a nonprofit to get started tracking employee volunteer impact.
-					</p>
-				</div>
+					{/* Per-org breakdown table */}
+					{esgQ.isLoading ? (
+						<Skeleton className="h-64" />
+					) : summary && summary.rows.length > 0 ? (
+						<Card>
+							<CardContent className="p-0">
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Organization</TableHead>
+											<TableHead className="text-right">Employees</TableHead>
+											<TableHead className="text-right">Shifts</TableHead>
+											<TableHead className="text-right">Hours</TableHead>
+											<TableHead className="text-right">Credentials</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{summary.rows.map((row) => (
+											<TableRow key={row.orgId}>
+												<TableCell className="font-medium">
+													{row.orgName}
+												</TableCell>
+												<TableCell className="text-right tabular-nums">
+													{row.employeeCount}
+												</TableCell>
+												<TableCell className="text-right tabular-nums">
+													{row.shiftCount}
+												</TableCell>
+												<TableCell className="text-right tabular-nums">
+													{Math.round(row.totalHours * 100) / 100}
+												</TableCell>
+												<TableCell className="text-right tabular-nums">
+													{row.verifiedCredentialCount}
+												</TableCell>
+											</TableRow>
+										))}
+										{/* Totals row */}
+										<TableRow className="border-t-2 font-semibold">
+											<TableCell>Total</TableCell>
+											<TableCell className="text-right tabular-nums">
+												{summary.totalEmployeesActive}
+											</TableCell>
+											<TableCell className="text-right tabular-nums">
+												{summary.totalShifts}
+											</TableCell>
+											<TableCell className="text-right tabular-nums">
+												{summary.totalHours}
+											</TableCell>
+											<TableCell className="text-right tabular-nums">
+												{summary.totalVerifiedCredentials}
+											</TableCell>
+										</TableRow>
+									</TableBody>
+								</Table>
+							</CardContent>
+						</Card>
+					) : (
+						<div className="rounded-lg border border-dashed p-12 text-center">
+							<ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
+							<h3 className="mt-4 font-semibold">
+								No volunteer activity recorded yet
+							</h3>
+							<p className="mt-1 text-sm text-muted-foreground">
+								Link a nonprofit to get started tracking employee volunteer
+								impact.
+							</p>
+						</div>
+					)}
+				</>
 			)}
 		</div>
 	);
