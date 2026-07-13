@@ -1143,7 +1143,7 @@ but not retried. A `FailedEmail` table with a cron reprocess (similar to existin
 **What:** Periodic refresh of county nonprofit counts from IRS NTEE data or Census API.
 Update `locations.ts` registry or move counts to a DB table with a refresh cron.
 
-**Why deferred:** Hardcoded counts from manual research are fine for 5 pages. Automation
+**Why deferred:** Hardcoded counts from manual research are fine for 6 pages. Automation
 matters if location pages scale beyond Central Valley.
 
 **Context:** Current design uses a TypeScript registry (`src/lib/locations.ts`) with
@@ -1177,3 +1177,48 @@ curly quotes). The following were deferred — too broad or needing an owner cal
   unbacked claim at current scale; founder copy decision.
 
 Full report: `~/.gstack/projects/thehashrocket-volunteerready.org/designs/design-audit-20260611/`
+
+## Design review follow-ups (/design-review, 2026-07-12, branch thehashrocket/design-review-v1)
+
+Eleven findings fixed atomically on the branch (five of six marketing product
+screenshots recaptured with realistic data — esg.png recaptured as a clean
+zero-state pending the ESG query bugfix below — the old ones showed skeleton
+states, empty states, a locked paywall, and dev emails; missing
+applications-queue.png created; dark-mode calculator card; `<main>` landmarks
+on all public pages; Playfair font drift removed; apply-page duplicate
+heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
+
+- **[P1] BUG: ESG summary query 500s, UI shows it as empty state** —
+  `esgReport.getSummary` fails under the Next dev server ("invalid input
+  syntax for type boolean"): the `Prisma.join()` fragment in
+  `getESGShiftAggregates` (companyRepo.ts:198) is passed as a literal
+  parameter, likely duplicate Sql class identity across Turbopack chunks
+  (works under tsx). The ESG page then renders zeros + "No volunteer activity
+  recorded yet" instead of an error — silent failure. Fix the query path AND
+  give the page a real error state; then recapture `public/marketing/esg.png`
+  with data (run /investigate).
+- **[P2] Nav misroutes in app sidebar** — "ESG Report" points to
+  `/app/company/[id]/team` (route named "team" renders the ESG page);
+  "Settings" points to `/app/credentials` (app-sidebar.tsx:52); Company +
+  ESG Report both highlight active (prefix-match).
+- **[P2] Banned grid patterns on public pages** — homepage 3-column feature
+  grid and `/for` audience card grid are on DESIGN.md's own anti-pattern
+  list (flagged by Codex + live audit). Composition redesign, needs owner
+  call.
+- **[P2] Eyebrow/kicker inconsistency** — 3+ competing uppercase-kicker
+  styles across public pages (tracking 0.15/0.2/0.25em/widest, mono vs
+  sans). Extract one component.
+- **[P3] Two hero systems** — PublicHero vs LocationHero (different grids,
+  breakpoints, alignment) plus hand-rolled centered heroes on
+  stories/locations/opportunities index pages.
+- **[P3] Dark-mode coverage on public pages** — theme toggle is exposed
+  publicly but public pages have no `dark:` classes; tokens carry most
+  surfaces (verified), but hardcoded whites are a per-page risk. Either
+  sweep or hide the toggle on public routes.
+- **[P3] Pill-radius policy** — `rounded-full px-8` CTAs contradict
+  DESIGN.md "md: 8px buttons"; the pills look intentional — recommend
+  amending DESIGN.md instead of the buttons.
+- **[P3] JSON-LD script-tag console warning** on public pages (FAQ/breadcrumb
+  components render <script> inside React trees).
+
+Full report: `~/.gstack/projects/thehashrocket-volunteerready.org/designs/design-audit-20260712/`

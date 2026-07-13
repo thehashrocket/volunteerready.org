@@ -432,7 +432,7 @@ export function OpportunitiesListing({
 	}
 
 	return (
-		<main className="min-h-[calc(100vh-3.5rem)]">
+		<div className="min-h-[calc(100vh-3.5rem)]">
 			{/* Hero */}
 			<div className="border-b bg-background px-4 py-14 text-center">
 				<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary">
@@ -572,6 +572,6 @@ export function OpportunitiesListing({
 					)}
 				</div>
 			)}
-		</main>
+		</div>
 	);
 }

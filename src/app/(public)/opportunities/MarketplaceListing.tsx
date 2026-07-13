@@ -128,7 +128,7 @@ export function MarketplaceListing({
 	const isLoading = isSearchMode && searchQuery.isFetching;
 
 	return (
-		<main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+		<div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
 			{/* Header */}
 			<div className="mb-8 space-y-2">
 				<h1 className="font-display text-4xl font-bold tracking-tight text-foreground">
@@ -420,6 +420,6 @@ export function MarketplaceListing({
 					</Button>
 				</div>
 			)}
-		</main>
+		</div>
 	);
 }

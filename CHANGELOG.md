@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.3.0] - 2026-07-12
+
+### Fixed
+- **Marketing pages now show the real product, not broken states.** All six product screenshots on the public site were misleading: `/screening` showed a half-loaded skeleton, `/for/employers` showed a locked "Upgrade to Pro" paywall, `/for/volunteers` showed an empty zero-stats profile, and `/for/nonprofits` referenced an image that didn't exist — so the page silently shipped with no product visual at all. Five of the six screenshots were recaptured from a fully loaded app with realistic demo data (the ESG screenshot ships as a clean zero-state pending an upstream query fix), and demo personas now use reserved example domains so no real person's email can appear next to a screening outcome.
+- **Dark mode no longer breaks the savings calculator on `/screening`.** The result card kept a hardcoded white background while its text switched to light tones, making the "$X/year" figure unreadable. The card now follows the theme.
+- **Screen-reader users get a proper `<main>` landmark on every public page.** Public layouts now wrap page content in a single `main` element (previously most public pages had none, and a few had their own).
+- Fixed a visible grammar error in the Fresno FAQ ("are a export" → "are an export") that was also serialized into search-engine-facing structured data.
+
+### Changed
+- **About and Security pages now give visitors a next step.** Both heroes previously ended with a headline and no action; they now carry "Book a setup call" plus a secondary link, matching the homepage.
+- Platform stats bar renders its impact numbers in the display typeface (Fraunces), per the design system.
+- Removed a stray Playfair Display font load on public opportunity pages — Fraunces is the only display face now, which also drops an unnecessary Google Fonts request.
+- Application form no longer repeats "Volunteer Application" twice at the top of the apply page.
+
 ## [0.26.2.6] - 2026-06-29
 
 ### Security

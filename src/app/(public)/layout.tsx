@@ -17,7 +17,7 @@ export default function PublicLayout({
 	return (
 		<div style={editorialStyles}>
 			<PublicHeader />
-			{children}
+			<main>{children}</main>
 			<PublicFooter />
 		</div>
 	);

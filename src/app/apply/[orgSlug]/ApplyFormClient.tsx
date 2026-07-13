@@ -230,11 +230,7 @@ export default function ApplyFormClient({
 				</div>
 			)}
 			<Card>
-				<CardHeader>
-					<CardTitle>Volunteer application</CardTitle>
-				</CardHeader>
-
-				<CardContent>
+				<CardContent className="pt-6">
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 						{/* Profile */}
 						<div className="space-y-4">
@@ -493,12 +489,7 @@ function AlreadyAppliedCard({
 		>
 			<div className="mb-4 flex items-center gap-3">
 				<CheckCircle2 className="h-6 w-6 text-success" />
-				<h2
-					className="text-2xl font-bold text-foreground"
-					style={{
-						fontFamily: 'var(--font-fraunces, var(--font-playfair, serif))',
-					}}
-				>
+				<h2 className="font-display text-2xl font-bold text-foreground">
 					You're already on the list!
 				</h2>
 			</div>

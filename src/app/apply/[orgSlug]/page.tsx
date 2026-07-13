@@ -74,7 +74,7 @@ export default async function ApplyPage({
 	}
 
 	return (
-		<main className="mx-auto max-w-2xl px-6 py-10">
+		<div className="mx-auto max-w-2xl px-6 py-10">
 			<JsonLdBreadcrumb
 				items={[
 					{ label: 'Home', href: '/' },
@@ -111,6 +111,6 @@ export default async function ApplyPage({
 					</Link>
 				</footer>
 			)}
-		</main>
+		</div>
 	);
 }

@@ -64,7 +64,7 @@ export function SwitchCostCalculator() {
 					</div>
 				</div>
 
-				<div className="rounded-lg border border-primary/20 bg-white px-5 py-4">
+				<div className="rounded-lg border border-primary/20 bg-card px-5 py-4">
 					<p className="text-sm text-muted-foreground">
 						You're spending roughly
 					</p>

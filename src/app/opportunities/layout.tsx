@@ -18,7 +18,7 @@ export default function OpportunitiesLayout({
 		<div style={editorialStyles}>
 			<OpportunitiesProviders>
 				<PublicHeader />
-				{children}
+				<main>{children}</main>
 			</OpportunitiesProviders>
 		</div>
 	);

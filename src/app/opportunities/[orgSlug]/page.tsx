@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Playfair_Display } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { cache } from 'react';
@@ -14,12 +13,6 @@ import { OpportunitiesListing } from './OpportunitiesListing';
 // Deduplicate the DB call between generateMetadata and the page component
 // within a single render pass.
 const getOpportunities = cache(listPublishedOpportunities);
-
-const playfair = Playfair_Display({
-	subsets: ['latin'],
-	variable: '--font-playfair',
-	display: 'swap',
-});
 
 type Props = { params: Promise<{ orgSlug: string }> };
 
@@ -71,9 +64,8 @@ export default async function OpportunitiesPage({ params }: Props) {
 		}
 	}
 
-	// The outer div injects --font-playfair CSS variable into the subtree for use via style prop.
 	return (
-		<div className={playfair.variable}>
+		<>
 			<JsonLdBreadcrumb
 				items={[
 					{ label: 'Home', href: '/' },
@@ -88,6 +80,6 @@ export default async function OpportunitiesPage({ params }: Props) {
 				opportunities={result.opportunities}
 				matchResults={matchResults}
 			/>
-		</div>
+		</>
 	);
 }

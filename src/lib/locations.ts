@@ -415,7 +415,8 @@ export const LOCATIONS: LocationData[] = [
 			'Volunteer Screening & Management for Fresno Nonprofits | VolunteerReady',
 		metaDescription:
 			"Volunteer screening and management for Fresno's nonprofit and animal welfare organizations. Automated background checks, credential tracking, and compliance documentation built for the Central Valley's largest nonprofit community.",
-		heroHeadline: "Volunteer Screening for the Valley's Largest Nonprofit Community",
+		heroHeadline:
+			"Volunteer Screening for the Valley's Largest Nonprofit Community",
 		heroDescription:
 			"Fresno's nonprofits serve a county of nearly a million people with a small fraction of the staff a city this size would suggest. VolunteerReady automates screening, tracks credentials, and keeps volunteer coordination from eating the week.",
 		painPoints: [
@@ -427,7 +428,8 @@ export const LOCATIONS: LocationData[] = [
 		comparisonItems: [
 			{
 				before: 'Volunteer sign-ups tracked separately at each program site',
-				after: 'One dashboard covering every site and program across the county',
+				after:
+					'One dashboard covering every site and program across the county',
 			},
 			{
 				before: 'Background check requests emailed one at a time',
@@ -456,9 +458,10 @@ export const LOCATIONS: LocationData[] = [
 					"Yes. Organizations serving Fresno, Clovis, Sanger, Selma, and surrounding communities can manage volunteers across every site from one dashboard, without duplicating records or losing track of who's covering what location.",
 			},
 			{
-				question: 'How does VolunteerReady support grant and county-contract reporting for Fresno nonprofits?',
+				question:
+					'How does VolunteerReady support grant and county-contract reporting for Fresno nonprofits?',
 				answer:
-					'VolunteerReady tracks volunteer hours and screening status automatically as volunteers check in, so compliance reports for county contracts and grant funders are a export instead of a week of manual compilation before a deadline.',
+					'VolunteerReady tracks volunteer hours and screening status automatically as volunteers check in, so compliance reports for county contracts and grant funders are an export instead of a week of manual compilation before a deadline.',
 			},
 		],
 		localProof: {

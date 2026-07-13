@@ -25,7 +25,7 @@ export async function PlatformStatsBar() {
 			<div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-8 sm:gap-16">
 				{statItems.map((s) => (
 					<div key={s.label} className="text-center">
-						<p className="text-3xl font-bold text-primary">
+						<p className="font-display text-3xl font-bold text-primary">
 							{formatStat(s.value)}
 						</p>
 						<p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
