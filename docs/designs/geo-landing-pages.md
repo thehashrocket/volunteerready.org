@@ -31,7 +31,7 @@ The cost: staff time wasted on coordination, compliance risk, funder documentati
 
 **Target user:** Nonprofit program director or executive director at a small-to-mid-size Central Valley nonprofit (10-200 volunteers). They have a grant that requires volunteer background checks, or an insurer that mandates screening. They're currently doing this manually and it's painful.
 
-**Narrowest wedge:** 5 location-specific landing pages targeting nonprofit admins searching for volunteer screening, background checks, and compliance tools. Each page leads with operational pain (not geography), uses location as a trust signal, and captures leads with source attribution.
+**Narrowest wedge:** 5 location-specific landing pages targeting nonprofit admins searching for volunteer screening, background checks, and compliance tools. Each page leads with operational pain (not geography), uses location as a trust signal, and captures leads with source attribution. (Update 2026-07-13: expanded to 6 locations post-launch with the addition of Fresno — see `src/lib/locations.ts`.)
 
 ## Constraints
 
@@ -272,7 +272,7 @@ If content is not available at implementation time, placeholder content can be u
 
 ## Success Criteria
 
-- 5 location pages live with unique content per page
+- 5 location pages live with unique content per page — ✅ met at launch, since expanded to 6 (Fresno added 2026-07-07)
 - Lead capture form functional with source attribution and email notification
 - At least 1 lead captured within 30 days of launch
 - Pages usable as cold-email collateral (linkable with clear value prop)
@@ -302,7 +302,7 @@ Before building: **email 5 nonprofit admins in San Joaquin or Stanislaus County.
 
 | Screen/Section | Mockup Path | Direction | Notes |
 |----------------|-------------|-----------|-------|
-| Location page (Stockton) | `~/.gstack/projects/thehashrocket-volunteerready.org/designs/geo-landing-pages-20260411/stockton-page-v1.png` | Variant A: 7/5 hero with dashboard screenshot, form below pain section | All 5 location pages follow this layout with unique content |
+| Location page (Stockton) | `~/.gstack/projects/thehashrocket-volunteerready.org/designs/geo-landing-pages-20260411/stockton-page-v1.png` | Variant A: 7/5 hero with dashboard screenshot, form below pain section | All 6 shipped location pages follow this layout with unique content (originally 5; Fresno added 2026-07-07) |
 | Location index (/locations) | `~/.gstack/projects/thehashrocket-volunteerready.org/designs/geo-landing-pages-20260411/locations-index.png` | Vertical editorial list, alternating row backgrounds, arrow links | No card grid, no icons |
 
 ## Eng Review Amendments (2026-04-11, run 2)
