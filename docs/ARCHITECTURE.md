@@ -340,7 +340,7 @@ Both providers use the `BackgroundCheckAdapter` interface with a `getAdapter(pro
 
 **Sterling:**
 - API key authentication (Bearer token) — no OAuth dance
-- Admin connects by entering API key + Account ID on credentials page
+- Admin connects by entering API key + Account ID on the background checks page (`/app/settings/background-checks`)
 - Webhook handler at `/api/sterling/webhook` (HMAC-SHA256 signature verification)
 - Shares `CheckrWebhookEvent` idempotency table for webhook deduplication
 - 7 named error classes (`SterlingAuthError`, `SterlingForbiddenError`, `SterlingValidationError`, `SterlingRateLimitError`, `SterlingTimeoutError`, `SterlingNetworkError`, `SterlingApiError`)

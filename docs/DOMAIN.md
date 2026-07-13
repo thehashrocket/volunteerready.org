@@ -80,7 +80,7 @@ All organization-owned records must contain `orgId`.
 
 Past org slugs, recorded whenever an org renames its public apply slug (v0.27.0.0).
 
-Purpose: old public links (`/apply/{oldSlug}`, `/opportunities/{oldSlug}`, `/stories/{oldSlug}`, OG images) 307-redirect to the current slug instead of 404ing — printed QR flyers keep working after a rename.
+Purpose: old public links (`/apply/{oldSlug}`, `/opportunities/{oldSlug}`, `/stories/{oldSlug}`) 307-redirect to the current slug instead of 404ing — printed QR flyers keep working after a rename. OG images and the referral page resolve old slugs in place rather than redirecting.
 
 Key fields: `orgId`, `oldSlug` (indexed).
 
@@ -88,7 +88,7 @@ Rules:
 
 - Rows persist indefinitely; current-slug lookups win over history, so a re-claimed slug takes precedence.
 - History rows block slug re-registration by new orgs and renames by other orgs (anti-squatting).
-- Slug renames are rate-limited to 3 per 24h per org; reserved slugs (`status`, `refer`, `admin`, ...) are rejected (see `RESERVED_ORG_SLUGS` in `src/server/domain/org-profile.ts`).
+- Slug renames are rate-limited to 3 per 24h per org; reserved slugs (`status`, `refer`, `admin`, `api`, `app`, `apply`, `new`) are rejected (see `RESERVED_ORG_SLUGS` in `src/server/domain/org-profile.ts`).
 - Cascades on organization delete.
 
 ---

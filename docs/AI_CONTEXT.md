@@ -195,8 +195,9 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 
 - **User** — global identity (email, name, image). Relates to accounts, sessions, memberships.
 - **Organization** — the tenant. All operational data hangs off this via `orgId`.
+- **OrgSlugHistory** — past org apply slugs recorded on rename (`orgId`, `oldSlug` indexed). Powers 307 redirects on `/apply`, `/opportunities`, `/stories` old-slug links and blocks slug re-registration (anti-squat). Cascades on org delete.
 - **OrganizationMember** — join table with role: `OWNER | ADMIN | STAFF | READONLY`.
-- **VolunteerApplication** — an application to an org, with status (`SUBMITTED | REVIEW | APPROVED | REJECTED`) and screening result (`PASS | REVIEW | FAIL`).
+- **VolunteerApplication** — an application to an org, with status (`SUBMITTED | REVIEW | APPROVED | REJECTED | WITHDRAWN`) and screening result (`PASS | REVIEW | FAIL`).
 - **VolunteerAnswer** — individual response to a screening question (JSON blob).
 - **ScreenerQuestion** — org-specific question with type (`TEXT | SINGLE_CHOICE | MULTI_CHOICE | BOOLEAN | NUMBER`), disqualifier rules, and review rules.
 - **VolunteerOpportunity** — a volunteer position with status (`DRAFT | PUBLISHED | CLOSED`), location, dates, capacity.
@@ -294,7 +295,7 @@ The screening engine lives in `src/server/domain/volunteer-screening.ts`.
 
 The service orchestrator is `src/server/services/volunteer-screening.ts`. It wraps application creation, answer submission, and audit logging in a single `prisma.$transaction`.
 
-**Duplicate prevention:** A partial unique index on `(submittedByUserId, opportunityId)` WHERE `submittedByUserId IS NOT NULL AND status NOT IN ('REJECTED')` prevents authenticated volunteers from double-applying. The service catches P2002 violations as a race-condition safety net. Applied-status badges appear on opportunity listings, and the apply form intercepts already-applied users with a redirect to their existing application.
+**Duplicate prevention:** A partial unique index on `(submittedByUserId, opportunityId)` WHERE `submittedByUserId IS NOT NULL AND status NOT IN ('REJECTED', 'WITHDRAWN')` prevents authenticated volunteers from double-applying. The service catches P2002 violations as a race-condition safety net. Applied-status badges appear on opportunity listings, and the apply form intercepts already-applied users with a redirect to their existing application.
 
 **Status notification emails:** Branded emails are sent when application status changes to REVIEW, APPROVED, or REJECTED via `sendApplicationStatusEmail()` in the screening service.
 

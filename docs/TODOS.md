@@ -671,7 +671,8 @@ email opt-out via `NotificationPreference`. Backfill script: `pnpm backfill:acti
 **Why:** Orgs that run group trainings currently issue credentials one at a time.
 Bulk issuance is operational polish that reduces admin friction for high-volume orgs.
 
-**Context:** Would need a multi-select UI on the credentials page, a batch
+**Context:** Would need a multi-select UI on the background checks page
+(`/app/settings/background-checks`, formerly the credentials page), a batch
 `credentials.bulkIssue` tRPC mutation, and progress tracking similar to bulk
 import. Reuse the `BulkImportJob` pattern for async processing. Should audit-log
 each credential individually.
