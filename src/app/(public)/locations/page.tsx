@@ -1,7 +1,6 @@
-import { ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
+import { LinkRowList } from '@/components/link-row-list';
 import { BASE_URL } from '@/lib/constants';
 import { LOCATIONS } from '@/lib/locations';
 
@@ -40,27 +39,13 @@ export default function LocationsIndexPage() {
 						Valley.
 					</p>
 
-					<div className="divide-y divide-border/40">
-						{LOCATIONS.map((location, i) => (
-							<Link
-								key={location.slug}
-								href={`/locations/${location.slug}`}
-								className={`flex items-center justify-between py-4 transition-colors hover:bg-muted/50 ${
-									i % 2 === 1 ? 'bg-muted/30' : ''
-								}`}
-							>
-								<div>
-									<h2 className="font-display text-xl font-bold text-foreground sm:text-2xl">
-										{location.name}
-									</h2>
-									<p className="mt-0.5 text-sm text-muted-foreground">
-										{location.heroDescription.split('.')[0]}.
-									</p>
-								</div>
-								<ArrowRight className="h-5 w-5 shrink-0 text-primary" />
-							</Link>
-						))}
-					</div>
+					<LinkRowList
+						items={LOCATIONS.map((location) => ({
+							href: `/locations/${location.slug}`,
+							heading: location.name,
+							description: `${location.heroDescription.split('.')[0]}.`,
+						}))}
+					/>
 				</div>
 			</section>
 		</>
