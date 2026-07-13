@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.4.0] - 2026-07-13
+
+### Changed
+- Internal: corrected a stale location count in `docs/designs/geo-landing-pages.md` (the design doc still said "5 locations" — Fresno shipped 2026-07-07, bringing the live count to 6). No user-facing change.
+
 ## [0.27.3.0] - 2026-07-13
 
 ### Changed
