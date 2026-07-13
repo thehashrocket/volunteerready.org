@@ -160,8 +160,20 @@ export const authOptions: NextAuthOptions = {
 					const match = companyMemberships.find(
 						(m) => m.companyId === currentCompanyId,
 					);
-					companyId = currentCompanyId;
-					companyRole = match?.role ?? null;
+					if (match) {
+						companyId = currentCompanyId;
+						companyRole = match.role;
+					} else {
+						// Stale selection (e.g. removed from the company) — self-heal
+						// to the first membership. Keeping the stale id would point
+						// /app/company at a company the user can't access and loop
+						// its redirect against the company layout's membership guard.
+						companyId = companyMemberships[0]?.companyId ?? null;
+						companyRole = companyMemberships[0]?.role ?? null;
+						// Expose the healed id, not the stale one — CompanySwitcher
+						// keys its "current" indicator off currentCompanyId.
+						currentCompanyId = companyId;
+					}
 				} else {
 					// No explicit company selected — fall back to first membership
 					companyId = companyMemberships[0]?.companyId ?? null;

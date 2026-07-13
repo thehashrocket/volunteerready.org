@@ -179,8 +179,15 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 			const match = companyMemberships.find(
 				(m) => m.companyId === currentCompanyId,
 			);
-			companyId = currentCompanyId;
-			companyRole = match?.role ?? null;
+			if (match) {
+				companyId = currentCompanyId;
+				companyRole = match.role;
+			} else {
+				// Stale selection (e.g. removed from the company) — self-heal to
+				// the first membership, mirroring the session callback in auth.ts.
+				companyId = companyMemberships[0]?.companyId ?? null;
+				companyRole = companyMemberships[0]?.role ?? null;
+			}
 		} else {
 			companyId = companyMemberships[0]?.companyId ?? null;
 			companyRole = companyMemberships[0]?.role ?? null;
