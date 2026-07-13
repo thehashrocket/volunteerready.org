@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { cache } from 'react';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { authOptions } from '@/server/auth';
 import type { MatchResult } from '@/server/domain/volunteer-matching';
 import { rankOpportunities } from '@/server/domain/volunteer-matching';
+import { findCurrentSlugByHistory } from '@/server/repositories/orgRepo';
 import { listPublishedOpportunities } from '@/server/repositories/publicOpportunityRepo';
 import { getSkillsForUser } from '@/server/repositories/volunteerSkillRepo';
 import { OpportunitiesListing } from './OpportunitiesListing';
@@ -35,7 +36,12 @@ export default async function OpportunitiesPage({ params }: Props) {
 	const { orgSlug } = await params;
 	const result = await getOpportunities(orgSlug);
 
-	if (!result) notFound();
+	if (!result) {
+		// Renamed org? Old slugs redirect (307, uncached) to the current listing (issue #127, 4A)
+		const currentSlug = await findCurrentSlugByHistory(orgSlug);
+		if (currentSlug) redirect(`/opportunities/${currentSlug}`);
+		notFound();
+	}
 
 	// Build match results for authenticated volunteers
 	let matchResults: Record<string, MatchResult> | undefined;

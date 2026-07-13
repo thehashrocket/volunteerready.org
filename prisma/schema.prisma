@@ -171,8 +171,25 @@ model Organization {
   bulkImportJobs          BulkImportJob[]
   feedbacks               OrgFeedback[]
   userFeedbacks           UserFeedback[]
+  slugHistory             OrgSlugHistory[]
 
   @@index([suspendedAt])
+}
+
+// Past org slugs kept so old public apply links (/apply/{oldSlug}) can redirect
+// to the current slug instead of 404ing. Rows persist indefinitely; lookups
+// check current slugs first, so a re-claimed slug wins over history.
+model OrgSlugHistory {
+  id        String   @id @default(cuid())
+  orgId     String
+  oldSlug   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([oldSlug])
+  @@index([orgId])
 }
 
 model OrganizationMember {

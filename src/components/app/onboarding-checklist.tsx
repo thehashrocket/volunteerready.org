@@ -31,7 +31,7 @@ const steps = [
 	},
 	{
 		label: 'Complete your first background check',
-		href: '/app/credentials',
+		href: '/app/settings/background-checks',
 		check: (d: OnboardingData) => d.backgroundCheckCompleteCount > 0,
 	},
 ] as const;

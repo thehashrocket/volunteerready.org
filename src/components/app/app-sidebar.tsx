@@ -48,7 +48,7 @@ const STAFF_NAV: NavItem[] = [
 	{ label: 'Discover', href: '/app/discover', icon: UserSearch },
 	{ label: 'Analytics', href: '/app/analytics', icon: TrendingUp },
 	{ label: 'Team', href: '/app/settings/team', icon: Users },
-	{ label: 'Settings', href: '/app/credentials', icon: Settings },
+	{ label: 'Settings', href: '/app/settings', icon: Settings },
 	{ label: 'Billing', href: '/app/billing', icon: CreditCard },
 ];
 
@@ -59,17 +59,42 @@ function getCompanyNav(companyId: string | null | undefined): NavItem[] {
 		{ label: 'Company', href: `/app/company/${companyId}`, icon: Building2 },
 		{
 			label: 'ESG Report',
-			href: `/app/company/${companyId}/team`,
+			href: `/app/company/${companyId}/esg`,
 			icon: BarChart3,
 		},
 	];
 }
 
-function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
-	// Exact match for dashboard (/app), prefix match for everything else
-	const isActive =
-		item.href === '/app' ? pathname === '/app' : pathname.startsWith(item.href);
+/**
+ * Resolve which nav item is active for the current pathname.
+ *
+ * Matching rules:
+ * - Segment-boundary match: an item matches when the pathname equals its href
+ *   or continues it past a "/" (so "/app/opportunities2" does NOT match
+ *   "/app/opportunities").
+ * - Longest match wins: when several items match (e.g. "/app/company/{id}"
+ *   and "/app/company/{id}/esg"), only the most specific one is active.
+ * - "/app" (Dashboard) matches exactly only — otherwise it would light up as
+ *   a fallback on every unlisted /app/* page.
+ */
+export function getActiveHref(
+	items: NavItem[],
+	pathname: string,
+): string | undefined {
+	let best: string | undefined;
+	for (const { href } of items) {
+		const matches =
+			href === '/app'
+				? pathname === '/app'
+				: pathname === href || pathname.startsWith(`${href}/`);
+		if (matches && (best === undefined || href.length > best.length)) {
+			best = href;
+		}
+	}
+	return best;
+}
 
+function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
 	const Icon = item.icon;
 
 	return (
@@ -111,6 +136,21 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 		(session?.user as { isPlatformAdmin?: boolean } | undefined)
 			?.isPlatformAdmin === true;
 
+	// Company pages are authorized by the URL's companyId (see
+	// company/[companyId]/layout.tsx), not the session's active company. A
+	// multi-company user browsing a non-active company would otherwise get
+	// nav hrefs pointing at a different company than the page they're on.
+	const urlCompanyId = pathname.match(/^\/app\/company\/([^/]+)/)?.[1] ?? null;
+	const companyNav = getCompanyNav(urlCompanyId ?? companyId);
+
+	const visibleItems = [
+		...(!hasOrg ? VOLUNTEER_NAV : []),
+		...(hasOrg ? STAFF_NAV : []),
+		...(hasCompany ? companyNav : []),
+		...(isPlatformAdmin ? PLATFORM_ADMIN_NAV : []),
+	];
+	const activeHref = getActiveHref(visibleItems, pathname);
+
 	return (
 		<nav className="flex flex-col gap-1">
 			{/* Volunteer section only shows when user is not an org member */}
@@ -120,7 +160,11 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 						Volunteer
 					</p>
 					{VOLUNTEER_NAV.map((item) => (
-						<NavLink key={item.href} item={item} pathname={pathname} />
+						<NavLink
+							key={item.href}
+							item={item}
+							isActive={item.href === activeHref}
+						/>
 					))}
 				</>
 			)}
@@ -132,7 +176,11 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 						Organization
 					</p>
 					{STAFF_NAV.map((item) => (
-						<NavLink key={item.href} item={item} pathname={pathname} />
+						<NavLink
+							key={item.href}
+							item={item}
+							isActive={item.href === activeHref}
+						/>
 					))}
 				</>
 			)}
@@ -144,8 +192,12 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 					<p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
 						Company
 					</p>
-					{getCompanyNav(companyId).map((item) => (
-						<NavLink key={item.href} item={item} pathname={pathname} />
+					{companyNav.map((item) => (
+						<NavLink
+							key={item.href}
+							item={item}
+							isActive={item.href === activeHref}
+						/>
 					))}
 				</>
 			)}
@@ -158,7 +210,11 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 						Platform admin
 					</p>
 					{PLATFORM_ADMIN_NAV.map((item) => (
-						<NavLink key={item.href} item={item} pathname={pathname} />
+						<NavLink
+							key={item.href}
+							item={item}
+							isActive={item.href === activeHref}
+						/>
 					))}
 				</>
 			)}

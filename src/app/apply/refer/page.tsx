@@ -25,7 +25,18 @@ async function getReferringOrgName(slug: string | undefined) {
 		where: { slug },
 		select: { name: true },
 	});
-	return org?.name ?? null;
+	if (org) return org.name;
+	// Referral links shared before an org renamed still carry the old slug
+	const { findCurrentSlugByHistory } = await import(
+		'@/server/repositories/orgRepo'
+	);
+	const currentSlug = await findCurrentSlugByHistory(slug);
+	if (!currentSlug) return null;
+	const renamed = await prisma.organization.findUnique({
+		where: { slug: currentSlug },
+		select: { name: true },
+	});
+	return renamed?.name ?? null;
 }
 
 export default async function ReferralPage({

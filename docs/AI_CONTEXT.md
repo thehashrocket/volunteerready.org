@@ -67,7 +67,7 @@ src/
 ├── app/                          # Next.js App Router pages
 │   ├── (app)/app/                # Protected org-scoped routes
 │   │   ├── applications/         # Staff: review volunteer applications
-│   │   ├── credentials/          # Staff: manage volunteer verification badges
+│   │   ├── company/[companyId]/esg/ # Company admin: ESG dashboard (renamed from /team, redirect in next.config.ts)
 │   │   ├── my-applications/      # Volunteer: track own applications
 │   │   ├── my-shifts/            # Volunteer: upcoming shift signups
 │   │   ├── my-skills/            # Volunteer: manage skill tags
@@ -80,6 +80,8 @@ src/
 │   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
 │   │   ├── shifts/               # Staff: manage shifts + attendance + templates tab (STARTER-gated)
+│   │   ├── settings/             # Admin: org settings hub — org name + apply slug editor
+│   │   ├── settings/background-checks/ # Staff: manage verification badges (moved from /app/credentials, redirect in next.config.ts)
 │   │   ├── settings/team/        # Admin: team/member management
 │   │   ├── onboarding/           # Org setup flow
 │   │   └── welcome/              # Post-login landing
@@ -193,8 +195,9 @@ The full schema lives in `prisma/schema.prisma`. Key entities:
 
 - **User** — global identity (email, name, image). Relates to accounts, sessions, memberships.
 - **Organization** — the tenant. All operational data hangs off this via `orgId`.
+- **OrgSlugHistory** — past org apply slugs recorded on rename (`orgId`, `oldSlug` indexed). Powers 307 redirects on `/apply`, `/opportunities`, `/stories` old-slug links and blocks slug re-registration (anti-squat). Cascades on org delete.
 - **OrganizationMember** — join table with role: `OWNER | ADMIN | STAFF | READONLY`.
-- **VolunteerApplication** — an application to an org, with status (`SUBMITTED | REVIEW | APPROVED | REJECTED`) and screening result (`PASS | REVIEW | FAIL`).
+- **VolunteerApplication** — an application to an org, with status (`SUBMITTED | REVIEW | APPROVED | REJECTED | WITHDRAWN`) and screening result (`PASS | REVIEW | FAIL`).
 - **VolunteerAnswer** — individual response to a screening question (JSON blob).
 - **ScreenerQuestion** — org-specific question with type (`TEXT | SINGLE_CHOICE | MULTI_CHOICE | BOOLEAN | NUMBER`), disqualifier rules, and review rules.
 - **VolunteerOpportunity** — a volunteer position with status (`DRAFT | PUBLISHED | CLOSED`), location, dates, capacity.
@@ -260,7 +263,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `members` | list, invite, updateRole, remove |
 | `onboarding` | create org, initial setup |
 | `opportunities` | create, update, delete, list, getById |
-| `org` | getCurrentOrg, listOrgs, switchOrg |
+| `org` | getCurrentOrg, listOrgs, switchOrg, updateQrColor, updateTimezone, updateOrgProfile (admin: name + apply slug, slug safety rails), updateMarketplaceSettings |
 | `discovery` | searchVolunteers (staff), inviteToApply (staff) |
 | `feedback` | submit, myFeedback, listAll (platform admin), updateStatus (platform admin), reply (platform admin), newCount (platform admin) |
 | `platformAdmin` | `orgs.{list,get}`, `users.{list,get,setPlatformAdmin,revokeAllSessions}`, `impersonation.{start,end,current,history}`, `audit.{query,options}` — all `platformAdminProcedure`. Audit metadata is redacted by `auditQueryService` before return. |
@@ -292,7 +295,7 @@ The screening engine lives in `src/server/domain/volunteer-screening.ts`.
 
 The service orchestrator is `src/server/services/volunteer-screening.ts`. It wraps application creation, answer submission, and audit logging in a single `prisma.$transaction`.
 
-**Duplicate prevention:** A partial unique index on `(submittedByUserId, opportunityId)` WHERE `submittedByUserId IS NOT NULL AND status NOT IN ('REJECTED')` prevents authenticated volunteers from double-applying. The service catches P2002 violations as a race-condition safety net. Applied-status badges appear on opportunity listings, and the apply form intercepts already-applied users with a redirect to their existing application.
+**Duplicate prevention:** A partial unique index on `(submittedByUserId, opportunityId)` WHERE `submittedByUserId IS NOT NULL AND status NOT IN ('REJECTED', 'WITHDRAWN')` prevents authenticated volunteers from double-applying. The service catches P2002 violations as a race-condition safety net. Applied-status badges appear on opportunity listings, and the apply form intercepts already-applied users with a redirect to their existing application.
 
 **Status notification emails:** Branded emails are sent when application status changes to REVIEW, APPROVED, or REJECTED via `sendApplicationStatusEmail()` in the screening service.
 

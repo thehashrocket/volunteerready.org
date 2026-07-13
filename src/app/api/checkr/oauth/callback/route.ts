@@ -8,7 +8,7 @@
  *   4. Checkr redirects here: GET /api/checkr/oauth/callback?code=...&state={orgId}
  *   5. This route exchanges the code for an access_token + account_id
  *   6. Persists checkrAccessToken + checkrAccountId on the Organization
- *   7. Redirects back to /app/credentials with success or error query param
+ *   7. Redirects back to /app/settings/background-checks with success or error query param
  *
  * SECURITY:
  *   - The `state` param is the orgId. We validate that the current session's
@@ -30,22 +30,24 @@ export async function GET(req: Request) {
 	const state = searchParams.get('state'); // orgId passed as state for CSRF check
 	const error = searchParams.get('error');
 
-	const credentialsUrl = '/app/credentials';
+	const backgroundChecksUrl = '/app/settings/background-checks';
 
 	// Handle Checkr-side errors (e.g. user denied authorization)
 	if (error) {
 		console.warn(`[checkr-oauth] Authorization denied: ${error}`);
-		redirect(`${credentialsUrl}?checkr_error=authorization_denied`);
+		redirect(`${backgroundChecksUrl}?checkr_error=authorization_denied`);
 	}
 
 	if (!code || !state) {
-		redirect(`${credentialsUrl}?checkr_error=missing_params`);
+		redirect(`${backgroundChecksUrl}?checkr_error=missing_params`);
 	}
 
 	// Validate session — must be authenticated with an org context
 	const session = await getServerSession(authOptions);
 	if (!session?.user?.id) {
-		redirect(`/auth/signin?callbackUrl=${encodeURIComponent(credentialsUrl)}`);
+		redirect(
+			`/auth/signin?callbackUrl=${encodeURIComponent(backgroundChecksUrl)}`,
+		);
 	}
 
 	// CSRF check: state must match the session's orgId
@@ -64,14 +66,17 @@ export async function GET(req: Request) {
 		console.error(
 			`[checkr-oauth] State mismatch: expected orgId=${sessionOrgId} got state=${state}`,
 		);
-		redirect(`${credentialsUrl}?checkr_error=state_mismatch`);
+		redirect(`${backgroundChecksUrl}?checkr_error=state_mismatch`);
 	}
 
+	// The success redirect must live OUTSIDE the try: next/navigation's
+	// redirect() throws NEXT_REDIRECT, and a catch around it would swallow
+	// the success and re-redirect to the error state.
 	try {
 		await connectCheckrAccount(sessionOrgId, code, session.user.id);
-		redirect(`${credentialsUrl}?checkr_connected=true`);
 	} catch (err) {
 		console.error('[checkr-oauth] Token exchange failed', err);
-		redirect(`${credentialsUrl}?checkr_error=token_exchange_failed`);
+		redirect(`${backgroundChecksUrl}?checkr_error=token_exchange_failed`);
 	}
+	redirect(`${backgroundChecksUrl}?checkr_connected=true`);
 }

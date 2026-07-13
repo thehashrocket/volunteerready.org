@@ -188,7 +188,7 @@ test.describe('ESG dashboard (authenticated, dev server)', () => {
 			}
 		});
 
-		await page.goto(`/app/company/${companyId}/team`);
+		await page.goto(`/app/company/${companyId}/esg`);
 
 		await expect(
 			page.getByRole('heading', { name: 'ESG Volunteer Impact' }),
@@ -235,7 +235,7 @@ test.describe('ESG dashboard (authenticated, dev server)', () => {
 			},
 		]);
 
-		await page.goto(`/app/company/${companyId}/team`);
+		await page.goto(`/app/company/${companyId}/esg`);
 
 		// The company layout's getCompanyMembership guard must bounce them out
 		await expect(page).not.toHaveURL(new RegExp(`/app/company/${companyId}`));

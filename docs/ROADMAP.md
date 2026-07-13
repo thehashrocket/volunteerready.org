@@ -109,7 +109,7 @@ Completed capabilities:
 - ✅ Volunteer credential system — org-scoped verification badges
 - ✅ Credential types: Background Check, Training Complete, ID Verified, Reference Check, Orientation Complete
 - ✅ Credential lifecycle: PENDING → VERIFIED → EXPIRED / REVOKED
-- ✅ Staff credential management UI (`/app/credentials`) — issue, revoke, remove
+- ✅ Staff credential management UI (`/app/settings/background-checks`, originally `/app/credentials`) — issue, revoke, remove
 - ✅ Volunteer credential read-only view on profile page
 - ✅ Cross-org profile stats (applications, orgs, skills, verified credentials)
 
@@ -208,7 +208,7 @@ Completed capabilities:
 - ✅ `BackgroundCheckRequest` entity tracks lifecycle: PENDING → COMPLETE / CONSIDER / FAILED / CANCELLED
 - ✅ Async webhook handler — provider posts result; credential is auto-created on COMPLETE
 - ✅ PII guardrail — SSN/DOB passed through to provider only, never stored in the database
-- ✅ Staff-initiated check UI at `/app/credentials` — existing page extended
+- ✅ Staff-initiated check UI at `/app/settings/background-checks` (originally `/app/credentials`) — existing page extended
 - ✅ CONSIDER flow — marks request and notifies staff for manual review
 - ✅ Webhook race condition handling — lookup by `externalId`; not-found requeues with delay
 - ✅ FCRA adverse action workflow — pre-adverse notice → 5-day waiting period → adverse action notice
@@ -251,7 +251,7 @@ Key entities added:
 
 ## 6D — Corporate ESG Reporting ✅
 
-- Corporate account dashboard at `/app/company/[companyId]/team` — employee volunteer activity, hours, orgs supported
+- Corporate account dashboard at `/app/company/[companyId]/esg` (originally `/team`, renamed v0.27.0.0) — employee volunteer activity, hours, orgs supported
 - Aggregate-only view for corporate admins — individual employee records require employee consent
 - One-click ESG report export (CSV + PDF) — hours logged, verified credentials, supported nonprofits
 - `EmployerReportService` — uses raw SQL aggregations (`$queryRaw` with `Prisma.sql`), not per-row queries
@@ -276,7 +276,7 @@ Key new routes:
 
 - `/pricing` — public nonprofit + corporate pricing page
 - `/for-employers` — corporate marketing landing page
-- `/app/company/[companyId]/team` — corporate account dashboard (employees, activity, ESG report)
+- `/app/company/[companyId]/esg` — corporate account dashboard (employees, activity, ESG report; originally `/team`)
 - `/app/billing` — nonprofit plan management + upgrade flow
 - `/credentials/claim/[token]` — credential share token claim
 

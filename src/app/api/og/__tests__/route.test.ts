@@ -7,6 +7,10 @@ vi.mock('@/server/repositories/prisma', () => ({
 }));
 
 // Mock next/og ImageResponse to avoid needing canvas/sharp
+vi.mock('@/server/repositories/orgRepo', () => ({
+	findCurrentSlugByHistory: vi.fn(async () => null),
+}));
+
 vi.mock('next/og', () => ({
 	ImageResponse: class {
 		constructor(

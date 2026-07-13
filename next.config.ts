@@ -28,6 +28,16 @@ const nextConfig: NextConfig = {
 			destination: '/for/employers',
 			permanent: true,
 		},
+		{
+			source: '/app/company/:companyId/team',
+			destination: '/app/company/:companyId/esg',
+			permanent: true,
+		},
+		{
+			source: '/app/credentials',
+			destination: '/app/settings/background-checks',
+			permanent: true,
+		},
 	],
 };
 

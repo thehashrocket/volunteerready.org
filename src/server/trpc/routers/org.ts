@@ -1,8 +1,13 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { orgProfileUpdateSchema } from '@/server/domain/org-profile';
 import { updateMarketplaceSettings } from '@/server/services/orgMarketplaceService';
-import { switchOrgForSession } from '@/server/services/orgService';
 import {
+	switchOrgForSession,
+	updateOrgProfile,
+} from '@/server/services/orgService';
+import {
+	adminProcedure,
 	createTRPCRouter,
 	orgProcedure,
 	protectedProcedure,
@@ -120,6 +125,33 @@ export const orgRouter = createTRPCRouter({
 			return ctx.prisma.organization.update({
 				where: { id: ctx.orgId },
 				data: { timezone: input.timezone },
+			});
+		}),
+
+	/** Update org name + public apply slug (OWNER/ADMIN only). */
+	updateOrgProfile: adminProcedure
+		// Loose slug here on purpose: the service validates slug rules only
+		// when the slug actually CHANGES, so orgs with legacy slugs that
+		// predate the rules can still save name-only edits.
+		.input(
+			z.object({
+				name: orgProfileUpdateSchema.shape.name,
+				slug: z.string().min(1).max(80),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const effectiveUserId = ctx.session?.user?.id ?? '';
+			return updateOrgProfile({
+				orgId: ctx.orgId,
+				actorId: effectiveUserId,
+				name: input.name,
+				slug: input.slug,
+				// Renaming the public apply link under impersonation must be
+				// traceable to the real admin, not blamed on the target user.
+				impersonatedBy:
+					ctx.realUserId && ctx.realUserId !== effectiveUserId
+						? ctx.realUserId
+						: null,
 			});
 		}),
 

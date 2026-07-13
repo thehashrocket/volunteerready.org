@@ -30,9 +30,12 @@ const NO_ORG_EXEMPT_PREFIXES = [
 	'/app/my-feedback',
 	'/app/profile',
 	'/app/admin',
+	// Company pages belong to a company, not a nonprofit org — feedback from
+	// them must not be attributed to whatever org is in session context.
+	'/app/company',
 ];
 
-function isOrgScopedPage(pageUrl: string): boolean {
+export function isOrgScopedPage(pageUrl: string): boolean {
 	try {
 		const pathname = pageUrl.startsWith('http')
 			? new URL(pageUrl).pathname

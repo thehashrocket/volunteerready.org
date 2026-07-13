@@ -1114,7 +1114,7 @@ export default function CredentialsPage() {
 		return (
 			<div className="space-y-6">
 				<PageHeader
-					title="Credentials"
+					title="Background checks"
 					description="Manage volunteer verifications."
 				/>
 				<Card>
@@ -1132,7 +1132,7 @@ export default function CredentialsPage() {
 		return (
 			<div className="space-y-6">
 				<PageHeader
-					title="Credentials"
+					title="Background checks"
 					description="Manage volunteer verifications."
 				/>
 				<Card>
@@ -1155,7 +1155,7 @@ export default function CredentialsPage() {
 	return (
 		<div className="space-y-6">
 			<PageHeader
-				title="Credentials"
+				title="Background checks"
 				description="Issue and manage volunteer verification badges."
 				actions={
 					<div className="flex gap-2">

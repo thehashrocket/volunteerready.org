@@ -45,9 +45,11 @@ const ROUTE_NAME_MAP: Record<string, string> = {
 	'/app/opportunities': 'Opportunities',
 	'/app/screener': 'Screener Questions',
 	'/app/applications': 'Applications',
-	'/app/settings': 'Settings',
+	'/app/settings': 'Organization Settings',
 	'/app/settings/team': 'Team Settings',
 	'/app/settings/onboarding': 'Onboarding Settings',
+	'/app/settings/background-checks': 'Background Checks',
+	'/app/company': 'Company Dashboard',
 	'/app/my-applications': 'My Applications',
 	'/app/my-shifts': 'My Shifts',
 	'/app/my-skills': 'My Skills',
@@ -61,6 +63,11 @@ const ROUTE_NAME_MAP: Record<string, string> = {
 	'/app/admin/case-studies': 'Case Studies Admin',
 	'/app/admin/onboarding': 'Onboarding Analytics',
 };
+
+const DYNAMIC_ROUTE_NAMES: { pattern: RegExp; name: string }[] = [
+	{ pattern: /^\/app\/company\/[^/]+\/esg$/, name: 'ESG Report' },
+	{ pattern: /^\/app\/company\/[^/]+$/, name: 'Company Dashboard' },
+];
 
 /**
  * Resolve a URL path to a human-readable page name.
@@ -76,6 +83,14 @@ export function resolvePageName(url: string): string {
 		// Direct match
 		if (ROUTE_NAME_MAP[pathname]) {
 			return ROUTE_NAME_MAP[pathname];
+		}
+
+		// Dynamic-segment routes the prefix loop below can't resolve
+		// (an ID sits between the static parts, e.g. /app/company/{id}/esg)
+		for (const { pattern, name } of DYNAMIC_ROUTE_NAMES) {
+			if (pattern.test(pathname)) {
+				return name;
+			}
 		}
 
 		// Strip trailing dynamic segments (e.g., /app/opportunities/abc123 → /app/opportunities)

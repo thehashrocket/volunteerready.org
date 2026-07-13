@@ -95,7 +95,17 @@ export function OrgSwitcher() {
 					return (
 						<DropdownMenuItem
 							key={org.id}
-							onClick={() => switchMutation.mutate({ orgId: org.id })}
+							onClick={() => {
+								// Dirty forms (e.g. /app/settings org profile) set this flag
+								// so switching orgs can't silently discard unsaved edits.
+								if (
+									document.body.dataset.dirtyForm === 'true' &&
+									!window.confirm('Discard unsaved changes?')
+								) {
+									return;
+								}
+								switchMutation.mutate({ orgId: org.id });
+							}}
 							className="flex items-center justify-between"
 						>
 							<span className="truncate">{org.name}</span>

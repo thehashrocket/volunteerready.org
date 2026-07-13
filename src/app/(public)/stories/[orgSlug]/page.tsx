@@ -1,7 +1,7 @@
 import { Shield } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
@@ -42,7 +42,16 @@ export default async function StoryPage({ params }: Props) {
 		select: { id: true, consentToPublicize: true },
 	});
 
-	if (!org?.consentToPublicize) notFound();
+	if (!org) {
+		// Renamed org? Old slugs redirect (307, uncached) to the current story URL (issue #127, 4A)
+		const { findCurrentSlugByHistory } = await import(
+			'@/server/repositories/orgRepo'
+		);
+		const currentSlug = await findCurrentSlugByHistory(orgSlug);
+		if (currentSlug) redirect(`/stories/${currentSlug}`);
+		notFound();
+	}
+	if (!org.consentToPublicize) notFound();
 
 	const data = await getCaseStudy(org.id);
 	if (!data) notFound();
