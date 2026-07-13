@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.0.0] - 2026-07-13
+
+### Added
+- **Organizations can now edit their name and public apply link.** (#127) The new Organization settings page (`/app/settings`) shows the live apply URL with a copy button and lets owners and admins rename the org or change its URL slug. Renaming the slug is a guarded flow: a confirmation dialog names both the old and new URL before anything changes, and every previously printed QR flyer or shared link keeps working — old slugs redirect to the new address across the apply page, public opportunity listings, impact stories, referral links, and social-share images. Slugs are validated as you type (lowercase, hyphens, 3–60 chars), platform routes like `status` and `refer` are reserved, freed slugs can't be claimed by other organizations (anti-squatting, with self-reclaim allowed), and slug changes are limited to 3 per day. Staff below admin see the profile read-only; volunteers are redirected. Editing is protected against losing work: unsaved changes prompt before any in-app navigation, org switching, or tab close.
+- Settings hub "Access & setup" section links to Team, Onboarding, and Background checks from one place.
+
+### Fixed
+- **Sidebar navigation goes where it says it goes.** (#127) "ESG Report" now lives at `/esg` instead of a route confusingly named "team"; "Settings" points at the new settings hub instead of the background-check credentials page (now at `/app/settings/background-checks`, retitled to match); old URLs redirect. Exactly one sidebar item highlights at a time — previously "Company" and "ESG Report" lit up together, and near-miss URLs could false-match.
+- **Multi-company users see the right company in the sidebar.** Company nav links now follow the company page you're actually viewing instead of always pointing at your default company.
+- **Connecting Checkr no longer reports failure on success.** A pre-existing bug sent every successful Checkr OAuth connection to an error banner (the token was saved, the UI said it wasn't); successful connects now land on the success state.
+- **In-app feedback from company pages is no longer misfiled under a nonprofit org**, and feedback from the ESG page is labeled "ESG Report" instead of a raw URL fragment in the admin triage view.
+- Renaming an org under platform-admin impersonation now edits the impersonated org (not the admin's own) and audit-logs the real admin as the actor.
+
+### Changed
+- Org profile changes are audit-logged with before/after values; concurrent edits from two sessions are detected and rejected with a clear retry message instead of silently losing one edit.
+
 ## [0.26.4.0] - 2026-07-12
 
 ### Fixed

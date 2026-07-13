@@ -1200,10 +1200,32 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   (`e2e/esg-dashboard.spec.ts` — new auth harness seeds a DB session).
   `public/marketing/esg.png` recaptured with real seeded aggregates.
   **Completed:** v0.26.4.0 (2026-07-12)
-- **[P2] Nav misroutes in app sidebar** — "ESG Report" points to
-  `/app/company/[id]/team` (route named "team" renders the ESG page);
-  "Settings" points to `/app/credentials` (app-sidebar.tsx:52); Company +
-  ESG Report both highlight active (prefix-match).
+- **[P2] Nav misroutes in app sidebar** — "ESG Report" pointed to
+  `/app/company/[id]/team` (route named "team" rendered the ESG page);
+  "Settings" pointed to `/app/credentials`; Company + ESG Report both
+  highlighted active (prefix-match). Fixed: route renamed to `/esg`,
+  credentials moved to `/app/settings/background-checks`, new settings hub,
+  longest-match single-highlight nav. **Completed:** v0.27.0.0 (2026-07-13)
+- **[P3] Two-column settings shell when /app/settings outgrows stacked panels** —
+  (from /plan-design-review of issue #127, 2026-07-12.) The settings hub ships
+  as two stacked panels (Organization profile form + "Access & setup" nav rows)
+  per the approved mockup — Codex's outside-voice review argued for a two-column
+  shell (form workspace + settings nav rail), overruled because today's content
+  is one form and three links. Revisit when the hub exceeds ~6 sections
+  (webhooks admin at TODOS:~1064 and notification/billing settings are likely
+  growth). Start: `src/app/(app)/app/settings/page.tsx`, approved mockups at
+  `~/.gstack/projects/thehashrocket-volunteerready.org/designs/settings-hub-20260712/`.
+  **Effort:** M | **Priority:** P3 | **Depends on:** settings hub shipping (issue #127).
+- **[P3] OrgSlugHistory permanent namespace lock needs an admin release tool** —
+  (from /ship adversarial review of issue #127, 2026-07-13.) Slug history rows
+  persist forever and now block BOTH new-org creation (`slugExistsInHistory`)
+  and other orgs' renames (foreign-history check) — correct anti-squatting
+  defaults, but a malicious org can still permanently retire 3 slugs/day
+  (rate limit caps velocity, not accumulation), and platform admins have no
+  release/purge tool. Options: history TTL, per-org history cap, or a platform
+  admin "release slug" action that deletes history rows. Start:
+  `src/server/services/orgService.ts` (checks), `OrgSlugHistory` model.
+  **Effort:** M | **Priority:** P3 | **Depends on:** issue #127 shipping.
 - **[P3] ESG date filters use UTC day boundaries** — (from /ship red-team
   review of issue #126, 2026-07-12.) Date-only `from`/`to` values parse as
   UTC midnight on every path (page date inputs, CSV/PDF query params), and
