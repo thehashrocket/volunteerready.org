@@ -1217,7 +1217,7 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   growth). Start: `src/app/(app)/app/settings/page.tsx`, approved mockups at
   `~/.gstack/projects/thehashrocket-volunteerready.org/designs/settings-hub-20260712/`.
   **Effort:** M | **Priority:** P3 | **Depends on:** settings hub shipping (issue #127).
-- **[P1] Local `pnpm build` fails prerender with React useContext null** —
+- **[P1] Local `pnpm build` fails prerender with React useContext null** (#136) —
   (found by /ship of issue #127, 2026-07-13; confirmed PRE-EXISTING on main
   78c1847.) `next build` compiles successfully but static prerender/export
   dies with `TypeError: Cannot read properties of null (reading 'useContext')`
