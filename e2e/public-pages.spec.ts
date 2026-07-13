@@ -1,4 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
+import { LOCATIONS } from '../src/lib/locations';
 
 const PUBLIC_PAGES = [
 	'/',
@@ -13,7 +14,8 @@ const PUBLIC_PAGES = [
 	'/security',
 	'/privacy',
 	'/terms',
-	'/locations/stockton',
+	'/locations',
+	...LOCATIONS.map((location) => `/locations/${location.slug}`),
 ] as const;
 
 test.describe('Public pages smoke', () => {
@@ -66,6 +68,38 @@ test.describe('/for index navigation', () => {
 		await audienceRow(page, 'Nonprofits').click();
 
 		await expect(page).toHaveURL(/\/for\/nonprofits$/);
+		const h1 = page.locator('h1').first();
+		await expect(h1).toBeVisible();
+	});
+});
+
+test.describe('/locations index navigation', () => {
+	function locationRow(page: Page, name: string) {
+		return page
+			.locator('main')
+			.getByRole('link')
+			.filter({ has: page.getByRole('heading', { name, exact: true }) });
+	}
+
+	test('renders all location rows with correct hrefs', async ({ page }) => {
+		await page.goto('/locations', { waitUntil: 'domcontentloaded' });
+
+		for (const location of LOCATIONS) {
+			const link = locationRow(page, location.name);
+			await expect(link).toBeVisible();
+			await expect(link).toHaveAttribute('href', `/locations/${location.slug}`);
+		}
+	});
+
+	test('clicking a location row navigates to its destination page', async ({
+		page,
+	}) => {
+		await page.goto('/locations', { waitUntil: 'domcontentloaded' });
+
+		const first = LOCATIONS[0];
+		await locationRow(page, first.name).click();
+
+		await expect(page).toHaveURL(new RegExp(`/locations/${first.slug}$`));
 		const h1 = page.locator('h1').first();
 		await expect(h1).toBeVisible();
 	});

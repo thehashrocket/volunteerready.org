@@ -1320,14 +1320,15 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   C" during eng review, not built — P2 above uses the editorial-list
   approach instead). **Effort:** M (content) + S (integration) |
   **Priority:** P3 | **Depends on:** P2 grid fix above shipping first.
-- **[P3] Shared link-row component for `/for` + `/locations`** (issue #140) — once the
-  P2 grid fix ships, `/for/page.tsx` and `/locations/page.tsx` will both
-  have the same row-link pattern (divide-y, alternating stripe, hover,
-  ArrowRight) as separate inline JSX. Extract into one shared component.
-  Raised by Codex during the issue #128 outside-voice review; deliberately
-  not done in that PR since `/locations` wasn't in scope for a P2 fix.
-  **Effort:** S | **Priority:** P3 | **Depends on:** P2 grid fix above
-  shipping first (need both usages to exist before extracting).
+- ~~**[P3] Shared link-row component for `/for` + `/locations`**~~ ✅
+  **Completed v0.27.3.0 (2026-07-13)** (issue #140) — extracted
+  `src/components/link-row-list.tsx` (`LinkRowList`, fixed prop shape,
+  `<h2>` headings, `href` as key), consumed by both `for/page.tsx` and
+  `locations/page.tsx`. Also added e2e coverage for the `/locations` index
+  page's navigation (previously untested) and expanded slug-level smoke
+  coverage from 1 to all 6 locations. Raised by Codex during the issue #128
+  outside-voice review; deliberately deferred from that PR since
+  `/locations` wasn't in scope for a P2 fix.
 - ~~**[P2] Eyebrow/kicker inconsistency**~~ ✅ **Completed v0.27.2.0
   (2026-07-13)** — extracted `src/components/eyebrow.tsx` (`as` prop for
   p/h2/dt, `tone` prop for primary/muted) with 30 direct call sites across
@@ -1349,3 +1350,21 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   components render <script> inside React trees).
 
 Full report: `~/.gstack/projects/thehashrocket-volunteerready.org/designs/design-audit-20260712/`
+
+## Eng review follow-ups (/plan-eng-review, 2026-07-13, issue #140)
+
+- **[P3] Fragile `heroDescription.split('.')[0]` truncation in `/locations`
+  index rows** (issue #142) — the `/locations` index row-list derives each
+  row's description by splitting `heroDescription` on the first period.
+  `heroDescription` is full hero marketing copy, not a summary field;
+  splitting on `.` silently breaks the moment any location's copy contains a
+  mid-sentence period (e.g. "U.S.", "Inc.", "St."). None of the current 6
+  `LOCATIONS` entries trigger this today (verified during review), but
+  nothing validates the assumption — a future copy edit could ship a
+  truncated/garbled row description with no test catching it. Fix: add an
+  explicit `summary` field to `LocationData` (`src/lib/locations.ts`) and use
+  it directly instead of deriving it. Raised by Codex (outside-voice pass)
+  during #140's eng review; deliberately deferred since #140 is scoped as a
+  pure extraction refactor with zero content/data changes. **Effort:** S
+  (code) + content pass across 6 entries | **Priority:** P3 | **Depends
+  on:** —
