@@ -24,7 +24,7 @@ VolunteerReady is a **multi-tenant SaaS platform** that helps nonprofit organiza
 | UI | Tailwind CSS 4 + shadcn/ui (Radix primitives) + Lucide icons |
 | Forms | react-hook-form + @hookform/resolvers (Zod) |
 | Linting/Formatting | Biome (no ESLint, no Prettier) |
-| Testing | Vitest |
+| Testing | Vitest (unit/component), Playwright (e2e) |
 | Docs site | VitePress |
 | Package manager | pnpm |
 
@@ -433,6 +433,7 @@ pnpm format               # Biome format
 pnpm typecheck            # tsc --noEmit
 pnpm test                 # Vitest (run once)
 pnpm test:watch           # Vitest (watch mode)
+pnpm e2e                  # Playwright e2e (boots the dev server; PLAYWRIGHT_BASE_URL targets a running one)
 pnpm check                # typecheck + lint + test (full CI suite)
 pnpm prisma migrate deploy  # Apply migrations
 pnpm prisma db seed         # Seed data (production or dev based on NODE_ENV)
@@ -453,7 +454,7 @@ pnpm docs:dev               # VitePress dev server
 - **Indentation:** 2 spaces
 - **Quotes:** single
 - **Path alias:** `@/` → `src/`
-- **Tests:** co-located in `__tests__/` dirs or `*.test.ts` files
+- **Tests:** co-located in `__tests__/` dirs or `*.test.ts` files; Playwright e2e specs live in `e2e/`
 
 ---
 
@@ -512,7 +513,10 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/lib/adapters/background-check/registry.ts` | `getAdapter(provider)` factory — returns Checkr or Sterling adapter |
 | `src/server/lib/adapters/background-check/sterling.ts` | Sterling adapter: API integration, HMAC-SHA256 webhook verification, 7 typed error classes |
 | `src/server/lib/crypto.ts` | AES-256-GCM encrypt/decrypt/tryDecrypt for secrets at rest |
+| `src/server/domain/esg-report.ts` | ESG report domain — `esgReportInputSchema` + `normalizeESGDateRange` (end-of-day `to` bounds, inverted-range rejection), `computeESGSummary`, CSV formatting |
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
+| `playwright.config.ts` | E2E configuration (boots `pnpm dev`; `PLAYWRIGHT_BASE_URL` override) |
+| `e2e/utils/db.ts` | Playwright auth harness — seeds a NextAuth database session for authenticated e2e specs; refuses non-local `DATABASE_URL` |
 
 ---
 

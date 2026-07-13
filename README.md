@@ -228,7 +228,8 @@ Used to enable or disable experimental or premium functionality.
 - Stripe (billing)
 - Resend (transactional email)
 - Checkr (background checks)
-- Vitest (testing)
+- Vitest (unit/component testing)
+- Playwright (end-to-end testing)
 - Biome (linting/formatting)
 
 ---
@@ -254,6 +255,8 @@ prisma/
  └─ seed-dev.ts         # Dev/staging seed (full demo data + test accounts)
 
 docs/                   # VitePress documentation site
+
+e2e/                    # Playwright end-to-end tests (auth harness in e2e/utils/)
 ```
 
 ---
@@ -282,6 +285,7 @@ pnpm start          # Production server
 pnpm lint           # Biome lint
 pnpm format         # Biome format
 pnpm test           # Vitest (run once)
+pnpm e2e            # Playwright e2e (boots the dev server; set PLAYWRIGHT_BASE_URL to target a running one)
 pnpm check          # typecheck + lint + test
 ```
 
