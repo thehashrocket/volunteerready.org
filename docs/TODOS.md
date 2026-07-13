@@ -1304,10 +1304,30 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   change, not inside a bug fix. **Effort:** M | **Priority:** P2 |
   **Depends on:** nothing; best done before a second multi-company
   customer onboards.
-- **[P2] Banned grid patterns on public pages** — homepage 3-column feature
-  grid and `/for` audience card grid are on DESIGN.md's own anti-pattern
-  list (flagged by Codex + live audit). Composition redesign, needs owner
-  call.
+- ~~**[P2] Banned grid patterns on public pages**~~ ✅ **Completed v0.27.1.0
+  (2026-07-13)** — homepage `pillars` + `differentiators` sections
+  consolidate into a shared `EditorialList` component (icons dropped from
+  pillars); `/for` `audiences` section mirrors the existing
+  `locations/page.tsx` link-row pattern (divide-y, alternating stripe,
+  hover, ArrowRight) instead of a grid. Design doc:
+  `docs/designs/banned-grid-patterns.md`. See below for spun-off follow-ups.
+- **[P3] Annotated product imagery for homepage/`/for`** — DESIGN.md's
+  stated visual hero is real product screenshots ("product data as visual
+  hero"), not icons or lists. Once the P2 grid fix above ships, consider
+  replacing the editorial-list/link-row layouts with annotated screenshots
+  per pillar/audience. Needs 3-4 screenshots that don't exist yet — content
+  production, not a code task. Deferred from issue #128 (named as "Approach
+  C" during eng review, not built — P2 above uses the editorial-list
+  approach instead). **Effort:** M (content) + S (integration) |
+  **Priority:** P3 | **Depends on:** P2 grid fix above shipping first.
+- **[P3] Shared link-row component for `/for` + `/locations`** — once the
+  P2 grid fix ships, `/for/page.tsx` and `/locations/page.tsx` will both
+  have the same row-link pattern (divide-y, alternating stripe, hover,
+  ArrowRight) as separate inline JSX. Extract into one shared component.
+  Raised by Codex during the issue #128 outside-voice review; deliberately
+  not done in that PR since `/locations` wasn't in scope for a P2 fix.
+  **Effort:** S | **Priority:** P3 | **Depends on:** P2 grid fix above
+  shipping first (need both usages to exist before extracting).
 - **[P2] Eyebrow/kicker inconsistency** — 3+ competing uppercase-kicker
   styles across public pages (tracking 0.15/0.2/0.25em/widest, mono vs
   sans). Extract one component.

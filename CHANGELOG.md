@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.1.0] - 2026-07-13
+
+### Changed
+- **The homepage and `/for` page no longer look like generic AI-generated SaaS templates.** (#128) The homepage's "What it does, day to day" section and the `/for` audience picker both used a 3/4-up icon-in-a-colored-circle card grid — a pattern DESIGN.md explicitly bans. The homepage now presents "What it does" and "Three things you won't find in the rest of the category" as matching editorial lists; `/for` now presents its four audiences (nonprofits, volunteers, employers, animal shelters) as a clickable row list matching the existing `/locations` page, with a clear hover state and arrow instead of a card grid.
+
 ## [0.27.0.0] - 2026-07-13
 
 ### Added
