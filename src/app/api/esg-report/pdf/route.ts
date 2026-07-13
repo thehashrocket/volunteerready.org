@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { authOptions } from '@/server/auth';
 import { assertPlanAtLeast } from '@/server/domain/billing';
+import { esgReportInputSchema } from '@/server/domain/esg-report';
 import {
 	getCompanyMembership,
 	getCompanyPlanTier,
@@ -11,11 +12,12 @@ import { generateESGPdfExport } from '@/server/services/employerReportService';
 
 type SessionExt = { user?: { id?: string } };
 
-const paramsSchema = z.object({
-	companyId: z.string().min(1),
-	from: z.coerce.date().nullish(),
-	to: z.coerce.date().nullish(),
-});
+// Intersect with the domain schema so the exports enforce the same
+// from <= to refine as the tRPC path (an inverted range would otherwise
+// return a legitimate-looking all-zeros report).
+const paramsSchema = z
+	.object({ companyId: z.string().min(1) })
+	.and(esgReportInputSchema);
 
 export async function GET(req: NextRequest) {
 	// 1. Auth — session required

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.4.0] - 2026-07-12
+
+### Fixed
+- **The ESG dashboard loads real numbers instead of failing on every visit.** (#126) The employer ESG report query 500'd under the dev server ("invalid input syntax for type boolean") because composed SQL fragments lose their class identity across Turbopack's module graphs and get sent to Postgres as literal text. Both ESG aggregate queries were rewritten as single parameterized statements (with index-friendly `COALESCE` range bounds); a production-build test confirmed deployed builds were never affected — the breakage was development-only. The same fragile pattern in marketplace remote-filter search was fixed before it could bite.
+- **Employers see a real error instead of fabricated zeros.** When the report query failed, the page showed $0-everything stat cards and "No volunteer activity recorded yet" — fabricated data on a paid reporting feature — and a failed company lookup showed an "Upgrade to PRO" prompt to already-paying customers. Both failures now show a clear error card with a retry button (spinner while retrying), exports disable while errored, and raw internal error details are never rendered — only human-readable messages for expected error types.
+- **Date filters include the full end day.** Picking "To: Jan 31" previously cut the report off at midnight, silently dropping every shift on the chosen end day from the dashboard, CSV, and PDF. Date-only end bounds now cover the entire day; an inverted range (From after To) shows an inline validation message instead of an empty-looking report, and the CSV/PDF endpoints reject inverted ranges instead of returning a legitimate-looking all-zeros file.
+- **Company admins without a nonprofit role can reach their company pages.** Users who only administer a company (no nonprofit membership) were bounced to onboarding from every company page; company routes are now exempt from the no-org redirect (per-company membership is still enforced). A related lockout was fixed: being removed from your selected company no longer strands your session pointing at it — it self-heals to your remaining membership instead of redirect-looping.
+- The `/for/employers` marketing screenshot now shows the ESG dashboard with real activity data (it previously shipped as an empty zero-state pending this fix).
+
+### Added
+- First authenticated end-to-end test suite (`pnpm e2e`): a Playwright harness signs in via a seeded database session and loads the ESG dashboard against the real dev server — the only environment that reproduces this bug class — plus a companion test proving non-members are still turned away. The harness refuses to run against non-local databases.
+
 ## [0.26.3.0] - 2026-07-12
 
 ### Fixed

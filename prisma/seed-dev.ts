@@ -1693,6 +1693,88 @@ async function seedDev() {
 			/* ignore duplicate */
 		});
 
+	// ESG demo activity: past ATTENDED shifts for Acme employees at linked
+	// nonprofits so the ESG dashboard (and marketing screenshot) shows real
+	// aggregates instead of the zero-state.
+	// Fixed timestamps, NOT daysAgo(): createShiftIfNotExists matches on
+	// (orgId, title, startTime), so per-run NOW arithmetic would create
+	// duplicate shifts and inflate the aggregates on every seed re-run.
+	console.log('📊 Creating ESG demo activity (Acme Corp)...');
+
+	const esgFoodBankDay = await createShiftIfNotExists({
+		orgId: helpingHands.id,
+		title: 'Corporate Volunteer Day — Food Bank',
+		location: '1200 Main St, Portland, OR 97201',
+		startTime: new Date('2026-06-12T16:00:00Z'),
+		endTime: new Date('2026-06-12T20:00:00Z'), // 4h
+		capacity: 20,
+		status: 'COMPLETED',
+	});
+	const esgMealPrep = await createShiftIfNotExists({
+		orgId: helpingHands.id,
+		title: 'Weekend Meal Prep — Team Acme',
+		location: '1200 Main St, Portland, OR 97201',
+		startTime: new Date('2026-06-28T17:00:00Z'),
+		endTime: new Date('2026-06-28T20:00:00Z'), // 3h
+		capacity: 10,
+		status: 'COMPLETED',
+	});
+	const esgTrailDay = await createShiftIfNotExists({
+		orgId: greenCity.id,
+		title: 'Company Trail Restoration Day',
+		location: 'Forest Park Trailhead #3',
+		startTime: new Date('2026-06-21T15:00:00Z'),
+		endTime: new Date('2026-06-21T20:00:00Z'), // 5h
+		capacity: 15,
+		status: 'COMPLETED',
+	});
+	const esgParkCleanup = await createShiftIfNotExists({
+		orgId: greenCity.id,
+		title: 'Earth Day Park Cleanup',
+		location: 'Forest Park',
+		startTime: new Date('2026-05-28T16:00:00Z'),
+		endTime: new Date('2026-05-28T20:00:00Z'), // 4h
+		capacity: 25,
+		status: 'COMPLETED',
+	});
+
+	await createSignupIfNotExists(
+		esgFoodBankDay.id,
+		testCompanyAdmin.id,
+		'ATTENDED',
+	);
+	await createSignupIfNotExists(esgFoodBankDay.id, sarah.id, 'ATTENDED');
+	await createSignupIfNotExists(esgFoodBankDay.id, marcus.id, 'ATTENDED');
+	await createSignupIfNotExists(esgMealPrep.id, sarah.id, 'ATTENDED');
+	await createSignupIfNotExists(esgMealPrep.id, marcus.id, 'ATTENDED');
+	await createSignupIfNotExists(esgTrailDay.id, sarah.id, 'ATTENDED');
+	await createSignupIfNotExists(
+		esgTrailDay.id,
+		testCompanyAdmin.id,
+		'ATTENDED',
+	);
+	await createSignupIfNotExists(esgParkCleanup.id, marcus.id, 'ATTENDED');
+
+	// Verified credentials so the Credentials column has data
+	await upsertCredential(
+		sarah.id,
+		helpingHands.id,
+		'BACKGROUND_CHECK',
+		'VERIFIED',
+	);
+	await upsertCredential(
+		marcus.id,
+		helpingHands.id,
+		'BACKGROUND_CHECK',
+		'VERIFIED',
+	);
+	await upsertCredential(
+		sarah.id,
+		greenCity.id,
+		'ORIENTATION_COMPLETE',
+		'VERIFIED',
+	);
+
 	// =========================================================================
 	// Done!
 	// =========================================================================

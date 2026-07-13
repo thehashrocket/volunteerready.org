@@ -395,7 +395,8 @@ pnpm start                # Production server
 pnpm lint                 # Biome lint
 pnpm format               # Biome format
 pnpm test                 # Vitest
-pnpm check                # typecheck + lint + test
+pnpm e2e                  # Playwright e2e (boots the dev server)
+pnpm check                # Biome check on src/docs/prisma (applies safe fixes)
 pnpm prisma migrate deploy
 pnpm prisma db seed
 ```

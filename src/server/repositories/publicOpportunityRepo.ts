@@ -1,7 +1,7 @@
 import {
 	GeocodeStatus,
 	OpportunityStatus,
-	Prisma,
+	type Prisma,
 } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
 
@@ -241,10 +241,9 @@ async function searchWithTsvector(
 
 	type RawRow = { id: string };
 
-	const remoteClause =
-		isRemote !== undefined
-			? Prisma.sql`AND o."isRemote" = ${isRemote}`
-			: Prisma.empty;
+	// NULL-checked param instead of a conditional Prisma.sql fragment —
+	// interpolated Sql fragments break under Turbopack dev (see CLAUDE.md Rules).
+	const remoteFilter = isRemote ?? null;
 
 	// Ranked search returns top results sorted by relevance. Cursor pagination is
 	// incompatible with rank ordering, so we return all matching IDs up to `limit`
@@ -257,7 +256,7 @@ async function searchWithTsvector(
 		  AND org."marketplaceVisible" = true
 		  AND org."suspendedAt" IS NULL
 		  AND o."searchVector" @@ to_tsquery('english', ${tsquery})
-		  ${remoteClause}
+		  AND (${remoteFilter}::boolean IS NULL OR o."isRemote" = ${remoteFilter}::boolean)
 		ORDER BY ts_rank(o."searchVector", to_tsquery('english', ${tsquery})) DESC
 		LIMIT ${limit}
 	`;

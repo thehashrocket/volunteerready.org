@@ -84,6 +84,15 @@ Repositories should not contain:
 - workflow orchestration
 - cross-entity business rules
 
+Raw SQL rule: never compose `Prisma.sql` fragments (via `Prisma.join`, or
+conditional `Prisma.sql`/`Prisma.empty`) and interpolate them into a
+`$queryRaw` template. Turbopack dev duplicates the generated client's `Sql`
+class across module graphs, the `instanceof` check fails, and the fragment is
+sent to Postgres as one literal parameter — "invalid input syntax" 500s that
+only reproduce under `next dev`. Write a single static template with
+NULL-checked optional filters instead (see the "Raw SQL" rule in `CLAUDE.md`
+for the preferred sargable patterns).
+
 ---
 
 # 6. Never Access Prisma Directly from UI or Routers

@@ -6,6 +6,7 @@ import {
 	escapeCsvField,
 	esgReportInputSchema,
 	formatESGCsv,
+	normalizeESGDateRange,
 } from '../esg-report';
 
 // ---------------------------------------------------------------------------
@@ -263,5 +264,46 @@ describe('esgReportInputSchema', () => {
 			to: '2026-01-15',
 		});
 		expect(result.success).toBe(true);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// normalizeESGDateRange
+// ---------------------------------------------------------------------------
+
+describe('normalizeESGDateRange', () => {
+	it('bumps a date-only `to` (UTC midnight) to end of that UTC day', () => {
+		const { to } = normalizeESGDateRange({
+			to: new Date('2026-01-31T00:00:00.000Z'),
+		});
+		expect(to?.toISOString()).toBe('2026-01-31T23:59:59.999Z');
+	});
+
+	it('leaves an explicit `to` timestamp untouched', () => {
+		const explicit = new Date('2026-01-31T14:30:00.000Z');
+		const { to } = normalizeESGDateRange({ to: explicit });
+		expect(to?.toISOString()).toBe('2026-01-31T14:30:00.000Z');
+	});
+
+	it('never modifies `from` (a date-only from means start of day, which is correct)', () => {
+		const { from } = normalizeESGDateRange({
+			from: new Date('2026-01-01T00:00:00.000Z'),
+		});
+		expect(from?.toISOString()).toBe('2026-01-01T00:00:00.000Z');
+	});
+
+	it('maps missing bounds to null', () => {
+		expect(normalizeESGDateRange({})).toEqual({ from: null, to: null });
+		expect(normalizeESGDateRange({ from: undefined, to: null })).toEqual({
+			from: null,
+			to: null,
+		});
+	});
+
+	it('same-day range covers the full day after normalization', () => {
+		const day = new Date('2026-01-15T00:00:00.000Z');
+		const { from, to } = normalizeESGDateRange({ from: day, to: day });
+		expect(from?.toISOString()).toBe('2026-01-15T00:00:00.000Z');
+		expect(to?.toISOString()).toBe('2026-01-15T23:59:59.999Z');
 	});
 });

@@ -21,6 +21,9 @@ const NO_ORG_EXEMPT_PREFIXES = [
 	'/app/my-feedback',
 	'/app/profile',
 	'/app/admin',
+	// Company admins are often not nonprofit-org members; company pages have
+	// their own membership guard in company/[companyId]/layout.tsx.
+	'/app/company',
 ];
 
 export default async function AppLayout({

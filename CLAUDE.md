@@ -34,6 +34,7 @@ Current commands:
 - `pnpm seed:platform-admins`: migrate `PLATFORM_ADMIN_IDS` env var to DB column (idempotent)
 - `pnpm backfill:default-questions`: seed default screener questions for pre-existing orgs (idempotent, safe to re-run)
 - `pnpm test:scripts`: run unit tests for files under `scripts/` (uses `vitest.scripts.config.ts`, excluded from the main Vitest suite)
+- `pnpm e2e`: run Playwright e2e specs in `e2e/` (boots `pnpm dev` via `playwright.config.ts`; set `PLAYWRIGHT_BASE_URL` to target a running server instead — authenticated specs skip non-localhost targets)
 
 Note: the build script (`pnpm build`) runs `pnpm db:seed` automatically on every deploy,
 which includes the production seed (platform org, skill catalog, and default screener
@@ -64,6 +65,7 @@ or linter (Prettier, ESLint, Black), document the exact commands and config.
 - Test setup: `src/test-setup.ts` (jest-dom matchers + ResizeObserver polyfill)
 - Integration tests excluded from `pnpm test`: `src/**/*.integration.test.ts`
 - Scripts tests (separate suite): `scripts/**/*.test.ts` — run with `pnpm test:scripts`; config at `vitest.scripts.config.ts`
+- E2E tests: Playwright specs in `e2e/` (`pnpm e2e`). Authenticated specs seed a NextAuth database session via `e2e/utils/db.ts` (refuses non-local `DATABASE_URL` unless `E2E_ALLOW_REMOTE_DB=1`); the dev server is the only environment that reproduces Turbopack-dev-only bugs, so bundler-sensitive fixes get e2e coverage.
 
 ## Commit & Pull Request Guidelines
 
@@ -191,6 +193,7 @@ docs/
 - Admin signup notifications: `sendNewUserAlert`, `sendNewOrgAlert`, `sendNewCompanyAlert` in `src/server/lib/admin-alerts.ts` — fire-and-forget emails sent on new user signup (NextAuth `createUser` event), org creation, and company creation. All use the shared `getAdminEmails()` helper.
 - Admin recipient resolver: `src/server/lib/admin-recipients.ts` — `getAdminEmails()` resolves recipients from `PLATFORM_ADMIN_ALERT_EMAIL` env var (override, checked first) or DB `isPlatformAdmin` flag + `PLATFORM_ADMIN_IDS` fallback. Results cached 5 minutes. Used by all admin alerts (signup, security/impersonation, feedback).
 - `PLATFORM_ADMIN_ALERT_EMAIL`: single env var override for all admin notification emails (signup alerts, security alerts, feedback notifications). Supersedes per-feature env vars. Set in Vercel to a shared ops alias for production; `FEEDBACK_NOTIFY_EMAIL` still works but is deprecated.
+- Raw SQL: never compose `Prisma.sql` fragments (via `Prisma.join`, conditional `Prisma.sql`/`Prisma.empty`) and interpolate them into `$queryRaw` templates. Turbopack dev duplicates the generated client's `Sql` class across module graphs, `instanceof` fails, and the fragment is sent to Postgres as one literal parameter ("invalid input syntax" 500s that only reproduce under `next dev`). Write one static template with NULL-checked optional filters instead — prefer the sargable form `col >= COALESCE(${x}::timestamp, '-infinity'::timestamp)` for range filters (index-friendly under generic plans), or `(${x}::type IS NULL OR col = ${x}::type)` for types without ±infinity (booleans etc.).
 - No Prisma calls in tRPC routers. Routers call services. Services call repositories. Period.
 - All DB writes go through services (so audit logging is automatic).
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.

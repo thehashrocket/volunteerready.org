@@ -1188,19 +1188,54 @@ applications-queue.png created; dark-mode calculator card; `<main>` landmarks
 on all public pages; Playfair font drift removed; apply-page duplicate
 heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
 
-- **[P1] BUG: ESG summary query 500s, UI shows it as empty state** —
-  `esgReport.getSummary` fails under the Next dev server ("invalid input
-  syntax for type boolean"): the `Prisma.join()` fragment in
-  `getESGShiftAggregates` (companyRepo.ts:198) is passed as a literal
-  parameter, likely duplicate Sql class identity across Turbopack chunks
-  (works under tsx). The ESG page then renders zeros + "No volunteer activity
-  recorded yet" instead of an error — silent failure. Fix the query path AND
-  give the page a real error state; then recapture `public/marketing/esg.png`
-  with data (run /investigate).
+- ~~**[P1] BUG: ESG summary query 500s, UI shows it as empty state**~~ ✅
+  Fixed (issue #126). Root cause confirmed: `Prisma.join()`/`Prisma.sql`
+  fragments interpolated into `$queryRaw` templates lose `Sql` class
+  identity across Turbopack dev module graphs and get sent as one literal
+  parameter. Both ESG queries rewritten as static NULL-checked templates;
+  same latent pattern fixed in `publicOpportunityRepo.searchWithTsvector`.
+  Page got real error states (esgQ + companyQ) with retry; exports disabled
+  on error. `to` dates now normalized to end-of-day. Verified NOT broken in
+  production builds (dev-server-only bug) via authenticated Playwright e2e
+  (`e2e/esg-dashboard.spec.ts` — new auth harness seeds a DB session).
+  `public/marketing/esg.png` recaptured with real seeded aggregates.
+  **Completed:** v0.26.4.0 (2026-07-12)
 - **[P2] Nav misroutes in app sidebar** — "ESG Report" points to
   `/app/company/[id]/team` (route named "team" renders the ESG page);
   "Settings" points to `/app/credentials` (app-sidebar.tsx:52); Company +
   ESG Report both highlight active (prefix-match).
+- **[P3] ESG date filters use UTC day boundaries** — (from /ship red-team
+  review of issue #126, 2026-07-12.) Date-only `from`/`to` values parse as
+  UTC midnight on every path (page date inputs, CSV/PDF query params), and
+  `normalizeESGDateRange` bumps `to` to UTC end-of-day. For a UTC-8 user,
+  "To: Jan 31" covers through 3:59pm local Jan 31 — evening local shifts on
+  the chosen end day are excluded. Every test pins UTC so nothing catches
+  it. Fix: send the raw `YYYY-MM-DD` plus an IANA timezone to the server
+  and compute day bounds there, or label the filters/exports as UTC in the
+  UI. **Effort:** M | **Priority:** P3 | **Depends on:** deciding whose
+  timezone governs a company-wide report (company setting vs viewer).
+- **[P2] Company pages: URL scoping vs session scoping mismatch** — (from
+  /plan-eng-review of issue #126, Codex cross-check, 2026-07-12.) The
+  `[companyId]` layout guard checks the user is a member of the URL's
+  company (`src/app/(app)/app/company/[companyId]/layout.tsx:16`), but the
+  page data comes from the *session's* active company: the team/ESG page
+  calls `company.getCurrent` (team/page.tsx:67) and `esgReport.getSummary`
+  uses `ctx.companyId` from session (esg-report.ts:6); CSV/PDF exports use
+  the session-backed `company.id` (team/page.tsx:113). `CompanySwitcher`
+  only refreshes data without navigating the URL (CompanySwitcher.tsx:31).
+  A member of two companies can sit on company X's URL and see company Y's
+  report and exports. Not a data leak (membership is enforced), but wrong
+  data under the wrong URL. Related (same fix): switching companies only
+  refreshes queries, so during the background refetch the header/export
+  target can show company B while the table still renders company A's
+  numbers with exports enabled (Codex adversarial, /ship #126). Fix: thread
+  the route `companyId` into the tRPC input (validate membership
+  server-side), and make CompanySwitcher navigate to the new company's URL
+  on switch. Touches router input
+  schemas, the company layout/pages, and the switcher — do it as its own
+  change, not inside a bug fix. **Effort:** M | **Priority:** P2 |
+  **Depends on:** nothing; best done before a second multi-company
+  customer onboards.
 - **[P2] Banned grid patterns on public pages** — homepage 3-column feature
   grid and `/for` audience card grid are on DESIGN.md's own anti-pattern
   list (flagged by Codex + live audit). Composition redesign, needs owner
