@@ -1143,7 +1143,7 @@ but not retried. A `FailedEmail` table with a cron reprocess (similar to existin
 **What:** Periodic refresh of county nonprofit counts from IRS NTEE data or Census API.
 Update `locations.ts` registry or move counts to a DB table with a refresh cron.
 
-**Why deferred:** Hardcoded counts from manual research are fine for 5 pages. Automation
+**Why deferred:** Hardcoded counts from manual research are fine for 6 pages. Automation
 matters if location pages scale beyond Central Valley.
 
 **Context:** Current design uses a TypeScript registry (`src/lib/locations.ts`) with
@@ -1180,8 +1180,9 @@ Full report: `~/.gstack/projects/thehashrocket-volunteerready.org/designs/design
 
 ## Design review follow-ups (/design-review, 2026-07-12, branch thehashrocket/design-review-v1)
 
-Eleven findings fixed atomically on the branch (all six marketing product
-screenshots recaptured with realistic data — the old ones showed skeleton
+Eleven findings fixed atomically on the branch (five of six marketing product
+screenshots recaptured with realistic data — esg.png recaptured as a clean
+zero-state pending the ESG query bugfix below — the old ones showed skeleton
 states, empty states, a locked paywall, and dev emails; missing
 applications-queue.png created; dark-mode calculator card; `<main>` landmarks
 on all public pages; Playfair font drift removed; apply-page duplicate
