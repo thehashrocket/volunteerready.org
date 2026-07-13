@@ -6,9 +6,9 @@ import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
-import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
 	title: 'About Us — VolunteerReady',

@@ -13,8 +13,8 @@ import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
-import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
 	title: 'Security & Compliance — VolunteerReady',
