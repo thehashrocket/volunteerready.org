@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { getLocation, getLocationSlugs, LOCATIONS } from '../locations';
 
 describe('LOCATIONS', () => {
-	it('contains 5 locations', () => {
-		expect(LOCATIONS).toHaveLength(5);
+	it('contains 6 locations', () => {
+		expect(LOCATIONS).toHaveLength(6);
 	});
 
 	it('has unique slugs', () => {
