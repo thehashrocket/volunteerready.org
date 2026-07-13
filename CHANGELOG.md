@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.2.0] - 2026-07-13
+
+### Changed
+- **The small uppercase label above headings ("eyebrow" text like "Pricing", "Our story", "Customer stories") now looks the same everywhere on the public site.** (#129) It previously had 3+ competing treatments across public pages — some in a monospace font (reserved for data/tables per the design system), tracking values ranging from 0.15em to 0.25em or Tailwind's `tracking-widest`, and inconsistent colors. All ~17 instances across the homepage, about, pricing, stories, opportunities, apply, and footer pages now share one component and one look, with brand-green used for page-level kickers and a quieter gray for secondary in-page labels.
+
 ## [0.27.1.0] - 2026-07-13
 
 ### Changed
