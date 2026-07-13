@@ -263,6 +263,60 @@ describe('getESGShiftAggregates', () => {
 		expect(rows[0]?.totalHours).toBe(3);
 	});
 
+	it('applies a from-only filter (open-ended to)', async () => {
+		const company = await seedCompany('from-only');
+		const org = await seedOrg('nonprofit-from');
+		const user = await seedUser('emp-from');
+		await seedCompanyMember(company.id, user.id);
+		await seedNonprofitLink(company.id, org.id);
+
+		const before = await seedShift(org.id, {
+			startTime: new Date('2026-01-10T09:00:00Z'),
+			endTime: new Date('2026-01-10T12:00:00Z'),
+		});
+		await seedShiftSignup(before.id, user.id, 'ATTENDED');
+
+		const after = await seedShift(org.id, {
+			startTime: new Date('2026-05-10T09:00:00Z'),
+			endTime: new Date('2026-05-10T12:00:00Z'),
+		});
+		await seedShiftSignup(after.id, user.id, 'ATTENDED');
+
+		const rows = await getESGShiftAggregates(company.id, {
+			from: new Date('2026-02-01T00:00:00Z'),
+		});
+
+		expect(rows).toHaveLength(1);
+		expect(rows[0]?.shiftCount).toBe(1);
+	});
+
+	it('applies a to-only filter (open-ended from)', async () => {
+		const company = await seedCompany('to-only');
+		const org = await seedOrg('nonprofit-to');
+		const user = await seedUser('emp-to');
+		await seedCompanyMember(company.id, user.id);
+		await seedNonprofitLink(company.id, org.id);
+
+		const before = await seedShift(org.id, {
+			startTime: new Date('2026-01-10T09:00:00Z'),
+			endTime: new Date('2026-01-10T12:00:00Z'),
+		});
+		await seedShiftSignup(before.id, user.id, 'ATTENDED');
+
+		const after = await seedShift(org.id, {
+			startTime: new Date('2026-05-10T09:00:00Z'),
+			endTime: new Date('2026-05-10T12:00:00Z'),
+		});
+		await seedShiftSignup(after.id, user.id, 'ATTENDED');
+
+		const rows = await getESGShiftAggregates(company.id, {
+			to: new Date('2026-02-01T00:00:00Z'),
+		});
+
+		expect(rows).toHaveLength(1);
+		expect(rows[0]?.shiftCount).toBe(1);
+	});
+
 	it('excludes PAUSED nonprofit links', async () => {
 		const company = await seedCompany('paused-link');
 		const org = await seedOrg('nonprofit-paused');
@@ -338,6 +392,41 @@ describe('getESGDistinctEmployeeCount', () => {
 
 		const count = await getESGDistinctEmployeeCount(company.id, {});
 		expect(count).toBe(1); // Same user counted once
+	});
+
+	it('applies date range filters to the distinct count', async () => {
+		const company = await seedCompany('distinct-range');
+		const org = await seedOrg('np-distinct-range');
+		const userIn = await seedUser('emp-in-range');
+		const userOut = await seedUser('emp-out-of-range');
+		await seedCompanyMember(company.id, userIn.id);
+		await seedCompanyMember(company.id, userOut.id);
+		await seedNonprofitLink(company.id, org.id);
+
+		// userIn attends in February, userOut only in January
+		const febShift = await seedShift(org.id, {
+			startTime: new Date('2026-02-10T09:00:00Z'),
+			endTime: new Date('2026-02-10T12:00:00Z'),
+		});
+		const janShift = await seedShift(org.id, {
+			startTime: new Date('2026-01-05T09:00:00Z'),
+			endTime: new Date('2026-01-05T12:00:00Z'),
+		});
+		await seedShiftSignup(febShift.id, userIn.id, 'ATTENDED');
+		await seedShiftSignup(janShift.id, userOut.id, 'ATTENDED');
+
+		const unfiltered = await getESGDistinctEmployeeCount(company.id, {});
+		expect(unfiltered).toBe(2);
+
+		const fromOnly = await getESGDistinctEmployeeCount(company.id, {
+			from: new Date('2026-02-01T00:00:00Z'),
+		});
+		expect(fromOnly).toBe(1);
+
+		const toOnly = await getESGDistinctEmployeeCount(company.id, {
+			to: new Date('2026-02-01T00:00:00Z'),
+		});
+		expect(toOnly).toBe(1);
 	});
 });
 
@@ -416,6 +505,33 @@ describe('generateESGReport', () => {
 			totalHours: 0,
 			verifiedCredentialCount: 1,
 		});
+	});
+
+	it('includes evening shifts on a date-only `to` end day (end-of-day normalization)', async () => {
+		const company = await seedCompany('eod');
+		const org = await seedOrg('np-eod');
+		const user = await seedUser('emp-eod');
+		await seedCompanyMember(company.id, user.id);
+		await seedNonprofitLink(company.id, org.id);
+
+		// Evening shift on the chosen end day — excluded by the old
+		// `endTime <= midnight` comparison, included after normalization.
+		const eveningShift = await seedShift(org.id, {
+			startTime: new Date('2026-02-15T18:00:00Z'),
+			endTime: new Date('2026-02-15T21:00:00Z'),
+		});
+		await seedShiftSignup(eveningShift.id, user.id, 'ATTENDED');
+
+		const report = await generateESGReport({
+			companyId: company.id,
+			actorId: user.id,
+			// Date-only `to` (UTC midnight) — as sent by the date picker
+			dateRange: { to: new Date('2026-02-15T00:00:00Z') },
+		});
+
+		expect(report.totalShifts).toBe(1);
+		expect(report.totalHours).toBe(3);
+		expect(report.totalEmployeesActive).toBe(1);
 	});
 
 	it('returns empty report for company with no activity', async () => {

@@ -3,7 +3,11 @@
 // ---------------------------------------------------------------------------
 
 import type { ESGOrgRow, ESGReportSummary } from '@/server/domain/esg-report';
-import { computeESGSummary, formatESGCsv } from '@/server/domain/esg-report';
+import {
+	computeESGSummary,
+	formatESGCsv,
+	normalizeESGDateRange,
+} from '@/server/domain/esg-report';
 import { writeAuditLog } from '@/server/repositories/auditRepo';
 import {
 	findCompanyById,
@@ -30,7 +34,10 @@ type GenerateOpts = {
 export async function generateESGReport(
 	opts: GenerateOpts,
 ): Promise<ESGReportSummary> {
-	const { companyId, actorId, dateRange } = opts;
+	const { companyId, actorId } = opts;
+	// Single normalization point for all consumers (tRPC page, CSV, PDF):
+	// a date-only `to` becomes end-of-day so the full end day is included.
+	const dateRange = normalizeESGDateRange(opts.dateRange);
 
 	const company = await findCompanyById(companyId);
 	if (!company) {

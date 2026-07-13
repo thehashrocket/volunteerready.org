@@ -28,6 +28,39 @@ export type ESGReportSummary = {
 	rows: ESGOrgRow[];
 };
 
+// ---- Date range normalization ----------------------------------------------
+
+/**
+ * Normalize an ESG report date range so a date-only `to` bound includes the
+ * full end day.
+ *
+ * Date pickers and query params produce date-only values ('2026-01-31') that
+ * coerce to UTC midnight; comparing `s."endTime" <= midnight` would exclude
+ * nearly all of the chosen end day. A `to` at exactly UTC midnight is bumped
+ * to 23:59:59.999 of the same UTC day. Explicit timestamps (any non-zero UTC
+ * time component) pass through untouched.
+ */
+export function normalizeESGDateRange(range: {
+	from?: Date | null;
+	to?: Date | null;
+}): { from: Date | null; to: Date | null } {
+	const from = range.from ?? null;
+	let to = range.to ?? null;
+
+	const isUtcMidnight =
+		to !== null &&
+		to.getUTCHours() === 0 &&
+		to.getUTCMinutes() === 0 &&
+		to.getUTCSeconds() === 0 &&
+		to.getUTCMilliseconds() === 0;
+
+	if (to && isUtcMidnight) {
+		to = new Date(to.getTime() + 24 * 60 * 60 * 1000 - 1);
+	}
+
+	return { from, to };
+}
+
 // ---- Computation ----------------------------------------------------------
 
 /**
