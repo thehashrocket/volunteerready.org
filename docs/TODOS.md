@@ -1218,16 +1218,50 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   `~/.gstack/projects/thehashrocket-volunteerready.org/designs/settings-hub-20260712/`.
   **Effort:** M | **Priority:** P3 | **Depends on:** settings hub shipping (issue #127).
 - **[P1] Local `pnpm build` fails prerender with React useContext null** (#136) —
-  (found by /ship of issue #127, 2026-07-13; confirmed PRE-EXISTING on main
-  78c1847.) `next build` compiles successfully but static prerender/export
-  dies with `TypeError: Cannot read properties of null (reading 'useContext')`
-  on varying (app) pages (/app/dev, /app/admin/case-studies on main;
-  /app/discover, /apply/refer on branches) plus "unique key prop" warnings
-  from <html>/<head> renders — smells like duplicate React instances in the
-  build worker. Vercel builds are unaffected (main deploys fine), so this
-  blocks only local production-build verification. Start: compare React
-  resolution (`pnpm why react`), Next 16 build-worker dedupe, sentry wrapper.
-  **Effort:** M | **Priority:** P1 | **Depends on:** —
+  BLOCKED ON UPSTREAM, filed as [vercel/next.js#95741](https://github.com/vercel/next.js/issues/95741)
+  (2026-07-13, /investigate). Root cause confirmed: an upstream Next.js 16.x
+  Turbopack bug prerendering the internal `/_global-error` page (matches
+  vercel/next.js #86178, #84994, #87719 — all closed only for lacking a
+  repro, not fixed). The recurring "unique key prop... `<html>`" warning on
+  every build is the tell — Turbopack batches routes' root elements
+  (including global-error's self-contained `<html>`) into one render pass
+  without keys, and the crash lands on whichever route gets scheduled
+  adjacent to the broken batch (why the victim page varies by run/branch).
+  Ruled out via elimination (each verified with a fresh `pnpm build`): the
+  orphaned root-level `instrumentation.ts`/`instrumentation.client.ts`/
+  `sentry.client.config.ts` files, `@sentry/nextjs`/`withSentryConfig`
+  entirely, stale `.next` cache, Node version mismatch (22.23.1 vs pinned
+  24.11), our custom `global-error.tsx`, and a bump to `next@16.2.10`
+  (latest 16.2.x). `experimental.cpus: 1` doesn't fix it either — it just
+  relocates the crash directly onto `/_global-error`, confirming the bug
+  is intrinsic to Next's own error-page prerender. `--webpack` isn't a
+  viable workaround: it fails immediately on an unrelated pre-existing bug
+  (see the new P3 item below). Vercel builds are unaffected, so this blocks
+  only local production-build verification (`/ship`'s build gate runs
+  blind). No further action on our side until upstream responds — recheck
+  vercel/next.js#95741 periodically. **Effort:** — (upstream) | **Priority:** P1 | **Depends on:** vercel/next.js#95741.
+- **[P3] Orphaned root-level Sentry instrumentation files** — (found during
+  #136 investigation, 2026-07-13.) `instrumentation.ts`, `instrumentation.client.ts`,
+  and `sentry.client.config.ts` at repo root are dead code, leftover from an
+  earlier Sentry wizard run — superseded by `src/instrumentation.ts` and
+  `src/instrumentation-client.ts`, which are the versions Next actually
+  resolves under the project's `src/` layout. Safe to delete; confirmed via
+  build testing that removing them changes nothing. **Effort:** S | **Priority:** P3 | **Depends on:** —
+- **[P3] `node:crypto` reachable from a client bundle** — (found during #136
+  investigation, 2026-07-13, testing `next build --webpack` as a workaround.)
+  `src/server/lib/checkin-token.ts` (uses Node's `crypto`) is reachable from
+  a client component graph via `src/components/app/qr-checkin-code.tsx` →
+  `src/app/(app)/app/my-shifts/page.tsx`. Only surfaces as a hard failure
+  under webpack today (Turbopack tolerates it), but it's a real server-only
+  boundary violation that should be fixed regardless — e.g. mark
+  `checkin-token.ts` with `import 'server-only'` and move token generation
+  behind a server action/tRPC call instead of importing it directly into a
+  client component's module graph. **Effort:** S | **Priority:** P3 | **Depends on:** —
+- **[P3] No `engines.node` pin in package.json** — (found during #136
+  investigation, 2026-07-13.) Local shell drifted to Node v22.23.1 despite
+  `.nvmrc` pinning `24.11`, with nothing catching the mismatch. Add an
+  `engines.node` field (and consider a `preinstall` check) so a version
+  drift like this fails loudly instead of silently. **Effort:** S | **Priority:** P3 | **Depends on:** —
 - **[P3] OrgSlugHistory permanent namespace lock needs an admin release tool** —
   (from /ship adversarial review of issue #127, 2026-07-13.) Slug history rows
   persist forever and now block BOTH new-org creation (`slugExistsInHistory`)
