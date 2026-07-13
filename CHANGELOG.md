@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.3.0] - 2026-07-13
+
+### Changed
+- **The `/for` and `/locations` pages' clickable row lists (the audience picker and the location listing) now share one underlying component instead of duplicated code.** (#140) No visible change on either page — this is a maintenance follow-up to the #128 design fix, which introduced the same row-link pattern independently on both pages. Also closes a test-coverage gap: the `/locations` page's navigation previously had no automated coverage at all.
+
 ## [0.27.2.0] - 2026-07-13
 
 ### Changed
