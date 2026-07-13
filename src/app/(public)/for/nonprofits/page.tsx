@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
+import { Eyebrow } from '@/components/eyebrow';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
@@ -183,9 +184,9 @@ export default async function ForNonprofitsPage() {
 			{/* ── Pain acknowledgment ── */}
 			<section className="bg-muted px-4 py-14 md:py-20">
 				<div className="mx-auto max-w-2xl">
-					<p className="mb-4 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+					<Eyebrow tone="primary" className="mb-4">
 						We've heard the stories
-					</p>
+					</Eyebrow>
 					<h2 className="font-display mb-6 text-[32px] font-bold text-foreground [text-wrap:balance]">
 						The quiet crisis in volunteer management.
 					</h2>
@@ -282,9 +283,7 @@ export default async function ForNonprofitsPage() {
 				<FadeInOnScroll>
 					<div className="mx-auto grid max-w-[1040px] grid-cols-1 gap-10 md:grid-cols-[5fr_7fr] md:gap-14">
 						<div>
-							<p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-								From a coordinator
-							</p>
+							<Eyebrow tone="primary">From a coordinator</Eyebrow>
 						</div>
 						<div>
 							<blockquote className="font-display text-2xl leading-relaxed text-foreground [text-wrap:balance] sm:text-[28px]">

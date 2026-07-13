@@ -16,6 +16,7 @@ import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { Eyebrow } from '@/components/eyebrow';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -197,9 +198,7 @@ export default function ApplyFormClient({
 		<>
 			{opportunity && (
 				<div className="mb-6 rounded-xl border border-border bg-card p-4">
-					<p className="mb-1 text-xs font-semibold uppercase tracking-widest text-primary">
-						Applying for
-					</p>
+					<Eyebrow className="mb-1">Applying for</Eyebrow>
 					<p className="font-semibold text-foreground">{opportunity.title}</p>
 					<div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
 						{opportunity.isRemote && (

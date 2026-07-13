@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Eyebrow } from '@/components/eyebrow';
 import { cn } from '@/lib/utils';
 
 type PublicHeroProps = {
@@ -16,7 +17,7 @@ type PublicHeroProps = {
 	 * Optional right-column side note. When provided, hero renders as a 7/5
 	 * grid (left copy + right note) per V2 DESIGN.md. Accepts either a
 	 * ReactNode (fully custom) or a `{ label, note }` shape which renders
-	 * the standard eyebrow-mono label + bordered note pattern.
+	 * the standard eyebrow label + bordered note pattern.
 	 */
 	side?: ReactNode | { label: string; note: ReactNode };
 };
@@ -43,9 +44,7 @@ export function PublicHero({
 }: PublicHeroProps) {
 	const sideContent = isStructuredSide(side) ? (
 		<div>
-			<p className="mb-3 font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-				{side.label}
-			</p>
+			<Eyebrow className="mb-3">{side.label}</Eyebrow>
 			<div className="max-w-[320px] border-l-2 border-accent pl-4 text-sm leading-relaxed text-muted-foreground [&_em]:not-italic [&_em]:font-medium [&_em]:text-primary [&_em.italic]:italic">
 				{side.note}
 			</div>
@@ -71,9 +70,9 @@ export function PublicHero({
 			>
 				<div className="max-w-[640px] text-left">
 					{eyebrow && (
-						<p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-primary/70">
+						<Eyebrow tone="primary" className="mb-4">
 							{eyebrow}
-						</p>
+						</Eyebrow>
 					)}
 					<h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl sm:leading-tight [text-wrap:balance]">
 						{heading}

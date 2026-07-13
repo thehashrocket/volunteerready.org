@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.2.0] - 2026-07-13
+
+### Changed
+- **The small uppercase label above headings ("eyebrow" text like "Pricing", "Our story", "Customer stories") now looks the same everywhere on the public site.** (#129) It previously had 3+ competing treatments across public pages — some in a monospace font (reserved for data/tables per the design system), tracking values ranging from 0.15em to 0.25em or Tailwind's `tracking-widest`, and inconsistent colors. Every public page now shares one component and one look, with brand-green used for page-level kickers and a quieter gray for secondary in-page labels — including every page that renders through the shared hero components (homepage, about, pricing, screening, security, search, how-it-works, /for and its sub-pages, privacy, terms, and all six location pages), plus the direct sweep on stories, opportunities, marketplace, apply, the volunteer profile page, and the site footer.
+
 ## [0.27.1.0] - 2026-07-13
 
 ### Changed

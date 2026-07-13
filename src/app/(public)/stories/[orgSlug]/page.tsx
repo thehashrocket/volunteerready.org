@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound, redirect } from 'next/navigation';
 import { CTABanner } from '@/components/cta-banner';
+import { Eyebrow } from '@/components/eyebrow';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { TrackedLink } from '@/components/tracked-link';
@@ -117,15 +118,11 @@ export default async function StoryPage({ params }: Props) {
 				<div className="mx-auto grid max-w-2xl gap-12 md:grid-cols-2">
 					{data.baseline && (
 						<div>
-							<p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-								Before
-							</p>
+							<Eyebrow className="mb-4">Before</Eyebrow>
 							<dl className="space-y-3">
 								{data.baseline.volunteerCount != null && (
 									<div>
-										<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-											Volunteers managed
-										</dt>
+										<Eyebrow as="dt">Volunteers managed</Eyebrow>
 										<dd className="font-display text-[32px] font-bold text-foreground">
 											{data.baseline.volunteerCount}
 										</dd>
@@ -133,9 +130,7 @@ export default async function StoryPage({ params }: Props) {
 								)}
 								{data.baseline.hoursPerWeek != null && (
 									<div>
-										<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-											Admin hours/week
-										</dt>
+										<Eyebrow as="dt">Admin hours/week</Eyebrow>
 										<dd className="font-display text-[32px] font-bold text-foreground">
 											{data.baseline.hoursPerWeek}
 										</dd>
@@ -143,9 +138,7 @@ export default async function StoryPage({ params }: Props) {
 								)}
 								{data.baseline.currentProcess && (
 									<div>
-										<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-											Process
-										</dt>
+										<Eyebrow as="dt">Process</Eyebrow>
 										<dd className="text-base text-muted-foreground">
 											{data.baseline.currentProcess}
 										</dd>
@@ -156,38 +149,28 @@ export default async function StoryPage({ params }: Props) {
 					)}
 
 					<div>
-						<p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-							With VolunteerReady
-						</p>
+						<Eyebrow className="mb-4">With VolunteerReady</Eyebrow>
 						<dl className="space-y-3">
 							<div>
-								<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-									Applications processed
-								</dt>
+								<Eyebrow as="dt">Applications processed</Eyebrow>
 								<dd className="font-display text-[32px] font-bold text-foreground">
 									{data.summary.applicationsSubmitted}
 								</dd>
 							</div>
 							<div>
-								<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-									Volunteers approved
-								</dt>
+								<Eyebrow as="dt">Volunteers approved</Eyebrow>
 								<dd className="font-display text-[32px] font-bold text-foreground">
 									{data.summary.applicationsApproved}
 								</dd>
 							</div>
 							<div>
-								<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-									Background checks
-								</dt>
+								<Eyebrow as="dt">Background checks</Eyebrow>
 								<dd className="font-display text-[32px] font-bold text-foreground">
 									{data.summary.backgroundChecksCompleted}
 								</dd>
 							</div>
 							<div>
-								<dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-									Credentials issued
-								</dt>
+								<Eyebrow as="dt">Credentials issued</Eyebrow>
 								<dd className="font-display text-[32px] font-bold text-foreground">
 									{data.summary.credentialsIssued}
 								</dd>

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CTABanner } from '@/components/cta-banner';
+import { Eyebrow } from '@/components/eyebrow';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { Button } from '@/components/ui/button';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
@@ -34,9 +35,7 @@ export default async function StoriesIndexPage() {
 
 			<section className="mx-auto max-w-5xl space-y-12 px-4 py-16 sm:px-6">
 				<div className="space-y-4 text-center">
-					<p className="text-sm font-semibold uppercase tracking-widest text-primary">
-						Customer stories
-					</p>
+					<Eyebrow tone="primary">Customer stories</Eyebrow>
 					<h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
 						Real impact from real nonprofits
 					</h1>

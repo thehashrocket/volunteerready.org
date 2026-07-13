@@ -2,6 +2,7 @@ import { Award, Building2, Clock, MapPin, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Eyebrow } from '@/components/eyebrow';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { getPublicProfile } from '@/server/services/volunteerIdentityService';
@@ -201,9 +202,7 @@ function Stat({
 			>
 				{empty ? '—' : value}
 			</p>
-			<p className="mt-0.5 text-xs uppercase tracking-widest text-muted-foreground/60">
-				{label}
-			</p>
+			<Eyebrow className="mt-0.5">{label}</Eyebrow>
 		</div>
 	);
 }

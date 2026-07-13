@@ -1328,9 +1328,13 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   not done in that PR since `/locations` wasn't in scope for a P2 fix.
   **Effort:** S | **Priority:** P3 | **Depends on:** P2 grid fix above
   shipping first (need both usages to exist before extracting).
-- **[P2] Eyebrow/kicker inconsistency** — 3+ competing uppercase-kicker
-  styles across public pages (tracking 0.15/0.2/0.25em/widest, mono vs
-  sans). Extract one component.
+- ~~**[P2] Eyebrow/kicker inconsistency**~~ ✅ **Completed v0.27.2.0
+  (2026-07-13)** — extracted `src/components/eyebrow.tsx` (`as` prop for
+  p/h2/dt, `tone` prop for primary/muted) with 30 direct call sites across
+  13 files (public pages, apply flow, footer); pages that render through
+  `PublicHero`/`LocationHero` (homepage, about, pricing, screening,
+  security, search, how-it-works, `/for` + sub-pages, privacy, terms, all
+  6 location pages) inherit it automatically (issue #129).
 - **[P3] Two hero systems** — PublicHero vs LocationHero (different grids,
   breakpoints, alignment) plus hand-rolled centered heroes on
   stories/locations/opportunities index pages.

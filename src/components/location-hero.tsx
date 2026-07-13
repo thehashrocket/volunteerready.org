@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { Eyebrow } from '@/components/eyebrow';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { Button } from '@/components/ui/button';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
@@ -25,9 +26,9 @@ export function LocationHero({
 			<div className="mx-auto grid max-w-6xl items-center gap-10 sm:grid-cols-12">
 				{/* Text — col-span-7 on desktop */}
 				<div className="sm:col-span-7">
-					<p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+					<Eyebrow tone="primary" className="mb-2">
 						{region}
-					</p>
+					</Eyebrow>
 					<h1 className="font-display mb-4 text-[32px] font-bold leading-tight text-foreground sm:text-5xl [text-wrap:balance]">
 						{headline}
 					</h1>

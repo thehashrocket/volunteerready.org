@@ -1,6 +1,7 @@
 import { Check, Minus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { CTABanner } from '@/components/cta-banner';
+import { Eyebrow } from '@/components/eyebrow';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { JsonLdFaq } from '@/components/json-ld-faq';
@@ -250,9 +251,7 @@ export default function PricingPage() {
 									</div>
 								)}
 								<CardHeader className="space-y-4">
-									<p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-										{meta.label}
-									</p>
+									<Eyebrow tone="primary">{meta.label}</Eyebrow>
 									<div className="flex items-baseline gap-1.5">
 										<span className="font-display text-[48px] font-semibold leading-none text-foreground">
 											{meta.price}
@@ -335,9 +334,9 @@ export default function PricingPage() {
 			{/* ── Feature comparison ── */}
 			<section className="bg-muted px-4 py-14 md:py-20">
 				<div className="mx-auto max-w-4xl">
-					<p className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+					<Eyebrow tone="primary" className="mb-3">
 						Compare plans
-					</p>
+					</Eyebrow>
 					<h2 className="font-display mb-10 text-[32px] font-semibold text-foreground [text-wrap:balance]">
 						Every feature, side by side.
 					</h2>
@@ -392,9 +391,9 @@ export default function PricingPage() {
 			<section className="mx-auto w-full max-w-2xl px-4 py-14 md:py-20">
 				<FadeInOnScroll>
 					<div className="border-l-2 border-accent bg-background p-8 sm:p-10">
-						<p className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+						<Eyebrow tone="primary" className="mb-3">
 							Corporate & enterprise
-						</p>
+						</Eyebrow>
 						<h2 className="font-display mb-4 text-[28px] font-semibold text-foreground [text-wrap:balance]">
 							A CSR program that{' '}
 							<em className="italic text-primary">scales with you.</em>
@@ -420,9 +419,9 @@ export default function PricingPage() {
 			{/* ── Pricing FAQ ── */}
 			<section className="bg-muted px-4 py-14 md:py-20">
 				<div className="mx-auto max-w-2xl">
-					<p className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+					<Eyebrow tone="primary" className="mb-3">
 						Pricing FAQ
-					</p>
+					</Eyebrow>
 					<h2 className="font-display mb-10 text-[32px] font-semibold text-foreground [text-wrap:balance]">
 						Questions, answered.
 					</h2>
