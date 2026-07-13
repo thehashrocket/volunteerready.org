@@ -88,7 +88,7 @@ If membership fails, the request should return an authorization error.
 Staff initiates a background check for a volunteer.
 
 ```
-Staff UI (/app/credentials)
+Staff UI (/app/settings/background-checks)
     -> tRPC Mutation (backgroundChecks.initiate)
         -> backgroundCheckService.initiateCheck()
             -> Validate org has Checkr connected

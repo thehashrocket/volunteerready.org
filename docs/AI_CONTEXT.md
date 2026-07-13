@@ -67,7 +67,7 @@ src/
 ├── app/                          # Next.js App Router pages
 │   ├── (app)/app/                # Protected org-scoped routes
 │   │   ├── applications/         # Staff: review volunteer applications
-│   │   ├── credentials/          # Staff: manage volunteer verification badges
+│   │   ├── company/[companyId]/esg/ # Company admin: ESG dashboard (renamed from /team, redirect in next.config.ts)
 │   │   ├── my-applications/      # Volunteer: track own applications
 │   │   ├── my-shifts/            # Volunteer: upcoming shift signups
 │   │   ├── my-skills/            # Volunteer: manage skill tags
@@ -80,6 +80,8 @@ src/
 │   │   ├── profile/              # Volunteer: manage profile + view stats
 │   │   ├── screener/             # Admin: configure screening questions
 │   │   ├── shifts/               # Staff: manage shifts + attendance + templates tab (STARTER-gated)
+│   │   ├── settings/             # Admin: org settings hub — org name + apply slug editor
+│   │   ├── settings/background-checks/ # Staff: manage verification badges (moved from /app/credentials, redirect in next.config.ts)
 │   │   ├── settings/team/        # Admin: team/member management
 │   │   ├── onboarding/           # Org setup flow
 │   │   └── welcome/              # Post-login landing
@@ -260,7 +262,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `members` | list, invite, updateRole, remove |
 | `onboarding` | create org, initial setup |
 | `opportunities` | create, update, delete, list, getById |
-| `org` | getCurrentOrg, listOrgs, switchOrg |
+| `org` | getCurrentOrg, listOrgs, switchOrg, updateQrColor, updateTimezone, updateOrgProfile (admin: name + apply slug, slug safety rails), updateMarketplaceSettings |
 | `discovery` | searchVolunteers (staff), inviteToApply (staff) |
 | `feedback` | submit, myFeedback, listAll (platform admin), updateStatus (platform admin), reply (platform admin), newCount (platform admin) |
 | `platformAdmin` | `orgs.{list,get}`, `users.{list,get,setPlatformAdmin,revokeAllSessions}`, `impersonation.{start,end,current,history}`, `audit.{query,options}` — all `platformAdminProcedure`. Audit metadata is redacted by `auditQueryService` before return. |
