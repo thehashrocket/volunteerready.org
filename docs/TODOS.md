@@ -1343,34 +1343,68 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   naturalWidth e2e assertions + 375px mobile pillar test. Spun-off
   follow-ups tracked above (animal-shelters screenshot, dark-mode variants,
   how-it-works/screening annotations).
-- **[P3] Screenshot for `/for/animal-shelters`** — the only `/for` sub-page
-  with no `ScreenshotSection`, which leaves it on an older visual system than
-  its three siblings once issue #139 ships annotated imagery (flagged by the
-  Codex outside voice during the #139 eng review). Blocked on content, not
-  code: seed data has no shelter org, so an honest capture needs either a
-  seeded shelter org with shelter-flavored opportunities/screener questions,
-  or a deliberate choice to reuse a generic view with shelter-relevant
-  annotations. What to show should follow the shelter-vertical positioning
-  in `~/.gstack/projects/.../ceo-plans/2026-04-13-cold-start-shelter-vertical.md`.
-  Start: extend `prisma/seed-dev.ts`, add a scenario to the #139 capture
-  manifest, then a one-prop `AnnotatedScreenshot` section on the page.
-  **Effort:** S (code) + S (seed content) | **Priority:** P3 |
-  **Depends on:** issue #139 shipping (capture project + component).
-- **[P3] Dark-mode marketing screenshot variants** — light-mode PNGs render
-  inside dark-themed public pages today (pre-existing; unchanged by #139).
-  Once the #139 capture project exists, dark variants are a re-run with
-  `colorScheme: 'dark'` plus a `<picture>`/CSS swap in `AnnotatedScreenshot`.
-  Cost: doubles the assets to keep honest, and marker coordinates must be
-  verified against both captures (same viewport makes this near-automatic).
-  Start: add a `theme` axis to the capture scenario manifest.
-  **Effort:** S | **Priority:** P3 | **Depends on:** issue #139 shipping.
 - **[P3] Annotated screenshots for `/how-it-works` + `/screening`** — the two
   remaining plain `ScreenshotSection` callers after #139. Mechanical one-prop
-  upgrade per page plus annotation label copy (3-4 callouts each). Watch for
-  imagery overlap: `/screening` uses screener.png, which may also back the
-  homepage "Background checks" pillar. **Effort:** S | **Priority:** P3 |
-  **Depends on:** #139 shipping AND its annotation style passing
-  /design-review (don't propagate a style that's about to change).
+  upgrade per page plus annotation label copy (3-4 callouts each). `/screening`
+  uses screener.png, which also backs the homepage "Background checks" pillar
+  — no conflict, since marker data lives per-page, not baked into the PNG; the
+  two pages just need independent callout copy. **PR sequenced first of 3**
+  (2026-07-14 eng review): zero seed/infra risk, pure page-level data addition.
+  **Blocking precondition:** `docs/TODOS.md`'s own dependency note
+  ("annotation style passing /design-review") has never actually been
+  satisfied — no `plan-design-review`/`design-review` entry exists in the
+  review log for the #139 style. Run `/design-review` on the shipped
+  annotation pattern (numbered markers + legend) before starting this PR, not
+  after. **Effort:** S | **Priority:** P3 | **Depends on:** #139 shipping
+  (done) + a `/design-review` pass on its annotation style (not done).
+- **[P3] Dark-mode marketing screenshot variants** — light-mode PNGs render
+  inside dark-themed public pages today (pre-existing; unchanged by #139).
+  **PR sequenced second of 3** (2026-07-14 eng review, resolved via cross-model
+  review — see decisions below). Mechanism: **CSS-only swap**, not a
+  `<picture>` or `useTheme()` JS hook — `AnnotatedScreenshot` renders two
+  `<Image>` elements toggled via Tailwind `dark:hidden`/`hidden dark:block`,
+  matching the pre-paint `.dark` class `next-themes` already sets (avoids a
+  hydration-flash of the wrong variant; this is the first `dark:` utility
+  usage in `src/app/(public)/**`, which otherwise carries dark mode via CSS
+  tokens only — see open issue #131). Manifest: `MARKETING_SCREENSHOTS`
+  entries gain an optional `darkSrc` field (single key holds both variants,
+  not separate keys like `screenerDark`); `capture-scenarios.ts` gains a
+  `variants: ('light'|'dark')[]` field. Error handling: track error state
+  per-variant, hide the block only if the *currently visible* variant fails
+  (must re-evaluate reactively on theme toggle, not cache once). **Scope:**
+  all `MARKETING_SCREENSHOTS` entries get dark variants **except
+  `dashboard.png`** — it's the one `priority`-loaded hero image, and doubling
+  an eagerly-loaded image defeats the point of `priority` (caught by Codex
+  outside voice; the initial "all 7" recommendation was self-contradictory).
+  Capture runner: `page.emulateMedia({ colorScheme })` must run before
+  `page.goto()`, not merely "inside the test" — order matters for
+  `next-themes`'s `system`-default first paint. Existing tests needing
+  rework: the manifest's bijection test (`scenarioKeys === manifestKeys`),
+  `annotated-screenshot.test.tsx`, `screenshot-section.test.tsx`.
+  **Effort:** M (larger than originally scoped — touches rendering,
+  manifest schema, capture runner, and 3 test files) | **Priority:** P3 |
+  **Depends on:** PR1 landing first (shares the capture pipeline surface).
+- **[P3] Screenshot for `/for/animal-shelters`** — the only `/for` sub-page
+  with no `ScreenshotSection`. **PR sequenced third of 3** (2026-07-14 eng
+  review): the only one touching `prisma/seed-dev.ts`, ships last and
+  independently so a seed-data regression can't be entangled with the other
+  two. **Blocker was misdiagnosed** (caught by Codex outside voice, then
+  verified): seed data isn't actually shelter-content-free — `devOrg` ("Dev
+  Organization") already has shelter-flavored screener questions
+  (`comfort_reactive_animals`, `attest_no_abuse`, animal-allergy question)
+  and a shelter-flavored sample application, just zero shelter opportunities
+  and an unusable public-facing name. Verified safe to reuse: grep found zero
+  references to "Dev Organization" or `admin@volunteermatch.local`/`devAdmin`
+  anywhere in `e2e/`, `src/`, `docs/`, or `CLAUDE.md` — no test or doc depends
+  on this org's display name. **Plan:** rebrand `devOrg`'s display name for
+  capture purposes and add 1-2 shelter-flavored opportunities (the only
+  genuinely missing piece), instead of building a whole new org + questions
+  from scratch. What opportunities to add should still follow the
+  shelter-vertical positioning in
+  `~/.gstack/projects/.../ceo-plans/2026-04-13-cold-start-shelter-vertical.md`.
+  **Effort:** S (smaller than originally scoped — reuses existing
+  questions/applications) | **Priority:** P3 | **Depends on:** PR2 landing
+  (shares the capture manifest schema).
 - ~~**[P3] Shared link-row component for `/for` + `/locations`**~~ ✅
   **Completed v0.27.3.0 (2026-07-13)** (issue #140) — extracted
   `src/components/link-row-list.tsx` (`LinkRowList`, fixed prop shape,
