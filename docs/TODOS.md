@@ -1189,6 +1189,19 @@ applications-queue.png created; dark-mode calculator card; `<main>` landmarks
 on all public pages; Playfair font drift removed; apply-page duplicate
 heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
 
+- **[P0] BUG: ESG dashboard client crash — "Cannot read properties of null
+  (reading 'id')"** — `e2e/esg-dashboard.spec.ts:166` ("loads real
+  aggregates") fails consistently: visiting `/app/company/{id}/esg` as the
+  spec's freshly-seeded company member hits the app error boundary with a
+  client-side null `.id` read. Pre-existing: reproduced on clean `main`
+  (0b4e59e) via `git stash` A/B test during the issue #139 ship
+  (2026-07-13) — NOT caused by that branch. The spec's own seeded data +
+  session are intact; the second test in the file (membership guard)
+  passes. Makes `pnpm e2e` exit non-zero for everyone. Start: run
+  `/investigate` with the spec as the repro; suspect a component in the
+  company ESG page dereferencing a nullable query result (`company.id` or
+  membership) before the guard. **Effort:** S-M | **Priority:** P0 |
+  **Depends on:** nothing.
 - ~~**[P1] BUG: ESG summary query 500s, UI shows it as empty state**~~ ✅
   Fixed (issue #126). Root cause confirmed: `Prisma.join()`/`Prisma.sql`
   fragments interpolated into `$queryRaw` templates lose `Sql` class
@@ -1311,15 +1324,49 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   `locations/page.tsx` link-row pattern (divide-y, alternating stripe,
   hover, ArrowRight) instead of a grid. Design doc:
   `docs/designs/banned-grid-patterns.md`. See below for spun-off follow-ups.
-- **[P3] Annotated product imagery for homepage/`/for`** (issue #139) — DESIGN.md's
-  stated visual hero is real product screenshots ("product data as visual
-  hero"), not icons or lists. Once the P2 grid fix above ships, consider
-  replacing the editorial-list/link-row layouts with annotated screenshots
-  per pillar/audience. Needs 3-4 screenshots that don't exist yet — content
-  production, not a code task. Deferred from issue #128 (named as "Approach
-  C" during eng review, not built — P2 above uses the editorial-list
-  approach instead). **Effort:** M (content) + S (integration) |
-  **Priority:** P3 | **Depends on:** P2 grid fix above shipping first.
+- ~~**[P3] Annotated product imagery for homepage/`/for`**~~ ✅ **Completed
+  v0.28.0.0 (2026-07-13)** (issue #139) — homepage `pillars` replaced with 3 annotated
+  screenshot rows (numbered gold markers + HTML legend via new
+  `src/components/annotated-screenshot.tsx`); `/for/nonprofits`,
+  `/for/volunteers`, `/for/employers` screenshots annotated via a new
+  `annotations` prop on `ScreenshotSection`. The `/for` index deliberately
+  keeps `LinkRowList` (navigation index ≠ content surface — won't-do, per
+  eng review). Assets are wired through `src/lib/marketing-screenshots.ts`
+  (single source of truth) and regenerated deterministically by
+  `pnpm screenshots` (e2e Playwright `capture` project +
+  `e2e/capture-scenarios.ts`; 2 new captures: credentials wallet, impact
+  report). CI guards: manifest-driven asset-existence test + scrolled
+  naturalWidth e2e assertions + 375px mobile pillar test. Spun-off
+  follow-ups tracked above (animal-shelters screenshot, dark-mode variants,
+  how-it-works/screening annotations).
+- **[P3] Screenshot for `/for/animal-shelters`** — the only `/for` sub-page
+  with no `ScreenshotSection`, which leaves it on an older visual system than
+  its three siblings once issue #139 ships annotated imagery (flagged by the
+  Codex outside voice during the #139 eng review). Blocked on content, not
+  code: seed data has no shelter org, so an honest capture needs either a
+  seeded shelter org with shelter-flavored opportunities/screener questions,
+  or a deliberate choice to reuse a generic view with shelter-relevant
+  annotations. What to show should follow the shelter-vertical positioning
+  in `~/.gstack/projects/.../ceo-plans/2026-04-13-cold-start-shelter-vertical.md`.
+  Start: extend `prisma/seed-dev.ts`, add a scenario to the #139 capture
+  manifest, then a one-prop `AnnotatedScreenshot` section on the page.
+  **Effort:** S (code) + S (seed content) | **Priority:** P3 |
+  **Depends on:** issue #139 shipping (capture project + component).
+- **[P3] Dark-mode marketing screenshot variants** — light-mode PNGs render
+  inside dark-themed public pages today (pre-existing; unchanged by #139).
+  Once the #139 capture project exists, dark variants are a re-run with
+  `colorScheme: 'dark'` plus a `<picture>`/CSS swap in `AnnotatedScreenshot`.
+  Cost: doubles the assets to keep honest, and marker coordinates must be
+  verified against both captures (same viewport makes this near-automatic).
+  Start: add a `theme` axis to the capture scenario manifest.
+  **Effort:** S | **Priority:** P3 | **Depends on:** issue #139 shipping.
+- **[P3] Annotated screenshots for `/how-it-works` + `/screening`** — the two
+  remaining plain `ScreenshotSection` callers after #139. Mechanical one-prop
+  upgrade per page plus annotation label copy (3-4 callouts each). Watch for
+  imagery overlap: `/screening` uses screener.png, which may also back the
+  homepage "Background checks" pillar. **Effort:** S | **Priority:** P3 |
+  **Depends on:** #139 shipping AND its annotation style passing
+  /design-review (don't propagate a style that's about to change).
 - ~~**[P3] Shared link-row component for `/for` + `/locations`**~~ ✅
   **Completed v0.27.3.0 (2026-07-13)** (issue #140) — extracted
   `src/components/link-row-list.tsx` (`LinkRowList`, fixed prop shape,

@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.28.0.0] - 2026-07-13
+
+### Added
+- **The homepage now shows the product doing what it claims.** (#139) The three "What it does, day to day" pillars — background checks, portable credentials, funder-ready reports — are real product screenshots with numbered callouts pointing at the exact UI that does the work, replacing the text-only list. Each callout's text is real HTML (readable by screen readers and search engines), and the layout adapts cleanly to phones: markers stay on the image, the legend stacks below.
+- **The nonprofit, volunteer, and employer pages' screenshots now carry the same numbered callouts**, so each audience sees what to look at instead of guessing.
+- Two new product views are shown publicly for the first time: the volunteer credential wallet (verified badges with issuing org and expiry) and the impact report (applications, approvals, shifts, and credentials tallied automatically).
+- **`pnpm screenshots`** — a one-command pipeline that regenerates every marketing screenshot from seeded demo data at a fixed 1280×720 frame, so product screenshots can never silently rot again (the previous manual set had drifted badly enough that 5 of 6 needed recapture). It signs in as the right demo account per shot, waits for real data to render, and refuses to run against anything but a local database.
+
+### Changed
+- If a marketing screenshot ever fails to load in production (e.g. a transient image-optimizer error), the page now retries the raw image before giving up — a network blip degrades to a slightly heavier image instead of silently deleting the section.
+- Screenshot images now tell the browser their true display size, trimming oversized image downloads on desktop and mobile.
+
+### Fixed
+- A screenshot asset going missing or being renamed is now caught by CI (existence + exact-dimension checks) and by e2e tests that verify the images actually load pixels on every marketing page — previously a missing image made its section vanish with no error anywhere.
+- Marketing captures no longer show the cookie banner, dev-tools badges, or an unselected org switcher in the app header.
+
 ## [0.27.5.0] - 2026-07-13
 
 ### Fixed
