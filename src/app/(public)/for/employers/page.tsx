@@ -17,6 +17,7 @@ import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
+import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
 
 export const revalidate = 3600;
 
@@ -198,12 +199,34 @@ export default async function ForEmployersPage() {
 			</FadeInOnScroll>
 
 			{/* ── Screenshot ── */}
+			{/* Marker coordinates are % of the 1280×720 capture — recapture via
+			    `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts) */}
 			<ScreenshotSection
-				src="/marketing/esg.png"
+				src={MARKETING_SCREENSHOTS.esg.src}
 				alt="VolunteerReady ESG dashboard showing aggregate volunteer hours and impact metrics"
 				caption="The ESG dashboard — aggregate volunteer hours, impact metrics, and export-ready reports."
 				sectionBg="sand"
 				containerBg="white"
+				annotations={[
+					{
+						x: 85.6,
+						y: 21.8,
+						label:
+							'Board-ready exports — CSV for the analysts, PDF for the deck.',
+					},
+					{
+						x: 87.3,
+						y: 54.6,
+						label:
+							'Aggregate employee volunteer hours across every linked nonprofit.',
+					},
+					{
+						x: 31.1,
+						y: 88.2,
+						label:
+							'Impact broken down per nonprofit partner — attribution without chasing spreadsheets.',
+					},
+				]}
 			/>
 
 			{/* ── Differentiators ── */}
