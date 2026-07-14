@@ -100,4 +100,20 @@ describe('ScreenshotSection', () => {
 		expect(items[0]?.textContent).toContain('Roster status');
 		expect(items[1]?.textContent).toContain('Export button');
 	});
+
+	it('passes darkSrc through to AnnotatedScreenshot, rendering both variants', () => {
+		render(
+			<ScreenshotSection
+				src="/marketing/screener.png"
+				darkSrc="/marketing/screener-dark.png"
+				alt="Screener"
+				caption="Caption"
+			/>,
+		);
+
+		const images = screen.getAllByAltText('Screener');
+		expect(images).toHaveLength(2);
+		expect(images[0].getAttribute('src')).toContain('screener.png');
+		expect(images[1].getAttribute('src')).toContain('screener-dark.png');
+	});
 });

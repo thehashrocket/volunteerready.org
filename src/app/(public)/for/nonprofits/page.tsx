@@ -248,6 +248,7 @@ export default async function ForNonprofitsPage() {
 			    `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts) */}
 			<ScreenshotSection
 				src={MARKETING_SCREENSHOTS.applicationsQueue.src}
+				darkSrc={MARKETING_SCREENSHOTS.applicationsQueue.darkSrc}
 				alt="VolunteerReady application queue showing pending, approved, and rejected applications with timestamps"
 				caption="Your application queue — always current, always exportable."
 				sectionBg="sand"

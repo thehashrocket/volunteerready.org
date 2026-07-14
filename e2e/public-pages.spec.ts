@@ -140,8 +140,13 @@ test.describe('Homepage editorial sections', () => {
 // requesting them.
 // ---------------------------------------------------------------------------
 
+// Dark-variant images/legends exist in the DOM at all times (issue #139
+// follow-up: dark-mode screenshot variants) but are `display:none` in the
+// "wrong" theme via `dark:hidden` / `hidden dark:block` — Playwright's
+// `:visible` pseudo-class filters to whatever the CURRENT colorScheme
+// actually shows, matching what a real user sees.
 const MARKETING_IMG_SELECTOR =
-	'img[src*="marketing"], img[srcset*="marketing"]';
+	'img[src*="marketing"]:visible, img[srcset*="marketing"]:visible';
 
 const SCREENSHOT_PAGES = [
 	{ path: '/', minImages: 4 }, // hero dashboard + 3 annotated pillar rows
@@ -186,13 +191,56 @@ test.describe('Marketing screenshots load', () => {
 	}
 });
 
+// Dark-mode counterpart: same pages, colorScheme: 'dark', proving the CSS
+// swap actually shows the dark variant (not just that it exists on disk —
+// src/lib/marketing-screenshots.test.ts already covers that).
+test.describe('Marketing screenshots load (dark mode)', () => {
+	test.use({ colorScheme: 'dark' });
+
+	// dashboard.png has no dark variant (Tension 1: the one `priority`-loaded
+	// hero image, excluded from dark scope) — the homepage's hero shot stays
+	// light-only even in dark mode, so its minImages drops by 1 here.
+	const DARK_SCREENSHOT_PAGES = SCREENSHOT_PAGES.map((p) =>
+		p.path === '/' ? { ...p, minImages: p.minImages - 1 } : p,
+	);
+
+	for (const { path, minImages } of DARK_SCREENSHOT_PAGES) {
+		test(`all marketing images on ${path} render with natural size`, async ({
+			page,
+		}) => {
+			await page.goto(path, { waitUntil: 'domcontentloaded' });
+
+			const images = page.locator(MARKETING_IMG_SELECTOR);
+			const count = await images.count();
+			expect(
+				count,
+				`${path} (dark) should render at least ${minImages} marketing screenshot(s)`,
+			).toBeGreaterThanOrEqual(minImages);
+
+			for (let i = 0; i < count; i++) {
+				const img = images.nth(i);
+				await img.scrollIntoViewIfNeeded();
+				await expect(img).toBeVisible();
+				await expect
+					.poll(
+						() => img.evaluate((el) => (el as HTMLImageElement).naturalWidth),
+						{ timeout: 15_000, message: `dark image ${i} on ${path} never loaded pixels` },
+					)
+					.toBeGreaterThan(0);
+			}
+		});
+	}
+});
+
 test.describe('Homepage pillar annotations', () => {
 	test('markers and legends render for each pillar', async ({ page }) => {
 		await page.goto('/', { waitUntil: 'domcontentloaded' });
 
 		// 3 pillars × 3 annotations: numbered markers on the image (aria-hidden)
-		// and a matching HTML legend list.
-		const legends = page.locator('main ol');
+		// and a matching HTML legend list. Dark-variant legends also exist in
+		// the DOM (hidden via CSS in light mode) — scope to :visible so this
+		// asserts what a light-mode user actually sees.
+		const legends = page.locator('main ol:visible');
 		await expect(legends).toHaveCount(3);
 		for (let i = 0; i < 3; i++) {
 			await expect(legends.nth(i).locator('li')).toHaveCount(3);
@@ -215,7 +263,7 @@ test.describe('Homepage pillar annotations', () => {
 		expect(box).not.toBeNull();
 		expect(box?.width ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(375);
 
-		const firstLegend = page.locator('main ol').first();
+		const firstLegend = page.locator('main ol:visible').first();
 		await firstLegend.scrollIntoViewIfNeeded();
 		await expect(firstLegend).toBeVisible();
 		await expect(firstLegend.locator('li').first()).toBeVisible();
@@ -229,9 +277,12 @@ test.describe('how-it-works / screening annotations', () => {
 		test(`markers and legend render on ${path}`, async ({ page }) => {
 			await page.goto(path, { waitUntil: 'domcontentloaded' });
 
-			// Each page has exactly one annotated ScreenshotSection: 1 legend
-			// list with 3 numbered callouts.
-			const legends = page.locator('main ol');
+			// Each page has exactly one annotated ScreenshotSection, so exactly
+			// one VISIBLE legend with 3 numbered callouts. /screening's
+			// screener.png also has a dark variant (a second legend exists in
+			// the DOM, hidden via CSS in light mode) — :visible scopes this to
+			// what a light-mode user actually sees.
+			const legends = page.locator('main ol:visible');
 			await expect(legends).toHaveCount(1);
 			await expect(legends.first().locator('li')).toHaveCount(3);
 		});

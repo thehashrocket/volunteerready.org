@@ -1343,47 +1343,50 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   naturalWidth e2e assertions + 375px mobile pillar test. Spun-off
   follow-ups tracked above (animal-shelters screenshot, dark-mode variants,
   how-it-works/screening annotations).
-- **[P3] Annotated screenshots for `/how-it-works` + `/screening`** — the two
-  remaining plain `ScreenshotSection` callers after #139. Mechanical one-prop
-  upgrade per page plus annotation label copy (3-4 callouts each). `/screening`
-  uses screener.png, which also backs the homepage "Background checks" pillar
-  — no conflict, since marker data lives per-page, not baked into the PNG; the
-  two pages just need independent callout copy. **PR sequenced first of 3**
-  (2026-07-14 eng review): zero seed/infra risk, pure page-level data addition.
-  **Blocking precondition:** `docs/TODOS.md`'s own dependency note
-  ("annotation style passing /design-review") has never actually been
-  satisfied — no `plan-design-review`/`design-review` entry exists in the
-  review log for the #139 style. Run `/design-review` on the shipped
-  annotation pattern (numbered markers + legend) before starting this PR, not
-  after. **Effort:** S | **Priority:** P3 | **Depends on:** #139 shipping
-  (done) + a `/design-review` pass on its annotation style (not done).
-- **[P3] Dark-mode marketing screenshot variants** — light-mode PNGs render
-  inside dark-themed public pages today (pre-existing; unchanged by #139).
-  **PR sequenced second of 3** (2026-07-14 eng review, resolved via cross-model
-  review — see decisions below). Mechanism: **CSS-only swap**, not a
-  `<picture>` or `useTheme()` JS hook — `AnnotatedScreenshot` renders two
-  `<Image>` elements toggled via Tailwind `dark:hidden`/`hidden dark:block`,
-  matching the pre-paint `.dark` class `next-themes` already sets (avoids a
-  hydration-flash of the wrong variant; this is the first `dark:` utility
-  usage in `src/app/(public)/**`, which otherwise carries dark mode via CSS
-  tokens only — see open issue #131). Manifest: `MARKETING_SCREENSHOTS`
-  entries gain an optional `darkSrc` field (single key holds both variants,
-  not separate keys like `screenerDark`); `capture-scenarios.ts` gains a
-  `variants: ('light'|'dark')[]` field. Error handling: track error state
-  per-variant, hide the block only if the *currently visible* variant fails
-  (must re-evaluate reactively on theme toggle, not cache once). **Scope:**
-  all `MARKETING_SCREENSHOTS` entries get dark variants **except
-  `dashboard.png`** — it's the one `priority`-loaded hero image, and doubling
-  an eagerly-loaded image defeats the point of `priority` (caught by Codex
-  outside voice; the initial "all 7" recommendation was self-contradictory).
-  Capture runner: `page.emulateMedia({ colorScheme })` must run before
-  `page.goto()`, not merely "inside the test" — order matters for
-  `next-themes`'s `system`-default first paint. Existing tests needing
-  rework: the manifest's bijection test (`scenarioKeys === manifestKeys`),
-  `annotated-screenshot.test.tsx`, `screenshot-section.test.tsx`.
-  **Effort:** M (larger than originally scoped — touches rendering,
-  manifest schema, capture runner, and 3 test files) | **Priority:** P3 |
-  **Depends on:** PR1 landing first (shares the capture pipeline surface).
+- ~~**[P3] Annotated screenshots for `/how-it-works` + `/screening`**~~ ✅
+  **Completed 2026-07-14** — the two remaining plain `ScreenshotSection`
+  callers after #139 got 3 marker/label pairs each, drawn from their own
+  screenshot's real UI. `/screening`'s screener.png shares the homepage
+  "Background checks" pillar's underlying image but uses distinct copy (FCRA
+  workflow framing vs the homepage's broader compliance framing) — no
+  conflict, since marker data lives per-page, not baked into the PNG. Also
+  fixed `/screening`'s stale alt/caption, which described an "application
+  review queue" — screener.png actually shows the Screener Questions config
+  UI. `/design-review` ran first (its own blocking precondition) and also
+  caught and fixed a real bug in the same component family: the homepage's
+  `priority` `dashboard.png` hero shot was invisible on any viewport under
+  ~820px tall (`FadeInOnScroll` started it at `opacity:0` and the reveal
+  threshold never fired) — fixed by skipping the fade-in wrapper for
+  `priority` images. `e2e/public-pages.spec.ts` gained legend/marker
+  assertions for both pages.
+- ~~**[P3] Dark-mode marketing screenshot variants**~~ ✅ **Completed
+  2026-07-14** — CSS-only swap (not `<picture>`, not `useTheme()`):
+  `AnnotatedScreenshot` renders two `<Image>` elements toggled via Tailwind
+  `dark:hidden`/`hidden dark:block`, matching the pre-paint `.dark` class
+  `next-themes` already sets — the first `dark:` utility usage in
+  `src/app/(public)/**` (which otherwise carries dark mode via CSS tokens
+  only, per open issue #131). `MARKETING_SCREENSHOTS` entries gained an
+  optional `darkSrc` field; `capture-scenarios.ts` gained a
+  `variants: ('light'|'dark')[]` field; the capture runner now calls
+  `page.emulateMedia({ colorScheme })` before `page.goto()` per variant.
+  Every entry except `dashboard.png` got a dark variant (the one
+  `priority`-loaded hero image stays light-only). Error handling: per-variant
+  state, hides only the variant whose image fails — achieved by having each
+  variant's own wrapper (image + legend together) null itself independently,
+  with zero JS theme detection. **Two real bugs caught and fixed during
+  implementation, both verified live in a real browser (not just unit
+  tests):** (1) the pre-hydration "broken before hydration" check
+  (`el.complete && naturalWidth===0`) false-positived on every hidden dark
+  variant, since a `display:none` image that never attempted to load reports
+  the identical signature as a genuinely broken one — fixed by gating that
+  check on `priority` (its only real use case). (2) the CSS visibility class
+  was originally applied only to the image frame, not the legend below it —
+  both variants' legends rendered simultaneously regardless of theme; fixed
+  by moving the class to the shared outer wrapper. `pnpm screenshots`
+  regenerated all 6 light+dark pairs against a freshly reset local dev DB
+  (a stale DB had accumulated duplicate boot-guard + seed-dev.ts screener
+  questions, dirtying the first capture attempt). `e2e/public-pages.spec.ts`
+  gained a dark-mode counterpart of the existing image-loaded suite.
 - **[P3] Screenshot for `/for/animal-shelters`** — the only `/for` sub-page
   with no `ScreenshotSection`. **PR sequenced third of 3** (2026-07-14 eng
   review): the only one touching `prisma/seed-dev.ts`, ships last and

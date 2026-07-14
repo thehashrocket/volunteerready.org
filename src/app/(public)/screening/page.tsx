@@ -215,6 +215,7 @@ export default function ScreeningPage() {
 			{/* ── Screenshot ── */}
 			<ScreenshotSection
 				src={MARKETING_SCREENSHOTS.screener.src}
+				darkSrc={MARKETING_SCREENSHOTS.screener.darkSrc}
 				alt="VolunteerReady screener questions builder showing the default screening questions, toggles, and consent step"
 				caption="Every opportunity's screening questions — age gate, background-check consent, and anything role-specific — configured in one screen."
 				sectionBg="white"

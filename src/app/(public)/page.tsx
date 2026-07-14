@@ -34,6 +34,7 @@ interface Pillar {
 	heading: string;
 	body: string;
 	src: string;
+	darkSrc?: string;
 	alt: string;
 	annotations: ScreenshotAnnotation[];
 }
@@ -46,6 +47,7 @@ const pillars: Pillar[] = [
 		heading: 'Background checks, built in',
 		body: 'Checkr and Sterling run inside the platform with full FCRA compliance. Most checks return same-day, and results are tied to the volunteer record automatically.',
 		src: MARKETING_SCREENSHOTS.screener.src,
+		darkSrc: MARKETING_SCREENSHOTS.screener.darkSrc,
 		alt: 'VolunteerReady screener admin showing volunteer application questions, including background-check consent',
 		annotations: [
 			{
@@ -72,6 +74,7 @@ const pillars: Pillar[] = [
 		heading: 'Portable credentials',
 		body: 'Verified badges follow volunteers between organizations. Less re-screening, faster activation, fewer applicants lost to paperwork.',
 		src: MARKETING_SCREENSHOTS.credentials.src,
+		darkSrc: MARKETING_SCREENSHOTS.credentials.darkSrc,
 		alt: 'VolunteerReady credential wallet showing verified background check, orientation, and training credentials',
 		annotations: [
 			{
@@ -97,6 +100,7 @@ const pillars: Pillar[] = [
 		heading: 'Funder-ready reports',
 		body: 'Hours, headcount, and credential status stay export-ready. When a funder, insurer, or auditor asks, the data is already organized.',
 		src: MARKETING_SCREENSHOTS.impactReport.src,
+		darkSrc: MARKETING_SCREENSHOTS.impactReport.darkSrc,
 		alt: 'VolunteerReady impact report showing applications, approvals, shifts, and credentials counted automatically',
 		annotations: [
 			{
@@ -228,6 +232,7 @@ export default async function Home() {
 								<div className={index % 2 === 1 ? 'md:order-1' : undefined}>
 									<AnnotatedScreenshot
 										src={pillar.src}
+										darkSrc={pillar.darkSrc}
 										alt={pillar.alt}
 										annotations={pillar.annotations}
 										frameClassName="bg-muted rounded-lg border border-border/40 shadow-sm"

@@ -16,6 +16,8 @@ interface ScreenshotSectionProps {
 	containerBg?: 'white' | 'sand';
 	priority?: boolean;
 	annotations?: ScreenshotAnnotation[];
+	/** Dark-mode variant of `src` — see AnnotatedScreenshot's darkSrc doc. */
+	darkSrc?: string;
 }
 
 export function ScreenshotSection({
@@ -26,6 +28,7 @@ export function ScreenshotSection({
 	containerBg = 'sand',
 	priority = false,
 	annotations,
+	darkSrc,
 }: ScreenshotSectionProps) {
 	const [hasError, setHasError] = useState(false);
 
@@ -45,6 +48,7 @@ export function ScreenshotSection({
 			<div className="mx-auto max-w-5xl">
 				<AnnotatedScreenshot
 					src={src}
+					darkSrc={darkSrc}
 					alt={alt}
 					annotations={annotations}
 					frameClassName={containerClass}

@@ -19,7 +19,9 @@ import { cn } from '@/lib/utils';
  * Markers are numbered dots (aria-hidden); the matching text lives in the
  * legend list below the image, so screen readers and search engines get real
  * HTML instead of pixels. Coordinates stay valid across recaptures as long as
- * the capture viewport stays 1280×720 (see e2e/capture-scenarios.ts).
+ * the capture viewport stays 1280×720 (see e2e/capture-scenarios.ts). The
+ * same coordinates apply to both the light and dark variant below — it's the
+ * same UI, just re-themed.
  */
 
 export interface ScreenshotAnnotation {
@@ -33,6 +35,16 @@ export interface ScreenshotAnnotation {
 interface AnnotatedScreenshotProps {
 	src: string;
 	alt: string;
+	/**
+	 * Dark-mode variant of `src`. When provided, both images render (each in
+	 * their own frame + marker + legend block) and are toggled purely via
+	 * Tailwind's `dark:` class variant — never a `useTheme()` hook. next-themes
+	 * sets the `.dark` class on `<html>` in a blocking inline script before
+	 * first paint, so a CSS-only swap is correct at first paint; a JS hook
+	 * would only resolve after hydration, showing the wrong variant briefly
+	 * (2026-07-14 eng review, decision 1B).
+	 */
+	darkSrc?: string;
 	annotations?: ScreenshotAnnotation[];
 	/**
 	 * Styling for the image frame (border, background, radius). Section
@@ -41,19 +53,11 @@ interface AnnotatedScreenshotProps {
 	frameClassName?: string;
 	sizes?: string;
 	priority?: boolean;
-	/** Notified when the image fails to load (the block also hides itself). */
+	/** Notified once every declared variant has failed to load. */
 	onError?: () => void;
 }
 
-export function AnnotatedScreenshot({
-	src,
-	alt,
-	annotations,
-	frameClassName,
-	sizes = '(max-width: 1024px) 100vw, 1024px',
-	priority = false,
-	onError,
-}: AnnotatedScreenshotProps) {
+function useVariantState(src: string | undefined, priority: boolean) {
 	const [hasError, setHasError] = useState(false);
 	// First failure retries the raw static asset (bypassing the image
 	// optimizer) — a transient optimizer 5xx must degrade to an unoptimized
@@ -73,24 +77,57 @@ export function AnnotatedScreenshot({
 		// Loud in the console so a production asset failure is observable —
 		// the component otherwise hides itself silently.
 		console.error(
-			`[AnnotatedScreenshot] image failed to load, hiding block: ${src}`,
+			`[AnnotatedScreenshot] image failed to load, hiding this variant: ${src}`,
 		);
 		setHasError(true);
-		onError?.();
-	}, [unoptimizedRetry, src, onError]);
+	}, [unoptimizedRetry, src]);
 
 	// An image that errored BEFORE hydration never replays its error event
 	// (relevant for the priority hero shot, fetched straight from SSR HTML) —
 	// detect that case on mount so the documented hide-on-error behavior
-	// holds instead of leaving markers floating over a broken image.
+	// holds instead of leaving markers floating over a broken image. Gated on
+	// `priority`: a non-priority (lazy, or CSS-hidden dark-mode) image that
+	// simply hasn't been requested yet ALSO reports complete=true/naturalWidth
+	// 0 — applying this check there would misfire as "broken" on every
+	// dark-mode variant, since it's `display:none` until the user is in dark
+	// mode and never attempts to load in the meantime.
 	useEffect(() => {
+		if (!priority) return;
 		const el = imgRef.current;
 		if (el?.complete && el.naturalWidth === 0) {
 			reportError();
 		}
-	}, [reportError]);
+	}, [reportError, priority]);
 
-	if (hasError) return null;
+	return { hasError, unoptimizedRetry, imgRef, reportError };
+}
+
+export function AnnotatedScreenshot({
+	src,
+	alt,
+	darkSrc,
+	annotations,
+	frameClassName,
+	sizes = '(max-width: 1024px) 100vw, 1024px',
+	priority = false,
+	onError,
+}: AnnotatedScreenshotProps) {
+	const light = useVariantState(src, priority);
+	const dark = useVariantState(darkSrc, priority);
+	const hasDarkVariant = darkSrc !== undefined;
+
+	// Fires once there is truly nothing left to show in ANY theme. A single
+	// broken variant (say darkSrc 404s) does NOT hide anything — the other
+	// theme still has a working image, and CSS alone decides which variant is
+	// "currently visible," so hiding correctly re-evaluates on every theme
+	// toggle without any JS theme detection (2026-07-14 eng review, decision
+	// 3B).
+	useEffect(() => {
+		const nothingLeftToShow = hasDarkVariant
+			? light.hasError && dark.hasError
+			: light.hasError;
+		if (nothingLeftToShow) onError?.();
+	}, [light.hasError, dark.hasError, hasDarkVariant, onError]);
 
 	const hasAnnotations = annotations !== undefined && annotations.length > 0;
 
@@ -106,20 +143,29 @@ export function AnnotatedScreenshot({
 		}
 	}
 
-	return (
-		<div>
+	const showLight = !light.hasError;
+	const showDark = hasDarkVariant && !dark.hasError;
+
+	if (!showLight && !showDark) return null;
+
+	const renderVariant = (
+		variantSrc: string,
+		state: ReturnType<typeof useVariantState>,
+		visibilityClass: string | undefined,
+	) => (
+		<div className={visibilityClass}>
 			<div className={cn('relative overflow-hidden', frameClassName)}>
 				<Image
-					ref={imgRef}
-					src={src}
+					ref={state.imgRef}
+					src={variantSrc}
 					alt={alt}
 					width={CAPTURE_FRAME.width}
 					height={CAPTURE_FRAME.height}
 					sizes={sizes}
 					className="w-full"
 					priority={priority}
-					unoptimized={unoptimizedRetry}
-					onError={reportError}
+					unoptimized={state.unoptimizedRetry}
+					onError={state.reportError}
 				/>
 				{hasAnnotations &&
 					annotations.map((annotation, index) => (
@@ -152,5 +198,16 @@ export function AnnotatedScreenshot({
 				</ol>
 			)}
 		</div>
+	);
+
+	if (!hasDarkVariant) {
+		return showLight ? renderVariant(src, light, undefined) : null;
+	}
+
+	return (
+		<>
+			{showLight && renderVariant(src, light, 'dark:hidden')}
+			{showDark && renderVariant(darkSrc, dark, 'hidden dark:block')}
+		</>
 	);
 }
