@@ -43,7 +43,7 @@ export default function LocationsIndexPage() {
 						items={LOCATIONS.map((location) => ({
 							href: `/locations/${location.slug}`,
 							heading: location.name,
-							description: `${location.heroDescription.split('.')[0]}.`,
+							description: location.summary,
 						}))}
 					/>
 				</div>

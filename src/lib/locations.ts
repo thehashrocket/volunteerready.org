@@ -7,6 +7,8 @@ export type LocationData = {
 	metaDescription: string;
 	heroHeadline: string;
 	heroDescription: string;
+	/** Short one-line summary for the /locations index row list. */
+	summary: string;
 	painPoints: string[];
 	comparisonItems: { before: string; after: string }[];
 	faqs: { question: string; answer: string }[];
@@ -32,6 +34,8 @@ export const LOCATIONS: LocationData[] = [
 		heroHeadline: 'FCRA-Compliant Background Checks for Your Volunteer Program',
 		heroDescription:
 			'Stockton nonprofits managing volunteers through spreadsheets and email are one audit away from a compliance gap. VolunteerReady automates screening, tracks credentials, and keeps your documentation audit-ready.',
+		summary:
+			'Stockton nonprofits managing volunteers through spreadsheets and email are one audit away from a compliance gap.',
 		painPoints: [
 			'Seasonal agricultural volunteer surges overwhelm manual tracking in Google Sheets',
 			"Port district compliance requirements demand background checks you're scrambling to complete",
@@ -110,6 +114,8 @@ export const LOCATIONS: LocationData[] = [
 		heroHeadline: 'Stop Managing Background Checks Through Email',
 		heroDescription:
 			'Modesto nonprofits running after-school programs and youth services need FCRA-compliant screening — not another spreadsheet. VolunteerReady replaces manual processes with automated workflows that keep your organization compliant.',
+		summary:
+			'Modesto nonprofits running after-school programs and youth services need FCRA-compliant screening — not another spreadsheet.',
 		painPoints: [
 			'After-school program volunteers need background checks but the process takes weeks by email',
 			"Stanislaus County grant requirements mandate screening documentation you don't have organized",
@@ -184,6 +190,8 @@ export const LOCATIONS: LocationData[] = [
 		heroHeadline: 'Volunteer Screening Infrastructure for the Entire County',
 		heroDescription:
 			'With over 1,200 nonprofits across San Joaquin County, the demand for compliant volunteer screening is real. VolunteerReady provides the infrastructure — so your organization can focus on its mission.',
+		summary:
+			'With over 1,200 nonprofits across San Joaquin County, the demand for compliant volunteer screening is real.',
 		painPoints: [
 			'County-funded programs require volunteer screening but no standardized process exists',
 			'Multiple program sites mean volunteer clearances get lost between locations',
@@ -264,6 +272,8 @@ export const LOCATIONS: LocationData[] = [
 		heroHeadline: 'Your Volunteers Deserve a Better Onboarding Experience',
 		heroDescription:
 			'Stanislaus County nonprofits lose volunteers to slow, confusing onboarding. VolunteerReady streamlines the path from application to first shift — with built-in screening that meets FCRA requirements.',
+		summary:
+			'Stanislaus County nonprofits lose volunteers to slow, confusing onboarding.',
 		painPoints: [
 			'Youth-serving nonprofits need FCRA-compliant background checks but lack a formal process',
 			'Volunteer drop-off during slow onboarding costs programs their best candidates',
@@ -338,6 +348,8 @@ export const LOCATIONS: LocationData[] = [
 			'Volunteer Compliance at the Scale Sacramento Programs Demand',
 		heroDescription:
 			"Sacramento's state capital density means more grants, more compliance requirements, and larger volunteer programs. VolunteerReady gives your organization the infrastructure to screen, credential, and manage volunteers at scale.",
+		summary:
+			"Sacramento's state capital density means more grants, more compliance requirements, and larger volunteer programs.",
 		painPoints: [
 			'State-funded programs have strict volunteer screening mandates that outpace your manual processes',
 			"Large volunteer programs (50-200+ volunteers) can't scale background checks through email",
@@ -419,6 +431,8 @@ export const LOCATIONS: LocationData[] = [
 			"Volunteer Screening for the Valley's Largest Nonprofit Community",
 		heroDescription:
 			"Fresno's nonprofits serve a county of nearly a million people with a small fraction of the staff a city this size would suggest. VolunteerReady automates screening, tracks credentials, and keeps volunteer coordination from eating the week.",
+		summary:
+			"Fresno's nonprofits serve a county of nearly a million people with a small fraction of the staff a city this size would suggest.",
 		painPoints: [
 			'A county-sized service area spanning Fresno, Clovis, Sanger, and Selma makes volunteer coordination across sites hard to track manually',
 			'Agricultural-economy seasonality drives volunteer surges that overwhelm spreadsheet-based intake',
