@@ -1151,7 +1151,7 @@ matters if location pages scale beyond Central Valley.
 hardcoded `nonprofitCount` per location. IRS Exempt Organizations Business Master File
 (BMF) is the canonical source. Refresh cadence: quarterly would be sufficient.
 
-**Effort:** M | **Priority:** P3 | **Depends on:** Initial location pages validated, decision to scale beyond 5 pages
+**Effort:** M | **Priority:** P3 | **Depends on:** Initial location pages validated, decision to scale beyond 6 pages
 
 ---
 

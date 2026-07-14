@@ -148,6 +148,7 @@ Vertical list layout, not a card grid. Each location gets a full-width row:
 - `/locations/modesto` -- Modesto, CA (city within Stanislaus County, different keywords)
 - `/locations/stockton` -- Stockton, CA (city within San Joaquin County, different keywords)
 - `/locations/sacramento` -- Sacramento, CA (larger market, same template, but content emphasizes state capital nonprofit density and larger volunteer programs)
+- `/locations/fresno` -- Fresno, CA (added 2026-07-13 post-launch expansion — see `src/lib/locations.ts`)
 
 **SEO per page:**
 - Unique title: "Volunteer Screening & Management for [Location] Nonprofits | VolunteerReady"
