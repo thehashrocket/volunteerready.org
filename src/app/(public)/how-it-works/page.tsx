@@ -1,5 +1,6 @@
 import { BarChart3, Building2, Heart } from 'lucide-react';
 import type { Metadata } from 'next';
+import type { ScreenshotAnnotation } from '@/components/annotated-screenshot';
 import { CTABanner } from '@/components/cta-banner';
 import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
@@ -20,6 +21,30 @@ export const metadata: Metadata = {
 		images: [{ url: '/api/og/page/how-it-works', width: 1200, height: 630 }],
 	},
 };
+
+// Marker coordinates are percentages of the 1280×720 capture frame — see the
+// coordinate diagram in annotated-screenshot.tsx. Recapture via
+// `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts).
+const dashboardAnnotations: ScreenshotAnnotation[] = [
+	{
+		x: 40.7,
+		y: 39,
+		label:
+			'Published opportunities, applications, and approvals update here as they happen — no spreadsheet to reconcile at report time.',
+	},
+	{
+		x: 27,
+		y: 54,
+		label:
+			'Recent activity ties every application and check-in to the volunteer record automatically.',
+	},
+	{
+		x: 84.2,
+		y: 48.6,
+		label:
+			"A readiness score flags what's still open, so a funder question never catches the team flat-footed.",
+	},
+];
 
 const volunteerSteps = [
 	{
@@ -321,6 +346,7 @@ export default function HowItWorksPage() {
 				caption="What your application queue looks like once the pipeline is live."
 				sectionBg="sand"
 				containerBg="white"
+				annotations={dashboardAnnotations}
 			/>
 
 			{/* ── FAQ ── */}

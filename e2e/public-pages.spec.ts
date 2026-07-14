@@ -221,3 +221,19 @@ test.describe('Homepage pillar annotations', () => {
 		await expect(firstLegend.locator('li').first()).toBeVisible();
 	});
 });
+
+test.describe('how-it-works / screening annotations', () => {
+	const ANNOTATED_PAGES = ['/how-it-works', '/screening'] as const;
+
+	for (const path of ANNOTATED_PAGES) {
+		test(`markers and legend render on ${path}`, async ({ page }) => {
+			await page.goto(path, { waitUntil: 'domcontentloaded' });
+
+			// Each page has exactly one annotated ScreenshotSection: 1 legend
+			// list with 3 numbered callouts.
+			const legends = page.locator('main ol');
+			await expect(legends).toHaveCount(1);
+			await expect(legends.first().locator('li')).toHaveCount(3);
+		});
+	}
+});
