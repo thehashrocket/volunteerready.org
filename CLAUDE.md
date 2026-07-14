@@ -46,7 +46,7 @@ question backfill). After a fresh production database setup, also run
 
 `pnpm seed:dev` creates dedicated test accounts for local development and QA:
 - `orgadmin@volunteermatch.local` — Org OWNER (Helping Hands)
-- `companyadmin@volunteermatch.local` — Company Admin
+- `companyadmin@volunteermatch.local` — Company OWNER (Acme Corp)
 - `volunteer@volunteermatch.local` — Volunteer
 
 Use the magic link flow to sign in. Auth cookie name: `next-auth.session-token`.

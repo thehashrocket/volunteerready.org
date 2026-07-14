@@ -11,7 +11,7 @@ Flagged by the 2026-07-12 design review (docs/TODOS.md) and both a Codex source 
 
 ## Scope
 - Extract a shared `EditorialList` component (`src/components/editorial-list.tsx`) for static content lists — takes `items: {heading, body}[]`, renders a left-`border-accent` row per item, no icons.
-- Homepage `differentiators` (already had this exact row shape inline) and `pillars` (icons dropped for visual parity) both route through `EditorialList`.
+- Homepage `differentiators` (already had this exact row shape inline) and `pillars` (icons dropped for visual parity) both route through `EditorialList`. *(Update: `pillars` moved off `EditorialList` in issue #139 — they now render as annotated screenshot rows via `src/components/annotated-screenshot.tsx`; only `differentiators` still uses `EditorialList` on the homepage.)*
 - `/for`'s `audiences` section is a navigation index (4 clickable links), a different concern from a static content list. Rather than force it through `EditorialList` with an optional `href`, it mirrors the link-row pattern already shipped on `src/app/(public)/locations/page.tsx` (divide-y rows, alternating stripe, hover state, trailing arrow) as inline JSX. *(Update: extracted into a shared `src/components/link-row-list.tsx` component in issue #140 — see below.)*
 - Out of scope: annotated product-screenshot imagery per pillar/audience (bigger, separate content-production project — tracked as a P3 TODO at the time; *completed in issue #139: homepage `pillars` now render as annotated screenshot rows via `src/components/annotated-screenshot.tsx`, and the `/for` sub-page screenshots carry annotations; the `/for` index deliberately keeps `LinkRowList`*), and a shared component unifying `/for` + `/locations`' row-link pattern (tracked as a P3 TODO at the time, deferred since `/locations` wasn't otherwise touched; completed in issue #140).
 
@@ -26,4 +26,4 @@ An outside-voice review (Codex) challenged the original plan, which routed `pill
 ## Success Criteria
 - Homepage and `/for` no longer contain any 3-4-column icon-in-circle card grid.
 - `/for`'s 4 audience links remain independently clickable and keyboard-navigable.
-- Visual consistency between homepage's "What it does" and "Three things you won't find" sections (same list pattern).
+- Visual consistency between homepage's "What it does" and "Three things you won't find" sections (same list pattern). *(Superseded in issue #139: "What it does" upgraded to annotated screenshot rows — the "product data as visual hero" end state this doc deferred; "Three things you won't find" remains an `EditorialList`.)*

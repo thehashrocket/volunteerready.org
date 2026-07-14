@@ -473,7 +473,11 @@ table locks during deploy.
 
 Added 6 PNG screenshots in `public/marketing/`: dashboard, screener, shifts,
 credentials, ESG report, and profile. Captured from demo org with realistic
-seed data. Ready for integration into public landing pages.
+seed data. Ready for integration into public landing pages. *(Set has since
+changed — current source of truth is `src/lib/marketing-screenshots.ts`:
+shifts.png retired, applications-queue.png added, impact-report.png added and
+credentials recaptured in v0.28.0.0 (issue #139), which also made regeneration
+deterministic via `pnpm screenshots`.)*
 
 ---
 

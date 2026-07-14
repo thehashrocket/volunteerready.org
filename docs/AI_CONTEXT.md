@@ -439,7 +439,7 @@ pnpm typecheck            # tsc --noEmit
 pnpm test                 # Vitest (run once)
 pnpm test:watch           # Vitest (watch mode)
 pnpm e2e                  # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
-pnpm screenshots          # Regenerate marketing screenshots in public/marketing/ (CAPTURE=1 Playwright project; needs pnpm seed:dev data; filter with CAPTURE_ONLY=key1,key2)
+pnpm screenshots          # Regenerate marketing screenshots in public/marketing/ (CAPTURE=1 Playwright project; needs pnpm seed:dev data; refuses non-local DATABASE_URL; filter with CAPTURE_ONLY=key1,key2)
 pnpm check                # Biome check on src/docs/prisma (applies safe fixes)
 pnpm prisma migrate deploy  # Apply migrations
 pnpm prisma db seed         # Seed data (production or dev based on NODE_ENV)
