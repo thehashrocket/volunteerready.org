@@ -94,6 +94,7 @@ type LocationData = {
   metaDescription: string;         // SEO description
   heroHeadline: string;            // Fraunces headline, unique per location
   heroDescription: string;         // One-sentence Geist description
+  summary: string;                 // Short one-line summary for the /locations index row list (issue #142)
   painPoints: string[];            // Location-specific pain points (2-5 items)
   comparisonItems: { before: string; after: string }[]; // Before/after pairs
   faqs: { question: string; answer: string }[];         // Location-specific FAQs
