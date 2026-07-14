@@ -27,7 +27,10 @@ export function SwUpdateBanner() {
 	if (!showUpdate) return null;
 
 	return (
-		<div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm rounded-lg border bg-background p-4 shadow-lg md:left-auto md:right-4">
+		<div
+			data-sw-update-banner
+			className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm rounded-lg border bg-background p-4 shadow-lg md:left-auto md:right-4"
+		>
 			<div className="flex items-center gap-3">
 				<RefreshCw className="h-4 w-4 shrink-0 text-muted-foreground" />
 				<p className="flex-1 text-sm">New version available.</p>
