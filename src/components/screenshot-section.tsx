@@ -40,23 +40,31 @@ export function ScreenshotSection({
 		'rounded-lg border border-border/40 shadow-sm',
 	);
 
+	const content = (
+		<>
+			<div className="mx-auto max-w-5xl">
+				<AnnotatedScreenshot
+					src={src}
+					alt={alt}
+					annotations={annotations}
+					frameClassName={containerClass}
+					priority={priority}
+					onError={() => setHasError(true)}
+				/>
+			</div>
+			<p className="mx-auto mt-3 max-w-3xl text-center text-sm text-muted-foreground">
+				{caption}
+			</p>
+		</>
+	);
+
 	return (
 		<section className={sectionClass}>
-			<FadeInOnScroll>
-				<div className="mx-auto max-w-5xl">
-					<AnnotatedScreenshot
-						src={src}
-						alt={alt}
-						annotations={annotations}
-						frameClassName={containerClass}
-						priority={priority}
-						onError={() => setHasError(true)}
-					/>
-				</div>
-				<p className="mx-auto mt-3 max-w-3xl text-center text-sm text-muted-foreground">
-					{caption}
-				</p>
-			</FadeInOnScroll>
+			{/* A priority image must render immediately (it's the LCP candidate) —
+			    FadeInOnScroll starts children at opacity-0 until scrolled into view,
+			    which silently hides above-the-fold priority images on common
+			    viewport heights (~<820px) where the reveal threshold never fires. */}
+			{priority ? content : <FadeInOnScroll>{content}</FadeInOnScroll>}
 		</section>
 	);
 }
