@@ -1,8 +1,12 @@
 'use client';
 
-import Image from 'next/image';
 import { useState } from 'react';
+import {
+	AnnotatedScreenshot,
+	type ScreenshotAnnotation,
+} from '@/components/annotated-screenshot';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
+import { cn } from '@/lib/utils';
 
 interface ScreenshotSectionProps {
 	src: string;
@@ -11,6 +15,7 @@ interface ScreenshotSectionProps {
 	sectionBg?: 'white' | 'sand';
 	containerBg?: 'white' | 'sand';
 	priority?: boolean;
+	annotations?: ScreenshotAnnotation[];
 }
 
 export function ScreenshotSection({
@@ -20,6 +25,7 @@ export function ScreenshotSection({
 	sectionBg = 'white',
 	containerBg = 'sand',
 	priority = false,
+	annotations,
 }: ScreenshotSectionProps) {
 	const [hasError, setHasError] = useState(false);
 
@@ -29,21 +35,20 @@ export function ScreenshotSection({
 		sectionBg === 'sand'
 			? 'bg-muted px-4 py-14 md:py-20'
 			: 'px-4 py-14 md:py-20';
-	const containerClass =
-		containerBg === 'sand'
-			? 'bg-muted rounded-lg border border-border/40 shadow-sm'
-			: 'bg-card rounded-lg border border-border/40 shadow-sm';
+	const containerClass = cn(
+		containerBg === 'sand' ? 'bg-muted' : 'bg-card',
+		'rounded-lg border border-border/40 shadow-sm',
+	);
 
 	return (
 		<section className={sectionClass}>
 			<FadeInOnScroll>
-				<div className={`mx-auto max-w-5xl overflow-hidden ${containerClass}`}>
-					<Image
+				<div className="mx-auto max-w-5xl">
+					<AnnotatedScreenshot
 						src={src}
 						alt={alt}
-						width={1200}
-						height={675}
-						className="w-full"
+						annotations={annotations}
+						frameClassName={containerClass}
 						priority={priority}
 						onError={() => setHasError(true)}
 					/>

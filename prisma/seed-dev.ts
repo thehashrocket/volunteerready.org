@@ -1283,6 +1283,39 @@ async function seedDev() {
 	// =========================================================================
 	console.log('🏅 Creating credentials...');
 
+	// Test volunteer — verified credentials so the profile Credentials tab has
+	// real data (marketing screenshot capture depends on this: see
+	// e2e/capture-scenarios.ts `credentials` scenario)
+	await upsertCredential(
+		testVolunteer.id,
+		helpingHands.id,
+		'BACKGROUND_CHECK',
+		'VERIFIED',
+		{
+			issuedAt: daysAgo(30),
+			expiresAt: daysFromNow(335),
+			notes: 'Cleared — no issues.',
+		},
+	);
+	await upsertCredential(
+		testVolunteer.id,
+		helpingHands.id,
+		'ORIENTATION_COMPLETE',
+		'VERIFIED',
+		{
+			issuedAt: daysAgo(25),
+		},
+	);
+	await upsertCredential(
+		testVolunteer.id,
+		helpingHands.id,
+		'TRAINING_COMPLETE',
+		'VERIFIED',
+		{
+			issuedAt: daysAgo(20),
+		},
+	);
+
 	// Alex — fully verified at Helping Hands
 	await upsertCredential(
 		vol1.id,

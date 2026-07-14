@@ -17,6 +17,7 @@ import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
 
 export const metadata: Metadata = {
 	title: 'For Volunteers — VolunteerReady',
@@ -236,12 +237,34 @@ export default function ForVolunteersPage() {
 			</section>
 
 			{/* ── Screenshot ── */}
+			{/* Marker coordinates are % of the 1280×720 capture — recapture via
+			    `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts) */}
 			<ScreenshotSection
-				src="/marketing/profile.png"
+				src={MARKETING_SCREENSHOTS.profile.src}
 				alt="VolunteerReady volunteer profile showing portable credentials, upcoming shifts, and impact stats"
 				caption="Your volunteer profile — portable credentials, upcoming shifts, and impact stats."
 				sectionBg="white"
 				containerBg="sand"
+				annotations={[
+					{
+						x: 59.9,
+						y: 36.7,
+						label:
+							'Complete your profile once — every organization you apply to sees what it needs.',
+					},
+					{
+						x: 69.4,
+						y: 54.7,
+						label:
+							'Verified credentials are counted here and travel with you between organizations.',
+					},
+					{
+						x: 58.7,
+						y: 70.1,
+						label:
+							'The credential wallet: shareable proof of screening, orientation, and training.',
+					},
+				]}
 			/>
 
 			{/* ── Testimonial ── */}

@@ -14,12 +14,29 @@ export default defineConfig({
 		baseURL: BASE_URL,
 		trace: 'on-first-retry',
 	},
-	projects: [
-		{
-			name: 'chromium',
-			use: { ...devices['Desktop Chrome'] },
-		},
-	],
+	// Mutually exclusive project sets: CAPTURE=1 registers ONLY the capture
+	// project (marketing-screenshot pipeline, pnpm screenshots), everything
+	// else registers ONLY chromium. This is deliberate — if both were
+	// registered, a leaked CAPTURE env var would let a bare `playwright test`
+	// rewrite public/marketing/*.png concurrently with the e2e specs that
+	// assert on those very files.
+	projects:
+		process.env.CAPTURE === '1'
+			? [
+					{
+						name: 'capture',
+						use: { ...devices['Desktop Chrome'] },
+						testMatch: /capture\.spec\.ts/,
+					},
+				]
+			: [
+					{
+						name: 'chromium',
+						use: { ...devices['Desktop Chrome'] },
+						// capture.spec.ts only runs under the capture project.
+						testIgnore: /capture\.spec\.ts/,
+					},
+				],
 	webServer: process.env.PLAYWRIGHT_BASE_URL
 		? undefined
 		: {

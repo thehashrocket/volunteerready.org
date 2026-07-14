@@ -7,6 +7,7 @@ import { PublicHero } from '@/components/public-hero';
 import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
+import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
 
 export const metadata: Metadata = {
 	title: 'How It Works — VolunteerReady',
@@ -315,7 +316,7 @@ export default function HowItWorksPage() {
 
 			{/* ── Dashboard product shot ── */}
 			<ScreenshotSection
-				src="/marketing/dashboard.png"
+				src={MARKETING_SCREENSHOTS.dashboard.src}
 				alt="VolunteerReady application queue dashboard"
 				caption="What your application queue looks like once the pipeline is live."
 				sectionBg="sand"

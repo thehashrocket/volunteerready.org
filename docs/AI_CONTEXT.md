@@ -86,9 +86,11 @@ src/
 │   │   ├── onboarding/           # Org setup flow
 │   │   └── welcome/              # Post-login landing
 │   ├── (public)/                 # Public marketing pages (homepage, about, pricing, etc.)
-│   │   ├── for-volunteers/       # Volunteer marketing page
-│   │   ├── for-nonprofits/       # Nonprofit marketing page
-│   │   ├── for-employers/        # Corporate CSR marketing page
+│   │   ├── for/                  # Audience index (link rows) + sub-pages:
+│   │   │   ├── volunteers/       #   Volunteer marketing page
+│   │   │   ├── nonprofits/       #   Nonprofit marketing page
+│   │   │   ├── employers/        #   Corporate CSR marketing page
+│   │   │   └── animal-shelters/  #   Shelter vertical marketing page
 │   │   ├── how-it-works/         # Product walkthrough
 │   │   ├── pricing/              # Plan comparison + pricing
 │   │   ├── about/                # Team and mission
@@ -437,6 +439,7 @@ pnpm typecheck            # tsc --noEmit
 pnpm test                 # Vitest (run once)
 pnpm test:watch           # Vitest (watch mode)
 pnpm e2e                  # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
+pnpm screenshots          # Regenerate marketing screenshots in public/marketing/ (CAPTURE=1 Playwright project; needs pnpm seed:dev data; refuses non-local DATABASE_URL; filter with CAPTURE_ONLY=key1,key2)
 pnpm check                # Biome check on src/docs/prisma (applies safe fixes)
 pnpm prisma migrate deploy  # Apply migrations
 pnpm prisma db seed         # Seed data (production or dev based on NODE_ENV)
@@ -518,8 +521,11 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/lib/crypto.ts` | AES-256-GCM encrypt/decrypt/tryDecrypt for secrets at rest |
 | `src/server/domain/esg-report.ts` | ESG report domain — `esgReportInputSchema` + `normalizeESGDateRange` (end-of-day `to` bounds, inverted-range rejection), `computeESGSummary`, CSV formatting |
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
-| `playwright.config.ts` | E2E configuration (boots `pnpm dev`; `PLAYWRIGHT_BASE_URL` override) |
+| `playwright.config.ts` | E2E configuration (boots `pnpm dev`; `PLAYWRIGHT_BASE_URL` override; `CAPTURE=1` swaps the `chromium` project for the marketing-screenshot `capture` project — mutually exclusive so a leaked env var can't rewrite `public/marketing/*.png` mid-e2e) |
 | `e2e/utils/db.ts` | Playwright auth harness — seeds a NextAuth database session for authenticated e2e specs; refuses non-local `DATABASE_URL` unless `E2E_ALLOW_REMOTE_DB=1` |
+| `src/lib/marketing-screenshots.ts` | Marketing screenshot asset manifest — single source of truth for `public/marketing/*.png`; pages import entries, `marketing-screenshots.test.ts` asserts every asset exists on disk |
+| `src/components/annotated-screenshot.tsx` | `AnnotatedScreenshot` — product screenshot with numbered %-positioned markers + HTML legend (homepage pillar rows; `ScreenshotSection`'s optional `annotations` prop) |
+| `e2e/capture-scenarios.ts` | Typed capture scenarios (actor/path/clickTabs/waitForText) for `pnpm screenshots` — deterministic 1280×720 light-mode captures from seeded demo data (`e2e/capture.spec.ts`) |
 
 ---
 

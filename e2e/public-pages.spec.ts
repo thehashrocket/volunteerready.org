@@ -128,3 +128,96 @@ test.describe('Homepage editorial sections', () => {
 		).toBeVisible();
 	});
 });
+
+// ---------------------------------------------------------------------------
+// Marketing screenshot regression guards (issue #139).
+//
+// ScreenshotSection/AnnotatedScreenshot hide themselves when an image 404s,
+// so a broken asset silently deletes the section — no console error, no
+// failed h1 check. These tests prove the images actually LOADED. Below-fold
+// images are lazy (`loading="lazy"`), so each one must be scrolled into view
+// first — a bare goto() + naturalWidth check would pass without ever
+// requesting them.
+// ---------------------------------------------------------------------------
+
+const MARKETING_IMG_SELECTOR =
+	'img[src*="marketing"], img[srcset*="marketing"]';
+
+const SCREENSHOT_PAGES = [
+	{ path: '/', minImages: 4 }, // hero dashboard + 3 annotated pillar rows
+	{ path: '/for/nonprofits', minImages: 1 },
+	{ path: '/for/volunteers', minImages: 1 },
+	{ path: '/for/employers', minImages: 1 },
+	{ path: '/how-it-works', minImages: 1 },
+	{ path: '/screening', minImages: 1 },
+] as const;
+
+test.describe('Marketing screenshots load', () => {
+	for (const { path, minImages } of SCREENSHOT_PAGES) {
+		test(`all marketing images on ${path} render with natural size`, async ({
+			page,
+		}) => {
+			await page.goto(path, { waitUntil: 'domcontentloaded' });
+
+			const images = page.locator(MARKETING_IMG_SELECTOR);
+			const count = await images.count();
+			expect(
+				count,
+				`${path} should render at least ${minImages} marketing screenshot(s) — a missing asset hides its section silently`,
+			).toBeGreaterThanOrEqual(minImages);
+
+			for (let i = 0; i < count; i++) {
+				const img = images.nth(i);
+				await img.scrollIntoViewIfNeeded();
+				await expect(img).toBeVisible();
+				await expect
+					.poll(
+						() => img.evaluate((el) => (el as HTMLImageElement).naturalWidth),
+						{
+							// Cold dev-server image optimization can exceed the 5s
+							// default — match the capture pipeline's settle budget.
+							timeout: 15_000,
+							message: `image ${i} on ${path} never loaded pixels`,
+						},
+					)
+					.toBeGreaterThan(0);
+			}
+		});
+	}
+});
+
+test.describe('Homepage pillar annotations', () => {
+	test('markers and legends render for each pillar', async ({ page }) => {
+		await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+		// 3 pillars × 3 annotations: numbered markers on the image (aria-hidden)
+		// and a matching HTML legend list.
+		const legends = page.locator('main ol');
+		await expect(legends).toHaveCount(3);
+		for (let i = 0; i < 3; i++) {
+			await expect(legends.nth(i).locator('li')).toHaveCount(3);
+		}
+	});
+
+	test('mobile viewport (375px): legends stack below images, nothing clipped', async ({
+		page,
+	}) => {
+		await page.setViewportSize({ width: 375, height: 812 });
+		await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+		const firstPillarImage = page.locator(MARKETING_IMG_SELECTOR).nth(1); // 0 = hero dashboard shot
+		await firstPillarImage.scrollIntoViewIfNeeded();
+		await expect(firstPillarImage).toBeVisible();
+
+		// The image (and the markers positioned over it) must fit the viewport
+		// width — an overflow here means the annotation frame broke the layout.
+		const box = await firstPillarImage.boundingBox();
+		expect(box).not.toBeNull();
+		expect(box?.width ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(375);
+
+		const firstLegend = page.locator('main ol').first();
+		await firstLegend.scrollIntoViewIfNeeded();
+		await expect(firstLegend).toBeVisible();
+		await expect(firstLegend.locator('li').first()).toBeVisible();
+	});
+});

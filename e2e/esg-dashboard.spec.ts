@@ -13,7 +13,12 @@
 
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
-import { disconnectPrisma, getPrisma } from './utils/db';
+import {
+	createSession,
+	disconnectPrisma,
+	getPrisma,
+	SESSION_COOKIE_NAME,
+} from './utils/db';
 
 const PREFIX = '__esg_e2e__';
 
@@ -131,14 +136,10 @@ test.beforeAll(async () => {
 	});
 
 	// Database session (NextAuth strategy: 'database') pinned to the company
-	sessionToken = randomUUID();
-	await prisma.session.create({
-		data: {
-			sessionToken,
-			userId: user.id,
-			expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-			currentCompanyId: company.id,
-		},
+	sessionToken = await createSession({
+		userId: user.id,
+		currentCompanyId: company.id,
+		ttlMs: 24 * 60 * 60 * 1000,
 	});
 
 	// Outsider: authenticated but NOT a member of the company — used to prove
@@ -150,13 +151,9 @@ test.beforeAll(async () => {
 			email: `${PREFIX}outsider-${run}@e2e.local`,
 		},
 	});
-	outsiderSessionToken = randomUUID();
-	await prisma.session.create({
-		data: {
-			sessionToken: outsiderSessionToken,
-			userId: outsider.id,
-			expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-		},
+	outsiderSessionToken = await createSession({
+		userId: outsider.id,
+		ttlMs: 24 * 60 * 60 * 1000,
 	});
 });
 
@@ -173,11 +170,7 @@ test.describe('ESG dashboard (authenticated, dev server)', () => {
 	}) => {
 		if (!baseURL) throw new Error('baseURL missing from Playwright config');
 		await context.addCookies([
-			{
-				name: 'next-auth.session-token',
-				value: sessionToken,
-				url: baseURL,
-			},
+			{ name: SESSION_COOKIE_NAME, value: sessionToken, url: baseURL },
 		]);
 
 		// Fail fast on a 500 from the tRPC query
@@ -228,11 +221,7 @@ test.describe('ESG dashboard (authenticated, dev server)', () => {
 	}) => {
 		if (!baseURL) throw new Error('baseURL missing from Playwright config');
 		await context.addCookies([
-			{
-				name: 'next-auth.session-token',
-				value: outsiderSessionToken,
-				url: baseURL,
-			},
+			{ name: SESSION_COOKIE_NAME, value: outsiderSessionToken, url: baseURL },
 		]);
 
 		await page.goto(`/app/company/${companyId}/esg`);

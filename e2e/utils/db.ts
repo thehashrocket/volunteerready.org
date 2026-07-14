@@ -49,3 +49,58 @@ export async function disconnectPrisma(): Promise<void> {
 		client = null;
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Database-session helpers (NextAuth strategy: 'database').
+//
+// Shared by every authenticated spec and the capture pipeline so the cookie
+// name, token source, and org/company pinning live in exactly one place.
+// Sessions minted WITHOUT currentOrgId render multi-org users with the org
+// switcher in its "Select org" placeholder state — pin the context when the
+// actor has one.
+// ---------------------------------------------------------------------------
+
+export const SESSION_COOKIE_NAME = 'next-auth.session-token';
+
+export async function createSession(options: {
+	userId: string;
+	currentOrgId?: string;
+	currentCompanyId?: string;
+	ttlMs?: number;
+}): Promise<string> {
+	const { randomUUID } = await import('node:crypto');
+	const sessionToken = randomUUID();
+	await getPrisma().session.create({
+		data: {
+			sessionToken,
+			userId: options.userId,
+			expires: new Date(Date.now() + (options.ttlMs ?? 60 * 60 * 1000)),
+			currentOrgId: options.currentOrgId,
+			currentCompanyId: options.currentCompanyId,
+		},
+	});
+	return sessionToken;
+}
+
+export async function deleteSession(sessionToken: string): Promise<void> {
+	await getPrisma()
+		.session.delete({ where: { sessionToken } })
+		.catch(() => {});
+}
+
+export function sessionCookie(sessionToken: string, baseURL: string) {
+	const url = new URL(baseURL);
+	// NextAuth switches to the __Secure- prefixed cookie (and requires the
+	// Secure attribute) on https targets — a plain-named cookie would silently
+	// fail to authenticate and every scenario would time out at the login page.
+	const secure = url.protocol === 'https:';
+	return {
+		name: secure ? `__Secure-${SESSION_COOKIE_NAME}` : SESSION_COOKIE_NAME,
+		value: sessionToken,
+		domain: url.hostname,
+		path: '/',
+		httpOnly: true,
+		secure,
+		sameSite: 'Lax' as const,
+	};
+}

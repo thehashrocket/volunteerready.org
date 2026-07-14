@@ -20,6 +20,7 @@ import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
+import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
 
 export const revalidate = 3600;
 
@@ -243,12 +244,34 @@ export default async function ForNonprofitsPage() {
 			</section>
 
 			{/* ── Screenshot ── */}
+			{/* Marker coordinates are % of the 1280×720 capture — recapture via
+			    `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts) */}
 			<ScreenshotSection
-				src="/marketing/applications-queue.png"
+				src={MARKETING_SCREENSHOTS.applicationsQueue.src}
 				alt="VolunteerReady application queue showing pending, approved, and rejected applications with timestamps"
 				caption="Your application queue — always current, always exportable."
 				sectionBg="sand"
 				containerBg="white"
+				annotations={[
+					{
+						x: 72.7,
+						y: 45.8,
+						label:
+							'Every application carries its status — approved, submitted, in review, or rejected.',
+					},
+					{
+						x: 80.5,
+						y: 45.8,
+						label:
+							'Background-check results land on the application automatically: pass, fail, or needs review.',
+					},
+					{
+						x: 89.2,
+						y: 76.4,
+						label:
+							'Flagged screener answers surface here before anyone gets approved.',
+					},
+				]}
 			/>
 
 			{/* ── Outcomes ── */}

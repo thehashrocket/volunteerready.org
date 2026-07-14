@@ -18,6 +18,7 @@ import { TestimonialSection } from '@/components/testimonial-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
+import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
 
 export const metadata: Metadata = {
 	title: 'Background Checks for Nonprofits — $29/mo | VolunteerReady',
@@ -188,7 +189,7 @@ export default function ScreeningPage() {
 
 			{/* ── Screenshot ── */}
 			<ScreenshotSection
-				src="/marketing/screener.png"
+				src={MARKETING_SCREENSHOTS.screener.src}
 				alt="VolunteerReady screening dashboard showing application review queue"
 				caption="The screening dashboard — review applications, run checks, and track credentials in one view."
 				sectionBg="white"

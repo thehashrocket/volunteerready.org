@@ -3,9 +3,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { COOKIE_CONSENT_STORAGE_KEY } from '@/lib/cookie-consent';
 import { cn } from '@/lib/utils';
 
-export const COOKIE_CONSENT_STORAGE_KEY = 'vr-cookie-consent';
+// Re-exported for existing consumers (consented-analytics + tests); the
+// canonical definition lives in src/lib/cookie-consent.ts so Node-side
+// tooling (e2e capture pipeline) can import it without a React module graph.
+export { COOKIE_CONSENT_STORAGE_KEY };
 
 type CookiePreferences = {
 	essential: true;
