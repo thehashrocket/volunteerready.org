@@ -286,6 +286,7 @@ pnpm lint           # Biome lint
 pnpm format         # Biome format
 pnpm test           # Vitest (run once)
 pnpm e2e            # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
+pnpm screenshots    # Regenerate marketing screenshots in public/marketing/ (needs pnpm seed:dev data; filter with CAPTURE_ONLY=key1,key2)
 pnpm typecheck      # tsc --noEmit
 pnpm check          # Biome check on src/docs/prisma (applies safe fixes)
 ```
