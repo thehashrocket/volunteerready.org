@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.5.0] - 2026-07-13
+
+### Fixed
+- **The `/locations` page's row descriptions no longer depend on marketing copy containing well-placed periods.** (#142) Each location's short summary is now an explicit, hand-authored field instead of being derived by splitting the hero paragraph on its first period — a future copy edit containing an abbreviation like "U.S." or "Inc." could previously have shipped a truncated, garbled row description with nothing to catch it. No visible change today; all six locations render the same text as before.
+
 ## [0.27.4.0] - 2026-07-13
 
 ### Changed

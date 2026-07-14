@@ -94,6 +94,7 @@ type LocationData = {
   metaDescription: string;         // SEO description
   heroHeadline: string;            // Fraunces headline, unique per location
   heroDescription: string;         // One-sentence Geist description
+  summary: string;                 // Short one-line summary for the /locations index row list (issue #142)
   painPoints: string[];            // Location-specific pain points (2-5 items)
   comparisonItems: { before: string; after: string }[]; // Before/after pairs
   faqs: { question: string; answer: string }[];         // Location-specific FAQs
@@ -147,6 +148,7 @@ Vertical list layout, not a card grid. Each location gets a full-width row:
 - `/locations/modesto` -- Modesto, CA (city within Stanislaus County, different keywords)
 - `/locations/stockton` -- Stockton, CA (city within San Joaquin County, different keywords)
 - `/locations/sacramento` -- Sacramento, CA (larger market, same template, but content emphasizes state capital nonprofit density and larger volunteer programs)
+- `/locations/fresno` -- Fresno, CA (added 2026-07-13 post-launch expansion — see `src/lib/locations.ts`)
 
 **SEO per page:**
 - Unique title: "Volunteer Screening & Management for [Location] Nonprofits | VolunteerReady"

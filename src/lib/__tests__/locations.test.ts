@@ -19,6 +19,7 @@ describe('LOCATIONS', () => {
 			expect(loc.metaDescription).toBeTruthy();
 			expect(loc.heroHeadline).toBeTruthy();
 			expect(loc.heroDescription).toBeTruthy();
+			expect(loc.summary).toBeTruthy();
 			expect(loc.painPoints.length).toBeGreaterThan(0);
 			expect(loc.comparisonItems.length).toBeGreaterThan(0);
 			expect(loc.faqs.length).toBeGreaterThan(0);
