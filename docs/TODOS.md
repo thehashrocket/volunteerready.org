@@ -1350,21 +1350,3 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   components render <script> inside React trees).
 
 Full report: `~/.gstack/projects/thehashrocket-volunteerready.org/designs/design-audit-20260712/`
-
-## Eng review follow-ups (/plan-eng-review, 2026-07-13, issue #140)
-
-- **[P3] Fragile `heroDescription.split('.')[0]` truncation in `/locations`
-  index rows** (issue #142) — the `/locations` index row-list derives each
-  row's description by splitting `heroDescription` on the first period.
-  `heroDescription` is full hero marketing copy, not a summary field;
-  splitting on `.` silently breaks the moment any location's copy contains a
-  mid-sentence period (e.g. "U.S.", "Inc.", "St."). None of the current 6
-  `LOCATIONS` entries trigger this today (verified during review), but
-  nothing validates the assumption — a future copy edit could ship a
-  truncated/garbled row description with no test catching it. Fix: add an
-  explicit `summary` field to `LocationData` (`src/lib/locations.ts`) and use
-  it directly instead of deriving it. Raised by Codex (outside-voice pass)
-  during #140's eng review; deliberately deferred since #140 is scoped as a
-  pure extraction refactor with zero content/data changes. **Effort:** S
-  (code) + content pass across 6 entries | **Priority:** P3 | **Depends
-  on:** —
