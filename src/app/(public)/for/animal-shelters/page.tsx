@@ -10,9 +10,11 @@ import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { LeadCaptureForm } from '@/components/lead-capture-form';
 import { PublicHero } from '@/components/public-hero';
 import { ScreeningFlowDiagram } from '@/components/screening-flow-diagram';
+import { ScreenshotSection } from '@/components/screenshot-section';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { BASE_URL, FOUNDER_BOOKING_URL } from '@/lib/constants';
+import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
 import { ForProviders } from '../providers';
 
 export const metadata: Metadata = {
@@ -250,7 +252,39 @@ export default function AnimalSheltersPage() {
 				</div>
 			</section>
 
-			{/* 7. FAQ */}
+			{/* 7. Screenshot */}
+			{/* Marker coordinates are % of the 1280×720 capture — recapture via
+			    `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts) */}
+			<ScreenshotSection
+				src={MARKETING_SCREENSHOTS.animalShelters.src}
+				darkSrc={MARKETING_SCREENSHOTS.animalShelters.darkSrc}
+				alt="VolunteerReady application queue for an animal shelter, showing shelter-specific screening flags and role assignments"
+				caption="Applications for animal-handling roles, screened for the risks that actually matter to a shelter."
+				sectionBg="sand"
+				containerBg="white"
+				annotations={[
+					{
+						x: 72,
+						y: 46,
+						label:
+							'Every application carries a clear status — approved, in review, or rejected — and why.',
+					},
+					{
+						x: 89,
+						y: 56,
+						label:
+							'Shelter-specific flags surface automatically: allergy severity, comfort with reactive animals — matched to a role, not a blanket rejection.',
+					},
+					{
+						x: 59,
+						y: 70,
+						label:
+							'Every application ties back to the specific role — dog walking, front desk, foster care — so coordinators see exactly what each volunteer signed up for.',
+					},
+				]}
+			/>
+
+			{/* 8. FAQ */}
 			<section className="px-4 py-16">
 				<FaqSection faqs={faqs} heading="Shelter-specific questions" />
 			</section>

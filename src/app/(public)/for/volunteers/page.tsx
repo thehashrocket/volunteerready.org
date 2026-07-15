@@ -241,6 +241,7 @@ export default function ForVolunteersPage() {
 			    `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts) */}
 			<ScreenshotSection
 				src={MARKETING_SCREENSHOTS.profile.src}
+				darkSrc={MARKETING_SCREENSHOTS.profile.darkSrc}
 				alt="VolunteerReady volunteer profile showing portable credentials, upcoming shifts, and impact stats"
 				caption="Your volunteer profile — portable credentials, upcoming shifts, and impact stats."
 				sectionBg="white"

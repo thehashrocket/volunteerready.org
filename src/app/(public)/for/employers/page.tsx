@@ -203,6 +203,7 @@ export default async function ForEmployersPage() {
 			    `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts) */}
 			<ScreenshotSection
 				src={MARKETING_SCREENSHOTS.esg.src}
+				darkSrc={MARKETING_SCREENSHOTS.esg.darkSrc}
 				alt="VolunteerReady ESG dashboard showing aggregate volunteer hours and impact metrics"
 				caption="The ESG dashboard — aggregate volunteer hours, impact metrics, and export-ready reports."
 				sectionBg="sand"

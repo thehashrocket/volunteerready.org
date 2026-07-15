@@ -8,6 +8,7 @@ import {
 	Timer,
 } from 'lucide-react';
 import type { Metadata } from 'next';
+import type { ScreenshotAnnotation } from '@/components/annotated-screenshot';
 import { CTABanner } from '@/components/cta-banner';
 import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
@@ -31,6 +32,30 @@ export const metadata: Metadata = {
 		images: ['/api/og/page/screening'],
 	},
 };
+
+// Marker coordinates are percentages of the 1280×720 capture frame — see the
+// coordinate diagram in annotated-screenshot.tsx. Recapture via
+// `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts).
+const screenerAnnotations: ScreenshotAnnotation[] = [
+	{
+		x: 29,
+		y: 52,
+		label:
+			'The default question set opens with an age gate and background-check consent — screening starts compliant, not after the fact.',
+	},
+	{
+		x: 30,
+		y: 71,
+		label:
+			"Question types go beyond yes/no — numeric and multiple-choice fields capture eligibility details a simple toggle can't.",
+	},
+	{
+		x: 88,
+		y: 23,
+		label:
+			"Add a question the moment a program's screening needs change, without opening a support ticket.",
+	},
+];
 
 const features = [
 	{
@@ -190,10 +215,12 @@ export default function ScreeningPage() {
 			{/* ── Screenshot ── */}
 			<ScreenshotSection
 				src={MARKETING_SCREENSHOTS.screener.src}
-				alt="VolunteerReady screening dashboard showing application review queue"
-				caption="The screening dashboard — review applications, run checks, and track credentials in one view."
+				darkSrc={MARKETING_SCREENSHOTS.screener.darkSrc}
+				alt="VolunteerReady screener questions builder showing the default screening questions, toggles, and consent step"
+				caption="Every opportunity's screening questions — age gate, background-check consent, and anything role-specific — configured in one screen."
 				sectionBg="white"
 				containerBg="sand"
+				annotations={screenerAnnotations}
 			/>
 
 			{/* ── Switch Cost Calculator ── */}

@@ -42,18 +42,37 @@ const scenarios = CAPTURE_SCENARIOS.filter(
 	(s) => !only || only.includes(s.key),
 );
 
-test.use({ viewport: VIEWPORT, colorScheme: 'light' });
+// Flatten each scenario into one run per declared variant (default
+// light-only) — a scenario declaring ['light', 'dark'] produces two runs,
+// writing to the manifest entry's `src` and `darkSrc` respectively.
+const runs = scenarios.flatMap((scenario) =>
+	(scenario.variants ?? ['light']).map((variant) => ({ scenario, variant })),
+);
+
+// colorScheme is set per-run via page.emulateMedia() BEFORE goto() (below),
+// not here — test.use() is fixture-level and can't vary per generated test.
+test.use({ viewport: VIEWPORT });
 
 test.describe('marketing screenshot capture', () => {
 	test.afterAll(async () => {
 		await disconnectPrisma();
 	});
 
-	for (const scenario of scenarios) {
-		test(`capture ${scenario.key}`, async ({ page, context, baseURL }) => {
+	for (const { scenario, variant } of runs) {
+		test(`capture ${scenario.key} (${variant})`, async ({
+			page,
+			context,
+			baseURL,
+		}) => {
 			if (!baseURL) {
 				throw new Error('baseURL missing from Playwright config');
 			}
+
+			// Must happen before goto() — next-themes resolves its `system`
+			// default from the OS color-scheme media query on first paint, so
+			// emulating AFTER navigation would render (and screenshot) the
+			// wrong theme.
+			await page.emulateMedia({ colorScheme: variant });
 
 			const prisma = getPrisma();
 			const user = await prisma.user.findUnique({
@@ -135,7 +154,13 @@ test.describe('marketing screenshot capture', () => {
 				await page.waitForTimeout(400);
 
 				const file = MARKETING_SCREENSHOTS[scenario.key];
-				const finalPath = path.join('public', file.src);
+				const outputSrc = variant === 'dark' ? file.darkSrc : file.src;
+				if (!outputSrc) {
+					throw new Error(
+						`Scenario ${scenario.key} declares a 'dark' variant but MARKETING_SCREENSHOTS.${scenario.key} has no darkSrc`,
+					);
+				}
+				const finalPath = path.join('public', outputSrc);
 				const tmpPath = `${finalPath}.tmp`;
 				await page.screenshot({
 					path: tmpPath,

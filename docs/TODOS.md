@@ -5,6 +5,142 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Animal-shelters screenshot copy — found during `/document-release` (2026-07-14)
+
+- **[P4] `/for/animal-shelters`'s first annotation label claims the captured
+  screenshot shows an "approved" application status** (`src/app/(public)/for/animal-shelters/page.tsx`,
+  the marker at x:72/y:46: `'Every application carries a clear status —
+  approved, in review, or rejected — and why.'`), but the 3 applications
+  seeded for that capture (`prisma/seed-dev.ts`, linked to `rasDogWalking`)
+  are `SUBMITTED`/PASS, `REVIEW`/2 flags, and `REJECTED`/FAIL — no
+  `APPROVED`-status row exists, so the badge visible at that marker position
+  reads "Submitted", not "Approved" (`ApplicationStatusBadge`'s
+  `statusConfig`, `src/components/my-applications/ApplicationStatusBadge.tsx`).
+  Found by the Codex cross-model doc review while verifying this release's
+  CHANGELOG entry, which had the same inaccuracy — the CHANGELOG wording was
+  corrected in v0.29.0.0 (0.29.0.0 doc-sync commit) to say "submitted,
+  flagged, and rejected" to match; the page copy itself is unchanged pending
+  a product-copy fix (out of scope for a docs-only pass). **Start:** change
+  the marker label to "submitted, in review, or rejected" (or recapture with
+  a 4th application seeded at `APPROVED` status if showing all four states
+  is preferred). **Effort:** XS | **Priority:** P4 | **Depends on:** None.
+
+---
+
+## ESG Dashboard — regression found during `/ship` (2026-07-14)
+
+- **[P0] BUG: `/app/company/[companyId]/esg` renders the generic volunteer
+  app shell instead of the ESG report** — `e2e/esg-dashboard.spec.ts`'s
+  "loads real aggregates — no 500, no error card, no fabricated zeros" test
+  fails: after navigating to the ESG URL with a valid authenticated session,
+  `getByRole('heading', { name: 'ESG Volunteer Impact' })` never appears —
+  the rendered page shows the volunteer sidebar (Browse opportunities, My
+  applications, My shifts) instead of the company/ESG layout. Confirmed
+  unrelated to any in-flight branch: the spec seeds fully isolated
+  `__esg_e2e__`-prefixed company/session data, and neither the spec, the ESG
+  page/route, nor any ESG service file appears in the diff that surfaced it.
+  Also confirmed NOT the same failure mode as the original issue #126 bug
+  (`esgReport.getSummary` 500ing into an error card) — this is a
+  session/redirect issue: the app appears to fail resolving
+  `currentCompanyId` for this session and falls back to the default
+  (volunteer) dashboard rather than honoring the `/app/company/{id}/esg`
+  route. **Start:** reproduce locally with `pnpm e2e -- e2e/esg-dashboard.spec.ts`
+  against `pnpm dev`, inspect what `ctx.session.currentCompanyId` resolves to
+  for the seeded session, and check whatever guard/redirect decides which
+  layout renders for `/app/company/[companyId]/*` routes. It passed earlier
+  in the same session this was noticed in, which suggests it may be
+  intermittent/environment-sensitive (Turbopack dev-mode state?) rather than
+  a hard 100%-reproducible break — confirm reproduction before assuming a
+  code fix is even needed vs. a flaky-test fix.
+  **Effort:** M (needs investigation first) | **Priority:** P0 |
+  **Depends on:** None.
+
+---
+
+## Screenshot pipeline — test coverage gaps found during `/ship` (2026-07-14)
+
+`/ship`'s test coverage audit (81% — above the 80% target) added the one cheap,
+high-value regression test (FINDING-001's fix, in `screenshot-section.test.tsx`)
+inline. These remaining gaps were lower-severity or non-trivial to test
+correctly, so deferred rather than rushed:
+
+- **[P3] `useVariantState`'s priority-gated pre-hydration check is untested**
+  — `src/components/annotated-screenshot.tsx`'s `useEffect` that detects an
+  image already broken before hydration (`el.complete && naturalWidth === 0`)
+  has zero coverage for either branch (fires when `priority` + already-broken;
+  stays silent when `!priority`). Non-trivial to test cleanly: by the time
+  `render()` returns, the effect has already run, so simulating "broken
+  before React attached listeners" needs either a custom ref/mock or
+  `Object.defineProperty` tricks on the `<img>` node before commit. Worth
+  doing carefully, not rushing.
+- **[P3] `/for/animal-shelters` has no dedicated legend/marker e2e assertion**
+  — its sibling pages (`/how-it-works`, `/screening`) get a targeted "exactly
+  1 visible legend, 3 items" check in `e2e/public-pages.spec.ts`; the
+  animal-shelters page only gets the generic image-count check from
+  `SCREENSHOT_PAGES`. Mechanical addition, same pattern as the existing
+  `how-it-works / screening annotations` describe block.
+- **[P4] `seed-dev.ts`'s devOrg rename + new shelter opportunities have no
+  automated assertion** outside the manual `pnpm screenshots` pipeline —
+  consistent with this repo's existing convention of not unit-testing seed
+  scripts, so low priority, but flagging since a future seed refactor could
+  silently break the shelter screenshot's content without any test failing.
+- **[P4] `/screening`'s alt/caption copy-accuracy fix has no test** — static
+  marketing copy, not logic; very low severity.
+- **[P4] `e2e/capture.spec.ts`'s variant/manifest-mismatch runtime guard is
+  untested** — the `throw new Error(...)` when a scenario declares a `dark`
+  variant but the manifest entry has no `darkSrc` is only indirectly
+  protected by a static assertion in `marketing-screenshots.test.ts` (found
+  by `/ship`'s testing specialist, confidence 5.5/10). Low priority — if the
+  static test is ever weakened this is the last line of defense, but
+  extracting the src/darkSrc selection into a testable pure helper is a
+  larger refactor than the gap justifies today.
+
+---
+
+## Adversarial review findings (`/ship`, 2026-07-14)
+
+Cross-model pass (Claude adversarial subagent + Codex `exec`) after PR1-3
+landed. One finding fixed immediately (multi-specialist confirmed); one
+scope disagreement resolved by explicit user decision; one deferred as low
+severity.
+
+- ~~**[P2] `/how-it-works`'s dashboard shot had no dark variant**~~ ✅
+  **Completed v0.29.0.0 (2026-07-14)** — both Claude's subagent and Codex independently found
+  this. `MARKETING_SCREENSHOTS.dashboard` gained a `darkSrc`
+  (`dashboard-dark.png`, captured via the existing scenario pipeline); only
+  the `/how-it-works` call site passes it, since the homepage's `priority`
+  hero deliberately omits `darkSrc` (Tension 1, eager preload of a hidden
+  sibling would double the fetch). Confirmed the manifest-holds-both /
+  call-site-opts-in split isn't a structural limitation — Codex's framing
+  ("the manifest stores variant data per asset key, not per usage site")
+  overstated it; the fix was two lines.
+- **Resolved, no change** — Codex flagged (High) that gating the
+  pre-hydration "broken before hydration" check on `priority`
+  (`annotated-screenshot.tsx`'s `useVariantState`) removed recovery
+  protection for the non-priority images that make up most marketing pages.
+  User reviewed the tradeoff and chose to keep the `priority` gate: the
+  check's `complete && naturalWidth === 0` signature can't distinguish
+  "hasn't loaded yet because it's lazy/off-screen" from "attempted and
+  failed" for any non-priority image — broadening it would trade a rare,
+  narrow-window failure (a lazy image failing between SSR paint and
+  hydration) for a common one (ordinary below-the-fold images misreported
+  as broken). Recorded here so a future pass doesn't re-litigate this
+  without the context.
+- **[P4] `createApplicationIfNotExists`'s backfill match has no uniqueness
+  guarantee** — `prisma/seed-helpers.ts`'s `findFirst({ orgId,
+  submittedByEmail })` has no `orderBy`; if a seeded org ever gets two
+  applications from the same email, a rerun of `pnpm seed:dev` could
+  backfill `opportunityId` onto the wrong row nondeterministically (Codex,
+  Low). Pre-existing lookup shape, not introduced by this fix — no current
+  seed caller passes a duplicate `(orgId, email)` pair, so dormant today.
+  Fix if a future seed scenario needs multiple applications per email per
+  org: add a distinguishing filter (e.g. `opportunityId: null` first, or an
+  explicit `orderBy: { createdAt: 'asc' }`).
+
+**Effort:** S (per item) | **Priority:** see above | **Depends on:** None.
+
+---
+
 ## Platform Admin Console — follow-ups from Tier 1 ship (2026-04-17)
 
 Deferred from the Tier 1 adversarial review. None block the Tier 1 ship; all
@@ -1343,34 +1479,79 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   naturalWidth e2e assertions + 375px mobile pillar test. Spun-off
   follow-ups tracked above (animal-shelters screenshot, dark-mode variants,
   how-it-works/screening annotations).
-- **[P3] Screenshot for `/for/animal-shelters`** — the only `/for` sub-page
-  with no `ScreenshotSection`, which leaves it on an older visual system than
-  its three siblings once issue #139 ships annotated imagery (flagged by the
-  Codex outside voice during the #139 eng review). Blocked on content, not
-  code: seed data has no shelter org, so an honest capture needs either a
-  seeded shelter org with shelter-flavored opportunities/screener questions,
-  or a deliberate choice to reuse a generic view with shelter-relevant
-  annotations. What to show should follow the shelter-vertical positioning
-  in `~/.gstack/projects/.../ceo-plans/2026-04-13-cold-start-shelter-vertical.md`.
-  Start: extend `prisma/seed-dev.ts`, add a scenario to the #139 capture
-  manifest, then a one-prop `AnnotatedScreenshot` section on the page.
-  **Effort:** S (code) + S (seed content) | **Priority:** P3 |
-  **Depends on:** issue #139 shipping (capture project + component).
-- **[P3] Dark-mode marketing screenshot variants** — light-mode PNGs render
-  inside dark-themed public pages today (pre-existing; unchanged by #139).
-  Once the #139 capture project exists, dark variants are a re-run with
-  `colorScheme: 'dark'` plus a `<picture>`/CSS swap in `AnnotatedScreenshot`.
-  Cost: doubles the assets to keep honest, and marker coordinates must be
-  verified against both captures (same viewport makes this near-automatic).
-  Start: add a `theme` axis to the capture scenario manifest.
-  **Effort:** S | **Priority:** P3 | **Depends on:** issue #139 shipping.
-- **[P3] Annotated screenshots for `/how-it-works` + `/screening`** — the two
-  remaining plain `ScreenshotSection` callers after #139. Mechanical one-prop
-  upgrade per page plus annotation label copy (3-4 callouts each). Watch for
-  imagery overlap: `/screening` uses screener.png, which may also back the
-  homepage "Background checks" pillar. **Effort:** S | **Priority:** P3 |
-  **Depends on:** #139 shipping AND its annotation style passing
-  /design-review (don't propagate a style that's about to change).
+- ~~**[P3] Annotated screenshots for `/how-it-works` + `/screening`**~~ ✅
+  **Completed 2026-07-14** — the two remaining plain `ScreenshotSection`
+  callers after #139 got 3 marker/label pairs each, drawn from their own
+  screenshot's real UI. `/screening`'s screener.png shares the homepage
+  "Background checks" pillar's underlying image but uses distinct copy (FCRA
+  workflow framing vs the homepage's broader compliance framing) — no
+  conflict, since marker data lives per-page, not baked into the PNG. Also
+  fixed `/screening`'s stale alt/caption, which described an "application
+  review queue" — screener.png actually shows the Screener Questions config
+  UI. `/design-review` ran first (its own blocking precondition) and also
+  caught and fixed a real bug in the same component family: the homepage's
+  `priority` `dashboard.png` hero shot was invisible on any viewport under
+  ~820px tall (`FadeInOnScroll` started it at `opacity:0` and the reveal
+  threshold never fired) — fixed by skipping the fade-in wrapper for
+  `priority` images. `e2e/public-pages.spec.ts` gained legend/marker
+  assertions for both pages.
+- ~~**[P3] Dark-mode marketing screenshot variants**~~ ✅ **Completed
+  v0.29.0.0 (2026-07-14)** — CSS-only swap (not `<picture>`, not `useTheme()`):
+  `AnnotatedScreenshot` renders two `<Image>` elements toggled via Tailwind
+  `dark:hidden`/`hidden dark:block`, matching the pre-paint `.dark` class
+  `next-themes` already sets — the first `dark:` utility usage in
+  `src/app/(public)/**` (which otherwise carries dark mode via CSS tokens
+  only, per open issue #131). `MARKETING_SCREENSHOTS` entries gained an
+  optional `darkSrc` field; `capture-scenarios.ts` gained a
+  `variants: ('light'|'dark')[]` field; the capture runner now calls
+  `page.emulateMedia({ colorScheme })` before `page.goto()` per variant.
+  Every entry except `dashboard.png`'s homepage usage got a dark variant (the
+  `priority`-loaded hero call site stays light-only; `dashboard.png` itself
+  later gained a `darkSrc` for its non-priority `/how-it-works` reuse — see
+  "Adversarial review findings" below). Error handling: per-variant
+  state, hides only the variant whose image fails — achieved by having each
+  variant's own wrapper (image + legend together) null itself independently,
+  with zero JS theme detection. **Two real bugs caught and fixed during
+  implementation, both verified live in a real browser (not just unit
+  tests):** (1) the pre-hydration "broken before hydration" check
+  (`el.complete && naturalWidth===0`) false-positived on every hidden dark
+  variant, since a `display:none` image that never attempted to load reports
+  the identical signature as a genuinely broken one — fixed by gating that
+  check on `priority` (its only real use case). (2) the CSS visibility class
+  was originally applied only to the image frame, not the legend below it —
+  both variants' legends rendered simultaneously regardless of theme; fixed
+  by moving the class to the shared outer wrapper. `pnpm screenshots`
+  regenerated all 7 light+dark pairs against a freshly reset local dev DB
+  (a stale DB had accumulated duplicate boot-guard + seed-dev.ts screener
+  questions, dirtying the first capture attempt). `e2e/public-pages.spec.ts`
+  gained a dark-mode counterpart of the existing image-loaded suite.
+- ~~**[P3] Screenshot for `/for/animal-shelters`**~~ ✅ **Completed
+  v0.29.0.0 (2026-07-14)** — the last `/for` sub-page without a `ScreenshotSection`.
+  Reused `devOrg` instead of seeding a new org from scratch: it already had
+  shelter-flavored screener questions (`comfort_reactive_animals`,
+  `attest_no_abuse`) and sample applications, just zero opportunities and an
+  unusable public-facing name. Renamed its display name (slug unchanged) to
+  "Riverside Animal Shelter" and added 2 shelter-flavored opportunities ("Dog
+  Walking & Enrichment", "Front Desk & Adoption Support"), linking the 3
+  existing sample applications to the first so the captured applications
+  queue shows real status/screening variety (Rejected/Fail/1 flag, In
+  review/Needs review/2 flags, Submitted/Pass) instead of the opportunity
+  column's "—" empty-fallback. New capture scenario + `shelterAdmin` actor
+  (`admin@volunteermatch.local`, the only seeded account scoped to a single
+  org — no org-switcher clutter in the screenshot) added alongside the other
+  7 in the existing light+dark pipeline. 3 markers added to the page,
+  positioned to avoid overlapping table text. Added to
+  `e2e/public-pages.spec.ts`'s `SCREENSHOT_PAGES` (covered automatically by
+  both the light and dark-mode describe blocks). **Known pre-existing,
+  unrelated test failure surfaced during verification:**
+  `e2e/esg-dashboard.spec.ts`'s "loads real aggregates" test now fails — the
+  page renders the generic volunteer app shell instead of the company ESG
+  view. Confirmed unrelated to this PR: that spec seeds its own fully
+  isolated `__esg_e2e__`-prefixed data and doesn't touch `devOrg`/Acme Corp:
+  the failure symptom (wrong page rendered) also doesn't match the
+  `esgReport.getSummary` 500 the spec was written to catch (issue #126,
+  closed). Not investigated further here — out of scope for this PR — but
+  worth a fresh look given it passed earlier in this same session.
 - ~~**[P3] Shared link-row component for `/for` + `/locations`**~~ ✅
   **Completed v0.27.3.0 (2026-07-13)** (issue #140) — extracted
   `src/components/link-row-list.tsx` (`LinkRowList`, fixed prop shape,

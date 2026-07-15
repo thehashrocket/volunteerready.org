@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.29.0.0] - 2026-07-14
+
+### Added
+- **The "how it works" and screening pages now show real product screenshots with numbered callouts**, matching the homepage treatment — the application queue dashboard and the screener question builder, each pointing at the exact UI that does the work.
+- **The animal shelter audience page now has a product screenshot too** — the applications queue, showing a mix of submitted, flagged, and rejected volunteers so shelters can see the screening workflow at a glance.
+- **Marketing screenshots now match your system's light or dark mode.** Every screenshot except the homepage's hero image (kept light-only to avoid a double image load) renders the correct variant instantly, with no flash of the wrong theme.
+
+### Fixed
+- The homepage's hero screenshot could be invisible on common laptop screen heights — a scroll-reveal animation never triggered for images already in view on page load.
+- A marketing screenshot could go permanently blank if one theme's image failed to load, even though the other theme's copy of the same image was fine.
+- The "how it works" page's dashboard screenshot stayed in light mode even when the rest of the page switched to dark.
+
 ## [0.28.0.0] - 2026-07-13
 
 ### Added
