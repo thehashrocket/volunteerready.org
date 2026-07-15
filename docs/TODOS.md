@@ -27,33 +27,49 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
-## ESG Dashboard — regression found during `/ship` (2026-07-14)
+## ~~ESG Dashboard — regression found during `/ship` (2026-07-14)~~ ✅ Root-caused and fixed (2026-07-15, `/investigate`)
 
-- **[P0] BUG: `/app/company/[companyId]/esg` renders the generic volunteer
-  app shell instead of the ESG report** — `e2e/esg-dashboard.spec.ts`'s
-  "loads real aggregates — no 500, no error card, no fabricated zeros" test
-  fails: after navigating to the ESG URL with a valid authenticated session,
-  `getByRole('heading', { name: 'ESG Volunteer Impact' })` never appears —
-  the rendered page shows the volunteer sidebar (Browse opportunities, My
-  applications, My shifts) instead of the company/ESG layout. Confirmed
-  unrelated to any in-flight branch: the spec seeds fully isolated
-  `__esg_e2e__`-prefixed company/session data, and neither the spec, the ESG
-  page/route, nor any ESG service file appears in the diff that surfaced it.
-  Also confirmed NOT the same failure mode as the original issue #126 bug
-  (`esgReport.getSummary` 500ing into an error card) — this is a
-  session/redirect issue: the app appears to fail resolving
-  `currentCompanyId` for this session and falls back to the default
-  (volunteer) dashboard rather than honoring the `/app/company/{id}/esg`
-  route. **Start:** reproduce locally with `pnpm e2e -- e2e/esg-dashboard.spec.ts`
-  against `pnpm dev`, inspect what `ctx.session.currentCompanyId` resolves to
-  for the seeded session, and check whatever guard/redirect decides which
-  layout renders for `/app/company/[companyId]/*` routes. It passed earlier
-  in the same session this was noticed in, which suggests it may be
-  intermittent/environment-sensitive (Turbopack dev-mode state?) rather than
-  a hard 100%-reproducible break — confirm reproduction before assuming a
-  code fix is even needed vs. a flaky-test fix.
-  **Effort:** M (needs investigation first) | **Priority:** P0 |
-  **Depends on:** None.
+- ~~**[P0] BUG: `/app/company/[companyId]/esg` renders the generic volunteer
+  app shell instead of the ESG report**~~ — **not an application bug.**
+  Root cause: `e2e/esg-dashboard.spec.ts`'s `cleanup()` matched rows by the
+  shared literal `__esg_e2e__` prefix and ran unscoped in `afterAll`.
+  Playwright's `fullyParallel: true` runs this file's two tests in separate
+  worker processes, each with its own `beforeAll`/`afterAll`. When the fast
+  "non-member redirected" worker finished first, its `afterAll` cleanup swept
+  *every* row matching the prefix — including the slower "loads real
+  aggregates" worker's still-in-use session/company/user rows, deleted out
+  from under it mid-test. That worker's subsequent requests resolved to an
+  unauthenticated/company-less context, which is what rendered as the
+  generic volunteer shell. Confirmed via `pid`-tagged logging in `cleanup()`:
+  one worker's `afterAll` logged "about to delete 4 users" — 2 more than
+  *its own* `beforeAll` had created — proving the cross-worker deletion.
+  Reproduced deterministically (5/5) with default parallel workers, 0/5 with
+  `--workers=1`, and 0/5 after the fix even at full default parallelism (also
+  confirmed clean across all 48 e2e specs in the same run). This also
+  explains why earlier sightings (2026-07-12 client-null-crash, 2026-07-13
+  "wrong page rendered") looked like different bugs — same race, different
+  point mid-render where the yanked session/company data got dereferenced.
+  **Fix:** `e2e/esg-dashboard.spec.ts` now tracks the exact
+  user/company/org IDs each worker's `beforeAll` creates and scopes
+  `afterAll` cleanup to just those IDs (`cleanupIds()`); the shared-prefix
+  sweep (`cleanupByPrefix()`) is now used only in `beforeAll`, before this
+  run has created anything, where the cross-worker collision window doesn't
+  exist, and is further hardened with a 30-minute `createdAt` age cutoff
+  (`STALE_LEFTOVER_MS`) so it can never match a live sibling's rows.
+  Validated with 16 consecutive passing runs at default parallel workers
+  post-fix (vs. deterministic 3/3 failure pre-fix). **Effort:** S |
+  **Priority:** P0 | **Depends on:** None.
+  **Residual (accepted risk, adversarial review):** the 30-minute age gate
+  narrows the original race to "practically impossible" rather than
+  structurally eliminating it — a worker whose `beforeAll → test → afterAll`
+  lifecycle somehow exceeded 30 minutes could still theoretically collide
+  with `cleanupByPrefix()`. Playwright's default 30s per-test/hook timeout
+  (no override in `playwright.config.ts`) already bounds this well below the
+  30-minute window, and this race is local-only — `playwright.config.ts` sets
+  `workers: 1` in CI, so cross-worker collision is structurally impossible
+  there. Not actioned further; would need a per-run marker (e.g. a `runId`
+  column) to close completely, which is disproportionate to the near-zero
+  residual likelihood.
 
 ---
 
@@ -1329,19 +1345,16 @@ applications-queue.png created; dark-mode calculator card; `<main>` landmarks
 on all public pages; Playfair font drift removed; apply-page duplicate
 heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
 
-- **[P0] BUG: ESG dashboard client crash — "Cannot read properties of null
-  (reading 'id')"** — `e2e/esg-dashboard.spec.ts:166` ("loads real
-  aggregates") fails consistently: visiting `/app/company/{id}/esg` as the
-  spec's freshly-seeded company member hits the app error boundary with a
-  client-side null `.id` read. Pre-existing: reproduced on clean `main`
-  (0b4e59e) via `git stash` A/B test during the issue #139 ship
-  (2026-07-13) — NOT caused by that branch. The spec's own seeded data +
-  session are intact; the second test in the file (membership guard)
-  passes. Makes `pnpm e2e` exit non-zero for everyone. Start: run
-  `/investigate` with the spec as the repro; suspect a component in the
-  company ESG page dereferencing a nullable query result (`company.id` or
-  membership) before the guard. **Effort:** S-M | **Priority:** P0 |
-  **Depends on:** nothing.
+- ~~**[P0] BUG: ESG dashboard client crash — "Cannot read properties of null
+  (reading 'id')"**~~ ✅ **Same root cause as the ESG Dashboard entry above
+  (TODOS:~30), fixed 2026-07-15 via `/investigate`.** Not an application
+  bug — `e2e/esg-dashboard.spec.ts`'s `afterAll` cleanup matched rows by a
+  shared literal prefix and ran unscoped, so a faster parallel worker's
+  cleanup could delete a slower worker's still-in-use session/company mid-test.
+  This "client null.id crash" and the later "wrong page rendered" sighting
+  (2026-07-13/07-14) were the same race manifesting at different points in
+  the render depending on exactly when the yank happened — not two separate
+  bugs. Fix: cleanup is now scoped to each worker's own created IDs.
 - ~~**[P1] BUG: ESG summary query 500s, UI shows it as empty state**~~ ✅
   Fixed (issue #126). Root cause confirmed: `Prisma.join()`/`Prisma.sql`
   fragments interpolated into `$queryRaw` templates lose `Sql` class
@@ -1543,15 +1556,16 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   positioned to avoid overlapping table text. Added to
   `e2e/public-pages.spec.ts`'s `SCREENSHOT_PAGES` (covered automatically by
   both the light and dark-mode describe blocks). **Known pre-existing,
-  unrelated test failure surfaced during verification:**
-  `e2e/esg-dashboard.spec.ts`'s "loads real aggregates" test now fails — the
-  page renders the generic volunteer app shell instead of the company ESG
-  view. Confirmed unrelated to this PR: that spec seeds its own fully
-  isolated `__esg_e2e__`-prefixed data and doesn't touch `devOrg`/Acme Corp:
-  the failure symptom (wrong page rendered) also doesn't match the
-  `esgReport.getSummary` 500 the spec was written to catch (issue #126,
-  closed). Not investigated further here — out of scope for this PR — but
-  worth a fresh look given it passed earlier in this same session.
+  unrelated test failure surfaced during verification (resolved 2026-07-15,
+  see TODOS:~30):** `e2e/esg-dashboard.spec.ts`'s "loads real aggregates"
+  test failed here — the page rendered the generic volunteer app shell
+  instead of the company ESG view. Confirmed unrelated to this PR: that spec
+  seeds its own fully isolated `__esg_e2e__`-prefixed data and doesn't touch
+  `devOrg`/Acme Corp; the failure symptom (wrong page rendered) also didn't
+  match the `esgReport.getSummary` 500 the spec was written to catch (issue
+  #126, closed). Root cause was a test-isolation race in the spec's own
+  cleanup, not application code — see the resolved P0 entry above for the
+  full root cause and fix.
 - ~~**[P3] Shared link-row component for `/for` + `/locations`**~~ ✅
   **Completed v0.27.3.0 (2026-07-13)** (issue #140) — extracted
   `src/components/link-row-list.tsx` (`LinkRowList`, fixed prop shape,
