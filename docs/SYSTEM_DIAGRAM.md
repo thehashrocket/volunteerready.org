@@ -313,7 +313,7 @@ sequenceDiagram
 - `orgProcedure` requires session plus active organization context.
 - `staffProcedure` requires STAFF, ADMIN, or OWNER role.
 - `adminProcedure` requires ADMIN or OWNER.
-- `companyProcedure` requires company membership.
+- `companyScopedProcedure(opts?)` requires company membership, keyed off the `companyId` in the request input (never session state).
 - `planTierProcedure(tier)` requires org plan at or above specified tier.
 
 ---

@@ -128,6 +128,7 @@ docs/
 - RBAC permissions: `src/server/domain/permissions.ts` (constants, `hasPermission()`, role maps)
 - Platform admin: `src/server/domain/platform-admin.ts` (`isPlatformAdmin()` with DB + env-var fallback)
 - Advisory permission middleware: `src/server/trpc/advisory-permission-middleware.ts` (global, never blocks, logs mismatches)
+- Company-scoped access: `requireCompanyAccess()` in `src/server/services/companyAccessService.ts` + the `companyScopedProcedure(opts?)` factory in `src/server/trpc/init.ts` (replaced the session-scoped `companyProcedure`/`companyAdminProcedure`/`companyPlanTierProcedure`, v0.29.2.0). Always reads `companyId` from tRPC input, never from session state — the session's "active" company can differ from the company named in the URL for a multi-company user, and authorizing off the session serves/mutates the wrong tenant. Use this factory for any new company-scoped procedure instead of reading `ctx.companyId`.
 - Background check adapters: `src/server/lib/adapters/background-check/` (Checkr + Sterling), registry at `registry.ts`
 - Sterling webhook: `src/app/api/sterling/webhook/route.ts`
 - Prisma client is generated into `src/prisma/generated/client`
@@ -166,6 +167,7 @@ docs/
 - PWA: `public/manifest.webmanifest`, `public/sw.js`, `src/components/sw-register.tsx`, `src/components/ios-install-prompt.tsx`
 - Org health score: domain at `src/server/domain/org-health.ts`, widget at `src/components/app/org-health-widget.tsx`
 - Activity feed: `src/components/app/activity-feed.tsx` (uses `screener.getActivityFeed` tRPC query)
+- Query error state: `src/components/app/query-error-card.tsx` — shared `QueryErrorCard` (alert card + retry button) and `safeErrorMessage()` (allowlists client-safe tRPC error codes, falls back to generic copy for internal errors) for tRPC queries with `isLoading`/`isError` handling; extracted from the ESG dashboard, also used by `/app/company/[companyId]`
 - Dashboard: `src/app/(app)/app/page.tsx` — role-conditional: volunteers see `VolunteerDashboard` (upcoming shifts, pending apps, expiring creds, impact stats, recommendations); staff see greeting banner + OrgHealthWidget + OnboardingChecklist + ReferralPrompt + stat cards + ActivityFeed (Getting Started Checklist removed in v0.14.0)
 - Volunteer dashboard: service at `src/server/services/volunteerDashboardService.ts`, component at `src/components/app/volunteer-dashboard.tsx`, tRPC router at `src/server/trpc/routers/volunteer.ts` (`volunteer.getDashboard`)
 - Onboarding funnel analytics (platform admin): service at `src/server/services/onboardingAnalyticsService.ts`, page at `src/app/(app)/app/admin/onboarding/page.tsx`, tRPC procedure at `admin.onboardingFunnel`

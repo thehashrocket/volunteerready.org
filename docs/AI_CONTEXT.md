@@ -276,7 +276,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `notifications` | list, unreadCount, markRead, markAllRead (protectedProcedure) |
 | `analytics` | getDashboard (staffProcedure, PRO-gated via `planTierProcedure('PRO')`) |
 | `billing` | createCheckoutSession, createBillingPortalSession, getBillingStatus |
-| `company` | create, list, switchCompany, inviteMember, listMembers, linkNonprofit |
+| `company` | create, listMyCompanies, switchCompany, getCurrent, linkNonprofit, unlinkNonprofit, listLinkedNonprofits, invite, acceptInvite — company-scoped procedures take `companyId` via `companyScopedProcedure(opts?)`, never session state |
 | `status` | public token-based status lookups |
 
 ---

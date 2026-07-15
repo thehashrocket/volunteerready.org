@@ -265,12 +265,25 @@ tRPC procedure types (defined in `src/server/trpc/init.ts`):
 | `orgProcedure` | Authenticated + org membership | `orgId: string` |
 | `staffProcedure` | STAFF, ADMIN, or OWNER role | `role: Role` |
 | `adminProcedure` | ADMIN or OWNER role | `role: Role` |
-| `companyProcedure` | Company membership | `companyId: string` |
-| `companyAdminProcedure` | Company ADMIN or OWNER | `companyRole: Role` |
-| `companyPlanTierProcedure(tier)` | Company plan at or above tier | `planTier: PlanTier` |
+| `companyScopedProcedure(opts?)` | Company membership (+ optional `minRole`/`minPlanTier`) | `companyId: string`, `companyRole: CompanyMemberRole` |
 | `planTierProcedure(tier)` | Org plan at or above tier | — |
 
 Use the narrowest access level possible.
+
+`companyScopedProcedure` is a factory (`src/server/trpc/init.ts`) that reads
+`companyId` from the tRPC **input**, never from session state — the
+session's active company can differ from the company named in the request
+(a multi-company user browsing a non-active company's URL), and authorizing
+against the session would serve or mutate the wrong tenant. It requires an
+`{ companyId: string }` input shape, delegates the membership/role/plan
+check to `requireCompanyAccess()` in
+`src/server/services/companyAccessService.ts`, and narrows the context with
+`companyId`/`companyRole`. Pass `{ minRole }` for an ADMIN/OWNER gate or
+`{ minPlanTier }` for a plan gate — both checked server-side against the
+company named in the request. This replaced the session-scoped
+`companyProcedure` / `companyAdminProcedure` / `companyPlanTierProcedure`
+in v0.29.2.0 after a bug let multi-company users see another company's data
+when the session's active company didn't match the URL.
 
 Each middleware narrows the context type via `next({ ctx: { ... } })`, so downstream code can use `ctx.orgId` and `ctx.role` without non-null assertions.
 
