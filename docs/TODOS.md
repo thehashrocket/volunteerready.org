@@ -83,7 +83,7 @@ scope disagreement resolved by explicit user decision; one deferred as low
 severity.
 
 - ~~**[P2] `/how-it-works`'s dashboard shot had no dark variant**~~ ✅
-  **Fixed same day** — both Claude's subagent and Codex independently found
+  **Completed v0.29.0.0 (2026-07-14)** — both Claude's subagent and Codex independently found
   this. `MARKETING_SCREENSHOTS.dashboard` gained a `darkSrc`
   (`dashboard-dark.png`, captured via the existing scenario pipeline); only
   the `/how-it-works` call site passes it, since the homepage's `priority`
@@ -1474,7 +1474,7 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   `priority` images. `e2e/public-pages.spec.ts` gained legend/marker
   assertions for both pages.
 - ~~**[P3] Dark-mode marketing screenshot variants**~~ ✅ **Completed
-  2026-07-14** — CSS-only swap (not `<picture>`, not `useTheme()`):
+  v0.29.0.0 (2026-07-14)** — CSS-only swap (not `<picture>`, not `useTheme()`):
   `AnnotatedScreenshot` renders two `<Image>` elements toggled via Tailwind
   `dark:hidden`/`hidden dark:block`, matching the pre-paint `.dark` class
   `next-themes` already sets — the first `dark:` utility usage in
@@ -1504,7 +1504,7 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   questions, dirtying the first capture attempt). `e2e/public-pages.spec.ts`
   gained a dark-mode counterpart of the existing image-loaded suite.
 - ~~**[P3] Screenshot for `/for/animal-shelters`**~~ ✅ **Completed
-  2026-07-14** — the last `/for` sub-page without a `ScreenshotSection`.
+  v0.29.0.0 (2026-07-14)** — the last `/for` sub-page without a `ScreenshotSection`.
   Reused `devOrg` instead of seeding a new org from scratch: it already had
   shelter-flavored screener questions (`comfort_reactive_animals`,
   `attest_no_abuse`) and sample applications, just zero opportunities and an
