@@ -116,4 +116,37 @@ describe('ScreenshotSection', () => {
 		expect(images[0].getAttribute('src')).toContain('screener.png');
 		expect(images[1].getAttribute('src')).toContain('screener-dark.png');
 	});
+
+	// FINDING-001 regression test: FadeInOnScroll starts children at
+	// opacity-0 until an IntersectionObserver reports 15% visibility. The
+	// homepage's priority dashboard shot sat at a position where that
+	// threshold never fired below ~820px viewport height, leaving the LCP
+	// hero invisible. Fixed by skipping the fade-in wrapper for priority
+	// images — assert that skip directly, since jsdom's IntersectionObserver
+	// polyfill never calls back (src/test-setup.ts), so isVisible stays
+	// false and 'opacity-0' persists for any element that IS wrapped.
+	it('priority images skip the fade-in wrapper and never start at opacity-0', () => {
+		const { container: priorityContainer } = render(
+			<ScreenshotSection
+				src="/marketing/dashboard.png"
+				alt="Priority hero"
+				caption="Caption"
+				priority
+			/>,
+		);
+		const prioritySection = priorityContainer.querySelector('section');
+		expect(prioritySection?.querySelector('.opacity-0')).toBeNull();
+	});
+
+	it('non-priority images keep the fade-in-on-scroll treatment', () => {
+		const { container: lazyContainer } = render(
+			<ScreenshotSection
+				src="/marketing/dashboard.png"
+				alt="Lazy screenshot"
+				caption="Caption"
+			/>,
+		);
+		const lazySection = lazyContainer.querySelector('section');
+		expect(lazySection?.querySelector('.opacity-0')).not.toBeNull();
+	});
 });

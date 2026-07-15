@@ -355,9 +355,21 @@ export async function getQuestionsByKey(orgId: string, keys: string[]) {
 export async function createApplicationIfNotExists(input: SeedAppInput) {
 	const existing = await prisma.volunteerApplication.findFirst({
 		where: { orgId: input.orgId, submittedByEmail: input.submittedByEmail },
-		select: { id: true },
+		select: { id: true, opportunityId: true },
 	});
-	if (existing) return existing;
+	if (existing) {
+		// Backfill opportunityId on a re-run against an already-seeded database
+		// (pnpm seed:dev is documented as safe to re-run) — only fills a null
+		// gap, never overwrites a different existing value, so it can't clobber
+		// a link set through real app usage during manual testing.
+		if (input.opportunityId && !existing.opportunityId) {
+			await prisma.volunteerApplication.update({
+				where: { id: existing.id },
+				data: { opportunityId: input.opportunityId },
+			});
+		}
+		return existing;
+	}
 
 	const questionKeys = input.answers.map((a) => a.questionKey);
 	const qMap = await getQuestionsByKey(input.orgId, questionKeys);

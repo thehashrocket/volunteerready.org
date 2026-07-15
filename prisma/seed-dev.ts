@@ -85,7 +85,10 @@ async function seedDev() {
 	// already shelter-flavored (comfort_reactive_animals, attest_no_abuse), so
 	// it's reused as the /for/animal-shelters marketing screenshot subject
 	// (issue #139 PR3) instead of seeding a whole new org from scratch.
-	const devOrg = await upsertOrg('dev-organization', 'Riverside Animal Shelter');
+	const devOrg = await upsertOrg(
+		'dev-organization',
+		'Riverside Animal Shelter',
+	);
 
 	// =========================================================================
 	// 2. Feature flags

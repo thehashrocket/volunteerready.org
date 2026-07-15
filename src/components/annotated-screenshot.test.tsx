@@ -204,6 +204,30 @@ describe('AnnotatedScreenshot', () => {
 			expect(screen.getByAltText('Screener')).toBe(lightImg);
 		});
 
+		// Red-team regression: the surviving variant's own theme-conditional
+		// class must be DROPPED once its sibling is gone — otherwise the lone
+		// survivor (still tagged 'dark:hidden') goes invisible to a visitor on
+		// exactly the theme where the failure occurred, despite being a
+		// perfectly good image.
+		it('the surviving variant loses its theme restriction once the sibling fails', () => {
+			const { container } = render(
+				<AnnotatedScreenshot
+					src="/marketing/screener.png"
+					darkSrc="/marketing/missing-dark.png"
+					alt="Screener"
+				/>,
+			);
+
+			const darkImg = screen.getAllByAltText('Screener')[1];
+			fireEvent.error(darkImg);
+			fireEvent.error(darkImg); // dark variant fully fails
+
+			// Only one outer wrapper remains (the light survivor) — it must
+			// carry no visibility class at all, so it shows in every theme.
+			expect(container.children).toHaveLength(1);
+			expect(container.children[0].className).toBe('');
+		});
+
 		it('calls onError only once BOTH variants have failed', () => {
 			const onError = vi.fn();
 			const { container } = render(

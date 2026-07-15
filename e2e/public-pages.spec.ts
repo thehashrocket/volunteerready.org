@@ -199,13 +199,15 @@ test.describe('Marketing screenshots load (dark mode)', () => {
 	test.use({ colorScheme: 'dark' });
 
 	// dashboard.png has no dark variant (Tension 1: the one `priority`-loaded
-	// hero image, excluded from dark scope) — the homepage's hero shot stays
-	// light-only even in dark mode, so its minImages drops by 1 here.
-	const DARK_SCREENSHOT_PAGES = SCREENSHOT_PAGES.map((p) =>
-		p.path === '/' ? { ...p, minImages: p.minImages - 1 } : p,
-	);
-
-	for (const { path, minImages } of DARK_SCREENSHOT_PAGES) {
+	// hero image, excluded from dark scope) — but it does NOT disappear in
+	// dark mode: AnnotatedScreenshot's no-darkSrc path applies no visibility
+	// class at all (annotated-screenshot.tsx's `!hasDarkVariant` branch), so
+	// the single light image renders unconditionally in both themes. The
+	// true dark-mode minimum for every page is therefore identical to
+	// SCREENSHOT_PAGES — do NOT subtract 1 for the homepage here, or a
+	// genuinely broken dark pillar image can still satisfy the loosened
+	// bound and pass silently.
+	for (const { path, minImages } of SCREENSHOT_PAGES) {
 		test(`all marketing images on ${path} render with natural size`, async ({
 			page,
 		}) => {

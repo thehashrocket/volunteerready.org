@@ -116,17 +116,39 @@ export function AnnotatedScreenshot({
 	const dark = useVariantState(darkSrc, priority);
 	const hasDarkVariant = darkSrc !== undefined;
 
+	if (process.env.NODE_ENV !== 'production' && priority && hasDarkVariant) {
+		// next/image's `priority` injects an eager preload `<link>` that isn't
+		// gated by CSS display — unlike lazy images, both the visible AND the
+		// CSS-hidden variant would be fetched unconditionally, doubling bytes
+		// for what's supposed to be the one LCP-optimized image. No current
+		// entry combines the two (dashboard has no darkSrc), so this only
+		// warns a future caller before they introduce the regression.
+		console.warn(
+			`[AnnotatedScreenshot] priority + darkSrc combined for ${src} — both variants will eagerly preload regardless of active theme.`,
+		);
+	}
+
+	const onErrorFired = useRef(false);
 	// Fires once there is truly nothing left to show in ANY theme. A single
 	// broken variant (say darkSrc 404s) does NOT hide anything — the other
 	// theme still has a working image, and CSS alone decides which variant is
 	// "currently visible," so hiding correctly re-evaluates on every theme
 	// toggle without any JS theme detection (2026-07-14 eng review, decision
-	// 3B).
+	// 3B). Guarded to fire at most once: `onError` is typically a fresh
+	// inline arrow per parent render (ScreenshotSection's `() =>
+	// setHasError(true)`), which would otherwise re-run this effect — and
+	// therefore re-invoke onError — on every unrelated parent re-render after
+	// the terminal failed state, which would replay any non-idempotent
+	// caller side effect (e.g. an analytics event) repeatedly.
 	useEffect(() => {
+		if (onErrorFired.current) return;
 		const nothingLeftToShow = hasDarkVariant
 			? light.hasError && dark.hasError
 			: light.hasError;
-		if (nothingLeftToShow) onError?.();
+		if (nothingLeftToShow) {
+			onErrorFired.current = true;
+			onError?.();
+		}
 	}, [light.hasError, dark.hasError, hasDarkVariant, onError]);
 
 	const hasAnnotations = annotations !== undefined && annotations.length > 0;
@@ -204,10 +226,22 @@ export function AnnotatedScreenshot({
 		return showLight ? renderVariant(src, light, undefined) : null;
 	}
 
+	// The theme-conditional class is only correct when BOTH variants are
+	// healthy — each hides in the other's theme because the other is there
+	// to take over. If one has failed, the survivor is the only image left
+	// in ANY theme, so it must render unconditionally: a hardcoded
+	// 'dark:hidden' on the lone light survivor would itself go invisible to
+	// a dark-mode visitor, showing nothing despite a perfectly good image.
 	return (
 		<>
-			{showLight && renderVariant(src, light, 'dark:hidden')}
-			{showDark && renderVariant(darkSrc, dark, 'hidden dark:block')}
+			{showLight &&
+				renderVariant(src, light, showDark ? 'dark:hidden' : undefined)}
+			{showDark &&
+				renderVariant(
+					darkSrc,
+					dark,
+					showLight ? 'hidden dark:block' : undefined,
+				)}
 		</>
 	);
 }

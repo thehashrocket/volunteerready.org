@@ -5,6 +5,78 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## ESG Dashboard — regression found during `/ship` (2026-07-14)
+
+- **[P0] BUG: `/app/company/[companyId]/esg` renders the generic volunteer
+  app shell instead of the ESG report** — `e2e/esg-dashboard.spec.ts`'s
+  "loads real aggregates — no 500, no error card, no fabricated zeros" test
+  fails: after navigating to the ESG URL with a valid authenticated session,
+  `getByRole('heading', { name: 'ESG Volunteer Impact' })` never appears —
+  the rendered page shows the volunteer sidebar (Browse opportunities, My
+  applications, My shifts) instead of the company/ESG layout. Confirmed
+  unrelated to any in-flight branch: the spec seeds fully isolated
+  `__esg_e2e__`-prefixed company/session data, and neither the spec, the ESG
+  page/route, nor any ESG service file appears in the diff that surfaced it.
+  Also confirmed NOT the same failure mode as the original issue #126 bug
+  (`esgReport.getSummary` 500ing into an error card) — this is a
+  session/redirect issue: the app appears to fail resolving
+  `currentCompanyId` for this session and falls back to the default
+  (volunteer) dashboard rather than honoring the `/app/company/{id}/esg`
+  route. **Start:** reproduce locally with `pnpm e2e -- e2e/esg-dashboard.spec.ts`
+  against `pnpm dev`, inspect what `ctx.session.currentCompanyId` resolves to
+  for the seeded session, and check whatever guard/redirect decides which
+  layout renders for `/app/company/[companyId]/*` routes. It passed earlier
+  in the same session this was noticed in, which suggests it may be
+  intermittent/environment-sensitive (Turbopack dev-mode state?) rather than
+  a hard 100%-reproducible break — confirm reproduction before assuming a
+  code fix is even needed vs. a flaky-test fix.
+  **Effort:** M (needs investigation first) | **Priority:** P0 |
+  **Depends on:** None.
+
+---
+
+## Screenshot pipeline — test coverage gaps found during `/ship` (2026-07-14)
+
+`/ship`'s test coverage audit (81% — above the 80% target) added the one cheap,
+high-value regression test (FINDING-001's fix, in `screenshot-section.test.tsx`)
+inline. These remaining gaps were lower-severity or non-trivial to test
+correctly, so deferred rather than rushed:
+
+- **[P3] `useVariantState`'s priority-gated pre-hydration check is untested**
+  — `src/components/annotated-screenshot.tsx`'s `useEffect` that detects an
+  image already broken before hydration (`el.complete && naturalWidth === 0`)
+  has zero coverage for either branch (fires when `priority` + already-broken;
+  stays silent when `!priority`). Non-trivial to test cleanly: by the time
+  `render()` returns, the effect has already run, so simulating "broken
+  before React attached listeners" needs either a custom ref/mock or
+  `Object.defineProperty` tricks on the `<img>` node before commit. Worth
+  doing carefully, not rushing.
+- **[P3] `/for/animal-shelters` has no dedicated legend/marker e2e assertion**
+  — its sibling pages (`/how-it-works`, `/screening`) get a targeted "exactly
+  1 visible legend, 3 items" check in `e2e/public-pages.spec.ts`; the
+  animal-shelters page only gets the generic image-count check from
+  `SCREENSHOT_PAGES`. Mechanical addition, same pattern as the existing
+  `how-it-works / screening annotations` describe block.
+- **[P4] `seed-dev.ts`'s devOrg rename + new shelter opportunities have no
+  automated assertion** outside the manual `pnpm screenshots` pipeline —
+  consistent with this repo's existing convention of not unit-testing seed
+  scripts, so low priority, but flagging since a future seed refactor could
+  silently break the shelter screenshot's content without any test failing.
+- **[P4] `/screening`'s alt/caption copy-accuracy fix has no test** — static
+  marketing copy, not logic; very low severity.
+- **[P4] `e2e/capture.spec.ts`'s variant/manifest-mismatch runtime guard is
+  untested** — the `throw new Error(...)` when a scenario declares a `dark`
+  variant but the manifest entry has no `darkSrc` is only indirectly
+  protected by a static assertion in `marketing-screenshots.test.ts` (found
+  by `/ship`'s testing specialist, confidence 5.5/10). Low priority — if the
+  static test is ever weakened this is the last line of defense, but
+  extracting the src/darkSrc selection into a testable pure helper is a
+  larger refactor than the gap justifies today.
+
+**Effort:** S (per item) | **Priority:** see above | **Depends on:** None.
+
+---
+
 ## Platform Admin Console — follow-ups from Tier 1 ship (2026-04-17)
 
 Deferred from the Tier 1 adversarial review. None block the Tier 1 ship; all
