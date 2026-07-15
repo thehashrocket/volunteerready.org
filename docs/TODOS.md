@@ -73,6 +73,48 @@ correctly, so deferred rather than rushed:
   extracting the src/darkSrc selection into a testable pure helper is a
   larger refactor than the gap justifies today.
 
+---
+
+## Adversarial review findings (`/ship`, 2026-07-14)
+
+Cross-model pass (Claude adversarial subagent + Codex `exec`) after PR1-3
+landed. One finding fixed immediately (multi-specialist confirmed); one
+scope disagreement resolved by explicit user decision; one deferred as low
+severity.
+
+- ~~**[P2] `/how-it-works`'s dashboard shot had no dark variant**~~ ✅
+  **Fixed same day** — both Claude's subagent and Codex independently found
+  this. `MARKETING_SCREENSHOTS.dashboard` gained a `darkSrc`
+  (`dashboard-dark.png`, captured via the existing scenario pipeline); only
+  the `/how-it-works` call site passes it, since the homepage's `priority`
+  hero deliberately omits `darkSrc` (Tension 1, eager preload of a hidden
+  sibling would double the fetch). Confirmed the manifest-holds-both /
+  call-site-opts-in split isn't a structural limitation — Codex's framing
+  ("the manifest stores variant data per asset key, not per usage site")
+  overstated it; the fix was two lines.
+- **Resolved, no change** — Codex flagged (High) that gating the
+  pre-hydration "broken before hydration" check on `priority`
+  (`annotated-screenshot.tsx`'s `useVariantState`) removed recovery
+  protection for the non-priority images that make up most marketing pages.
+  User reviewed the tradeoff and chose to keep the `priority` gate: the
+  check's `complete && naturalWidth === 0` signature can't distinguish
+  "hasn't loaded yet because it's lazy/off-screen" from "attempted and
+  failed" for any non-priority image — broadening it would trade a rare,
+  narrow-window failure (a lazy image failing between SSR paint and
+  hydration) for a common one (ordinary below-the-fold images misreported
+  as broken). Recorded here so a future pass doesn't re-litigate this
+  without the context.
+- **[P4] `createApplicationIfNotExists`'s backfill match has no uniqueness
+  guarantee** — `prisma/seed-helpers.ts`'s `findFirst({ orgId,
+  submittedByEmail })` has no `orderBy`; if a seeded org ever gets two
+  applications from the same email, a rerun of `pnpm seed:dev` could
+  backfill `opportunityId` onto the wrong row nondeterministically (Codex,
+  Low). Pre-existing lookup shape, not introduced by this fix — no current
+  seed caller passes a duplicate `(orgId, email)` pair, so dormant today.
+  Fix if a future seed scenario needs multiple applications per email per
+  org: add a distinguishing filter (e.g. `opportunityId: null` first, or an
+  explicit `orderBy: { createdAt: 'asc' }`).
+
 **Effort:** S (per item) | **Priority:** see above | **Depends on:** None.
 
 ---
@@ -1441,8 +1483,10 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   optional `darkSrc` field; `capture-scenarios.ts` gained a
   `variants: ('light'|'dark')[]` field; the capture runner now calls
   `page.emulateMedia({ colorScheme })` before `page.goto()` per variant.
-  Every entry except `dashboard.png` got a dark variant (the one
-  `priority`-loaded hero image stays light-only). Error handling: per-variant
+  Every entry except `dashboard.png`'s homepage usage got a dark variant (the
+  `priority`-loaded hero call site stays light-only; `dashboard.png` itself
+  later gained a `darkSrc` for its non-priority `/how-it-works` reuse — see
+  "Adversarial review findings" below). Error handling: per-variant
   state, hides only the variant whose image fails — achieved by having each
   variant's own wrapper (image + legend together) null itself independently,
   with zero JS theme detection. **Two real bugs caught and fixed during
