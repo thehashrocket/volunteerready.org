@@ -153,6 +153,7 @@ const SCREENSHOT_PAGES = [
 	{ path: '/for/nonprofits', minImages: 1 },
 	{ path: '/for/volunteers', minImages: 1 },
 	{ path: '/for/employers', minImages: 1 },
+	{ path: '/for/animal-shelters', minImages: 1 },
 	{ path: '/how-it-works', minImages: 1 },
 	{ path: '/screening', minImages: 1 },
 ] as const;

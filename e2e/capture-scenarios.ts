@@ -28,6 +28,10 @@ export const CAPTURE_ACTORS = {
 	orgAdmin: 'orgadmin@volunteermatch.local',
 	companyAdmin: 'companyadmin@volunteermatch.local',
 	volunteer: 'volunteer@volunteermatch.local',
+	// Owner of devOrg ("Riverside Animal Shelter" display name) — the only
+	// seeded account scoped to a single org, so its /app/applications view
+	// shows just that org's data with no org-switcher clutter.
+	shelterAdmin: 'admin@volunteermatch.local',
 } as const;
 
 export type CaptureActor = (typeof CAPTURE_ACTORS)[keyof typeof CAPTURE_ACTORS];
@@ -111,6 +115,15 @@ export const CAPTURE_SCENARIOS: CaptureScenario[] = [
 		actor: CAPTURE_ACTORS.orgAdmin,
 		path: '/app/impact-report',
 		waitForText: 'days on VolunteerReady',
+		variants: ['light', 'dark'],
+	},
+	{
+		key: 'animalShelters',
+		actor: CAPTURE_ACTORS.shelterAdmin,
+		path: '/app/applications',
+		// The opportunity title proves the seeded applications actually linked
+		// to a real opportunity (not the "—" empty-opportunity fallback).
+		waitForText: 'Dog Walking & Enrichment',
 		variants: ['light', 'dark'],
 	},
 ];

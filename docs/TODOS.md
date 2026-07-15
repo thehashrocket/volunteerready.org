@@ -1387,27 +1387,33 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   (a stale DB had accumulated duplicate boot-guard + seed-dev.ts screener
   questions, dirtying the first capture attempt). `e2e/public-pages.spec.ts`
   gained a dark-mode counterpart of the existing image-loaded suite.
-- **[P3] Screenshot for `/for/animal-shelters`** — the only `/for` sub-page
-  with no `ScreenshotSection`. **PR sequenced third of 3** (2026-07-14 eng
-  review): the only one touching `prisma/seed-dev.ts`, ships last and
-  independently so a seed-data regression can't be entangled with the other
-  two. **Blocker was misdiagnosed** (caught by Codex outside voice, then
-  verified): seed data isn't actually shelter-content-free — `devOrg` ("Dev
-  Organization") already has shelter-flavored screener questions
-  (`comfort_reactive_animals`, `attest_no_abuse`, animal-allergy question)
-  and a shelter-flavored sample application, just zero shelter opportunities
-  and an unusable public-facing name. Verified safe to reuse: grep found zero
-  references to "Dev Organization" or `admin@volunteermatch.local`/`devAdmin`
-  anywhere in `e2e/`, `src/`, `docs/`, or `CLAUDE.md` — no test or doc depends
-  on this org's display name. **Plan:** rebrand `devOrg`'s display name for
-  capture purposes and add 1-2 shelter-flavored opportunities (the only
-  genuinely missing piece), instead of building a whole new org + questions
-  from scratch. What opportunities to add should still follow the
-  shelter-vertical positioning in
-  `~/.gstack/projects/.../ceo-plans/2026-04-13-cold-start-shelter-vertical.md`.
-  **Effort:** S (smaller than originally scoped — reuses existing
-  questions/applications) | **Priority:** P3 | **Depends on:** PR2 landing
-  (shares the capture manifest schema).
+- ~~**[P3] Screenshot for `/for/animal-shelters`**~~ ✅ **Completed
+  2026-07-14** — the last `/for` sub-page without a `ScreenshotSection`.
+  Reused `devOrg` instead of seeding a new org from scratch: it already had
+  shelter-flavored screener questions (`comfort_reactive_animals`,
+  `attest_no_abuse`) and sample applications, just zero opportunities and an
+  unusable public-facing name. Renamed its display name (slug unchanged) to
+  "Riverside Animal Shelter" and added 2 shelter-flavored opportunities ("Dog
+  Walking & Enrichment", "Front Desk & Adoption Support"), linking the 3
+  existing sample applications to the first so the captured applications
+  queue shows real status/screening variety (Rejected/Fail/1 flag, In
+  review/Needs review/2 flags, Submitted/Pass) instead of the opportunity
+  column's "—" empty-fallback. New capture scenario + `shelterAdmin` actor
+  (`admin@volunteermatch.local`, the only seeded account scoped to a single
+  org — no org-switcher clutter in the screenshot) added alongside the other
+  6 in the existing light+dark pipeline. 3 markers added to the page,
+  positioned to avoid overlapping table text. Added to
+  `e2e/public-pages.spec.ts`'s `SCREENSHOT_PAGES` (covered automatically by
+  both the light and dark-mode describe blocks). **Known pre-existing,
+  unrelated test failure surfaced during verification:**
+  `e2e/esg-dashboard.spec.ts`'s "loads real aggregates" test now fails — the
+  page renders the generic volunteer app shell instead of the company ESG
+  view. Confirmed unrelated to this PR: that spec seeds its own fully
+  isolated `__esg_e2e__`-prefixed data and doesn't touch `devOrg`/Acme Corp:
+  the failure symptom (wrong page rendered) also doesn't match the
+  `esgReport.getSummary` 500 the spec was written to catch (issue #126,
+  closed). Not investigated further here — out of scope for this PR — but
+  worth a fresh look given it passed earlier in this same session.
 - ~~**[P3] Shared link-row component for `/for` + `/locations`**~~ ✅
   **Completed v0.27.3.0 (2026-07-13)** (issue #140) — extracted
   `src/components/link-row-list.tsx` (`LinkRowList`, fixed prop shape,

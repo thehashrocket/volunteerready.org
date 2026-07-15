@@ -80,7 +80,12 @@ async function seedDev() {
 		'youth-futures',
 		'Youth Futures Mentoring',
 	);
-	const devOrg = await upsertOrg('dev-organization', 'Dev Organization');
+	// Slug stays 'dev-organization' (existing infra/tests reference it) but the
+	// display name is shelter-themed — this org's screener questions/apps were
+	// already shelter-flavored (comfort_reactive_animals, attest_no_abuse), so
+	// it's reused as the /for/animal-shelters marketing screenshot subject
+	// (issue #139 PR3) instead of seeding a whole new org from scratch.
+	const devOrg = await upsertOrg('dev-organization', 'Riverside Animal Shelter');
 
 	// =========================================================================
 	// 2. Feature flags
@@ -845,6 +850,36 @@ async function seedDev() {
 		],
 	});
 
+	// Riverside Animal Shelter (devOrg) — shelter-vertical marketing screenshot
+	// (issue #139 PR3). Reuses the org's existing shelter-flavored screener
+	// questions/applications; these are the only opportunities it needed.
+	const rasDogWalking = await createOpportunityIfNotExists({
+		orgId: devOrg.id,
+		title: 'Dog Walking & Enrichment',
+		description:
+			'Walk and socialize shelter dogs, run enrichment activities, and help reduce kennel stress. Comfort with reactive animals preferred but not required — roles are matched to your comfort level.',
+		status: 'PUBLISHED',
+		location: 'Riverside Animal Shelter — main campus',
+		startDate: daysFromNow(5),
+		endDate: daysFromNow(180),
+		commitmentHours: 3,
+		capacity: 25,
+		tags: ['animal handling', 'dogs', 'enrichment'],
+	});
+	await createOpportunityIfNotExists({
+		orgId: devOrg.id,
+		title: 'Front Desk & Adoption Support',
+		description:
+			'Greet visitors, help match adopters with the right animal, and support paperwork during adoption events. No animal handling required.',
+		status: 'PUBLISHED',
+		location: 'Riverside Animal Shelter — front desk',
+		startDate: daysFromNow(10),
+		endDate: daysFromNow(180),
+		commitmentHours: 4,
+		capacity: 15,
+		tags: ['front desk', 'adoption events', 'customer service'],
+	});
+
 	// =========================================================================
 	// 10. Applications
 	// =========================================================================
@@ -1070,6 +1105,7 @@ async function seedDev() {
 	// Dev org — keep legacy seed apps
 	await createApplicationIfNotExists({
 		orgId: devOrg.id,
+		opportunityId: rasDogWalking.id,
 		submittedByEmail: 'sample-pass@volunteermatch.local',
 		submittedByUserId: testVolunteer.id,
 		status: 'SUBMITTED',
@@ -1093,6 +1129,7 @@ async function seedDev() {
 
 	await createApplicationIfNotExists({
 		orgId: devOrg.id,
+		opportunityId: rasDogWalking.id,
 		submittedByEmail: 'sample-review@volunteermatch.local',
 		status: 'REVIEW',
 		screeningStatus: 'REVIEW',
@@ -1125,6 +1162,7 @@ async function seedDev() {
 
 	await createApplicationIfNotExists({
 		orgId: devOrg.id,
+		opportunityId: rasDogWalking.id,
 		submittedByEmail: 'sample-fail@volunteermatch.local',
 		status: 'REJECTED',
 		screeningStatus: 'FAIL',
@@ -1813,12 +1851,12 @@ async function seedDev() {
 	// =========================================================================
 	console.log('\n✅ Dev/staging seed complete!');
 	console.log(
-		'   Organizations: 4 (Helping Hands, Green City Parks, Youth Futures, Dev Org)',
+		'   Organizations: 4 (Helping Hands, Green City Parks, Youth Futures, Riverside Animal Shelter)',
 	);
 	console.log('   Company accounts: 1 (Acme Corporation — PRO plan)');
 	console.log('   Staff users: 9');
 	console.log('   Pure volunteers: 10');
-	console.log('   Opportunities: 10');
+	console.log('   Opportunities: 12');
 	console.log('   Applications: ~12');
 	console.log('   Shifts: 8');
 	console.log('   Signups: ~15');

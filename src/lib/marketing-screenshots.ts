@@ -49,6 +49,10 @@ export const MARKETING_SCREENSHOTS = {
 		src: '/marketing/impact-report.png',
 		darkSrc: '/marketing/impact-report-dark.png',
 	},
+	animalShelters: {
+		src: '/marketing/animal-shelters.png',
+		darkSrc: '/marketing/animal-shelters-dark.png',
+	},
 } as const satisfies Record<string, MarketingScreenshot>;
 
 export type MarketingScreenshotKey = keyof typeof MARKETING_SCREENSHOTS;
