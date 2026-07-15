@@ -523,9 +523,9 @@ pnpm docs:dev               # VitePress dev server
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
 | `playwright.config.ts` | E2E configuration (boots `pnpm dev`; `PLAYWRIGHT_BASE_URL` override; `CAPTURE=1` swaps the `chromium` project for the marketing-screenshot `capture` project — mutually exclusive so a leaked env var can't rewrite `public/marketing/*.png` mid-e2e) |
 | `e2e/utils/db.ts` | Playwright auth harness — seeds a NextAuth database session for authenticated e2e specs; refuses non-local `DATABASE_URL` unless `E2E_ALLOW_REMOTE_DB=1` |
-| `src/lib/marketing-screenshots.ts` | Marketing screenshot asset manifest — single source of truth for `public/marketing/*.png`; pages import entries, `marketing-screenshots.test.ts` asserts every asset exists on disk |
-| `src/components/annotated-screenshot.tsx` | `AnnotatedScreenshot` — product screenshot with numbered %-positioned markers + HTML legend (homepage pillar rows; `ScreenshotSection`'s optional `annotations` prop) |
-| `e2e/capture-scenarios.ts` | Typed capture scenarios (actor/path/clickTabs/waitForText) for `pnpm screenshots` — deterministic 1280×720 light-mode captures from seeded demo data (`e2e/capture.spec.ts`) |
+| `src/lib/marketing-screenshots.ts` | Marketing screenshot asset manifest — single source of truth for `public/marketing/*.png`; pages import entries; each entry has `src` and an optional `darkSrc` dark-mode variant; `marketing-screenshots.test.ts` asserts every asset exists on disk |
+| `src/components/annotated-screenshot.tsx` | `AnnotatedScreenshot` — product screenshot with numbered %-positioned markers + HTML legend (homepage pillar rows, `/how-it-works`, `/screening`, `/for/animal-shelters`; `ScreenshotSection`'s optional `annotations` prop); optional `darkSrc` prop renders a paired dark-mode image, toggled via Tailwind `dark:` classes (no `useTheme()` hook) |
+| `e2e/capture-scenarios.ts` | Typed capture scenarios (actor/path/clickTabs/waitForText/`variants`) for `pnpm screenshots` — deterministic 1280×720 captures from seeded demo data, one pass per declared color-scheme variant (`e2e/capture.spec.ts`) |
 
 ---
 
