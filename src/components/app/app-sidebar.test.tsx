@@ -170,4 +170,13 @@ describe('AppSidebar', () => {
 		expect(active).toHaveLength(1);
 		expect(active[0]).toHaveTextContent('ESG Report');
 	});
+
+	it('does not treat /app/company/new as a companyId (falls back to the session company)', () => {
+		mockUsePathname.mockReturnValue('/app/company/new');
+		render(<AppSidebar hasOrg={false} hasCompany={true} companyId="c1" />);
+		expect(screen.getByText('ESG Report').closest('a')).toHaveAttribute(
+			'href',
+			'/app/company/c1/esg',
+		);
+	});
 });
