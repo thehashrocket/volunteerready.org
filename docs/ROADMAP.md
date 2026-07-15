@@ -171,7 +171,7 @@ portable volunteer identity.
 Completed capabilities:
 
 - ✅ `CompanyAccount` — corporate account type with `slug`, separate from nonprofit orgs
-- ✅ `CompanyMember` roles: OWNER / ADMIN / MEMBER; `companyProcedure` / `companyAdminProcedure` tRPC middleware
+- ✅ `CompanyMember` roles: OWNER / ADMIN / MEMBER; originally gated by session-scoped `companyProcedure` / `companyAdminProcedure` tRPC middleware, replaced in v0.29.2.0 by the input-scoped `companyScopedProcedure` factory (see `docs/ARCHITECTURE.md` "Authorization")
 - ✅ `CompanyNonprofitLink` — companies sponsor nonprofit orgs (ACTIVE / PAUSED status)
 - ✅ Company creation flow (`/app/company/new`) with slug generation and P2002 guard
 - ✅ `CompanySwitcher` UI component — mirrors `OrgSwitcher`; renders in app shell

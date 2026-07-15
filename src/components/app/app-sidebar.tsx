@@ -140,7 +140,11 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 	// company/[companyId]/layout.tsx), not the session's active company. A
 	// multi-company user browsing a non-active company would otherwise get
 	// nav hrefs pointing at a different company than the page they're on.
-	const urlCompanyId = pathname.match(/^\/app\/company\/([^/]+)/)?.[1] ?? null;
+	// /app/company/new is a static sibling route (the create-company form),
+	// not a companyId — exclude it so nav links don't point at "company new".
+	const urlCompanyIdMatch = pathname.match(/^\/app\/company\/([^/]+)/)?.[1];
+	const urlCompanyId =
+		urlCompanyIdMatch && urlCompanyIdMatch !== 'new' ? urlCompanyIdMatch : null;
 	const companyNav = getCompanyNav(urlCompanyId ?? companyId);
 
 	const visibleItems = [

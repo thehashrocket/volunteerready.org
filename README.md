@@ -185,11 +185,11 @@ Companies can sponsor nonprofit organizations (CompanyNonprofitLink) and manage 
 
 ## Billing & Plan Tiers
 
-Organizations have a plan tier: FREE / STARTER / PRO.
+Organizations and CompanyAccounts each have their own plan tier: FREE / STARTER / PRO.
 
 Billing is managed via Stripe (checkout sessions, billing portal, webhook processing).
 
-Plan enforcement is server-side only via `planTierProcedure` (org context) and `companyPlanTierProcedure` (company context).
+Plan enforcement is server-side only via `planTierProcedure` (org context) and `companyScopedProcedure({ minPlanTier })` (company context).
 
 ---
 

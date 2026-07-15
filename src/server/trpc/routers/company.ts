@@ -18,8 +18,7 @@ import {
 	unlinkNonprofit,
 } from '@/server/services/companyService';
 import {
-	companyAdminProcedure,
-	companyProcedure,
+	companyScopedProcedure,
 	createTRPCRouter,
 	protectedProcedure,
 } from '../init';
@@ -58,13 +57,13 @@ export const companyRouter = createTRPCRouter({
 			});
 		}),
 
-	/** Get current company (requires active company context in session). */
-	getCurrent: companyProcedure.query(async ({ ctx }) => {
+	/** Get a company by id (requires membership in that company). */
+	getCurrent: companyScopedProcedure().query(async ({ ctx }) => {
 		return findCompanyById(ctx.companyId);
 	}),
 
 	/** Link a nonprofit to the company (admin only). */
-	linkNonprofit: companyAdminProcedure
+	linkNonprofit: companyScopedProcedure({ minRole: 'ADMIN' })
 		.input(linkNonprofitSchema)
 		.mutation(async ({ ctx, input }) => {
 			return linkNonprofit({
@@ -75,7 +74,7 @@ export const companyRouter = createTRPCRouter({
 		}),
 
 	/** Unlink a nonprofit from the company (admin only). */
-	unlinkNonprofit: companyAdminProcedure
+	unlinkNonprofit: companyScopedProcedure({ minRole: 'ADMIN' })
 		.input(linkNonprofitSchema)
 		.mutation(async ({ ctx, input }) => {
 			return unlinkNonprofit({
@@ -86,12 +85,12 @@ export const companyRouter = createTRPCRouter({
 		}),
 
 	/** List nonprofits actively linked to the company. */
-	listLinkedNonprofits: companyProcedure.query(async ({ ctx }) => {
+	listLinkedNonprofits: companyScopedProcedure().query(async ({ ctx }) => {
 		return listLinkedNonprofits(ctx.companyId);
 	}),
 
 	/** Invite a member to the company (admin only). */
-	invite: companyAdminProcedure
+	invite: companyScopedProcedure({ minRole: 'ADMIN' })
 		.input(
 			z.object({
 				email: z.string().email(),

@@ -34,6 +34,16 @@ When adding queries or mutations:
 
 Failure to enforce org scope is a security bug.
 
+Company-scoped resources (`CompanyAccount`, `CompanyMember`,
+`CompanyNonprofitLink`, ESG reports) follow the same rule with `companyId`
+as the tenant boundary. `companyId` must come from the request (URL param
+or tRPC input, via the `companyScopedProcedure` factory in
+`src/server/trpc/init.ts`) — never from session state. A user's session
+tracks one "active" company, but a multi-company user can be viewing a
+*different* company's URL; authorizing against the session instead of the
+request serves or mutates the wrong tenant. See
+`src/server/services/companyAccessService.ts`'s `requireCompanyAccess()`.
+
 ---
 
 # 3. Routers Must Stay Thin

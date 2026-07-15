@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
@@ -17,8 +17,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { trpc } from '@/lib/trpc/client';
 
+// Matches /app/company/{id} and /app/company/{id}/anything — captures the id
+// segment and the trailing subpath (if any).
+const COMPANY_ROUTE = /^\/app\/company\/([^/]+)(\/.*)?$/;
+
+// /app/company/new is a static sibling route (the create-company form), not
+// a companyId — exclude it so the switcher doesn't mistake "new" for a real
+// company and navigate away from (or claim to represent) that page.
+function matchCompanyRoute(pathname: string) {
+	const match = pathname.match(COMPANY_ROUTE);
+	if (!match || match[1] === 'new') return null;
+	return { companyId: match[1], subpath: match[2] ?? '' };
+}
+
 export function CompanySwitcher() {
 	const router = useRouter();
+	const pathname = usePathname();
 	const qc = useQueryClient();
 	const { data: session } = useSession();
 
@@ -33,7 +47,18 @@ export function CompanySwitcher() {
 			const companies = companiesQ.data ?? [];
 			const next = companies.find((c) => c.company.id === res.companyId);
 			toast.success(`Switched to ${next?.company.name ?? 'company'}`);
-			router.refresh();
+
+			// Company pages are authorized by the URL's companyId, not the
+			// session's active company (see company/[companyId]/layout.tsx). If
+			// we're on one now, follow the switch to the new company's URL —
+			// otherwise the page would keep the old company's id in the URL
+			// while its data flips to the new company underneath it.
+			const route = matchCompanyRoute(pathname);
+			if (route) {
+				router.push(`/app/company/${res.companyId}${route.subpath}`);
+			} else {
+				router.refresh();
+			}
 			await qc.invalidateQueries();
 		},
 		onError: (err) => {
@@ -42,7 +67,15 @@ export function CompanySwitcher() {
 	});
 
 	const memberships = companiesQ.data ?? [];
-	const currentCompanyId = sessionExt?.currentCompanyId ?? null;
+	// Company pages are authorized by the URL's companyId, not the session's
+	// active company — so the switcher's displayed selection follows suit
+	// whenever we're on one (mirrors app-sidebar.tsx's urlCompanyId
+	// precedence). Otherwise a multi-company user viewing a non-active
+	// company would see the switcher itself claim they're on the wrong one.
+	const currentCompanyId =
+		matchCompanyRoute(pathname)?.companyId ??
+		sessionExt?.currentCompanyId ??
+		null;
 
 	const currentName = useMemo(() => {
 		if (memberships.length === 0) return null;

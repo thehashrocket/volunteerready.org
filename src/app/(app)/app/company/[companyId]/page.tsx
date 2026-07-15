@@ -1,7 +1,12 @@
 'use client';
 
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,16 +18,18 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { trpc } from '@/lib/trpc/client';
 
 export default function CompanyDashboardPage() {
+	const { companyId } = useParams<{ companyId: string }>();
 	const [inviteEmail, setInviteEmail] = useState('');
 	const [inviteOpen, setInviteOpen] = useState(false);
 	const [linkOrgId, setLinkOrgId] = useState('');
 	const [linkOpen, setLinkOpen] = useState(false);
 
-	const currentQ = trpc.company.getCurrent.useQuery();
-	const linkedQ = trpc.company.listLinkedNonprofits.useQuery();
+	const currentQ = trpc.company.getCurrent.useQuery({ companyId });
+	const linkedQ = trpc.company.listLinkedNonprofits.useQuery({ companyId });
 
 	const inviteMutation = trpc.company.invite.useMutation({
 		onSuccess: () => {
@@ -53,6 +60,31 @@ export default function CompanyDashboardPage() {
 
 	const company = currentQ.data;
 	const linkedNonprofits = linkedQ.data ?? [];
+
+	if (currentQ.isLoading) {
+		return (
+			<div className="max-w-2xl space-y-8">
+				<Skeleton className="h-9 w-64" />
+				<Skeleton className="h-40" />
+			</div>
+		);
+	}
+
+	// A failed company lookup must never fall through to a blank-looking
+	// dashboard with live invite/link forms still enabled — see the identical
+	// guard on the ESG report page for the same query family.
+	if (currentQ.isError) {
+		return (
+			<div className="mx-auto max-w-lg py-16">
+				<QueryErrorCard
+					title="We couldn’t load your company"
+					message={safeErrorMessage(currentQ.error)}
+					onRetry={() => currentQ.refetch()}
+					isRetrying={currentQ.isRefetching}
+				/>
+			</div>
+		);
+	}
 
 	return (
 		<div className="max-w-2xl space-y-8">
@@ -97,7 +129,9 @@ export default function CompanyDashboardPage() {
 									/>
 								</div>
 								<Button
-									onClick={() => linkMutation.mutate({ orgId: linkOrgId })}
+									onClick={() =>
+										linkMutation.mutate({ companyId, orgId: linkOrgId })
+									}
 									disabled={linkMutation.isPending || !linkOrgId.trim()}
 									className="w-full"
 								>
@@ -108,7 +142,16 @@ export default function CompanyDashboardPage() {
 					</Dialog>
 				</div>
 
-				{linkedNonprofits.length === 0 ? (
+				{linkedQ.isLoading ? (
+					<Skeleton className="h-16" />
+				) : linkedQ.isError ? (
+					<QueryErrorCard
+						title="We couldn’t load linked nonprofits"
+						message={safeErrorMessage(linkedQ.error)}
+						onRetry={() => linkedQ.refetch()}
+						isRetrying={linkedQ.isRefetching}
+					/>
+				) : linkedNonprofits.length === 0 ? (
 					<p className="text-sm text-muted-foreground">
 						No nonprofits linked yet.
 					</p>
@@ -128,7 +171,9 @@ export default function CompanyDashboardPage() {
 								<Button
 									size="sm"
 									variant="ghost"
-									onClick={() => unlinkMutation.mutate({ orgId: link.org.id })}
+									onClick={() =>
+										unlinkMutation.mutate({ companyId, orgId: link.org.id })
+									}
 									disabled={unlinkMutation.isPending}
 								>
 									Unlink
@@ -167,6 +212,7 @@ export default function CompanyDashboardPage() {
 								<Button
 									onClick={() =>
 										inviteMutation.mutate({
+											companyId,
 											email: inviteEmail,
 											role: 'MEMBER',
 										})

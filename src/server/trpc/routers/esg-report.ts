@@ -1,9 +1,9 @@
 import { esgReportInputSchema } from '@/server/domain/esg-report';
 import { generateESGReport } from '@/server/services/employerReportService';
-import { companyPlanTierProcedure, createTRPCRouter } from '@/server/trpc/init';
+import { companyScopedProcedure, createTRPCRouter } from '@/server/trpc/init';
 
 export const esgReportRouter = createTRPCRouter({
-	getSummary: companyPlanTierProcedure('PRO')
+	getSummary: companyScopedProcedure({ minRole: 'ADMIN', minPlanTier: 'PRO' })
 		.input(esgReportInputSchema)
 		.query(async ({ ctx, input }) => {
 			const actorId = ctx.session?.user?.id ?? '';
