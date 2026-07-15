@@ -242,6 +242,7 @@ See `docs/DOMAIN.md` for canonical vocabulary.
 | `orgProcedure` | Authenticated + org membership | `orgId: string` (non-null) |
 | `staffProcedure` | STAFF, ADMIN, or OWNER role | `role: Role` (non-null) |
 | `adminProcedure` | ADMIN or OWNER role | `role: Role` (non-null) |
+| `companyScopedProcedure(opts?)` | Company membership (+ optional `minRole`/`minPlanTier`), keyed off `companyId` in the tRPC **input**, never session state | `companyId: string`, `companyRole: CompanyMemberRole` |
 | `platformAdminProcedure` | `ctx.realUserId` is a platform admin (checked against real session, not impersonated one) | — |
 
 Each middleware narrows the context type via `next({ ctx: { ... } })`, so downstream code can use `ctx.orgId` and `ctx.role` without non-null assertions. Always use the **narrowest** access level possible.
@@ -277,6 +278,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `analytics` | getDashboard (staffProcedure, PRO-gated via `planTierProcedure('PRO')`) |
 | `billing` | createCheckoutSession, createBillingPortalSession, getBillingStatus |
 | `company` | create, listMyCompanies, switchCompany, getCurrent, linkNonprofit, unlinkNonprofit, listLinkedNonprofits, invite, acceptInvite — company-scoped procedures take `companyId` via `companyScopedProcedure(opts?)`, never session state |
+| `esgReport` | getSummary (`companyScopedProcedure({ minRole: 'ADMIN', minPlanTier: 'PRO' })`) |
 | `status` | public token-based status lookups |
 
 ---
