@@ -34,7 +34,9 @@ test.skip(
 );
 
 let companyId: string;
+let companyBId: string;
 let sessionToken: string;
+let multiCompanySessionToken: string;
 let outsiderSessionToken: string;
 let userId: string;
 let outsiderUserId: string;
@@ -188,6 +190,26 @@ test.beforeAll(async () => {
 		ttlMs: 24 * 60 * 60 * 1000,
 	});
 
+	// A second company the same user also belongs to, plus a session pinned
+	// to IT instead — used to prove the ESG page is authorized/rendered from
+	// the URL's companyId, not whichever company the session has active.
+	const companyB = await prisma.companyAccount.create({
+		data: {
+			name: `${PREFIX}company-b-${run}`,
+			slug: `${PREFIX}company-b-${run}`,
+			planTier: 'PRO',
+		},
+	});
+	companyBId = companyB.id;
+	await prisma.companyMember.create({
+		data: { companyId: companyB.id, userId: user.id, role: 'OWNER' },
+	});
+	multiCompanySessionToken = await createSession({
+		userId: user.id,
+		currentCompanyId: companyB.id,
+		ttlMs: 24 * 60 * 60 * 1000,
+	});
+
 	// Outsider: authenticated but NOT a member of the company — used to prove
 	// the company layout's membership guard still holds after the /app/company
 	// no-org-redirect exemption.
@@ -212,7 +234,7 @@ test.afterAll(async () => {
 	// run's cleanupByPrefix() once they age past STALE_LEFTOVER_MS.
 	await cleanupIds({
 		userIds: [userId, outsiderUserId].filter(Boolean),
-		companyIds: [companyId].filter(Boolean),
+		companyIds: [companyId, companyBId].filter(Boolean),
 		orgIds: [orgId].filter(Boolean),
 	});
 	await disconnectPrisma();
@@ -268,6 +290,40 @@ test.describe('ESG dashboard (authenticated, dev server)', () => {
 		expect(failedResponses, `5xx responses: ${failedResponses.join(', ')}`).toHaveLength(
 			0,
 		);
+	});
+
+	test('URL companyId is authoritative — a member of two companies visiting company A sees company A, not the session-active company B', async ({
+		context,
+		page,
+		baseURL,
+	}) => {
+		if (!baseURL) throw new Error('baseURL missing from Playwright config');
+		// Session's active company is B; the URL names company A.
+		await context.addCookies([
+			{
+				name: SESSION_COOKIE_NAME,
+				value: multiCompanySessionToken,
+				url: baseURL,
+			},
+		]);
+
+		await page.goto(`/app/company/${companyId}/esg`);
+
+		await expect(
+			page.getByRole('heading', { name: 'ESG Volunteer Impact' }),
+		).toBeVisible();
+
+		// Company A's seeded activity must render (company B has zero activity —
+		// if the bug were present, this would render B's zero-state instead).
+		await expect(
+			page.getByText(/no volunteer activity recorded yet/i),
+		).not.toBeVisible();
+		const orgRow = page
+			.getByRole('row')
+			.filter({ hasText: `${PREFIX}org-` })
+			.first();
+		await expect(orgRow).toBeVisible();
+		await expect(orgRow.getByText('3', { exact: true })).toBeVisible();
 	});
 
 	test('non-member is redirected away — membership guard intact after the no-org exemption', async ({
