@@ -17,8 +17,12 @@
 // Each scenario declares which color-scheme variants to capture (default
 // light-only). A scenario declaring ['light', 'dark'] runs twice — once per
 // variant — writing to the manifest entry's `src` and `darkSrc` respectively
-// (src/lib/marketing-screenshots.ts). `dashboard` stays light-only: it's the
-// one `priority`-loaded hero image (2026-07-14 eng review, Tension 1).
+// (src/lib/marketing-screenshots.ts). `dashboard` now captures both: the
+// homepage's `priority` hero usage only ever reads `.src` (dark:hidden`
+// preload would double the eager fetch, 2026-07-14 eng review, Tension 1),
+// but /how-it-works reuses the same asset key without `priority` and passes
+// `.darkSrc` too — the manifest holds both variants; each call site opts in
+// to darkSrc individually (2026-07-14, /ship adversarial review).
 // ---------------------------------------------------------------------------
 
 import type { MarketingScreenshotKey } from '../src/lib/marketing-screenshots';
@@ -67,6 +71,7 @@ export const CAPTURE_SCENARIOS: CaptureScenario[] = [
 		actor: CAPTURE_ACTORS.orgAdmin,
 		path: '/app',
 		waitForText: 'Total applications',
+		variants: ['light', 'dark'],
 	},
 	{
 		key: 'applicationsQueue',

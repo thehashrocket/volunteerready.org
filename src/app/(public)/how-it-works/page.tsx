@@ -342,6 +342,7 @@ export default function HowItWorksPage() {
 			{/* ── Dashboard product shot ── */}
 			<ScreenshotSection
 				src={MARKETING_SCREENSHOTS.dashboard.src}
+				darkSrc={MARKETING_SCREENSHOTS.dashboard.darkSrc}
 				alt="VolunteerReady application queue dashboard"
 				caption="What your application queue looks like once the pipeline is live."
 				sectionBg="sand"
