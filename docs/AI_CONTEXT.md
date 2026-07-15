@@ -588,3 +588,4 @@ When you need framework-specific guidance, consult these:
 7. **Using non-null assertions (`!`)** — tRPC middleware narrows context types. Use `ctx.orgId` (already `string`), not `ctx.orgId!`.
 8. **Fire-and-forget writes** — always wrap related writes (e.g., create + audit) in `prisma.$transaction` so they succeed or fail together.
 9. **Pagination** — opportunity and application list endpoints use cursor-based pagination. Use `take + cursor + skip: 1` pattern, not offset-based `skip`.
+10. **Unscoped e2e cleanup under `fullyParallel`** — `playwright.config.ts` runs spec files in parallel worker processes, each with its own `beforeAll`/`afterAll`. A shared-prefix cleanup sweep (`startsWith: PREFIX`) run in `afterAll` can delete a sibling worker's still-in-use rows mid-test — scope `afterAll` to the exact IDs that worker's `beforeAll` created instead (see `e2e/esg-dashboard.spec.ts`).
