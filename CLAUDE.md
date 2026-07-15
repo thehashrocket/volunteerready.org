@@ -48,6 +48,7 @@ question backfill). After a fresh production database setup, also run
 - `orgadmin@volunteermatch.local` — Org OWNER (Helping Hands)
 - `companyadmin@volunteermatch.local` — Company OWNER (Acme Corp)
 - `volunteer@volunteermatch.local` — Volunteer
+- `admin@volunteermatch.local` — Org OWNER (devOrg, display name "Riverside Animal Shelter") — the only seeded account scoped to a single org (no org-switcher); used as the `shelterAdmin` marketing-screenshot capture actor (`e2e/capture-scenarios.ts`)
 
 Use the magic link flow to sign in. Auth cookie name: `next-auth.session-token`.
 

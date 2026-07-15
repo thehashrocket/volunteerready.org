@@ -5,6 +5,28 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Animal-shelters screenshot copy — found during `/document-release` (2026-07-14)
+
+- **[P4] `/for/animal-shelters`'s first annotation label claims the captured
+  screenshot shows an "approved" application status** (`src/app/(public)/for/animal-shelters/page.tsx`,
+  the marker at x:72/y:46: `'Every application carries a clear status —
+  approved, in review, or rejected — and why.'`), but the 3 applications
+  seeded for that capture (`prisma/seed-dev.ts`, linked to `rasDogWalking`)
+  are `SUBMITTED`/PASS, `REVIEW`/2 flags, and `REJECTED`/FAIL — no
+  `APPROVED`-status row exists, so the badge visible at that marker position
+  reads "Submitted", not "Approved" (`ApplicationStatusBadge`'s
+  `statusConfig`, `src/components/my-applications/ApplicationStatusBadge.tsx`).
+  Found by the Codex cross-model doc review while verifying this release's
+  CHANGELOG entry, which had the same inaccuracy — the CHANGELOG wording was
+  corrected in v0.29.0.0 (0.29.0.0 doc-sync commit) to say "submitted,
+  flagged, and rejected" to match; the page copy itself is unchanged pending
+  a product-copy fix (out of scope for a docs-only pass). **Start:** change
+  the marker label to "submitted, in review, or rejected" (or recapture with
+  a 4th application seeded at `APPROVED` status if showing all four states
+  is preferred). **Effort:** XS | **Priority:** P4 | **Depends on:** None.
+
+---
+
 ## ESG Dashboard — regression found during `/ship` (2026-07-14)
 
 - **[P0] BUG: `/app/company/[companyId]/esg` renders the generic volunteer
@@ -1499,7 +1521,7 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   was originally applied only to the image frame, not the legend below it —
   both variants' legends rendered simultaneously regardless of theme; fixed
   by moving the class to the shared outer wrapper. `pnpm screenshots`
-  regenerated all 6 light+dark pairs against a freshly reset local dev DB
+  regenerated all 7 light+dark pairs against a freshly reset local dev DB
   (a stale DB had accumulated duplicate boot-guard + seed-dev.ts screener
   questions, dirtying the first capture attempt). `e2e/public-pages.spec.ts`
   gained a dark-mode counterpart of the existing image-loaded suite.
@@ -1517,7 +1539,7 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   column's "—" empty-fallback. New capture scenario + `shelterAdmin` actor
   (`admin@volunteermatch.local`, the only seeded account scoped to a single
   org — no org-switcher clutter in the screenshot) added alongside the other
-  6 in the existing light+dark pipeline. 3 markers added to the page,
+  7 in the existing light+dark pipeline. 3 markers added to the page,
   positioned to avoid overlapping table text. Added to
   `e2e/public-pages.spec.ts`'s `SCREENSHOT_PAGES` (covered automatically by
   both the light and dark-mode describe blocks). **Known pre-existing,
