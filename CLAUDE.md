@@ -68,6 +68,7 @@ or linter (Prettier, ESLint, Black), document the exact commands and config.
 - Integration tests excluded from `pnpm test`: `src/**/*.integration.test.ts`
 - Scripts tests (separate suite): `scripts/**/*.test.ts` — run with `pnpm test:scripts`; config at `vitest.scripts.config.ts`
 - E2E tests: Playwright specs in `e2e/` (`pnpm e2e`). Authenticated specs seed a NextAuth database session via `e2e/utils/db.ts` (refuses non-local `DATABASE_URL` unless `E2E_ALLOW_REMOTE_DB=1`); the dev server is the only environment that reproduces Turbopack-dev-only bugs, so bundler-sensitive fixes get e2e coverage.
+- E2E cleanup + `fullyParallel`: `playwright.config.ts` sets `fullyParallel: true` (`workers: 1` in CI only), so a spec file's `beforeAll`/`afterAll` run per-worker in separate processes. A spec's `afterAll` must delete only the row IDs its own `beforeAll` created — never an unscoped sweep matching a shared literal prefix (e.g. `startsWith: PREFIX`), which can delete a sibling worker's still-in-use rows mid-test. Prefix sweeps are safe only in `beforeAll`, and only when age-gated (e.g. `createdAt < now - 30min`) so they can't catch a live sibling's fresh rows. See `e2e/esg-dashboard.spec.ts` (`cleanupIds()` vs `cleanupByPrefix()`) and the resolved P0 in `docs/TODOS.md` for the incident this pattern fixes.
 
 ## Commit & Pull Request Guidelines
 

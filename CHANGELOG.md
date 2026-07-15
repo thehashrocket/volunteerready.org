@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.29.1.0] - 2026-07-15
+
+### Fixed
+- Fixed a flaky test that could report the ESG dashboard as broken when it wasn't. No visible product change — the dashboard itself was never broken. Root cause: the end-to-end test suite's own cleanup logic could delete one test's still-in-progress data while another test was using it, when tests ran in parallel. The suite now tracks exactly which records each test created and only cleans up those, closing a race that had shown up as three different-looking failures over the past few days.
+
 ## [0.29.0.0] - 2026-07-14
 
 ### Added

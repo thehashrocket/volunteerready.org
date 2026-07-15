@@ -36,24 +36,68 @@ test.skip(
 let companyId: string;
 let sessionToken: string;
 let outsiderSessionToken: string;
+let userId: string;
+let outsiderUserId: string;
+let orgId: string;
 
-async function cleanup() {
+// Only rows older than this are swept by cleanupByPrefix. Locally a full
+// worker lifecycle (beforeAll -> test -> afterAll) takes ~1-2s, but this
+// needs to hold under CI conditions too: a cold `pnpm dev` webServer
+// Turbopack compile, or resource-starved parallel workers, can push a
+// sibling worker's run well past a tight margin. The only cost of a wider
+// window is slower cleanup of genuinely crashed leftovers, so it's set
+// generously rather than tuned to the fast case.
+const STALE_LEFTOVER_MS = 30 * 60 * 1000;
+
+// Sweeps rows matching the shared literal PREFIX that are older than
+// STALE_LEFTOVER_MS — safe to call in beforeAll, but NOT unbounded, and NOT
+// in afterAll: Playwright's fullyParallel mode runs this file's two tests in
+// separate worker processes, each with its own beforeAll/afterAll. An
+// unbounded prefix sweep here could delete a still-running sibling worker's
+// freshly created (and still in-use) session/company rows out from under it
+// — exactly the P0 "wrong page rendered" flake (root-caused via
+// /investigate, 2026-07-15): the fast "non-member" worker's afterAll wiped
+// the slower "loads real aggregates" worker's session mid-test, so that
+// worker's requests resolved to an unauthenticated/company-less context.
+// The age cutoff closes the same race for beforeAll: even if a worker's
+// beforeAll starts late (uneven browser-launch latency) and runs this sweep
+// after a sibling has already created its rows, those rows are seconds old
+// and won't match — only genuinely abandoned rows from a crashed prior run do.
+async function cleanupByPrefix() {
 	const prisma = getPrisma();
+	const olderThan = new Date(Date.now() - STALE_LEFTOVER_MS);
 	const users = await prisma.user.findMany({
-		where: { email: { startsWith: PREFIX } },
+		where: { email: { startsWith: PREFIX }, createdAt: { lt: olderThan } },
 		select: { id: true },
 	});
 	const userIds = users.map((u) => u.id);
 	const companies = await prisma.companyAccount.findMany({
-		where: { slug: { startsWith: PREFIX } },
+		where: { slug: { startsWith: PREFIX }, createdAt: { lt: olderThan } },
 		select: { id: true },
 	});
 	const companyIds = companies.map((c) => c.id);
 	const orgs = await prisma.organization.findMany({
-		where: { slug: { startsWith: PREFIX } },
+		where: { slug: { startsWith: PREFIX }, createdAt: { lt: olderThan } },
 		select: { id: true },
 	});
 	const orgIds = orgs.map((o) => o.id);
+
+	await cleanupIds({ userIds, companyIds, orgIds });
+}
+
+// Deletes exactly the rows this run created — safe to call concurrently
+// with a sibling worker's own cleanup, since it never touches rows it
+// didn't create itself.
+async function cleanupIds({
+	userIds,
+	companyIds,
+	orgIds,
+}: {
+	userIds: string[];
+	companyIds: string[];
+	orgIds: string[];
+}) {
+	const prisma = getPrisma();
 
 	if (userIds.length > 0) {
 		await prisma.session.deleteMany({ where: { userId: { in: userIds } } });
@@ -86,7 +130,7 @@ async function cleanup() {
 
 test.beforeAll(async () => {
 	const prisma = getPrisma();
-	await cleanup(); // clear leftovers from a previous crashed run
+	await cleanupByPrefix(); // clear leftovers from a previous crashed run
 
 	const run = randomUUID().slice(0, 8);
 
@@ -96,6 +140,7 @@ test.beforeAll(async () => {
 			email: `${PREFIX}${run}@e2e.local`,
 		},
 	});
+	userId = user.id;
 
 	const company = await prisma.companyAccount.create({
 		data: {
@@ -116,6 +161,7 @@ test.beforeAll(async () => {
 			slug: `${PREFIX}org-${run}`,
 		},
 	});
+	orgId = org.id;
 
 	await prisma.companyNonprofitLink.create({
 		data: { companyId: company.id, orgId: org.id, status: 'ACTIVE' },
@@ -151,6 +197,7 @@ test.beforeAll(async () => {
 			email: `${PREFIX}outsider-${run}@e2e.local`,
 		},
 	});
+	outsiderUserId = outsider.id;
 	outsiderSessionToken = await createSession({
 		userId: outsider.id,
 		ttlMs: 24 * 60 * 60 * 1000,
@@ -158,7 +205,16 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-	await cleanup();
+	// beforeAll may have thrown partway through (Playwright still runs
+	// afterAll in that case) — filter out whatever wasn't assigned rather
+	// than passing undefined into a Prisma `id: { in: [...] }` filter. Any
+	// rows created before the throw are still swept eventually by the next
+	// run's cleanupByPrefix() once they age past STALE_LEFTOVER_MS.
+	await cleanupIds({
+		userIds: [userId, outsiderUserId].filter(Boolean),
+		companyIds: [companyId].filter(Boolean),
+		orgIds: [orgId].filter(Boolean),
+	});
 	await disconnectPrisma();
 });
 
