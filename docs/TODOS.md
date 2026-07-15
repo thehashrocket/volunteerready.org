@@ -53,9 +53,11 @@ Each item includes enough context for a future engineer to pick it up cold.
   user/company/org IDs each worker's `beforeAll` creates and scopes
   `afterAll` cleanup to just those IDs (`cleanupIds()`); the shared-prefix
   sweep (`cleanupByPrefix()`) is now used only in `beforeAll`, before this
-  run has created anything, where the cross-worker collision window doesn't
-  exist, and is further hardened with a 30-minute `createdAt` age cutoff
-  (`STALE_LEFTOVER_MS`) so it can never match a live sibling's rows.
+  run has created anything of its own, and is hardened with a 30-minute
+  `createdAt` age cutoff (`STALE_LEFTOVER_MS`) so a late-starting
+  `beforeAll` can't match a sibling's freshly created (seconds-old) rows —
+  see the residual-risk note below for the narrow case this doesn't fully
+  close.
   Validated with 16 consecutive passing runs at default parallel workers
   post-fix (vs. deterministic 3/3 failure pre-fix). **Effort:** S |
   **Priority:** P0 | **Depends on:** None.
