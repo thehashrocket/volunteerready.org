@@ -2,6 +2,7 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import type { FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
 import { getServerSession } from 'next-auth';
 import superjson from 'superjson';
+import { z } from 'zod';
 import type {
 	CompanyMemberRole,
 	PlanTier,
@@ -10,9 +11,12 @@ import type {
 import { authOptions } from '@/server/auth';
 import { assertPlanAtLeast } from '@/server/domain/billing';
 import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
-import { getCompanyPlanTier } from '@/server/repositories/companyRepo';
 import { getOrgPlanTier } from '@/server/repositories/orgRepo';
 import { prisma } from '@/server/repositories/prisma';
+import {
+	CompanyAccessDeniedError,
+	requireCompanyAccess,
+} from '@/server/services/companyAccessService';
 import { resolveImpersonation } from '@/server/services/impersonationService';
 
 /** Extended session shape produced by our auth callback */
@@ -337,54 +341,38 @@ export function planTierProcedure(requiredTier: PlanTier) {
 	});
 }
 
-/** Requires an active company context in the session. */
-export const companyProcedure = protectedProcedure.use(({ ctx, next }) => {
-	if (!ctx.companyId) {
-		throw new TRPCError({ code: 'FORBIDDEN', message: 'No active company.' });
-	}
-	return next({
-		ctx: { companyId: ctx.companyId, companyRole: ctx.companyRole },
-	});
-});
-
-const companyRoleRank: Record<CompanyMemberRole, number> = {
-	MEMBER: 0,
-	ADMIN: 1,
-	OWNER: 2,
-};
-
-/** Requires ADMIN or OWNER company role. */
-export const companyAdminProcedure = companyProcedure.use(({ ctx, next }) => {
-	if (
-		!ctx.companyRole ||
-		companyRoleRank[ctx.companyRole] < companyRoleRank.ADMIN
-	) {
-		throw new TRPCError({
-			code: 'FORBIDDEN',
-			message: 'Company admin role required.',
-		});
-	}
-	return next({ ctx: { companyRole: ctx.companyRole } });
-});
-
 /**
- * Company plan tier procedure — factory. Extends companyAdminProcedure with
- * a fresh DB lookup of the company's plan tier. Mirrors planTierProcedure
- * but for company context instead of org context.
+ * Company-scoped procedure — factory. Reads `companyId` from tRPC *input*,
+ * never from session state: the session's active company can differ from
+ * the company named in the request (multi-company user browsing a
+ * non-active company's URL), and authorizing against the session would
+ * serve — or mutate — the wrong tenant. See companyAccessService for the
+ * underlying membership/role/plan check.
  */
-export function companyPlanTierProcedure(requiredTier: PlanTier) {
-	return companyAdminProcedure.use(async ({ ctx, next }) => {
-		const currentTier = await getCompanyPlanTier(ctx.companyId);
-		try {
-			assertPlanAtLeast(currentTier, requiredTier);
-		} catch {
-			throw new TRPCError({
-				code: 'FORBIDDEN',
-				message: `Requires ${requiredTier} plan or higher.`,
-			});
-		}
-		return next({ ctx: { planTier: currentTier } });
-	});
+export function companyScopedProcedure(opts?: {
+	minRole?: CompanyMemberRole;
+	minPlanTier?: PlanTier;
+}) {
+	return protectedProcedure
+		.input(z.object({ companyId: z.string().min(1) }))
+		.use(async ({ ctx, input, next }) => {
+			try {
+				const { role } = await requireCompanyAccess({
+					userId: requireUserId(ctx.session),
+					companyId: input.companyId,
+					minRole: opts?.minRole,
+					minPlanTier: opts?.minPlanTier,
+				});
+				return next({
+					ctx: { companyId: input.companyId, companyRole: role },
+				});
+			} catch (err) {
+				if (err instanceof CompanyAccessDeniedError) {
+					throw new TRPCError({ code: 'FORBIDDEN', message: err.message });
+				}
+				throw err;
+			}
+		});
 }
 
 /**

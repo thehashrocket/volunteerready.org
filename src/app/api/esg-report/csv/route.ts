@@ -2,15 +2,14 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { authOptions } from '@/server/auth';
-import { assertPlanAtLeast } from '@/server/domain/billing';
 import { esgReportInputSchema } from '@/server/domain/esg-report';
 import {
-	getCompanyMembership,
-	getCompanyPlanTier,
-} from '@/server/repositories/companyRepo';
+	CompanyAccessDeniedError,
+	requireCompanyAccess,
+} from '@/server/services/companyAccessService';
 import { generateESGCsvExport } from '@/server/services/employerReportService';
 
-type SessionExt = { companyId?: string | null; user?: { id?: string } };
+type SessionExt = { user?: { id?: string } };
 
 // Intersect with the domain schema so the exports enforce the same
 // from <= to refine as the tRPC path (an inverted range would otherwise
@@ -46,27 +45,20 @@ export async function GET(req: NextRequest) {
 
 	const { companyId, from, to } = parsed.data;
 
-	// 3. Inline auth checks (membership + role + plan tier)
-	const membership = await getCompanyMembership(userId, companyId);
-	if (!membership) {
-		return NextResponse.json(
-			{ error: 'Not a member of this company' },
-			{ status: 403 },
-		);
-	}
-
-	if (membership.role === 'MEMBER') {
-		return NextResponse.json({ error: 'Admin role required' }, { status: 403 });
-	}
-
-	const planTier = await getCompanyPlanTier(companyId);
+	// 3. Auth — membership + role + plan tier, checked against companyId as
+	// passed in the request (never session state)
 	try {
-		assertPlanAtLeast(planTier, 'PRO');
-	} catch {
-		return NextResponse.json(
-			{ error: 'Requires PRO plan or higher' },
-			{ status: 403 },
-		);
+		await requireCompanyAccess({
+			userId,
+			companyId,
+			minRole: 'ADMIN',
+			minPlanTier: 'PRO',
+		});
+	} catch (err) {
+		if (err instanceof CompanyAccessDeniedError) {
+			return NextResponse.json({ error: err.message }, { status: 403 });
+		}
+		throw err;
 	}
 
 	// 4. Generate CSV

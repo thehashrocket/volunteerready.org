@@ -24,6 +24,10 @@ vi.mock('@/lib/trpc/client', () => ({
 	},
 }));
 
+vi.mock('next/navigation', () => ({
+	useParams: () => ({ companyId: 'company-1' }),
+}));
+
 import ESGTeamDashboardPage from '../page';
 
 // ---------------------------------------------------------------------------
@@ -95,6 +99,21 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+describe('ESGTeamDashboardPage — company scoping', () => {
+	it('queries both the company and the ESG report using the URL companyId, not session state', () => {
+		setupMocks();
+		render(<ESGTeamDashboardPage />);
+
+		expect(mockCompanyUseQuery).toHaveBeenCalledWith({
+			companyId: 'company-1',
+		});
+		expect(mockEsgUseQuery).toHaveBeenCalledWith(
+			expect.objectContaining({ companyId: 'company-1' }),
+			expect.anything(),
+		);
+	});
+});
 
 describe('ESGTeamDashboardPage — company query states', () => {
 	it('renders skeletons while the company is loading', () => {
