@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.29.2.0] - 2026-07-15
+
+### Fixed
+- **Fixed a bug where managing more than one company account could show you the wrong company's data.** If your account belonged to two or more companies, viewing a specific company's page while a different company was active in your session could display — or let you act on — the wrong company's ESG report, linked nonprofits, or team invites. Company pages now always reflect the company named in the page's URL, and switching companies from the header now takes you to the equivalent page under the newly selected company instead of leaving the URL and the data out of sync.
+- Company pages now show a clear error message with a retry button instead of a misleadingly empty page when data fails to load.
+
 ## [0.29.1.0] - 2026-07-15
 
 ### Fixed

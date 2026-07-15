@@ -1450,28 +1450,65 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   and compute day bounds there, or label the filters/exports as UTC in the
   UI. **Effort:** M | **Priority:** P3 | **Depends on:** deciding whose
   timezone governs a company-wide report (company setting vs viewer).
-- **[P2] Company pages: URL scoping vs session scoping mismatch** — (from
-  /plan-eng-review of issue #126, Codex cross-check, 2026-07-12.) The
-  `[companyId]` layout guard checks the user is a member of the URL's
-  company (`src/app/(app)/app/company/[companyId]/layout.tsx:16`), but the
-  page data comes from the *session's* active company: the team/ESG page
-  calls `company.getCurrent` (team/page.tsx:67) and `esgReport.getSummary`
-  uses `ctx.companyId` from session (esg-report.ts:6); CSV/PDF exports use
-  the session-backed `company.id` (team/page.tsx:113). `CompanySwitcher`
-  only refreshes data without navigating the URL (CompanySwitcher.tsx:31).
-  A member of two companies can sit on company X's URL and see company Y's
-  report and exports. Not a data leak (membership is enforced), but wrong
-  data under the wrong URL. Related (same fix): switching companies only
-  refreshes queries, so during the background refetch the header/export
-  target can show company B while the table still renders company A's
-  numbers with exports enabled (Codex adversarial, /ship #126). Fix: thread
-  the route `companyId` into the tRPC input (validate membership
-  server-side), and make CompanySwitcher navigate to the new company's URL
-  on switch. Touches router input
-  schemas, the company layout/pages, and the switcher — do it as its own
-  change, not inside a bug fix. **Effort:** M | **Priority:** P2 |
-  **Depends on:** nothing; best done before a second multi-company
-  customer onboards.
+- ~~**[P2] Company pages: URL scoping vs session scoping mismatch**~~ ✅
+  **Completed (2026-07-15)** — new `requireCompanyAccess()` service
+  (`src/server/services/companyAccessService.ts`) is the single source of
+  truth for company membership/role/plan-tier checks, always keyed off a
+  caller-supplied `companyId` (never session state). New input-driven
+  `companyScopedProcedure` factory in `src/server/trpc/init.ts` replaced
+  the deleted session-based `companyProcedure`/`companyAdminProcedure`/
+  `companyPlanTierProcedure`. All 5 `company.ts` router procedures and
+  `esgReport.getSummary` migrated to take `companyId` from input; both
+  client pages (`company/[companyId]/page.tsx`,
+  `company/[companyId]/esg/page.tsx`) read `companyId` via `useParams()`
+  and thread it through every query/mutation/export-URL. CSV/PDF export
+  routes deduped onto the shared service. `CompanySwitcher.tsx` now
+  navigates to the new company's URL on switch (preserving subpath), with
+  two additional bugs caught and fixed by adversarial review before ship:
+  (1) the switch-navigation regex also matched the bare `/app/company/{id}`
+  route incorrectly (`undefined` capture group looked like "no match") and
+  (2) the regex separately false-matched the static `/app/company/new`
+  route, treating the literal segment "new" as a companyId — both fixed
+  with a shared `matchCompanyRoute()` helper and mirrored in
+  `app-sidebar.tsx`'s identical `urlCompanyId` pattern. `company/[companyId]/page.tsx`
+  also gained `isLoading`/`isError` handling for its two queries (previously
+  near-infallible session reads, now real auth-checked network calls that
+  can 403) via a new shared `QueryErrorCard`/`safeErrorMessage`
+  (`src/components/app/query-error-card.tsx`, extracted from the ESG page's
+  existing pattern). Full test coverage added: `companyAccessService.test.ts`,
+  `CompanySwitcher.test.tsx`, `company/[companyId]/__tests__/page.test.tsx`,
+  `esg/__tests__/page.test.tsx` extended, `app-sidebar.test.tsx` extended,
+  and a new multi-company e2e case in `e2e/esg-dashboard.spec.ts`.
+
+- **[P1] Impersonation context doesn't propagate to raw Next.js route
+  handlers or the company layout guard** — (found by Codex adversarial
+  review during the URL-scoping fix above, 2026-07-15; confirmed
+  pre-existing, NOT introduced by that fix — the affected lines are
+  untouched by it.) `src/app/api/esg-report/{csv,pdf}/route.ts` and
+  `src/app/(app)/app/company/[companyId]/layout.tsx:17` derive `userId`
+  from `getServerSession(authOptions)` directly. Impersonation is only
+  resolved inside tRPC's `createTRPCContext`
+  (`src/server/trpc/init.ts`, `resolveImpersonation()` + the
+  `session.user.id` rewrite) — any code path outside tRPC (raw Route
+  Handlers, this layout's server-side guard) sees the *real* admin's
+  identity, never the impersonated target's. **Own risk assessment (differs
+  from Codex's P0 framing):** this does not appear to grant privilege
+  escalation — `requireCompanyAccess` in the export routes checks the real
+  admin's own membership regardless of the impersonation cookie, so an
+  admin can only export reports for companies *they themselves* legitimately
+  belong to, identical to not impersonating at all. The practical effect is
+  that impersonation is silently *inert* on these paths (not exploitable,
+  but inconsistent: an admin impersonating a target user for support
+  purposes doesn't see what the target would see on `/app/company/*` or via
+  the export routes, and any audit trail from these paths attributes to the
+  real admin rather than following the rest of the app's
+  effective-user-with-real-user-for-audit convention). Needs a dedicated
+  investigation — likely wants a shared `resolveEffectiveUserId(session)`
+  helper usable outside tRPC context, applied to both routes and the layout
+  guard — rather than a bolt-on to an unrelated PR. **Effort:** M |
+  **Priority:** P1 | **Depends on:** None; audit whether other raw API
+  routes (Sterling webhook, OG image, case-study API) have the same gap
+  before fixing just these two.
 - ~~**[P2] Banned grid patterns on public pages**~~ ✅ **Completed v0.27.1.0
   (2026-07-13)** — homepage `pillars` + `differentiators` sections
   consolidate into a shared `EditorialList` component (icons dropped from
