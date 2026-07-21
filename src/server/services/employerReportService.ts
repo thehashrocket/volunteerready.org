@@ -19,6 +19,8 @@ import {
 type GenerateOpts = {
 	companyId: string;
 	actorId: string;
+	/** Real admin user id when the actor is being impersonated (audit trail). */
+	impersonatedBy?: string | null;
 	dateRange: { from?: Date | null; to?: Date | null };
 };
 
@@ -34,7 +36,7 @@ type GenerateOpts = {
 export async function generateESGReport(
 	opts: GenerateOpts,
 ): Promise<ESGReportSummary> {
-	const { companyId, actorId } = opts;
+	const { companyId, actorId, impersonatedBy } = opts;
 	// Single normalization point for all consumers (tRPC page, CSV, PDF):
 	// a date-only `to` becomes end-of-day so the full end day is included.
 	const dateRange = normalizeESGDateRange(opts.dateRange);
@@ -110,6 +112,7 @@ export async function generateESGReport(
 				},
 				totalOrgs: summary.totalOrgsSupported,
 				totalHours: summary.totalHours,
+				...(impersonatedBy ? { impersonatedBy } : {}),
 			},
 		});
 	} catch (err) {
