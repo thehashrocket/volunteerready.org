@@ -7,6 +7,7 @@ import { ImpersonationBanner } from '@/components/app/impersonation-banner';
 import { AuthFeedback } from '@/components/auth-feedback';
 import { authOptions } from '@/server/auth';
 import { getImpersonationContext } from '@/server/lib/impersonation-context';
+import { listCompaniesForUser } from '@/server/repositories/companyRepo';
 import { prisma } from '@/server/repositories/prisma';
 
 // Routes that are exempt from the no-org redirect guard.
@@ -57,13 +58,14 @@ export default async function AppLayout({
 	let hasCompany = false;
 	let companyId: string | null = null;
 	if (impersonation.isImpersonating && effectiveUserId) {
-		const firstCompany = await prisma.companyMember.findFirst({
-			where: { userId: effectiveUserId },
-			select: { companyId: true },
-			orderBy: { createdAt: 'asc' },
-		});
-		hasCompany = firstCompany !== null;
-		companyId = firstCompany?.companyId ?? null;
+		const memberships = await listCompaniesForUser(effectiveUserId);
+		hasCompany = memberships.length > 0;
+		// A single membership resolves directly, same as before. 2+ leaves
+		// companyId null so AppSidebar's getCompanyNav() falls back to the
+		// bare /app/company picker instead of guessing one — there's no
+		// session token for an impersonated target to persist a "current
+		// company" choice into.
+		companyId = memberships.length === 1 ? memberships[0].company.id : null;
 	} else {
 		const sessionExt = session as
 			| (typeof session & { companyId?: string | null })
