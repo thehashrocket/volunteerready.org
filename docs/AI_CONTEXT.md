@@ -247,7 +247,7 @@ See `docs/DOMAIN.md` for canonical vocabulary.
 
 Each middleware narrows the context type via `next({ ctx: { ... } })`, so downstream code can use `ctx.orgId` and `ctx.role` without non-null assertions. Always use the **narrowest** access level possible.
 
-**Impersonation.** A platform admin can temporarily act as another user via `/app/admin/platform/users/[id]`. The tRPC context resolves an impersonation cookie to swap `session.user.id` to the target user while preserving `realUserId` (the admin). `platformAdminProcedure` uses `realUserId` so admins retain platform access while impersonating. All platform-admin actions call `requireRealUserId(ctx)` so audit rows attribute to the real admin, never the effective user.
+**Impersonation.** A platform admin can temporarily act as another user via `/app/admin/platform/users/[id]`. Resolution goes through `resolveEffectiveUserId(realUserId, cookieValue)` (`src/server/lib/impersonation-context.ts`) — a pure function with no `getServerSession()`/`cookies()` inside it, so it resolves identically from tRPC's `createTRPCContext`, raw Next.js Route Handlers, and Server Component layout guards, not just inside tRPC. `platformAdminProcedure` uses `realUserId` so admins retain platform access while impersonating. All platform-admin actions call `requireRealUserId(ctx)` so audit rows attribute to the real admin, never the effective user. Resolution fails **closed**: if a cookie is present but resolution throws, `resolveEffectiveUserId()` returns `effectiveUserId: null` + `resolutionFailed: true` rather than silently falling back to the real admin's identity — mutation paths and read-then-write SSR pages (e.g. `company/page.tsx`, `settings/page.tsx`) must check `resolutionFailed` and refuse rather than fall back. Callers that resolve an impersonated target's org/company (no session token exists for a user who isn't actually signed in) use `findFirst({ orderBy: { createdAt: 'asc' } })` on the membership table to pick their oldest membership — see `docs/TODOS.md` P2 item for the multi-org/multi-company limitation this implies.
 
 ---
 
@@ -484,7 +484,7 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/services/platformUserService.ts` | List/get users, grant/revoke platform admin, revoke all sessions — reason required, audits every mutation |
 | `src/server/services/platformOrgService.ts` | Platform-wide org list/detail with counts and recent applications |
 | `src/server/services/auditQueryService.ts` | Query + metadata redaction (sensitive keys replaced with `[REDACTED]`, warned once per key) for the audit viewer |
-| `src/server/lib/impersonation-context.ts` | Server-Component helper that reads the impersonation cookie and returns banner metadata |
+| `src/server/lib/impersonation-context.ts` | `resolveEffectiveUserId(realUserId, cookieValue)` — pure, fail-closed impersonation resolver shared by tRPC context, Route Handlers, and layout guards; `getImpersonationContext()` (Server-Component helper, reads the cookie itself, returns banner metadata + `resolutionFailed`) wraps it |
 | `src/components/app/impersonation-banner.tsx` | Sticky top banner with countdown + end-session button; renders above `AppShell` when impersonating |
 | `src/app/(app)/app/admin/platform/` | Platform admin console pages: orgs, users, audit viewer, impersonation launch |
 | `src/app/api/platform-admin/impersonation/{start,end}/route.ts` | Cookie-setting endpoints — cookie is HTTP-only, scoped to the impersonation session id, 30-min max-age |

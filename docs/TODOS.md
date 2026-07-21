@@ -1480,35 +1480,75 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   `esg/__tests__/page.test.tsx` extended, `app-sidebar.test.tsx` extended,
   and a new multi-company e2e case in `e2e/esg-dashboard.spec.ts`.
 
-- **[P1] Impersonation context doesn't propagate to raw Next.js route
-  handlers or the company layout guard** — (found by Codex adversarial
-  review during the URL-scoping fix above, 2026-07-15; confirmed
-  pre-existing, NOT introduced by that fix — the affected lines are
-  untouched by it.) `src/app/api/esg-report/{csv,pdf}/route.ts` and
-  `src/app/(app)/app/company/[companyId]/layout.tsx:17` derive `userId`
-  from `getServerSession(authOptions)` directly. Impersonation is only
-  resolved inside tRPC's `createTRPCContext`
-  (`src/server/trpc/init.ts`, `resolveImpersonation()` + the
-  `session.user.id` rewrite) — any code path outside tRPC (raw Route
-  Handlers, this layout's server-side guard) sees the *real* admin's
-  identity, never the impersonated target's. **Own risk assessment (differs
-  from Codex's P0 framing):** this does not appear to grant privilege
-  escalation — `requireCompanyAccess` in the export routes checks the real
-  admin's own membership regardless of the impersonation cookie, so an
-  admin can only export reports for companies *they themselves* legitimately
-  belong to, identical to not impersonating at all. The practical effect is
-  that impersonation is silently *inert* on these paths (not exploitable,
-  but inconsistent: an admin impersonating a target user for support
-  purposes doesn't see what the target would see on `/app/company/*` or via
-  the export routes, and any audit trail from these paths attributes to the
-  real admin rather than following the rest of the app's
-  effective-user-with-real-user-for-audit convention). Needs a dedicated
-  investigation — likely wants a shared `resolveEffectiveUserId(session)`
-  helper usable outside tRPC context, applied to both routes and the layout
-  guard — rather than a bolt-on to an unrelated PR. **Effort:** M |
-  **Priority:** P1 | **Depends on:** None; audit whether other raw API
-  routes (Sterling webhook, OG image, case-study API) have the same gap
-  before fixing just these two.
+- ~~**[P1] Impersonation context doesn't propagate to raw Next.js route
+  handlers or the company layout guard**~~ ✅ **Completed v0.29.3.0
+  (2026-07-20)** — extracted `resolveEffectiveUserId(realUserId, cookieValue)`
+  as a pure function in `impersonation-context.ts` (no `getServerSession`/
+  `cookies()` inside it) and threaded it through `createTRPCContext`
+  (replacing its inline `resolveImpersonation()` call) plus every raw call
+  site: `esg-report/{csv,pdf}/route.ts`, `company/[companyId]/layout.tsx`,
+  `company/page.tsx` (also fixes a redirect loop for an impersonated
+  non-member — Codex outside-voice finding), `invite/company/[token]/page.tsx`
+  (was unconditionally FORBIDDEN under impersonation — checked the real
+  admin's email against the invite instead of the target's), and
+  `checkr/oauth/callback/route.ts` (CSRF `state` check now resolves the
+  target's org, not the admin's). ESG audit logs
+  (`employerReportService.ts` + `esg-report.ts` router), the Checkr
+  `CHECKR_CONNECTED` audit action, and company-invite-acceptance audit logs
+  all gained `impersonatedBy` metadata matching the `org.ts`/`orgService.ts`
+  convention (Checkr + invite-accept found missing by a Claude adversarial
+  pass and a `codex review` pass during `/ship`, respectively).
+  **Also found and fixed during `/ship`'s adversarial review (`codex
+  review`, 2 rounds):** `resolveEffectiveUserId()` originally preserved the
+  pre-existing (v0.23.2.1) fail-*open* behavior — falling back to the real
+  admin's identity when `resolveImpersonation()` throws. That was safe for
+  the old read-only consumers but unsafe once reused by mutation paths
+  (Checkr connect, invite accept) and read-then-write SSR pages
+  (`settings/page.tsx` renders org data, then a separate tRPC mutation
+  saves it) — a transient resolution error could seed a save that writes
+  to the wrong tenant. Changed to fail **closed**: `resolveEffectiveUserId()`
+  now returns `effectiveUserId: null` + `resolutionFailed: true` on a
+  thrown resolution error; `getImpersonationContext()` propagates
+  `resolutionFailed`; `company/page.tsx` and `settings/page.tsx` explicitly
+  check it and refuse to fall back to the admin's own session data.
+  `app/layout.tsx`'s banner/nav rendering was deliberately left on the old
+  fail-open behavior — no mutation is seeded from its rendered state, so
+  read-only degradation is an acceptable, previously-accepted tradeoff.
+  44+ new/updated unit tests across `impersonation-context.test.ts` and
+  every touched call site's colocated test.
+- **[P2] Impersonated actions on a multi-org/multi-company target always
+  resolve to the target's *oldest* membership, with no way for the admin
+  to pick another one** — (found by both an internal red-team pass and
+  `codex exec` adversarial review during the impersonation-context fix
+  above, 2026-07-20; NOT introduced by that fix — mirrors a heuristic
+  already in `app/layout.tsx` before this change, now extended to two
+  additional, more consequential surfaces.) `checkr/oauth/callback/route.ts`
+  and `company/page.tsx` resolve the impersonated target's org/company via
+  `organizationMember`/`companyMember.findFirst({ orderBy: { createdAt:
+  'asc' } })` since there's no session-token-derived "current" org/company
+  for a user who isn't actually signed in. Verified this is internally
+  consistent (both the OAuth `state` embedding via `ctx.orgId` and the
+  callback's verification use the identical heuristic, so the round-trip
+  doesn't silently break) and doesn't leak cross-tenant data — but for a
+  target who belongs to 2+ orgs/companies, the impersonating admin has no
+  way to act on any org/company besides the target's oldest one. Fix would
+  need an explicit org/company selector surfaced to the impersonating admin
+  (mirroring how ESG export routes take `companyId` from the URL, never
+  session state) rather than an implicit "first membership" guess.
+  **Effort:** M | **Priority:** P2 | **Depends on:** None.
+- **[P3] Generalize `impersonatedBy` audit metadata into `writeAuditLog()`
+  itself** — (spun off from the impersonation-context fix above,
+  `/plan-eng-review` 2026-07-20.) `org.ts`/`orgService.ts`,
+  `employerReportService.ts`, `backgroundCheckService.ts`, and
+  `companyService.ts` each now hand-roll `impersonatedBy` into their own
+  `metadata` shape independently — four copies of the same
+  `...(impersonatedBy ? { impersonatedBy } : {})` pattern as of v0.29.3.0.
+  Add `impersonatedBy?: string | null` to `AuditLogInput`
+  (`src/server/repositories/auditRepo.ts:17`) and fold it into `metadata`
+  once inside `writeAuditLog`/`writeAuditLogTx`, instead of every call site
+  reimplementing the same shape. Optional — every existing caller works
+  fine without it; this just removes a copy-paste-miss risk for the next
+  one. **Effort:** S | **Priority:** P3 | **Depends on:** None.
 - ~~**[P2] Banned grid patterns on public pages**~~ ✅ **Completed v0.27.1.0
   (2026-07-13)** — homepage `pillars` + `differentiators` sections
   consolidate into a shared `EditorialList` component (icons dropped from

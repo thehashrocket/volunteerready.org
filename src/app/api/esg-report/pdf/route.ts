@@ -3,13 +3,13 @@ import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { authOptions } from '@/server/auth';
 import { esgReportInputSchema } from '@/server/domain/esg-report';
+import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
+import { resolveEffectiveUserId } from '@/server/lib/impersonation-context';
 import {
 	CompanyAccessDeniedError,
 	requireCompanyAccess,
 } from '@/server/services/companyAccessService';
 import { generateESGPdfExport } from '@/server/services/employerReportService';
-
-type SessionExt = { user?: { id?: string } };
 
 // Intersect with the domain schema so the exports enforce the same
 // from <= to refine as the tRPC path (an inverted range would otherwise
@@ -19,10 +19,13 @@ const paramsSchema = z
 	.and(esgReportInputSchema);
 
 export async function GET(req: NextRequest) {
-	// 1. Auth — session required
+	// 1. Auth — session required, resolved through impersonation so an
+	// admin acting as a target user exports the target's report.
 	const session = await getServerSession(authOptions);
-	const sessionExt = session as (typeof session & SessionExt) | null;
-	const userId = sessionExt?.user?.id;
+	const realUserId = session?.user?.id ?? null;
+	const cookieValue = req.cookies.get(IMPERSONATION_COOKIE)?.value ?? null;
+	const { effectiveUserId: userId, impersonatedBy } =
+		await resolveEffectiveUserId(realUserId, cookieValue);
 
 	if (!userId) {
 		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -66,6 +69,7 @@ export async function GET(req: NextRequest) {
 		const pdf = await generateESGPdfExport({
 			companyId,
 			actorId: userId,
+			impersonatedBy,
 			dateRange: { from: from ?? null, to: to ?? null },
 		});
 

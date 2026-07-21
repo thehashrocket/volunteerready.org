@@ -10,14 +10,15 @@ import type {
 } from '@/prisma/generated/client';
 import { authOptions } from '@/server/auth';
 import { assertPlanAtLeast } from '@/server/domain/billing';
+import type { EffectiveUser } from '@/server/domain/impersonation';
 import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
+import { resolveEffectiveUserId } from '@/server/lib/impersonation-context';
 import { getOrgPlanTier } from '@/server/repositories/orgRepo';
 import { prisma } from '@/server/repositories/prisma';
 import {
 	CompanyAccessDeniedError,
 	requireCompanyAccess,
 } from '@/server/services/companyAccessService';
-import { resolveImpersonation } from '@/server/services/impersonationService';
 
 /** Extended session shape produced by our auth callback */
 type SessionExt = {
@@ -45,27 +46,21 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 	// downstream org/role lookups should use the target user. The admin's
 	// real session is still available via `session` so audit writes can tag
 	// `impersonatedBy`.
-	let impersonation: Awaited<ReturnType<typeof resolveImpersonation>> = {
-		effective: null,
-		shouldClearCookie: false,
-	};
-	if (realUserId && impersonationCookie) {
-		try {
-			impersonation = await resolveImpersonation(
-				realUserId,
-				impersonationCookie,
-			);
-		} catch (err) {
-			const { captureException } = await import('@sentry/nextjs');
-			captureException(err, {
-				tags: { source: 'IMPERSONATION_RESOLVE_FAILED' },
-			});
-			// Fail open: treat as not impersonating rather than 500ing the request
-		}
-	}
-
-	const effectiveUserId = impersonation.effective?.userId ?? realUserId;
-	const isImpersonating = impersonation.effective !== null;
+	const resolved = await resolveEffectiveUserId(
+		realUserId,
+		impersonationCookie,
+	);
+	const effectiveUserId = resolved.effectiveUserId;
+	const isImpersonating = resolved.isImpersonating;
+	const impersonation: EffectiveUser | null = isImpersonating
+		? {
+				userId: effectiveUserId as string,
+				isImpersonation: true,
+				impersonatedBy: resolved.impersonatedBy,
+				impersonationSessionId: resolved.impersonationSessionId,
+				expiresAt: resolved.expiresAt,
+			}
+		: null;
 
 	// Build the session object exposed to procedures. When impersonating,
 	// swap the user id so org-scoped checks pick the target user — but keep
@@ -207,7 +202,7 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 		session,
 		realSession,
 		realUserId,
-		impersonation: impersonation.effective,
+		impersonation,
 		orgId,
 		role,
 		companyId,

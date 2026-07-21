@@ -50,6 +50,16 @@ export default async function OrganizationSettingsPage() {
 	// page must do the same or the form would render the admin's own org while
 	// saves hit the target's (see trpc/init.ts impersonation resolution).
 	const impersonation = await getImpersonationContext();
+
+	// Fail closed: a cookie was present but resolution errored. Never fall
+	// back to the admin's own session org here — this page is read-then-write
+	// (the form renders org data, then a separate mutation saves it), so
+	// rendering the wrong org's data could seed a save that overwrites a
+	// DIFFERENT org than what's shown once resolution recovers.
+	if (impersonation.resolutionFailed) {
+		redirect('/app');
+	}
+
 	let orgId: string | null;
 	let role: Role | null;
 	if (impersonation.isImpersonating && impersonation.effectiveUserId) {

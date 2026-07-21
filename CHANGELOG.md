@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.29.3.0] - 2026-07-20
+
+### Fixed
+- **Platform-admin impersonation ("act as this user" for support) now works consistently everywhere, not just inside the main app.** Previously, impersonation was only honored by the core app's data queries — a few specific pages and actions still saw the admin's own identity instead of the person they were supporting: the ESG report CSV/PDF export, the company dashboard's access guard and its "which company am I in" redirect (which could loop indefinitely for an impersonated user), the Checkr background-check connection flow, and accepting a company invite while impersonating (which previously always failed). All of these now correctly act on behalf of the impersonated user.
+- Fixed a redirect loop on `/app/company` for an impersonated user who isn't a member of the admin's own company.
+- Accepting a company invite while impersonating a user no longer fails — it now checks the invite against the impersonated person's email instead of the admin's.
+- If impersonation lookup itself fails (a rare, transient error), affected pages and actions now safely stop and ask you to retry instead of silently falling back to the admin's own account or data.
+- Audit logs for ESG report generation, Checkr account connections, and company invite acceptance now record when the action was taken by an admin impersonating another user, not just who it was attributed to.
+
 ## [0.29.2.0] - 2026-07-15
 
 ### Fixed

@@ -10,6 +10,8 @@ export const esgReportRouter = createTRPCRouter({
 			return generateESGReport({
 				companyId: ctx.companyId,
 				actorId,
+				impersonatedBy:
+					ctx.realUserId && ctx.realUserId !== actorId ? ctx.realUserId : null,
 				dateRange: { from: input.from ?? null, to: input.to ?? null },
 			});
 		}),

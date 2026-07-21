@@ -258,6 +258,8 @@ export async function acceptCompanyInvite(opts: {
 	tokenHash: string;
 	userId: string;
 	userEmail: string;
+	/** Real admin user id when the actor is being impersonated (audit trail). */
+	impersonatedBy?: string | null;
 }) {
 	const invitation = await findCompanyInvitationByTokenHash(opts.tokenHash);
 
@@ -323,7 +325,13 @@ export async function acceptCompanyInvite(opts: {
 				actorId: opts.userId,
 				action: 'COMPANY_MEMBER_ADDED',
 				entityType: 'CompanyMember',
-				metadata: { email: opts.userEmail, role: invitation.role },
+				metadata: {
+					email: opts.userEmail,
+					role: invitation.role,
+					...(opts.impersonatedBy
+						? { impersonatedBy: opts.impersonatedBy }
+						: {}),
+				},
 			});
 		});
 	} catch (err) {
