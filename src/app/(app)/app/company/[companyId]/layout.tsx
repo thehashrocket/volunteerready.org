@@ -1,9 +1,10 @@
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth';
+import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
+import { resolveEffectiveUserId } from '@/server/lib/impersonation-context';
 import { getCompanyMembership } from '@/server/repositories/companyRepo';
-
-type SessionExt = { companyId?: string | null; user?: { id?: string } };
 
 /** Guard: only allow access if user is a member of this company. */
 export default async function CompanyLayout({
@@ -15,8 +16,13 @@ export default async function CompanyLayout({
 }) {
 	const { companyId } = await params;
 	const session = await getServerSession(authOptions);
-	const sessionExt = session as (typeof session & SessionExt) | null;
-	const userId = sessionExt?.user?.id;
+	const realUserId = session?.user?.id ?? null;
+	const cookieStore = await cookies();
+	const cookieValue = cookieStore.get(IMPERSONATION_COOKIE)?.value ?? null;
+	const { effectiveUserId: userId } = await resolveEffectiveUserId(
+		realUserId,
+		cookieValue,
+	);
 
 	if (!userId) {
 		redirect('/login');
