@@ -27,7 +27,9 @@ import { Eyebrow } from '@/components/eyebrow';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { formatDateRange } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 import type { ApplicationStatus } from '@/prisma/generated/client';
@@ -337,6 +339,9 @@ export function OpportunitiesListing({
 	const [sortBy, setSortBy] = useState<SortBy>(
 		hasMatching ? 'best-match' : 'newest',
 	);
+	// Only meaningful once matchResults exist — hides opportunities missing a
+	// required skill by default, with an escape hatch to see everything.
+	const [showUnqualified, setShowUnqualified] = useState(false);
 
 	// Fetch applied status for authenticated users
 	const { status: authStatus } = useSession();
@@ -364,7 +369,7 @@ export function OpportunitiesListing({
 		return Array.from(seen);
 	}, [opportunities]);
 
-	const filtered = useMemo(() => {
+	const { filtered, hiddenByQualification } = useMemo(() => {
 		let results = opportunities;
 
 		if (searchQuery.trim()) {
@@ -382,6 +387,17 @@ export function OpportunitiesListing({
 
 		if (activeTag)
 			results = results.filter((o) => o.tags.some((t) => t.name === activeTag));
+
+		const beforeQualification = results.length;
+		if (hasMatching && !showUnqualified) {
+			// A missing entry is treated as unqualified (hidden), not shown —
+			// fails closed rather than defaulting open on an unexpected gap.
+			results = results.filter((o) => {
+				const matchType = matchResults?.[o.id]?.matchType;
+				return matchType !== undefined && matchType !== 'NONE';
+			});
+		}
+		const hiddenByQualification = beforeQualification - results.length;
 
 		const sorted = [...results];
 		if (sortBy === 'best-match' && matchResults) {
@@ -406,7 +422,7 @@ export function OpportunitiesListing({
 			});
 		}
 
-		return sorted;
+		return { filtered: sorted, hiddenByQualification };
 	}, [
 		opportunities,
 		searchQuery,
@@ -414,11 +430,14 @@ export function OpportunitiesListing({
 		activeTag,
 		sortBy,
 		matchResults,
+		hasMatching,
+		showUnqualified,
 	]);
 
 	// Sorting alone does not narrow results, so it does not count as an active
-	// filter. Only changes that actually reduce the result set trigger the
-	// results bar and "Clear filters" affordance.
+	// filter. The qualification filter is also excluded here — it has its own
+	// persistent checkbox affordance and empty-state escape hatch, so it
+	// doesn't need the results-bar/"Clear filters" treatment too.
 	const hasActiveFilters =
 		searchQuery.trim() !== '' || remoteFilter !== 'all' || activeTag !== null;
 
@@ -448,6 +467,22 @@ export function OpportunitiesListing({
 			{/* Body — only rendered when there are opportunities to show */}
 			{opportunities.length > 0 && (
 				<div className="mx-auto max-w-5xl px-4 py-10">
+					{/* Skills nudge — shown to signed-in volunteers who haven't set
+					    skills yet, so match filtering has nothing to go on */}
+					{isAuthenticated && !hasMatching && (
+						<div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/50 px-4 py-3 text-sm">
+							<span className="text-muted-foreground">
+								Set up your skills to see how well you match each opportunity.
+							</span>
+							<Link
+								href="/app/my-skills"
+								className="font-medium text-primary hover:underline"
+							>
+								Set up skills &rarr;
+							</Link>
+						</div>
+					)}
+
 					{/* Search */}
 					<div className="relative mb-4">
 						<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -479,17 +514,36 @@ export function OpportunitiesListing({
 							))}
 						</div>
 
-						{/* Sort */}
-						<select
-							value={sortBy}
-							onChange={(e) => setSortBy(e.target.value as SortBy)}
-							className="rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-						>
-							{hasMatching && <option value="best-match">Best match</option>}
-							<option value="newest">Newest</option>
-							<option value="soonest">Starting soonest</option>
-							<option value="commitment">Shortest commitment</option>
-						</select>
+						<div className="flex flex-wrap items-center gap-3">
+							{/* Qualification filter escape hatch */}
+							{hasMatching && (
+								<div className="flex items-center gap-2">
+									<Checkbox
+										id="show-unqualified"
+										checked={showUnqualified}
+										onChange={(e) => setShowUnqualified(e.target.checked)}
+									/>
+									<Label
+										htmlFor="show-unqualified"
+										className="whitespace-nowrap text-sm font-normal text-muted-foreground"
+									>
+										Show opportunities I&apos;m not qualified for
+									</Label>
+								</div>
+							)}
+
+							{/* Sort */}
+							<select
+								value={sortBy}
+								onChange={(e) => setSortBy(e.target.value as SortBy)}
+								className="rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+							>
+								{hasMatching && <option value="best-match">Best match</option>}
+								<option value="newest">Newest</option>
+								<option value="soonest">Starting soonest</option>
+								<option value="commitment">Shortest commitment</option>
+							</select>
+						</div>
 					</div>
 
 					{/* Tag filters */}
@@ -544,15 +598,30 @@ export function OpportunitiesListing({
 					{/* Grid */}
 					{filtered.length === 0 ? (
 						<div className="text-center text-sm text-muted-foreground">
-							<p>No opportunities match your filters.</p>
-							<Button
-								type="button"
-								variant="link"
-								onClick={clearFilters}
-								className="mt-2 h-auto p-0"
-							>
-								Clear filters
-							</Button>
+							<p>
+								{hiddenByQualification > 0
+									? 'No opportunities match your skills right now.'
+									: 'No opportunities match your filters.'}
+							</p>
+							{hiddenByQualification > 0 ? (
+								<Button
+									type="button"
+									variant="link"
+									onClick={() => setShowUnqualified(true)}
+									className="mt-2 h-auto p-0"
+								>
+									Show opportunities I&apos;m not qualified for
+								</Button>
+							) : (
+								<Button
+									type="button"
+									variant="link"
+									onClick={clearFilters}
+									className="mt-2 h-auto p-0"
+								>
+									Clear filters
+								</Button>
+							)}
 						</div>
 					) : (
 						<div className="grid gap-6 sm:grid-cols-2">

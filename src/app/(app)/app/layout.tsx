@@ -74,9 +74,12 @@ export default async function AppLayout({
 		companyId = sessionExt?.companyId ?? null;
 	}
 
-	// /app itself is exempt — the volunteer dashboard renders for non-org users
+	// /app itself is exempt — the volunteer dashboard renders for non-org users.
+	// A user who already has a company (but no org) is sent to their company
+	// page instead of onboarding — they've already onboarded, just not as a
+	// nonprofit org, so /app/welcome would feel like starting over.
 	if (!isExempt && pathname !== '/app' && !hasOrg) {
-		redirect('/app/welcome');
+		redirect(hasCompany ? '/app/company' : '/app/welcome');
 	}
 
 	return (

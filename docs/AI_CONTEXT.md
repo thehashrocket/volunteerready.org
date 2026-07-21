@@ -309,7 +309,7 @@ The service orchestrator is `src/server/services/volunteer-screening.ts`. It wra
 
 The volunteer–opportunity matching system lives in `src/server/domain/volunteer-matching.ts`.
 
-**Flow:** Volunteer adds skills via `/app/my-skills` → skills stored in `VolunteerSkill` → when browsing opportunities, `rankOpportunities()` scores each opportunity against the volunteer's skill set → results shown as match badges on cards.
+**Flow:** Volunteer adds skills via `/app/my-skills` → skills stored in `VolunteerSkill` → when browsing opportunities, `rankOpportunities()` scores each opportunity against the volunteer's skill set → results shown as match badges on cards. Since v0.31.0.0, `OpportunitiesListing.tsx` (public org listing) and `BrowseOpportunities.tsx` (the authenticated, cross-org `/app/browse` page) also hide `NONE`-match opportunities by default once match results exist, with a "Show opportunities I'm not qualified for" checkbox to reveal them again; a missing match-result entry is treated as unqualified (fails closed) rather than shown. Any signed-in user with no skill profile yet sees the unfiltered list plus a nudge to `/app/my-skills` — matching (and the nudge) is keyed off having a `VolunteerSkill` profile, not off a volunteer role, so a staff or company user with one gets filtered too (`docs/TODOS.md` P2).
 
 **Scoring algorithm:**
 

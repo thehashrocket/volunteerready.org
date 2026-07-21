@@ -15,7 +15,7 @@ const mockUseQuery = vi.fn(() => ({ data: undefined, isLoading: false }));
 vi.mock('@/lib/trpc/client', () => ({
 	trpc: {
 		screener: {
-			getMyAppliedOpportunities: {
+			getMyAppliedOpportunitiesCrossOrg: {
 				useQuery: (...args: unknown[]) => mockUseQuery(...args),
 			},
 		},
@@ -37,7 +37,7 @@ vi.mock('@/lib/format-date', () => ({
 }));
 
 // Import after mocks
-const { OpportunitiesListing } = await import('./OpportunitiesListing');
+const { BrowseOpportunities } = await import('./BrowseOpportunities');
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -58,6 +58,7 @@ function makeOpp(overrides: Partial<Record<string, unknown>> = {}) {
 		capacity: null,
 		tags: (overrides.tags as { id: string; name: string }[]) ?? [],
 		requirements: [],
+		organization: overrides.organization ?? ORG,
 		...(overrides as Record<string, unknown>),
 	};
 }
@@ -77,7 +78,7 @@ function makeMatch(overrides: Partial<MatchResult> = {}): MatchResult {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('OpportunitiesListing', () => {
+describe('BrowseOpportunities', () => {
 	afterEach(() => {
 		cleanup();
 		mockUseQuery.mockClear();
@@ -86,106 +87,19 @@ describe('OpportunitiesListing', () => {
 	it('renders "Apply now" button when user has NOT applied', () => {
 		mockUseQuery.mockReturnValue({ data: {}, isLoading: false });
 
-		render(
-			<OpportunitiesListing org={ORG} opportunities={[makeOpp()] as never} />,
-		);
+		render(<BrowseOpportunities opportunities={[makeOpp()] as never} />);
 
 		expect(screen.getByText('Apply now')).toBeInTheDocument();
 		expect(screen.queryByText(/Applied/)).not.toBeInTheDocument();
 	});
 
-	it('renders "Applied — Pending" badge and "View My Application" link for SUBMITTED', () => {
-		mockUseQuery.mockReturnValue({
-			data: {
-				'opp-1': {
-					applicationId: 'app-1',
-					status: 'SUBMITTED',
-					submittedAt: new Date().toISOString(),
-				},
-			},
-			isLoading: false,
-		});
-
-		render(
-			<OpportunitiesListing org={ORG} opportunities={[makeOpp()] as never} />,
-		);
-
-		expect(screen.getByText('Applied — Pending')).toBeInTheDocument();
-		expect(screen.getByText(/View My Application/)).toBeInTheDocument();
-		expect(screen.queryByText('Apply now')).not.toBeInTheDocument();
-	});
-
-	it('renders "Applied — In Review" badge for REVIEW status', () => {
-		mockUseQuery.mockReturnValue({
-			data: {
-				'opp-1': {
-					applicationId: 'app-1',
-					status: 'REVIEW',
-					submittedAt: new Date().toISOString(),
-				},
-			},
-			isLoading: false,
-		});
-
-		render(
-			<OpportunitiesListing org={ORG} opportunities={[makeOpp()] as never} />,
-		);
-
-		expect(screen.getByText('Applied — In Review')).toBeInTheDocument();
-	});
-
-	it('renders "Applied — Approved" badge for APPROVED status', () => {
-		mockUseQuery.mockReturnValue({
-			data: {
-				'opp-1': {
-					applicationId: 'app-1',
-					status: 'APPROVED',
-					submittedAt: new Date().toISOString(),
-				},
-			},
-			isLoading: false,
-		});
-
-		render(
-			<OpportunitiesListing org={ORG} opportunities={[makeOpp()] as never} />,
-		);
-
-		expect(screen.getByText('Applied — Approved')).toBeInTheDocument();
-	});
-
-	it('links "View My Application" to the correct application detail page', () => {
-		mockUseQuery.mockReturnValue({
-			data: {
-				'opp-1': {
-					applicationId: 'app-42',
-					status: 'SUBMITTED',
-					submittedAt: new Date().toISOString(),
-				},
-			},
-			isLoading: false,
-		});
-
-		render(
-			<OpportunitiesListing org={ORG} opportunities={[makeOpp()] as never} />,
-		);
-
-		const link = screen.getByText(/View My Application/);
-		expect(link.closest('a')).toHaveAttribute(
-			'href',
-			'/app/my-applications/app-42',
-		);
-	});
-
-	it('disables the applied query when unauthenticated', () => {
+	it('disables the cross-org applied query when unauthenticated', () => {
 		mockUseQuery.mockReturnValue({ data: undefined, isLoading: false });
 
-		render(
-			<OpportunitiesListing org={ORG} opportunities={[makeOpp()] as never} />,
-		);
+		render(<BrowseOpportunities opportunities={[makeOpp()] as never} />);
 
-		// The query should be called with enabled: false since useSession returns unauthenticated
 		expect(mockUseQuery).toHaveBeenCalledWith(
-			expect.objectContaining({ orgId: 'org-1' }),
+			expect.objectContaining({ opportunityIds: ['opp-1'] }),
 			expect.objectContaining({ enabled: false }),
 		);
 	});
@@ -197,8 +111,7 @@ describe('OpportunitiesListing', () => {
 		const unqualified = makeOpp({ id: 'opp-2', title: 'Unqualified Opp' });
 
 		render(
-			<OpportunitiesListing
-				org={ORG}
+			<BrowseOpportunities
 				opportunities={[qualified, unqualified] as never}
 				matchResults={{
 					'opp-1': makeMatch({ opportunityId: 'opp-1' }),
@@ -223,8 +136,7 @@ describe('OpportunitiesListing', () => {
 		const unqualified = makeOpp({ id: 'opp-2', title: 'Unqualified Opp' });
 
 		render(
-			<OpportunitiesListing
-				org={ORG}
+			<BrowseOpportunities
 				opportunities={[qualified, unqualified] as never}
 				matchResults={{
 					'opp-1': makeMatch({ opportunityId: 'opp-1' }),
@@ -244,14 +156,28 @@ describe('OpportunitiesListing', () => {
 		expect(screen.getByText('Unqualified Opp')).toBeInTheDocument();
 	});
 
+	it('does not filter opportunities when no matchResults are provided', () => {
+		mockUseQuery.mockReturnValue({ data: {}, isLoading: false });
+
+		const oppA = makeOpp({ id: 'opp-1', title: 'Opp A' });
+		const oppB = makeOpp({ id: 'opp-2', title: 'Opp B' });
+
+		render(<BrowseOpportunities opportunities={[oppA, oppB] as never} />);
+
+		expect(screen.getByText('Opp A')).toBeInTheDocument();
+		expect(screen.getByText('Opp B')).toBeInTheDocument();
+		expect(
+			screen.queryByLabelText(/not qualified for/i),
+		).not.toBeInTheDocument();
+	});
+
 	it('offers a direct escape hatch instead of a dead-end "Clear filters" when the qualification filter empties the list', () => {
 		mockUseQuery.mockReturnValue({ data: {}, isLoading: false });
 
 		const unqualified = makeOpp({ id: 'opp-1', title: 'Unqualified Opp' });
 
 		render(
-			<OpportunitiesListing
-				org={ORG}
+			<BrowseOpportunities
 				opportunities={[unqualified] as never}
 				matchResults={{
 					'opp-1': makeMatch({
@@ -267,11 +193,10 @@ describe('OpportunitiesListing', () => {
 		expect(
 			screen.getByText('No opportunities match your skills right now.'),
 		).toBeInTheDocument();
+
 		const revealButton = screen.getByRole('button', {
 			name: /show opportunities i'm not qualified for/i,
 		});
-		expect(revealButton).toBeInTheDocument();
-
 		fireEvent.click(revealButton);
 
 		expect(screen.getByText('Unqualified Opp')).toBeInTheDocument();
@@ -281,15 +206,15 @@ describe('OpportunitiesListing', () => {
 		mockUseQuery.mockReturnValue({ data: {}, isLoading: false });
 
 		render(
-			<OpportunitiesListing
-				org={ORG}
+			<BrowseOpportunities
 				opportunities={[makeOpp({ title: 'Only Opp' })] as never}
 			/>,
 		);
 
-		fireEvent.change(screen.getByPlaceholderText('Search opportunities…'), {
-			target: { value: 'no-match-for-this-query' },
-		});
+		fireEvent.change(
+			screen.getByPlaceholderText('Search opportunities, organizations...'),
+			{ target: { value: 'no-match-for-this-query' } },
+		);
 
 		expect(
 			screen.getByText('No opportunities match your filters.'),
@@ -300,22 +225,5 @@ describe('OpportunitiesListing', () => {
 
 		fireEvent.click(screen.getAllByText('Clear filters')[0]);
 		expect(screen.getByText('Only Opp')).toBeInTheDocument();
-	});
-
-	it('does not filter opportunities when no matchResults are provided', () => {
-		mockUseQuery.mockReturnValue({ data: {}, isLoading: false });
-
-		const oppA = makeOpp({ id: 'opp-1', title: 'Opp A' });
-		const oppB = makeOpp({ id: 'opp-2', title: 'Opp B' });
-
-		render(
-			<OpportunitiesListing org={ORG} opportunities={[oppA, oppB] as never} />,
-		);
-
-		expect(screen.getByText('Opp A')).toBeInTheDocument();
-		expect(screen.getByText('Opp B')).toBeInTheDocument();
-		expect(
-			screen.queryByLabelText(/not qualified for/i),
-		).not.toBeInTheDocument();
 	});
 });

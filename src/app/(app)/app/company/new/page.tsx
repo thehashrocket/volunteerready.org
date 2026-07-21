@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -31,6 +32,15 @@ export default function NewCompanyPage() {
 				</h1>
 				<p className="text-muted-foreground">
 					Connect your company with nonprofits and manage CSR volunteering.
+				</p>
+				<p className="mt-2 text-sm text-muted-foreground">
+					Looking to recruit and screen volunteers instead?{' '}
+					<Link
+						href="/app/onboarding"
+						className="font-medium text-primary hover:underline"
+					>
+						Set up an organization
+					</Link>
 				</p>
 			</div>
 

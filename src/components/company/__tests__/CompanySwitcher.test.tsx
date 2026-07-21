@@ -167,3 +167,14 @@ describe('CompanySwitcher — displayed selection follows the URL, not session s
 		expect(screen.getByRole('button')).toHaveTextContent('Company A');
 	});
 });
+
+describe('CompanySwitcher — zero-membership state', () => {
+	it('links to /app/company/new with copy that reads as a distinct CSR-sponsor account, not "create my org"', () => {
+		mockUsePathname.mockReturnValue('/app');
+		mockListMyCompaniesQuery.mockReturnValue({ data: [], isLoading: false });
+		render(<CompanySwitcher />);
+
+		const link = screen.getByText('Add company sponsor');
+		expect(link.closest('a')).toHaveAttribute('href', '/app/company/new');
+	});
+});
