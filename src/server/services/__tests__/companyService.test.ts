@@ -22,6 +22,27 @@ vi.mock('@/server/repositories/companyRepo', () => ({
 		}),
 	),
 	getCompanyMembership: vi.fn(async () => ({ role: 'MEMBER' as const })),
+	upsertNonprofitLinkTx: vi.fn(async () => ({
+		id: 'link-1',
+		status: 'ACTIVE',
+	})),
+	setNonprofitLinkStatusTx: vi.fn(async () => ({
+		id: 'link-1',
+		status: 'PAUSED',
+	})),
+}));
+
+vi.mock('@/server/repositories/companyInviteRepo', () => ({
+	createCompanyInvitationTx: vi.fn(async () => ({ id: 'invite-1' })),
+}));
+
+vi.mock('@/server/lib/tokens', () => ({
+	generateToken: vi.fn(() => 'raw-token'),
+	hashToken: vi.fn(() => 'hashed-token'),
+}));
+
+vi.mock('@/server/lib/email', () => ({
+	sendEmail: vi.fn(async () => true),
 }));
 
 vi.mock('@/server/repositories/auditRepo', () => ({
@@ -70,9 +91,16 @@ vi.mock('@/server/lib/admin-alerts', () => ({
 // Import after mocks are set up
 // ---------------------------------------------------------------------------
 
+import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import * as companyRepo from '@/server/repositories/companyRepo';
 import { prisma } from '@/server/repositories/prisma';
-import { createCompany, switchCompanyForSession } from '../companyService';
+import {
+	createCompany,
+	inviteCompanyMember,
+	linkNonprofit,
+	switchCompanyForSession,
+	unlinkNonprofit,
+} from '../companyService';
 
 beforeEach(() => {
 	mockSendNewCompanyAlert.mockReset();
@@ -175,5 +203,143 @@ describe('switchCompanyForSession', () => {
 				targetCompanyId: 'company-other',
 			}),
 		).rejects.toThrow(TRPCError);
+	});
+
+	it('records impersonatedBy in the audit metadata when the actor is impersonated', async () => {
+		vi.mocked(companyRepo.getCompanyMembership).mockResolvedValueOnce({
+			role: 'ADMIN',
+		});
+
+		await switchCompanyForSession({
+			userId: 'target-1',
+			sessionToken: 'tok-1',
+			targetCompanyId: 'company-1',
+			impersonatedBy: 'admin-1',
+		});
+
+		expect(writeAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				action: 'COMPANY_SWITCH',
+				metadata: { impersonatedBy: 'admin-1' },
+			}),
+		);
+	});
+
+	it('omits impersonatedBy from audit metadata for a real (non-impersonated) actor', async () => {
+		vi.mocked(companyRepo.getCompanyMembership).mockResolvedValueOnce({
+			role: 'ADMIN',
+		});
+
+		await switchCompanyForSession({
+			userId: 'user-1',
+			sessionToken: 'tok-1',
+			targetCompanyId: 'company-1',
+		});
+
+		expect(writeAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				action: 'COMPANY_SWITCH',
+				metadata: undefined,
+			}),
+		);
+	});
+});
+
+describe('linkNonprofit', () => {
+	it('records impersonatedBy in the audit metadata when the actor is impersonated', async () => {
+		await linkNonprofit({
+			companyId: 'company-1',
+			orgId: 'org-1',
+			actorId: 'target-1',
+			impersonatedBy: 'admin-1',
+		});
+
+		expect(writeAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				action: 'COMPANY_NONPROFIT_LINKED',
+				metadata: { orgId: 'org-1', impersonatedBy: 'admin-1' },
+			}),
+		);
+	});
+
+	it('omits impersonatedBy from audit metadata for a real (non-impersonated) actor', async () => {
+		await linkNonprofit({
+			companyId: 'company-1',
+			orgId: 'org-1',
+			actorId: 'user-1',
+		});
+
+		expect(writeAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				action: 'COMPANY_NONPROFIT_LINKED',
+				metadata: { orgId: 'org-1' },
+			}),
+		);
+	});
+});
+
+describe('unlinkNonprofit', () => {
+	it('records impersonatedBy in the audit metadata when the actor is impersonated', async () => {
+		await unlinkNonprofit({
+			companyId: 'company-1',
+			orgId: 'org-1',
+			actorId: 'target-1',
+			impersonatedBy: 'admin-1',
+		});
+
+		expect(writeAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				action: 'COMPANY_NONPROFIT_UNLINKED',
+				metadata: { orgId: 'org-1', impersonatedBy: 'admin-1' },
+			}),
+		);
+	});
+});
+
+describe('inviteCompanyMember', () => {
+	it('records impersonatedBy in the audit metadata when the actor is impersonated', async () => {
+		await inviteCompanyMember({
+			companyId: 'company-1',
+			email: 'new-member@example.com',
+			role: 'MEMBER',
+			actorId: 'target-1',
+			baseUrl: 'https://example.com',
+			impersonatedBy: 'admin-1',
+		});
+
+		expect(writeAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				action: 'COMPANY_MEMBER_INVITED',
+				metadata: {
+					email: 'new-member@example.com',
+					role: 'MEMBER',
+					impersonatedBy: 'admin-1',
+				},
+			}),
+		);
+	});
+
+	it('omits impersonatedBy from audit metadata for a real (non-impersonated) actor', async () => {
+		await inviteCompanyMember({
+			companyId: 'company-1',
+			email: 'new-member@example.com',
+			role: 'MEMBER',
+			actorId: 'user-1',
+			baseUrl: 'https://example.com',
+		});
+
+		expect(writeAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				action: 'COMPANY_MEMBER_INVITED',
+				metadata: { email: 'new-member@example.com', role: 'MEMBER' },
+			}),
+		);
 	});
 });

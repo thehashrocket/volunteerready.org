@@ -50,10 +50,15 @@ export const companyRouter = createTRPCRouter({
 			if (!ctx.sessionToken) {
 				throw new Error('No session token');
 			}
+			const effectiveUserId = ctx.session?.user?.id ?? '';
 			return switchCompanyForSession({
-				userId: ctx.session?.user?.id ?? '',
+				userId: effectiveUserId,
 				sessionToken: ctx.sessionToken,
 				targetCompanyId: input.companyId,
+				impersonatedBy:
+					ctx.realUserId && ctx.realUserId !== effectiveUserId
+						? ctx.realUserId
+						: null,
 			});
 		}),
 
@@ -66,10 +71,15 @@ export const companyRouter = createTRPCRouter({
 	linkNonprofit: companyScopedProcedure({ minRole: 'ADMIN' })
 		.input(linkNonprofitSchema)
 		.mutation(async ({ ctx, input }) => {
+			const effectiveUserId = ctx.session?.user?.id ?? '';
 			return linkNonprofit({
 				companyId: ctx.companyId,
 				orgId: input.orgId,
-				actorId: ctx.session?.user?.id ?? '',
+				actorId: effectiveUserId,
+				impersonatedBy:
+					ctx.realUserId && ctx.realUserId !== effectiveUserId
+						? ctx.realUserId
+						: null,
 			});
 		}),
 
@@ -77,10 +87,15 @@ export const companyRouter = createTRPCRouter({
 	unlinkNonprofit: companyScopedProcedure({ minRole: 'ADMIN' })
 		.input(linkNonprofitSchema)
 		.mutation(async ({ ctx, input }) => {
+			const effectiveUserId = ctx.session?.user?.id ?? '';
 			return unlinkNonprofit({
 				companyId: ctx.companyId,
 				orgId: input.orgId,
-				actorId: ctx.session?.user?.id ?? '',
+				actorId: effectiveUserId,
+				impersonatedBy:
+					ctx.realUserId && ctx.realUserId !== effectiveUserId
+						? ctx.realUserId
+						: null,
 			});
 		}),
 
@@ -99,12 +114,17 @@ export const companyRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+			const effectiveUserId = ctx.session?.user?.id ?? '';
 			return inviteCompanyMember({
 				companyId: ctx.companyId,
 				email: input.email,
 				role: input.role,
-				actorId: ctx.session?.user?.id ?? '',
+				actorId: effectiveUserId,
 				baseUrl,
+				impersonatedBy:
+					ctx.realUserId && ctx.realUserId !== effectiveUserId
+						? ctx.realUserId
+						: null,
 			});
 		}),
 
