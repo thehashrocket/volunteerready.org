@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.0.0] - 2026-07-20
+
+### Added
+- When impersonating a user who belongs to more than one company, you can now pick which one to view. Previously, impersonation always landed you on the person's oldest company with no way to reach the others — closing the known limitation called out in v0.29.3.0. Both the sidebar's "Company" link and the company page itself now show a list of every company the person belongs to when there's more than one.
+
+### Fixed
+- Actions taken on a company while impersonating someone (switching the active company, inviting a member, linking or unlinking a nonprofit) now correctly record in the audit log that an admin was impersonating, instead of attributing the action solely to the impersonated person.
+
 ## [0.29.3.1] - 2026-07-20
 
 ### Fixed
