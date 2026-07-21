@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Accepting a company invite while impersonating a user no longer fails — it now checks the invite against the impersonated person's email instead of the admin's.
 - If impersonation lookup itself fails (a rare, transient error), affected pages and actions now safely stop and ask you to retry instead of silently falling back to the admin's own account or data.
 - Audit logs for ESG report generation, Checkr account connections, and company invite acceptance now record when the action was taken by an admin impersonating another user, not just who it was attributed to.
+- Known limitation: if the person you're impersonating belongs to more than one organization or company, these fixes always act on their oldest one — there's no way yet to pick a different one while impersonating.
 
 ## [0.29.2.0] - 2026-07-15
 
