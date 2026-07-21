@@ -18,13 +18,16 @@
  */
 
 import { redirect } from 'next/navigation';
+import type { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth';
+import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
+import { resolveEffectiveUserId } from '@/server/lib/impersonation-context';
 import { connectCheckrAccount } from '@/server/services/backgroundCheckService';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
 	const { searchParams } = new URL(req.url);
 	const code = searchParams.get('code');
 	const state = searchParams.get('state'); // orgId passed as state for CSRF check
@@ -42,26 +45,48 @@ export async function GET(req: Request) {
 		redirect(`${backgroundChecksUrl}?checkr_error=missing_params`);
 	}
 
-	// Validate session — must be authenticated with an org context
+	// Validate session — must be authenticated with an org context. Resolved
+	// through impersonation so an admin acting as a target user connects the
+	// target's org, not their own.
 	const session = await getServerSession(authOptions);
-	if (!session?.user?.id) {
+	const realUserId = session?.user?.id ?? null;
+	const cookieValue = req.cookies.get(IMPERSONATION_COOKIE)?.value ?? null;
+	const {
+		effectiveUserId: userId,
+		isImpersonating,
+		impersonatedBy,
+	} = await resolveEffectiveUserId(realUserId, cookieValue);
+	if (!userId) {
 		redirect(
 			`/auth/signin?callbackUrl=${encodeURIComponent(backgroundChecksUrl)}`,
 		);
 	}
 
-	// CSRF check: state must match the session's orgId
+	// CSRF check: state must match the effective user's orgId.
 	// (The tRPC getCheckrOAuthUrl procedure embeds orgId as state)
-	// We look up the session's org from DB via the service layer via prisma directly here
+	// We look up the org from DB via the service layer via prisma directly here
 	// since this is a Next.js route handler (not tRPC)
 	const { prisma } = await import('@/server/repositories/prisma');
-	const dbSession = await prisma.session.findFirst({
-		where: { userId: session.user.id },
-		orderBy: { expires: 'desc' },
-		select: { currentOrgId: true },
-	});
 
-	const sessionOrgId = dbSession?.currentOrgId;
+	let sessionOrgId: string | null;
+	if (isImpersonating) {
+		// No session token for the target user under impersonation — resolve
+		// their first org membership directly, same as app/layout.tsx.
+		const firstMembership = await prisma.organizationMember.findFirst({
+			where: { userId },
+			select: { organizationId: true },
+			orderBy: { createdAt: 'asc' },
+		});
+		sessionOrgId = firstMembership?.organizationId ?? null;
+	} else {
+		const dbSession = await prisma.session.findFirst({
+			where: { userId },
+			orderBy: { expires: 'desc' },
+			select: { currentOrgId: true },
+		});
+		sessionOrgId = dbSession?.currentOrgId ?? null;
+	}
+
 	if (!sessionOrgId || sessionOrgId !== state) {
 		console.error(
 			`[checkr-oauth] State mismatch: expected orgId=${sessionOrgId} got state=${state}`,
@@ -73,7 +98,7 @@ export async function GET(req: Request) {
 	// redirect() throws NEXT_REDIRECT, and a catch around it would swallow
 	// the success and re-redirect to the error state.
 	try {
-		await connectCheckrAccount(sessionOrgId, code, session.user.id);
+		await connectCheckrAccount(sessionOrgId, code, userId, impersonatedBy);
 	} catch (err) {
 		console.error('[checkr-oauth] Token exchange failed', err);
 		redirect(`${backgroundChecksUrl}?checkr_error=token_exchange_failed`);

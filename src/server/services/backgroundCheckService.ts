@@ -153,6 +153,8 @@ export async function connectCheckrAccount(
 	orgId: string,
 	code: string,
 	actorId: string,
+	/** Real admin user id when the actor is being impersonated (audit trail). */
+	impersonatedBy?: string | null,
 ): Promise<void> {
 	const { accessToken, accountId } =
 		await checkrAdapter.exchangeOAuthCode(code);
@@ -170,7 +172,10 @@ export async function connectCheckrAccount(
 			action: 'CHECKR_CONNECTED',
 			entityType: 'Organization',
 			entityId: orgId,
-			metadata: { accountId },
+			metadata: {
+				accountId,
+				...(impersonatedBy ? { impersonatedBy } : {}),
+			},
 		});
 	});
 
