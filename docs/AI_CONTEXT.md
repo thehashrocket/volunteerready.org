@@ -17,7 +17,7 @@ VolunteerReady is a **multi-tenant SaaS platform** that helps nonprofit organiza
 |---|---|
 | Framework | Next.js 16 (App Router), React 19 |
 | Language | TypeScript 5.9 (strict mode) |
-| Database | PostgreSQL via Prisma 7.5 |
+| Database | PostgreSQL via Prisma 7.7 |
 | API | tRPC v11 (superjson serialization) |
 | Auth | NextAuth 4 with database sessions (Google OAuth + email magic links via Resend) |
 | Validation | Zod 4 (shared schemas between client and server) |
@@ -231,7 +231,7 @@ See `docs/DOMAIN.md` for canonical vocabulary.
 
 **Auth flow:** NextAuth with database sessions (not JWT). Providers: Google OAuth and email magic links (Resend).
 
-**Session resolution (single source of truth):** The NextAuth session callback in `auth.ts` performs a single DB query that fetches `session.currentOrgId` and the user's full membership list. It resolves `orgId` and `role` from that data and attaches them to the session object. The tRPC context in `init.ts` reads these pre-resolved values — no additional queries needed.
+**Session resolution:** The NextAuth session callback in `auth.ts` performs a single DB query that fetches `session.currentOrgId` and the user's full membership list, and resolves `orgId`/`role` from that data. The tRPC context in `init.ts` reads these pre-resolved values when a session token is available — but NextAuth v4 database sessions don't always pass the token to the callback, and under impersonation there's no session token for the target user at all. In both cases `init.ts` falls back to its own `Session`/`User` lookup keyed on `effectiveUserId`, so "no additional queries" only holds for the common real-session-with-token case, not universally.
 
 **tRPC procedure levels** (defined in `src/server/trpc/init.ts`):
 
