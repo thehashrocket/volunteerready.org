@@ -92,7 +92,7 @@ export function CompanySwitcher() {
 				href="/app/company/new"
 				className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
 			>
-				Add company
+				Add company sponsor
 			</Link>
 		);
 	}
