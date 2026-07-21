@@ -1,16 +1,18 @@
+// @vitest-environment jsdom
+import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
 	mockGetServerSession,
 	mockCookieGet,
 	mockResolveEffectiveUserId,
-	mockCompanyMemberFindFirst,
+	mockListCompaniesForUser,
 	mockRedirect,
 } = vi.hoisted(() => ({
 	mockGetServerSession: vi.fn(),
 	mockCookieGet: vi.fn(),
 	mockResolveEffectiveUserId: vi.fn(),
-	mockCompanyMemberFindFirst: vi.fn(),
+	mockListCompaniesForUser: vi.fn(),
 	mockRedirect: vi.fn((url: string) => {
 		throw new Error(`NEXT_REDIRECT:${url}`);
 	}),
@@ -36,8 +38,8 @@ vi.mock('@/server/lib/impersonation-context', () => ({
 	resolveEffectiveUserId: mockResolveEffectiveUserId,
 }));
 
-vi.mock('@/server/repositories/prisma', () => ({
-	prisma: { companyMember: { findFirst: mockCompanyMemberFindFirst } },
+vi.mock('@/server/repositories/companyRepo', () => ({
+	listCompaniesForUser: mockListCompaniesForUser,
 }));
 
 import CompanyIndexPage from '../page';
@@ -78,6 +80,14 @@ function resolutionFailed() {
 	};
 }
 
+function membership(
+	companyId: string,
+	name: string,
+	role: 'OWNER' | 'ADMIN' | 'MEMBER' = 'MEMBER',
+) {
+	return { role, company: { id: companyId, name, slug: companyId } };
+}
+
 beforeEach(() => {
 	vi.clearAllMocks();
 });
@@ -95,7 +105,7 @@ describe('CompanyIndexPage redirect', () => {
 		await expect(CompanyIndexPage()).rejects.toThrow(
 			'NEXT_REDIRECT:/app/company/admin-company',
 		);
-		expect(mockCompanyMemberFindFirst).not.toHaveBeenCalled();
+		expect(mockListCompaniesForUser).not.toHaveBeenCalled();
 	});
 
 	it('redirects to /app/browse when the real user has no session company', async () => {
@@ -109,7 +119,7 @@ describe('CompanyIndexPage redirect', () => {
 		);
 	});
 
-	it('under impersonation, redirects to the target user membership — not the admin session company, breaking the redirect loop', async () => {
+	it('under impersonation with exactly one company, redirects to the target user membership — not the admin session company, breaking the redirect loop', async () => {
 		mockGetServerSession.mockResolvedValueOnce({
 			user: { id: ADMIN_ID },
 			// Admin's own session company differs from the target's — if the
@@ -118,18 +128,14 @@ describe('CompanyIndexPage redirect', () => {
 			companyId: 'admin-company',
 		});
 		mockResolveEffectiveUserId.mockResolvedValueOnce(impersonating(TARGET_ID));
-		mockCompanyMemberFindFirst.mockResolvedValueOnce({
-			companyId: 'target-company',
-		});
+		mockListCompaniesForUser.mockResolvedValueOnce([
+			membership('target-company', 'Acme Corp'),
+		]);
 
 		await expect(CompanyIndexPage()).rejects.toThrow(
 			'NEXT_REDIRECT:/app/company/target-company',
 		);
-		expect(mockCompanyMemberFindFirst).toHaveBeenCalledWith({
-			where: { userId: TARGET_ID },
-			select: { companyId: true },
-			orderBy: { createdAt: 'asc' },
-		});
+		expect(mockListCompaniesForUser).toHaveBeenCalledWith(TARGET_ID);
 	});
 
 	it('under impersonation, redirects to /app/browse (not the admin session company) when the target has no company', async () => {
@@ -138,11 +144,35 @@ describe('CompanyIndexPage redirect', () => {
 			companyId: 'admin-company',
 		});
 		mockResolveEffectiveUserId.mockResolvedValueOnce(impersonating(TARGET_ID));
-		mockCompanyMemberFindFirst.mockResolvedValueOnce(null);
+		mockListCompaniesForUser.mockResolvedValueOnce([]);
 
 		await expect(CompanyIndexPage()).rejects.toThrow(
 			'NEXT_REDIRECT:/app/browse',
 		);
+	});
+
+	it('under impersonation with 2+ companies, renders a picker instead of guessing one', async () => {
+		mockGetServerSession.mockResolvedValueOnce({
+			user: { id: ADMIN_ID },
+			companyId: 'admin-company',
+		});
+		mockResolveEffectiveUserId.mockResolvedValueOnce(impersonating(TARGET_ID));
+		mockListCompaniesForUser.mockResolvedValueOnce([
+			membership('company-a', 'Acme Corp', 'OWNER'),
+			membership('company-b', 'Beta Industries', 'MEMBER'),
+		]);
+
+		const ui = await CompanyIndexPage();
+		render(ui);
+
+		expect(mockRedirect).not.toHaveBeenCalled();
+		const acmeLink = screen.getByRole('link', { name: /Acme Corp/ });
+		const betaLink = screen.getByRole('link', { name: /Beta Industries/ });
+		expect(acmeLink).toHaveAttribute('href', '/app/company/company-a');
+		expect(betaLink).toHaveAttribute('href', '/app/company/company-b');
+		// Scoped to each row so a swapped role-to-company mapping would fail.
+		expect(within(acmeLink).getByText('Owner')).toBeInTheDocument();
+		expect(within(betaLink).getByText('Member')).toBeInTheDocument();
 	});
 
 	it('fails closed to /app/browse — not the admin session company — when impersonation resolution errors', async () => {
@@ -158,6 +188,6 @@ describe('CompanyIndexPage redirect', () => {
 		await expect(CompanyIndexPage()).rejects.toThrow(
 			'NEXT_REDIRECT:/app/browse',
 		);
-		expect(mockCompanyMemberFindFirst).not.toHaveBeenCalled();
+		expect(mockListCompaniesForUser).not.toHaveBeenCalled();
 	});
 });

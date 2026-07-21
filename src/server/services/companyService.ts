@@ -95,6 +95,8 @@ export async function switchCompanyForSession(opts: {
 	userId: string;
 	sessionToken: string;
 	targetCompanyId: string;
+	/** Real admin user id when the actor is being impersonated (audit trail). */
+	impersonatedBy?: string | null;
 }) {
 	const membership = await getCompanyMembership(
 		opts.userId,
@@ -119,6 +121,9 @@ export async function switchCompanyForSession(opts: {
 			action: 'COMPANY_SWITCH',
 			entityType: 'CompanyAccount',
 			entityId: opts.targetCompanyId,
+			metadata: opts.impersonatedBy
+				? { impersonatedBy: opts.impersonatedBy }
+				: undefined,
 		});
 	});
 
@@ -133,6 +138,8 @@ export async function linkNonprofit(opts: {
 	companyId: string;
 	orgId: string;
 	actorId: string;
+	/** Real admin user id when the actor is being impersonated (audit trail). */
+	impersonatedBy?: string | null;
 }) {
 	const link = await prisma.$transaction(async (tx) => {
 		const result = await upsertNonprofitLinkTx(tx, {
@@ -146,7 +153,10 @@ export async function linkNonprofit(opts: {
 			action: 'COMPANY_NONPROFIT_LINKED',
 			entityType: 'CompanyNonprofitLink',
 			entityId: result.id,
-			metadata: { orgId: opts.orgId },
+			metadata: {
+				orgId: opts.orgId,
+				...(opts.impersonatedBy ? { impersonatedBy: opts.impersonatedBy } : {}),
+			},
 		});
 
 		return result;
@@ -159,6 +169,8 @@ export async function unlinkNonprofit(opts: {
 	companyId: string;
 	orgId: string;
 	actorId: string;
+	/** Real admin user id when the actor is being impersonated (audit trail). */
+	impersonatedBy?: string | null;
 }) {
 	// Find the link first
 	const existing = await prisma.companyNonprofitLink.findUnique({
@@ -180,7 +192,10 @@ export async function unlinkNonprofit(opts: {
 			action: 'COMPANY_NONPROFIT_UNLINKED',
 			entityType: 'CompanyNonprofitLink',
 			entityId: existing.id,
-			metadata: { orgId: opts.orgId },
+			metadata: {
+				orgId: opts.orgId,
+				...(opts.impersonatedBy ? { impersonatedBy: opts.impersonatedBy } : {}),
+			},
 		});
 	});
 
@@ -197,6 +212,8 @@ export async function inviteCompanyMember(opts: {
 	role: CompanyMemberRole;
 	actorId: string;
 	baseUrl: string;
+	/** Real admin user id when the actor is being impersonated (audit trail). */
+	impersonatedBy?: string | null;
 }) {
 	const company = await prisma.companyAccount.findUnique({
 		where: { id: opts.companyId },
@@ -237,7 +254,11 @@ export async function inviteCompanyMember(opts: {
 			actorId: opts.actorId,
 			action: 'COMPANY_MEMBER_INVITED',
 			entityType: 'CompanyInvitation',
-			metadata: { email: opts.email, role: opts.role },
+			metadata: {
+				email: opts.email,
+				role: opts.role,
+				...(opts.impersonatedBy ? { impersonatedBy: opts.impersonatedBy } : {}),
+			},
 		});
 	});
 

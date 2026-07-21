@@ -1536,6 +1536,33 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   (mirroring how ESG export routes take `companyId` from the URL, never
   session state) rather than an implicit "first membership" guess.
   **Effort:** M | **Priority:** P2 | **Depends on:** None.
+  **Split via `/plan-eng-review` (2026-07-20):** the `company/page.tsx` +
+  `app/(app)/app/layout.tsx` sidebar-link half is ✅ **fixed in this PR** —
+  explicit picker via the shared `LinkRowList` component when 2+ company
+  memberships exist, plus routing the sidebar's "Company" link to the bare
+  `/app/company` picker instead of a guessed company when ambiguous. The
+  `checkr/oauth/callback/route.ts`
+  half is deferred to its own item below — it touches CSRF `state` validation
+  and a DB write (Checkr token persistence), which warrants isolated
+  adversarial review rather than riding along with an unrelated UX fix.
+- **[P2] Checkr OAuth org-selection for multi-org impersonated targets** —
+  (split off the item above via `/plan-eng-review`, 2026-07-20.)
+  `src/app/api/checkr/oauth/callback/route.ts:75-101` resolves the
+  impersonated target's org via the same "oldest membership"
+  `organizationMember.findFirst({ orderBy: { createdAt: 'asc' } })` heuristic,
+  but here the guessed org feeds a CSRF `state` validation *and* a subsequent
+  DB write (`connectCheckrAccount()` persists the Checkr access token onto
+  that `Organization` row). An admin impersonating a target in 2+ orgs can
+  never connect Checkr for any org but the target's oldest one. The OAuth
+  `state` param is set to `ctx.orgId` at URL-generation time
+  (`getCheckrOAuthUrl` tRPC procedure) using the identical heuristic, so the
+  round-trip is internally consistent today (doesn't break, doesn't leak
+  cross-tenant data) — it's just permanently pinned to one org. **Fix
+  direction:** surface an explicit org selection at OAuth-initiation time
+  (mirroring how ESG export routes take `companyId` from the URL, never
+  session state), validated the same way `state` is today. **Effort:** M |
+  **Priority:** P2 | **Depends on:** None — independent of the company-page
+  half above.
 - **[P3] Generalize `impersonatedBy` audit metadata into `writeAuditLog()`
   itself** — (spun off from the impersonation-context fix above,
   `/plan-eng-review` 2026-07-20.) `org.ts`/`orgService.ts`,
