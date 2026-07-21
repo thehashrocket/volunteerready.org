@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.29.3.1] - 2026-07-20
+
+### Fixed
+- Bumped three transitive dependencies flagged by GitHub security alerts, with no application-facing changes: `brace-expansion` (denial-of-service via exponential-time pattern expansion), `ws` (memory exhaustion from crafted WebSocket frames — dev/build tooling only), and `uuid` (a buffer bounds check gap in unused code paths).
+
 ## [0.29.3.0] - 2026-07-20
 
 ### Fixed
