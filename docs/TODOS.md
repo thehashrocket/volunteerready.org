@@ -115,6 +115,75 @@ correctly, so deferred rather than rushed:
 
 ---
 
+## Adversarial review findings (`/ship`, 2026-07-21, branch thehashrocket/oauth-logout-opportunities-bug)
+
+Cross-model pass (Claude adversarial subagent + Codex `exec` + Codex structured
+`review`, GATE: PASS — no P1s) on the qualification-match-filter feature and the
+company/organization redirect fix. One finding fixed immediately; three deferred
+as pre-existing or out-of-scope for this PR.
+
+- ~~**Qualification filter failed open on a missing `matchResults` entry**~~ ✅
+  **Fixed same-branch (2026-07-21)** — Claude's subagent found that
+  `matchResults?.[o.id]?.matchType !== 'NONE'` evaluates `true` (shown, not
+  hidden) if an entry is ever missing for an opportunity id. Not currently
+  reachable — both server pages (`browse/page.tsx`,
+  `opportunities/[orgSlug]/page.tsx`) build `matchResults` from the exact same
+  `opportunities` array passed to the component, so every id is guaranteed
+  present whenever `hasMatching` is true — but the filter had no defense if
+  that invariant is ever broken (pagination, partial re-scoring, a future
+  refactor with separate queries). Hardened both `OpportunitiesListing.tsx`
+  and `BrowseOpportunities.tsx` to treat a missing entry as unqualified
+  (hidden) rather than shown.
+- **[P2] Marketplace browse page can show a false "no opportunities match your
+  skills" empty state past 200 published opportunities** — Codex adversarial.
+  `listAllPublishedOpportunities` (`publicOpportunityRepo.ts`) hard-caps at
+  200 rows ("Capped at 200 to prevent SSR OOM... Long-term: move skill-match
+  ranking server-side"); `browse/page.tsx` computes matches only for that
+  truncated set, and the new default-hide qualification filter then drops
+  every `NONE` result client-side. Once the marketplace exceeds 200 published
+  opportunities, a volunteer could see an empty state even though older
+  qualifying opportunities exist outside the first 200 rows — silent result
+  loss, not just a ranking quirk. Root cause predates this PR (the cap
+  itself); this PR's filter is what makes the truncation user-visible as a
+  wrong "you're not qualified for anything" message instead of just a
+  reordering quirk. **Fix:** move skill-match ranking server-side (already
+  flagged in-code as the long-term direction) so filtering happens before the
+  200-row limit, not after.
+- **[P2] `matchResults`/the qualification filter apply to any authenticated
+  user with a saved skill profile, not just volunteers** — Codex structured
+  review. Staff and company users who also happen to have personal
+  `VolunteerSkill` entries (e.g., they're also a volunteer elsewhere) can hit
+  `/app/browse` directly (no server-side role gate on that route, only a nav
+  visibility check) and see published opportunities disappear based on their
+  own irrelevant skill profile. Pre-existing: `matchResults` was already
+  computed for any signed-in user with skills before this PR (shown as a
+  cosmetic "Skills needed" badge); this PR escalates that to actually hiding
+  listings. Properly scoping "volunteer intent" needs a role-model decision
+  (there's no clean `isVolunteer` flag distinct from org/company membership)
+  — out of scope for this PR. **Fix:** decide whether match-based filtering
+  should require the user to have zero org/company memberships (pure
+  volunteer), or add an explicit opt-in, before this becomes a bigger problem.
+- **Deferred, no change** — Claude's subagent noted that `layout.tsx`'s
+  no-org redirect target now depends on `hasCompany`, which — during the
+  pre-existing impersonation `resolutionFailed` fallback (a transient DB
+  error resolving an impersonation cookie) — reflects the real admin's own
+  memberships, not the impersonated target's, since `effectiveUserId` falls
+  back to `session.user.id` in that branch. Before this PR the redirect
+  target was always `/app/welcome` regardless, so this fallback identity
+  quirk was inert; now it can send an impersonating admin to their own
+  `/app/company` instead of the target's `/app/welcome`. No data leak or
+  cross-tenant exposure (`company/page.tsx` independently fails closed on
+  `resolutionFailed`) — worst case is a confusing redirect target for the
+  admin, only in the narrow window of a transient resolution failure.
+  `resolutionFailed` is documented as ignorable for "pure read-only/nav"
+  consumers; this redirect decision sits right at that boundary. Recorded so
+  a future pass on `layout.tsx`'s impersonation handling has the context
+  rather than re-discovering it.
+
+**Effort:** S–M (per item) | **Priority:** see above | **Depends on:** None.
+
+---
+
 ## Adversarial review findings (`/ship`, 2026-07-14)
 
 Cross-model pass (Claude adversarial subagent + Codex `exec`) after PR1-3

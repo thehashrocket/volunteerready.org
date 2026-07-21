@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.31.0.0] - 2026-07-21
+
+### Added
+- Volunteers now see opportunities filtered to the ones they're qualified for by default, on both an organization's public listing page and the cross-org marketplace browse page. A "Show opportunities I'm not qualified for" checkbox reveals everything again, and anyone who hasn't set up their skills yet still sees the full list along with a nudge to add skills for a better match.
+
+### Fixed
+- A user who set up a company account but not a nonprofit organization no longer gets redirected back to the "getting started" screen when visiting an organization-only page like Opportunities — they're sent to their company page instead, since they'd already onboarded, just not as a nonprofit.
+- The "Add company" link and the company-creation page now make clearer that a company account is a separate, corporate-sponsor concept from setting up a nonprofit organization, with a direct link to organization setup for anyone who lands there by mistake.
+
 ## [0.30.0.0] - 2026-07-20
 
 ### Added
