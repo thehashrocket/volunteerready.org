@@ -182,3 +182,45 @@ describe('AppLayout company resolution under impersonation', () => {
 		);
 	});
 });
+
+describe('AppLayout no-org redirect target', () => {
+	it('redirects a company-only user to /app/company, not /app/welcome', async () => {
+		mockHeadersGet.mockReturnValue('/app/opportunities');
+		mockOrgMemberCount.mockResolvedValue(0);
+		mockGetServerSession.mockResolvedValueOnce({
+			user: { id: ADMIN_ID },
+			companyId: 'admin-company',
+		});
+		mockGetImpersonationContext.mockResolvedValueOnce(notImpersonating());
+
+		await expect(AppLayout({ children: <div /> })).rejects.toThrow(
+			'NEXT_REDIRECT:/app/company',
+		);
+	});
+
+	it('redirects a user with neither org nor company to /app/welcome', async () => {
+		mockHeadersGet.mockReturnValue('/app/opportunities');
+		mockOrgMemberCount.mockResolvedValue(0);
+		mockGetServerSession.mockResolvedValueOnce({ user: { id: ADMIN_ID } });
+		mockGetImpersonationContext.mockResolvedValueOnce(notImpersonating());
+
+		await expect(AppLayout({ children: <div /> })).rejects.toThrow(
+			'NEXT_REDIRECT:/app/welcome',
+		);
+	});
+
+	it('does not redirect an exempt path even without an org', async () => {
+		mockHeadersGet.mockReturnValue('/app/company');
+		mockOrgMemberCount.mockResolvedValue(0);
+		mockGetServerSession.mockResolvedValueOnce({
+			user: { id: ADMIN_ID },
+			companyId: 'admin-company',
+		});
+		mockGetImpersonationContext.mockResolvedValueOnce(notImpersonating());
+
+		const ui = await AppLayout({ children: <div /> });
+		render(ui);
+
+		expect(mockRedirect).not.toHaveBeenCalled();
+	});
+});
