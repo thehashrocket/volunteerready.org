@@ -55,7 +55,7 @@ I'm Jason, founder of VolunteerReady. I built it after watching shelter staff lo
 
 It puts intake, scheduling, and attendance in one place, so the team at {Org} spends less time on logistics and more with the animals.
 
-There's a free plan (no credit card), and I set shelters up myself. I'm working with a few {County} County shelters right now and would value 15 minutes to hear how you currently handle volunteers and fosters.
+There's a free plan (no credit card), and I'll set you up myself. I'm reaching out to a few {County} County shelters right now and would value 15 minutes to hear how you currently handle volunteers and fosters.
 
 Worth a quick call? You can grab a time here: https://calendar.app.google/yvbL6zwB2imBKXms9
 
@@ -76,7 +76,7 @@ I'm Jason, founder of VolunteerReady. I built it for small nonprofit teams that 
 
 It handles applications, shift sign-ups, and attendance in one place, so {Org} can move someone from "interested" to "scheduled" without the back-and-forth.
 
-The plan is free to start, no credit card, and I set organizations up personally. I'm talking with a few {County} County groups this month and would love 15 minutes to learn how you run volunteers and adoption events today.
+The plan is free to start, no credit card, and I'll set you up personally. I'm reaching out to a few {County} County groups this month and would love 15 minutes to learn how you run volunteers and adoption events today.
 
 Open to a quick call? Here's my calendar: https://calendar.app.google/yvbL6zwB2imBKXms9
 
@@ -118,7 +118,7 @@ I'm Jason, founder of VolunteerReady. Cat rescues tend to have the trickiest coo
 
 VolunteerReady puts foster and volunteer intake, sign-ups for clinics and adoption events, and follow-up in one place, so {Org} isn't tracking it all by text and memory.
 
-Free to start, no credit card, and I set teams up myself. I'm connecting with a few {County} County rescues this month. Could I get 15 minutes to hear how you run things?
+Free to start, no credit card, and I'll set your team up myself. I'm connecting with a few {County} County rescues this month. Could I get 15 minutes to hear how you run things?
 
 Grab a time here: https://calendar.app.google/yvbL6zwB2imBKXms9
 
@@ -160,7 +160,7 @@ I'm Jason, founder of VolunteerReady. Sanctuaries have a different rhythm than s
 
 VolunteerReady lets volunteers see open shifts and sign up themselves, and shows you attendance at a glance, so {Org} isn't rebuilding the schedule every week.
 
-Free to start, no credit card, and I set teams up myself. Could I get 15 minutes to hear how you handle your volunteer rotation now?
+Free to start, no credit card, and I'll set your team up myself. Could I get 15 minutes to hear how you handle your volunteer rotation now?
 
 My calendar's here: https://calendar.app.google/yvbL6zwB2imBKXms9
 
@@ -185,7 +185,7 @@ I'm Jason, founder of VolunteerReady. I built it after watching shelter staff lo
 
 VolunteerReady puts intake, scheduling, and attendance in one place, so your team spends less time on logistics and more with the animals.
 
-There's a free plan (no credit card), and I set shelters up myself. I'm working with a few San Joaquin County shelters right now and would value 15 minutes to hear how you currently handle volunteers and fosters.
+There's a free plan (no credit card), and I'll set you up myself. I'm reaching out to a few San Joaquin County shelters right now and would value 15 minutes to hear how you currently handle volunteers and fosters.
 
 Worth a quick call? Grab a time here: https://calendar.app.google/yvbL6zwB2imBKXms9
 
@@ -206,7 +206,7 @@ I'm Jason, founder of VolunteerReady. I built it for small nonprofit shelters th
 
 It handles applications, shift sign-ups, and attendance in one place, so Pets & Pals can move someone from "interested" to "scheduled" without the email tag.
 
-Free to start, no credit card, and I set teams up myself. I'm talking with a few San Joaquin County shelters this month and would love 15 minutes to hear how you run volunteers and adoption events today.
+Free to start, no credit card, and I'll set your team up myself. I'm reaching out to a few San Joaquin County shelters this month and would love 15 minutes to hear how you run volunteers and adoption events today.
 
 Open to a quick call? My calendar's here: https://calendar.app.google/yvbL6zwB2imBKXms9
 
@@ -227,7 +227,7 @@ I'm Jason, founder of VolunteerReady. A shelter the size of Bradshaw moves a lot
 
 VolunteerReady pulls intake, scheduling, and attendance into one place so your staff spends less time chasing it down.
 
-There's a free plan to start (no credit card), and I set shelters up myself. Could I get 15 minutes to hear how your team handles volunteers and fosters today?
+There's a free plan to start (no credit card), and I'll set you up myself. Could I get 15 minutes to hear how your team handles volunteers and fosters today?
 
 Here's my calendar: https://calendar.app.google/yvbL6zwB2imBKXms9
 
@@ -248,7 +248,7 @@ I'm Jason, founder of VolunteerReady. The Sacramento SPCA runs one of the busier
 
 VolunteerReady keeps applications, shift sign-ups, and attendance in one place, so your team can spend less time on logistics and more on volunteers and animals.
 
-It's free to start (no credit card), and I help organizations get set up personally. Could I borrow 15 minutes to learn how your program runs today?
+It's free to start (no credit card), and I'll help you get set up personally. Could I borrow 15 minutes to learn how your program runs today?
 
 My calendar's here: https://calendar.app.google/yvbL6zwB2imBKXms9
 
@@ -286,6 +286,6 @@ volunteerready.org
 ```
 Hi, this is Jason with VolunteerReady. I build software that helps animal shelters and rescues
 coordinate volunteers and fosters in one place instead of inboxes and spreadsheets. Who's the best
-person to talk to about volunteer coordination? There's a free plan and I help set teams up
+person to talk to about volunteer coordination? There's a free plan and I'll set your team up
 personally. I'd love 15 minutes to hear how {Org} handles it today.
 ```

@@ -564,6 +564,7 @@ Any "yes" is an opening for a feature conversation.
 | Complex_Presence_949 | r/philanthropy | DM ask sent in public thread. Waiting for reply | 🔴 Hot |
 | Complex_Presence_949 | DM (r/socialwork) | DM sent | 🔴 Hot |
 | jcravens42 | r/philanthropy | Thread closed. Graceful exit sent | ✅ Done |
+| jcravens42 | r/SideProject | Learning-posture reply SENT 2026-07-26. Awaiting response | 🔴 Hot |
 | CredibledOfficial | r/Volunteering | Reply sent | 🔴 Hot |
 | Smooth-Science4983 | r/socialwork | Reply sent 5d ago, no response | 🟡 Cooling |
 | rethinking087 | r/Volunteering | Reply sent | 🟡 Warm |
@@ -583,3 +584,97 @@ your experience."
 
 The one reply still queued to send: **Smooth-Science4983 reply #3** (manual
 tracking question). Send this when you're next on Reddit.
+
+---
+
+## u/jcravens42 — r/SideProject (round two, 2026-07-24)
+
+**Context:** Second encounter with jcravens42 (see r/philanthropy section above —
+that thread closed gracefully). She commented on the r/SideProject post: "I thought
+this was a volunteer management tool, not yet another volunteer matching tool."
+After Jason described the matching feature, she said the post wouldn't be allowed
+in r/Volunteerism and linked two of her articles:
+
+- coyotecommunications.com/coyoteblog/2013/12/volmatchsites/ (fragmentation:
+  too many matching sites, orgs can't maintain listings everywhere, rosters fail)
+- coyotecommunications.com/coyoteblog/2023/05/volunteer-matching-tech/ (the
+  bottleneck is org training in role design/screening/support, not software;
+  30+ matching sites from 1999 are dead — what's different about yours?)
+
+**Key insight:** Her first impression ("I thought it was a free management
+platform") was positive and accurate. The mistake was leading with matching.
+Our marketplace only lists orgs already running their programs on the platform,
+so her fragmentation critique doesn't apply — no one maintains listings on
+"yet another site."
+
+**Status update (2026-07-24):** Jason sent an initial thank-you ("reading them
+tonight"). She replied by quoting his "improve nonprofits' ability to function"
+line: "That's not a software nor an app problem. That's a funding problem."
+Same thesis as her r/philanthropy exchange with Jason (overhead/funding).
+Decision: do NOT reply same-day — avoid ping-pong. Send ONE follow-up the next
+day that covers the articles AND concedes the funding point, then claims the
+narrow ground (software can't fix funding, but it can cut the hours unfunded
+coordination takes). Note: jcravens42 is Jayne Cravens, author of both linked
+articles, and a she.
+
+**Posture decision (2026-07-24, per Jason):** Don't argue, don't defend.
+Goal is to learn from her experience. Draft reweighted from
+explanation-forward to question-forward.
+
+**SENT 2026-07-26 (Sunday morning).** Awaiting her reply. Do not follow up
+or bump; if she goes quiet, the thread ends gracefully on a question and
+that's fine. Mine her site for practice knowledge regardless.
+
+**Final sent version (learning posture):**
+
+> Came back after spending some time this weekend with both articles, plus
+> your 2013 one on fragmentation. Point taken on both the matching-site
+> graveyard and the funding problem. I'm not going to argue an app fixes
+> either.
+>
+> For context, the part I actually built is the management side: intake,
+> screening, scheduling, attendance, the reporting funders require but won't
+> pay for. It came out of my own volunteering and watching coordination run
+> on paper and group texts. I'll be straight with you: I'm pre-launch, I've
+> been reaching out to shelters and food banks in California's Central
+> Valley, and nobody is using it yet.
+>
+> So a sincere question, since you've been writing about this since before
+> most of those 1999 platforms existed: for a small org with no trained
+> volunteer coordinator, what's the first thing you'd have them fix? And is
+> there any part of that where a tool genuinely helps, or does it all come
+> down to training and funding? If it's the latter, I'd rather hear it now
+> than after two more years of building.
+>
+> Happy to take "go read my site" as an answer, too. I've started.
+
+**Why this shape:** One short context paragraph (so her advice can be
+specific), then two real questions, then permission to point at her own
+resources. No product defense, no differentiation pitch. The last line
+signals homework-doing, which is what earns answers from experts.
+
+**Parallel homework (don't wait for her reply):**
+
+- Her resource library at coyotecommunications.com covers volunteer
+  management practice directly (role design, screening, support, virtual
+  volunteering). Mine it for product and onboarding insight regardless of
+  whether she engages.
+- Her book with Susan Ellis, "The Last Virtual Volunteering Guidebook," is
+  the standard reference in this niche.
+- Energize Inc (Susan Ellis's company) publishes volunteer management
+  resources aimed at exactly the untrained-coordinator audience VolunteerReady
+  serves.
+
+**Goal:** Concede what's true, correct the record with facts (management-first,
+founder-led onboarding, marketplace as byproduct), end with a question that
+invites her 25 years of expertise. She's a potential advisor, not a prospect.
+
+**Differentiation statement (reusable):**
+
+> VolunteerReady is volunteer management software for small nonprofits —
+> screening, scheduling, attendance, and grant reporting. The marketplace
+> isn't a listing site anyone has to maintain; it's a public directory of
+> orgs already running their volunteer programs on the platform.
+
+**Follow-up action:** Edit the r/SideProject post title/opener to lead with
+management, not matching. This objection will recur.
