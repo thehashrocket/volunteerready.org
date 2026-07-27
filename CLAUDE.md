@@ -18,6 +18,7 @@ conventions and document any deviations here.
 Current commands:
 
 - `pnpm install`: install dependencies
+- `docker compose up -d db`: start the local Postgres 16 container (`docker-compose.yml`, port 5432, credentials match `DATABASE_URL` in `.env.local`). First run: `pnpm prisma migrate deploy && pnpm seed:dev`. `docker compose down -v` deletes the volume. Port 5432 is deliberate — do not remap it
 - `pnpm dev`: start local development server
 - `pnpm build`: build for production
 - `pnpm start`: run production server
@@ -33,6 +34,8 @@ Current commands:
 - `pnpm admin:revoke <email>`: revoke platform admin from a user
 - `pnpm seed:platform-admins`: migrate `PLATFORM_ADMIN_IDS` env var to DB column (idempotent)
 - `pnpm backfill:default-questions`: seed default screener questions for pre-existing orgs (idempotent, safe to re-run)
+- `pnpm check:email-collisions`: **read-only** pre-check for T1 (email canonicalization) — finds `User` rows whose emails differ only by case, which would make a case-insensitive unique constraint fail. Prints per-row blast radius (signups/apps/orgs/creds) because `User` deletion cascades to `ShiftSignup`. Exit 1 on collisions. Safe to point at production
+- `pnpm fixture:email-collisions`: **dev-only**, refuses a non-local `DATABASE_URL` (same guard shape as `e2e/utils/db.ts`). Inserts three deliberate collision groups covering each tie-break branch so the pre-check can be rehearsed. `--clean` removes them. Deliberately NOT part of `seed:dev` — these rows become invalid the moment T1's constraint lands, which would break `pnpm seed:dev` (and therefore `pnpm e2e` and the screenshot pipeline) permanently
 - `pnpm test:scripts`: run unit tests for files under `scripts/` (uses `vitest.scripts.config.ts`, excluded from the main Vitest suite)
 - `pnpm e2e`: run Playwright e2e specs in `e2e/` (boots `pnpm dev` via `playwright.config.ts`; set `PLAYWRIGHT_BASE_URL` to target a running server instead — authenticated specs skip non-localhost targets)
 - `pnpm screenshots`: regenerate marketing screenshots in `public/marketing/` (Playwright `capture` project, only registered when `CAPTURE=1`; scenarios at `e2e/capture-scenarios.ts`; needs `pnpm seed:dev` data; filter with `CAPTURE_ONLY=key1,key2`)

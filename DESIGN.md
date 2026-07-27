@@ -64,8 +64,16 @@
 
 ## Layout
 - **Approach:** Hybrid — grid-disciplined for the app dashboard, creative-editorial for marketing/public pages
-- **Grid:** 12-column grid. Dashboard uses sidebar (220px) + main content. Marketing pages use asymmetric splits (7/5, 8/4).
+- **Grid:** 12-column grid. Dashboard uses sidebar (224px, `w-56`) + main content. Marketing pages use asymmetric splits (7/5, 8/4).
 - **Max content width:** 1120px
+- **App shell chrome** (`src/components/app/app-shell.tsx`) — the authenticated staff layout:
+  - **Top bar:** 56px (`h-14`), sticky, `border-b border-border/60`, `bg-background/95` with
+    `backdrop-blur-sm`. Carries the wordmark, mobile nav toggle, and org switcher.
+  - **Sidebar:** 224px (`w-56`), **no background fill**. It sits on the page background,
+    separated only by a `border-r border-border/60` hairline, sticky below the top bar.
+  - **Active nav item:** `bg-primary/10 text-primary border-l-2 border-primary`
+    (`app-sidebar.tsx:106`). This is the only place green appears in the chrome.
+  - **Below `lg`:** the sidebar becomes an overlay drawer, same 224px width, `bg-background`.
 - **Border radius:** Hierarchical scale
   - sm: 4px (small elements, code blocks)
   - md: 8px (buttons, inputs, cards)
@@ -89,7 +97,7 @@
 
 ## Dual Personality
 The staff dashboard and volunteer-facing pages are different visual contexts:
-- **Staff dashboard:** Data-dense, operational, forest green sidebar, Geist everywhere, Geist Mono for data values. Feels like a command center.
+- **Staff dashboard:** Data-dense, operational, Geist everywhere, Geist Mono for data values. Light sidebar on the page background with a hairline border and a green *accent* on the active item only — not a filled green panel. Feels like a command center.
 - **Public/volunteer pages:** Warmer, Fraunces headlines, more generous spacing, cream backgrounds, editorial feel. Feels like a well-designed nonprofit annual report.
 - **Shared:** Same color palette, same spacing system, same border radius scale. The green anchors both worlds.
 
@@ -100,3 +108,4 @@ The staff dashboard and volunteer-facing pages are different visual contexts:
 | 2026-04-04 | Fraunces chosen over DM Serif Display | More personality, variable-axis, harder to confuse with another product. Both Codex and Claude agreed on editorial serif direction. |
 | 2026-04-04 | Deep forest green (#1B3C2A) over ochre gold | Green is category-appropriate (trust, growth) but differentiated by depth. Gold used as warm accent instead of primary. |
 | 2026-04-04 | Warm cream backgrounds (#FAFAF8) over pure white | Reduces eye strain, signals taste, breaks from clinical SaaS white. Both outside voices recommended this. |
+| 2026-07-26 | Corrected the staff-shell description to match the shipped app | This document said the staff dashboard had a **forest green sidebar** and a 220px sidebar. Neither was true: `app-shell.tsx:128` renders `border-r border-border/60` with no fill, at `w-56` (224px), and the 56px sticky top bar was undocumented entirely. CLAUDE.md instructs every agent to read DESIGN.md before a visual decision, so this drove a whole round of `/plan-design-review` mockups to generate a solid green sidebar — confidently wrong work produced by a stale sentence. Corrected during that review (T34). **A design system that misdescribes the shipped product is worse than none.** |

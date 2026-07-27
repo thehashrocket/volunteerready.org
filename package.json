@@ -1,6 +1,6 @@
 {
   "name": "volunteeermatch-app",
-  "version": "0.31.0.0",
+  "version": "0.32.0.0",
   "private": true,
   "scripts": {
     "dev": "cross-env PORT=3005 next dev --turbo",
@@ -16,6 +16,8 @@
     "backfill:activity": "tsx scripts/backfill-activity.ts",
     "backfill:default-questions": "tsx scripts/backfill-default-questions.ts",
     "script:geocode-backfill": "tsx scripts/geocode-backfill.ts",
+    "check:email-collisions": "tsx scripts/check-email-collisions.ts",
+    "fixture:email-collisions": "tsx scripts/seed-email-collision-fixture.ts",
     "reencrypt-tokens": "tsx scripts/reencrypt-tokens.ts",
     "admin:grant": "tsx scripts/admin-grant.ts",
     "admin:revoke": "tsx scripts/admin-grant.ts --revoke",
