@@ -67,12 +67,13 @@ export const profileRouter = createTRPCRouter({
 
 	/**
 	 * Get a volunteer's org-visible profile for authenticated screeners.
-	 * Returns data for PUBLIC and ORGS_ONLY profiles; null for PRIVATE + not-found.
+	 * Returns data for PUBLIC and ORGS_ONLY profiles; null for PRIVATE, for
+	 * not-found, and for volunteers with no relationship to the caller's org.
 	 * Use this on internal screener pages, not the public internet.
 	 */
 	getOrgVisibleProfile: staffProcedure
 		.input(z.object({ userId: z.string().min(1) }))
-		.query(({ input }) => getOrgVisibleProfile(input.userId)),
+		.query(({ ctx, input }) => getOrgVisibleProfile(input.userId, ctx.orgId)),
 
 	/** Quick stats: application counts, org count, skill count. */
 	getMyStats: protectedProcedure.query(async ({ ctx }) => {

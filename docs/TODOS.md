@@ -1922,20 +1922,174 @@ below were deliberately kept out of the v1a diff.
   claiming, or require an explicit confirmation step before attaching.
   **Blocks:** v1b. **Effort:** M.
 
+  **SECOND CONSEQUENCE (2026-07-27, found by `/ship` security specialist):** this
+  is no longer only a v1b blocker — it is now a live bypass of the
+  `requireOrgVolunteerRelationship` guard. `APPLICATION` is an accepted
+  relationship, and an application can be forged by someone who is not even
+  authenticated: `screener.submit` is a `publicProcedure`
+  (`src/server/trpc/routers/screener.ts:111`) accepting an arbitrary
+  `submittedByEmail` and storing `submittedByUserId: null`. This unscoped
+  `updateMany` then binds that row to whoever owns the address the next time
+  they open `/app/my-applications`. So a staff user can plant a public
+  application carrying a victim's email against their OWN org, wait, and their
+  org acquires an `APPLICATION` edge to that victim — which authorizes a paid
+  background check on them.
+
+  Shipped knowingly: the guard is still a strict improvement (these procedures
+  had NO check before), the attack needs an insider plus a victim action, and
+  the correct fix is here at the root rather than in the guard's relationship
+  set. **Do not close this ticket by narrowing the guard** — dropping
+  `APPLICATION` would break the applications detail page and every org's real
+  volunteers. **Fix:** distinguish "applied while authenticated" from "email
+  matched later" (e.g. a `linkedAt` column set by this function, with the
+  relationship probe requiring `linkedAt IS NULL`), which closes both this and
+  the original v1b blocker.
+
+- **[P1] `shifts.markAttendance` and `shifts.getSignups` are unguarded
+  cross-tenant IDORs** — found by the `/ship` security specialist while
+  reviewing the guard fix; the first concrete findings of the systematic sweep
+  called for below. Both take a client-supplied `shiftId` and never compare it
+  to `ctx.orgId`:
+  `getSignups` (`src/server/trpc/routers/shifts.ts:139`) reads another org's
+  signup roster; `markAttendance` (`:144`) *writes* ATTENDED/NO_SHOW to another
+  org's `ShiftSignup` and stamps the audit row with the victim org's `orgId` but
+  the attacker's `actorId`. `shiftSignupService.ts:307` loads the shift and
+  checks only that it exists. The sibling `checkinByQr` in the same router DOES
+  check `shift.orgId !== ctx.orgId`, so this is an oversight, not a design
+  choice. `getWaitlist` (`:211`) likely has the same shape — check it.
+  **Fix:** pass `ctx.orgId` into `markAttendance`/`getShiftSignups`/`getWaitlist`
+  and throw NOT_FOUND when `shift.orgId !== orgId`, mirroring `checkinByQr`.
+  Deliberately kept out of the guard PR to keep one security fix per diff.
+  **Effort:** S.
+
 - **[P1] Audit every `staffProcedure` that accepts a naked `userId`** — eng
   review X3. Three procedures were found to take a user id with no check that
   the target has any relationship to the caller's org:
   `profile.getOrgVisibleProfile` (`src/server/trpc/routers/profile.ts:73`),
   `credentials.issue` (`src/server/trpc/routers/credentials.ts:47`), and
   background-check initiate (`src/server/trpc/routers/background-checks.ts:45`).
-  All three are being fixed in the v1a PR via a shared
-  `requireOrgVolunteerRelationship()` helper, but both reviewers found them by
-  grep, not by systematic sweep. Same bug class as the v0.29.2.0 company
-  URL-scoping fix and the v0.29.3.0 impersonation fix, both of which were found
-  reactively. **Fix:** enumerate every `staffProcedure` in
-  `src/server/trpc/routers/` whose input contains a user/volunteer id and
-  confirm each authorizes against `ctx.orgId`. **Depends on:** the v1a helper
-  landing first. **Effort:** M.
+
+  **CORRECTION (2026-07-27):** this entry previously read "All three are being
+  fixed in the v1a PR via a shared `requireOrgVolunteerRelationship()` helper."
+  **They were not.** v0.32.0.0 shipped the roster foundation only; the helper
+  did not exist in the tree and all three procedures stayed open. A security
+  item recorded as fixed while live is worse than one recorded as open — noting
+  the failure mode here so the next audit distrusts "being fixed in" phrasing
+  about an unmerged PR. The three named procedures are now genuinely fixed (see
+  `orgVolunteerAccessService.ts`), plus a fourth the original entry missed:
+  `credentials.revoke`, which routes through the same `upsertCredential` as
+  `issue` and so *creates* a REVOKED credential row when none matches — a
+  cross-tenant write, visible to the victim because `getCredentialsByUserId` has
+  no org filter. `credentials.remove` was checked and is safe by construction
+  (`delete` on the compound key including `orgId` → P2025 on a foreign id).
+  The systematic sweep below is still open.
+
+  Both reviewers found the original three by grep, not by systematic sweep. Same
+  bug class as the v0.29.2.0 company URL-scoping fix and the v0.29.3.0
+  impersonation fix, both of which were found reactively. **Fix:** enumerate
+  every `staffProcedure` in `src/server/trpc/routers/` whose input contains a
+  user/volunteer id and confirm each authorizes against `ctx.orgId` — most
+  should now just call `requireOrgVolunteerRelationship()`. **Effort:** M.
+
+- **[P2] Both background-check/credential dialogs take a free-text "Volunteer
+  User ID"** — found while fixing the P1 above.
+  `src/app/(app)/app/settings/background-checks/page.tsx:211` and `:513` are raw
+  `<Input placeholder="cuid…">` fields validated only by `z.string().min(1)`,
+  with no org-scoped picker behind them. `requireOrgVolunteerRelationship()` now
+  rejects a foreign id server-side, so this is no longer a vulnerability — but
+  it is still a form that invites the mistake and whose only failure feedback is
+  "Volunteer not found in this organization." **Fix:** replace both with a
+  volunteer picker sourced from an org-scoped query. **Depends on:** the
+  `/app/volunteers` roster work, which supplies the component to reuse — doing
+  it before that means inventing a picker twice. **Effort:** M.
+
+- **[P1] `discovery.inviteToApply` does not scope `opportunityId` to the
+  caller's org** — found by adversarial review of the guard fix.
+  `src/server/trpc/routers/discovery.ts:32` is a plain `staffProcedure` taking
+  `{ volunteerId, opportunityId }`, and `inviteToApply()`
+  (`volunteerDiscoveryService.ts:36`) validates neither against `ctx.orgId`, so
+  staff at org A can send an invitation naming org B's opportunity. Separately
+  `discovery.searchVolunteers` → `searchPublicProfiles(filters)` takes no
+  `orgId` at all — a deliberate cross-org recruiting directory, but it means
+  `volunteerId` is an arbitrary stranger by design.
+
+  This was very nearly an escalation path into the new access guard: creating a
+  `VolunteerInvitation` would have minted a relationship authorizing a paid
+  background check on the invited stranger. Closed from the guard's side by
+  excluding `INVITATION` from the relationship set (an invitation is an
+  outbound solicitation, not a relationship — the volunteer has not answered
+  it). **The `opportunityId` scoping bug is still live and independent of
+  that.** **Fix:** validate `opportunityId` belongs to `ctx.orgId`.
+  **Effort:** S.
+
+- **[P2] `ORG_VOLUNTEER` is a staff-mintable relationship** — accepted risk,
+  recorded so it stays a decision rather than becoming an oversight.
+  `volunteers.add` takes an *email*, so staff can roster anyone whose address
+  they know and thereby authorize themselves to issue that person credentials or
+  run a background check on them. Kept in the relationship set anyway, because
+  the roster IS the org's assertion of a relationship — that is the premise of
+  the staff-created-volunteer feature, and removing it would make staff-added
+  volunteers unschedulable, defeating v1a. Gated per-org behind
+  `staff_created_volunteers` today; the exposure arrives when that flag flips.
+  **Revisit if:** a stricter, volunteer-initiated-only set (`APPLICATION` /
+  `SHIFT_SIGNUP`) is ever warranted specifically for the background-check path,
+  whose cost and PII exposure justify more than the profile-read path does.
+  **Effort:** M.
+
+- **[P2] No blast-radius audit for rows created before the guard landed** —
+  `issueCredentialAndResolveFcra` and the webhook auto-issue path correctly skip
+  the guard (both are scoped by `request.orgId` off an existing
+  `BackgroundCheckRequest`, which going forward can only be created through the
+  guarded `initiateProviderCheck`). But `BackgroundCheckRequest` and
+  `VolunteerCredential` rows created during the vulnerable window against
+  unrelated users still exist, and those paths will mint a VERIFIED credential
+  on them today. **Fix:** a read-only query joining both tables against
+  `findOrgVolunteerRelationship`'s criteria to list rows with no authorizing
+  edge, then triage. **Effort:** S.
+
+- **[P3] Smaller findings deferred from the `/ship` review of the access guard**
+  (2026-07-27). None are security issues; grouped to keep them out of the guard
+  PR.
+  - `VolunteerApplication` has `@@index([submittedByUserId])` and
+    `@@index([orgId, status])` but no `@@index([orgId, submittedByUserId])`.
+    That is the guard's first probe and it runs on *every* guarded call, so
+    Postgres re-checks `orgId` on each heap tuple. Highly selective already;
+    a composite index would make it index-only.
+  - `credentials.remove` surfaces a raw Prisma P2025 as INTERNAL_SERVER_ERROR
+    for an unrelated `userId`, while its `issue`/`revoke` siblings on the same
+    UI now return a clean NOT_FOUND. Catch P2025 and rethrow so all three
+    mutations speak one error language.
+  - `issueCredentialAndResolveFcra` (`backgroundCheckService.ts:959`) writes a
+    CREDENTIAL_ISSUED audit row via `upsertCredential` directly, so that action
+    now carries `relationship` on one path and not the other. Stamp it (the
+    requestId→orgId check already establishes the edge) or route through
+    `issueCredential`.
+  - Probe ORDER in `findOrgVolunteerRelationship` puts `APPLICATION` first,
+    which is right today but self-invalidating: a staff-created roster volunteer
+    has no application by definition, so every guarded call against one pays two
+    queries. Re-evaluate swapping `ORG_VOLUNTEER` first once roster adoption
+    lands. The sequential-with-short-circuit shape itself is correct — do NOT
+    convert to `Promise.all`, which would make every legitimate 1-query accept
+    pay 4x to speed up the rejection path.
+  - `findOrgVolunteerRelationship` re-implements the live-roster predicate that
+    `findLiveOrgVolunteer` already owns in the same file. If liveness ever gains
+    a condition, the security guard is the copy that gets missed.
+  - CLAUDE.md's Testing Guidelines say unit tests are "colocated with source",
+    but ~32 service tests live in `src/server/services/__tests__/`. Record the
+    actual rule (services → `__tests__/`, repositories and routers → colocated)
+    so it stops being inferred by counting files.
+  **Effort:** S each.
+
+- **[P3] The volunteer identity panel swallows query errors** —
+  `src/app/(app)/app/applications/[id]/page.tsx:328-345` handles `isLoading` and
+  `!profile` but never `isError`; both collapse to `return null`, so a 500 or a
+  network failure is indistinguishable from "this volunteer's profile is
+  private", and nothing is logged. The comment at `:344` is now stale too — it
+  enumerates three null cases and the guard added a fourth. Not a regression
+  (the `APPLICATION` probe always matches on this page, which only renders when
+  `app.submittedByUserId` is set on an org-scoped application), but this is now
+  one of the few places a guard rejection could surface. **Fix:** render
+  `QueryErrorCard`. **Effort:** S.
 
 - **[P2] Eight email senders interpolate org-controlled values into HTML
   without escaping; three files carry private `escapeHtml` copies** — eng

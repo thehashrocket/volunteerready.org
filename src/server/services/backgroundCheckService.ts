@@ -115,6 +115,7 @@ import {
 	findCredentialByUserOrgType,
 	upsertCredential,
 } from '@/server/repositories/volunteerCredentialRepo';
+import { requireOrgVolunteerRelationship } from '@/server/services/orgVolunteerAccessService';
 import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
 // Re-export error classes so the webhook routes can catch them
@@ -269,7 +270,16 @@ async function initiateProviderCheck(input: {
 		`[bg-check] Initiating check orgId=${orgId} userId=${userId} provider=${provider}`,
 	);
 
-	// Guard 1: no active check already in flight (PENDING or CONSIDER)
+	// Guard 1: the volunteer is actually this org's to check.
+	//
+	// First, and in the shared provider path rather than in each caller, because
+	// both public entry points (Checkr and Sterling) reach a paid third-party API
+	// that receives the candidate's SSN and date of birth. A guard placed after
+	// that call, or in only one of the two callers, is not a guard. The only UI
+	// for this is a free-text "Volunteer User ID" field.
+	const relationship = await requireOrgVolunteerRelationship(orgId, userId);
+
+	// Guard 2: no active check already in flight (PENDING or CONSIDER)
 	const activeCheck = await findActiveCheckForUserInOrg(userId, orgId);
 	if (activeCheck) {
 		throw new TRPCError({
@@ -278,7 +288,7 @@ async function initiateProviderCheck(input: {
 		});
 	}
 
-	// Guard 2: no existing VERIFIED BACKGROUND_CHECK credential
+	// Guard 3: no existing VERIFIED BACKGROUND_CHECK credential
 	const existingCred = await findCredentialByUserOrgType(
 		userId,
 		orgId,
@@ -331,7 +341,11 @@ async function initiateProviderCheck(input: {
 			action: 'BACKGROUND_CHECK_INITIATED',
 			entityType: 'BackgroundCheckRequest',
 			entityId: req.id,
-			metadata: { provider, externalId: reportId },
+			// `relationship` records WHY this check was permitted. During an
+			// incident review of a paid check run against the wrong person, the
+			// authorizing edge is the first thing you want and the hardest to
+			// reconstruct after the fact — a roster row can be soft-deleted.
+			metadata: { provider, externalId: reportId, relationship },
 		});
 		return req;
 	});

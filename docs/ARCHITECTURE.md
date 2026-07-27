@@ -287,6 +287,23 @@ when the session's active company didn't match the URL.
 
 Each middleware narrows the context type via `next({ ctx: { ... } })`, so downstream code can use `ctx.orgId` and `ctx.role` without non-null assertions.
 
+A procedure type is only half the authorization story. `staffProcedure`
+establishes that the caller is staff and `ctx.orgId` establishes where, but a
+`userId` arriving in the procedure's **input** is still untrusted — and user ids
+are discoverable, since `/v/[userId]` is a public route. Staff procedures that
+act on an input-supplied `userId` call `requireOrgVolunteerRelationship()` in
+`src/server/services/orgVolunteerAccessService.ts` (v0.32.1.0), the org↔volunteer
+mirror of `requireCompanyAccess()`, with the trust direction inverted: here the
+tenant id comes from `ctx` and the user id is the untrusted value. The guard
+resolves via `findOrgVolunteerRelationship()` (`orgVolunteerRepo.ts`), which
+probes only relationships an org cannot manufacture against a stranger —
+application, roster row, shift signup, org membership — and throws `NOT_FOUND`
+rather than `FORBIDDEN` so a caller probing ids cannot distinguish "not yours"
+from "not real". It gates `profile.getOrgVisibleProfile`, `credentials.issue`,
+`credentials.revoke`, and `backgroundChecks.initiate`, and the resolved
+relationship kind is written to the audit metadata as the record of why the
+action was permitted.
+
 ### Platform Admin
 
 Platform admin is DB-backed via `User.isPlatformAdmin` (with env-var fallback during migration).
