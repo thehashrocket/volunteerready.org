@@ -18,6 +18,9 @@ vi.mock('@/server/repositories/shiftSignupRepo', () => ({
 	getConfirmedShiftsForUser: vi.fn(),
 	getUpcomingSignupsForUser: vi.fn(),
 }));
+vi.mock('@/server/services/orgVolunteerAccessService', () => ({
+	getOrgVolunteerRelationship: vi.fn(),
+}));
 
 import {
 	getAttendedShiftsForUser,
@@ -25,6 +28,7 @@ import {
 } from '@/server/repositories/shiftSignupRepo';
 import { getCredentialsByUserId } from '@/server/repositories/volunteerCredentialRepo';
 import { getProfileWithUser } from '@/server/repositories/volunteerProfileRepo';
+import { getOrgVolunteerRelationship } from '@/server/services/orgVolunteerAccessService';
 import {
 	getOrgVisibleProfile,
 	getPublicProfile,
@@ -34,6 +38,9 @@ const mockGetProfileWithUser = vi.mocked(getProfileWithUser);
 const mockGetCredentialsByUserId = vi.mocked(getCredentialsByUserId);
 const mockGetAttendedShifts = vi.mocked(getAttendedShiftsForUser);
 const mockGetSignups = vi.mocked(getSignupsForReliability);
+const mockGetRelationship = vi.mocked(getOrgVolunteerRelationship);
+
+const ORG_ID = 'org-1';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -230,34 +237,61 @@ describe('getOrgVisibleProfile', () => {
 		mockGetCredentialsByUserId.mockResolvedValue([]);
 		mockGetAttendedShifts.mockResolvedValue([]);
 		mockGetSignups.mockResolvedValue([]);
+		// Default: the volunteer belongs to the calling org. Tests that care
+		// about the relationship gate override this.
+		mockGetRelationship.mockResolvedValue('APPLICATION');
 	});
 
 	it('returns null when profile is not found', async () => {
 		mockGetProfileWithUser.mockResolvedValue(null);
-		expect(await getOrgVisibleProfile('user-1')).toBeNull();
+		expect(await getOrgVisibleProfile('user-1', ORG_ID)).toBeNull();
 	});
 
 	it('returns null for PRIVATE visibility (no leakage)', async () => {
 		mockGetProfileWithUser.mockResolvedValue(makeProfile('PRIVATE'));
-		expect(await getOrgVisibleProfile('user-1')).toBeNull();
+		expect(await getOrgVisibleProfile('user-1', ORG_ID)).toBeNull();
 	});
 
 	it('returns profile for PUBLIC visibility', async () => {
 		mockGetProfileWithUser.mockResolvedValue(makeProfile('PUBLIC'));
-		expect(await getOrgVisibleProfile('user-1')).not.toBeNull();
+		expect(await getOrgVisibleProfile('user-1', ORG_ID)).not.toBeNull();
 	});
 
 	it('returns profile for ORGS_ONLY visibility (screeners can see it)', async () => {
 		mockGetProfileWithUser.mockResolvedValue(makeProfile('ORGS_ONLY'));
-		const result = await getOrgVisibleProfile('user-1');
+		const result = await getOrgVisibleProfile('user-1', ORG_ID);
 		expect(result).not.toBeNull();
 		expect(result?.displayName).toBe('Jane Doe');
 	});
 
 	it('does NOT expose email or phone on the org-visible profile', async () => {
 		mockGetProfileWithUser.mockResolvedValue(makeProfile('ORGS_ONLY'));
-		const result = await getOrgVisibleProfile('user-1');
+		const result = await getOrgVisibleProfile('user-1', ORG_ID);
 		expect(result).not.toHaveProperty('email');
 		expect(result).not.toHaveProperty('phone');
+	});
+
+	it('SECURITY: returns null for a volunteer with no relationship to the org', async () => {
+		mockGetRelationship.mockResolvedValue(null);
+		mockGetProfileWithUser.mockResolvedValue(makeProfile('PUBLIC'));
+
+		expect(await getOrgVisibleProfile('user-1', ORG_ID)).toBeNull();
+	});
+
+	it('SECURITY: scopes the relationship check to the caller org', async () => {
+		mockGetProfileWithUser.mockResolvedValue(makeProfile('ORGS_ONLY'));
+
+		await getOrgVisibleProfile('user-1', ORG_ID);
+
+		expect(mockGetRelationship).toHaveBeenCalledWith(ORG_ID, 'user-1');
+	});
+
+	it('SECURITY: does not read the profile at all when unrelated', async () => {
+		// The response must be indistinguishable from "no profile", and the
+		// profile row should never be fetched for a stranger in the first place.
+		mockGetRelationship.mockResolvedValue(null);
+
+		expect(await getOrgVisibleProfile('user-1', ORG_ID)).toBeNull();
+		expect(mockGetProfileWithUser).not.toHaveBeenCalled();
 	});
 });

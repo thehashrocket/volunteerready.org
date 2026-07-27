@@ -22,6 +22,7 @@ import {
 } from '@/server/repositories/shiftSignupRepo';
 import { getCredentialsByUserId } from '@/server/repositories/volunteerCredentialRepo';
 import { getProfileWithUser } from '@/server/repositories/volunteerProfileRepo';
+import { getOrgVolunteerRelationship } from '@/server/services/orgVolunteerAccessService';
 
 export interface VolunteerCredentialSummary {
 	type: CredentialType;
@@ -154,12 +155,23 @@ export const getPublicProfile = cache(async function getPublicProfile(
  * want their identity visible to orgs they apply to, not the public internet.
  * PRIVATE profiles still return null.
  *
- * Returns null for not-found AND for PRIVATE profiles — identical response
- * prevents callers from distinguishing the two cases.
+ * `orgId` is required and checked: ORGS_ONLY means "orgs I have a relationship
+ * with", not "any authenticated org". Without it this read served any staff
+ * user at any org the profile of any volunteer in the system, since the caller
+ * supplies the `userId` and user ids are discoverable via the public
+ * `/v/[userId]` route.
+ *
+ * Returns null for not-found, for PRIVATE profiles, AND for volunteers outside
+ * `orgId` — one identical response, so a caller probing ids cannot tell the
+ * three apart.
  */
 export async function getOrgVisibleProfile(
 	userId: string,
+	orgId: string,
 ): Promise<PublicVolunteerProfile | null> {
+	const relationship = await getOrgVolunteerRelationship(orgId, userId);
+	if (!relationship) return null;
+
 	const profileWithUser = await getProfileWithUser(userId);
 	if (!profileWithUser) return null;
 	if (profileWithUser.visibility === 'PRIVATE') return null;
