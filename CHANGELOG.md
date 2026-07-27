@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.2.0] - 2026-07-27
+
+### Fixed
+- Staff at one organization could read and change another organization's shifts by using a shift ID that wasn't theirs. Eleven actions took a shift or template ID from the browser and never confirmed it belonged to the organization making the request. The read side exposed a shift's full signup roster — every volunteer's name and email address. The write side was worse: another organization's shift could be renamed, have its capacity changed, be cancelled, be force-marked complete, have attendance recorded against it, or be **deleted outright**, which also destroyed the attendance history attached to it. Editing or deleting a recurring shift template had the same hole. In every case the audit log recorded the change under the organization that made it rather than the one it happened to, so the record pointed at the wrong place. All eleven now confirm the shift or template is yours before reading or writing anything.
+- Inviting a volunteer to apply no longer accepts an opportunity belonging to a different organization. Staff could send an invitation naming another organization's opportunity, and the email that went out carried *that* organization's name — so the volunteer saw an invitation apparently from an organization that never sent it.
+- A request for a shift or template that isn't yours now reads as "not found" rather than "not allowed", matching the volunteer-record behavior from 0.32.1.0, so a response cannot be used to work out whether a record exists. Generating shifts from a template already checked ownership but reported the failure as an unexpected server error; it now matches the rest.
+
+### Changed
+- Attendance can be recorded two ways — a coordinator marking someone present, or a volunteer checking themselves in with a QR or location code — and the two are permitted on completely different grounds. The code now requires every caller to state which of the two applies rather than leaving it implied, so a later change cannot quietly give a staff action the volunteer's weaker check.
+
 ## [0.32.1.0] - 2026-07-27
 
 ### Fixed

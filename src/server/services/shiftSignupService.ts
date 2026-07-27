@@ -23,13 +23,23 @@ import {
 	updateSignupStatus,
 } from '@/server/repositories/shiftSignupRepo';
 import { tryNotify } from '@/server/services/notificationService';
+import {
+	type AttendanceAuthorization,
+	requireAttendanceAccess,
+	requireOrgShift,
+} from '@/server/services/shiftAccessService';
 import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
 // ---------------------------------------------------------------------------
 // Reads
 // ---------------------------------------------------------------------------
 
-export async function getShiftSignups(shiftId: string) {
+/**
+ * SECURITY: `orgId` is required, not optional. This returns another tenant's
+ * volunteer names and email addresses if the shift is not scoped.
+ */
+export async function getShiftSignups(shiftId: string, orgId: string) {
+	await requireOrgShift(shiftId, orgId);
 	return getSignupsByShift(shiftId);
 }
 
@@ -48,7 +58,9 @@ export async function getMyUpcomingShiftsWithWaitlist(
 	return getUpcomingSignupsForUserIncludingWaitlist(userId, limit);
 }
 
-export async function getShiftWaitlist(shiftId: string) {
+/** SECURITY: org-scoped for the same reason as `getShiftSignups`. */
+export async function getShiftWaitlist(shiftId: string, orgId: string) {
+	await requireOrgShift(shiftId, orgId);
 	return getWaitlistForShift(shiftId);
 }
 
@@ -297,15 +309,20 @@ export async function leaveWaitlist(shiftId: string, userId: string) {
 	});
 }
 
+/**
+ * SECURITY: `auth` is required. Without it this wrote ATTENDED/NO_SHOW into any
+ * org's `ShiftSignup` by id, stamping the audit row with the victim org's
+ * `orgId` and the attacker's `actorId`.
+ */
 export async function markAttendance(
 	shiftId: string,
 	userId: string,
 	status: 'ATTENDED' | 'NO_SHOW',
 	actorId: string,
+	auth: AttendanceAuthorization,
 	method?: 'manual' | 'qr' | 'geo',
 ) {
-	const shift = await getShiftById(shiftId);
-	if (!shift) throw new Error('Shift not found.');
+	const shift = await requireAttendanceAccess(shiftId, userId, auth);
 
 	return prisma.$transaction(async (tx) => {
 		// Lock the signup row to prevent concurrent audit log duplication

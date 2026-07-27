@@ -41,6 +41,33 @@ export async function inviteToApply(input: {
 }): Promise<{ invitationId: string }> {
 	const { volunteerId, opportunityId, orgId, actorId } = input;
 
+	// SECURITY: `opportunityId` arrives from client input while `orgId` is
+	// resolved server-side from the session, so without this check staff at org A
+	// could send an invitation naming org B's opportunity — an email carrying org
+	// B's name (see step 4, which reads `opportunity.organization.name`) and an
+	// audit row filed under org A. NOT_FOUND rather than FORBIDDEN so a foreign
+	// id is indistinguishable from a missing one.
+	//
+	// `volunteerId` is deliberately NOT scoped here: discovery is a cross-org
+	// recruiting directory over PUBLIC profiles, so an arbitrary volunteer is the
+	// feature, not a bug. That is also why `VolunteerInvitation` is excluded from
+	// the accepted set in `findOrgVolunteerRelationship` — an outbound
+	// solicitation must not mint a relationship that authorizes acting on the
+	// person it was sent to.
+	//
+	// This selects the same fields step 4 needs, so the guard replaces that fetch
+	// rather than adding one — net zero queries.
+	const opportunity = await prisma.volunteerOpportunity.findFirst({
+		where: { id: opportunityId, orgId },
+		select: { title: true, organization: { select: { name: true } } },
+	});
+	if (!opportunity) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Opportunity not found.',
+		});
+	}
+
 	// 1. Rate limit + 2. Already-applied check + 3. Create invitation — all in
 	// one transaction to prevent the TOCTOU race: two concurrent requests from the
 	// same org could both pass the rate limit check before either creates a record.
@@ -83,20 +110,12 @@ export async function inviteToApply(input: {
 		throw err;
 	}
 
-	// 4. Fetch volunteer email + name, opportunity title (parallel)
-	const [volunteer, opportunity] = await Promise.all([
-		prisma.user.findUnique({
-			where: { id: volunteerId },
-			select: { email: true, name: true },
-		}),
-		prisma.volunteerOpportunity.findUnique({
-			where: { id: opportunityId },
-			select: {
-				title: true,
-				organization: { select: { name: true } },
-			},
-		}),
-	]);
+	// 4. Fetch volunteer email + name. The opportunity was already loaded by the
+	// org-scope guard above, so it is not re-fetched here.
+	const volunteer = await prisma.user.findUnique({
+		where: { id: volunteerId },
+		select: { email: true, name: true },
+	});
 
 	// 5. Send email (fire-and-forget — log error, don't throw)
 	if (volunteer?.email && opportunity) {

@@ -5,6 +5,7 @@ import {
 	validateCheckinTokenFromEnv,
 } from '@/server/lib/checkin-token';
 import { getShiftById } from '@/server/repositories/shiftRepo';
+import { requireOrgShift } from '@/server/services/shiftAccessService';
 import {
 	cancelShift,
 	completeShift,
@@ -54,8 +55,8 @@ export const shiftsRouter = createTRPCRouter({
 	/** Get shift detail with signups. */
 	getById: staffProcedure
 		.input(z.object({ id: z.string() }))
-		.query(async ({ input }) => {
-			const shift = await getShiftDetail(input.id);
+		.query(async ({ ctx, input }) => {
+			const shift = await getShiftDetail(input.id, ctx.orgId);
 			if (!shift)
 				throw new TRPCError({ code: 'NOT_FOUND', message: 'Shift not found.' });
 			return shift;
@@ -138,7 +139,7 @@ export const shiftsRouter = createTRPCRouter({
 	/** Get signups for a shift. */
 	getSignups: staffProcedure
 		.input(z.object({ shiftId: z.string() }))
-		.query(({ input }) => getShiftSignups(input.shiftId)),
+		.query(({ ctx, input }) => getShiftSignups(input.shiftId, ctx.orgId)),
 
 	/** Mark a volunteer's attendance. */
 	markAttendance: staffProcedure
@@ -155,6 +156,7 @@ export const shiftsRouter = createTRPCRouter({
 				input.userId,
 				input.status,
 				requireUserId(ctx.session),
+				{ by: 'staff', orgId: ctx.orgId },
 			),
 		),
 
@@ -210,7 +212,7 @@ export const shiftsRouter = createTRPCRouter({
 	/** Get waitlist for a shift. */
 	getWaitlist: staffProcedure
 		.input(z.object({ shiftId: z.string() }))
-		.query(({ input }) => getShiftWaitlist(input.shiftId)),
+		.query(({ ctx, input }) => getShiftWaitlist(input.shiftId, ctx.orgId)),
 
 	// ---- QR Check-in --------------------------------------------------------
 
@@ -273,13 +275,7 @@ export const shiftsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const shift = await getShiftById(input.shiftId);
-			if (!shift || shift.orgId !== ctx.orgId) {
-				throw new TRPCError({
-					code: 'NOT_FOUND',
-					message: 'Shift not found.',
-				});
-			}
+			const shift = await requireOrgShift(input.shiftId, ctx.orgId);
 
 			if (shift.status !== 'OPEN' && shift.status !== 'FULL') {
 				throw new TRPCError({
@@ -305,6 +301,7 @@ export const shiftsRouter = createTRPCRouter({
 				input.userId,
 				'ATTENDED',
 				requireUserId(ctx.session),
+				{ by: 'staff', orgId: ctx.orgId },
 				'qr',
 			);
 
@@ -352,6 +349,7 @@ export const shiftsRouter = createTRPCRouter({
 				userId,
 				'ATTENDED',
 				userId,
+				{ by: 'self', userId },
 				'geo',
 			);
 
@@ -373,13 +371,7 @@ export const shiftsRouter = createTRPCRouter({
 	getCheckinStats: staffProcedure
 		.input(z.object({ shiftId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			const shift = await getShiftById(input.shiftId);
-			if (!shift || shift.orgId !== ctx.orgId) {
-				throw new TRPCError({
-					code: 'NOT_FOUND',
-					message: 'Shift not found.',
-				});
-			}
+			await requireOrgShift(input.shiftId, ctx.orgId);
 			return getCheckinStats(input.shiftId);
 		}),
 });

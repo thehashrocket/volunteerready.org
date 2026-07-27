@@ -15,6 +15,7 @@ import {
 	type UpdateTemplateInput,
 	updateTemplate,
 } from '@/server/repositories/shiftTemplateRepo';
+import { requireOrgTemplate } from '@/server/services/shiftAccessService';
 
 // ---------------------------------------------------------------------------
 // Reads
@@ -59,11 +60,20 @@ export async function createNewTemplate(
 	});
 }
 
+/**
+ * SECURITY: `orgId` reached this function only to stamp the audit row, while
+ * `updateTemplate` writes on `where: { id }` alone — so staff at org A could
+ * rewrite org B's recurring schedule (title, capacity, day, time, opportunity)
+ * and have the change filed under org A. Same omission in `removeTemplate`.
+ * Identical to the `updateExistingShift` hole; see shiftAccessService.ts.
+ */
 export async function updateExistingTemplate(
 	input: UpdateTemplateInput,
 	orgId: string,
 	actorId: string,
 ) {
+	await requireOrgTemplate(input.id, orgId);
+
 	if (
 		input.startHour !== undefined &&
 		input.startMinute !== undefined &&
@@ -100,6 +110,9 @@ export async function removeTemplate(
 	orgId: string,
 	actorId: string,
 ) {
+	// SECURITY: unscoped `delete` destroyed another org's recurring schedule.
+	await requireOrgTemplate(id, orgId);
+
 	return prisma.$transaction(async (tx) => {
 		await deleteTemplate(tx, id);
 		await writeAuditLogTx(tx, {
@@ -119,9 +132,10 @@ export async function generateShiftsFromTemplate(
 	orgId: string,
 	actorId: string,
 ) {
-	const template = await getTemplateById(templateId);
-	if (!template) throw new Error('Template not found.');
-	if (template.orgId !== orgId) throw new Error('Template not found.');
+	// This callsite always had the check, inline — but as a bare `Error`, which
+	// surfaces as INTERNAL_SERVER_ERROR rather than the NOT_FOUND its siblings
+	// now return. Routed through the shared guard so all three speak one language.
+	const template = await requireOrgTemplate(templateId, orgId);
 
 	const dates = generateShiftDates(template, weeks, startDate);
 
