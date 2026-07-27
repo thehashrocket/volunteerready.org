@@ -45,6 +45,28 @@ export const authOptions: NextAuthOptions = {
 		GoogleProvider({
 			clientId: process.env.GOOGLE_CLIENT_ID ?? '',
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+			// AVAILABILITY: normalize the address on the READ path.
+			//
+			// `User.email` is canonicalized to lower(btrim(...)) by a database
+			// trigger (migration 20260726225900). That trigger covers every WRITE,
+			// but it cannot cover a LOOKUP: PrismaAdapter's `getUserByEmail` runs
+			// `findUnique({ where: { email } })` with the raw address Google sent.
+			// A profile email carrying any uppercase would miss the now-lowercased
+			// row, NextAuth would fall through to `createUser`, the trigger would
+			// lowercase that insert, and it would collide with the existing
+			// `User_email_key` — a hard sign-in failure instead of linking to the
+			// account the user already has.
+			//
+			// EmailProvider needs no equivalent: NextAuth's default
+			// `normalizeIdentifier` already lowercases magic-link addresses.
+			profile(profile) {
+				return {
+					id: profile.sub,
+					name: profile.name,
+					email: profile.email?.trim().toLowerCase() ?? null,
+					image: profile.picture,
+				};
+			},
 		}),
 		EmailProvider({
 			from: getFromEmail(),

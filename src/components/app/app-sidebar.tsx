@@ -2,6 +2,7 @@
 
 import {
 	BarChart3,
+	BookUser,
 	Briefcase,
 	Building2,
 	Calendar,
@@ -38,19 +39,34 @@ const VOLUNTEER_NAV: NavItem[] = [
 	{ label: 'Profile', href: '/app/profile', icon: User },
 ];
 
-const STAFF_NAV: NavItem[] = [
-	{ label: 'Dashboard', href: '/app', icon: LayoutDashboard },
-	{ label: 'Opportunities', href: '/app/opportunities', icon: Briefcase },
-	{ label: 'Applications', href: '/app/applications', icon: FileText },
-	{ label: 'Screener', href: '/app/screener', icon: ClipboardList },
-	{ label: 'Shifts', href: '/app/shifts', icon: Calendar },
-	{ label: 'Scan', href: '/app/scan', icon: QrCode },
-	{ label: 'Discover', href: '/app/discover', icon: UserSearch },
-	{ label: 'Analytics', href: '/app/analytics', icon: TrendingUp },
-	{ label: 'Team', href: '/app/settings/team', icon: Users },
-	{ label: 'Settings', href: '/app/settings', icon: Settings },
-	{ label: 'Billing', href: '/app/billing', icon: CreditCard },
-];
+/**
+ * Volunteers sits immediately after Applications so the nav reads in funnel
+ * order: post an opportunity, receive applications, then your volunteers.
+ * It also keeps it visually far from Team, the pair most likely to be confused
+ * (small nonprofits call their volunteers "the team").
+ *
+ * Icon is `BookUser` — an address book with a person in it, which is literally
+ * what a roster is. NOT `Users` (already Team's) and NOT `UsersRound`, which is
+ * near-identical to Team's icon at 16px and would make that confusion worse.
+ */
+function getStaffNav(hasVolunteerRoster: boolean): NavItem[] {
+	return [
+		{ label: 'Dashboard', href: '/app', icon: LayoutDashboard },
+		{ label: 'Opportunities', href: '/app/opportunities', icon: Briefcase },
+		{ label: 'Applications', href: '/app/applications', icon: FileText },
+		...(hasVolunteerRoster
+			? [{ label: 'Volunteers', href: '/app/volunteers', icon: BookUser }]
+			: []),
+		{ label: 'Screener', href: '/app/screener', icon: ClipboardList },
+		{ label: 'Shifts', href: '/app/shifts', icon: Calendar },
+		{ label: 'Scan', href: '/app/scan', icon: QrCode },
+		{ label: 'Discover', href: '/app/discover', icon: UserSearch },
+		{ label: 'Analytics', href: '/app/analytics', icon: TrendingUp },
+		{ label: 'Team', href: '/app/settings/team', icon: Users },
+		{ label: 'Settings', href: '/app/settings', icon: Settings },
+		{ label: 'Billing', href: '/app/billing', icon: CreditCard },
+	];
+}
 
 function getCompanyNav(companyId: string | null | undefined): NavItem[] {
 	if (!companyId)
@@ -117,6 +133,13 @@ interface AppSidebarProps {
 	hasOrg: boolean;
 	hasCompany: boolean;
 	companyId?: string | null;
+	/**
+	 * staff_created_volunteers, resolved server-side in app/(app)/app/layout.tsx
+	 * and threaded down like hasOrg. A client-side flag read would make the item
+	 * appear a beat after load for enabled orgs and — worse — appear then vanish
+	 * for disabled ones.
+	 */
+	hasVolunteerRoster?: boolean;
 }
 
 const PLATFORM_ADMIN_NAV: NavItem[] = [
@@ -129,7 +152,12 @@ const PLATFORM_ADMIN_NAV: NavItem[] = [
 	{ label: 'Audit log', href: '/app/admin/platform/audit', icon: FileText },
 ];
 
-export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
+export function AppSidebar({
+	hasOrg,
+	hasCompany,
+	companyId,
+	hasVolunteerRoster = false,
+}: AppSidebarProps) {
 	const pathname = usePathname();
 	const { data: session } = useSession();
 	const isPlatformAdmin =
@@ -146,10 +174,11 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 	const urlCompanyId =
 		urlCompanyIdMatch && urlCompanyIdMatch !== 'new' ? urlCompanyIdMatch : null;
 	const companyNav = getCompanyNav(urlCompanyId ?? companyId);
+	const staffNav = getStaffNav(hasVolunteerRoster);
 
 	const visibleItems = [
 		...(!hasOrg ? VOLUNTEER_NAV : []),
-		...(hasOrg ? STAFF_NAV : []),
+		...(hasOrg ? staffNav : []),
 		...(hasCompany ? companyNav : []),
 		...(isPlatformAdmin ? PLATFORM_ADMIN_NAV : []),
 	];
@@ -179,7 +208,7 @@ export function AppSidebar({ hasOrg, hasCompany, companyId }: AppSidebarProps) {
 					<p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
 						Organization
 					</p>
-					{STAFF_NAV.map((item) => (
+					{staffNav.map((item) => (
 						<NavLink
 							key={item.href}
 							item={item}

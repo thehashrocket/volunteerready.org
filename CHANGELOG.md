@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.0.0] - 2026-07-27
+
+### Added
+- Organizations can now keep a roster of their volunteers directly, without waiting for each person to sign up first. Staff add someone by name and email, and that volunteer can immediately be scheduled for shifts and have their hours recorded and reported on. This is the foundation of the feature and ships behind a per-organization switch that is **off by default**, so no organization sees it until it is turned on for them. The roster page shows who is on the list, whether they have an account yet, and how many shifts each person has worked with your organization.
+- Someone who already has a VolunteerReady account now gets an email when an organization adds them to its roster, telling them who added them and where to leave the roster if it was unexpected.
+
+### Changed
+- Email addresses are now stored in one consistent form. Previously the same person could exist as `Bob@shelter.org` and `bob@shelter.org`, which meant a lookup by address could silently miss the account — including the check that decides whether someone should receive automated mail. Addresses are normalized on every write and existing records were converted, including the addresses stored on applications, invitations and status-lookup links, so nothing becomes unmatched. Signing in with Google normalizes the address the same way, so an account is never duplicated because of capitalization.
+
+### Fixed
+- QR check-in tokens are now compared in constant time. The previous comparison could reveal, a character at a time, how much of a guessed token was correct.
+- `DESIGN.md` described a forest-green staff sidebar and a 220px width the application does not have, and omitted the top bar entirely. Every contributor is told to read that file before making a visual decision, so the stale description was actively producing wrong work; it now matches what ships.
+
 ## [0.31.0.0] - 2026-07-21
 
 ### Added

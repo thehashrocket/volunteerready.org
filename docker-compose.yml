@@ -1,0 +1,44 @@
+# Local development database.
+#
+#   docker compose up -d db      # start
+#   pnpm prisma migrate dev      # apply migrations
+#   pnpm seed:dev                # load demo data
+#   docker compose down          # stop (keeps data)
+#   docker compose down -v       # stop and DELETE the volume
+#
+# Credentials come from `.env` (gitignored) and must match DATABASE_URL in
+# .env.local. They are deliberately NOT literals here: this file is committed,
+# so a hardcoded password would live in git history forever even though it only
+# ever protects a local container.
+#
+#   Create a `.env` next to this file containing:
+#     POSTGRES_PASSWORD=<same password as in .env.local's DATABASE_URL>
+#
+# Port 5432 is used deliberately — another project's container occupies 5433 on
+# this machine, so do not "helpfully" remap this one to dodge a clash that does
+# not exist.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: volunteermatch_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      # `:?` fails fast with this message rather than silently starting a
+      # container whose password does not match DATABASE_URL.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env — must match DATABASE_URL in .env.local}
+      POSTGRES_DB: ${POSTGRES_DB:-volunteer-match}
+    ports:
+      - '5432:5432'
+    volumes:
+      - volunteermatch_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Without this, `docker compose up -d` returns before Postgres accepts
+      # connections and the first `prisma migrate` fails with ECONNREFUSED.
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d volunteer-match']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  volunteermatch_pgdata:

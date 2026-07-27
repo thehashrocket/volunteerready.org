@@ -24,6 +24,8 @@ interface AppShellProps {
 	hasOrg: boolean;
 	hasCompany: boolean;
 	companyId?: string | null;
+	/** Resolved server-side so the nav item never flashes in then disappears. */
+	hasVolunteerRoster?: boolean;
 }
 
 export function AppShell({
@@ -31,6 +33,7 @@ export function AppShell({
 	hasOrg,
 	hasCompany,
 	companyId,
+	hasVolunteerRoster = false,
 }: AppShellProps) {
 	const { data: session } = useSession();
 	const initial = session?.user?.email?.[0]?.toUpperCase() ?? 'U';
@@ -131,6 +134,7 @@ export function AppShell({
 							hasOrg={hasOrg}
 							hasCompany={hasCompany}
 							companyId={companyId}
+							hasVolunteerRoster={hasVolunteerRoster}
 						/>
 					</div>
 				</aside>
@@ -149,6 +153,7 @@ export function AppShell({
 								hasOrg={hasOrg}
 								hasCompany={hasCompany}
 								companyId={companyId}
+								hasVolunteerRoster={hasVolunteerRoster}
 							/>
 						</aside>
 					</>

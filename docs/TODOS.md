@@ -5,6 +5,134 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Specialist review findings (`/ship`, 2026-07-27, branch thehashrocket/staff-created-volunteers-review)
+
+Five specialists ran against the staff-created-volunteers foundation PR (v0.32.0.0).
+Five CRITICALs were found and **all fixed in that PR**; the items below are the
+deferred INFORMATIONAL findings, kept because each touches files outside that PR.
+
+### [P2] Nav layout resolves the feature flag against the wrong org on impersonation failure
+**Priority:** P2
+**Tracked as:** [#157](https://github.com/thehashrocket/volunteerready.org/issues/157)
+`app/(app)/app/volunteers/layout.tsx` was fixed in v0.32.0.0 to check
+`impersonation.resolutionFailed` before deriving the effective user. Its sibling
+`app/(app)/app/layout.tsx` was NOT — on a failed impersonation
+`getImpersonationContext()` returns `isImpersonating: false` with
+`resolutionFailed: true`, so the layout falls through to `session.user.id` (the
+REAL admin), resolves `activeOrgId` from the admin's memberships, and evaluates
+`staff_created_volunteers` against the admin's own org.
+
+**Impact is cosmetic, not a leak:** the route guard fails closed independently,
+so the nav item may appear but clicking it redirects to `/app`. No cross-tenant
+data is served.
+
+**Why it was left:** CLAUDE.md states that read-only nav/banner rendering via
+`getImpersonationContext()` may ignore `resolutionFailed`, and `hasOrg` /
+`hasCompany` in that same layout already fall through the same way (documented
+in the v0.31.0.0 note). v0.32.0.0 added a *feature-flag lookup* to that layout,
+which is arguably more than nav rendering — hence this item.
+
+**Fix:** extract the shared `getActiveOrgContext()` helper already filed below
+and have it return `resolutionFailed`, so both layouts make one decision instead
+of two. Doing it as part of that extraction avoids touching the impersonation
+fallback twice.
+
+### [P2] Six hand-rolled copies of the same timing-safe comparison
+**Priority:** P2
+`timingSafeCompare` now exists, character-for-character, in six places:
+`api/resend/webhook/route.ts`, `adapters/background-check/checkr.ts`,
+`adapters/background-check/sterling.ts`, `lib/case-study-token.ts`,
+`lib/digest-unsubscribe-token.ts`, and `lib/checkin-token.ts`. Six copies of a
+security primitive is six chances to omit the length pre-check, and omitting it
+makes `timingSafeEqual` **throw** instead of returning false. Extract to
+`src/server/lib/crypto-compare.ts` and have all six call it.
+
+### [P2] Active-org resolution now exists in three places with different rules
+**Priority:** P2
+`auth.ts` (session callback), `trpc/init.ts` (tRPC context) and the new pure
+`domain/active-org.ts` each decide "which org is this user acting as". The first
+two assign `currentOrgId` unconditionally; the new one additionally verifies the
+membership still exists. That divergence is deliberate and documented — it gates
+an access decision — but three copies of one rule will drift. Have `init.ts` and
+`auth.ts` call `resolveActiveOrgId()`.
+
+### [P2] The two SSR layouts duplicate the whole active-org block
+**Priority:** P2
+`app/(app)/app/layout.tsx` and `app/(app)/app/volunteers/layout.tsx` repeat the
+same ~10 lines (resolve effective user → load membership ids → resolve active
+org). One drives nav visibility and the other the route guard, so drift produces
+a nav item linking to a page that redirects. Extract
+`getActiveOrgContext()` returning `{ effectiveUserId, membershipOrgIds, activeOrgId, resolutionFailed }`.
+
+### [P3] `STAFF_CREATED_VOLUNTEERS_FLAG` is a second literal, not a derivation
+**Priority:** P3
+The constant exists so the app shell "cannot drift from the registry by typo",
+but it is itself a hand-written copy of the same string and typed as plain
+`string`. Rename the registry key and it still compiles while `isFeatureEnabled`
+silently returns the default. Derive a `FeatureFlagKey` union from
+`FEATURE_FLAG_REGISTRY` and type the constant against it.
+
+### [P3] `getAuditActors` duplication and a hand-rolled ctx type
+**Priority:** P3
+`routers/volunteers.ts` re-implements the `impersonatedBy` expression from
+`routers/company.ts` and declares a structural `AuditCtx` instead of the
+inferred tRPC ctx, so a ctx shape change would leave it compiling against a
+shape that no longer exists. Extract `getAuditActors(ctx)` into `trpc/init.ts`.
+
+### [P3] `membershipRepo.ts` overlaps `orgRepo.ts`
+**Priority:** P3
+`orgRepo.getFirstOrgForUser()` already queries `OrganizationMember` with the same
+`orderBy`. Two repositories now answer "what orgs does this user belong to".
+Move `listMembershipOrgIds` into `orgRepo.ts` and delete `membershipRepo.ts`.
+
+### [P3] `TxClient` type alias copy-pasted across repositories
+**Priority:** P3
+The same non-obvious conditional type over Prisma internals is declared in
+`orgRepo.ts`, `orgVolunteerRepo.ts` and others. Declare it once in
+`repositories/prisma.ts` so a Prisma major upgrade is a one-line change.
+
+### [P3] Direct Prisma access inside `staffVolunteerService`
+**Priority:** P3
+CLAUDE.md says repositories own Prisma access, but the service calls
+`tx.user.findUnique`, `tx.user.create`, `prisma.organization.findUnique` and
+`prisma.user.findUnique` directly while routing everything else through
+`orgVolunteerRepo`. ~20 existing services do the same, so this is established
+(if non-conforming) practice — the sharper problem is the inconsistency *within
+one new file*. Add a `userRepo.ts` accepting `TxClient`.
+
+### [P3] Cross-file comments pin line numbers that will rot
+**Priority:** P3
+Several new comments reference `file.ts:40-75`-style ranges; at least one was
+already off by one when written. Replace with symbol names, which survive edits
+and are greppable.
+
+### [P3] `EmailBounceStatus.email` is not canonicalized
+**Priority:** P3
+Deliberately excluded from the v0.32.0.0 backfill because it is UNIQUE (so
+lowercasing needs a merge policy) and because `sendEmail` already looks it up as
+`to.toLowerCase()` — mixed-case rows are invisible today either way. Worth doing
+with an explicit merge rule (keep the highest `bounceCount`).
+
+### [P3] Roster page: remove-flow and Load-more interactions untested
+**Priority:** P3
+`page.test.tsx` stubs the remove mutation with a throwaway `mutate` and never
+captures `onSuccess`/`onError`, so the Remove click payload, the success toast +
+`invalidate()`, the error branch, and the `Load more` click are all uncovered.
+Use the callback-capture pattern from `AddVolunteerDialog.test.tsx`.
+
+### [P3] `getRoster` / `getRosterCount` have no direct test
+**Priority:** P3
+Neither is imported by the service test, and the router test mocks them, so the
+row mapping — including the `?? 0` default that makes the Shifts column render
+`0` rather than blank — is unproven.
+
+### [P3] `pickSurvivor` untested when 2+ rows are verified
+**Priority:** P3
+`verified.length === 1 ? verified : group` means a group with two verified rows
+falls back to the whole group, so an *unverified* row can win on `createdAt` —
+the opposite of the documented rule. Either add the case or document the
+behaviour.
+
 ## Animal-shelters screenshot copy — found during `/document-release` (2026-07-14)
 
 - **[P4] `/for/animal-shelters`'s first annotation label claims the captured
@@ -1771,3 +1899,176 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   components render <script> inside React trees).
 
 Full report: `~/.gstack/projects/thehashrocket-volunteerready.org/designs/design-audit-20260712/`
+
+## Deferred from the staff-created-volunteers eng review (2026-07-26)
+
+Raised during `/plan-eng-review` of `docs/designs/staff-created-volunteers.md`.
+That plan was split into v1a (roster + staff shift assignment + email guard)
+and v1b (invite email, `/welcome/[token]`, token lib, claim/decline). Items
+below were deliberately kept out of the v1a diff.
+
+- **[P1] `linkApplicationsToUser()` auto-links applications across all orgs
+  with no scope** — Codex outside voice. `src/server/services/my-applications.ts:96-107`
+  runs `updateMany({ where: { submittedByUserId: null, submittedByEmail: email } })`
+  on every sign-in with no `orgId` filter, so any orphaned application matching
+  the signing-in address is silently attached, regardless of which org created
+  it. Live today, independent of the roster feature. Does not bite v1a because
+  the review moved roster membership onto a dedicated `OrgVolunteer` join table
+  instead of `VolunteerApplication`, so staff-add no longer produces orphan
+  applications. It becomes load-bearing for **v1b**: a coordinator typo plus an
+  ordinary magic-link login is exactly the wrong-email scenario Security §1 of
+  the design doc worries about, and it happens with no invite involved.
+  **Fix:** scope the auto-link to the org whose invite/roster row the user is
+  claiming, or require an explicit confirmation step before attaching.
+  **Blocks:** v1b. **Effort:** M.
+
+- **[P1] Audit every `staffProcedure` that accepts a naked `userId`** — eng
+  review X3. Three procedures were found to take a user id with no check that
+  the target has any relationship to the caller's org:
+  `profile.getOrgVisibleProfile` (`src/server/trpc/routers/profile.ts:73`),
+  `credentials.issue` (`src/server/trpc/routers/credentials.ts:47`), and
+  background-check initiate (`src/server/trpc/routers/background-checks.ts:45`).
+  All three are being fixed in the v1a PR via a shared
+  `requireOrgVolunteerRelationship()` helper, but both reviewers found them by
+  grep, not by systematic sweep. Same bug class as the v0.29.2.0 company
+  URL-scoping fix and the v0.29.3.0 impersonation fix, both of which were found
+  reactively. **Fix:** enumerate every `staffProcedure` in
+  `src/server/trpc/routers/` whose input contains a user/volunteer id and
+  confirm each authorizes against `ctx.orgId`. **Depends on:** the v1a helper
+  landing first. **Effort:** M.
+
+- **[P2] Eight email senders interpolate org-controlled values into HTML
+  without escaping; three files carry private `escapeHtml` copies** — eng
+  review Q3. Unescaped: `sendInviteToApplyEmail.ts:15-18` (`volunteerName`,
+  `orgName`, `opportunityTitle`), `sendInviteEmail.ts:13` (`orgName`, `role`),
+  `sendCredentialClaimedEmail.ts:16-23`, `sendCredentialRequestEmail.ts:14-21`,
+  `send-billing-emails.ts:23`, `companyService.ts:268`, and both senders in
+  `sendFcraEmails.ts`. Duplicate local helpers at `leadCaptureService.ts:6`,
+  `share-token-expiry-service.ts:3`, and an inline chain at
+  `shiftService.ts:232`, alongside the shared `src/server/lib/html.ts`. Org
+  names are org-controlled input, so this is HTML injection into a third
+  party's inbox. Deliberately excluded from the v1a diff (eleven unrelated
+  files); the new roster-notification sender uses the shared helper so the pile
+  does not grow. **Fix:** route every sender through `lib/html.ts`, delete the
+  three copies. **Effort:** M.
+
+- **[P3] Suppress notifications at creation for unclaimed users, not only at
+  transport** — Codex outside voice. The v1a email guard blocks inside
+  `sendEmail()` (`src/server/lib/email.ts:20`), which is the transport layer.
+  `Notification` rows are created upstream (`notificationService.ts:42`) and
+  the digest cron later mails every row with `emailSentAt = null`
+  (`digest-service.ts:85`), so in principle notifications could queue for an
+  unclaimed user and be dumped on them after activation. **Verified not
+  reachable in v1a:** `digest-service` selects `UserDigestPreference` rows and
+  nothing creates one for a shadow user. Becomes reachable the moment v1b or
+  any later feature enrols them. **Fix:** gate `Notification` creation on
+  `accountState`, or stamp rows created for unclaimed users as intentionally
+  skipped. **Depends on:** v1b or any feature giving shadow users a digest
+  preference. **Effort:** S.
+
+- **[P3] `shiftSignupService` still lacks tests for `signUpForShift`,
+  `cancelSignup`, and waitlist promotion** — eng review T1. The module has no
+  test file; `shiftWaitlistService`, `shiftCompletionService`, and
+  `checkinService` all have one, making this the outlier. The v1a PR adds tests
+  for `assignVolunteerToShift` and backfills `markAttendance` (the two
+  functions the roster feature depends on), leaving three untested — including
+  waitlist auto-promotion on cancel (`shiftSignupService.ts:194-213`), the
+  subtlest logic in the file. **Fix:** finish the module in
+  `src/server/services/__tests__/shiftSignupService.test.ts`. **Depends on:**
+  the v1a test file existing. **Effort:** S.
+
+## Deferred from the staff-created-volunteers CEO review (2026-07-26)
+
+Raised during `/plan-ceo-review` (SELECTIVE EXPANSION) of the same design doc,
+after two adversarial spec-review passes and a second Codex outside voice.
+
+- **[P2] Bulk-select assign volunteers to a shift from the roster** — CEO review
+  E2, accepted then cut. Twelve people for a Saturday adoption event is twelve
+  trips through the single-assign dialog, which is the ergonomics gap the whole
+  roster feature exists to close. Cut because Codex established it is not the
+  thin UI wrapper it looked like: `validateSignup` (`src/server/domain/shift.ts:99`)
+  only rejects over-capacity signups and never yields a waitlist outcome, and
+  `signUpForShift` (`src/server/services/shiftSignupService.ts:59`) only creates
+  `CONFIRMED` rows before flipping the shift to `FULL`. Waitlisting is a separate
+  explicit user action (`joinWaitlist`). So the promised "9 confirmed, 3
+  waitlisted" batch result and a per-batch `allowOverCapacity` flag both require
+  new domain behavior, roughly doubling the estimate. The adversarial reviewer
+  had independently flagged E2 as the weakest accepted item — an unevidenced
+  workflow at five pilot shelters and the only accepted item needing a new UI
+  interaction pattern. **Fix:** add a waitlist outcome to the domain layer, then
+  build the batch mutation and multi-select UI on top. **Depends on:** v1a's
+  `assignVolunteerToShift` (T8). **Effort:** M-L.
+
+- **[P2] Volunteer roster is knowingly partial until v1b** — CEO review D4. E1a
+  creates an `OrgVolunteer` row when an approved application already has a
+  linked user, and in the sign-in link path. It does **not** create rows for
+  anonymous applications (`submittedByUserId = null`), which are the majority
+  path: the column is nullable (`prisma/schema.prisma:253`) and
+  `bulk-import-service.ts:149` creates email-only rows. Doing so would mean
+  minting a shadow `User` from `submittedByEmail` on every approval — a change
+  to the semantics of every public application, with no source for
+  `displayName` (anonymous applications carry only an email, and
+  `DEFAULT_SCREENER_QUESTIONS` has no name question). Split out as E1b.
+  **Consequence:** an org with anonymous applicants sees a roster that does not
+  include all of its volunteers. Do not describe the roster as complete in UI
+  copy or marketing until this closes. **Fix:** ship E1b with v1b, and decide
+  whether `displayName` becomes nullable with a render fallback or the default
+  screener gains a name question. **Depends on:** v1b. **Effort:** M.
+
+- **[P3] Cross-org name leak accepted via first-writer-wins** — CEO review T1
+  reversal. `User.email` is unique, so two orgs adding the same person share one
+  `User` row, and `User.name` is a single global field. v1a writes it only when
+  currently null, so org B sees whatever org A typed. The stronger fix (never
+  write `User.name`; render an org-scoped `OrgVolunteer.displayName` everywhere)
+  was scoped three times and grew each time: one surface, then three
+  (`shiftSignupRepo.ts:10`, `scan/Scanner.tsx:150`, `orgAnalyticsRepo.ts:192`),
+  then eight-plus once Codex added `volunteerCredentialRepo.ts:53`,
+  `backgroundCheckRepo.ts:57`, `settings/background-checks/page.tsx:955,1202`,
+  and the background-check emails at `backgroundCheckService.ts:615,696`.
+  Abandoned on the third widening because the estimate would not converge.
+  **Fix, if a customer ever reports it:** add the display-name overlay
+  surface-by-surface, starting with the shift roster and the Scanner check-in
+  confirmation (the two a coordinator sees daily). **Effort:** L.
+
+## Deferred from the staff-created-volunteers design review (2026-07-26)
+
+`/plan-design-review` on `docs/designs/staff-created-volunteers.md`, 20 decisions,
+design completeness 3/10 → 9/10. Two further items (QueryErrorCard migration,
+mobile card lists for the four existing staff tables) were elected into the PR
+itself as T35 and T36 rather than deferred here.
+
+- **[P2] `shifts/page.tsx` renders raw enum values as user-facing labels** — the
+  inline `STATUS_VARIANTS` (`:91-100`) and `ATTENDANCE_VARIANTS` (`:281-287`)
+  maps use the enum string directly as the badge label, so a coordinator reads
+  `WAITLISTED`, `NO_SHOW` and `COMPLETED` in screaming snake case. One of the two
+  maps is declared inside the component body. Every other status in the product
+  goes through a `*StatusBadge` component with a `{label, icon, variant}` record
+  and human copy — see `ApplicationStatusBadge` ("In review", "Withdrawn"),
+  `ScreeningStatusBadge` ("Needs review"), `OpportunityStatusBadge`. Found while
+  mapping badge patterns for design decision D17. **Fix:** extract
+  `ShiftStatusBadge` and `AttendanceStatusBadge` following the existing three.
+  **Why not now:** T24 is already editing this file for the assign picker; a
+  parallel refactor of the same lines would conflict. **Depends on:** T24
+  landing. **Effort:** S.
+
+- **[P2] No staff-side waitlist when assigning to a full shift** — design
+  decision D11 gave staff an over-capacity override but no third option, because
+  `signUpForShift` hardcodes `status: 'CONFIRMED'` (`shiftSignupRepo.ts:156`).
+  Meanwhile `shiftWaitlistService` and `validateWaitlistJoin` already exist and
+  are tested, so a coordinator facing a full shift can break the cap or give up
+  while the sensible answer sits unused. Same root cause that cut bulk assign
+  (NOT in scope #3). **Fix:** add "Add to waitlist" to the D11 confirm strip,
+  which needs a position-ordering decision against volunteer-initiated waitlist
+  entries and coverage in the `shiftSignupService` tests. **Depends on:** T8,
+  T24. **Effort:** M.
+
+- **[P3] Volunteer detail is a dialog, not a deep-linkable route** — design
+  decision D4 chose a dialog matching `ShiftDetailDialog`, which is the right
+  call for v1a but cannot be shared between two coordinators, does not survive a
+  refresh, and has nowhere to grow when credentials, background-check state and
+  notes need a home. `getActiveHref()` already handles child routes correctly, so
+  nav highlighting for `/app/volunteers/[id]` is free
+  (`app-sidebar.tsx:80-95`). **Fix:** promote the dialog body to a route with
+  loading, error and not-found states. **Trigger:** the first time a coordinator
+  asks to send someone a link to a volunteer. **Depends on:** T27.
+  **Effort:** M.

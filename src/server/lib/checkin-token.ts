@@ -36,6 +36,25 @@ function hmac(secret: string, data: string): string {
 }
 
 /**
+ * Constant-time string comparison.
+ *
+ * A plain `===` on an HMAC leaks, byte by byte, how much of a guessed token
+ * was correct — enough to forge a check-in token given enough attempts.
+ * `timingSafeEqual` throws on length mismatch, so the length is checked first
+ * (a length difference is not itself a secret: token length is fixed by
+ * QR_REGEX at 64 hex chars).
+ *
+ * Same shape as the two sibling verifiers: `api/resend/webhook/route.ts:58-61`
+ * and `adapters/background-check/checkr.ts:287-292`.
+ */
+function timingSafeCompare(a: string, b: string): boolean {
+	const aBuf = Buffer.from(a, 'utf-8');
+	const bBuf = Buffer.from(b, 'utf-8');
+	if (aBuf.length !== bBuf.length) return false;
+	return crypto.timingSafeEqual(aBuf, bBuf);
+}
+
+/**
  * Generate a check-in token for the current time window.
  */
 export function generateCheckinToken(
@@ -61,13 +80,13 @@ export function validateCheckinToken(
 ): boolean {
 	const currentWindow = timeWindow(now);
 	const currentToken = hmac(secret, `${shiftId}|${userId}|${currentWindow}`);
-	if (token === currentToken) return true;
+	if (timingSafeCompare(token, currentToken)) return true;
 
 	const previousToken = hmac(
 		secret,
 		`${shiftId}|${userId}|${currentWindow - 1}`,
 	);
-	return token === previousToken;
+	return timingSafeCompare(token, previousToken);
 }
 
 /** Parsed QR data structure. */
