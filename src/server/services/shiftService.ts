@@ -16,6 +16,10 @@ import {
 	updateShift,
 } from '@/server/repositories/shiftRepo';
 import { tryNotify } from '@/server/services/notificationService';
+import {
+	isOrgShift,
+	requireOrgShift,
+} from '@/server/services/shiftAccessService';
 
 // ---------------------------------------------------------------------------
 // Reads
@@ -25,8 +29,17 @@ export async function getShift(id: string) {
 	return getShiftById(id);
 }
 
-export async function getShiftDetail(id: string) {
-	return getShiftWithSignups(id);
+/**
+ * SECURITY: org-scoped. This returns the shift's full signup roster, including
+ * every volunteer's name and email address, so an unscoped lookup by id leaks a
+ * foreign tenant's contact list. Returns null for a foreign shift exactly as it
+ * does for a missing one — the router renders both as NOT_FOUND, keeping "not
+ * yours" and "not real" indistinguishable.
+ */
+export async function getShiftDetail(id: string, orgId: string) {
+	const shift = await getShiftWithSignups(id);
+	if (!isOrgShift(shift, orgId)) return null;
+	return shift;
 }
 
 export async function listOrgShifts(
@@ -72,11 +85,24 @@ export async function createNewShift(input: CreateShiftInput, actorId: string) {
 	});
 }
 
+/**
+ * SECURITY: `orgId` reached this function only to stamp the audit row, while
+ * `updateShift` writes on `where: { id }` alone — so staff at org A could edit
+ * org B's shift and have the change filed under org A. Same omission in
+ * `cancelShift`, `completeShift` and `removeShift` below.
+ *
+ * This one, `cancelShift` and `removeShift` are fixed with a `requireOrgShift`
+ * before the transaction. `completeShift` is NOT — it puts `orgId` in its own
+ * `updateMany` WHERE clause instead, for the reason documented at that function.
+ * Do not "make it consistent" by adding a guard there.
+ */
 export async function updateExistingShift(
 	input: UpdateShiftInput,
 	orgId: string,
 	actorId: string,
 ) {
+	await requireOrgShift(input.id, orgId);
+
 	if (input.startTime && input.endTime) {
 		const timeCheck = validateShiftTimes(input.startTime, input.endTime);
 		if (!timeCheck.ok) {
@@ -99,6 +125,8 @@ export async function updateExistingShift(
 }
 
 export async function cancelShift(id: string, orgId: string, actorId: string) {
+	await requireOrgShift(id, orgId);
+
 	return prisma.$transaction(async (tx) => {
 		const shift = await updateShift(tx, { id, status: 'CANCELLED' });
 		await writeAuditLogTx(tx, {
@@ -121,8 +149,16 @@ export async function completeShift(
 		// Atomic conditional update: only transition OPEN/FULL → COMPLETED.
 		// Uses updateMany with a status WHERE clause so the read+write is a
 		// single statement — no TOCTOU race under READ COMMITTED isolation.
+		//
+		// SECURITY: `orgId` belongs in this WHERE clause rather than in a
+		// preceding `requireOrgShift` call, which would reintroduce the
+		// check-then-write the comment above exists to avoid. A foreign shift
+		// therefore surfaces as the same null → CONFLICT the router already
+		// returns for an uncompletable shift, not as NOT_FOUND like its three
+		// siblings — deliberate, and still indistinguishable to a caller probing
+		// ids.
 		const { count } = await tx.shift.updateMany({
-			where: { id, status: { in: ['OPEN', 'FULL'] } },
+			where: { id, orgId, status: { in: ['OPEN', 'FULL'] } },
 			data: { status: 'COMPLETED' },
 		});
 		if (count === 0) {
@@ -252,6 +288,10 @@ async function sendShiftSummaryEmail(
 }
 
 export async function removeShift(id: string, orgId: string, actorId: string) {
+	// SECURITY: `deleteShift` cascades to `ShiftSignup`, so an unscoped delete
+	// destroyed another org's attendance history, not just its shift.
+	await requireOrgShift(id, orgId);
+
 	return prisma.$transaction(async (tx) => {
 		await deleteShift(tx, id);
 		await writeAuditLogTx(tx, {

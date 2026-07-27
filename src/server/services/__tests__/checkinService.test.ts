@@ -61,9 +61,13 @@ import { getCheckinStats, markAttendance } from '../shiftSignupService';
 // ---------------------------------------------------------------------------
 
 const ORG_ID = 'org-checkin';
+const OTHER_ORG_ID = 'org-attacker';
 const SHIFT_ID = 'shift-checkin';
 const USER_ID = 'user-vol';
 const ACTOR_ID = 'user-staff';
+
+/** A coordinator at the org that owns the shift. */
+const STAFF_AUTH = { by: 'staff', orgId: ORG_ID } as const;
 
 function makeShift(overrides: Record<string, unknown> = {}) {
 	return {
@@ -106,6 +110,7 @@ describe('markAttendance', () => {
 			USER_ID,
 			'ATTENDED',
 			ACTOR_ID,
+			STAFF_AUTH,
 			'qr',
 		);
 
@@ -130,7 +135,14 @@ describe('markAttendance', () => {
 			{ id: 'signup-1', status: 'CONFIRMED' },
 		]);
 
-		await markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, 'geo');
+		await markAttendance(
+			SHIFT_ID,
+			USER_ID,
+			'ATTENDED',
+			ACTOR_ID,
+			{ by: 'self', userId: USER_ID },
+			'geo',
+		);
 
 		expect(mocks.writeAuditLogTx).toHaveBeenCalledWith(
 			expect.anything(),
@@ -145,7 +157,7 @@ describe('markAttendance', () => {
 			{ id: 'signup-1', status: 'CONFIRMED' },
 		]);
 
-		await markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID);
+		await markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, STAFF_AUTH);
 
 		expect(mocks.writeAuditLogTx).toHaveBeenCalledWith(
 			expect.anything(),
@@ -165,6 +177,7 @@ describe('markAttendance', () => {
 			USER_ID,
 			'ATTENDED',
 			ACTOR_ID,
+			STAFF_AUTH,
 			'qr',
 		);
 
@@ -181,7 +194,7 @@ describe('markAttendance', () => {
 		]);
 
 		await expect(
-			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, 'qr'),
+			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, STAFF_AUTH, 'qr'),
 		).rejects.toThrow('Cannot mark attendance: signup is CANCELLED');
 	});
 
@@ -191,7 +204,7 @@ describe('markAttendance', () => {
 		]);
 
 		await expect(
-			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, 'qr'),
+			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, STAFF_AUTH, 'qr'),
 		).rejects.toThrow('Cannot mark attendance: signup is WAITLISTED');
 	});
 
@@ -200,7 +213,13 @@ describe('markAttendance', () => {
 			{ id: 'signup-1', status: 'CONFIRMED' },
 		]);
 
-		const result = await markAttendance(SHIFT_ID, USER_ID, 'NO_SHOW', ACTOR_ID);
+		const result = await markAttendance(
+			SHIFT_ID,
+			USER_ID,
+			'NO_SHOW',
+			ACTOR_ID,
+			STAFF_AUTH,
+		);
 
 		expect(result.alreadyCheckedIn).toBe(false);
 		expect(mocks.writeAuditLogTx).toHaveBeenCalledWith(
@@ -215,7 +234,7 @@ describe('markAttendance', () => {
 		mocks.txQueryRaw.mockResolvedValue([]);
 
 		await expect(
-			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID),
+			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, STAFF_AUTH),
 		).rejects.toThrow('No signup found for this shift');
 	});
 
@@ -223,8 +242,89 @@ describe('markAttendance', () => {
 		mocks.getShiftById.mockResolvedValue(null);
 
 		await expect(
-			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID),
+			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, STAFF_AUTH),
 		).rejects.toThrow('Shift not found');
+	});
+
+	// -------------------------------------------------------------------------
+	// SECURITY: cross-tenant attendance writes
+	// -------------------------------------------------------------------------
+
+	it('SECURITY: staff at another org cannot write attendance', async () => {
+		mocks.txQueryRaw.mockResolvedValue([
+			{ id: 'signup-1', status: 'CONFIRMED' },
+		]);
+
+		await expect(
+			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, {
+				by: 'staff',
+				orgId: OTHER_ORG_ID,
+			}),
+		).rejects.toThrow('Shift not found');
+
+		// The write must not happen, and no audit row may be filed against the
+		// victim org.
+		expect(mocks.updateSignupStatus).not.toHaveBeenCalled();
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: a foreign shift is indistinguishable from a missing one', async () => {
+		// Same message for "exists elsewhere" and "does not exist", so an attacker
+		// enumerating ids learns nothing about which shifts are real.
+		mocks.getShiftById.mockResolvedValue(null);
+		const missing = await markAttendance(
+			SHIFT_ID,
+			USER_ID,
+			'ATTENDED',
+			ACTOR_ID,
+			STAFF_AUTH,
+		).catch((e: Error) => e.message);
+
+		mocks.getShiftById.mockResolvedValue(makeShift());
+		const foreign = await markAttendance(
+			SHIFT_ID,
+			USER_ID,
+			'ATTENDED',
+			ACTOR_ID,
+			{
+				by: 'staff',
+				orgId: OTHER_ORG_ID,
+			},
+		).catch((e: Error) => e.message);
+
+		expect(foreign).toBe(missing);
+	});
+
+	it('SECURITY: a volunteer cannot self-check-in someone else', async () => {
+		mocks.txQueryRaw.mockResolvedValue([
+			{ id: 'signup-1', status: 'CONFIRMED' },
+		]);
+
+		await expect(
+			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', 'user-other', {
+				by: 'self',
+				userId: 'user-other',
+			}),
+		).rejects.toThrow('You can only check yourself in.');
+
+		expect(mocks.updateSignupStatus).not.toHaveBeenCalled();
+	});
+
+	it('self check-in succeeds for the volunteer themselves, with no org check', async () => {
+		mocks.txQueryRaw.mockResolvedValue([
+			{ id: 'signup-1', status: 'CONFIRMED' },
+		]);
+
+		const result = await markAttendance(
+			SHIFT_ID,
+			USER_ID,
+			'ATTENDED',
+			USER_ID,
+			{ by: 'self', userId: USER_ID },
+			'geo',
+		);
+
+		expect(result.alreadyCheckedIn).toBe(false);
 	});
 });
 
