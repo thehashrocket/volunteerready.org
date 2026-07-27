@@ -9,6 +9,8 @@
 const mocks = vi.hoisted(() => ({
 	getShiftById: vi.fn(),
 	getTemplateById: vi.fn(),
+	getSignupByShiftAndUser: vi.fn(),
+	getOpportunity: vi.fn(),
 }));
 
 vi.mock('@/server/repositories/shiftRepo', () => ({
@@ -21,11 +23,22 @@ vi.mock('@/server/repositories/shiftTemplateRepo', () => ({
 	getTemplateById: mocks.getTemplateById,
 }));
 
+// Same reason — both of these also pull in the real prisma client.
+vi.mock('@/server/repositories/shiftSignupRepo', () => ({
+	getSignupByShiftAndUser: mocks.getSignupByShiftAndUser,
+}));
+
+vi.mock('@/server/repositories/opportunityRepo', () => ({
+	getOpportunity: mocks.getOpportunity,
+}));
+
 import { TRPCError } from '@trpc/server';
 import {
 	requireAttendanceAccess,
+	requireOrgOpportunity,
 	requireOrgShift,
 	requireOrgTemplate,
+	requireOwnSignup,
 } from '../shiftAccessService';
 
 const ORG_ID = 'org-owner';
@@ -84,6 +97,90 @@ describe('requireOrgShift', () => {
 
 		expect(foreign.code).toBe(missing.code);
 		expect(foreign.message).toBe(missing.message);
+	});
+});
+
+describe('requireOwnSignup', () => {
+	it('returns the shift and signup when the caller has one', async () => {
+		mocks.getShiftById.mockResolvedValue(makeShift());
+		mocks.getSignupByShiftAndUser.mockResolvedValue({
+			id: 'signup-1',
+			status: 'CONFIRMED',
+		});
+
+		const { shift, signup } = await requireOwnSignup(SHIFT_ID, USER_ID);
+
+		expect(shift.id).toBe(SHIFT_ID);
+		expect(signup.status).toBe('CONFIRMED');
+	});
+
+	it('accepts a CANCELLED signup — the caller was still legitimately told the shift exists', async () => {
+		mocks.getShiftById.mockResolvedValue(makeShift());
+		mocks.getSignupByShiftAndUser.mockResolvedValue({
+			id: 'signup-1',
+			status: 'CANCELLED',
+		});
+
+		const { signup } = await requireOwnSignup(SHIFT_ID, USER_ID);
+
+		expect(signup.status).toBe('CANCELLED');
+	});
+
+	it('SECURITY: throws NOT_FOUND when the caller has no signup on a real shift', async () => {
+		mocks.getShiftById.mockResolvedValue(makeShift());
+		mocks.getSignupByShiftAndUser.mockResolvedValue(null);
+
+		const err = await captureError(requireOwnSignup(SHIFT_ID, USER_ID));
+
+		expect(err).toBeInstanceOf(TRPCError);
+		expect(err.code).toBe('NOT_FOUND');
+	});
+
+	it('SECURITY: a real shift the caller cannot reach is indistinguishable from a missing one', async () => {
+		mocks.getShiftById.mockResolvedValue(null);
+		mocks.getSignupByShiftAndUser.mockResolvedValue(null);
+		const missing = await captureError(requireOwnSignup(SHIFT_ID, USER_ID));
+
+		mocks.getShiftById.mockResolvedValue(makeShift());
+		mocks.getSignupByShiftAndUser.mockResolvedValue(null);
+		const foreign = await captureError(requireOwnSignup(SHIFT_ID, USER_ID));
+
+		expect(foreign.code).toBe(missing.code);
+		expect(foreign.message).toBe(missing.message);
+	});
+});
+
+describe('requireOrgOpportunity', () => {
+	it('returns the opportunity when it belongs to the org', async () => {
+		mocks.getOpportunity.mockResolvedValue({
+			id: 'opp-1',
+			title: 'Dog Walking',
+		});
+
+		const opportunity = await requireOrgOpportunity('opp-1', ORG_ID);
+
+		expect(opportunity.id).toBe('opp-1');
+	});
+
+	it('SECURITY: scopes the lookup by orgId rather than filtering afterwards', async () => {
+		mocks.getOpportunity.mockResolvedValue({ id: 'opp-1' });
+
+		await requireOrgOpportunity('opp-1', ORG_ID);
+
+		expect(mocks.getOpportunity).toHaveBeenCalledWith('opp-1', ORG_ID);
+	});
+
+	it('SECURITY: throws NOT_FOUND for an opportunity owned by another org', async () => {
+		// getOpportunity is compound-keyed on { id, orgId }, so a foreign id
+		// simply does not match — the same null a missing id produces.
+		mocks.getOpportunity.mockResolvedValue(null);
+
+		const err = await captureError(
+			requireOrgOpportunity('opp-1', OTHER_ORG_ID),
+		);
+
+		expect(err).toBeInstanceOf(TRPCError);
+		expect(err.code).toBe('NOT_FOUND');
 	});
 });
 

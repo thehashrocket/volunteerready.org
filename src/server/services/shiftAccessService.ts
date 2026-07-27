@@ -34,7 +34,9 @@
  * @see requireOrgVolunteerRelationship for the sibling guard over user ids.
  */
 import { TRPCError } from '@trpc/server';
+import { getOpportunity } from '@/server/repositories/opportunityRepo';
 import { getShiftById } from '@/server/repositories/shiftRepo';
+import { getSignupByShiftAndUser } from '@/server/repositories/shiftSignupRepo';
 import { getTemplateById } from '@/server/repositories/shiftTemplateRepo';
 
 /**
@@ -103,6 +105,80 @@ export async function requireOrgTemplate(templateId: string, orgId: string) {
 	}
 
 	return template;
+}
+
+/**
+ * Assert that an `opportunityId` being attached to a shift or template belongs
+ * to `orgId`.
+ *
+ * The guards above scope the shift a caller *reaches*. This one scopes a
+ * foreign id the caller *plants*, which the id-based guards cannot catch,
+ * because the leaked row is reached by RELATION rather than by id: `shifts.create`,
+ * `shiftTemplates.create` and `shiftTemplates.update` (whose schema is
+ * `createShiftTemplateSchema.partial()`, so it carries `opportunityId` too) all
+ * took an `opportunityId` straight from client input and stamped it onto a row
+ * owned by the caller's own org. `listShiftsByOrg`, `getShiftWithSignups`,
+ * `listUpcomingShiftsForOrg` and `listTemplatesByOrg` every one of them
+ * `include: { opportunity: { select: { id, title } } }` — so staff at org A
+ * could point their own shift at org B's opportunity and read B's opportunity
+ * title back out of a list that is, correctly, scoped to org A. The row was
+ * never theirs; the edge to it was.
+ *
+ * NOT_FOUND for consistency with its siblings, and for the same reason: a
+ * foreign opportunity id must be indistinguishable from one that does not exist.
+ */
+export async function requireOrgOpportunity(
+	opportunityId: string,
+	orgId: string,
+) {
+	const opportunity = await getOpportunity(opportunityId, orgId);
+
+	if (!opportunity) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Opportunity not found.',
+		});
+	}
+
+	return opportunity;
+}
+
+/**
+ * Assert that `userId` has ever had a signup on `shiftId`, and return both rows.
+ *
+ * The volunteer-self analog of `requireOrgShift`: same invariant, different
+ * axis. `getCheckinToken` loaded the shift by raw client id and returned its
+ * exact status — and whether it starts within 24 hours — to ANY authenticated
+ * user, checking for a confirmed signup only as its LAST step. So any signed-in
+ * volunteer could walk arbitrary shift ids at any org and learn which were real,
+ * what state each was in, and which were imminent. This guard runs first, so a
+ * caller with no signup gets exactly the NOT_FOUND a nonexistent id produces.
+ *
+ * Backs `getCheckinToken` alone. Its sibling `selfCheckin` needs no guard: the
+ * check-in token is an HMAC over (shiftId, userId, window) keyed by a
+ * server-only secret, so validating it IS the authorization — see the router,
+ * where that validation was moved ahead of the shift lookup for this reason.
+ * The two procedures are authorized by genuinely different mechanisms and
+ * deliberately do not share a guard.
+ *
+ * ANY signup status counts, CANCELLED included. The question here is only
+ * "has this user ever legitimately been told this shift exists" — and a
+ * volunteer who signed up and later cancelled was. Narrowing this to CONFIRMED
+ * would re-leak the distinction it exists to hide: a cancelled volunteer would
+ * get a different answer than a stranger. The CONFIRMED requirement for
+ * actually minting a token is a separate, UX-facing check in the router.
+ */
+export async function requireOwnSignup(shiftId: string, userId: string) {
+	const [shift, signup] = await Promise.all([
+		getShiftById(shiftId),
+		getSignupByShiftAndUser(shiftId, userId),
+	]);
+
+	if (!shift || !signup) {
+		throw new TRPCError({ code: 'NOT_FOUND', message: 'Shift not found.' });
+	}
+
+	return { shift, signup };
 }
 
 /**
