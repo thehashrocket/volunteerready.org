@@ -53,6 +53,37 @@ export type AttendanceSummary = {
 
 export type SignupValidation = { ok: true } | { ok: false; reason: string };
 
+/**
+ * Why a signup or waitlist-join was refused, as a value the service layer can
+ * branch on.
+ *
+ * `reason` is a human sentence and always will be — but the service has to
+ * decide which refusals are safe to disclose to a caller who may have no
+ * relationship to the shift's org at all (`shifts.signup` is open to any
+ * authenticated user), and string-matching a sentence to make a security
+ * decision breaks the moment someone rewords it. So the code is what the
+ * service switches on; `reason` is only ever passed through as display text.
+ *
+ * Deliberately a separate type from `SignupValidation` rather than widening it:
+ * `validateShiftTimes` also returns `SignupValidation` and has no failure code,
+ * so adding a required `code` there would be a lie.
+ *
+ * @see mapSignupFailure in shiftSignupService.ts for the disclosure policy.
+ */
+export type SignupFailureCode =
+	| 'SHIFT_CANCELLED'
+	| 'SHIFT_COMPLETED'
+	| 'SHIFT_FULL'
+	| 'AT_CAPACITY'
+	| 'ALREADY_SIGNED_UP'
+	| 'ALREADY_WAITLISTED'
+	| 'NOT_FULL'
+	| 'TIME_CONFLICT';
+
+export type SignupCheck =
+	| { ok: true }
+	| { ok: false; code: SignupFailureCode; reason: string };
+
 // ---- Labels ---------------------------------------------------------------
 
 export const SHIFT_STATUS_LABELS: Record<ShiftStatus, string> = {
@@ -101,22 +132,34 @@ export function validateSignup(
 	signups: readonly SignupRecord[],
 	userId: string,
 	existingUserShifts?: readonly ShiftData[],
-): SignupValidation {
+): SignupCheck {
 	// Shift must be open
 	if (shift.status === 'CANCELLED') {
-		return { ok: false, reason: 'This shift has been cancelled.' };
+		return {
+			ok: false,
+			code: 'SHIFT_CANCELLED',
+			reason: 'This shift has been cancelled.',
+		};
 	}
 	if (shift.status === 'COMPLETED') {
-		return { ok: false, reason: 'This shift has already been completed.' };
+		return {
+			ok: false,
+			code: 'SHIFT_COMPLETED',
+			reason: 'This shift has already been completed.',
+		};
 	}
 	if (shift.status === 'FULL') {
-		return { ok: false, reason: 'This shift is full.' };
+		return { ok: false, code: 'SHIFT_FULL', reason: 'This shift is full.' };
 	}
 
 	// Check capacity
 	const cap = computeShiftCapacity(shift.capacity, signups);
 	if (cap.isFull) {
-		return { ok: false, reason: 'This shift is at capacity.' };
+		return {
+			ok: false,
+			code: 'AT_CAPACITY',
+			reason: 'This shift is at capacity.',
+		};
 	}
 
 	// Check for existing active signup
@@ -124,7 +167,11 @@ export function validateSignup(
 		(s) => s.userId === userId && s.status === 'CONFIRMED',
 	);
 	if (existing) {
-		return { ok: false, reason: 'You are already signed up for this shift.' };
+		return {
+			ok: false,
+			code: 'ALREADY_SIGNED_UP',
+			reason: 'You are already signed up for this shift.',
+		};
 	}
 
 	// Check for time conflicts with user's other confirmed shifts
@@ -140,6 +187,7 @@ export function validateSignup(
 		if (conflict) {
 			return {
 				ok: false,
+				code: 'TIME_CONFLICT',
 				reason: `This shift overlaps with "${conflict.title}".`,
 			};
 		}
@@ -317,18 +365,30 @@ export function validateWaitlistJoin(
 	shift: ShiftData,
 	signups: readonly SignupRecord[],
 	userId: string,
-): SignupValidation {
+): SignupCheck {
 	if (shift.status === 'CANCELLED') {
-		return { ok: false, reason: 'This shift has been cancelled.' };
+		return {
+			ok: false,
+			code: 'SHIFT_CANCELLED',
+			reason: 'This shift has been cancelled.',
+		};
 	}
 	if (shift.status === 'COMPLETED') {
-		return { ok: false, reason: 'This shift has already been completed.' };
+		return {
+			ok: false,
+			code: 'SHIFT_COMPLETED',
+			reason: 'This shift has already been completed.',
+		};
 	}
 
 	// Must be full to waitlist
 	const cap = computeShiftCapacity(shift.capacity, signups);
 	if (!cap.isFull) {
-		return { ok: false, reason: 'Shift has open spots — sign up directly.' };
+		return {
+			ok: false,
+			code: 'NOT_FULL',
+			reason: 'Shift has open spots — sign up directly.',
+		};
 	}
 
 	// Check for existing active signup or waitlist entry
@@ -338,10 +398,18 @@ export function validateWaitlistJoin(
 			(s.status === 'CONFIRMED' || s.status === 'WAITLISTED'),
 	);
 	if (existing?.status === 'CONFIRMED') {
-		return { ok: false, reason: 'You are already signed up for this shift.' };
+		return {
+			ok: false,
+			code: 'ALREADY_SIGNED_UP',
+			reason: 'You are already signed up for this shift.',
+		};
 	}
 	if (existing?.status === 'WAITLISTED') {
-		return { ok: false, reason: 'You are already on the waitlist.' };
+		return {
+			ok: false,
+			code: 'ALREADY_WAITLISTED',
+			reason: 'You are already on the waitlist.',
+		};
 	}
 
 	return { ok: true };

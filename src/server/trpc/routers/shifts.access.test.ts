@@ -18,6 +18,7 @@
  * would silently reopen the cross-tenant attendance write on a staffProcedure
  * while every service test kept passing.
  */
+import { TRPCError } from '@trpc/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -33,6 +34,9 @@ const mocks = vi.hoisted(() => ({
 	markAttendance: vi.fn(),
 	getCheckinStats: vi.fn(),
 	requireOrgShift: vi.fn(),
+	requireOwnSignup: vi.fn(),
+	generateCheckinTokenFromEnv: vi.fn(),
+	getShiftById: vi.fn(),
 	validateCheckinTokenFromEnv: vi.fn(),
 }));
 
@@ -73,17 +77,21 @@ vi.mock('@/server/services/shiftSignupService', () => ({
 
 vi.mock('@/server/services/shiftAccessService', () => ({
 	requireOrgShift: mocks.requireOrgShift,
+	requireOwnSignup: mocks.requireOwnSignup,
 }));
 
-vi.mock('@/server/repositories/shiftRepo', () => ({ getShiftById: vi.fn() }));
+vi.mock('@/server/repositories/shiftRepo', () => ({
+	getShiftById: mocks.getShiftById,
+}));
 
 vi.mock('@/server/lib/checkin-token', () => ({
-	generateCheckinTokenFromEnv: vi.fn(),
+	generateCheckinTokenFromEnv: mocks.generateCheckinTokenFromEnv,
 	validateCheckinTokenFromEnv: mocks.validateCheckinTokenFromEnv,
 }));
 
 vi.mock('@/server/trpc/rate-limit-middleware', () => ({
 	rateLimitByOrg: () => (opts: { next: () => unknown }) => opts.next(),
+	rateLimitByUser: () => (opts: { next: () => unknown }) => opts.next(),
 }));
 
 import { t } from '@/server/trpc/init';
@@ -255,5 +263,87 @@ describe('markAttendance declares the staff authorization model', () => {
 		for (const call of mocks.markAttendance.mock.calls) {
 			expect(call[4]).toMatchObject({ by: 'staff' });
 		}
+	});
+});
+
+describe('pre-authorization disclosure', () => {
+	// These pin the ORDER of checks, not just their presence. The bug being
+	// fixed was never a missing check — it was a correct check placed after the
+	// branches that had already answered the question it guards.
+
+	it('SECURITY: getCheckinToken authorizes before reading any shift state', async () => {
+		mocks.requireOwnSignup.mockRejectedValue(
+			new TRPCError({ code: 'NOT_FOUND', message: 'Shift not found.' }),
+		);
+
+		await expect(
+			caller().getCheckinToken({ shiftId: SHIFT_ID }),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+		// The unscoped repo read is what leaked status and start time. If the
+		// guard rejects, it must never happen.
+		expect(mocks.getShiftById).not.toHaveBeenCalled();
+		expect(mocks.generateCheckinTokenFromEnv).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: getCheckinToken passes the session user, never an input-supplied id', async () => {
+		mocks.requireOwnSignup.mockResolvedValue({
+			shift: { status: 'OPEN', startTime: new Date() },
+			signup: { status: 'CONFIRMED' },
+		});
+
+		await caller().getCheckinToken({
+			shiftId: SHIFT_ID,
+			userId: 'user-someone-else',
+		} as never);
+
+		expect(mocks.requireOwnSignup).toHaveBeenCalledWith(SHIFT_ID, ACTOR_ID);
+	});
+
+	it('still tells a volunteer WITH a signup why the code is not ready', async () => {
+		// The fix must not degrade the legitimate flow into a blank NOT_FOUND.
+		mocks.requireOwnSignup.mockResolvedValue({
+			shift: {
+				status: 'OPEN',
+				startTime: new Date(Date.now() + 72 * 60 * 60 * 1000),
+			},
+			signup: { status: 'CONFIRMED' },
+		});
+
+		await expect(
+			caller().getCheckinToken({ shiftId: SHIFT_ID }),
+		).rejects.toMatchObject({
+			code: 'BAD_REQUEST',
+			message: 'QR code is available 24 hours before the shift.',
+		});
+	});
+
+	it('SECURITY: selfCheckin validates the token before loading the shift', async () => {
+		mocks.validateCheckinTokenFromEnv.mockReturnValue(false);
+
+		await expect(
+			caller().selfCheckin({ shiftId: SHIFT_ID, token: 'forged' }),
+		).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+
+		// Structural proof the leak is closed: with a bad token the shift is
+		// never read at all, so no status can escape regardless of wording.
+		expect(mocks.getShiftById).not.toHaveBeenCalled();
+		expect(mocks.markAttendance).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: selfCheckin still declares {by:self} on the happy path', async () => {
+		mocks.validateCheckinTokenFromEnv.mockReturnValue(true);
+		mocks.getShiftById.mockResolvedValue({ id: SHIFT_ID, status: 'OPEN' });
+
+		await caller().selfCheckin({ shiftId: SHIFT_ID, token: 'good' });
+
+		expect(mocks.markAttendance).toHaveBeenCalledWith(
+			SHIFT_ID,
+			ACTOR_ID,
+			'ATTENDED',
+			ACTOR_ID,
+			{ by: 'self', userId: ACTOR_ID },
+			'geo',
+		);
 	});
 });

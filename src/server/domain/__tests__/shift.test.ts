@@ -99,6 +99,7 @@ describe('validateSignup', () => {
 		);
 		expect(result).toEqual({
 			ok: false,
+			code: 'SHIFT_CANCELLED',
 			reason: expect.stringContaining('cancelled'),
 		});
 	});
@@ -111,6 +112,7 @@ describe('validateSignup', () => {
 		);
 		expect(result).toEqual({
 			ok: false,
+			code: 'SHIFT_COMPLETED',
 			reason: expect.stringContaining('completed'),
 		});
 	});
@@ -119,6 +121,7 @@ describe('validateSignup', () => {
 		const result = validateSignup(makeShift({ status: 'FULL' }), [], 'user-1');
 		expect(result).toEqual({
 			ok: false,
+			code: 'SHIFT_FULL',
 			reason: expect.stringContaining('full'),
 		});
 	});
@@ -134,6 +137,7 @@ describe('validateSignup', () => {
 		);
 		expect(result).toEqual({
 			ok: false,
+			code: 'AT_CAPACITY',
 			reason: expect.stringContaining('capacity'),
 		});
 	});
@@ -143,6 +147,7 @@ describe('validateSignup', () => {
 		const result = validateSignup(makeShift(), signups, 'user-1');
 		expect(result).toEqual({
 			ok: false,
+			code: 'ALREADY_SIGNED_UP',
 			reason: expect.stringContaining('already signed up'),
 		});
 	});
@@ -163,6 +168,7 @@ describe('validateSignup', () => {
 		const result = validateSignup(makeShift(), [], 'user-1', [overlapping]);
 		expect(result).toEqual({
 			ok: false,
+			code: 'TIME_CONFLICT',
 			reason: expect.stringContaining('Overlapping Shift'),
 		});
 	});
