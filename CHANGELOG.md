@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - Removing a volunteer from your roster no longer strands their credentials. Their credential stayed visible in your organization's list, but the Revoke button beside it would fail permanently — exactly when revoking matters most.
 
 ### Changed
-- Credential and background-check audit records now note *why* the action was permitted (roster membership, an application, a shift signup, or staff membership). When reviewing what happened after the fact, the record of who was allowed to do something is the hardest part to reconstruct — a roster entry can be removed later.
+- Issuing or revoking a credential, and starting a background check, now record in the audit log *why* the action was permitted — roster membership, an application, a shift signup, staff membership, or (when revoking only) an existing credential. When reviewing what happened after the fact, the record of who was allowed to do something is the hardest part to reconstruct, because a roster entry can be removed later. Note that issuing a credential as part of resolving a background check does not yet record this.
 - A request for a volunteer who isn't part of your organization now reads as "not found" rather than "not allowed", so the response cannot be used to confirm whether an account exists.
 
 ## [0.32.0.0] - 2026-07-27
