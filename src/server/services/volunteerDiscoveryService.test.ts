@@ -43,6 +43,16 @@ vi.mock('@/server/repositories/auditRepo', () => ({
 	writeAuditLog: vi.fn(),
 }));
 
+// The lock is raw SQL, so it cannot run against a mocked prisma. Its ACTUAL
+// serializing behaviour is unprovable here by construction — a mocked
+// $transaction runs its callback once with nothing else in flight — and is
+// covered by volunteerDiscoveryService.rateLimit.integration.test.ts against a
+// real database. What this file can still pin is that the service calls it, and
+// calls it BEFORE the count.
+vi.mock('@/server/repositories/volunteerInvitationRepo', () => ({
+	lockOrgForInviteRateLimit: vi.fn(),
+}));
+
 // ---------------------------------------------------------------------------
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
@@ -50,6 +60,7 @@ vi.mock('@/server/repositories/auditRepo', () => ({
 import { writeAuditLog } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { sendInviteToApplyEmail } from '@/server/repositories/sendInviteToApplyEmail';
+import { lockOrgForInviteRateLimit } from '@/server/repositories/volunteerInvitationRepo';
 import { inviteToApply } from './volunteerDiscoveryService';
 
 const mockCount = vi.mocked(prisma.volunteerInvitation.count);
@@ -199,6 +210,52 @@ describe('inviteToApply', () => {
 
 			const result = await inviteToApply(BASE_INPUT);
 			expect(result.invitationId).toBe('inv-1');
+		});
+
+		it('SECURITY: takes the per-org advisory lock BEFORE counting', async () => {
+			// Order is the whole fix. Taking the lock after the count would leave
+			// the check-then-act race exactly as wide as it was.
+			// setupHappyPath() must run FIRST — it calls mockCount.mockResolvedValue,
+			// which would otherwise clobber the recording implementation below.
+			setupHappyPath();
+
+			const calls: string[] = [];
+			vi.mocked(lockOrgForInviteRateLimit).mockImplementation((() => {
+				calls.push('lock');
+				return Promise.resolve(1);
+			}) as never);
+			mockCount.mockImplementation((() => {
+				calls.push('count');
+				return Promise.resolve(0);
+			}) as never);
+
+			await inviteToApply(BASE_INPUT).catch(() => {});
+
+			expect(calls).toEqual(['lock', 'count']);
+		});
+
+		it('SECURITY: locks on the caller-resolved orgId, not anything from input', async () => {
+			setupHappyPath();
+
+			await inviteToApply(BASE_INPUT);
+
+			expect(lockOrgForInviteRateLimit).toHaveBeenCalledWith(
+				expect.anything(),
+				'org-1',
+			);
+		});
+
+		it('SECURITY: takes the lock with the transaction handle, not the global client', async () => {
+			// A lock taken on `prisma` rather than `tx` would be released
+			// immediately instead of at COMMIT, serializing nothing.
+			setupHappyPath();
+			const txHandle = Symbol('tx');
+			vi.mocked(prisma.$transaction).mockImplementation((async (cb: never) =>
+				(cb as unknown as (t: unknown) => unknown)(txHandle)) as never);
+
+			await inviteToApply(BASE_INPUT).catch(() => {});
+
+			expect(lockOrgForInviteRateLimit).toHaveBeenCalledWith(txHandle, 'org-1');
 		});
 	});
 

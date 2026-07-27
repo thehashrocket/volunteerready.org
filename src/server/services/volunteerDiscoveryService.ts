@@ -7,6 +7,7 @@
  * │ inviteToApply           │     │ searchPublicProfiles()     │
  * └─────────────────────────┘     └───────────────────────────┘
  *         │
+ *         ├── advisory lock: serialize the rate limit per org (see the repo)
  *         ├── rate limit: COUNT invitations WHERE orgId + sentAt > -24h
  *         ├── duplicate check: VolunteerInvitation @@unique guard
  *         ├── already applied: check VolunteerApplication
@@ -24,6 +25,7 @@ import {
 	type SearchPage,
 	searchPublicProfiles,
 } from '@/server/repositories/volunteerDiscoveryRepo';
+import { lockOrgForInviteRateLimit } from '@/server/repositories/volunteerInvitationRepo';
 
 const RATE_LIMIT_PER_DAY = 10;
 
@@ -68,13 +70,22 @@ export async function inviteToApply(input: {
 		});
 	}
 
-	// 1. Rate limit + 2. Already-applied check + 3. Create invitation — all in
-	// one transaction to prevent the TOCTOU race: two concurrent requests from the
-	// same org could both pass the rate limit check before either creates a record.
+	// 1. Rate limit + 2. Already-applied check + 3. Create invitation.
+	//
+	// SECURITY: the advisory lock, NOT the transaction, is what makes the rate
+	// limit hold. A previous comment here claimed the `$transaction` prevented
+	// the TOCTOU race; it did not, and asserting a guarantee that is not there is
+	// worse than documenting the gap. Postgres defaults to READ COMMITTED, under
+	// which two concurrent calls can both COUNT 9, both pass the check below, and
+	// both COMMIT — 11 invitations out of a 10/day limit. The lock serializes the
+	// count-then-create pair per org; see lockOrgForInviteRateLimit for why this
+	// rather than SERIALIZABLE or a counter table.
 	const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
 	let invitation: { id: string };
 	try {
 		invitation = await prisma.$transaction(async (tx) => {
+			await lockOrgForInviteRateLimit(tx, orgId);
+
 			const recentCount = await tx.volunteerInvitation.count({
 				where: { orgId, sentAt: { gte: since } },
 			});

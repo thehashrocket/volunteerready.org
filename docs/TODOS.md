@@ -11,10 +11,12 @@ Found by five specialists plus a Codex adversarial pass while reviewing the
 eleven-IDOR fix. None were in that diff's blast radius; all three are the same
 bug class.
 
-**Status: the two shift items and the vitest config are FIXED** in the
-shift-org-scoping-followups branch. The `inviteToApply` race ships separately —
-it introduces an advisory lock and warrants its own review. Details below each
-item.
+**Status: all four are FIXED.** The two shift items and the vitest config
+shipped in v0.32.3.0 (#160); the `inviteToApply` race shipped separately in
+v0.32.4.0 (#161), because it introduces an advisory lock and warranted its own
+review. Two of the four turned out to be wider or more severe than reported —
+see the note on each. Original reports are kept in `<details>` blocks rather
+than deleted.
 
 - **[P1] ~~`shifts.create` accepts a foreign `opportunityId`~~** ✅ **FIXED** —
   closed by `requireOrgOpportunity()` in `shiftAccessService.ts`, wired into
@@ -79,22 +81,31 @@ item.
   branches. **Effort:** S.
   </details>
 
-- **[P2] `inviteToApply`'s rate limit is not actually atomic** — **still open,
-  shipping as its own PR** (it adds a `pg_advisory_xact_lock`, the first
-  `$executeRaw` in `src/server`, and deserves separate review). Note for
-  whoever picks it up: the existing Upstash limiter is NOT the fix — 
+- **[P2] ~~`inviteToApply`'s rate limit is not actually atomic~~** ✅ **FIXED** —
+  closed by `lockOrgForInviteRateLimit()` in the new
+  `repositories/volunteerInvitationRepo.ts`, a per-org
+  `pg_advisory_xact_lock` taken as the first statement inside the existing
+  transaction. No migration, no retry loop, and the rolling-24h semantics are
+  unchanged.
+
+  **The severity was understated.** The report predicted "the 10th and 11th
+  invitations". Measured against a real database, five callers racing for one
+  remaining slot from a seeded 9 produced **14 invitations against a 10/day
+  cap** — every racer read 9 and every racer committed. The integration test
+  fails 5 runs out of 5 with the lock removed.
+
+  Two alternatives were considered and rejected, recorded so they are not
+  rediscovered: `SERIALIZABLE` needs retry-on-40001 machinery that exists
+  nowhere in this repo and can abort invitations that are not over quota at
+  all, on predicate overlap alone. A counter table would silently convert the
+  rolling 24h window into a calendar-day bucket, gameable with 10 invitations
+  at 23:59 and 10 more at 00:01 — there is now a test pinning the rolling
+  semantics specifically so that swap cannot be made silently.
+
+  The Upstash limiter is **not** usable for this and never was:
   `src/server/lib/rate-limit.ts` fails **open** when `UPSTASH_REDIS_REST_URL`
-  is unset, so it would silently disable itself in dev, CI, and any deploy
-  missing the env var. A counter table is also the wrong shape: the current
-  window is a rolling 24h over real `sentAt` values, and a `windowDate` bucket
-  would silently convert it to a calendar day, gameable at midnight. The
-  comment at
-  `volunteerDiscoveryService.ts:68` claims the transaction prevents a TOCTOU
-  race, but the `count` and the `create` are separate statements under READ
-  COMMITTED, so two concurrent requests can both observe 9 and create the 10th
-  and 11th invitations. The comment asserting otherwise is the dangerous part.
-  **Fix:** a unique constraint or `SELECT … FOR UPDATE` on a counter row, or
-  drop the claim. **Effort:** S.
+  is unset, so it disables itself in dev, CI, and any deploy missing the env
+  var. It stays appropriate for burst throttling, which is a different job.
 
 - **[P3] ~~`vitest.integration.config.mts` serialization is silently dead~~**
   ✅ **FIXED** — `poolOptions: { forks: { singleFork: true } }` (removed in

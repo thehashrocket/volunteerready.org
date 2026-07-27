@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.4.0] - 2026-07-27
+
+### Fixed
+- The cap of 10 volunteer invitations per organization per day could be exceeded by sending several at the same moment. Each request counted the day's invitations and then created one, and nothing stopped two requests from counting before either had finished — so all of them saw the same number, all decided there was room, and all went through. Tested against a real database, an organization with 9 invitations already sent could land 5 more at once, for 14 against a limit of 10. Requests for the same organization are now processed one at a time, so the count each one sees includes every invitation that came before it. Different organizations are unaffected by each other.
+- A code comment claimed this was already prevented. It was not, and that claim is the reason the gap survived earlier review.
+
 ## [0.32.3.0] - 2026-07-27
 
 ### Fixed
