@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.1.0] - 2026-07-27
+
+### Fixed
+- Staff could act on **any** person in the system by pasting their user ID into a form, even someone belonging to an entirely different organization. Four staff actions took a user ID and never checked that the person had any connection to the organization making the request: viewing a volunteer's profile, issuing a credential, revoking a credential, and starting a background check. The background-check case was the most serious — it sends a person's Social Security number and date of birth to a paid third-party service, and the only interface for it is a free-text "Volunteer User ID" box. User IDs are not secret; they appear in public profile links. Every one of these actions now confirms the person actually belongs to your organization first, and the check runs before anything is written or sent to an outside service.
+- Removing a volunteer from your roster no longer strands their credentials. Their credential stayed visible in your organization's list, but the Revoke button beside it would fail permanently — exactly when revoking matters most.
+
+### Changed
+- Credential and background-check audit records now note *why* the action was permitted (roster membership, an application, a shift signup, or staff membership). When reviewing what happened after the fact, the record of who was allowed to do something is the hardest part to reconstruct — a roster entry can be removed later.
+- A request for a volunteer who isn't part of your organization now reads as "not found" rather than "not allowed", so the response cannot be used to confirm whether an account exists.
+
 ## [0.32.0.0] - 2026-07-27
 
 ### Added
