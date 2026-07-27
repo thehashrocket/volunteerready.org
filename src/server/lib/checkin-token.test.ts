@@ -81,6 +81,51 @@ describe('checkin-token', () => {
 				validateCheckinToken(SECRET, SHIFT_ID, 'wronguser', token, now),
 			).toBe(false);
 		});
+
+		// The comparison is crypto.timingSafeEqual, which THROWS on a length
+		// mismatch rather than returning false. These pin the length guard:
+		// a malformed token must be rejected, never raise.
+		it('rejects a too-short token without throwing', () => {
+			const now = new Date('2026-03-19T12:00:00Z');
+			expect(() =>
+				validateCheckinToken(SECRET, SHIFT_ID, USER_ID, 'abc123', now),
+			).not.toThrow();
+			expect(
+				validateCheckinToken(SECRET, SHIFT_ID, USER_ID, 'abc123', now),
+			).toBe(false);
+		});
+
+		it('rejects a too-long token without throwing', () => {
+			const now = new Date('2026-03-19T12:00:00Z');
+			const token = generateCheckinToken(SECRET, SHIFT_ID, USER_ID, now);
+			const tooLong = `${token}extra`;
+			expect(() =>
+				validateCheckinToken(SECRET, SHIFT_ID, USER_ID, tooLong, now),
+			).not.toThrow();
+			expect(
+				validateCheckinToken(SECRET, SHIFT_ID, USER_ID, tooLong, now),
+			).toBe(false);
+		});
+
+		it('rejects an empty token without throwing', () => {
+			const now = new Date('2026-03-19T12:00:00Z');
+			expect(() =>
+				validateCheckinToken(SECRET, SHIFT_ID, USER_ID, '', now),
+			).not.toThrow();
+			expect(validateCheckinToken(SECRET, SHIFT_ID, USER_ID, '', now)).toBe(
+				false,
+			);
+		});
+
+		it('rejects a same-length token differing in one character', () => {
+			const now = new Date('2026-03-19T12:00:00Z');
+			const token = generateCheckinToken(SECRET, SHIFT_ID, USER_ID, now);
+			const flipped = `${token.slice(0, -1)}${token.endsWith('a') ? 'b' : 'a'}`;
+			expect(flipped).toHaveLength(64);
+			expect(
+				validateCheckinToken(SECRET, SHIFT_ID, USER_ID, flipped, now),
+			).toBe(false);
+		});
 	});
 
 	describe('parseQrData', () => {
