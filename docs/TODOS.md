@@ -13,6 +13,7 @@ deferred INFORMATIONAL findings, kept because each touches files outside that PR
 
 ### [P2] Nav layout resolves the feature flag against the wrong org on impersonation failure
 **Priority:** P2
+**Tracked as:** [#157](https://github.com/thehashrocket/volunteerready.org/issues/157)
 `app/(app)/app/volunteers/layout.tsx` was fixed in v0.32.0.0 to check
 `impersonation.resolutionFailed` before deriving the effective user. Its sibling
 `app/(app)/app/layout.tsx` was NOT — on a failed impersonation
