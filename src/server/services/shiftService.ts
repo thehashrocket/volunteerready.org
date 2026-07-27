@@ -18,6 +18,7 @@ import {
 import { tryNotify } from '@/server/services/notificationService';
 import {
 	isOrgShift,
+	requireOrgOpportunity,
 	requireOrgShift,
 } from '@/server/services/shiftAccessService';
 
@@ -62,6 +63,14 @@ export async function getUpcomingOrgShifts(orgId: string, limit?: number) {
 // ---------------------------------------------------------------------------
 
 export async function createNewShift(input: CreateShiftInput, actorId: string) {
+	// SECURITY: `opportunityId` arrives from client input while `orgId` is
+	// resolved server-side, so an unchecked one lets staff link their own shift
+	// to another tenant's opportunity and read its title back through their own
+	// scoped shift list. See requireOrgOpportunity.
+	if (input.opportunityId) {
+		await requireOrgOpportunity(input.opportunityId, input.orgId);
+	}
+
 	const timeCheck = validateShiftTimes(input.startTime, input.endTime);
 	if (!timeCheck.ok) {
 		throw new Error(timeCheck.reason);
@@ -102,6 +111,13 @@ export async function updateExistingShift(
 	actorId: string,
 ) {
 	await requireOrgShift(input.id, orgId);
+
+	// SECURITY: same foreign-`opportunityId` hole as `createNewShift`. Re-linking
+	// is now possible (the field was previously set-once at create), so the guard
+	// has to run here too.
+	if (input.opportunityId) {
+		await requireOrgOpportunity(input.opportunityId, orgId);
+	}
 
 	if (input.startTime && input.endTime) {
 		const timeCheck = validateShiftTimes(input.startTime, input.endTime);

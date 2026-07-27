@@ -105,6 +105,7 @@ export async function createShift(tx: TxClient, input: CreateShiftInput) {
 
 export type UpdateShiftInput = {
 	id: string;
+	opportunityId?: string | null;
 	title?: string;
 	description?: string | null;
 	location?: string | null;

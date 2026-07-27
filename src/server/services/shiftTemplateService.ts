@@ -15,7 +15,10 @@ import {
 	type UpdateTemplateInput,
 	updateTemplate,
 } from '@/server/repositories/shiftTemplateRepo';
-import { requireOrgTemplate } from '@/server/services/shiftAccessService';
+import {
+	requireOrgOpportunity,
+	requireOrgTemplate,
+} from '@/server/services/shiftAccessService';
 
 // ---------------------------------------------------------------------------
 // Reads
@@ -41,6 +44,13 @@ export async function createNewTemplate(
 	input: CreateTemplateInput,
 	actorId: string,
 ) {
+	// SECURITY: foreign `opportunityId`, same as `createNewShift`. Templates leak
+	// it through `listTemplatesByOrg`, which includes the opportunity relation,
+	// and every shift the template later generates inherits the same bad link.
+	if (input.opportunityId) {
+		await requireOrgOpportunity(input.opportunityId, input.orgId);
+	}
+
 	const timeCheck = validateTemplateTime(input);
 	if (!timeCheck.ok) {
 		throw new Error(timeCheck.reason);
@@ -73,6 +83,13 @@ export async function updateExistingTemplate(
 	actorId: string,
 ) {
 	await requireOrgTemplate(input.id, orgId);
+
+	// SECURITY: `updateShiftTemplateSchema` is `createShiftTemplateSchema.partial()`,
+	// so it carries `opportunityId` — this path was exploitable in exactly the
+	// same way as create, on a template the caller does legitimately own.
+	if (input.opportunityId) {
+		await requireOrgOpportunity(input.opportunityId, orgId);
+	}
 
 	if (
 		input.startHour !== undefined &&
