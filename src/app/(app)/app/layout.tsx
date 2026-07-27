@@ -6,9 +6,12 @@ import { FeedbackWidget } from '@/components/app/feedback-widget';
 import { ImpersonationBanner } from '@/components/app/impersonation-banner';
 import { AuthFeedback } from '@/components/auth-feedback';
 import { authOptions } from '@/server/auth';
+import { resolveActiveOrgId } from '@/server/domain/active-org';
+import { STAFF_CREATED_VOLUNTEERS_FLAG } from '@/server/domain/feature-flags';
 import { getImpersonationContext } from '@/server/lib/impersonation-context';
 import { listCompaniesForUser } from '@/server/repositories/companyRepo';
-import { prisma } from '@/server/repositories/prisma';
+import { listMembershipOrgIds } from '@/server/repositories/membershipRepo';
+import { isFeatureEnabled } from '@/server/services/featureFlagService';
 
 // Routes that are exempt from the no-org redirect guard.
 // These pages must be reachable by logged-in users who have no org yet.
@@ -47,12 +50,13 @@ export default async function AppLayout({
 		? impersonation.effectiveUserId
 		: (session?.user?.id ?? null);
 
-	const memberCount = effectiveUserId
-		? await prisma.organizationMember.count({
-				where: { userId: effectiveUserId },
-			})
-		: 0;
-	const hasOrg = memberCount > 0;
+	// Was a bare count(). It now returns the ids too, because the feature-flag
+	// gate below needs an actual orgId and this layout never had one — same
+	// number of queries, strictly more information.
+	const membershipOrgIds = effectiveUserId
+		? await listMembershipOrgIds(effectiveUserId)
+		: [];
+	const hasOrg = membershipOrgIds.length > 0;
 
 	// hasCompany: when impersonating, query the target's memberships.
 	let hasCompany = false;
@@ -82,6 +86,21 @@ export default async function AppLayout({
 		redirect(hasCompany ? '/app/company' : '/app/welcome');
 	}
 
+	// Resolve the roster flag server-side so the nav item never flashes in and
+	// then disappears. Following the hasOrg/hasCompany idiom rather than adding a
+	// client query. Note this only hides NAV — the route itself is closed
+	// independently in volunteers/layout.tsx, because hiding a link is cosmetic.
+	// `orgId` is declared on Session in src/types/next-auth.d.ts — no cast needed.
+	const sessionOrgId = session?.orgId ?? null;
+	const activeOrgId = resolveActiveOrgId({
+		membershipOrgIds,
+		sessionOrgId,
+		isImpersonating: impersonation.isImpersonating,
+	});
+	const hasVolunteerRoster = activeOrgId
+		? await isFeatureEnabled(activeOrgId, STAFF_CREATED_VOLUNTEERS_FLAG)
+		: false;
+
 	return (
 		<>
 			{impersonation.isImpersonating && impersonation.expiresAt ? (
@@ -91,7 +110,12 @@ export default async function AppLayout({
 					expiresAt={impersonation.expiresAt.toISOString()}
 				/>
 			) : null}
-			<AppShell hasOrg={hasOrg} hasCompany={hasCompany} companyId={companyId}>
+			<AppShell
+				hasOrg={hasOrg}
+				hasCompany={hasCompany}
+				companyId={companyId}
+				hasVolunteerRoster={hasVolunteerRoster}
+			>
 				<AuthFeedback />
 				{children}
 				<FeedbackWidget />

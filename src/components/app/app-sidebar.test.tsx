@@ -180,3 +180,69 @@ describe('AppSidebar', () => {
 		);
 	});
 });
+
+describe('AppSidebar — staff_created_volunteers gating', () => {
+	it('hides Volunteers when the flag is off', () => {
+		render(<AppSidebar hasOrg={true} hasCompany={false} />);
+		expect(screen.queryByText('Volunteers')).not.toBeInTheDocument();
+	});
+
+	it('shows Volunteers when the flag is on', () => {
+		render(
+			<AppSidebar hasOrg={true} hasCompany={false} hasVolunteerRoster={true} />,
+		);
+		expect(screen.getByText('Volunteers').closest('a')).toHaveAttribute(
+			'href',
+			'/app/volunteers',
+		);
+	});
+
+	it('places Volunteers immediately after Applications (funnel order)', () => {
+		render(
+			<AppSidebar hasOrg={true} hasCompany={false} hasVolunteerRoster={true} />,
+		);
+		const labels = screen.getAllByRole('link').map((a) => a.textContent);
+		expect(labels.indexOf('Volunteers')).toBe(
+			labels.indexOf('Applications') + 1,
+		);
+	});
+
+	it('keeps Volunteers distinct from Team', () => {
+		// Three people-shaped destinations now exist (Discover / Volunteers /
+		// Team). They must remain separate links, not collapse into one another.
+		render(
+			<AppSidebar hasOrg={true} hasCompany={false} hasVolunteerRoster={true} />,
+		);
+		expect(screen.getByText('Volunteers').closest('a')).toHaveAttribute(
+			'href',
+			'/app/volunteers',
+		);
+		expect(screen.getByText('Team').closest('a')).toHaveAttribute(
+			'href',
+			'/app/settings/team',
+		);
+	});
+
+	it('highlights exactly one item on a Volunteers child route', () => {
+		// getActiveHref is longest-match on segment boundaries, so a future
+		// /app/volunteers/[id] must keep Volunteers lit and nothing else.
+		mockUsePathname.mockReturnValue('/app/volunteers/abc123');
+		render(
+			<AppSidebar hasOrg={true} hasCompany={false} hasVolunteerRoster={true} />,
+		);
+		const active = activeLinks();
+		expect(active).toHaveLength(1);
+		expect(active[0]).toHaveTextContent('Volunteers');
+	});
+
+	it('does not show Volunteers to a non-org user even if the flag is on', () => {
+		render(
+			<AppSidebar
+				hasOrg={false}
+				hasCompany={false}
+				hasVolunteerRoster={true}
+			/>,
+		);
+		expect(screen.queryByText('Volunteers')).not.toBeInTheDocument();
+	});
+});

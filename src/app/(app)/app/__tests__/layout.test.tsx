@@ -7,14 +7,16 @@ const {
 	mockHeadersGet,
 	mockGetImpersonationContext,
 	mockListCompaniesForUser,
-	mockOrgMemberCount,
+	mockListMembershipOrgIds,
+	mockIsFeatureEnabled,
 	mockRedirect,
 } = vi.hoisted(() => ({
 	mockGetServerSession: vi.fn(),
 	mockHeadersGet: vi.fn(() => '/app'),
 	mockGetImpersonationContext: vi.fn(),
 	mockListCompaniesForUser: vi.fn(),
-	mockOrgMemberCount: vi.fn(async () => 1),
+	mockListMembershipOrgIds: vi.fn(async () => ['org-1']),
+	mockIsFeatureEnabled: vi.fn(async () => false),
 	mockRedirect: vi.fn((url: string) => {
 		throw new Error(`NEXT_REDIRECT:${url}`);
 	}),
@@ -44,9 +46,18 @@ vi.mock('@/server/repositories/companyRepo', () => ({
 	listCompaniesForUser: mockListCompaniesForUser,
 }));
 
-vi.mock('@/server/repositories/prisma', () => ({
-	prisma: { organizationMember: { count: mockOrgMemberCount } },
+// The layout used to call prisma.organizationMember.count() directly. It now
+// goes through membershipRepo, because the feature-flag gate needs the org IDS
+// and not merely how many there are.
+vi.mock('@/server/repositories/membershipRepo', () => ({
+	listMembershipOrgIds: mockListMembershipOrgIds,
 }));
+
+vi.mock('@/server/services/featureFlagService', () => ({
+	isFeatureEnabled: mockIsFeatureEnabled,
+}));
+
+vi.mock('@/server/repositories/prisma', () => ({ prisma: {} }));
 
 // AppShell is a client component with its own hooks/state — stub it so this
 // test stays focused on what AppLayout resolves and passes down, not on
@@ -55,12 +66,15 @@ vi.mock('@/components/app/app-shell', () => ({
 	AppShell: ({
 		hasCompany,
 		companyId,
+		hasVolunteerRoster,
 	}: {
 		hasCompany: boolean;
 		companyId?: string | null;
+		hasVolunteerRoster?: boolean;
 	}) => (
 		<div data-testid="app-shell">
-			hasCompany:{String(hasCompany)} companyId:{companyId ?? 'null'}
+			hasCompany:{String(hasCompany)} companyId:{companyId ?? 'null'}{' '}
+			hasVolunteerRoster:{String(hasVolunteerRoster)}
 		</div>
 	),
 }));
@@ -117,7 +131,7 @@ function membership(
 beforeEach(() => {
 	vi.clearAllMocks();
 	mockHeadersGet.mockReturnValue('/app');
-	mockOrgMemberCount.mockResolvedValue(1);
+	mockListMembershipOrgIds.mockResolvedValue(['org-1']);
 });
 
 describe('AppLayout company resolution under impersonation', () => {
@@ -186,7 +200,7 @@ describe('AppLayout company resolution under impersonation', () => {
 describe('AppLayout no-org redirect target', () => {
 	it('redirects a company-only user to /app/company, not /app/welcome', async () => {
 		mockHeadersGet.mockReturnValue('/app/opportunities');
-		mockOrgMemberCount.mockResolvedValue(0);
+		mockListMembershipOrgIds.mockResolvedValue([]);
 		mockGetServerSession.mockResolvedValueOnce({
 			user: { id: ADMIN_ID },
 			companyId: 'admin-company',
@@ -200,7 +214,7 @@ describe('AppLayout no-org redirect target', () => {
 
 	it('redirects a user with neither org nor company to /app/welcome', async () => {
 		mockHeadersGet.mockReturnValue('/app/opportunities');
-		mockOrgMemberCount.mockResolvedValue(0);
+		mockListMembershipOrgIds.mockResolvedValue([]);
 		mockGetServerSession.mockResolvedValueOnce({ user: { id: ADMIN_ID } });
 		mockGetImpersonationContext.mockResolvedValueOnce(notImpersonating());
 
@@ -211,7 +225,7 @@ describe('AppLayout no-org redirect target', () => {
 
 	it('does not redirect an exempt path even without an org', async () => {
 		mockHeadersGet.mockReturnValue('/app/company');
-		mockOrgMemberCount.mockResolvedValue(0);
+		mockListMembershipOrgIds.mockResolvedValue([]);
 		mockGetServerSession.mockResolvedValueOnce({
 			user: { id: ADMIN_ID },
 			companyId: 'admin-company',
@@ -222,5 +236,70 @@ describe('AppLayout no-org redirect target', () => {
 		render(ui);
 
 		expect(mockRedirect).not.toHaveBeenCalled();
+	});
+});
+
+describe('AppLayout staff_created_volunteers gate', () => {
+	beforeEach(() => {
+		mockHeadersGet.mockReturnValue('/app');
+		mockGetServerSession.mockResolvedValue({
+			user: { id: 'u1' },
+			orgId: 'org-1',
+		});
+		mockGetImpersonationContext.mockResolvedValue({ isImpersonating: false });
+		mockListMembershipOrgIds.mockResolvedValue(['org-1']);
+		mockListCompaniesForUser.mockResolvedValue([]);
+	});
+
+	it('passes hasVolunteerRoster=false when the flag is off', async () => {
+		mockIsFeatureEnabled.mockResolvedValue(false);
+		render(await AppLayout({ children: null }));
+		expect(screen.getByTestId('app-shell')).toHaveTextContent(
+			'hasVolunteerRoster:false',
+		);
+	});
+
+	it('passes hasVolunteerRoster=true when the flag is on', async () => {
+		mockIsFeatureEnabled.mockResolvedValue(true);
+		render(await AppLayout({ children: null }));
+		expect(screen.getByTestId('app-shell')).toHaveTextContent(
+			'hasVolunteerRoster:true',
+		);
+	});
+
+	it('resolves the flag against the session org when it is a real membership', async () => {
+		mockListMembershipOrgIds.mockResolvedValue(['org-old', 'org-1']);
+		mockIsFeatureEnabled.mockResolvedValue(true);
+		render(await AppLayout({ children: null }));
+		expect(mockIsFeatureEnabled).toHaveBeenCalledWith(
+			'org-1',
+			'staff_created_volunteers',
+		);
+	});
+
+	it('SECURITY: resolves against the TARGET org while impersonating, not the admin session org', async () => {
+		// session.orgId is the real admin's. Using it would gate on the wrong
+		// tenant's flag entirely.
+		mockGetImpersonationContext.mockResolvedValue({
+			isImpersonating: true,
+			effectiveUserId: 'target-user',
+			expiresAt: null,
+		});
+		mockListMembershipOrgIds.mockResolvedValue(['target-org']);
+		mockIsFeatureEnabled.mockResolvedValue(true);
+
+		render(await AppLayout({ children: null }));
+
+		expect(mockIsFeatureEnabled).toHaveBeenCalledWith(
+			'target-org',
+			'staff_created_volunteers',
+		);
+	});
+
+	it('does not query the flag at all when the user has no org', async () => {
+		mockHeadersGet.mockReturnValue('/app/profile'); // exempt, so no redirect
+		mockListMembershipOrgIds.mockResolvedValue([]);
+		render(await AppLayout({ children: null }));
+		expect(mockIsFeatureEnabled).not.toHaveBeenCalled();
 	});
 });
