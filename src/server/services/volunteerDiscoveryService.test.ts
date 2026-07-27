@@ -25,6 +25,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 		},
 		volunteerOpportunity: {
 			findUnique: vi.fn(),
+			findFirst: vi.fn(),
 		},
 		$transaction: vi.fn(),
 	},
@@ -57,6 +58,9 @@ const mockFindFirst = vi.mocked(prisma.volunteerApplication.findFirst);
 const mockUserFindUnique = vi.mocked(prisma.user.findUnique);
 const mockOpportunityFindUnique = vi.mocked(
 	prisma.volunteerOpportunity.findUnique,
+);
+const mockOpportunityFindFirst = vi.mocked(
+	prisma.volunteerOpportunity.findFirst,
 );
 const mockSendEmail = vi.mocked(sendInviteToApplyEmail);
 const mockWriteAuditLog = vi.mocked(writeAuditLog);
@@ -101,6 +105,66 @@ describe('inviteToApply', () => {
 			// biome-ignore lint/suspicious/noExplicitAny: $transaction callback type is complex; any is acceptable in test mocks
 			async (cb: any) => cb(prisma),
 		);
+		// The org-scope guard on `opportunityId` runs before everything else, so
+		// every test needs it to pass by default. The SECURITY tests below override
+		// it to null to exercise the rejection. It selects the same fields the
+		// invite email needs, because it replaced that fetch rather than adding one.
+		mockOpportunityFindFirst.mockResolvedValue({
+			title: 'Beach Cleanup',
+			organization: { name: 'Helping Hands Org' },
+		} as never);
+	});
+
+	// -------------------------------------------------------------------------
+	// SECURITY: opportunityId is client input; orgId is resolved server-side
+	// -------------------------------------------------------------------------
+
+	describe('SECURITY: opportunity org scoping', () => {
+		it('throws NOT_FOUND when the opportunity belongs to another org', async () => {
+			setupHappyPath();
+			mockOpportunityFindFirst.mockResolvedValue(null);
+
+			try {
+				await inviteToApply(BASE_INPUT);
+				expect.unreachable('should have thrown');
+			} catch (err) {
+				expect(err).toBeInstanceOf(TRPCError);
+				expect((err as TRPCError).code).toBe('NOT_FOUND');
+			}
+		});
+
+		it('does not create an invitation, send an email, or write audit for a foreign opportunity', async () => {
+			setupHappyPath();
+			mockOpportunityFindFirst.mockResolvedValue(null);
+
+			await inviteToApply(BASE_INPUT).catch(() => {});
+
+			expect(mockCreate).not.toHaveBeenCalled();
+			expect(mockSendEmail).not.toHaveBeenCalled();
+			expect(mockWriteAuditLog).not.toHaveBeenCalled();
+		});
+
+		it('scopes the lookup by both opportunity id and the caller org', async () => {
+			setupHappyPath();
+
+			await inviteToApply(BASE_INPUT);
+
+			expect(mockOpportunityFindFirst).toHaveBeenCalledWith(
+				expect.objectContaining({
+					where: { id: BASE_INPUT.opportunityId, orgId: BASE_INPUT.orgId },
+				}),
+			);
+		});
+
+		it('rejects before consuming the rate limit', async () => {
+			// Otherwise probing foreign ids would burn a legitimate org's daily quota.
+			setupHappyPath();
+			mockOpportunityFindFirst.mockResolvedValue(null);
+
+			await inviteToApply(BASE_INPUT).catch(() => {});
+
+			expect(mockCount).not.toHaveBeenCalled();
+		});
 	});
 
 	describe('rate limit', () => {
