@@ -8,40 +8,62 @@ datasource db {
 }
 
 model User {
-  id                    String                 @id @default(cuid())
-  name                  String?
-  email                 String?                @unique
-  emailVerified         DateTime?
-  image                 String?
-  accounts              Account[]
-  sessions              Session[]
-  memberships           OrganizationMember[]
-  companyMemberships    CompanyMember[]
-  auditLogs             AuditLog[]             @relation("AuditActor")
-  submittedApplications VolunteerApplication[] @relation("SubmittedApplications")
-  volunteerSkills       VolunteerSkill[]
-  profile               VolunteerProfile?
+  id                      String                     @id @default(cuid())
+  name                    String?
+  /// NORMALIZED AT THE DATABASE — invisible to Prisma. A BEFORE INSERT/UPDATE
+  /// trigger (`trg_user_email_normalize`, migration 20260726231500) lowercases
+  /// and trims every write, and a functional unique index
+  /// (`User_email_lower_key`) enforces case-insensitive uniqueness even if the
+  /// trigger is ever dropped. Storage is therefore ALWAYS lowercase.
+  ///
+  /// Consequence: `create()`/`update()` return the value you passed, not the
+  /// value stored. Re-read the row if you need the canonical form. Lowercase
+  /// your input before `findUnique({ where: { email } })`.
+  ///
+  /// Why a trigger and not service-layer lowercasing: NextAuth's PrismaAdapter
+  /// (auth.ts:26) writes User rows without passing through any service, so a
+  /// service-layer fix would miss the largest write path in the app and the
+  /// unclaimed-email guard would keep failing open.
+  email                   String?                    @unique
+  emailVerified           DateTime?
+  image                   String?
+  accounts                Account[]
+  sessions                Session[]
+  memberships             OrganizationMember[]
+  companyMemberships      CompanyMember[]
+  auditLogs               AuditLog[]                 @relation("AuditActor")
+  submittedApplications   VolunteerApplication[]     @relation("SubmittedApplications")
+  volunteerSkills         VolunteerSkill[]
+  profile                 VolunteerProfile?
   credentials             VolunteerCredential[]
   shiftSignups            ShiftSignup[]
   backgroundCheckRequests BackgroundCheckRequest[]
   createdShareTokens      CredentialShareToken[]
-  receivedInvitations     VolunteerInvitation[]   @relation("ReceivedInvitations")
+  receivedInvitations     VolunteerInvitation[]      @relation("ReceivedInvitations")
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
   digestPreferences       UserDigestPreference[]
   interests               OpportunityInterest[]
   marketplacePreference   UserMarketplacePreference?
   bulkImportJobs          BulkImportJob[]
-  isPlatformAdmin         Boolean                 @default(false)
+  isPlatformAdmin         Boolean                    @default(false)
   feedbacks               UserFeedback[]
-  resolvedFeedbacks       UserFeedback[]          @relation("FeedbackResolver")
-  repliedFeedbacks        UserFeedback[]          @relation("FeedbackReplier")
-  impersonationsAsAdmin   ImpersonationSession[]  @relation("ImpersonationAdmin")
-  impersonationsAsTarget  ImpersonationSession[]  @relation("ImpersonationTarget")
-  suspendedOrgs           Organization[]          @relation("OrgSuspendedBy")
-  updatedFeatureFlags     FeatureFlag[]           @relation("FeatureFlagUpdatedBy")
-  createdAt               DateTime                @default(now())
-  updatedAt               DateTime                @updatedAt
+  resolvedFeedbacks       UserFeedback[]             @relation("FeedbackResolver")
+  repliedFeedbacks        UserFeedback[]             @relation("FeedbackReplier")
+  impersonationsAsAdmin   ImpersonationSession[]     @relation("ImpersonationAdmin")
+  impersonationsAsTarget  ImpersonationSession[]     @relation("ImpersonationTarget")
+  suspendedOrgs           Organization[]             @relation("OrgSuspendedBy")
+  updatedFeatureFlags     FeatureFlag[]              @relation("FeatureFlagUpdatedBy")
+  // Staff-created volunteers. An UNCLAIMED User is a real row nobody has ever
+  // authenticated as. Claiming is a state flip, not a data migration, so
+  // ShiftSignup / VolunteerCredential / VolunteerProfile keep their userId FK
+  // and every hours + impact report works over shadow users with no query change.
+  accountState            AccountState               @default(ACTIVE)
+  claimedAt               DateTime? // stamped on first authenticated session
+  orgVolunteers           OrgVolunteer[]
+  addedOrgVolunteers      OrgVolunteer[]             @relation("OrgVolunteerAddedBy")
+  createdAt               DateTime                   @default(now())
+  updatedAt               DateTime                   @updatedAt
 }
 
 model Account {
@@ -109,69 +131,70 @@ model ApplicationStatusToken {
 }
 
 model Organization {
-  id                          String                   @id @default(cuid())
-  name                        String
-  slug                        String                   @unique
-  planTier                    PlanTier                 @default(FREE)
-  stripeCustomerId            String?                  @unique
-  stripeSubscriptionId        String?                  @unique
-  trialEndsAt                 DateTime?
+  id                         String                   @id @default(cuid())
+  name                       String
+  slug                       String                   @unique
+  planTier                   PlanTier                 @default(FREE)
+  stripeCustomerId           String?                  @unique
+  stripeSubscriptionId       String?                  @unique
+  trialEndsAt                DateTime?
   // Checkr Partner API — per-org OAuth credentials
-  checkrAccessToken           String?                  // OAuth access token; store server-side only
-  checkrAccountId             String?                  @unique // Checkr account ID for webhook routing
+  checkrAccessToken          String? // OAuth access token; store server-side only
+  checkrAccountId            String?                  @unique // Checkr account ID for webhook routing
   // Sterling — per-org API key (pasted by admin, encrypted at rest)
-  sterlingApiKey              String?                  // Encrypted AES-256-GCM (same as Checkr token)
-  sterlingAccountId           String?                  @unique // Sterling account ID for webhook routing
+  sterlingApiKey             String? // Encrypted AES-256-GCM (same as Checkr token)
+  sterlingAccountId          String?                  @unique // Sterling account ID for webhook routing
   // Phase 9 — Onboarding & activation
-  onboardingProgress          Json?                    // Wizard + checklist shared state
-  onboardingDismissedAt       DateTime?                // Checklist dismissed
-  firstApplicationReceivedAt  DateTime?                // First-volunteer celebration trigger
-  qrForegroundColor           String?                  // Custom QR code color (hex, e.g. #1B3C2A)
-  timezone                    String?                  // IANA timezone (e.g. "America/New_York"). NULL = UTC.
+  onboardingProgress         Json? // Wizard + checklist shared state
+  onboardingDismissedAt      DateTime? // Checklist dismissed
+  firstApplicationReceivedAt DateTime? // First-volunteer celebration trigger
+  qrForegroundColor          String? // Custom QR code color (hex, e.g. #1B3C2A)
+  timezone                   String? // IANA timezone (e.g. "America/New_York"). NULL = UTC.
   // Phase 12 — Concierge Activation Engine
-  onboardingBaseline          Json?                    // Baseline data captured at concierge onboarding
-  showPoweredBy               Boolean                  @default(true) // "Powered by VolunteerReady" footer on apply pages
-  onboardingComplete          Boolean                  @default(false) // Onboarding checklist dismissed
-  referralSource              String?                  // Referral tracking (orgSlug of referring org)
+  onboardingBaseline         Json? // Baseline data captured at concierge onboarding
+  showPoweredBy              Boolean                  @default(true) // "Powered by VolunteerReady" footer on apply pages
+  onboardingComplete         Boolean                  @default(false) // Onboarding checklist dismissed
+  referralSource             String? // Referral tracking (orgSlug of referring org)
   // Content Flywheel — case study consent + org branding
-  consentToPublicize          Boolean                  @default(false) // Org consented to public case study
-  logoUrl                     String?                  // Org logo (Vercel Blob URL)
+  consentToPublicize         Boolean                  @default(false) // Org consented to public case study
+  logoUrl                    String? // Org logo (Vercel Blob URL)
   // Tier 3 — platform admin suspension (freeze tenant without delete)
-  suspendedAt                 DateTime?                // NULL = active; non-NULL = suspended
-  suspendedReason             String?                  // Free-text justification (audit-redundant but UI-handy)
-  suspendedById               String?                  // Platform admin who suspended (FK to User)
-  suspendedBy                 User?                    @relation("OrgSuspendedBy", fields: [suspendedById], references: [id], onDelete: SetNull)
+  suspendedAt                DateTime? // NULL = active; non-NULL = suspended
+  suspendedReason            String? // Free-text justification (audit-redundant but UI-handy)
+  suspendedById              String? // Platform admin who suspended (FK to User)
+  suspendedBy                User?                    @relation("OrgSuspendedBy", fields: [suspendedById], references: [id], onDelete: SetNull)
   // Phase 11 — Volunteer Marketplace
-  marketplaceVisible          Boolean                  @default(false)  // Org opts in to cross-org marketplace listing
-  description                 String?                  // Short org description shown on discovery page
-  location                    String?                  // Display location, e.g. "Fresno, CA"
-  causeAreaTags               String[]                 @default([])     // e.g. ["Environment", "Education"]
-  verified                    Boolean                  @default(false)  // Platform-verified org (set by platform admin)
-  createdAt                   DateTime                 @default(now())
-  updatedAt                   DateTime                 @updatedAt
-  members              OrganizationMember[]
-  auditLogs            AuditLog[]
-  featureFlags         FeatureFlag[]
-  applications         VolunteerApplication[]
-  screenerQuestions    ScreenerQuestion[]
-  sessions             Session[] // optional backrelation
-  invitations          OrganizationInvitation[]
-  opportunities        VolunteerOpportunity[]
-  credentials             VolunteerCredential[]
-  sharedCredentials       VolunteerCredential[]    @relation("SharedCredentials")
-  claimedShareTokens      CredentialShareToken[]   @relation("ClaimedShareTokens")
-  shifts                  Shift[]
-  shiftTemplates          ShiftTemplate[]
-  companyLinks            CompanyNonprofitLink[]
-  backgroundCheckRequests BackgroundCheckRequest[]
-  volunteerInvitations    VolunteerInvitation[]
-  notifications           Notification[]
-  notificationPreferences NotificationPreference[]
-  digestPreferences       UserDigestPreference[]
-  bulkImportJobs          BulkImportJob[]
-  feedbacks               OrgFeedback[]
-  userFeedbacks           UserFeedback[]
-  slugHistory             OrgSlugHistory[]
+  marketplaceVisible         Boolean                  @default(false) // Org opts in to cross-org marketplace listing
+  description                String? // Short org description shown on discovery page
+  location                   String? // Display location, e.g. "Fresno, CA"
+  causeAreaTags              String[]                 @default([]) // e.g. ["Environment", "Education"]
+  verified                   Boolean                  @default(false) // Platform-verified org (set by platform admin)
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
+  members                    OrganizationMember[]
+  auditLogs                  AuditLog[]
+  featureFlags               FeatureFlag[]
+  applications               VolunteerApplication[]
+  screenerQuestions          ScreenerQuestion[]
+  sessions                   Session[] // optional backrelation
+  invitations                OrganizationInvitation[]
+  opportunities              VolunteerOpportunity[]
+  credentials                VolunteerCredential[]
+  sharedCredentials          VolunteerCredential[]    @relation("SharedCredentials")
+  claimedShareTokens         CredentialShareToken[]   @relation("ClaimedShareTokens")
+  shifts                     Shift[]
+  shiftTemplates             ShiftTemplate[]
+  companyLinks               CompanyNonprofitLink[]
+  backgroundCheckRequests    BackgroundCheckRequest[]
+  orgVolunteers              OrgVolunteer[]
+  volunteerInvitations       VolunteerInvitation[]
+  notifications              Notification[]
+  notificationPreferences    NotificationPreference[]
+  digestPreferences          UserDigestPreference[]
+  bulkImportJobs             BulkImportJob[]
+  feedbacks                  OrgFeedback[]
+  userFeedbacks              UserFeedback[]
+  slugHistory                OrgSlugHistory[]
 
   @@index([suspendedAt])
 }
@@ -232,13 +255,13 @@ model AuditLog {
 }
 
 model FeatureFlag {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   orgId       String
   key         String
-  enabled     Boolean   @default(false)
+  enabled     Boolean  @default(false)
   updatedById String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   updatedBy    User?        @relation("FeatureFlagUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
@@ -372,32 +395,32 @@ enum GeocodeStatus {
 }
 
 model VolunteerOpportunity {
-  id              String            @id @default(cuid())
+  id              String                   @id @default(cuid())
   orgId           String
   title           String
   description     String
-  status          OpportunityStatus @default(DRAFT)
+  status          OpportunityStatus        @default(DRAFT)
   location        String?
-  isRemote        Boolean           @default(false)
+  isRemote        Boolean                  @default(false)
   startDate       DateTime?
   endDate         DateTime?
   commitmentHours Float?
   capacity        Int?
   lat             Float?
   lng             Float?
-  geocodeStatus   GeocodeStatus     @default(PENDING)
-  searchVector    Unsupported("tsvector")?  // GIN-indexed; maintained by trg_opportunity_search_vector (includes title, description, tags)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  geocodeStatus   GeocodeStatus            @default(PENDING)
+  searchVector    Unsupported("tsvector")? // GIN-indexed; maintained by trg_opportunity_search_vector (includes title, description, tags)
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
 
-  organization          Organization             @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  tags                  OpportunityTag[]
-  requirements          OpportunityRequirement[]
-  applications          VolunteerApplication[]
-  shifts                Shift[]
-  shiftTemplates        ShiftTemplate[]
-  volunteerInvitations  VolunteerInvitation[]
-  interests             OpportunityInterest[]
+  organization         Organization             @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  tags                 OpportunityTag[]
+  requirements         OpportunityRequirement[]
+  applications         VolunteerApplication[]
+  shifts               Shift[]
+  shiftTemplates       ShiftTemplate[]
+  volunteerInvitations VolunteerInvitation[]
+  interests            OpportunityInterest[]
 
   @@index([orgId])
   @@index([status])
@@ -406,7 +429,7 @@ model VolunteerOpportunity {
 }
 
 model OpportunityTag {
-  id            String               @id @default(cuid())
+  id            String @id @default(cuid())
   opportunityId String
   name          String
 
@@ -477,18 +500,18 @@ model VolunteerSkill {
 }
 
 model VolunteerProfile {
-  id           String             @id @default(cuid())
-  userId       String             @unique
+  id           String            @id @default(cuid())
+  userId       String            @unique
   bio          String?
   phone        String?
   city         String?
   state        String?
   country      String?
-  availability AvailabilityType   @default(FLEXIBLE)
-  visibility   ProfileVisibility  @default(ORGS_ONLY)
-  interests    String[]           @default([])
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  availability AvailabilityType  @default(FLEXIBLE)
+  visibility   ProfileVisibility @default(ORGS_ONLY)
+  interests    String[]          @default([])
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -565,31 +588,31 @@ enum CredentialStatus {
 // ---------------------------------------------------------------------------
 
 model ShiftTemplate {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   orgId         String
   title         String
   description   String?
   location      String?
-  isRemote      Boolean   @default(false)
-  dayOfWeek     Int       // 0=Sunday, 1=Monday, ..., 6=Saturday
-  startHour     Int       // 0-23
-  startMinute   Int       // 0-59
-  endHour       Int       // 0-23
-  endMinute     Int       // 0-59
+  isRemote      Boolean  @default(false)
+  dayOfWeek     Int // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startHour     Int // 0-23
+  startMinute   Int // 0-59
+  endHour       Int // 0-23
+  endMinute     Int // 0-59
   capacity      Int
   opportunityId String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   organization Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  opportunity  VolunteerOpportunity?  @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  opportunity  VolunteerOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   shifts       Shift[]
 
   @@index([orgId])
 }
 
 model Shift {
-  id            String         @id @default(cuid())
+  id            String      @id @default(cuid())
   orgId         String
   opportunityId String?
   templateId    String?
@@ -598,17 +621,17 @@ model Shift {
   location      String?
   latitude      Float?
   longitude     Float?
-  isRemote      Boolean        @default(false)
+  isRemote      Boolean     @default(false)
   startTime     DateTime
   endTime       DateTime
   capacity      Int
-  status        ShiftStatus    @default(OPEN)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  status        ShiftStatus @default(OPEN)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   organization Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  opportunity  VolunteerOpportunity?  @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
-  template     ShiftTemplate?         @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  opportunity  VolunteerOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  template     ShiftTemplate?        @relation(fields: [templateId], references: [id], onDelete: SetNull)
   signups      ShiftSignup[]
 
   @@index([orgId])
@@ -627,14 +650,14 @@ enum ShiftStatus {
 }
 
 model ShiftSignup {
-  id              String       @id @default(cuid())
-  shiftId         String
-  userId          String
-  status          SignupStatus  @default(CONFIRMED)
-  notes           String?
-  reminderSentAt  DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id             String       @id @default(cuid())
+  shiftId        String
+  userId         String
+  status         SignupStatus @default(CONFIRMED)
+  notes          String?
+  reminderSentAt DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -771,23 +794,23 @@ enum FcraStatus {
 }
 
 model BackgroundCheckRequest {
-  id                      String                  @id @default(cuid())
-  orgId                   String
-  userId                  String
-  provider                BackgroundCheckProvider @default(CHECKR)
-  externalId              String                  @unique // Checkr report ID — idempotency key
-  status                  BackgroundCheckStatus   @default(PENDING)
-  webhookPayload          Json? // sanitized (no PII fields)
-  credentialId            String?                 @unique
-  fcraStatus              FcraStatus              @default(NONE)
-  preAdverseNoticeSentAt  DateTime?
-  adverseActionAt         DateTime?
-  createdAt               DateTime                @default(now())
-  updatedAt               DateTime                @updatedAt
+  id                     String                  @id @default(cuid())
+  orgId                  String
+  userId                 String
+  provider               BackgroundCheckProvider @default(CHECKR)
+  externalId             String                  @unique // Checkr report ID — idempotency key
+  status                 BackgroundCheckStatus   @default(PENDING)
+  webhookPayload         Json? // sanitized (no PII fields)
+  credentialId           String?                 @unique
+  fcraStatus             FcraStatus              @default(NONE)
+  preAdverseNoticeSentAt DateTime?
+  adverseActionAt        DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
 
   organization Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  credential   VolunteerCredential?  @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credential   VolunteerCredential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
 
   @@index([orgId])
   @@index([userId])
@@ -875,12 +898,12 @@ enum NotificationType {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  orgId     String
-  type      NotificationType
-  title     String
-  body      String
+  id          String           @id @default(cuid())
+  userId      String
+  orgId       String
+  type        NotificationType
+  title       String
+  body        String
   href        String?
   readAt      DateTime?
   emailSentAt DateTime?
@@ -898,12 +921,12 @@ model Notification {
 }
 
 model NotificationPreference {
-  id      String           @id @default(cuid())
-  userId  String
-  orgId   String
-  type    NotificationType
-  inApp   Boolean          @default(true)
-  email   Boolean          @default(true)
+  id     String           @id @default(cuid())
+  userId String
+  orgId  String
+  type   NotificationType
+  inApp  Boolean          @default(true)
+  email  Boolean          @default(true)
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -994,18 +1017,18 @@ enum BulkImportStatus {
 }
 
 model BulkImportJob {
-  id           String           @id @default(cuid())
-  orgId        String
-  uploadedById String
-  status       BulkImportStatus @default(PENDING)
-  totalRows    Int              @default(0)
-  processedRows Int             @default(0)
-  createdRows  Int              @default(0)
-  skippedRows  Int              @default(0)
-  errorRows    Json?            // Array of { row: number, error: string }
-  fileName     String?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  id            String           @id @default(cuid())
+  orgId         String
+  uploadedById  String
+  status        BulkImportStatus @default(PENDING)
+  totalRows     Int              @default(0)
+  processedRows Int              @default(0)
+  createdRows   Int              @default(0)
+  skippedRows   Int              @default(0)
+  errorRows     Json? // Array of { row: number, error: string }
+  fileName      String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   uploadedBy   User         @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
@@ -1031,13 +1054,13 @@ enum EmailEventType {
 /// bounceCount >= 3 (MAX_REENABLE_CAP), the address is suppressed — sendEmail()
 /// skips delivery until an admin resets the count or the user re-enables.
 model EmailEvent {
-  id         String         @id @default(cuid())
-  resendId   String?        // Resend message ID (msg_...) — null for pre-send log
-  to         String         // recipient email address
-  subject    String
-  eventType  EmailEventType
-  payload    Json?          // raw webhook payload for debugging
-  createdAt  DateTime       @default(now())
+  id        String         @id @default(cuid())
+  resendId  String? // Resend message ID (msg_...) — null for pre-send log
+  to        String // recipient email address
+  subject   String
+  eventType EmailEventType
+  payload   Json? // raw webhook payload for debugging
+  createdAt DateTime       @default(now())
 
   @@index([to, eventType])
   @@index([resendId])
@@ -1049,13 +1072,13 @@ model EmailEvent {
 /// the full event log. Bounce count increments per BOUNCED event; resets
 /// when an admin or user re-enables delivery.
 model EmailBounceStatus {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  bounceCount  Int      @default(0)
-  suppressedAt DateTime? // non-null = address is suppressed
+  id            String    @id @default(cuid())
+  email         String    @unique
+  bounceCount   Int       @default(0)
+  suppressedAt  DateTime? // non-null = address is suppressed
   lastBouncedAt DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 // ---------------------------------------------------------------------------
@@ -1075,7 +1098,7 @@ model OrgFeedback {
   orgId     String
   type      OrgFeedbackType
   sentAt    DateTime        @default(now())
-  responses Json?           // Submitted survey responses (null = sent but not yet completed)
+  responses Json? // Submitted survey responses (null = sent but not yet completed)
   createdAt DateTime        @default(now())
 
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -1131,10 +1154,10 @@ model UserFeedback {
   updatedAt    DateTime       @updatedAt
   deletedAt    DateTime?
 
-  user         User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
-  organization Organization?  @relation(fields: [orgId], references: [id], onDelete: SetNull)
-  resolver     User?          @relation("FeedbackResolver", fields: [resolvedBy], references: [id])
-  replier      User?          @relation("FeedbackReplier", fields: [repliedBy], references: [id])
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  resolver     User?         @relation("FeedbackResolver", fields: [resolvedBy], references: [id])
+  replier      User?         @relation("FeedbackReplier", fields: [repliedBy], references: [id])
 
   @@index([userId, deletedAt, createdAt])
   @@index([status, createdAt])
@@ -1179,4 +1202,60 @@ model ImpersonationSession {
   @@index([adminUserId])
   @@index([targetUserId])
   @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------------------
+// Staff-Created Volunteers (v1a) — see docs/designs/staff-created-volunteers.md
+// ---------------------------------------------------------------------------
+
+enum AccountState {
+  ACTIVE // default; every pre-existing user backfills to this
+  UNCLAIMED // created by org staff; no one has ever authenticated
+}
+
+enum OrgVolunteerSource {
+  STAFF_ADDED // typed into the roster by a coordinator
+  APPLIED // materialized from an approved VolunteerApplication (E1a)
+}
+
+/// The org-to-volunteer edge. Deliberately NOT modeled as a VolunteerApplication
+/// with source: STAFF_ADDED — that variant has no dedup (the applications partial
+/// unique index requires a non-null opportunityId, which a roster row lacks), it
+/// leaks into both the staff review queue and the volunteer's /app/my-applications,
+/// and it collides with bulk-import's findFirst({ orgId, submittedByEmail }) dedup.
+///
+///   Organization ──< OrgVolunteer >── User
+///                         │
+///                    addedBy (User?, SetNull)
+///
+/// Removal is a SOFT delete: deletedAt is set, ShiftSignup rows are untouched, and
+/// the org keeps every hour it recorded. Undo (T26) clears deletedAt on the same
+/// row, which preserves addedByUserId/createdAt provenance that a re-add would lose.
+model OrgVolunteer {
+  id            String             @id @default(cuid())
+  orgId         String
+  userId        String
+  displayName   String // org-typed name, max 120 chars (validated in Zod, not here)
+  phone         String? // org-typed. Deliberately NOT duplicated onto VolunteerProfile,
+  // which is for what the volunteer sets themselves after claiming.
+  source        OrgVolunteerSource @default(STAFF_ADDED)
+  addedByUserId String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  deletedAt     DateTime?
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addedBy      User?        @relation("OrgVolunteerAddedBy", fields: [addedByUserId], references: [id], onDelete: SetNull)
+
+  // NO @@unique([orgId, userId]) — uniqueness is a hand-written PARTIAL index
+  // (WHERE "deletedAt" IS NULL) so a soft-deleted row does not block re-adding
+  // the same volunteer. Prisma cannot see raw partial indexes, so the generated
+  // compound-unique input does not exist and upsert/findUnique on the pair are
+  // unavailable BY DESIGN. Use findFirst({ orgId, userId, deletedAt: null })
+  // then create, catching P2002 for the concurrent case. Postgres still raises
+  // 23505 on a partial unique index and Prisma still maps it to P2002.
+  // Precedent: VolunteerApplication's withdrawn-status partial index.
+  @@index([orgId, createdAt]) // cursor pagination on the roster page
+  @@index([userId])
 }
