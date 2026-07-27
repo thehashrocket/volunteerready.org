@@ -9,9 +9,25 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 Found by five specialists plus a Codex adversarial pass while reviewing the
 eleven-IDOR fix. None were in that diff's blast radius; all three are the same
-bug class and remain **live**.
+bug class.
 
-- **[P1] `shifts.create` accepts a foreign `opportunityId`** —
+**Status: the two shift items and the vitest config are FIXED** in the
+shift-org-scoping-followups branch. The `inviteToApply` race ships separately —
+it introduces an advisory lock and warrants its own review. Details below each
+item.
+
+- **[P1] ~~`shifts.create` accepts a foreign `opportunityId`~~** ✅ **FIXED** —
+  closed by `requireOrgOpportunity()` in `shiftAccessService.ts`, wired into
+  `createNewShift`, `updateExistingShift`, `createNewTemplate` and
+  `updateExistingTemplate`. Scope was wider than this entry described: the
+  relation is also included by `listUpcomingShiftsForOrg`, and
+  `updateShiftTemplateSchema` is `createShiftTemplateSchema.partial()`, so
+  template **update** carried the same hole on a template the caller genuinely
+  owns. `shifts.update` gained a nullable `opportunityId` (previously the link
+  was set-once at create and could never be changed or cleared). Covered by
+  `services/__tests__/shiftOpportunityScoping.test.ts`.
+
+  <details><summary>Original report</summary>
   `src/server/trpc/routers/shifts.ts:73` takes `opportunityId` from client input
   and `createNewShift` passes it to `createShift` with only `orgId: ctx.orgId`
   stamped. Nothing checks the opportunity belongs to the caller's org. Because
@@ -25,9 +41,31 @@ bug class and remain **live**.
   `listTemplatesByOrg` includes the same relation. **Fix:** the same
   `where: { id: opportunityId, orgId }` check `inviteToApply` now uses — or
   `getOpportunity(id, orgId)` from `opportunityRepo`. **Effort:** S.
+  </details>
 
-- **[P2] `getCheckinToken` and `selfCheckin` leak shift existence and status to
-  any authenticated user** — `routers/shifts.ts:224` and `:320` load the shift
+- **[P2] ~~`getCheckinToken` and `selfCheckin` leak shift existence and
+  status~~** ✅ **FIXED** — `getCheckinToken` now calls a new
+  `requireOwnSignup()` guard before reading any shift state. `selfCheckin` got
+  no guard: its check-in token is an HMAC over `(shiftId, userId, window)`, so
+  validating it *is* the authorization, and moving that validation ahead of the
+  shift lookup closes the leak with zero extra queries. The two procedures are
+  authorized by different mechanisms and deliberately do not share a guard.
+  `signUpForShift`/`joinWaitlist` were handled differently again — they stay
+  open to any authenticated user by product decision, so the fix is an error
+  mapping (`mapSignupFailure`) that collapses administrative facts
+  (CANCELLED/COMPLETED) into the missing-shift NOT_FOUND while keeping capacity
+  and caller-self facts specific, plus a `rateLimitByUser` throttle.
+  `cancelSignup`/`leaveWaitlist` had the same ordering bug and were reordered
+  too. **Known trade-off:** a legitimate volunteer whose shift is cancelled now
+  sees "Shift not found." — unobservable today (no UI calls these), but the
+  future self-serve flow should re-derive that message from data the caller is
+  already entitled to rather than un-collapsing the mapping. Covered by
+  `services/__tests__/shiftSignupDisclosure.test.ts` and new ordering tests in
+  `routers/shifts.access.test.ts`.
+
+  <details><summary>Original report</summary>
+
+  `routers/shifts.ts:224` and `:320` load the shift
   by raw client id and branch on status *before* checking the caller has a
   signup, returning distinct messages: NOT_FOUND if missing, then
   `` `Shift is ${status}.` ``, then "QR code is available 24 hours before the
@@ -39,8 +77,18 @@ bug class and remain **live**.
   unrate-limited write that puts the caller's name and email on an arbitrary
   org's roster. **Fix:** move the signup check ahead of the status/timing
   branches. **Effort:** S.
+  </details>
 
-- **[P2] `inviteToApply`'s rate limit is not actually atomic** — the comment at
+- **[P2] `inviteToApply`'s rate limit is not actually atomic** — **still open,
+  shipping as its own PR** (it adds a `pg_advisory_xact_lock`, the first
+  `$executeRaw` in `src/server`, and deserves separate review). Note for
+  whoever picks it up: the existing Upstash limiter is NOT the fix — 
+  `src/server/lib/rate-limit.ts` fails **open** when `UPSTASH_REDIS_REST_URL`
+  is unset, so it would silently disable itself in dev, CI, and any deploy
+  missing the env var. A counter table is also the wrong shape: the current
+  window is a rolling 24h over real `sentAt` values, and a `windowDate` bucket
+  would silently convert it to a calendar day, gameable at midnight. The
+  comment at
   `volunteerDiscoveryService.ts:68` claims the transaction prevents a TOCTOU
   race, but the `count` and the `create` are separate statements under READ
   COMMITTED, so two concurrent requests can both observe 9 and create the 10th
@@ -48,13 +96,11 @@ bug class and remain **live**.
   **Fix:** a unique constraint or `SELECT … FOR UPDATE` on a counter row, or
   drop the claim. **Effort:** S.
 
-- **[P3] `vitest.integration.config.mts` serialization is silently dead** —
-  emits `DEPRECATED: test.poolOptions was removed in Vitest 4` on every run, so
-  `poolOptions: { forks: { singleFork: true } }` is ignored and integration
-  files run in parallel forks against one Postgres. Safe today only because
-  every integration file uses a distinct table prefix. **Fix:** replace with
-  `fileParallelism: false` so it holds by construction, not by luck.
-  **Effort:** S.
+- **[P3] ~~`vitest.integration.config.mts` serialization is silently dead~~**
+  ✅ **FIXED** — `poolOptions: { forks: { singleFork: true } }` (removed in
+  Vitest 4, so silently ignored) replaced with `fileParallelism: false`.
+  Integration files now serialize by construction rather than by every file
+  happening to use a distinct table prefix.
 
 ---
 

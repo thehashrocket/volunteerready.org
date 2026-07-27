@@ -1,4 +1,9 @@
-import type { ShiftData, SignupRecord } from '@/server/domain/shift';
+import { TRPCError } from '@trpc/server';
+import type {
+	ShiftData,
+	SignupFailureCode,
+	SignupRecord,
+} from '@/server/domain/shift';
 import {
 	getNextWaitlistEntry,
 	validateSignup,
@@ -68,13 +73,70 @@ export async function getShiftWaitlist(shiftId: string, orgId: string) {
 // Writes
 // ---------------------------------------------------------------------------
 
+/**
+ * The one NOT_FOUND every "this shift is not available to you" outcome resolves
+ * to, so a caller enumerating ids cannot tell them apart.
+ */
+function shiftNotFound() {
+	return new TRPCError({ code: 'NOT_FOUND', message: 'Shift not found.' });
+}
+
+/**
+ * Map a refused signup to a wire error, deciding what is safe to disclose.
+ *
+ * `shifts.signup` and `joinWaitlist` are deliberately open to ANY authenticated
+ * user — no org relationship is required, unlike every staff path in
+ * shiftAccessService.ts. That means there is no caller-identity axis to
+ * authorize on, and this mapping is the only thing between an authenticated
+ * stranger and a shift-by-shift map of an org's internal schedule. It is the
+ * control, not error-handling hygiene.
+ *
+ * The split is therefore not "who is asking" but "what class of fact would this
+ * disclose":
+ *
+ * - SHIFT_CANCELLED / SHIFT_COMPLETED are administrative decisions the org made
+ *   about its own schedule. Telling a stranger who guessed an id "this is real,
+ *   and staff cancelled it" is the write-side twin of the getCheckinToken leak.
+ *   Both collapse into the same NOT_FOUND a missing shift returns.
+ *
+ * - SHIFT_FULL / AT_CAPACITY / NOT_FULL are the live result of contention for a
+ *   fixed number of seats — the same fact any "sold out" response discloses.
+ *   Every caller attempting this action at this moment gets the same answer
+ *   regardless of who they are, so specificity reveals nothing about the org.
+ *
+ * - ALREADY_SIGNED_UP / ALREADY_WAITLISTED / TIME_CONFLICT describe the
+ *   CALLER'S OWN account state and nobody else's. They cannot teach a prober
+ *   anything they did not already know.
+ *
+ * Note the cost: a legitimate volunteer whose shift was cancelled now sees
+ * "Shift not found." rather than "This shift has been cancelled." That is
+ * unobservable today (no UI calls these procedures) and is the accepted
+ * trade-off — but it is a real papercut for the future self-serve flow, and
+ * that flow should re-derive the friendly message from data the caller is
+ * already entitled to see rather than by un-collapsing this mapping.
+ */
+function mapSignupFailure(code: SignupFailureCode, reason: string): TRPCError {
+	switch (code) {
+		case 'SHIFT_CANCELLED':
+		case 'SHIFT_COMPLETED':
+			return shiftNotFound();
+		case 'SHIFT_FULL':
+		case 'AT_CAPACITY':
+		case 'NOT_FULL':
+		case 'ALREADY_SIGNED_UP':
+		case 'ALREADY_WAITLISTED':
+		case 'TIME_CONFLICT':
+			return new TRPCError({ code: 'CONFLICT', message: reason });
+	}
+}
+
 export async function signUpForShift(
 	shiftId: string,
 	userId: string,
 	notes?: string | null,
 ) {
 	const shift = await getShiftById(shiftId);
-	if (!shift) throw new Error('Shift not found.');
+	if (!shift) throw shiftNotFound();
 
 	const signups = await getSignupsByShift(shiftId);
 	const userShiftSignups = await getConfirmedShiftsForUser(userId);
@@ -117,7 +179,7 @@ export async function signUpForShift(
 		existingShifts,
 	);
 	if (!validation.ok) {
-		throw new Error(validation.reason);
+		throw mapSignupFailure(validation.code, validation.reason);
 	}
 
 	return prisma
@@ -157,15 +219,26 @@ export async function signUpForShift(
 }
 
 export async function cancelSignup(shiftId: string, userId: string) {
-	const shift = await getShiftById(shiftId);
-	if (!shift) throw new Error('Shift not found.');
-
+	// SECURITY: the caller's OWN signup is checked before the shift is loaded.
+	// The reverse order threw a distinguishable "Shift not found." for a shift
+	// the caller has no signup on, which let a prober separate real ids from
+	// fake ones on a procedure that needs no org relationship at all. Every
+	// outcome a stranger can reach is now the same message.
 	const existing = await getSignupByShiftAndUser(shiftId, userId);
 	if (
 		!existing ||
 		(existing.status !== 'CONFIRMED' && existing.status !== 'WAITLISTED')
 	) {
-		throw new Error('No active signup found for this shift.');
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'No active signup found for this shift.',
+		});
+	}
+
+	const shift = await getShiftById(shiftId);
+	if (!shift) {
+		// Unreachable: `existing` carries a foreign key to a live Shift row.
+		throw shiftNotFound();
 	}
 
 	const wasConfirmed = existing.status === 'CONFIRMED';
@@ -240,7 +313,7 @@ export async function cancelSignup(shiftId: string, userId: string) {
 
 export async function joinWaitlist(shiftId: string, userId: string) {
 	const shift = await getShiftById(shiftId);
-	if (!shift) throw new Error('Shift not found.');
+	if (!shift) throw shiftNotFound();
 
 	const signups = await getSignupsByShift(shiftId);
 
@@ -265,7 +338,7 @@ export async function joinWaitlist(shiftId: string, userId: string) {
 
 	const validation = validateWaitlistJoin(shiftData, signupRecords, userId);
 	if (!validation.ok) {
-		throw new Error(validation.reason);
+		throw mapSignupFailure(validation.code, validation.reason);
 	}
 
 	return prisma.$transaction(async (tx) => {
@@ -285,12 +358,20 @@ export async function joinWaitlist(shiftId: string, userId: string) {
 }
 
 export async function leaveWaitlist(shiftId: string, userId: string) {
-	const shift = await getShiftById(shiftId);
-	if (!shift) throw new Error('Shift not found.');
-
+	// SECURITY: own-row check before the shift lookup, for the same reason as
+	// `cancelSignup` above.
 	const existing = await getSignupByShiftAndUser(shiftId, userId);
 	if (!existing || existing.status !== 'WAITLISTED') {
-		throw new Error('You are not on the waitlist for this shift.');
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'You are not on the waitlist for this shift.',
+		});
+	}
+
+	const shift = await getShiftById(shiftId);
+	if (!shift) {
+		// Unreachable: `existing` carries a foreign key to a live Shift row.
+		throw shiftNotFound();
 	}
 
 	return prisma.$transaction(async (tx) => {
