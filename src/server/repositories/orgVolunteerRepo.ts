@@ -185,3 +185,119 @@ export async function countAttendedShiftsByUser(
 
 	return new Map(rows.map((r) => [r.userId, r._count._all]));
 }
+
+/**
+ * The ways a User can be legitimately tied to an Organization, in the order
+ * this module probes for them.
+ */
+export type OrgRelationshipKind =
+	| 'APPLICATION'
+	| 'ORG_VOLUNTEER'
+	| 'SHIFT_SIGNUP'
+	| 'ORG_MEMBER'
+	/**
+	 * Opt-in only — never probed unless `acceptExistingCredential` is set.
+	 * See the option's docs on `findOrgVolunteerRelationship`.
+	 */
+	| 'EXISTING_CREDENTIAL';
+
+/**
+ * Find any relationship tying `userId` to `orgId`, or null if there is none.
+ *
+ * This is the read behind `requireOrgVolunteerRelationship`, which is what
+ * stands between a staff user and an arbitrary `userId` typed into a form.
+ *
+ * The governing rule for membership of this set: **a relationship that staff
+ * can mint unilaterally against a stranger cannot authorize a sensitive
+ * action**, or the guard is a speed bump — one extra call and the caller has
+ * manufactured their own permission. That rule excludes:
+ *
+ * - `VolunteerCredential` and `BackgroundCheckRequest`. They are the rows
+ *   `issueCredential` and `initiateBackgroundCheck` create, so admitting them
+ *   is directly circular: the first illegitimate write mints the relationship
+ *   that justifies the next one.
+ * - `VolunteerInvitation`. An invitation is an *outbound solicitation*, not a
+ *   relationship — the volunteer has not answered it. `discovery.inviteToApply`
+ *   is a plain `staffProcedure` over a cross-org public directory, so any staff
+ *   user can create one against any volunteer in the system and thereby
+ *   authorize themselves. If the volunteer does respond they produce a
+ *   `VolunteerApplication`, which IS in the set.
+ * - `OpportunityInterest`. A heart-click on the public cross-org marketplace,
+ *   available to any signed-in user against any org; admitting it voids the
+ *   guard entirely.
+ *
+ * `ORG_VOLUNTEER` is the one staff-mintable kind kept, because it is the roster
+ * itself: the premise of the staff-created-volunteer feature is that a roster
+ * row IS the org's assertion of a relationship, and dropping it would make
+ * staff-added volunteers unschedulable. The residual risk (staff can roster
+ * anyone whose email they know, then act on them) is inherent to that feature
+ * and tracked in docs/TODOS.md.
+ *
+ * Probes are sequential and short-circuit. `APPLICATION` leads because it is
+ * the overwhelmingly common case — the roster table is new and near-empty for
+ * existing orgs, and `ORG_MEMBER` is a staff table a volunteer rarely appears
+ * in. Only the rejection path pays for all four.
+ */
+export async function findOrgVolunteerRelationship(
+	orgId: string,
+	userId: string,
+	opts?: {
+		/**
+		 * Also accept "this org already issued this user a credential".
+		 *
+		 * Off by default, because for `issueCredential` this is the circular
+		 * case above. It is safe — and necessary — for **revocation only**,
+		 * which is strictly narrowing: revoking can downgrade an existing row
+		 * but can never mint privilege, so it cannot bootstrap itself.
+		 *
+		 * Necessary because `listOrgCredentials` filters on `orgId` alone. Once
+		 * a volunteer is removed from the roster (`deletedAt` set) their
+		 * credential is still listed, and without this the Revoke button beside
+		 * it would throw NOT_FOUND forever — staff able to see a credential
+		 * they cannot revoke, which is exactly when revoking matters most.
+		 */
+		acceptExistingCredential?: boolean;
+	},
+): Promise<OrgRelationshipKind | null> {
+	const id = { id: true } as const;
+
+	// Any status counts, REJECTED and WITHDRAWN included: staff still open those
+	// records on the applications page, and gating a security primitive on a
+	// status matrix invites drift every time the enum grows.
+	const application = await prisma.volunteerApplication.findFirst({
+		where: { orgId, submittedByUserId: userId },
+		select: id,
+	});
+	if (application) return 'APPLICATION';
+
+	const orgVolunteer = await prisma.orgVolunteer.findFirst({
+		where: { orgId, userId, deletedAt: null },
+		select: id,
+	});
+	if (orgVolunteer) return 'ORG_VOLUNTEER';
+
+	// Joined through Shift.orgId, never off the signup alone — see the SECURITY
+	// note on countAttendedShiftsByUser above.
+	const signup = await prisma.shiftSignup.findFirst({
+		where: { userId, shift: { orgId } },
+		select: id,
+	});
+	if (signup) return 'SHIFT_SIGNUP';
+
+	const member = await prisma.organizationMember.findUnique({
+		where: { organizationId_userId: { organizationId: orgId, userId } },
+		select: id,
+	});
+	if (member) return 'ORG_MEMBER';
+
+	// Last, and only when the caller opts in — see `acceptExistingCredential`.
+	if (opts?.acceptExistingCredential) {
+		const credential = await prisma.volunteerCredential.findFirst({
+			where: { orgId, userId },
+			select: id,
+		});
+		if (credential) return 'EXISTING_CREDENTIAL';
+	}
+
+	return null;
+}
