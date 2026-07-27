@@ -8,6 +8,7 @@ import {
 	type UpsertCredentialInput,
 	upsertCredential,
 } from '@/server/repositories/volunteerCredentialRepo';
+import { requireOrgVolunteerRelationship } from '@/server/services/orgVolunteerAccessService';
 import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
 // ---------------------------------------------------------------------------
@@ -36,11 +37,22 @@ export async function getOrgCredentials(orgId: string) {
 // Writes
 // ---------------------------------------------------------------------------
 
-/** Issue or update a credential with audit logging. */
+/**
+ * Issue or update a credential with audit logging.
+ *
+ * The relationship check is not optional: the only UI for this is a free-text
+ * "Volunteer User ID" field, so without it a staff user could mint a
+ * verification badge on any account in the system by pasting its id.
+ */
 export async function issueCredential(
 	input: UpsertCredentialInput,
 	actorId: string,
 ) {
+	const relationship = await requireOrgVolunteerRelationship(
+		input.orgId,
+		input.userId,
+	);
+
 	const credential = await prisma.$transaction(async (tx) => {
 		const cred = await upsertCredential(tx, {
 			...input,
@@ -53,10 +65,13 @@ export async function issueCredential(
 			action: 'CREDENTIAL_ISSUED',
 			entityType: 'VolunteerCredential',
 			entityId: cred.id,
+			// `relationship` records WHY this issuance was permitted — see the
+			// equivalent note in backgroundCheckService.
 			metadata: {
 				userId: input.userId,
 				type: input.type,
 				status: input.status,
+				relationship,
 			},
 		});
 
@@ -78,6 +93,22 @@ export async function revokeCredential(
 	type: UpsertCredentialInput['type'],
 	actorId: string,
 ) {
+	// Guarded for the same reason as issueCredential, and it is not obvious why:
+	// "revoke" sounds like it can only ever narrow an existing row, but it goes
+	// through the same `upsertCredential`, whose `create` branch fires when no
+	// row matches. Ungated, this mints a REVOKED credential on a stranger's
+	// account attributed to this org — and `getCredentialsByUserId` has no org
+	// filter, so the victim sees it on their own credentials page.
+	// `acceptExistingCredential` is set here and NOWHERE else. Revocation is
+	// strictly narrowing — it can downgrade an existing row but never mint
+	// privilege — so accepting "we already issued this person a credential"
+	// cannot bootstrap itself the way it would on the issue path. Without it, a
+	// volunteer removed from the roster keeps a credential that `listOrgCredentials`
+	// still shows but nobody can revoke.
+	const relationship = await requireOrgVolunteerRelationship(orgId, userId, {
+		acceptExistingCredential: true,
+	});
+
 	return prisma.$transaction(async (tx) => {
 		const credential = await upsertCredential(tx, {
 			userId,
@@ -92,7 +123,7 @@ export async function revokeCredential(
 			action: 'CREDENTIAL_REVOKED',
 			entityType: 'VolunteerCredential',
 			entityId: credential.id,
-			metadata: { userId, type },
+			metadata: { userId, type, relationship },
 		});
 
 		return credential;
