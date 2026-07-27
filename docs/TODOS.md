@@ -11,6 +11,31 @@ Five specialists ran against the staff-created-volunteers foundation PR (v0.32.0
 Five CRITICALs were found and **all fixed in that PR**; the items below are the
 deferred INFORMATIONAL findings, kept because each touches files outside that PR.
 
+### [P2] Nav layout resolves the feature flag against the wrong org on impersonation failure
+**Priority:** P2
+`app/(app)/app/volunteers/layout.tsx` was fixed in v0.32.0.0 to check
+`impersonation.resolutionFailed` before deriving the effective user. Its sibling
+`app/(app)/app/layout.tsx` was NOT — on a failed impersonation
+`getImpersonationContext()` returns `isImpersonating: false` with
+`resolutionFailed: true`, so the layout falls through to `session.user.id` (the
+REAL admin), resolves `activeOrgId` from the admin's memberships, and evaluates
+`staff_created_volunteers` against the admin's own org.
+
+**Impact is cosmetic, not a leak:** the route guard fails closed independently,
+so the nav item may appear but clicking it redirects to `/app`. No cross-tenant
+data is served.
+
+**Why it was left:** CLAUDE.md states that read-only nav/banner rendering via
+`getImpersonationContext()` may ignore `resolutionFailed`, and `hasOrg` /
+`hasCompany` in that same layout already fall through the same way (documented
+in the v0.31.0.0 note). v0.32.0.0 added a *feature-flag lookup* to that layout,
+which is arguably more than nav rendering — hence this item.
+
+**Fix:** extract the shared `getActiveOrgContext()` helper already filed below
+and have it return `resolutionFailed`, so both layouts make one decision instead
+of two. Doing it as part of that extraction avoids touching the impersonation
+fallback twice.
+
 ### [P2] Six hand-rolled copies of the same timing-safe comparison
 **Priority:** P2
 `timingSafeCompare` now exists, character-for-character, in six places:
