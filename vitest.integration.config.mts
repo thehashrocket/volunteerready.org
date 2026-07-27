@@ -23,6 +23,13 @@ export default defineConfig({
 		globals: true,
 		setupFiles: ['src/test/integration-setup.ts'],
 		pool: 'forks',
-		poolOptions: { forks: { singleFork: true } },
+		// Integration specs share one Postgres, so they must not run concurrently.
+		// This was `poolOptions: { forks: { singleFork: true } }`, which Vitest 4
+		// REMOVED — it printed a deprecation notice on every run and was otherwise
+		// ignored, so these files have in fact been running in parallel forks and
+		// were safe only because each happens to use a distinct table prefix.
+		// `fileParallelism: false` is the supported replacement and makes the
+		// serialization hold by construction rather than by luck.
+		fileParallelism: false,
 	},
 });

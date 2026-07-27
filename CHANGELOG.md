@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.3.0] - 2026-07-27
+
+### Fixed
+- A shift or recurring template could be linked to an opportunity belonging to a different organization. An opportunity's title is shown alongside every shift in your own lists, so staff could attach another organization's opportunity to one of their own shifts and read that organization's title back out of a list that was otherwise correctly limited to them. The previous release's fix did not cover this, because the exposed record was reached through the link rather than by its ID. Creating a shift, creating a template, and editing a template were all affected, and shifts generated from an affected template inherited the same bad link. Links of this kind that already exist are cleared automatically on deploy.
+- Shifts can now be linked to a different opportunity, or unlinked, after they are created. Previously the link could only be set when the shift was created and never changed afterwards.
+- Any signed-in person could learn whether an arbitrary shift existed, what state it was in, and whether it was starting within 24 hours, by requesting a check-in code for a shift ID that was not theirs. The ownership check ran last, after the responses had already given those answers away. It now runs first, and a shift you have no signup for is reported exactly the same way as one that does not exist. Self check-in had the same problem, and now verifies the check-in code before looking the shift up at all.
+- Signing up for a shift, joining a waitlist, cancelling a signup, and leaving a waitlist no longer reveal whether a shift exists, or that staff cancelled it. A shift that was cancelled or completed now reads as "not found", the same as one that was never real. Messages about a shift being full, or about a signup you already have, are unchanged — those describe a queue you are in or a decision you already know about, rather than something private to the organization.
+- Those same actions previously reported every refusal as an unexpected server error instead of a normal one.
+
+### Changed
+- Signing up for a shift and joining a waitlist are now rate limited per person. Each one puts your name and email address on an organization's roster, and neither requires any prior connection to that organization.
+- Tests that run against a real database are serialized again. The setting meant to do this was removed in a newer version of the test runner and had been silently ignored since, so those tests had in fact been running at the same time against a single database, avoiding interference only by coincidence.
+
 ## [0.32.2.0] - 2026-07-27
 
 ### Fixed
