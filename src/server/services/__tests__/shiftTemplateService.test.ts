@@ -54,6 +54,7 @@ import {
 } from '../shiftTemplateService';
 
 const ORG_ID = 'org-1';
+const OTHER_ORG_ID = 'org-attacker';
 const ACTOR_ID = 'user-1';
 const TEMPLATE_ID = 'tmpl-1';
 
@@ -185,6 +186,23 @@ describe('updateExistingTemplate', () => {
 		vi.clearAllMocks();
 		mocks.validateTemplateTime.mockReturnValue({ ok: true });
 		mocks.updateTemplate.mockResolvedValue(makeTemplate());
+		// Set explicitly: the org guard reads this. `clearAllMocks` keeps
+		// implementations, so before the guard existed these tests silently
+		// inherited this mock from an earlier describe block.
+		mocks.getTemplateById.mockResolvedValue(makeTemplate());
+	});
+
+	it("SECURITY: refuses to edit another org's template", async () => {
+		await expect(
+			updateExistingTemplate(
+				{ id: TEMPLATE_ID, title: 'Hijacked' },
+				OTHER_ORG_ID,
+				ACTOR_ID,
+			),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+		expect(mocks.updateTemplate).not.toHaveBeenCalled();
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
 	});
 
 	it('updates and writes audit log', async () => {
@@ -220,10 +238,23 @@ describe('updateExistingTemplate', () => {
 // ---------------------------------------------------------------------------
 
 describe('removeTemplate', () => {
-	it('deletes and writes audit log', async () => {
+	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.deleteTemplate.mockResolvedValue(undefined);
+		mocks.getTemplateById.mockResolvedValue(makeTemplate());
+	});
 
+	it("SECURITY: refuses to delete another org's template", async () => {
+		// An unscoped delete destroyed another org's whole recurring schedule.
+		await expect(
+			removeTemplate(TEMPLATE_ID, OTHER_ORG_ID, ACTOR_ID),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+		expect(mocks.deleteTemplate).not.toHaveBeenCalled();
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('deletes and writes audit log', async () => {
 		await removeTemplate(TEMPLATE_ID, ORG_ID, ACTOR_ID);
 
 		expect(mocks.deleteTemplate).toHaveBeenCalledWith(
