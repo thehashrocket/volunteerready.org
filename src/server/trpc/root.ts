@@ -29,6 +29,9 @@ import { shiftTemplatesRouter } from '@/server/trpc/routers/shift-templates';
 import { shiftsRouter } from '@/server/trpc/routers/shifts';
 import { statusRouter } from '@/server/trpc/routers/status';
 import { volunteerRouter } from '@/server/trpc/routers/volunteer';
+// `volunteer` (singular) is the volunteer's own dashboard; `volunteers`
+// (plural) is the staff-facing org roster. Different audience, different auth.
+import { volunteersRouter } from '@/server/trpc/routers/volunteers';
 
 export const appRouter = createTRPCRouter({
 	admin: adminRouter,
@@ -61,6 +64,7 @@ export const appRouter = createTRPCRouter({
 	shifts: shiftsRouter,
 	status: statusRouter,
 	volunteer: volunteerRouter,
+	volunteers: volunteersRouter,
 });
 
 export type AppRouter = typeof appRouter;
