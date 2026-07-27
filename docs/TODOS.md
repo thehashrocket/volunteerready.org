@@ -5,6 +5,59 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Deferred from the shift org-scoping ship (`/ship`, 2026-07-27, v0.32.2.0)
+
+Found by five specialists plus a Codex adversarial pass while reviewing the
+eleven-IDOR fix. None were in that diff's blast radius; all three are the same
+bug class and remain **live**.
+
+- **[P1] `shifts.create` accepts a foreign `opportunityId`** —
+  `src/server/trpc/routers/shifts.ts:73` takes `opportunityId` from client input
+  and `createNewShift` passes it to `createShift` with only `orgId: ctx.orgId`
+  stamped. Nothing checks the opportunity belongs to the caller's org. Because
+  `listShiftsByOrg` and `getShiftWithSignups` both
+  `include: { opportunity: { select: { id: true, title: true } } }`, staff at
+  org A can create a shift pointing at org B's opportunity and read B's
+  opportunity title back through their own (legitimately scoped) shift list —
+  so the v0.32.2.0 guard does not help, because the leaked row is reached by
+  relation, not by id. `createShiftTemplateSchema`
+  (`src/server/domain/shift.ts:236`) has the same hole, and
+  `listTemplatesByOrg` includes the same relation. **Fix:** the same
+  `where: { id: opportunityId, orgId }` check `inviteToApply` now uses — or
+  `getOpportunity(id, orgId)` from `opportunityRepo`. **Effort:** S.
+
+- **[P2] `getCheckinToken` and `selfCheckin` leak shift existence and status to
+  any authenticated user** — `routers/shifts.ts:224` and `:320` load the shift
+  by raw client id and branch on status *before* checking the caller has a
+  signup, returning distinct messages: NOT_FOUND if missing, then
+  `` `Shift is ${status}.` ``, then "QR code is available 24 hours before the
+  shift", and only then FORBIDDEN for no signup. Any logged-in volunteer can
+  learn, for an arbitrary shift id at an arbitrary org, that it exists, its
+  exact status, and whether it starts within 24h. This directly contradicts the
+  indistinguishability invariant v0.32.2.0 establishes on the same router.
+  `signUpForShift` (`shiftSignupService.ts:76`) leaks the same way and is an
+  unrate-limited write that puts the caller's name and email on an arbitrary
+  org's roster. **Fix:** move the signup check ahead of the status/timing
+  branches. **Effort:** S.
+
+- **[P2] `inviteToApply`'s rate limit is not actually atomic** — the comment at
+  `volunteerDiscoveryService.ts:68` claims the transaction prevents a TOCTOU
+  race, but the `count` and the `create` are separate statements under READ
+  COMMITTED, so two concurrent requests can both observe 9 and create the 10th
+  and 11th invitations. The comment asserting otherwise is the dangerous part.
+  **Fix:** a unique constraint or `SELECT … FOR UPDATE` on a counter row, or
+  drop the claim. **Effort:** S.
+
+- **[P3] `vitest.integration.config.mts` serialization is silently dead** —
+  emits `DEPRECATED: test.poolOptions was removed in Vitest 4` on every run, so
+  `poolOptions: { forks: { singleFork: true } }` is ignored and integration
+  files run in parallel forks against one Postgres. Safe today only because
+  every integration file uses a distinct table prefix. **Fix:** replace with
+  `fileParallelism: false` so it holds by construction, not by luck.
+  **Effort:** S.
+
+---
+
 ## Specialist review findings (`/ship`, 2026-07-27, branch thehashrocket/staff-created-volunteers-review)
 
 Five specialists ran against the staff-created-volunteers foundation PR (v0.32.0.0).
@@ -1945,7 +1998,21 @@ below were deliberately kept out of the v1a diff.
   relationship probe requiring `linkedAt IS NULL`), which closes both this and
   the original v1b blocker.
 
-- **[P1] `shifts.markAttendance` and `shifts.getSignups` are unguarded
+- ~~**[P1] `shifts.markAttendance` and `shifts.getSignups` are unguarded
+  cross-tenant IDORs**~~ ✅ **FIXED v0.32.2.0** — shipped wider than specified.
+  The three named procedures were fixed, plus five more of the same class found
+  while reading the file: `getById` (leaked the signup roster with names and
+  emails) and the four mutations `update` / `cancel` / `complete` / `remove`,
+  which accepted `orgId` and spent it only on the audit row — so the write hit
+  the victim and was filed under the attacker. `remove` cascades to
+  `ShiftSignup`, so it destroyed attendance history. Two more found by the
+  `/ship` reviewers in `shiftTemplateService`: `update` and `remove` had the
+  identical shape. Eleven total, all now through `requireOrgShift` /
+  `requireOrgTemplate` in `src/server/services/shiftAccessService.ts`.
+  Router-level `shifts.access.test.ts` pins that `ctx.orgId` (not an
+  input-supplied org) reaches each service. Original entry follows.
+
+  - **[P1] `shifts.markAttendance` and `shifts.getSignups` are unguarded
   cross-tenant IDORs** — found by the `/ship` security specialist while
   reviewing the guard fix; the first concrete findings of the systematic sweep
   called for below. Both take a client-supplied `shiftId` and never compare it
@@ -2003,7 +2070,14 @@ below were deliberately kept out of the v1a diff.
   `/app/volunteers` roster work, which supplies the component to reuse — doing
   it before that means inventing a picker twice. **Effort:** M.
 
-- **[P1] `discovery.inviteToApply` does not scope `opportunityId` to the
+- ~~**[P1] `discovery.inviteToApply` does not scope `opportunityId`**~~
+  ✅ **FIXED v0.32.2.0** — `inviteToApply` now resolves the opportunity with
+  `where: { id, orgId }` before the rate-limit transaction, throwing NOT_FOUND.
+  The guard selects the same fields step 4 needed, so it replaced that fetch
+  rather than adding one. `volunteerId` remains deliberately unscoped — the
+  cross-org directory is the feature. Original entry follows.
+
+  - **[P1] `discovery.inviteToApply` does not scope `opportunityId` to the
   caller's org** — found by adversarial review of the guard fix.
   `src/server/trpc/routers/discovery.ts:32` is a plain `staffProcedure` taking
   `{ volunteerId, opportunityId }`, and `inviteToApply()`
