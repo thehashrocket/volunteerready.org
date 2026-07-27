@@ -341,6 +341,18 @@ until v1b. Do not describe the roster as complete.
    de-authorization path. A broader sweep of every `staffProcedure` taking a naked id is filed as
    a P1 TODO.
 
+   **Shipped as (v0.32.1.0)** — the plan's three-way predicate grew to four probed kinds plus one
+   opt-in: `APPLICATION`, `ORG_VOLUNTEER`, `SHIFT_SIGNUP` (joined through `Shift.orgId`),
+   `ORG_MEMBER`, and `EXISTING_CREDENTIAL` behind `acceptExistingCredential`, which
+   `revokeCredential` alone passes so a de-rostered volunteer's credential stays revokable.
+   `VolunteerInvitation` and `OpportunityInterest` were considered and rejected — staff can mint
+   both against a stranger, which would void the guard. Landed on four callsites: profile read,
+   credential issue, credential revoke, and background-check initiate (in the shared
+   `initiateProviderCheck()` path, so Sterling is covered too). `credentials.remove` needs no
+   guard — it deletes on the `(userId, orgId, type)` compound key. The `shifts.ts` /
+   `shiftRepo.ts` / `shiftSignupRepo.ts` org-scoping half of T7 is still open. Code:
+   `src/server/services/orgVolunteerAccessService.ts`, `repositories/orgVolunteerRepo.ts`.
+
 6. **Erasure.** Roster removal soft-deletes the edge only. A separate platform-admin scrub nulls
    `name`/`email`/`phone` on the shadow `User` for a genuine erasure request. Hard-deleting the
    `User` is **not** an option: `ShiftSignup.userId` is `onDelete: Cascade` and would silently
@@ -815,7 +827,8 @@ produces confidently wrong work.
   - Surfaced by: Architecture A3 — `AccountNotLinkedError` locks out anyone whose email an org typed
   - Files: `src/server/auth.ts`
   - Verify: e2e Google sign-in against a shadow user
-- [ ] **T7 (P1, human: ~8h / CC: ~50min)** — trpc — `requireOrgVolunteerRelationship()` (three-way) on 6 callsites + org-scope shift reads
+- [~] **T7 (P1, human: ~8h / CC: ~50min)** — trpc — `requireOrgVolunteerRelationship()` (three-way) on 6 callsites + org-scope shift reads
+  - **Partially shipped v0.32.1.0** — guard built and wired to profile read, credential issue, credential revoke, and background-check initiate; `credentials.remove` exempt (compound-key delete). Predicate shipped wider than "three-way" — see the Shipped-as note in section 5. **Still open:** org-scoping the shift reads in `shiftRepo.ts` / `shiftSignupRepo.ts` and the `routers/shifts.ts` callsites.
   - Surfaced by: Q4, X3, Correction 1, Codex #6 — naked ids on profile, credentials issue/revoke/remove, bg-check, shifts
   - Files: `routers/profile.ts`, `routers/credentials.ts`, `routers/background-checks.ts`, `routers/shifts.ts`, `repositories/shiftRepo.ts`, `repositories/shiftSignupRepo.ts`
   - Verify: `SECURITY:` test asserting a REVIEW-stage applicant passes and a foreign-org user does not

@@ -90,15 +90,24 @@ Staff initiates a background check for a volunteer.
 ```
 Staff UI (/app/settings/background-checks)
     -> tRPC Mutation (backgroundChecks.initiate)
-        -> backgroundCheckService.initiateCheck()
+        -> backgroundCheckService.initiateBackgroundCheck()
+            -> initiateProviderCheck()  (shared Checkr/Sterling path)
+            -> requireOrgVolunteerRelationship(orgId, userId)  <-- FIRST
             -> Validate org has Checkr connected
             -> Decrypt Checkr OAuth token
             -> Call Checkr API (pass PII through, never store)
             -> Create BackgroundCheckRequest (PENDING)
-            -> Write AuditLog
+            -> Write AuditLog (metadata.relationship = why it was allowed)
         -> Return request ID
     -> UI shows pending status
 ```
+
+The relationship guard lives in the shared `initiateProviderCheck()` path, so
+Sterling gets it too, and it runs before the paid third-party call that receives
+the candidate's SSN and date of birth. The only UI for this is a free-text
+"Volunteer User ID" field; a guard placed after the provider call, or in only one
+of the two callers, is not a guard. Throws `NOT_FOUND` for a user outside the
+org — see `src/server/services/orgVolunteerAccessService.ts`.
 
 ## Webhook callback (async)
 
