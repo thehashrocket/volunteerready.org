@@ -81,6 +81,31 @@ Roles:
 
 Users may belong to multiple organizations.
 
+This is the **staff** join. The volunteer-side join is `OrgVolunteer`.
+
+---
+
+## OrgVolunteer
+
+Join table between `User` and `Organization` recording that someone is a
+volunteer on that org's roster. Roster membership carries no role and does not
+make the volunteer a member of the org.
+
+A row is created either by a coordinator typing a name and email into
+`/app/volunteers` (`source: STAFF_ADDED`) or automatically from an approved
+application (`source: APPLIED`). Staff can add any email address without the
+recipient's agreement, so the roster-added email tells the recipient they can
+leave — and `/app/profile` has an "Organizations you volunteer with" card where
+they do (`profile.leaveOrgRoster`).
+
+Removal from either side is a soft delete, so the row's provenance survives and
+a removed volunteer can be re-added or restored.
+
+Leaving removes the roster edge only. If the volunteer also has an application
+or a shift signup with that org, the org keeps its existing access to their
+org-visible profile and can still issue credentials. It is a roster exit, not a
+revocation.
+
 ---
 
 ## VolunteerApplication

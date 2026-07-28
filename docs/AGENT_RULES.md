@@ -76,6 +76,34 @@ stranger's row cannot match and the delete throws instead. If your write can
 operation but shares `upsertCredential()`, whose create branch would mint a
 REVOKED credential on an unrelated account.
 
+The same reasoning runs in reverse on **volunteer-facing** procedures. A
+volunteer is not an `OrganizationMember`, so there is no membership to check and
+no `ctx.orgId` to scope by — the scoping key is the caller's own `userId`. Three
+rules for that case, all of which `profile.leaveOrgRoster` (v0.36.0.0) follows:
+
+1. **The client never names an org.** It sends a row id; the server reads the
+   `orgId` back off the matched row (`leaveOrgRoster` needs it for the
+   `VOLUNTEER_LEFT` audit row). An `orgId` accepted from the client here is an
+   unauthenticated tenant selector.
+2. **`userId` goes inside the Prisma `WHERE` of every statement**, read and
+   write alike — never a caller-side comparison after the fact, and never in
+   only one of the two. Mutation testing on `softDeleteOwnOrgVolunteer()`
+   confirms neither clause is dead code: drop it from one statement and the
+   security test still passes, drop it from both and it fails. Do not tidy
+   either one away.
+3. **"Not mine" and "not real" must be indistinguishable.** Return null /
+   `NOT_FOUND` for both, the same way `requireOrgVolunteerRelationship()` throws
+   `NOT_FOUND` rather than `FORBIDDEN`.
+
+Do not "fix" such a procedure by adding an org check or an `orgId` input to make
+it match the staff-side ones. And do not move volunteer-facing roster procedures
+onto `rosterProcedure`: `profile.listMyOrgMemberships` and
+`profile.leaveOrgRoster` are deliberately **ungated** by the roster feature
+flag, because roster rows get minted regardless of the flag and gating the exit
+would strand volunteers on rosters they cannot leave.
+`src/server/trpc/routers/profile.leave.test.ts` goes red if you do. Corollary:
+grepping `rosterProcedure` does not enumerate every roster surface.
+
 ---
 
 # 3. Routers Must Stay Thin

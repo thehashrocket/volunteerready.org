@@ -22,8 +22,17 @@ Users may:
 - manage organizations depending on role
 - have a cross-org volunteer profile
 - hold org-scoped credentials
+- appear on an organization's volunteer roster (see `OrgVolunteer`)
 
 Users are global identities.
+
+Account state: `accountState` is `AccountState` — `ACTIVE` (default; every
+pre-existing user backfilled to this) or `UNCLAIMED`. An `UNCLAIMED` user was
+created by org staff typing an email address into the roster; nobody has ever
+authenticated as them. `claimedAt` is stamped on the first authenticated
+session. A user's email is canonicalized on write (`normalizeEmail()` in
+`src/server/domain/org-volunteer.ts`) and is unique case-insensitively, so an
+identity is one row no matter which casing an org typed.
 
 ---
 
@@ -114,6 +123,50 @@ Activity tracking fields:
 Constraint:
 
 (organizationId, userId) must be unique.
+
+`OrganizationMember` is the **staff-side** join between a `User` and an
+`Organization`. The volunteer-side join is `OrgVolunteer` — a different table
+with different semantics. Do not conflate them: a volunteer on an org's roster
+is not a member of that org and has no role.
+
+---
+
+## OrgVolunteer
+
+Join table connecting a `User` to an `Organization` as a **volunteer** on that
+org's roster. Organization-scoped.
+
+Key fields:
+
+- `displayName` — the name the org typed, max 120 chars. Org-owned, not the
+  volunteer's own profile name.
+- `phone` — org-typed. Deliberately NOT copied onto `VolunteerProfile`, which
+  is for what the volunteer sets themselves.
+- `source` — `OrgVolunteerSource`: `STAFF_ADDED` (typed in by a coordinator) or
+  `APPLIED` (materialized from an approved `VolunteerApplication`).
+- `addedByUserId` — the staff user who added the row, if any.
+- `deletedAt` — soft delete. Set by staff removal *and* by the volunteer
+  leaving.
+
+Constraint:
+
+`(orgId, userId)` is unique via a hand-written **partial** unique index
+(`WHERE "deletedAt" IS NULL`), so a soft-deleted row does not block re-adding
+the same volunteer. Prisma cannot see raw partial indexes, so the generated
+compound-unique input does not exist and `upsert`/`findUnique` on the pair are
+unavailable by design.
+
+Two rules that follow from the model:
+
+1. **A roster row is not consent.** Staff can add any email address without the
+   recipient agreeing, so an `OrgVolunteer` row alone says nothing about what
+   the volunteer wants. The volunteer can soft-delete their own row from
+   `/app/profile` (`profile.leaveOrgRoster`).
+2. **Leaving is narrower than a revocation.** It removes the roster edge only.
+   A `VolunteerApplication` or `ShiftSignup` still satisfies
+   `requireOrgVolunteerRelationship()`, so the org keeps access to
+   `profile.getOrgVisibleProfile`, `credentials.issue`, and
+   `backgroundChecks.initiate`. The confirm copy in the UI says so.
 
 ---
 
@@ -557,6 +610,11 @@ Rules:
 3. Users may belong to multiple organizations.
 4. Authorization must check organization membership.
 5. Company-scoped records use `companyId` as the tenant boundary.
+6. Volunteer-facing procedures are the one place the scoping key is `userId`
+   rather than `orgId`. A volunteer is not an `OrganizationMember`, so there is
+   no membership to check and the client must never name an org — the `orgId`
+   is read back off the row the caller already owns. `profile.leaveOrgRoster`
+   is the reference implementation.
 
 ---
 
@@ -567,6 +625,9 @@ Use these terms consistently across the codebase:
 - Organization
 - OrgSlugHistory
 - OrganizationMember
+- OrgVolunteer
+- OrgVolunteerSource
+- AccountState
 - VolunteerApplication
 - VolunteerAnswer
 - ScreenerQuestion
