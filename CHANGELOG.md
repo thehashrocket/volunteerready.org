@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.1.0] - 2026-07-28
+
+### Fixed
+- Applications you submitted before signing up are no longer added to your account automatically. Anyone could send in an application using someone else's email address, and the next time that person signed in it was silently attached to them — handing the receiving organisation the same access to their volunteer profile as if they had genuinely applied. You now see anything submitted under your address and decide, one by one, whether it is yours. Nothing is attached until you say so, and the card tells you plainly that confirming lets the organisation see your profile.
+- The organisation an application belongs to could not be seen or claimed by anyone whose email address merely resembled yours. An earlier version of this fix compared addresses in a way that treated `_` and `%` as "match anything", so somebody registered as `j_smith@example.com` could have claimed an application belonging to `j.smith@example.com`. Addresses are now compared exactly.
+- Someone signing in on your behalf from a support session can no longer attach their own applications to your account. The two halves of "who is this" disagreed while support was acting as you, so an application belonging to the support account would have been filed under yours.
+- An application can no longer be pushed out of reach by a flood of newer ones. The list of applications offered to you is capped, and it now keeps the oldest — the one you are most likely to actually have submitted — rather than the newest.
+- Applying anonymously with capital letters in your email address ("Jane@Example.com") no longer slips past the duplicate check and creates a second application.
+
+### Changed
+- Opening your applications page no longer quietly writes to your account. It only reads.
+
 ## [0.33.0.0] - 2026-07-27
 
 ### Fixed
