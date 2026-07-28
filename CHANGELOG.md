@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.36.0.0] - 2026-07-28
+
+### Added
+- You can now leave an organisation's volunteer list yourself. An organisation can put anyone on its list by typing in an email address, and the email we send to say so has always ended "if this wasn't expected, you can leave their roster from your profile" — but there was nowhere to do it. There is now: an **Organizations you volunteer with** section at the top of your profile, listing every organisation that has you on its list, each with a Leave button. It also says how you got there, so "why am I on this list?" has an answer — either their staff added you, or they approved an application you sent.
+- Leaving asks you to confirm first, and the question is honest about what leaving does not do. An application you already sent stays sent, the hours you have already volunteered stay recorded with them, and nothing stops them adding you again. It takes you off the list; it is not a way to make an organisation forget you.
+
+### Changed
+- If that list fails to load, the page now says so instead of showing an empty section. On a page whose job is telling you which organisations hold your details, "we couldn't check" and "nobody has you" must not look the same. Leaving your last organisation likewise leaves the section in place, saying nobody has you on a list, rather than the card vanishing out from under you the moment you press the button.
+
+Nothing changes for organisations. Removing someone from your volunteer list, and everything that list feeds, works exactly as before — a volunteer leaving looks the same to you as a coordinator removing them, and every hour they recorded stays in your reports.
+
 ## [0.35.1.0] - 2026-07-28
 
 ### Changed
