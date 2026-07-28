@@ -308,7 +308,7 @@ export const screenerRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx }) => {
-			const userId = ctx.session?.user?.id;
+			const userId = effectiveUserId(ctx);
 			if (!userId) {
 				throw new TRPCError({ code: 'UNAUTHORIZED' });
 			}
@@ -328,7 +328,7 @@ export const screenerRouter = createTRPCRouter({
 		)
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
-			const userId = ctx.session?.user?.id;
+			const userId = effectiveUserId(ctx);
 			if (!userId) {
 				throw new TRPCError({ code: 'UNAUTHORIZED' });
 			}
@@ -350,7 +350,7 @@ export const screenerRouter = createTRPCRouter({
 		)
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
-			const userId = ctx.session?.user?.id;
+			const userId = effectiveUserId(ctx);
 			if (!userId) {
 				throw new TRPCError({ code: 'UNAUTHORIZED' });
 			}

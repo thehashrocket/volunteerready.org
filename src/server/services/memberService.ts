@@ -110,7 +110,15 @@ export async function acceptInvitation(rawToken: string, userId: string) {
 	const userEmail = await findEmailByUserId(userId);
 
 	if (!userEmail) {
-		throw new Error('Your account has no email address on file.');
+		// TRPCError, not a plain Error: tRPC maps plain Errors to
+		// INTERNAL_SERVER_ERROR, which would report a fact about the caller's own
+		// account as a server fault and get redacted by `safeErrorMessage()`. The
+		// router used to raise BAD_REQUEST here before this check moved inwards.
+		// Matches `acceptCompanyInvite`'s code for the identical condition.
+		throw new TRPCError({
+			code: 'PRECONDITION_FAILED',
+			message: 'Your account has no email address on file.',
+		});
 	}
 
 	if (normalizeEmail(invitation.email) !== normalizeEmail(userEmail)) {

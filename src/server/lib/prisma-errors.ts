@@ -16,17 +16,24 @@ import { Prisma } from '@/prisma/generated/client';
  * Reading `meta.target` returns undefined for EVERY P2002 here, which would
  * silently disable duplicate detection altogether.
  *
+ * The constraint name is AUTHORITATIVE. An earlier version of this function
+ * accepted a `modelName` and short-circuited on it, which made the constraint
+ * argument dead at every call site that passed one — and so made this function's
+ * own promise false. It happened to be safe only because `OrgVolunteer` and
+ * `VolunteerApplication` each own exactly one unique index besides their primary
+ * key. The day a second one is added to either, every violation of it would have
+ * started reporting the first one's user-facing message.
+ *
+ * `modelName` survives only as a fallback for the case the docstring above says
+ * should not happen: the adapter not reporting a message at all. It is checked
+ * against the constraint's table prefix rather than supplied separately, so the
+ * two cannot drift.
+ *
  * @param constraint Index name as Postgres reports it, e.g.
- *                   `OrgVolunteer_orgId_userId_active`.
- * @param modelName  Prisma model to accept as a match when the adapter reports
- *                   one. Omit when a model owns several unique indexes and only
- *                   the specific constraint should match.
+ *                   `OrgVolunteer_orgId_userId_active`. Must be prefixed with the
+ *                   Prisma model name for the fallback to work.
  */
-export function isUniqueViolationOn(
-	err: unknown,
-	constraint: string,
-	modelName?: string,
-): boolean {
+export function isUniqueViolationOn(err: unknown, constraint: string): boolean {
 	if (
 		!(err instanceof Prisma.PrismaClientKnownRequestError) ||
 		err.code !== 'P2002'
@@ -41,10 +48,14 @@ export function isUniqueViolationOn(
 		  }
 		| undefined;
 
-	if (modelName && meta?.modelName === modelName) return true;
+	const message = meta?.driverAdapterError?.cause?.originalMessage;
 
-	// Belt and braces if modelName is ever absent.
-	return Boolean(
-		meta?.driverAdapterError?.cause?.originalMessage?.includes(constraint),
-	);
+	if (message) {
+		return message.includes(constraint);
+	}
+
+	// No adapter message to read. Fall back to the model, which is strictly
+	// coarser — it cannot distinguish two indexes on the same table, so it is only
+	// reached when the precise signal is unavailable.
+	return Boolean(meta?.modelName && constraint.startsWith(meta.modelName));
 }

@@ -43,11 +43,7 @@ function alreadyOnRoster() {
  * the address now exists platform-wide. Narrow to the constraint we mean.
  */
 function isRosterDuplicate(err: unknown): boolean {
-	return isUniqueViolationOn(
-		err,
-		'OrgVolunteer_orgId_userId_active',
-		'OrgVolunteer',
-	);
+	return isUniqueViolationOn(err, 'OrgVolunteer_orgId_userId_active');
 }
 
 export type AddVolunteerResult = {

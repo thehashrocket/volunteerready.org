@@ -208,7 +208,6 @@ export async function claimApplication(userId: string, applicationId: string) {
 			isUniqueViolationOn(
 				err,
 				'VolunteerApplication_userId_opportunityId_active',
-				'VolunteerApplication',
 			)
 		) {
 			throw new TRPCError({

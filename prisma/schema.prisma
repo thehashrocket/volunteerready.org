@@ -303,9 +303,10 @@ model VolunteerApplication {
   @@index([orgId, status])
   @@index([submittedByUserId])
   @@index([opportunityId])
+  @@index([declinedByUserId])
   // Plus a hand-written PARTIAL index Prisma cannot express, covering the
   // claimable lookup: ("submittedByEmail") WHERE "submittedByUserId" IS NULL AND
-  // "declinedAt" IS NULL. See the 20260727210000 migration — before it that
+  // "declinedAt" IS NULL. See the 20260727210100 migration — before it that
   // query had no usable index at all and scanned the whole table.
 }
 

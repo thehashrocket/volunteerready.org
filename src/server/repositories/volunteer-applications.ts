@@ -224,6 +224,15 @@ export async function claimApplicationForUser(
 			// `listClaimableApplicationsByEmail`. ILIKE would turn this
 			// authorization check into a wildcard pattern match.
 			submittedByEmail: normalized,
+			// A declined row is terminal, and that has to be enforced HERE, not only
+			// in the listing. Filtering it out of `listClaimableApplicationsByEmail`
+			// alone left the mutation reachable: with the page open in two tabs, a
+			// user could decline in one and then claim the same id from the other's
+			// stale cache — binding, and minting the `APPLICATION` authorization
+			// edge for, the exact application they had just refused. It also left
+			// the row in a state nothing expects, with both `declinedAt` and
+			// `submittedByUserId` set.
+			declinedAt: null,
 		},
 		data: { submittedByUserId: userId },
 	});

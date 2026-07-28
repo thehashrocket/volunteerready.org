@@ -57,8 +57,8 @@ vi.mock('@/server/repositories/orgVolunteerRepo', () => ({
 }));
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Prisma } from '@/prisma/generated/client';
 import { INDISTINGUISHABLE_OUTCOMES } from '@/server/domain/org-volunteer';
+import { p2002Error } from '@/test/prisma-error-fixtures';
 import {
 	addVolunteer,
 	removeVolunteer,
@@ -68,32 +68,12 @@ import {
 const ORG = 'org-1';
 const ACTOR = 'actor-1';
 
-/**
- * The REAL P2002 shape Prisma 7 + PrismaPg produces, captured from this
- * database. Note there is NO `meta.target` — that field belongs to the
- * pre-driver-adapter client. A handler written against `meta.target` matches
- * nothing, so this helper must keep reproducing the true shape or it will
- * green-light a broken duplicate check.
- */
+/** Local alias: this suite always means the roster constraint. */
 function p2002(
 	modelName = 'OrgVolunteer',
 	constraint = 'OrgVolunteer_orgId_userId_active',
 ) {
-	return new Prisma.PrismaClientKnownRequestError('dup', {
-		code: 'P2002',
-		clientVersion: 'test',
-		meta: {
-			modelName,
-			driverAdapterError: {
-				name: 'DriverAdapterError',
-				cause: {
-					originalCode: '23505',
-					originalMessage: `duplicate key value violates unique constraint "${constraint}"`,
-					kind: 'UniqueConstraintViolation',
-				},
-			},
-		},
-	});
+	return p2002Error(constraint, modelName);
 }
 
 function baseInput(

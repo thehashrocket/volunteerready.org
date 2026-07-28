@@ -72,6 +72,8 @@ function ClaimableApplications({
 		return null;
 	}
 
+	const isSingle = claimable.length === 1;
+
 	return (
 		<Card>
 			<CardHeader>
@@ -79,13 +81,13 @@ function ClaimableApplications({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<p className="text-sm text-muted-foreground">
-					We found {claimable.length === 1 ? 'an application' : 'applications'}{' '}
-					submitted with your email address before you signed in. Add{' '}
-					{claimable.length === 1 ? 'it' : 'them'} to your account only if you
-					recognize {claimable.length === 1 ? 'it' : 'them'} — the organization
-					will be able to see your volunteer profile once you do. If you don’t
-					recognize {claimable.length === 1 ? 'it' : 'one'}, choose{' '}
-					<strong>Not mine</strong> and we won’t ask again.
+					We found {isSingle ? 'an application' : 'applications'} submitted with
+					your email address before you signed in. Add{' '}
+					{isSingle ? 'it' : 'them'} to your account only if you recognize{' '}
+					{isSingle ? 'it' : 'them'} — the organization will be able to see your
+					volunteer profile once you do. If you don’t recognize{' '}
+					{isSingle ? 'it' : 'one'}, choose <strong>Not mine</strong> and we
+					won’t ask again.
 				</p>
 				<ul className="divide-y rounded-md border">
 					{claimable.map((application) => {
@@ -104,8 +106,13 @@ function ClaimableApplications({
 										{application.organization?.name ?? 'Unknown organization'}
 									</p>
 									<p className="text-muted-foreground">
+										{/* Phrased as a question, never as a completed outcome. An
+										    earlier version asserted "We won't offer this one again."
+										    while the alert below could be saying the removal
+										    failed — the row claiming something the server had
+										    refused. */}
 										{isConfirming
-											? "We won't offer this one again."
+											? 'Remove this from your list?'
 											: `Submitted ${submitted}`}
 									</p>
 								</div>

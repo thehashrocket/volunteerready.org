@@ -59,32 +59,13 @@ vi.mock('@/server/repositories/prisma', () => ({
 
 import { TRPCError } from '@trpc/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Prisma } from '@/prisma/generated/client';
 import {
 	claimApplication,
 	declineApplication,
 	listClaimableApplications,
 	listMyApplications,
 } from '@/server/services/my-applications';
-
-/** A P2002 shaped the way the PrismaPg driver adapter actually reports one. */
-function uniqueViolation(constraint: string, modelName: string) {
-	const err = new Prisma.PrismaClientKnownRequestError('Unique constraint', {
-		code: 'P2002',
-		clientVersion: 'test',
-	});
-	// `meta.target` is deliberately absent — the adapter never populates it, which
-	// is why the detector reads modelName / originalMessage instead.
-	(err as { meta?: unknown }).meta = {
-		modelName,
-		driverAdapterError: {
-			cause: {
-				originalMessage: `duplicate key value violates unique constraint "${constraint}"`,
-			},
-		},
-	};
-	return err;
-}
+import { p2002Error } from '@/test/prisma-error-fixtures';
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -307,10 +288,7 @@ describe('claimApplication', () => {
 		// once `submittedByUserId` is set. Unhandled, this surfaced as
 		// INTERNAL_SERVER_ERROR and left the row permanently unclaimable.
 		mocks.claimApplicationForUser.mockRejectedValue(
-			uniqueViolation(
-				'VolunteerApplication_userId_opportunityId_active',
-				'VolunteerApplication',
-			),
+			p2002Error('VolunteerApplication_userId_opportunityId_active'),
 		);
 
 		const error = await claimApplication('user-1', 'app-1').catch(
@@ -328,10 +306,7 @@ describe('claimApplication', () => {
 		// OWN other application — nothing about a third party is disclosed, and
 		// NOT_FOUND would be a dead end they cannot act on.
 		mocks.claimApplicationForUser.mockRejectedValue(
-			uniqueViolation(
-				'VolunteerApplication_userId_opportunityId_active',
-				'VolunteerApplication',
-			),
+			p2002Error('VolunteerApplication_userId_opportunityId_active'),
 		);
 
 		const error = await claimApplication('user-1', 'app-1').catch(
@@ -345,7 +320,7 @@ describe('claimApplication', () => {
 		// Narrowing matters: reporting "you already applied" for a P2002 on some
 		// other table would tell the user something false.
 		mocks.claimApplicationForUser.mockRejectedValue(
-			uniqueViolation('User_email_key', 'User'),
+			p2002Error('User_email_key'),
 		);
 
 		const error = await claimApplication('user-1', 'app-1').catch(

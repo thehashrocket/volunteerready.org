@@ -11,6 +11,65 @@ Shipped: E1a (roster rows on approval + on claim), the four correctness-debt
 items from the application-claim ship, and the CI workflow. See those entries
 below, now struck through.
 
+### Caught by review in this same ship — fixed, recorded so they are not reintroduced
+
+Three reviewers ran over the diff. Two findings were real defects in the new code
+and one disproved a claim the migration made.
+
+- **Declining was terminal for the LISTING but not for the MUTATION.**
+  `declinedAt: null` went into `listClaimableApplicationsByEmail` but not into
+  `claimApplicationForUser`'s `where`. With `/app/my-applications` open in two
+  tabs, a user could decline in one and then claim the same id from the other's
+  stale cache — binding, and minting the `APPLICATION` authorization edge for, the
+  exact application they had just refused, and leaving the row with both
+  `declinedAt` and `submittedByUserId` set. All three reviewers found this
+  independently. Fixed; pinned by `SECURITY: a declined application can no longer
+  be CLAIMED` in `applicationClaim.integration.test.ts`, which was
+  mutation-verified (exactly one failure with the predicate removed).
+
+- **`CREATE INDEX` would have blocked writes for the whole index build.** The
+  migration claimed CONCURRENTLY was unnecessary because the `ADD COLUMN`s "already
+  take ACCESS EXCLUSIVE in the same transaction". **Prisma does not wrap a
+  migration file in a transaction** — proved by `20260421151557`, which combines
+  `ALTER TYPE ... ADD VALUE` with `CREATE INDEX CONCURRENTLY`, both illegal inside
+  a transaction block, and applies cleanly (this repo even has a `-- DropTransaction`
+  comment convention for it). So the lock is released per statement and a plain
+  `CREATE INDEX` takes a fresh SHARE lock, blocking every new application and
+  every staff status change on `VolunteerApplication` for the build. Split into
+  `20260727210100_add_claimable_index_concurrently`, and the FK is now added
+  `NOT VALID` then `VALIDATE`d there, since a validated FK triggers a full
+  `RI_Initial_Check` scan that all-NULL values do not exempt it from.
+
+- **`isUniqueViolationOn`'s `modelName` parameter made the `constraint` argument
+  dead.** It short-circuited on a model match before consulting the constraint, so
+  both call sites passed a constraint that was never read — making the function's
+  own docstring false. Safe only because each model owns exactly one unique index
+  today. Signature is now two-arg with the constraint authoritative; `modelName`
+  survives only as a coarse fallback derived from the constraint's own prefix, so
+  the two cannot drift. New `src/server/lib/__tests__/prisma-errors.test.ts` covers
+  the case that was wrong — two constraints on the *same* model — which no
+  existing test did.
+
+Also from review, smaller: `memberService.acceptInvitation` now throws
+`TRPCError PRECONDITION_FAILED` rather than a plain `Error` (tRPC maps plain
+Errors to INTERNAL_SERVER_ERROR, reporting a fact about the caller's own account
+as a server fault and getting it redacted by `safeErrorMessage`); the decline
+confirm row asks "Remove this from your list?" instead of asserting "We won't
+offer this one again." while the alert beside it might be reporting failure; the
+`impersonatedBy` ternary in `routers/company.ts` is now the shared helper at all
+four call sites — where a local `const effectiveUserId` had also been shadowing
+the imported function; and the P2002 test fixture is shared from
+`src/test/prisma-error-fixtures.ts` rather than existing as two divergent copies
+of an empirically-discovered shape.
+
+### [P2] CI has no `pnpm build` step
+Raised in review and worth acting on: this repo has a documented history of
+Turbopack-dev-only bugs, and nothing in CI compiles the app, so a build break
+reaches Vercel unchallenged. Not added here because `pnpm build` runs
+`scripts/vercel-build.sh`, which also seeds — a CI build job wants
+`pnpm next build` against the service container plus whatever env the build reads,
+and adding an unverified job would land CI red on its first run. **Effort:** S.
+
 ### The design doc's prescribed E1a shape does not work — corrected in code
 `docs/designs/staff-created-volunteers.md` §5 and this file both specified
 `findFirst({ orgId, userId, deletedAt: null })` then `create` with a **P2002
