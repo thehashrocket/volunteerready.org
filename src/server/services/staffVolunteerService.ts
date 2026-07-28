@@ -12,8 +12,10 @@ import {
 	createOrgVolunteer,
 	findLiveOrgVolunteer,
 	listOrgVolunteers,
+	listOrgVolunteersByUser,
 	restoreOrgVolunteer,
 	softDeleteOrgVolunteer,
+	softDeleteOwnOrgVolunteer,
 } from '@/server/repositories/orgVolunteerRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { sendRosterAddedEmail } from '@/server/repositories/sendRosterAddedEmail';
@@ -306,6 +308,75 @@ export async function restoreVolunteer(input: {
 		}
 		throw err;
 	}
+}
+
+/**
+ * The orgs that currently have the caller on a roster (T32).
+ *
+ * Lives in this service, beside `removeVolunteer`, rather than in a
+ * volunteer-facing one: leaving and being removed are the same soft delete over
+ * the same partial unique index, and splitting them across two files is how the
+ * two sets of rules drift.
+ */
+export function listMyOrgMemberships(userId: string) {
+	return listOrgVolunteersByUser(userId);
+}
+
+/**
+ * Leave an org's roster — the volunteer's own exit from an edge staff created.
+ *
+ * This is the surface Security §2 assumed existed when it accepted the
+ * wrong-email risk with "that user is notified and can remove the roster link",
+ * and that `sendRosterAddedEmail` already promises in writing. Staff can add any
+ * address they know without consent, so without this the person on the receiving
+ * end has no recourse at all.
+ *
+ * Deliberately NOT behind `rosterProcedure`. `ensureAppliedRosterRow` creates
+ * edges on approval for every org whether or not the pilot flag is on, so gating
+ * the exit on the flag would strand volunteers on rosters they cannot leave. The
+ * design doc's gating table makes this split explicit.
+ *
+ * Soft delete, same as staff removal: recorded hours and `ShiftSignup` rows
+ * survive, so leaving does not erase work the org legitimately recorded. It is
+ * also not a block — nothing stops the org re-adding the same address, and the
+ * UI says so rather than implying a door that stays shut.
+ */
+export async function leaveOrgRoster(input: {
+	userId: string;
+	volunteerId: string;
+	impersonatedBy?: string | null;
+}) {
+	return prisma.$transaction(async (tx) => {
+		const orgId = await softDeleteOwnOrgVolunteer(
+			tx,
+			input.userId,
+			input.volunteerId,
+		);
+
+		if (orgId === null) {
+			throw new TRPCError({
+				code: 'NOT_FOUND',
+				message: "You're not on that organization's roster.",
+			});
+		}
+
+		await writeAuditLogTx(tx, {
+			orgId,
+			// The volunteer is the actor. The org still sees the departure in its
+			// own audit log, scoped by the orgId resolved from the row above.
+			actorId: input.userId,
+			action: 'VOLUNTEER_LEFT',
+			entityType: 'OrgVolunteer',
+			entityId: input.volunteerId,
+			metadata: {
+				...(input.impersonatedBy
+					? { impersonatedBy: input.impersonatedBy }
+					: {}),
+			},
+		});
+
+		return { id: input.volunteerId };
+	});
 }
 
 /** Roster page plus the org-scoped attended-shift count per row. */
