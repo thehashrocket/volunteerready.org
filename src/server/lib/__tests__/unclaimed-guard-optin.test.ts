@@ -54,8 +54,15 @@ function relative(file: string) {
 describe('unclaimed guard opt-in surface', () => {
 	const files = walk(SRC);
 
+	// Match the PROPERTY NAME, not `: true`. Requiring the literal let two
+	// things through, both proven by mutation: a non-literal value
+	// (`{ suppressUnclaimed: BULK }`) in a transactional sender was invisible,
+	// and commenting a live call out (`// TODO: re-enable — { suppressUnclaimed:
+	// true }`) still satisfied the scan while the guard was actually off. Only
+	// these four files should mention the option at all, so the ALLOWED
+	// comparison below carries the value check on its own.
 	const optedIn = files
-		.filter((f) => /suppressUnclaimed\s*:\s*true/.test(readFileSync(f, 'utf8')))
+		.filter((f) => /suppressUnclaimed\s*:/.test(readFileSync(f, 'utf8')))
 		.map(relative)
 		.filter((f) => !INFRASTRUCTURE.has(f) && !isTestFile(f))
 		.sort();

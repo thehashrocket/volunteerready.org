@@ -853,7 +853,7 @@ produces confidently wrong work.
   - Surfaced by: Test review — critical gap; `auth.ts:54-56` throws on a false return
   - Files: `lib/__tests__/email.test.ts`, `lib/__tests__/unclaimed-guard-optin.test.ts`, `lib/__tests__/env-flags.test.ts`, `services/__tests__/accountClaimService.test.ts`, `auth-account-linking.test.ts`, plus two integration specs
   - **Two suites are integration, deliberately.** The guard's lookup key must agree with a database trigger Prisma cannot see, and the flip's idempotence lives in a WHERE clause — a mocked client returns whatever the test tells it to and would stay green through exactly the bugs that matter. `pnpm test:integration` against the docker Postgres covers both
-  - Verify: ✅ 1782 unit + 114 integration + 9 script tests pass; typecheck and Biome clean
+  - Verify: ✅ 1788 unit + 118 integration + 9 script tests pass; typecheck clean; Biome clean over `src docs prisma/schema.prisma`. Note `pnpm lint` (`biome check .`, whole repo) still reports 4 findings — all verified pre-existing on `origin/main`, none on lines this branch touched
 - [~] **T7 (P1, human: ~8h / CC: ~50min)** — trpc — `requireOrgVolunteerRelationship()` (three-way) on 6 callsites + org-scope shift reads
   - **Partially shipped v0.32.1.0** — guard built and wired to profile read, credential issue, credential revoke, and background-check initiate; `credentials.remove` exempt (compound-key delete). Predicate shipped wider than "three-way" — see the Shipped-as note in section 5. **Still open:** org-scoping the shift reads in `shiftRepo.ts` / `shiftSignupRepo.ts` and the `routers/shifts.ts` callsites.
   - Surfaced by: Q4, X3, Correction 1, Codex #6 — naked ids on profile, credentials issue/revoke/remove, bg-check, shifts
@@ -863,10 +863,6 @@ produces confidently wrong work.
   - Surfaced by: Code Quality Q1 — avoid a second implementation of capacity rules
   - Files: `src/server/services/shiftSignupService.ts`, `repositories/shiftSignupRepo.ts`, `routers/shifts.ts`
   - Verify: `pnpm test src/server/services/__tests__/shiftSignupService.test.ts`
-- [ ] **T9 (P1, human: ~3h / CC: ~20min)** — tests — Email guard suite: 4 suppressing senders, every other sender sends, magic link works
-  - Surfaced by: Test review — critical gap; `auth.ts:54-56` throws on a false return
-  - Files: `src/server/lib/__tests__/email.test.ts`
-  - Verify: `pnpm test src/server/lib/__tests__/email.test.ts`
 - [ ] **T10 (P1, human: ~4h / CC: ~25min)** — services — E1a: roster row on approval and in the sign-in link path
   - Surfaced by: Expansion E1, split per D4; Codex #1 — the link path was the retroactive gap
   - Files: `src/server/services/screener-queries.ts`, `src/server/services/my-applications.ts`, `repositories/orgVolunteerRepo.ts`

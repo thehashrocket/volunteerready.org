@@ -62,7 +62,7 @@ describe('T6 — Google account linking', () => {
 		delete process.env.GOOGLE_EMAIL_LINKING_ENABLED;
 	});
 
-	it('SECURITY: links by verified email so a staff-created shadow user is not locked out', async () => {
+	it('SECURITY: enables account linking so a staff-created shadow user is not locked out', async () => {
 		delete process.env.GOOGLE_EMAIL_LINKING_ENABLED;
 
 		const { allowLinking } = await loadGoogleProvider();
@@ -214,6 +214,17 @@ describe('new-user alert vs. account linking', () => {
 		expect(mockSendNewUserAlert).toHaveBeenCalled();
 	});
 
+	it('passes the documented age window, not an ad-hoc value', async () => {
+		// REGRESSION GUARD: events.createUser used to alert unconditionally. It is
+		// now gated on this call, so a units slip (5 seconds, 5 hours) silently
+		// changes who gets alerted with every other test still green.
+		mockWasCreatedWithin.mockResolvedValueOnce(true);
+
+		await fireCreateUser();
+
+		expect(mockWasCreatedWithin).toHaveBeenCalledWith('user-1', 5 * 60 * 1000);
+	});
+
 	it('SECURITY: an alert failure never breaks sign-up', async () => {
 		const consoleError = vi
 			.spyOn(console, 'error')
@@ -222,6 +233,17 @@ describe('new-user alert vs. account linking', () => {
 		mockSendNewUserAlert.mockRejectedValueOnce(new Error('resend down'));
 
 		await expect(fireCreateUser()).resolves.toBeUndefined();
+
+		// Asserting the log is what gives this test teeth. `resolves` alone proves
+		// nothing: sendNewUserAlert is fire-and-forget, so the handler returns
+		// undefined whether or not the .catch exists — the test would pass with
+		// the error handling deleted. Same defect class as the suppression-log
+		// test in email.test.ts.
+		await new Promise((r) => setTimeout(r, 0));
+		expect(consoleError).toHaveBeenCalledWith(
+			'[auth] Failed to send new user alert:',
+			expect.any(Error),
+		);
 
 		consoleError.mockRestore();
 	});

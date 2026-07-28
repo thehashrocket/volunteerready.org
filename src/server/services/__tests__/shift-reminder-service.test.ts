@@ -116,6 +116,16 @@ describe('sendShiftReminders', () => {
 
 		expect(result.remindersSent).toBe(1);
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
+		// SECURITY: the option must actually REACH sendEmail. The source scan in
+		// unclaimed-guard-optin.test.ts proves which files mention it; only a
+		// call-site assertion proves it is passed. Without this, commenting the
+		// argument out leaves the whole suite green — proven by mutation.
+		expect(mockSendEmail).toHaveBeenCalledWith(
+			expect.any(String),
+			expect.any(String),
+			expect.any(String),
+			{ suppressUnclaimed: true },
+		);
 	});
 
 	it('sends email with org timezone in time formatting', async () => {

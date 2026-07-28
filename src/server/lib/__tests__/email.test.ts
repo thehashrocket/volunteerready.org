@@ -338,17 +338,24 @@ describe('sendEmail — unclaimed guard', () => {
 
 	it('runs the bounce and unclaimed lookups concurrently, not in series', async () => {
 		// Sequential lookups would double the per-recipient latency of every
-		// cron send. Assert both are in flight before either resolves.
-		let bounceStarted = false;
-		let userStartedWhileBouncePending = false;
+		// cron send.
+		//
+		// Track RESOLUTION, not start. An earlier version of this test flipped a
+		// flag at the *start* of the bounce lookup and asserted the user lookup
+		// saw it — but a sequential implementation sets that flag too, just
+		// earlier, so the test passed with `Promise.all` replaced by two awaits.
+		// The only thing that distinguishes the two is whether the second lookup
+		// begins while the first is still pending.
+		let bounceResolved = false;
+		let startedWhileBouncePending = false;
 
 		mockFindUnique.mockImplementationOnce(async () => {
-			bounceStarted = true;
 			await new Promise((r) => setTimeout(r, 5));
+			bounceResolved = true;
 			return null;
 		});
 		mockUserFindUnique.mockImplementationOnce(async () => {
-			userStartedWhileBouncePending = bounceStarted;
+			startedWhileBouncePending = !bounceResolved;
 			return { accountState: 'ACTIVE' };
 		});
 
@@ -356,7 +363,7 @@ describe('sendEmail — unclaimed guard', () => {
 			suppressUnclaimed: true,
 		});
 
-		expect(userStartedWhileBouncePending).toBe(true);
+		expect(startedWhileBouncePending).toBe(true);
 	});
 
 	it('still suppresses, as a decision not a crash, when the SUPPRESSED_UNCLAIMED write fails', async () => {
@@ -394,6 +401,54 @@ describe('sendEmail — unclaimed guard', () => {
 
 		consoleWarn.mockRestore();
 		consoleError.mockRestore();
+	});
+
+	it('SECURITY: fails OPEN when the recipient lookup itself errors', async () => {
+		// The lookup lives inside a Promise.all. An unhandled rejection there
+		// would take the whole send down — returning false and logging "Failed to
+		// send email" — so one database blip would silently drop digests for
+		// ACTIVE recipients too, and blame Resend for it. An inconclusive lookup
+		// is not evidence that someone is UNCLAIMED.
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+		mockUserFindUnique.mockRejectedValueOnce(new Error('db down'));
+
+		const result = await sendEmail('user@example.com', 'Digest', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+
+		expect(result).toBe(true);
+		expect(mockSend).toHaveBeenCalled();
+		expect(consoleError).toHaveBeenCalledWith(
+			'[sendEmail] Unclaimed lookup failed, sending anyway:',
+			expect.any(Error),
+		);
+		expect(consoleError).not.toHaveBeenCalledWith(
+			'[sendEmail] Failed to send email:',
+			expect.anything(),
+		);
+
+		consoleError.mockRestore();
+	});
+
+	it('logs SENT under the same key as SUPPRESSED_UNCLAIMED', async () => {
+		// Both event types answer one question together — "did this person get
+		// their shift reminder?" — so a padded address must not file the two
+		// halves of the answer under different rows.
+		mockUserFindUnique.mockResolvedValueOnce({ accountState: 'ACTIVE' });
+
+		await sendEmail('  User@Example.COM  ', 'Digest', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+		await new Promise((r) => setTimeout(r, 0));
+
+		expect(mockCreate).toHaveBeenCalledWith({
+			data: expect.objectContaining({
+				to: 'user@example.com',
+				eventType: 'SENT',
+			}),
+		});
 	});
 
 	it('a bounce-suppressed UNCLAIMED address returns on the bounce branch and does not double-log', async () => {

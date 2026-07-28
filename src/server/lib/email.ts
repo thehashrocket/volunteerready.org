@@ -3,11 +3,9 @@ import { buildEmailHtml } from '@/server/lib/email-template';
 import { isEnabled } from '@/server/lib/env-flags';
 import { getFromEmail, getResend } from '@/server/lib/resend';
 import { prisma } from '@/server/repositories/prisma';
+import { findAccountStateByEmail } from '@/server/repositories/userAccountStateRepo';
 
 const MAX_REENABLE_CAP = 3;
-
-/** Kill switch for the unclaimed guard. See `lib/env-flags.ts` for semantics. */
-const UNCLAIMED_GUARD_FLAG = 'UNCLAIMED_EMAIL_GUARD_ENABLED';
 
 /**
  * Send a branded email via Resend.
@@ -23,8 +21,8 @@ const UNCLAIMED_GUARD_FLAG = 'UNCLAIMED_EMAIL_GUARD_ENABLED';
  * Unclaimed suppression (`opts.suppressUnclaimed`): skips addresses belonging
  * to an UNCLAIMED User — a row org staff created by typing someone's email,
  * which nobody has ever authenticated as. OPT-IN, and deliberately so: it is
- * set by exactly the four senders that push unrequested bulk mail, so a sender
- * added later by someone who never read this fails safe (it sends). Blocking
+ * set only by senders of unrequested bulk mail, so a sender added later by
+ * someone who never read this fails safe (it sends). Blocking
  * by default with an exemption list was drafted and rejected — the draft
  * exemption list was already missing six transactional senders people had
  * explicitly asked for, which would have gone silently dead.
@@ -41,34 +39,18 @@ export async function sendEmail(
 ): Promise<boolean> {
 	try {
 		// Critical mail (FCRA adverse-action notices) bypasses BOTH guards.
-		const checkBounce = !opts?.isCritical;
+		const isCritical = opts?.isCritical === true;
+		const checkBounce = !isCritical;
 		const checkUnclaimed =
-			!opts?.isCritical &&
+			!isCritical &&
 			opts?.suppressUnclaimed === true &&
-			isEnabled(UNCLAIMED_GUARD_FLAG);
+			isEnabled('UNCLAIMED_EMAIL_GUARD_ENABLED');
 
 		// Concurrent, not sequential: neither lookup informs the other, and this
 		// runs per recipient on every cron send.
-		const [bounceStatus, recipient] = await Promise.all([
-			checkBounce
-				? prisma.emailBounceStatus.findUnique({
-						where: { email: to.toLowerCase() },
-						select: { suppressedAt: true, bounceCount: true },
-					})
-				: null,
-			checkUnclaimed
-				? prisma.user.findUnique({
-						// normalizeEmail(), NOT to.toLowerCase(): User.email is stored
-						// as lower(btrim(...)) by the T1 database trigger, so an address
-						// with stray whitespace would miss the row here and the guard
-						// would fail OPEN — mailing the exact person it exists to
-						// protect. The bounce lookup above keeps .toLowerCase() because
-						// EmailBounceStatus.email is deliberately NOT canonicalized
-						// (see the T1 migration header; tracked as its own P3).
-						where: { email: normalizeEmail(to) },
-						select: { accountState: true },
-					})
-				: null,
+		const [bounceStatus, accountState] = await Promise.all([
+			checkBounce ? lookupBounce(to) : null,
+			checkUnclaimed ? lookupAccountState(to) : null,
 		]);
 
 		if (
@@ -82,11 +64,10 @@ export async function sendEmail(
 			return false;
 		}
 
-		// A missing User row sends. Unreachable for the four opted-in senders —
-		// all four reach the address through a required, non-nullable User FK —
-		// so this only decides the behaviour of a future caller, and "send" is
-		// the correct default for the same reason the guard is opt-in.
-		if (recipient?.accountState === 'UNCLAIMED') {
+		// An unknown recipient sends. Only reachable when a caller opts in for an
+		// address with no `User` row, and "send" is the right default there for
+		// the same reason the guard is opt-in at all.
+		if (accountState === 'UNCLAIMED') {
 			await recordUnclaimedSuppression(to, subject);
 			return false;
 		}
@@ -105,7 +86,9 @@ export async function sendEmail(
 			.create({
 				data: {
 					resendId,
-					to: to.toLowerCase(),
+					// SENT and SUPPRESSED_UNCLAIMED are read together to answer one
+					// question, so they must key identically.
+					to: normalizeEmail(to),
 					subject,
 					eventType: 'SENT',
 				},
@@ -119,6 +102,31 @@ export async function sendEmail(
 		console.error('[sendEmail] Failed to send email:', { to, subject, err });
 		return false;
 	}
+}
+
+/** Bounce suppression state for an address, or null if the check is skipped. */
+function lookupBounce(to: string) {
+	return prisma.emailBounceStatus.findUnique({
+		where: { email: to.toLowerCase() },
+		select: { suppressedAt: true, bounceCount: true },
+	});
+}
+
+/**
+ * Recipient account state, or null if unknown.
+ *
+ * Errors are caught HERE rather than by `sendEmail`'s outer catch. Inside the
+ * `Promise.all` an unhandled rejection takes the whole send down — it would
+ * return false and log "Failed to send email", so one transient database blip
+ * would silently drop mail for ACTIVE recipients and blame Resend for it. An
+ * inconclusive lookup is not evidence that someone is UNCLAIMED, so the guard
+ * fails OPEN.
+ */
+function lookupAccountState(to: string) {
+	return findAccountStateByEmail(to).catch((err) => {
+		console.error('[sendEmail] Unclaimed lookup failed, sending anyway:', err);
+		return null;
+	});
 }
 
 /**

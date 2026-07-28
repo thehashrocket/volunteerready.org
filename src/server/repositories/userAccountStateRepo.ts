@@ -1,4 +1,30 @@
+import type { AccountState } from '@/prisma/generated/client';
+import { normalizeEmail } from '@/server/domain/org-volunteer';
 import { prisma } from './prisma';
+
+/**
+ * Look up a recipient's account state by email address.
+ *
+ * Keyed with `normalizeEmail()` — `lower(btrim(...))` — and NOT the bare
+ * `.toLowerCase()` used for the bounce lookup next to the caller. `User.email`
+ * is stored canonicalized by the T1 database trigger, so an address carrying
+ * stray whitespace would miss the row and the guard would fail OPEN, mailing
+ * the exact person it exists to protect. `EmailBounceStatus.email` is
+ * deliberately NOT canonicalized (see the T1 migration header), which is why
+ * the two lookups legitimately differ.
+ *
+ * @returns null when no user has this address — the caller must treat that as
+ *          "unknown", never as "unclaimed".
+ */
+export async function findAccountStateByEmail(
+	email: string,
+): Promise<AccountState | null> {
+	const row = await prisma.user.findUnique({
+		where: { email: normalizeEmail(email) },
+		select: { accountState: true },
+	});
+	return row?.accountState ?? null;
+}
 
 /**
  * Flip an UNCLAIMED user to ACTIVE and stamp `claimedAt`.
@@ -13,11 +39,8 @@ import { prisma } from './prisma';
  *   2. It is a compare-and-set, so two concurrent sign-ins (a magic link
  *      clicked twice, a retried OAuth callback) cannot both report success.
  *      The returned count tells the caller which one actually claimed.
- *   3. It needs no prior read. The `User` object NextAuth hands to
- *      `events.signIn` does carry `accountState` today — PrismaAdapter runs no
- *      `select` — but that is an untyped field surviving an adapter cast, not
- *      a contract, and branching on it would make a privacy control depend on
- *      an implementation detail of a library upgrade.
+ *   3. It needs no prior read, so the decision cannot depend on whether
+ *      NextAuth happens to hand us `accountState` on any given version.
  *
  * @returns true when this call performed the flip, false when the user was
  *          already ACTIVE (or does not exist).
@@ -36,31 +59,42 @@ export async function claimUnclaimedUser(
 /**
  * Was this `User` row actually created just now?
  *
- * Exists because next-auth's `events.createUser` lies once
- * `allowDangerousEmailAccountLinking` is on. In `callback-handler`'s OAuth
- * branch, the `user = userByEmail` assignment and the `createUser()` call are
- * two arms of one if/else, and `events.createUser` is invoked UNCONDITIONALLY
- * after that if/else — so it fires for a row that already existed and was
- * merely linked to. Every staff-created volunteer claiming their account with
- * Google would otherwise page admins with "new user signed up" about someone
- * who has been in the database for weeks.
+ * Exists because next-auth's `events.createUser` fires for rows that were
+ * merely LINKED, not created, once account linking is on — see the
+ * `events.createUser` comment in `server/auth.ts` for the control flow and
+ * why the event alone is not trustworthy.
  *
  * Age, not `accountState`, is the test: it also covers the ordinary user who
  * signed up by magic link months ago and links Google today, whose
  * `accountState` is a perfectly normal ACTIVE.
  *
- * The window is generous because `createdAt` is the database clock and the
- * comparison value is the application clock. A genuine create is milliseconds
- * old, so any threshold well above the skew works; erring long means a
- * volunteer who claims within minutes of being added still triggers an alert,
- * which is the harmless direction to fail.
+ * BOTH SIDES OF THE COMPARISON ARE THE DATABASE CLOCK. The obvious
+ * implementation — `createdAt: { gte: new Date(Date.now() - withinMs) }` —
+ * compares a database timestamp against an application one, so a database
+ * clock more than `withinMs` behind the app makes every genuinely-new row look
+ * old and silently stops ALL sign-up alerts. Nothing would surface that: the
+ * alert simply never arrives. `NOW()` on both sides removes the failure class
+ * rather than widening the window until it is improbable.
+ *
+ * Raw SQL because Prisma has no way to express "compare to the server's own
+ * clock". One static template with two bound parameters — never composed
+ * `Prisma.sql` fragments, which break under Turbopack dev (CLAUDE.md).
+ *
+ * The window is still generous: erring long means a volunteer who claims
+ * within minutes of being added also triggers an alert, which is the harmless
+ * direction to fail.
  */
 export async function wasUserCreatedWithin(
 	userId: string,
 	withinMs: number,
 ): Promise<boolean> {
-	const count = await prisma.user.count({
-		where: { id: userId, createdAt: { gte: new Date(Date.now() - withinMs) } },
-	});
-	return count > 0;
+	const withinSeconds = withinMs / 1000;
+	const rows = await prisma.$queryRaw<{ recent: boolean }[]>`
+		SELECT true AS recent
+		FROM "User"
+		WHERE id = ${userId}
+		  AND "createdAt" >= NOW() - (${withinSeconds}::double precision * INTERVAL '1 second')
+		LIMIT 1
+	`;
+	return rows.length > 0;
 }

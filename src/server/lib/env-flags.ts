@@ -24,6 +24,28 @@
  * per-case, and a module-scope read would freeze whichever value happened to
  * be present at import.
  */
-export function isEnabled(name: string): boolean {
+
+/**
+ * Every kill switch, declared once.
+ *
+ * The names live here rather than as a `const` beside each call site because
+ * `isEnabled` defaults to ENABLED for an unset variable — which means a typo'd
+ * or renamed name reads as "on" forever and the switch is silently unkillable.
+ * That is the same fail-toward-shipped rule applied to a place it does not
+ * belong: it is right for a *value* nobody typed, wrong for a *name* somebody
+ * fat-fingered. A union type makes the compiler catch it instead.
+ */
+export const KILL_SWITCHES = [
+	/** Suppress bulk cron mail to UNCLAIMED (staff-created) users. */
+	'UNCLAIMED_EMAIL_GUARD_ENABLED',
+	/** Flip accountState UNCLAIMED -> ACTIVE on first sign-in. */
+	'ACCOUNT_STATE_FLIP_ENABLED',
+	/** allowDangerousEmailAccountLinking on the Google provider. */
+	'GOOGLE_EMAIL_LINKING_ENABLED',
+] as const;
+
+export type KillSwitch = (typeof KILL_SWITCHES)[number];
+
+export function isEnabled(name: KillSwitch): boolean {
 	return process.env[name] !== 'false';
 }

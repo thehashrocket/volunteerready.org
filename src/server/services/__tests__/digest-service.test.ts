@@ -201,6 +201,25 @@ describe('sendDigestEmails', () => {
 		expect(notifCall.where.type).toBeUndefined();
 	});
 
+	it('SECURITY: opts into the unclaimed guard on the actual call', async () => {
+		// The source scan in unclaimed-guard-optin.test.ts proves which files
+		// mention the option; only this proves it is passed. Commenting the
+		// argument out left the entire suite green — proven by mutation.
+		mockFindManyCronJobRun.mockResolvedValueOnce(null);
+		mockFindManyPref.mockResolvedValueOnce([makePref()]);
+		mockFindManyNotifPref.mockResolvedValueOnce([]);
+		mockFindManyNotification.mockResolvedValueOnce([makeNotification()]);
+
+		await sendDigestEmails();
+
+		expect(mockSendEmail).toHaveBeenCalledWith(
+			expect.any(String),
+			expect.any(String),
+			expect.any(String),
+			{ suppressUnclaimed: true },
+		);
+	});
+
 	it('skips users with no notifications but updates lastDigestSentAt', async () => {
 		mockFindManyCronJobRun.mockResolvedValueOnce(null);
 		mockFindManyPref.mockResolvedValueOnce([makePref()]);

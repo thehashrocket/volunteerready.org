@@ -8,7 +8,17 @@
 -- Additive and forward-only. Removing an enum value later requires rewriting
 -- every row that uses it, so this is deliberately not paired with a down
 -- migration — the T4 rollback path is the UNCLAIMED_EMAIL_GUARD_ENABLED kill
--- switch, which stops new rows being written and leaves existing ones readable.
+-- switch, which stops new rows being written.
+--
+-- ROLLBACK IS FORWARD-ONLY, and the kill switch does not undo that. Prisma 7
+-- throws on an enum label its generated client does not know
+-- ("Value '...' not found in enum"), so once a single SUPPRESSED_UNCLAIMED row
+-- exists, rolling the CODE back past this migration breaks any read that
+-- deserializes EmailEvent.eventType. Today that is exactly one consumer:
+-- `admin.webhookHealth` (src/server/trpc/routers/admin.ts), which groups by
+-- eventType. Forward rolling deploys are safe — vercel-build.sh runs
+-- `migrate deploy` before the new code is live, and no old code writes the
+-- value. A Vercel instant-rollback to a pre-0.33 build is the case to avoid.
 --
 -- Written by hand, NOT by `prisma migrate dev`: migration
 -- 20260320100000_add_activity_feed_indexes uses CREATE INDEX CONCURRENTLY,

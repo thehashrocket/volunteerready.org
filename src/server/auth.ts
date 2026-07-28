@@ -13,9 +13,6 @@ import { prisma } from '@/server/repositories/prisma';
 import { wasUserCreatedWithin } from '@/server/repositories/userAccountStateRepo';
 import { claimAccountOnSignIn } from '@/server/services/accountClaimService';
 
-/** Kill switch for Google account linking. See `lib/env-flags.ts`. */
-const GOOGLE_EMAIL_LINKING_FLAG = 'GOOGLE_EMAIL_LINKING_ENABLED';
-
 /**
  * How recently a `User` row must have been created for a sign-up alert to be
  * genuine. See `wasUserCreatedWithin` for why this is an age check at all.
@@ -81,7 +78,9 @@ export const authOptions: NextAuthOptions = {
 			// threat Google's own verification already covers.
 			//
 			// Behaviour verified against next-auth 4.24.14.
-			allowDangerousEmailAccountLinking: isEnabled(GOOGLE_EMAIL_LINKING_FLAG),
+			allowDangerousEmailAccountLinking: isEnabled(
+				'GOOGLE_EMAIL_LINKING_ENABLED',
+			),
 			// AVAILABILITY: normalize the address on the READ path.
 			//
 			// `User.email` is canonicalized to lower(btrim(...)) by a database

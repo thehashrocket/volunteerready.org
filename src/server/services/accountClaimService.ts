@@ -2,9 +2,6 @@ import { isEnabled } from '@/server/lib/env-flags';
 import { writeAuditLog } from '@/server/repositories/auditRepo';
 import { claimUnclaimedUser } from '@/server/repositories/userAccountStateRepo';
 
-/** Kill switch for the claim flip. See `lib/env-flags.ts` for semantics. */
-const ACCOUNT_STATE_FLIP_FLAG = 'ACCOUNT_STATE_FLIP_ENABLED';
-
 /**
  * Claim a staff-created (UNCLAIMED) account the first time its owner signs in.
  *
@@ -25,7 +22,7 @@ const ACCOUNT_STATE_FLIP_FLAG = 'ACCOUNT_STATE_FLIP_ENABLED';
  * @returns true when this call performed the flip.
  */
 export async function claimAccountOnSignIn(userId: string): Promise<boolean> {
-	if (!isEnabled(ACCOUNT_STATE_FLIP_FLAG)) return false;
+	if (!isEnabled('ACCOUNT_STATE_FLIP_ENABLED')) return false;
 
 	const claimedAt = new Date();
 	const claimed = await claimUnclaimedUser(userId, claimedAt);
@@ -35,13 +32,25 @@ export async function claimAccountOnSignIn(userId: string): Promise<boolean> {
 	// recoverable from `User.claimedAt`; a flip rolled back because the audit
 	// write failed would leave a signed-in person permanently email-suppressed.
 	// The flip is the thing that must survive.
-	await writeAuditLog({
-		actorId: userId,
-		action: 'ACCOUNT_CLAIMED',
-		entityType: 'User',
-		entityId: userId,
-		metadata: { claimedAt: claimedAt.toISOString() },
-	});
+	//
+	// Caught here rather than left to the caller for the same reason: by this
+	// point the flip HAS committed, so letting it propagate would make auth.ts
+	// log "Failed to claim account on sign-in" about a claim that succeeded,
+	// and send an operator looking for a bug that isn't there.
+	try {
+		await writeAuditLog({
+			actorId: userId,
+			action: 'ACCOUNT_CLAIMED',
+			entityType: 'User',
+			entityId: userId,
+			metadata: { claimedAt: claimedAt.toISOString() },
+		});
+	} catch (err) {
+		console.error('[accountClaim] Flip committed but audit write failed:', {
+			userId,
+			err,
+		});
+	}
 
 	return true;
 }

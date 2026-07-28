@@ -29,6 +29,7 @@ vi.mock('@/server/lib/resend', () => ({
 
 import { sendEmail } from '@/server/lib/email';
 import { prisma } from '@/server/repositories/prisma';
+import { claimUnclaimedUser } from '@/server/repositories/userAccountStateRepo';
 
 const PREFIX = '__unclaimed_guard_integration__';
 
@@ -162,5 +163,35 @@ describe('unclaimed guard against a real database', () => {
 			WHERE t.typname = 'EmailEventType'
 		`;
 		expect(rows.map((r) => r.enumlabel)).toContain('SUPPRESSED_UNCLAIMED');
+	});
+});
+
+describe('claim lifecycle against a real database', () => {
+	it('the same send is suppressed before the claim and delivered after it', async () => {
+		// The whole point of the guard, end to end. Neither half proves it alone:
+		// suppression on its own could be a permanent block, and delivery on its
+		// own could be a guard that never fires. T5 and T4 have to compose.
+		const email = `${PREFIX}lifecycle@example.com`;
+		const user = await createUserWithState(email, 'UNCLAIMED');
+
+		const before = await sendEmail(email, 'Your weekly digest', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+		expect(before).toBe(false);
+		expect(mockSend).not.toHaveBeenCalled();
+
+		await claimUnclaimedUser(user.id, new Date());
+
+		const after = await sendEmail(email, 'Your weekly digest', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+		expect(after).toBe(true);
+		expect(mockSend).toHaveBeenCalledTimes(1);
+
+		// Exactly one suppression on record — the one from before the claim.
+		const suppressed = await prisma.emailEvent.findMany({
+			where: { to: email, eventType: 'SUPPRESSED_UNCLAIMED' },
+		});
+		expect(suppressed).toHaveLength(1);
 	});
 });

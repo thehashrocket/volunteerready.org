@@ -104,15 +104,26 @@ describe('claimAccountOnSignIn', () => {
 		await expect(claimAccountOnSignIn('user-1')).rejects.toThrow('db down');
 	});
 
-	it('propagates an audit failure — the flip is already committed either way', async () => {
+	it('swallows an audit failure and still reports the claim', async () => {
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
 		mockClaimUnclaimedUser.mockResolvedValueOnce(true);
 		mockWriteAuditLog.mockRejectedValueOnce(new Error('audit down'));
 
-		await expect(claimAccountOnSignIn('user-1')).rejects.toThrow('audit down');
+		// Must NOT propagate. By this point the flip has committed, so letting it
+		// throw would make auth.ts log "Failed to claim account on sign-in" about
+		// a claim that succeeded — sending an operator after a bug that isn't
+		// there. A lost audit row is recoverable from User.claimedAt; a reverted
+		// flip would leave a signed-in person permanently email-suppressed.
+		await expect(claimAccountOnSignIn('user-1')).resolves.toBe(true);
 
-		// The flip is NOT rolled back: a lost audit row is recoverable from
-		// User.claimedAt, but a reverted flip leaves a signed-in person
-		// permanently email-suppressed.
 		expect(mockClaimUnclaimedUser).toHaveBeenCalled();
+		expect(consoleError).toHaveBeenCalledWith(
+			'[accountClaim] Flip committed but audit write failed:',
+			expect.objectContaining({ userId: 'user-1' }),
+		);
+
+		consoleError.mockRestore();
 	});
 });
