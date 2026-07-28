@@ -27,6 +27,26 @@ export async function findAccountStateByEmail(
 }
 
 /**
+ * The canonical email address stored for a user id.
+ *
+ * SECURITY: exists so identity-binding code can source the address from the
+ * SAME id it is acting on. `createTRPCContext` builds the session as
+ * `{ ...realSession.user, id: effectiveUserId }` — under impersonation only
+ * `id` is swapped, so `ctx.session.user.email` remains the real admin's
+ * address. Any code that pairs `session.user.id` with `session.user.email` is
+ * therefore mixing two identities. Read the email from here instead.
+ */
+export async function findEmailByUserId(
+	userId: string,
+): Promise<string | null> {
+	const row = await prisma.user.findUnique({
+		where: { id: userId },
+		select: { email: true },
+	});
+	return row?.email ?? null;
+}
+
+/**
  * Flip an UNCLAIMED user to ACTIVE and stamp `claimedAt`.
  *
  * `updateMany` scoped on the CURRENT state, not `update` by id, for three

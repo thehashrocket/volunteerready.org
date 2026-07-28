@@ -160,10 +160,11 @@ describe('User.email canonicalization', () => {
 	// ---------------------------------------------------------------------
 
 	it('SECURITY: a mixed-case anonymous application still links to its user', async () => {
-		// linkApplicationsToUser matches { submittedByEmail, submittedByUserId:
-		// null } against the session address. Before the correlated backfill the
-		// User side was lowercased and this side was not, so the application
-		// became unclaimable forever and vanished from the volunteer dashboard.
+		// listClaimableApplicationsByEmail matches { submittedByEmail,
+		// submittedByUserId: null } against the session address. Before the
+		// correlated backfill the User side was lowercased and this side was not,
+		// so the application became unclaimable forever and vanished from the
+		// volunteer dashboard.
 		const address = `${PREFIX}applicant@example.test`;
 		const user = await prisma.user.create({ data: { email: address } });
 		const org = await prisma.organization.create({

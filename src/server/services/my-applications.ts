@@ -1,18 +1,18 @@
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from '@/prisma/generated/client';
+import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
+import { findEmailByUserId } from '@/server/repositories/userAccountStateRepo';
 import {
+	claimApplicationForUser,
 	getApplicationStatusTimeline,
 	getScreenerQuestionsByIds,
 	getUserApplicationDetail,
+	listClaimableApplicationsByEmail,
 	listUserApplications,
 } from '@/server/repositories/volunteer-applications';
 
-export async function listMyApplications(
-	userId: string,
-	email?: string | null,
-) {
-	await linkApplicationsToUser(userId, email);
+export async function listMyApplications(userId: string) {
 	const applications = await listUserApplications(userId);
 
 	return applications.map((application) => {
@@ -32,9 +32,7 @@ export async function listMyApplications(
 export async function getMyApplicationDetail(
 	userId: string,
 	applicationId: string,
-	email?: string | null,
 ) {
-	await linkApplicationsToUser(userId, email);
 	const application = await getUserApplicationDetail(userId, applicationId);
 
 	if (!application) {
@@ -93,18 +91,85 @@ export async function getMyApplicationStatusTimeline(
 	return getApplicationStatusTimeline(applicationId);
 }
 
-async function linkApplicationsToUser(userId: string, email?: string | null) {
+/**
+ * Applications submitted anonymously under the signed-in user's address that
+ * they have not yet claimed.
+ *
+ * This replaces the previous `linkApplicationsToUser()`, which ran an unscoped
+ * `updateMany({ submittedByUserId: null, submittedByEmail: email })` on every
+ * page load and silently bound *any* matching orphan. Because `screener.submit`
+ * is a publicProcedure taking an arbitrary `submittedByEmail`, that let an
+ * unauthenticated party plant an application carrying a victim's address
+ * against an org of their choosing and have it auto-attach on the victim's next
+ * sign-in — minting an `APPLICATION` relationship that
+ * `requireOrgVolunteerRelationship()` accepts as authorization for
+ * `profile.getOrgVisibleProfile` and `credentials.issue`.
+ *
+ * Takes only a user id. The address is resolved from that id rather than passed
+ * in from `ctx.session.user.email`, which under impersonation is the real
+ * admin's address while `id` is the target's — pairing the two would list the
+ * admin's own orphan applications inside the target's card.
+ */
+export async function listClaimableApplications(userId: string) {
+	const email = await findEmailByUserId(userId);
+
 	if (!email) {
-		return;
+		return [];
 	}
 
-	await prisma.volunteerApplication.updateMany({
-		where: {
-			submittedByUserId: null,
-			submittedByEmail: email,
-		},
-		data: { submittedByUserId: userId },
+	return listClaimableApplicationsByEmail(email);
+}
+
+/**
+ * Bind one orphan application to the signed-in user after they confirm it is
+ * theirs. The repository enforces the email match in its `where` clause, so an
+ * id belonging to someone else simply matches nothing.
+ *
+ * Resolves the address from `userId` for the same reason as the listing above:
+ * the id and the email must describe one person.
+ */
+export async function claimApplication(userId: string, applicationId: string) {
+	const email = await findEmailByUserId(userId);
+
+	if (!email) {
+		throw new TRPCError({
+			code: 'PRECONDITION_FAILED',
+			message: 'Your account has no email address on file.',
+		});
+	}
+
+	// The bind and its audit row commit together. Writing the audit after the
+	// transaction would let a claim succeed with no trail of who acquired the
+	// relationship edge — the exact blind spot this fix exists to close.
+	const claimed = await prisma.$transaction(async (tx) => {
+		const row = await claimApplicationForUser(applicationId, userId, email, tx);
+
+		if (!row) {
+			return null;
+		}
+
+		await writeAuditLogTx(tx, {
+			orgId: row.orgId,
+			actorId: userId,
+			action: 'APPLICATION_CLAIMED',
+			entityType: 'VolunteerApplication',
+			entityId: row.id,
+			metadata: { claimedByEmail: email },
+		});
+
+		return row;
 	});
+
+	if (!claimed) {
+		// Indistinguishable outcomes on purpose: "already claimed", "not yours",
+		// and "does not exist" all land here, so an id probe learns nothing.
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Application not found.',
+		});
+	}
+
+	return { id: claimed.id };
 }
 
 export function normalizeReasons(
