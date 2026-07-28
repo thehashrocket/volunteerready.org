@@ -354,7 +354,7 @@ The volunteer profile system lives in `src/server/domain/volunteer-profile.ts`.
 - `src/server/services/orgVolunteerAccessService.ts` — `requireOrgVolunteerRelationship()` / `getOrgVolunteerRelationship()`, the single place the "may this org act on this user" policy lives
 
 **tRPC routers:**
-- `src/server/trpc/routers/profile.ts` — `getMyProfile`, `updateMyProfile`, `getMyStats` (all `protectedProcedure`)
+- `src/server/trpc/routers/profile.ts` — `getMyUserId`, `getMyProfile`, `updateMyProfile`, `getMyStats`, `listMyOrgMemberships`, `leaveOrgRoster` (`protectedProcedure`); `getPublicProfile` (`publicProcedure`); `getOrgVisibleProfile` (`staffProcedure`, gated by `requireOrgVolunteerRelationship`). `leaveOrgRoster` deliberately needs no org↔volunteer guard — it is self-scoped by the caller's `userId` inside the repository `WHERE`, so a foreign roster-row id matches zero rows
 - `src/server/trpc/routers/credentials.ts` — `getMyCredentials` (`protectedProcedure`), `listOrgCredentials`, `issue`, `revoke`, `remove` (`staffProcedure`)
 
 ---
