@@ -99,8 +99,18 @@ export async function sendShiftReminders(): Promise<{
 					</a>
 				</p>
 				`,
+				// Opts into the unclaimed guard: a staff-created volunteer who has
+				// never signed in gets no automatic reminder. Disclosing that to
+				// the coordinator, so they know to text them instead, is T23 in
+				// docs/designs/staff-created-volunteers.md.
+				{ suppressUnclaimed: true },
 			);
 
+			// Stamped without checking the result — pre-existing behaviour, kept
+			// deliberately. A reminder is tied to one shift at one time, so a
+			// missed one is not worth re-sending later; the other three opted-in
+			// senders gate their bookkeeping on the result instead, because their
+			// mail stays relevant and should go out once the volunteer claims.
 			await prisma.shiftSignup.update({
 				where: { id: signup.id },
 				data: { reminderSentAt: now },

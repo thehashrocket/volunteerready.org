@@ -5,6 +5,70 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Deferred from the unclaimed-identity ship (Lane C, 2026-07-27, v0.33.0.0)
+
+### [P3] A never-claiming volunteer accumulates one `SUPPRESSED_UNCLAIMED` row per cron run
+
+Three of the four opted-in senders — `digest-service.ts`, `reengagement-service.ts`,
+`opportunityDigestService.ts` — gate their "mark as sent" bookkeeping on `sendEmail`'s
+boolean, and the unclaimed guard returns `false`. The record therefore stays eligible,
+which is **deliberate and correct**: the moment the volunteer claims their account, the
+digest or nudge they were owed goes out. The cost is that a volunteer who never claims is
+re-attempted on every run forever, writing a fresh `SUPPRESSED_UNCLAIMED` row each time.
+
+Two reviewers split on this: one read it as unbounded row growth to fix, the other as the
+right retry semantics. Both are right about their half. The retry behaviour should stay;
+what's missing is a bound on the observability rows.
+
+`shift-reminder-service.ts` is deliberately different — it stamps `reminderSentAt`
+unconditionally (pre-existing), because a reminder is tied to one shift at one time and is
+worthless later.
+
+Note this is not new: bounce-suppressed addresses have had the same unbounded retry since
+that guard shipped, minus the rows (bounce suppression writes no `EmailEvent`).
+
+**Fix when it matters:** collapse repeats — either skip the write when an identical
+`(to, subject, SUPPRESSED_UNCLAIMED)` row already exists within some window, or add a
+retention sweep to the existing cleanup cron (`EmailEvent` has `@@index([createdAt])`
+already, and nothing prunes that table today — pre-existing). Do **not** "fix" it by
+stamping the senders' bookkeeping on suppression; that trades a cheap row for a volunteer
+silently never receiving mail they became eligible for. The clean fix is a discriminated
+result from `sendEmail` (`sent | suppressed | failed`) so callers can tell "decided not to"
+from "try again". **Effort:** S.
+
+**Currently latent, which is why this is P3 and not P2.** `UserDigestPreference` rows are
+only created by a user-initiated upsert, and re-engagement iterates `OrganizationMember` —
+neither is reachable by a staff-created volunteer, whose edge is an `OrgVolunteer` row. The
+one live path is shift reminders, which stamps `reminderSentAt` unconditionally and so
+writes exactly one row per suppression. This becomes active the moment a roster volunteer
+gains a digest preference or an org membership.
+
+### [P3] `sendEmail` re-fetches a `User` the four cron senders already hold
+
+The unclaimed guard looks the recipient up by email inside `sendEmail`, but all four
+opted-in senders already load that user through an included relation. Roughly 15k extra
+single-row indexed lookups/day (~0.2 qps), and the `Promise.all` means the added wall-clock
+is near zero against the Resend HTTP call that dominates each iteration — so this is a
+tidiness item, not a hot spot. Deliberately centralized so a sender cannot forget to guard.
+
+**Fix when it matters:** add an optional `recipientAccountState` hint to `sendEmail` and
+have the four senders widen their existing `user: { select: ... }`. Keep the lookup as the
+fallback — a sender that omits the hint must still be guarded, not silently unguarded.
+Confirmed indexed: the query is a bare column equality against `User_email_key`, not the
+functional `lower(btrim(email))` index. **Effort:** S.
+
+### [P2] Sign-in-chain behaviour is asserted against source-reading, not execution
+
+T5/T6 rest on two claims about next-auth 4.24.14 internals: that `events.signIn` fires on
+the Google linking path where `events.updateUser` does not, and that
+`allowDangerousEmailAccountLinking` links rather than throwing. Both were verified by
+reading `node_modules`, and the tests assert our *config object* — so a next-auth upgrade
+that changes either would ship green. T15 (`e2e/staff-created-volunteers.spec.ts`) is the
+task that closes this; the repo has zero e2e coverage of the real callback chain today
+(`e2e/utils/db.ts` mints `Session` rows directly). **Effort:** M, owned by T15.
+
+---
+
 ## Deferred from the shift org-scoping ship (`/ship`, 2026-07-27, v0.32.2.0)
 
 Found by five specialists plus a Codex adversarial pass while reviewing the

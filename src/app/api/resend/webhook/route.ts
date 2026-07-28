@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { NextResponse } from 'next/server';
+import { normalizeEmail } from '@/server/domain/org-volunteer';
 import { prisma } from '@/server/repositories/prisma';
 
 /**
@@ -93,13 +94,26 @@ export async function POST(req: Request) {
 	try {
 		// Log event for each recipient
 		for (const to of recipients) {
+			// TWO KEYS, deliberately. Do not merge them back into one.
+			//
+			// `EmailEvent.to` uses the canonical form so webhook rows file under
+			// the same key as the SENT and SUPPRESSED_UNCLAIMED rows sendEmail
+			// writes — those event types are read together to answer "what
+			// happened to this person's mail?", and a split key makes that
+			// question need two lookups.
+			//
+			// `EmailBounceStatus.email` stays bare-lowercased: that is the key
+			// `sendEmail`'s bounce lookup uses, and the table is deliberately
+			// excluded from T1 canonicalization. Normalizing it here would desync
+			// the two halves of bounce suppression and silently stop suppressing.
+			const eventKey = normalizeEmail(to);
 			const email = to.toLowerCase();
 
 			// Idempotency: skip if this exact event was already processed
 			const existing =
 				resendId &&
 				(await prisma.emailEvent.findFirst({
-					where: { resendId, to: email, eventType },
+					where: { resendId, to: eventKey, eventType },
 					select: { id: true },
 				}));
 			if (existing) continue;
@@ -107,7 +121,7 @@ export async function POST(req: Request) {
 			await prisma.emailEvent.create({
 				data: {
 					resendId,
-					to: email,
+					to: eventKey,
 					subject,
 					eventType,
 					payload: payload.data as object,

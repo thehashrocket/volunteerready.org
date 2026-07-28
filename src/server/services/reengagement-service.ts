@@ -147,7 +147,11 @@ export async function sendReengagementEmails(): Promise<{
 					opportunities,
 				});
 
-				const sent = await sendEmail(email, subject, html);
+				// Unrequested bulk mail — opts into the unclaimed guard. Nudging
+				// someone to come back who has never been here would be absurd.
+				const sent = await sendEmail(email, subject, html, {
+					suppressUnclaimed: true,
+				});
 
 				if (sent) {
 					await markReengagementSent(member.id, config.segment);

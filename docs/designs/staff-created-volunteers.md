@@ -200,18 +200,30 @@ stops moving.
         │              EmailAccountLinking)             │
         └────────────────────────┼────────────────────────┘
                                  │
-                    NextAuth events.updateUser / signIn
+                        NextAuth events.signIn
                                  ▼
                           ┌──────────────┐
                           │    ACTIVE    │  claimedAt = now()
                           └──────────────┘
 ```
 
-The flip lives in `auth.ts` events, **not** in a claim page. `authOptions` currently has no
-`signIn` callback and no `signIn` event, so there is nothing to attach to until one is added.
-Without it, a shadow user who signs in by ordinary magic link stays `UNCLAIMED` forever and their
-cron mail is suppressed permanently. Fire-and-forget handlers need `.catch(console.error)`, never
-bare `void` (learning: `nextauth-events-createuser-void-rejection`).
+The flip lives in `auth.ts` events, **not** in a claim page. Without it, a shadow user who signs
+in by ordinary magic link stays `UNCLAIMED` forever and their cron mail is suppressed permanently.
+
+⚠️ **`events.signIn`, NOT `events.updateUser`** — this paragraph originally specified
+`updateUser`, and shipping that would have silently defeated the whole task. Verified against
+installed `next-auth@4.24.14`: on the Google account-linking path, `callback-handler` assigns
+`user = userByEmail` directly and never calls `adapter.updateUser`, so `events.updateUser` never
+fires. That is precisely the path the `allowDangerousEmailAccountLinking` change below opens, so
+a volunteer claiming via Google would have stayed `UNCLAIMED` and email-suppressed forever.
+`events.signIn` fires on every path — magic link and OAuth, new user and existing.
+
+The handler is **awaited inside a try/catch**, not fire-and-forget. The
+`.catch(console.error)`-on-a-detached-promise convention
+(learning: `nextauth-events-createuser-void-rejection`) is right for `sendNewUserAlert`, which is
+droppable; it is wrong here, because a dropped flip leaves a real person permanently unable to
+receive mail they asked for, and a detached promise can be killed when a serverless response
+returns. The try/catch is what keeps a claim failure from becoming a failed sign-in.
 
 **Google account linking.** `allowDangerousEmailAccountLinking: true` on the Google provider.
 Without it, NextAuth throws `AccountNotLinkedError` for any pre-created `User` row with no linked
@@ -480,7 +492,7 @@ Design deferrals (`/plan-design-review`):
 |---|---|---|---|---|
 | `sendEmail` guard | Guard suppresses a transactional sender | T9 | opt-in default | nothing — this is why the guard is opt-in |
 | Email guard lookup | Case-variant email misses the row, fails open | T9 | DB-level canonicalization | silent; closed by T1 |
-| `accountState` flip | No hook; user stays UNCLAIMED forever | T9 | `events.updateUser` | silent mail suppression |
+| `accountState` flip | No hook; user stays UNCLAIMED forever | T9 | `events.signIn` (**not** `updateUser` — see §2) | silent mail suppression |
 | Google sign-in | `AccountNotLinkedError` on a shadow user's email | T15 | `allowDangerousEmailAccountLinking` | hard error, no recovery |
 | Suppressed send | Cannot answer "did they get it?" | T9 | `EmailEvent.SUPPRESSED_UNCLAIMED` | queryable |
 | `addVolunteer` notify | Resend down; roster row rolls back with the email | T14 | fire-and-forget outside tx | roster row missing |
@@ -815,18 +827,34 @@ produces confidently wrong work.
   ⚠️ **Bug caught in implementation — T8, T24 and T32 will hit the same trap.** The first router draft passed `impersonatedBy: ctx.realUserId ?? null`. But `ctx.realUserId` is populated on **every** logged-in request (`trpc/init.ts:42`), not only impersonated ones, so that stamps every audit row as impersonated and makes `queryAuditLog`'s `impersonatedOnly` filter match everything — silently destroying the ability to answer "what did admins do while impersonating?". The house expression is `ctx.realUserId && ctx.realUserId !== effectiveUserId ? ctx.realUserId : null` (`routers/company.ts:58`), now pinned by 6 router tests mirroring `esg-report.test.ts:56`.
 
   📝 **Testing note for the remaining router work.** A router test using `orgProcedure`/`staffProcedure` must mock `prisma.organization.findUnique` to return `{ suspendedAt: null }` — `orgProcedure` (`init.ts:279`) runs a suspension lookup on every call. Mocking `prisma: {}` the way `esg-report.test.ts` does (it uses a company procedure) fails with `Cannot read properties of undefined`. Use `t.createCallerFactory(router)` with a full ctx object.
-- [ ] **T4 (P1, human: ~5h / CC: ~30min)** — email — Opt-in unclaimed guard + `EmailEvent.SUPPRESSED_UNCLAIMED` + env kill switch
+- [x] **T4 (P1, human: ~5h / CC: ~30min)** — email — Opt-in unclaimed guard + `EmailEvent.SUPPRESSED_UNCLAIMED` + env kill switch ✅ **DONE**
   - Surfaced by: Architecture A5, D3 inversion, observability §8
-  - Files: `src/server/lib/email.ts`, the 4 cron senders, `prisma/schema.prisma`
-  - Verify: assert the 4 senders suppress and every other sender does not
-- [ ] **T5 (P1, human: ~2h / CC: ~15min)** — auth — Flip `accountState` via `events.updateUser`/`signIn`, `.catch(console.error)`, env kill switch
+  - Files: `src/server/lib/email.ts`, the 4 cron senders, `prisma/schema.prisma`, `prisma/migrations/20260727190000_add_suppressed_unclaimed_email_event/`
+  - `SUPPRESSED_UNCLAIMED` is an added value on the **existing `EmailEventType` enum**, not a new `status` column — §3's pseudocode (`EmailEvent{status: …}`) is shorthand; `EmailEvent` has no `status` field
+  - The recipient lookup uses `normalizeEmail()` (`lower(btrim)`), **not** the `.toLowerCase()` the adjacent bounce lookup uses. The bounce lookup is correct as-is: `EmailBounceStatus.email` is deliberately excluded from T1 canonicalization (see the T1 migration header), and is separately tracked as a P3. Getting this wrong is the failure-mode table's "case-variant email misses the row, fails open" row — the guard would mail the exact person it exists to protect
+  - The `SUPPRESSED_UNCLAIMED` write is **awaited**, unlike the fire-and-forget `SENT` write. If the `SENT` log is lost the mail still went and Resend holds its own record; if this row is lost there is no record anywhere that someone did not get their reminder, which is the whole reason the event type exists. A failed log still suppresses — sending mail we decided to withhold because the audit write failed is the wrong recovery
+  - **No admin dashboard change needed** — `admin.ts:93` groups by `eventType`, so the new value flows through on its own
+  - Verify: ✅ 18 unit tests in `lib/__tests__/email.test.ts` (opt-in default sends, ACTIVE sends, missing row fails open, `isCritical` bypasses both guards, canonical lookup key, event written, kill switch + 5 mistyped values, the two lookups proven concurrent, log-failure still suppresses, bounce+unclaimed does not double-log) + 4 source-scan tests in `unclaimed-guard-optin.test.ts` + 7 **integration** tests in `lib/emailUnclaimedGuard.integration.test.ts`
+  - **The verify step "assert the 4 senders suppress and every other sender does not" is only half expressible as unit tests.** The second half is a property of the tree, so `unclaimed-guard-optin.test.ts` scans `src/` and asserts the opted-in set is exactly those four — plus explicit assertions that the magic-link sender and the roster-added sender never opt in. Without it, someone adding `suppressUnclaimed: true` to a transactional sender silently stops applicants hearing back about their own applications
+- [x] **T5 (P1, human: ~2h / CC: ~15min)** — auth — Flip `accountState` on sign-in + env kill switch ✅ **DONE**
   - Surfaced by: Architecture A4 — no hook exists, so shadow users stay suppressed forever
-  - Files: `src/server/auth.ts`
-  - Verify: e2e magic-link sign-in flips the badge
-- [ ] **T6 (P1, human: ~1h / CC: ~10min)** — auth — `allowDangerousEmailAccountLinking` + `SECURITY:` comment + env kill switch
+  - Files: `src/server/auth.ts`, `src/server/services/accountClaimService.ts`, `src/server/repositories/userAccountStateRepo.ts`
+  - ⚠️ **THE PLAN'S HOOK WAS WRONG — corrected to `events.signIn`.** §2's state machine and the failure-mode table both said `events.updateUser`. Verified against installed `next-auth@4.24.14`: on the Google account-linking path `callback-handler` assigns `user = userByEmail` directly and **never calls `adapter.updateUser`**, so `events.updateUser` never fires there. That is the exact path T6 exists to open, so wiring T5 to `updateUser` would have left every Google-claiming volunteer UNCLAIMED and email-suppressed forever — with the badge showing "unclaimed" for someone who had signed in. `events.signIn` fires on every path. §2 and the failure-mode table are corrected above; a test pins `events.updateUser` as *undefined* so this cannot be silently "fixed" back
+  - **Awaited, not fire-and-forget** — deviates from the plan's `.catch(console.error)`. That convention came from `sendNewUserAlert`, a droppable notification; a dropped flip leaves a real person permanently unable to receive mail they asked for, and a detached promise can be killed when a serverless response returns. `auth.ts` wraps the call in try/catch instead, so a failure logs and can never turn into a failed sign-in
+  - `updateMany` scoped on the current state, not `update` by id: idempotent by construction (a second sign-in must not re-stamp `claimedAt`), a compare-and-set under concurrency, and it needs no prior read of an untyped `accountState` surviving the adapter cast
+  - Writes an `ACCOUNT_CLAIMED` audit row, deliberately **not** in a transaction with the flip — a lost audit row is recoverable from `claimedAt`, a flip rolled back by a failed audit write is not
+  - Verify: ✅ 8 service tests + 5 auth-event tests + 6 **integration** tests in `repositories/userAccountState.integration.test.ts` (idempotence, concurrent single-winner, no-op on ACTIVE, missing id returns false rather than throwing P2025, no sibling touched). e2e badge flip still belongs to T15
+- [x] **T6 (P1, human: ~1h / CC: ~10min)** — auth — `allowDangerousEmailAccountLinking` + `SECURITY:` comment + env kill switch ✅ **DONE**
   - Surfaced by: Architecture A3 — `AccountNotLinkedError` locks out anyone whose email an org typed
   - Files: `src/server/auth.ts`
-  - Verify: e2e Google sign-in against a shadow user
+  - **The `email_verified` claim is now enforced.** A `callbacks.signIn` refuses any Google sign-in whose profile does not assert `email_verified: true`. Without it the `SECURITY:` rationale below was an assertion rather than a control: next-auth never inspects the claim and the `profile()` mapper discards it, so linking happened on a string match alone. Found independently by the security specialist, Codex, and the coverage audit. This is NOT the UNCLAIMED-scoping design rejected below — that one re-derived the linking decision; this only asserts its precondition. Magic link and any non-Google provider return `true` untouched, pinned by a test, because the magic link is the only exit from `UNCLAIMED`
+  - **Blast radius is platform-wide, not roster-only, and that was an explicit decision.** It is a provider-level boolean read in exactly one place in next-auth, so it cannot be scoped to `UNCLAIMED` rows. It therefore also links anyone who signed up by magic link and later clicks "Sign in with Google" — today they get `OAuthAccountNotLinked`. Scoping it was considered: `callbacks.signIn` runs *before* `callbackHandler`, so a hand-rolled lookup there could reject an ACTIVE user with no linked `Account`. Rejected — ~30 lines of hand-rolled auth-critical logic to defend against a threat Google's email verification already covers, at the cost of keeping a papercut that is otherwise fixed for free
+  - Verify: ✅ 3 tests asserting the flag is set on the **configured** provider (read through `provider.options`, since next-auth merges caller options at runtime — reading the top-level field tests next-auth's default instead), that the kill switch turns it off, and that 5 mistyped kill-switch values leave it on. Real OAuth-against-a-shadow-user belongs to T15
+- [x] **T9 (P1, human: ~3h / CC: ~20min)** — tests — Email guard suite ✅ **DONE** (landed with T4/T5/T6 rather than separately — it is their verify step)
+  - Surfaced by: Test review — critical gap; `auth.ts:54-56` throws on a false return
+  - Files: `lib/__tests__/email.test.ts`, `lib/__tests__/unclaimed-guard-optin.test.ts`, `lib/__tests__/env-flags.test.ts`, `services/__tests__/accountClaimService.test.ts`, `auth-account-linking.test.ts`, plus two integration specs
+  - **Two suites are integration, deliberately.** The guard's lookup key must agree with a database trigger Prisma cannot see, and the flip's idempotence lives in a WHERE clause — a mocked client returns whatever the test tells it to and would stay green through exactly the bugs that matter. `pnpm test:integration` against the docker Postgres covers both
+  - Verify: ✅ 1788 unit + 118 integration + 9 script tests pass; typecheck clean; Biome clean over `src docs prisma/schema.prisma`. Note `pnpm lint` (`biome check .`, whole repo) still reports 4 findings — all verified pre-existing on `origin/main`, none on lines this branch touched
 - [~] **T7 (P1, human: ~8h / CC: ~50min)** — trpc — `requireOrgVolunteerRelationship()` (three-way) on 6 callsites + org-scope shift reads
   - **Partially shipped v0.32.1.0** — guard built and wired to profile read, credential issue, credential revoke, and background-check initiate; `credentials.remove` exempt (compound-key delete). Predicate shipped wider than "three-way" — see the Shipped-as note in section 5. **Still open:** org-scoping the shift reads in `shiftRepo.ts` / `shiftSignupRepo.ts` and the `routers/shifts.ts` callsites.
   - Surfaced by: Q4, X3, Correction 1, Codex #6 — naked ids on profile, credentials issue/revoke/remove, bg-check, shifts
@@ -836,10 +864,6 @@ produces confidently wrong work.
   - Surfaced by: Code Quality Q1 — avoid a second implementation of capacity rules
   - Files: `src/server/services/shiftSignupService.ts`, `repositories/shiftSignupRepo.ts`, `routers/shifts.ts`
   - Verify: `pnpm test src/server/services/__tests__/shiftSignupService.test.ts`
-- [ ] **T9 (P1, human: ~3h / CC: ~20min)** — tests — Email guard suite: 4 suppressing senders, every other sender sends, magic link works
-  - Surfaced by: Test review — critical gap; `auth.ts:54-56` throws on a false return
-  - Files: `src/server/lib/__tests__/email.test.ts`
-  - Verify: `pnpm test src/server/lib/__tests__/email.test.ts`
 - [ ] **T10 (P1, human: ~4h / CC: ~25min)** — services — E1a: roster row on approval and in the sign-in link path
   - Surfaced by: Expansion E1, split per D4; Codex #1 — the link path was the retroactive gap
   - Files: `src/server/services/screener-queries.ts`, `src/server/services/my-applications.ts`, `repositories/orgVolunteerRepo.ts`
@@ -990,7 +1014,7 @@ capture; fidelity came from the written brief.
 |---|---|---|
 | **A** ✅ | ~~T1 → T2~~ **DONE** (both write `prisma/migrations/`, sequential within the lane) | — |
 | **B** | T3, T10, T11, T12, T25, T26, T27, T28, T29, T30, T31, T33 | Lane A + T22 |
-| **C** | T4, T5, T6, T9 | Lane A |
+| **C** ✅ | ~~T4, T5, T6, T9~~ **DONE** — the gate on enabling the flag for a pilot org | Lane A |
 | **D** | T7 | Lane A |
 | **E** | T8, T23, T24 | Lane A + D + T22 |
 | **F** ✅ | ~~T18, T34~~ **DONE** | — (fully independent, land first) |

@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.0.0] - 2026-07-27
+
+### Fixed
+- Anyone whose email address an organization had typed into the system was locked out of "Sign in with Google", permanently and with no way to recover. Signing in produced an error saying an account already existed — which was true, because the organization's action had created one — but nothing could be done about it, and the person had never taken any action themselves. The same lockout also hit anyone who originally signed up with a sign-in link and later tried Google. Google confirms an address belongs to you before telling us about it, so both now sign in to the account that is already there.
+- "Sign in with Google" now refuses to proceed when Google does not confirm the address belongs to the person signing in. Google normally does confirm it, but not always — on organisation accounts whose domain ownership was never verified it says so explicitly, and we were not reading that. Since a Google sign-in can now join an account that already exists, accepting an unconfirmed address would have meant joining someone else's. Signing in with a link is unaffected.
+- Volunteers added by staff stayed marked as never-signed-in even after they signed in. Nothing anywhere changed that mark, so it would have stayed wrong forever — and every automatic email described below would have kept being withheld from someone who had clearly turned up. Signing in, by link or by Google, now marks the account as claimed, once, recording when it first happened.
+
+### Changed
+- Automatic bulk emails are no longer sent to people who have never signed in. When staff add a volunteer by typing their email address, that person has not asked to hear from us, so weekly digests, opportunity round-ups, "we miss you" nudges, and shift reminders are held back until they sign in for the first time. Everything a person asked for, or needs to receive, is unaffected: sign-in links, application updates, invitations, credential requests, and the notice telling them an organization added them all still go out.
+- Each withheld email is now recorded, so it is possible to answer later whether a particular volunteer was sent a particular reminder. Previously only successful sends were recorded, which would have left a withheld reminder indistinguishable from one that was never due.
+- Shift reminders withheld this way are silent to staff for now. A coordinator should assume a volunteer who has never signed in has not been reminded, and contact them another way. Showing this in the shift screens is separate work that has not landed yet.
+- Three settings were added so each of these behaviours can be switched back off without a code change, in case any of them causes an unforeseen problem. Switching off the sign-in mark also switches off the email hold, because otherwise the people being held would have no way to stop being held.
+- Added `pnpm check:stranded-unclaimed`, a read-only check to run before deploying. It finds anyone marked never-signed-in who has in fact already signed in — they would otherwise start silently losing bulk email — and prints the correction to apply.
+
 ## [0.32.4.0] - 2026-07-27
 
 ### Fixed

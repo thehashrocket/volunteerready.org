@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockSend = vi.fn();
 const mockFindUnique = vi.fn();
 const mockCreate = vi.fn();
+const mockUserFindUnique = vi.fn();
 
 vi.mock('@/server/lib/resend', () => ({
 	getResend: () => ({ emails: { send: mockSend } }),
@@ -22,8 +23,16 @@ vi.mock('@/server/repositories/prisma', () => ({
 		emailBounceStatus: {
 			findUnique: (...args: unknown[]) => mockFindUnique(...args),
 		},
+		user: {
+			findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
+		},
 		emailEvent: {
-			create: (...args: unknown[]) => mockCreate(...args).catch(() => {}),
+			// NOT `.catch(() => {})`. That wrapper used to swallow every rejection
+			// before it reached the code under test, which made the "still
+			// suppresses when the audit write fails" case below assert nothing —
+			// it passed identically with `recordUnclaimedSuppression`'s try/catch
+			// deleted. Both production call sites handle rejection themselves.
+			create: (...args: unknown[]) => mockCreate(...args),
 		},
 	},
 }));
@@ -40,8 +49,11 @@ describe('sendEmail', () => {
 		mockSend.mockReset();
 		mockFindUnique.mockReset();
 		mockCreate.mockReset();
+		mockUserFindUnique.mockReset();
 		mockFindUnique.mockResolvedValue(null); // No bounce status by default
+		mockUserFindUnique.mockResolvedValue({ accountState: 'ACTIVE' });
 		mockCreate.mockResolvedValue({}); // Event logging succeeds
+		delete process.env.UNCLAIMED_EMAIL_GUARD_ENABLED;
 	});
 
 	it('sends email via Resend and returns true on success', async () => {
@@ -155,5 +167,326 @@ describe('sendEmail', () => {
 
 		expect(result).toBe(true);
 		expect(mockSend).toHaveBeenCalled();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// T4 — unclaimed suppression guard
+// ---------------------------------------------------------------------------
+
+describe('sendEmail — unclaimed guard', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks();
+		mockSend.mockReset();
+		mockFindUnique.mockReset();
+		mockCreate.mockReset();
+		mockUserFindUnique.mockReset();
+		mockFindUnique.mockResolvedValue(null);
+		mockCreate.mockResolvedValue({});
+		mockSend.mockResolvedValue({ data: { id: 'msg-guard' } });
+		delete process.env.UNCLAIMED_EMAIL_GUARD_ENABLED;
+	});
+
+	it('SECURITY: suppresses an UNCLAIMED recipient when the sender opts in', async () => {
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		mockUserFindUnique.mockResolvedValueOnce({ accountState: 'UNCLAIMED' });
+
+		const result = await sendEmail(
+			'shadow@example.com',
+			'Your shift is tomorrow',
+			'<p>Body</p>',
+			{ suppressUnclaimed: true },
+		);
+
+		expect(result).toBe(false);
+		expect(mockSend).not.toHaveBeenCalled();
+
+		consoleWarn.mockRestore();
+	});
+
+	it('SECURITY: is opt-in — an UNCLAIMED recipient still receives mail from a sender that does not opt in', async () => {
+		mockUserFindUnique.mockResolvedValue({ accountState: 'UNCLAIMED' });
+
+		const result = await sendEmail(
+			'shadow@example.com',
+			'You were added to a roster',
+			'<p>Body</p>',
+		);
+
+		expect(result).toBe(true);
+		expect(mockSend).toHaveBeenCalled();
+		// The lookup must not even run — the guard costs nothing for the
+		// transactional senders that never opt in.
+		expect(mockUserFindUnique).not.toHaveBeenCalled();
+	});
+
+	it('sends to an ACTIVE recipient even when the sender opts in', async () => {
+		mockUserFindUnique.mockResolvedValueOnce({ accountState: 'ACTIVE' });
+
+		const result = await sendEmail('real@example.com', 'Digest', '<p>Hi</p>', {
+			suppressUnclaimed: true,
+		});
+
+		expect(result).toBe(true);
+		expect(mockSend).toHaveBeenCalled();
+	});
+
+	it('fails open when the address has no User row', async () => {
+		mockUserFindUnique.mockResolvedValueOnce(null);
+
+		const result = await sendEmail(
+			'nobody@example.com',
+			'Digest',
+			'<p>Hi</p>',
+			{ suppressUnclaimed: true },
+		);
+
+		expect(result).toBe(true);
+		expect(mockSend).toHaveBeenCalled();
+	});
+
+	it('SECURITY: looks the recipient up by the canonical form, trimmed as well as lowercased', async () => {
+		// The T1 trigger stores lower(btrim(email)). A bare .toLowerCase() here
+		// would miss the row for a padded address and the guard would fail OPEN.
+		mockUserFindUnique.mockResolvedValueOnce({ accountState: 'UNCLAIMED' });
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+		await sendEmail('  Shadow@Example.COM  ', 'Digest', '<p>Hi</p>', {
+			suppressUnclaimed: true,
+		});
+
+		expect(mockUserFindUnique).toHaveBeenCalledWith(
+			expect.objectContaining({
+				where: { email: 'shadow@example.com' },
+			}),
+		);
+
+		consoleWarn.mockRestore();
+	});
+
+	it('writes a SUPPRESSED_UNCLAIMED EmailEvent so the non-delivery is answerable later', async () => {
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		mockUserFindUnique.mockResolvedValueOnce({ accountState: 'UNCLAIMED' });
+
+		await sendEmail(
+			'Shadow@Example.com',
+			'Your shift is tomorrow',
+			'<p>x</p>',
+			{
+				suppressUnclaimed: true,
+			},
+		);
+
+		expect(mockCreate).toHaveBeenCalledWith({
+			data: {
+				resendId: null,
+				to: 'shadow@example.com',
+				subject: 'Your shift is tomorrow',
+				eventType: 'SUPPRESSED_UNCLAIMED',
+			},
+		});
+
+		consoleWarn.mockRestore();
+	});
+
+	it('isCritical bypasses the unclaimed guard as well as the bounce guard', async () => {
+		mockUserFindUnique.mockResolvedValue({ accountState: 'UNCLAIMED' });
+
+		const result = await sendEmail(
+			'shadow@example.com',
+			'FCRA Notice',
+			'<p>Important</p>',
+			{ isCritical: true, suppressUnclaimed: true },
+		);
+
+		expect(result).toBe(true);
+		expect(mockSend).toHaveBeenCalled();
+		expect(mockUserFindUnique).not.toHaveBeenCalled();
+		expect(mockFindUnique).not.toHaveBeenCalled();
+	});
+
+	it('UNCLAIMED_EMAIL_GUARD_ENABLED=false disables the guard entirely', async () => {
+		process.env.UNCLAIMED_EMAIL_GUARD_ENABLED = 'false';
+		mockUserFindUnique.mockResolvedValue({ accountState: 'UNCLAIMED' });
+
+		const result = await sendEmail('shadow@example.com', 'D', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+
+		expect(result).toBe(true);
+		expect(mockSend).toHaveBeenCalled();
+		expect(mockUserFindUnique).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: ACCOUNT_STATE_FLIP_ENABLED=false also disables the guard', async () => {
+		// UNCLAIMED has exactly one exit — the sign-in flip. Suppressing while
+		// that exit is switched off strands people permanently, and switching the
+		// flip back on later does not retroactively claim anyone who signed in
+		// during the window. The two switches must not be independently settable
+		// into that combination.
+		process.env.ACCOUNT_STATE_FLIP_ENABLED = 'false';
+		mockUserFindUnique.mockResolvedValue({ accountState: 'UNCLAIMED' });
+
+		const result = await sendEmail('shadow@example.com', 'D', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+
+		expect(result).toBe(true);
+		expect(mockSend).toHaveBeenCalled();
+		expect(mockUserFindUnique).not.toHaveBeenCalled();
+
+		delete process.env.ACCOUNT_STATE_FLIP_ENABLED;
+	});
+
+	it('any value other than the exact string "false" leaves the guard on', async () => {
+		// A typo'd kill switch must fail toward the privacy control, not away.
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		for (const value of ['0', 'no', 'off', '', 'FALSE']) {
+			process.env.UNCLAIMED_EMAIL_GUARD_ENABLED = value;
+			mockSend.mockClear();
+			mockUserFindUnique.mockResolvedValueOnce({ accountState: 'UNCLAIMED' });
+
+			const result = await sendEmail('shadow@example.com', 'D', '<p>x</p>', {
+				suppressUnclaimed: true,
+			});
+
+			expect(result, `value=${JSON.stringify(value)}`).toBe(false);
+			expect(mockSend).not.toHaveBeenCalled();
+		}
+		consoleWarn.mockRestore();
+	});
+
+	it('runs the bounce and unclaimed lookups concurrently, not in series', async () => {
+		// Sequential lookups would double the per-recipient latency of every
+		// cron send.
+		//
+		// Track RESOLUTION, not start. An earlier version of this test flipped a
+		// flag at the *start* of the bounce lookup and asserted the user lookup
+		// saw it — but a sequential implementation sets that flag too, just
+		// earlier, so the test passed with `Promise.all` replaced by two awaits.
+		// The only thing that distinguishes the two is whether the second lookup
+		// begins while the first is still pending.
+		let bounceResolved = false;
+		let startedWhileBouncePending = false;
+
+		mockFindUnique.mockImplementationOnce(async () => {
+			await new Promise((r) => setTimeout(r, 5));
+			bounceResolved = true;
+			return null;
+		});
+		mockUserFindUnique.mockImplementationOnce(async () => {
+			startedWhileBouncePending = !bounceResolved;
+			return { accountState: 'ACTIVE' };
+		});
+
+		await sendEmail('user@example.com', 'D', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+
+		expect(startedWhileBouncePending).toBe(true);
+	});
+
+	it('still suppresses, as a decision not a crash, when the SUPPRESSED_UNCLAIMED write fails', async () => {
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+		mockUserFindUnique.mockResolvedValueOnce({ accountState: 'UNCLAIMED' });
+		mockCreate.mockRejectedValueOnce(new Error('db down'));
+
+		const result = await sendEmail('shadow@example.com', 'D', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+
+		// Sending mail we decided to withhold because the audit write failed
+		// would be the wrong recovery.
+		expect(result).toBe(false);
+		expect(mockSend).not.toHaveBeenCalled();
+
+		// Asserting on WHICH log fired is what makes this test mean anything.
+		// `false` alone proves nothing: if the rejection escaped
+		// `recordUnclaimedSuppression`, sendEmail's outer catch would swallow it
+		// and return `false` too. Only the log distinguishes "suppressed, and the
+		// bookkeeping happened to fail" from "the whole send blew up" — and the
+		// difference matters, because the second would mean an unrelated future
+		// throw in the suppression path silently reads as a normal suppression.
+		expect(consoleError).toHaveBeenCalledWith(
+			'[sendEmail] Failed to log SUPPRESSED_UNCLAIMED event:',
+			expect.any(Error),
+		);
+		expect(consoleError).not.toHaveBeenCalledWith(
+			'[sendEmail] Failed to send email:',
+			expect.anything(),
+		);
+
+		consoleWarn.mockRestore();
+		consoleError.mockRestore();
+	});
+
+	it('SECURITY: fails OPEN when the recipient lookup itself errors', async () => {
+		// The lookup lives inside a Promise.all. An unhandled rejection there
+		// would take the whole send down — returning false and logging "Failed to
+		// send email" — so one database blip would silently drop digests for
+		// ACTIVE recipients too, and blame Resend for it. An inconclusive lookup
+		// is not evidence that someone is UNCLAIMED.
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+		mockUserFindUnique.mockRejectedValueOnce(new Error('db down'));
+
+		const result = await sendEmail('user@example.com', 'Digest', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+
+		expect(result).toBe(true);
+		expect(mockSend).toHaveBeenCalled();
+		expect(consoleError).toHaveBeenCalledWith(
+			'[sendEmail] Unclaimed lookup failed, sending anyway:',
+			expect.any(Error),
+		);
+		expect(consoleError).not.toHaveBeenCalledWith(
+			'[sendEmail] Failed to send email:',
+			expect.anything(),
+		);
+
+		consoleError.mockRestore();
+	});
+
+	it('logs SENT under the same key as SUPPRESSED_UNCLAIMED', async () => {
+		// Both event types answer one question together — "did this person get
+		// their shift reminder?" — so a padded address must not file the two
+		// halves of the answer under different rows.
+		mockUserFindUnique.mockResolvedValueOnce({ accountState: 'ACTIVE' });
+
+		await sendEmail('  User@Example.COM  ', 'Digest', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+		await new Promise((r) => setTimeout(r, 0));
+
+		expect(mockCreate).toHaveBeenCalledWith({
+			data: expect.objectContaining({
+				to: 'user@example.com',
+				eventType: 'SENT',
+			}),
+		});
+	});
+
+	it('a bounce-suppressed UNCLAIMED address returns on the bounce branch and does not double-log', async () => {
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		mockFindUnique.mockResolvedValueOnce({
+			suppressedAt: new Date(),
+			bounceCount: 3,
+		});
+		mockUserFindUnique.mockResolvedValueOnce({ accountState: 'UNCLAIMED' });
+
+		const result = await sendEmail('shadow@example.com', 'D', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+
+		expect(result).toBe(false);
+		expect(mockSend).not.toHaveBeenCalled();
+		expect(mockCreate).not.toHaveBeenCalled();
+
+		consoleWarn.mockRestore();
 	});
 });

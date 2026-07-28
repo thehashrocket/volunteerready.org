@@ -1,0 +1,39 @@
+-- T4 (staff-created volunteers): record suppressed sends to UNCLAIMED users.
+--
+-- `sendEmail()` already returns false for a bounce-suppressed address, but it
+-- writes no row when it does. Adding a second silent-drop reason without an
+-- accompanying event would make "did this volunteer get their shift reminder?"
+-- permanently unanswerable, since EmailEvent rows are written on SENT only.
+--
+-- Additive and forward-only. Removing an enum value later requires rewriting
+-- every row that uses it, so this is deliberately not paired with a down
+-- migration — the T4 rollback path is the UNCLAIMED_EMAIL_GUARD_ENABLED kill
+-- switch, which stops new rows being written.
+--
+-- ROLLBACK IS FORWARD-ONLY, and the kill switch does not undo that. Prisma 7
+-- throws on an enum label its generated client does not know
+-- ("Value '...' not found in enum"), so once a single SUPPRESSED_UNCLAIMED row
+-- exists, rolling the CODE back past this migration breaks any read that
+-- deserializes EmailEvent.eventType. Today that is exactly one consumer:
+-- `admin.webhookHealth` (src/server/trpc/routers/admin.ts), which groups by
+-- eventType. Forward rolling deploys are safe — vercel-build.sh runs
+-- `migrate deploy` before the new code is live, and no old code writes the
+-- value. A Vercel instant-rollback to a pre-0.33 build is the case to avoid.
+--
+-- Written by hand, NOT by `prisma migrate dev`: migration
+-- 20260320100000_add_activity_feed_indexes uses CREATE INDEX CONCURRENTLY,
+-- which Postgres refuses inside the transaction Prisma wraps the shadow
+-- database in, so `migrate dev` fails with P3006 in this repo regardless of
+-- what changed. See the T2 note in docs/designs/staff-created-volunteers.md.
+--
+-- ALTER TYPE ... ADD VALUE is transaction-safe from PostgreSQL 12 onward,
+-- provided the new value is not USED in the same transaction. Nothing below
+-- uses it. PG12 is the floor that matters; local dev runs 16 per
+-- docker-compose.yml, which says nothing about production.
+--
+-- Migration 20260421151557_add_withdrawn_status asserts the opposite ("ALTER
+-- TYPE ADD VALUE ... cannot run inside a transaction"). That note is stale —
+-- it describes pre-12 behaviour — and this comment supersedes it. It is left
+-- alone rather than corrected, because an already-applied migration should
+-- not be rewritten.
+ALTER TYPE "EmailEventType" ADD VALUE 'SUPPRESSED_UNCLAIMED';
