@@ -161,14 +161,26 @@ export async function listClaimableApplicationsByEmail(email: string) {
 			submittedByUserId: null,
 			submittedByEmail: normalizeEmail(email),
 		},
-		// OLDEST first, deliberately. The bound below is required because a third
-		// party controls how many orphan rows carry a given address
-		// (`screener.submit` is public), but `desc` + a cap is a starvation hole:
-		// the genuine application is the OLD one (you applied anonymously, then
-		// signed up later), so newest-first lets an attacker plant 50 fresh rows
-		// and push the real one off the list permanently. There is no other bind
-		// path since `linkApplicationsToUser()` was deleted, so a buried row
-		// would be unclaimable forever.
+		// OLDEST first. This NARROWS a starvation window; it does not close it.
+		//
+		// The cap is required — `screener.submit` is public, so a third party
+		// controls how many orphan rows carry a given address. But a cap over an
+		// attacker-controllable list is starvable from whichever end gets dropped,
+		// and ordering only chooses the end:
+		//   `desc` loses the OLDEST row, which is the common real case (you
+		//         applied anonymously, then signed up later) — an attacker plants
+		//         50 fresh rows and buries an application already sitting there.
+		//   `asc`  loses the NEWEST row, so an attacker must PRE-plant 50 rows
+		//         against an address before its owner applies.
+		// `asc` is the better trade because it costs the attacker foreknowledge
+		// and prior action, while `desc` is exploitable against applications that
+		// already exist. Both leave a residual window, and there is no other bind
+		// path since `linkApplicationsToUser()` was deleted, so a dropped row is
+		// unclaimable.
+		//
+		// Ordering cannot fix this. The real fixes are the deferred decline path
+		// (declining frees a slot) and/or bounding per (email, orgId) so one org
+		// cannot consume every slot. Tracked in docs/TODOS.md.
 		orderBy: { submittedAt: 'asc' },
 		take: CLAIMABLE_LIST_CAP,
 		select: {

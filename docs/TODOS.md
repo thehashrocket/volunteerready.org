@@ -99,13 +99,29 @@ as authorization. Notable that `company.ts` already knows about impersonation
 here. **Fix:** resolve the address with `findEmailByUserId(userId)`, exactly as
 the claim path now does. **Effort:** S each.
 
-### [P3] The claimable list truncates silently
-`listClaimableApplicationsByEmail` caps at `CLAIMABLE_LIST_CAP` (50). Ordering
-is now oldest-first so a flood cannot bury a genuine older row (regression test
-in `applicationClaim.integration.test.ts`), but a user with more than 50
-candidates still sees a partial list presented as complete. **Fix:** return a
-`total` or `hasMore` flag and render "showing 50 of N". Pairs naturally with the
-deferred decline path, since declining would free slots. **Effort:** S.
+### [P2] The claimable list is still starvable — ordering only narrowed it
+**Corrected 2026-07-28.** An earlier version of this entry said oldest-first
+ordering meant "a flood cannot bury a genuine row." That overstated it, and the
+overstatement is the dangerous part: it reads as closed.
+
+A cap over an attacker-controllable list is starvable from whichever end gets
+dropped; ordering only picks the end. `desc` dropped the oldest row, so an
+attacker could bury an application that already existed. `asc` drops the newest,
+so the attacker must **pre-plant** `CLAIMABLE_LIST_CAP` rows against an address
+*before* its owner applies — costlier (needs foreknowledge, ~17 min at
+`screener.submit`'s 3/min/IP limit) but not prevented. The
+`(submittedByUserId, opportunityId)` partial unique index does not dedupe these,
+because NULLs never conflict. A dropped row is unclaimable: deleting
+`linkApplicationsToUser()` removed the only other bind path.
+
+The integration test pins only the post-planting direction ("a flood of newer
+rows cannot bury an older genuine one"); the pre-plant case is uncovered.
+
+**Fix (ordering cannot do it):** ship the deferred decline path so declining
+frees a slot, and/or bound per `(email, orgId)` so one org cannot consume every
+slot. Also surface truncation — past the cap a user sees a partial list
+presented as complete; return `total`/`hasMore` and render "showing 50 of N".
+**Effort:** M.
 
 ### [P3] Index `submittedByEmail` before ~250k rows
 Now that the query is plain equality it is finally indexable. Measured on a

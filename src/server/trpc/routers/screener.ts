@@ -7,7 +7,7 @@ import {
 	type Prisma,
 	ScreenerQuestionType,
 } from '@/prisma/generated/client';
-import { normalizeEmail } from '@/server/domain/org-volunteer';
+import { volunteerEmailSchema } from '@/server/domain/org-volunteer';
 import { screenerQuestionConfigSchema } from '@/server/domain/screener/configSchema';
 import {
 	screenerResponseSchema,
@@ -124,7 +124,13 @@ export const screenerRouter = createTRPCRouter({
 				// `User` only, leaving this public path as the one writer that
 				// could re-dirty it — which then forces every reader to choose
 				// between missing rows and an unsafe ILIKE match.
-				submittedByEmail: z.string().email().transform(normalizeEmail),
+				// `volunteerEmailSchema` rather than a bare `.email()`: it carries the
+				// RFC 5321 254-char cap, and its own comment names this the one
+				// unbounded write in an otherwise bounded schema set. This is a
+				// publicProcedure, so an uncapped address is an unbounded row write.
+				// It also trims before validating, so whitespace-padded input is
+				// accepted rather than rejected.
+				submittedByEmail: volunteerEmailSchema,
 				profile: volunteerProfileSchema,
 				responses: z.array(screenerResponseSchema),
 				shareCredentials: z.boolean().optional(),
@@ -423,7 +429,7 @@ export const screenerRouter = createTRPCRouter({
 				// applicant typing `Jane@Example.com` would get no duplicate warning
 				// and submit a second application — silently regressing the
 				// duplicate-prevention control.
-				email: z.string().email().transform(normalizeEmail),
+				email: volunteerEmailSchema,
 				opportunityId: z.string().min(1),
 			}),
 		)
