@@ -93,6 +93,7 @@ Key files:
 - `volunteer-screening.ts` — screening evaluation rules
 - `volunteer-matching.ts` — skill matching and scoring (0-100)
 - `volunteer-profile.ts` — profile completeness scoring
+- `org-volunteer.ts` — roster invariants: `normalizeEmail()`, display-name/phone/email Zod schemas, page-size and cap constants, add-volunteer outcome types
 - `shift.ts` — shift capacity, signup validation, attendance
 - `notification.ts` — notification types and domain functions
 - `background-check.ts` — FCRA state machine, PII sanitization
@@ -127,6 +128,9 @@ Key services:
 - `volunteer-screening.ts` — screening evaluation, duplicate application prevention (P2002 handler), status notification emails (REVIEW/APPROVED/REJECTED)
 - `volunteerMatchingService.ts` — skill matching and recommendations
 - `volunteerProfileService.ts` — profile management
+- `staffVolunteerService.ts` — org volunteer roster: staff add/remove/restore, plus the volunteer's own `listMyOrgMemberships` / `leaveOrgRoster`
+- `appliedRosterService.ts` — materializes the roster row an approved application implies (`ensureAppliedRosterRow()`)
+- `orgVolunteerAccessService.ts` — `requireOrgVolunteerRelationship()`, the org↔volunteer authorization guard
 - `volunteerCredentialService.ts` — credential lifecycle
 - `shiftService.ts` — shift CRUD and status transitions
 - `shiftSignupService.ts` — signup with conflict detection, attendance, waitlist auto-promote
@@ -183,7 +187,8 @@ Shared utilities and external service adapters.
 Entities:
 
 - User
-- Organization / OrganizationMember
+- Organization / OrganizationMember (staff side)
+- OrgVolunteer (volunteer side of the same join — roster membership, no role)
 - VolunteerApplication / VolunteerAnswer
 - ScreenerQuestion
 - VolunteerOpportunity / OpportunityTag / OpportunityRequirement / OpportunityInterest
@@ -223,6 +228,8 @@ User
  │         ├─ BackgroundCheckRequest
  │         ├─ FeatureFlag
  │         └─ AuditLog
+ ├─ OrgVolunteer (roster row, org-scoped, soft-deleted)
+ │    └─ Organization
  ├─ CompanyMember
  │    └─ CompanyAccount
  │         └─ CompanyNonprofitLink
@@ -231,6 +238,12 @@ User
  ├─ UserFeedback
  └─ ShiftSignup
 ```
+
+`OrgVolunteer` hangs off `User` rather than under `OrganizationMember` on
+purpose: a volunteer on an org's roster is not a member of that org. The row is
+created by staff (or materialized from an approved application) and can be
+soft-deleted from either side — staff removal, or the volunteer leaving via
+`profile.leaveOrgRoster`.
 
 See `docs/DOMAIN.md` for canonical vocabulary.
 
@@ -303,6 +316,21 @@ from "not real". It gates `profile.getOrgVisibleProfile`, `credentials.issue`,
 `credentials.revoke`, and `backgroundChecks.initiate`, and the resolved
 relationship kind is written to the audit metadata as the record of why the
 action was permitted.
+
+The guard accepts several relationship kinds, so removing one does not
+necessarily end the org's access. A volunteer leaving a roster
+(`profile.leaveOrgRoster`, v0.36.0.0) soft-deletes the `OrgVolunteer` edge and
+nothing else: an application or a shift signup still resolves, and the org keeps
+`getOrgVisibleProfile` / `credentials.issue` / `backgroundChecks.initiate`.
+Leaving is a roster exit, not a revocation of access — do not document or
+describe it as the latter.
+
+The mirror of this guard runs on volunteer-facing procedures, where the trust
+direction inverts again: the caller is the volunteer, there is no `ctx.orgId`
+(a volunteer is not an `OrganizationMember`), and the untrusted input is a row
+id. Those procedures put the caller's `userId` inside the Prisma `WHERE` of
+every statement that reads or writes the row, and read the `orgId` back off the
+matched row rather than accepting one from the client.
 
 ### Platform Admin
 

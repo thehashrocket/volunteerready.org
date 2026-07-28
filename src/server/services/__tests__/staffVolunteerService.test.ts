@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
 	findLiveOrgVolunteer: vi.fn(),
 	createOrgVolunteer: vi.fn(),
 	softDeleteOrgVolunteer: vi.fn(),
+	softDeleteOwnOrgVolunteer: vi.fn(),
 	restoreOrgVolunteer: vi.fn(),
 	writeAuditLogTx: vi.fn(),
 	orgFindUnique: vi.fn(),
@@ -50,8 +51,10 @@ vi.mock('@/server/repositories/orgVolunteerRepo', () => ({
 	findLiveOrgVolunteer: mocks.findLiveOrgVolunteer,
 	createOrgVolunteer: mocks.createOrgVolunteer,
 	softDeleteOrgVolunteer: mocks.softDeleteOrgVolunteer,
+	softDeleteOwnOrgVolunteer: mocks.softDeleteOwnOrgVolunteer,
 	restoreOrgVolunteer: mocks.restoreOrgVolunteer,
 	listOrgVolunteers: vi.fn(),
+	listOrgVolunteersByUser: vi.fn(),
 	countOrgVolunteers: vi.fn(),
 	countAttendedShiftsByUser: vi.fn(),
 }));
@@ -61,6 +64,7 @@ import { INDISTINGUISHABLE_OUTCOMES } from '@/server/domain/org-volunteer';
 import { p2002Error } from '@/test/prisma-error-fixtures';
 import {
 	addVolunteer,
+	leaveOrgRoster,
 	removeVolunteer,
 	restoreVolunteer,
 } from '../staffVolunteerService';
@@ -429,5 +433,98 @@ describe('P2002 discrimination', () => {
 			code: 'CONFLICT',
 			message: 'Already on your roster',
 		});
+	});
+});
+
+/**
+ * T32 — the volunteer's own exit from a roster edge staff created without asking.
+ *
+ * The security predicate lives in the repository's WHERE (`softDeleteOwnOrgVolunteer`
+ * scopes by `userId`), which these tests can only observe as "the repo returned
+ * null". The predicate itself is proven against real Postgres in
+ * `orgVolunteer.integration.test.ts`; what this suite pins is that the service
+ * refuses rather than auditing a departure that never happened.
+ */
+describe('leaveOrgRoster', () => {
+	const VOLUNTEER = 'user-42';
+
+	it('soft-deletes the edge and audits VOLUNTEER_LEFT against the row own org', async () => {
+		mocks.softDeleteOwnOrgVolunteer.mockResolvedValue(ORG);
+
+		const result = await leaveOrgRoster({
+			userId: VOLUNTEER,
+			volunteerId: 'ov-1',
+		});
+
+		expect(result).toEqual({ id: 'ov-1' });
+		expect(mocks.softDeleteOwnOrgVolunteer).toHaveBeenCalledWith(
+			fakeTx,
+			VOLUNTEER,
+			'ov-1',
+		);
+		expect(mocks.writeAuditLogTx).toHaveBeenCalledWith(
+			fakeTx,
+			expect.objectContaining({
+				// orgId comes from the ROW, not from any caller input — the volunteer
+				// never names an org, so this is the only way the audit row can be
+				// scoped to the org that loses them.
+				orgId: ORG,
+				actorId: VOLUNTEER,
+				action: 'VOLUNTEER_LEFT',
+				entityType: 'OrgVolunteer',
+				entityId: 'ov-1',
+			}),
+		);
+	});
+
+	it('refuses and audits NOTHING whenever the repo reports no row', async () => {
+		// The repo collapses three causes to one `null` — an unknown id, someone
+		// else's id, and a row a concurrent leave already claimed — so this pins
+		// the service's response to all three at once: refuse, and write no audit
+		// row. That last assertion is the load-bearing one. A departure that never
+		// happened must not be recorded, and a concurrent leave must not be
+		// recorded twice for a single edge.
+		//
+		// It does NOT pin the userId predicate itself: the mock is what returns
+		// null here, so the WHERE clause could be deleted and this stays green.
+		// That predicate is proven against real Postgres in
+		// `orgVolunteer.integration.test.ts` ("SECURITY: cannot leave a roster on
+		// someone else's behalf"), and its shape in `orgVolunteerRepo.leave.test.ts`.
+		mocks.softDeleteOwnOrgVolunteer.mockResolvedValue(null);
+
+		await expect(
+			leaveOrgRoster({ userId: VOLUNTEER, volunteerId: 'someone-elses-row' }),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('stamps impersonatedBy when an admin leaves on the volunteer behalf', async () => {
+		mocks.softDeleteOwnOrgVolunteer.mockResolvedValue(ORG);
+
+		await leaveOrgRoster({
+			userId: VOLUNTEER,
+			volunteerId: 'ov-1',
+			impersonatedBy: 'real-admin',
+		});
+
+		expect(mocks.writeAuditLogTx).toHaveBeenCalledWith(
+			fakeTx,
+			expect.objectContaining({
+				actorId: VOLUNTEER,
+				metadata: expect.objectContaining({ impersonatedBy: 'real-admin' }),
+			}),
+		);
+	});
+
+	it('omits impersonatedBy entirely when the volunteer acts for themselves', async () => {
+		// Not `impersonatedBy: null` — an always-present key makes every row look
+		// like it was considered for impersonation and defeats a metadata filter.
+		mocks.softDeleteOwnOrgVolunteer.mockResolvedValue(ORG);
+
+		await leaveOrgRoster({ userId: VOLUNTEER, volunteerId: 'ov-1' });
+
+		const [, entry] = mocks.writeAuditLogTx.mock.calls[0];
+		expect(entry.metadata).not.toHaveProperty('impersonatedBy');
 	});
 });

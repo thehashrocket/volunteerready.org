@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { OrgVolunteerSource } from '@/prisma/generated/client';
 
 // ---------------------------------------------------------------------------
 // Org volunteer roster — shared client/server validation + pure helpers
@@ -6,6 +7,17 @@ import { z } from 'zod';
 
 /** Max length of the org-typed display name, enforced on both sides. */
 export const DISPLAY_NAME_MAX = 120;
+
+/**
+ * Hard cap on the "Organizations you volunteer with" list.
+ *
+ * Not pagination — a volunteer manages their own handful of memberships and a
+ * "load more" there would be stranger than a long list. This is the backstop
+ * for the fact that the row count is not the volunteer's to control: any org's
+ * staff can add any email address without consent, so the ceiling is however
+ * many orgs an attacker holds. Set far above any honest count.
+ */
+export const MY_MEMBERSHIPS_CAP = 200;
 
 /** Roster page size for cursor pagination. */
 export const ROSTER_PAGE_SIZE = 25;
@@ -81,6 +93,34 @@ export const addVolunteerSchema = z.object({
 	email: volunteerEmailSchema,
 	phone: volunteerPhoneSchema,
 });
+
+/**
+ * Upper bound for an `OrgVolunteer.id` arriving from a client.
+ *
+ * The id is a cuid (25 chars today); 64 is slack for a future id format without
+ * leaving the input an unbounded string. Shared so the bound is decided once —
+ * the same id is currently validated three different ways across the codebase
+ * (`max(64)` on the roster cursor, no cap at all on `volunteers.remove`).
+ */
+export const ORG_VOLUNTEER_ID_MAX = 64;
+
+export const orgVolunteerIdSchema = z.string().min(1).max(ORG_VOLUNTEER_ID_MAX);
+
+/**
+ * Why a volunteer is on an org's roster, told to the volunteer themselves.
+ *
+ * A `Record` over the enum rather than a ternary with an `else` branch, so
+ * adding a third `OrgVolunteerSource` — T17's concierge import is an open task
+ * that would add exactly that — becomes a TYPE ERROR at every render site
+ * instead of silently telling a bulk-imported volunteer that "their staff"
+ * added them by hand. This renders on the consent surface whose entire job is
+ * answering "why am I on this list?", where a confidently wrong answer is worse
+ * than no answer.
+ */
+export const ORG_VOLUNTEER_SOURCE_COPY: Record<OrgVolunteerSource, string> = {
+	STAFF_ADDED: 'Added by their staff',
+	APPLIED: 'Added when they approved your application',
+};
 
 export type AddVolunteerInput = z.infer<typeof addVolunteerSchema>;
 

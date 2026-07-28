@@ -81,6 +81,60 @@ Client
 
 If membership fails, the request should return an authorization error.
 
+This is the **staff** path. Volunteer-facing procedures that touch org-scoped
+rows do not follow it: a volunteer is not an `OrganizationMember`, so there is
+no membership to verify and no `currentOrgId` to resolve. See "Volunteer Roster
+Exit Flow" below for the shape those take instead.
+
+---
+
+# Volunteer Roster Exit Flow
+
+A volunteer removes themselves from one organization's roster. Staff can add any
+email address to a roster without the recipient's consent, and the roster-added
+email promises the recipient they can leave from `/app/profile`, so this is the
+surface that keeps that promise.
+
+```
+Volunteer UI (/app/profile → "Organizations you volunteer with")
+    -> tRPC Query (profile.listMyOrgMemberships)   [protectedProcedure, UNGATED]
+        -> staffVolunteerService.listMyOrgMemberships(userId)
+            -> listOrgVolunteersByUser(userId)   WHERE userId, deletedAt: null
+        -> Returns { id, source, createdAt, organization { name, slug } }
+           (never userId — a cross-tenant correlation handle)
+
+    -> tRPC Mutation (profile.leaveOrgRoster { volunteerId })
+       volunteerId is an OrgVolunteer.id — a ROW id, not a User.id
+        -> staffVolunteerService.leaveOrgRoster()
+            -> softDeleteOwnOrgVolunteer(tx, userId, id)
+                -> findFirst  WHERE id, userId, deletedAt: null   <-- userId in WHERE
+                -> updateMany WHERE id, userId, deletedAt: null   <-- userId in WHERE
+                -> returns orgId, or null if nothing matched
+            -> Write AuditLog (VOLUNTEER_LEFT, scoped to the returned orgId)
+    -> UI drops the row from the card
+```
+
+Three properties worth preserving:
+
+- **The client never names an org.** `orgId` comes back off the matched row, so
+  the audit entry is scoped to the org that lost the volunteer without the
+  caller being able to pick one.
+- **`userId` sits in the `WHERE` of both statements.** Either alone closes the
+  hole; both are kept so a later refactor of one does not silently open it.
+- **Null covers every miss.** Unknown id, someone else's id, and an
+  already-left row are deliberately indistinguishable to the caller. A zero-row
+  update also means a concurrent leave already wrote the audit row, so this one
+  returns null rather than double-counting the departure.
+
+Both procedures are `protectedProcedure`, deliberately **not** `rosterProcedure`
+— the roster feature flag gates staff surfaces, and gating the volunteer's exit
+would strand people on rosters they cannot leave.
+
+Leaving soft-deletes the `OrgVolunteer` edge and nothing more. An application or
+shift signup still satisfies `requireOrgVolunteerRelationship()`, so the org
+retains `getOrgVisibleProfile` / `credentials.issue` /
+`backgroundChecks.initiate`. This is a roster exit, not a revocation.
+
 ---
 
 # Background Check Initiation Flow

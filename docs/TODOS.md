@@ -5,6 +5,89 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Deferred from the T32 volunteer-exit ship (2026-07-28, v0.36.0.0)
+
+Shipped: `leaveOrgRoster()` + the "Organizations you volunteer with" card on
+`/app/profile`, the exit `sendRosterAddedEmail` has promised since T12.
+
+### [P1] Leaving a roster does not close the `SHIFT_SIGNUP` authorization edge
+
+Found by the security specialist during this ship's review. `leaveOrgRoster`
+soft-deletes the `OrgVolunteer` row, but `findOrgVolunteerRelationship`
+(`orgVolunteerRepo.ts`) probes **four** kinds, and `SHIFT_SIGNUP` is one of them
+with **no status filter**:
+
+```
+prisma.shiftSignup.findFirst({ where: { userId, shift: { orgId } } })
+```
+
+Staff can mint that row unilaterally — `assignVolunteerToShift` takes an
+`OrgVolunteer.id` for anyone on their roster, and the roster itself can be
+populated with any address without consent. So the full chain is:
+
+1. Staff add a stranger's email (no consent required, by design).
+2. Staff assign them to a shift.
+3. The stranger receives the T12 email, follows it, and uses the new Leave button.
+4. `ORG_VOLUNTEER` is gone — but `SHIFT_SIGNUP` survives forever. Cancelling the
+   signup does not help; `CANCELLED` still matches the predicate.
+
+That surviving edge keeps satisfying `requireOrgVolunteerRelationship`, which is
+the **sole** guard on `profile.getOrgVisibleProfile`, `credentials.issue`, and
+`backgroundChecks.initiate`. The last one accepts staff-supplied `pii: { dob, ssn }`
+and makes a paid third-party call to Checkr/Sterling. So the person who just
+exercised their only recourse still has an org able to order a background check
+on them.
+
+**Fix options.** (a) Have `leaveOrgRoster` also cancel the caller's future
+CONFIRMED/WAITLISTED signups for that org inside the same transaction, AND tighten
+the `SHIFT_SIGNUP` probe to exclude `CANCELLED` — note (a) is only coherent with
+both halves, since cancelling without tightening the probe changes nothing.
+(b) Add an explicit `OrgBlock` edge that `requireOrgVolunteerRelationship` checks
+first and refuses on, which is the real "revoke this org's access" primitive and
+is what the surface reads like it does.
+
+Deliberately NOT fixed in the T32 diff: it changes the meaning of an existing
+authorization predicate that four callsites depend on, and folding that into a
+UI ship would have buried it. The confirm copy and design doc §2 were corrected
+instead to stop over-claiming while it is open. **Effort:** M.
+
+### [P2] `qc.invalidateQueries()` with no arguments on the profile page
+
+Pre-existing (`profile/page.tsx`, the `updateMyProfile` `onSuccess`), not
+introduced here, but this ship adds a second query to its blast radius. Saving a
+bio now also refetches the roster-membership list, plus every other mounted query
+app-wide. The new code is already the good citizen — it scopes to
+`utils.profile.listMyOrgMemberships.invalidate()`. Fix is to make the old call
+site match. **Effort:** S.
+
+### [P3] `form.watch('bio')` re-renders the whole profile page per keystroke
+
+Also pre-existing. `React.memo` on the new section was tried and reverted: it
+blocks the parent-driven re-render the component tests rely on, and it treats one
+child while the rest of the page still re-renders. The root fix is to extract the
+bio character counter into its own component that owns the subscription.
+**Effort:** S.
+
+### [P3] Two `Organizations` labels on `/app/profile` disagree
+
+The stat card counts `OrganizationMember` (staff membership) and reads
+`Organizations`; the new section counts roster rows and reads `Organizations you
+volunteer with`. A pure volunteer on two rosters sees "0 Organizations" in the
+larger, higher stat card and two named orgs below it. The new section was named
+defensively, but the stat card is the one that is wrong for volunteers — it
+should read `Staff roles`. Not renamed here because that card predates this work
+and is read by other roles. **Effort:** S.
+
+### [P3] No e2e coverage of the leave flow
+
+`e2e/staff-created-volunteers.spec.ts` covers add → assign → attend → hours but
+not the volunteer's exit. Two flows worth a spec: two-tab concurrency (leave in
+one, click Leave in the other), and roster email → `/app/profile` → leave → row
+gone from the staff roster page. Manually driven during this ship against the dev
+server; not automated. **Effort:** M.
+
+---
+
 ## Deferred from the T15 identity-e2e ship (2026-07-28, v0.35.1.0)
 
 Shipped: `e2e/staff-created-volunteers.spec.ts` (2 tests), `mintMagicLinkUrl()` in

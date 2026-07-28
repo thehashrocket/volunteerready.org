@@ -1,5 +1,10 @@
 import { z } from 'zod';
+import { orgVolunteerIdSchema } from '@/server/domain/org-volunteer';
 import { prisma } from '@/server/repositories/prisma';
+import {
+	leaveOrgRoster,
+	listMyOrgMemberships,
+} from '@/server/services/staffVolunteerService';
 import {
 	getOrgVisibleProfile,
 	getPublicProfile,
@@ -8,6 +13,7 @@ import {
 	getVolunteerProfileWithCompleteness,
 	saveVolunteerProfile,
 } from '@/server/services/volunteerProfileService';
+import { impersonatedBy } from '@/server/trpc/audit-actor';
 import {
 	createTRPCRouter,
 	protectedProcedure,
@@ -74,6 +80,39 @@ export const profileRouter = createTRPCRouter({
 	getOrgVisibleProfile: staffProcedure
 		.input(z.object({ userId: z.string().min(1) }))
 		.query(({ ctx, input }) => getOrgVisibleProfile(input.userId, ctx.orgId)),
+
+	/**
+	 * Orgs that currently have the caller on their volunteer roster (T32).
+	 *
+	 * Lives on `profileRouter`, not `volunteersRouter`, on purpose. That router is
+	 * `rosterProcedure` throughout — the pilot feature flag — and roster edges are
+	 * created for every org regardless of the flag (`ensureAppliedRosterRow`), so
+	 * a volunteer must be able to see and leave one whether or not staff at that
+	 * org can open the roster page. Housing these two beside the flagged
+	 * procedures would invite someone to make them "consistent" and silently take
+	 * the exit away.
+	 */
+	listMyOrgMemberships: protectedProcedure.query(({ ctx }) =>
+		listMyOrgMemberships(requireUserId(ctx.session)),
+	),
+
+	/** Leave one org's roster. Soft delete — see `leaveOrgRoster`. */
+	leaveOrgRoster: protectedProcedure
+		// `volunteerId` is an `OrgVolunteer.id` — a roster-ROW id, NOT a User.id,
+		// despite sitting ten lines from two procedures whose `userId` inputs are
+		// user ids. Named to match the sibling `volunteers.remove`/`restore`, which
+		// take the same kind of id. It is not a secret and needs no guard here:
+		// `softDeleteOwnOrgVolunteer` scopes every statement by the caller's userId.
+		.input(z.object({ volunteerId: orgVolunteerIdSchema }))
+		.mutation(({ ctx, input }) =>
+			leaveOrgRoster({
+				// requireUserId, never session.user.email: under impersonation only
+				// `id` is swapped, so the two identities diverge.
+				userId: requireUserId(ctx.session),
+				volunteerId: input.volunteerId,
+				impersonatedBy: impersonatedBy(ctx),
+			}),
+		),
 
 	/** Quick stats: application counts, org count, skill count. */
 	getMyStats: protectedProcedure.query(async ({ ctx }) => {

@@ -146,12 +146,14 @@ flowchart TB
 ```mermaid
 erDiagram
     User ||--o{ OrganizationMember : belongs_to
+    User ||--o{ OrgVolunteer : rostered_at
     User ||--o{ CompanyMember : belongs_to
     User ||--o| VolunteerProfile : has
     User ||--o{ VolunteerSkill : has
     User ||--o{ ShiftSignup : signs_up
 
     Organization ||--o{ OrganizationMember : has
+    Organization ||--o{ OrgVolunteer : rosters
     Organization ||--o{ ScreenerQuestion : has
     Organization ||--o{ VolunteerApplication : receives
     Organization ||--o{ VolunteerOpportunity : publishes
@@ -263,6 +265,15 @@ erDiagram
         enum visibility
     }
 
+    OrgVolunteer {
+        string id
+        string orgId
+        string userId
+        string displayName
+        enum source
+        datetime deletedAt
+    }
+
     CompanyAccount {
         string id
         string name
@@ -276,7 +287,13 @@ erDiagram
 - `Organization` is the tenant boundary for nonprofit data.
 - `CompanyAccount` is the tenant boundary for corporate data.
 - Users may belong to multiple organizations and companies.
-- `OrganizationMember` is unique per `(organizationId, userId)`.
+- `OrganizationMember` is unique per `(organizationId, userId)`. It is the
+  **staff** join; `OrgVolunteer` is the volunteer one, and roster membership
+  carries no role.
+- `OrgVolunteer` is unique per `(orgId, userId)` via a hand-written **partial**
+  index (`WHERE "deletedAt" IS NULL`), so a soft-deleted row does not block
+  re-adding the same volunteer. Prisma cannot see it, so `upsert`/`findUnique`
+  on the pair do not exist.
 - `VolunteerCredential` is unique per `(userId, orgId, type)`.
 - `ShiftSignup` is unique per `(shiftId, userId)`.
 - `FeatureFlag` is unique per `(orgId, key)`.
@@ -457,15 +474,29 @@ flowchart TD
 
 ## Security Intent
 
-Any org-scoped action should enforce:
+Any **staff** org-scoped action should enforce:
 
 1. authenticated user
 2. active organization context
 3. organization membership
 4. role check when applicable
 5. plan tier check when applicable
+6. a resolved org↔volunteer relationship, when the action targets a `userId`
+   supplied in the procedure's input — `requireOrgVolunteerRelationship()` in
+   `src/server/services/orgVolunteerAccessService.ts`. Steps 1-5 prove the
+   caller is staff and where; none of them says the person named in the input
+   has ever heard of that org, and user ids are not secret (`/v/[userId]` is
+   public).
 
 If any of those are skipped, the feature is likely insecure.
+
+**Volunteer-facing** org-scoped actions are the documented exception and skip
+steps 2-5 on purpose. A volunteer is not an `OrganizationMember`, so there is no
+membership to check; the scoping key is the caller's own `userId`, held inside
+the Prisma `WHERE` of every statement, and the `orgId` is read back off the
+matched row rather than accepted from the client. `profile.leaveOrgRoster` is
+the reference implementation. Adding an org check there would not harden it — it
+would introduce a client-supplied tenant selector.
 
 ---
 

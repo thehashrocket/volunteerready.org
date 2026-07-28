@@ -4,6 +4,7 @@ import type {
 } from '@/prisma/generated/client';
 import {
 	ASSIGN_PICKER_LIMIT,
+	MY_MEMBERSHIPS_CAP,
 	ROSTER_PAGE_SIZE,
 } from '@/server/domain/org-volunteer';
 import { prisma } from './prisma';
@@ -161,6 +162,95 @@ export async function softDeleteOrgVolunteer(
 		data: { deletedAt: new Date() },
 	});
 	return count;
+}
+
+/**
+ * Every live roster edge for ONE person, across every org — the read behind the
+ * Organizations section on `/app/profile` (T32).
+ *
+ * The mirror image of `listOrgVolunteers`: that one is scoped to an org and
+ * projects the people on it, this one is scoped to a person and projects the
+ * orgs. Deliberately not cursor-paginated — a volunteer is on a handful of
+ * rosters, not a page of them, and a "load more" on your own memberships would
+ * be stranger than a long list.
+ *
+ * It still takes a hard cap, because "a handful" is NOT a number this user
+ * controls: staff at any org can attach any email address to their roster
+ * without the owner's consent (the very wrong this list exists to undo), and
+ * the partial unique index caps that at one live row per org — so the ceiling
+ * is however many orgs an attacker holds, not however many the volunteer joined.
+ * The cap is deliberately far above any honest roster count, so reaching it is
+ * itself the signal.
+ *
+ * `organization.id` is NOT projected. The client's only handle is
+ * `OrgVolunteer.id`, which `softDeleteOwnOrgVolunteer` scopes by `userId`, so
+ * the org id buys the page nothing and org ids are the tenant key everywhere
+ * else in the app. `slug` is projected because it is already public — it is the
+ * URL of the org's own apply page.
+ *
+ * `source` IS projected, and is the volunteer's own data about their own edge:
+ * it answers "why am I on this list?", which for a staff-added volunteer is the
+ * whole question this section exists to answer.
+ */
+export function listOrgVolunteersByUser(userId: string) {
+	return prisma.orgVolunteer.findMany({
+		where: { userId, deletedAt: null },
+		take: MY_MEMBERSHIPS_CAP,
+		orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+		select: {
+			id: true,
+			source: true,
+			createdAt: true,
+			organization: { select: { name: true, slug: true } },
+		},
+	});
+}
+
+/**
+ * Leave a roster: soft-delete a single edge, scoped to the person leaving.
+ *
+ * SECURITY: `userId` is inside the WHERE of BOTH statements, never checked
+ * afterwards. `OrgVolunteer.id` is the handle the profile page puts on the
+ * wire, so without it a crafted id would soft-delete a stranger's membership —
+ * the volunteer-side mirror of the `orgId` scoping on `softDeleteOrgVolunteer`,
+ * and the same bug class as v0.29.2.0 / v0.29.3.0.
+ *
+ * Either clause alone would close that hole, and mutation testing confirms it:
+ * removing `userId` from one statement leaves the security test green, removing
+ * it from both turns it red. Neither is therefore dead code to be tidied away.
+ * The write needs it because it is the statement that actually mutates, and a
+ * guard one refactor away from the thing it guards is how this bug class
+ * recurs. The read needs it so a stranger's id never reaches a write statement
+ * at all — defence in depth, not correctness of the returned `orgId`: `id` is
+ * the primary key, so even an unscoped read could only pair with a
+ * `userId`-scoped update that matches zero rows and returns null.
+ *
+ * Returns the `orgId` the edge pointed at, which the caller needs for the audit
+ * row and cannot otherwise learn, or null when nothing matched — an unknown id,
+ * someone else's id, or a row that was already left or removed. Those are
+ * deliberately indistinguishable to the caller.
+ */
+export async function softDeleteOwnOrgVolunteer(
+	tx: TxClient,
+	userId: string,
+	id: string,
+): Promise<string | null> {
+	const row = await tx.orgVolunteer.findFirst({
+		where: { id, userId, deletedAt: null },
+		select: { orgId: true },
+	});
+	if (!row) return null;
+
+	const { count } = await tx.orgVolunteer.updateMany({
+		where: { id, userId, deletedAt: null },
+		data: { deletedAt: new Date() },
+	});
+
+	// Zero means a concurrent leave (two tabs) or a staff removal landed between
+	// the read and the write. The end state the caller wanted holds either way,
+	// but the winner already wrote the audit row, so returning null keeps this
+	// one from double-counting the same departure.
+	return count === 1 ? row.orgId : null;
 }
 
 /**

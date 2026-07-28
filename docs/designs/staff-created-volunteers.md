@@ -382,6 +382,26 @@ until v1b. Do not describe the roster as complete.
    it produces an offer to the wrong recipient, which they must decline or ignore.
 
 2. **Org adds an ACTIVE user's email.** That user is notified and can remove the roster link.
+   ⚠️ Updated — this was **aspirational when written**: the notification shipped with T12 and
+   linked to `/app/profile`, but the surface it promised did not exist until T32. Now real:
+   `leaveOrgRoster()` behind the "Organizations you volunteer with" section on `/app/profile`.
+   Note the exit is narrower than "undo" — it soft-deletes the `OrgVolunteer` edge only. An
+   application the volunteer sent stays sent (and still satisfies
+   `requireOrgVolunteerRelationship` as `APPLICATION`), recorded hours stay with the org, and
+   nothing stops the org adding the same address again. The UI names the hours and the
+   re-add on every row, and the application on `APPLIED` rows where it applies.
+
+   ⚠️ **The exit does NOT close every authorization edge, and that gap is open.** A
+   `ShiftSignup` also satisfies `requireOrgVolunteerRelationship`, with no status filter — and
+   staff can create one unilaterally via `assignVolunteerToShift` against anyone they rostered.
+   So: staff add a stranger's address → assign them to a shift → the stranger leaves → the
+   `ORG_VOLUNTEER` edge is soft-deleted but `SHIFT_SIGNUP` survives permanently (cancelling does
+   not help; `CANCELLED` still matches). That surviving edge keeps satisfying the sole guard on
+   `profile.getOrgVisibleProfile`, `credentials.issue`, and `backgroundChecks.initiate` — the
+   last of which takes staff-supplied SSN and date of birth and makes a paid third-party call.
+   Found in the T32 ship review; tracked as a P1 in `docs/TODOS.md`. Until it closes, this
+   surface is "remove me from the list", not "revoke this org's access to me", and the copy must
+   not claim otherwise.
 
 3. **Cross-org name collision — accepted, not closed.** `User.email` is unique, so two orgs adding
    the same person share one `User` row and `User.name` is global. First-writer-wins means org B
@@ -937,10 +957,11 @@ produces confidently wrong work.
   - Shipped with the two corrections in §4 — the unique index does NOT make reassignment idempotent, and `allowOverCapacity` is an option on `validateSignup` rather than a filter on its result
   - Gated by `rosterProcedure`, lifted out of `routers/volunteers.ts` into `trpc/roster-flag-middleware.ts` so both routers reach one predicate. Hiding the picker is cosmetic; this is the kill switch
   - Verify: ✅ 27 service tests + 5 domain tests + 6 router gating tests + 8 integration tests against real Postgres. Every load-bearing assertion mutation-tested — reverting the revive branch, the flag gate, or the capacity-block shape each turns tests red
-- [ ] **T10 (P1, human: ~4h / CC: ~25min)** — services — E1a: roster row on approval AND in `claimApplication()` (was "the sign-in link path" — `linkApplicationsToUser` is deleted; see §5)
+- [x] **T10 (P1, human: ~4h / CC: ~25min)** — services — E1a: roster row on approval AND in `claimApplication()` (was "the sign-in link path" — `linkApplicationsToUser` is deleted; see §5) ✅ **DONE (v0.34.0.0)**
   - Surfaced by: Expansion E1, split per D4; Codex #1 — the link path was the retroactive gap
-  - Files: `src/server/services/screener-queries.ts`, `src/server/services/my-applications.ts`, `repositories/orgVolunteerRepo.ts`
-  - Verify: approve then sign in, and sign in then approve; assert a roster row in both orders
+  - Files: `src/server/services/appliedRosterService.ts` (`ensureAppliedRosterRow`), `src/server/services/screener-queries.ts`, `src/server/services/my-applications.ts`, `repositories/orgVolunteerRepo.ts`
+  - Shipped with two corrections to the shape prescribed here — the `findFirst`+`create`+catch-P2002 form poisons the enclosing transaction, so the insert is `createMany({ skipDuplicates: true })`; and roster creation gates on the **transition** into APPROVED, not on the status, or a re-save resurrects a deliberately-removed volunteer. Both recorded in `docs/TODOS.md`
+  - Verify: ✅ `repositories/appliedRoster.integration.test.ts` + `screener-queries.approvalRoster.test.ts`. **Still open:** no end-to-end coverage of "approve in the UI, see them on `/app/volunteers`" — P2 in `docs/TODOS.md`
 - [x] **T11 (P2, human: ~7h / CC: ~40min)** — ui — `/app/volunteers` page, add form, badges, remove, cursor pagination ✅ **DONE**
   - Surfaced by: Performance P1 — avoid the TODO :137 silent-truncation failure mode
   - Files: `src/app/(app)/app/volunteers/page.tsx`, `AddVolunteerDialog.tsx`, `page.test.tsx` (nav item + `layout.tsx` guard already landed with T16)
@@ -1002,7 +1023,7 @@ produces confidently wrong work.
     leaving four `auth.ts` claims verified only by reading `node_modules`. A next-auth
     upgrade that moves it breaks the test loudly, which is correct — those comments say
     "Verified against next-auth 4.24.14" and would need re-verifying too
-- [ ] **T16 (P2, human: ~3h / CC: ~20min)** — config — `staff_created_volunteers` flag, default `false`, gating page + mutations
+- [~] **T16 (P2, human: ~3h / CC: ~20min)** — config — `staff_created_volunteers` flag, default `false`, gating page + mutations
   - Surfaced by: Step 0 — first production consumer of `isFeatureEnabled()`. **Re-estimated from 1h by design review D20:** there is no client flag read path, so the original verify step could not pass. Resolve server-side in the app layout, thread a fourth prop through `AppShell` → `AppSidebar` following the `hasOrg` idiom, and guard the route with `redirect()` — nav hiding is cosmetic and does not close the route
   - Files: `src/server/domain/feature-flags.ts`, `src/app/(app)/app/layout.tsx`, `src/components/app/app-shell.tsx`, `src/components/app/app-sidebar.tsx`, `src/app/(app)/app/volunteers/`, `src/app/(app)/app/shifts/page.tsx`, `src/components/app/activity-feed.tsx`
   - **Eng re-review, two corrections.** (1) The layout has **no `orgId`** — `layout.tsx:50` is a `.count()`. Resolving one means replicating `trpc/init.ts:77-149`, including the impersonation path that nulls `session.orgId`. (2) The flag must gate T23, T24 and T31 as well, or a non-pilot org gets an assign picker over a roster they cannot see. See **Feature-flag gating** for the full gated/ungated split. Re-estimated again: **~5h**, not 3h
@@ -1081,14 +1102,24 @@ produces confidently wrong work.
   - **Eng re-review — the cited query does not compute this figure.** `orgAnalyticsRepo.ts:174` is `getTopVolunteers(orgId, limit, fromDate)`: at most `limit` rows of **per-volunteer** hours, windowed from a date. Summing it gives the top N volunteers' hours since an arbitrary cutoff, not the org's recorded total. A new unwindowed `SUM` aggregate is needed. Re-estimate ~4h, not 3h. It is raw SQL — write one static template, never composed `Prisma.sql` fragments (CLAUDE.md Turbopack rule)
   - Roster adds in the feed are gated by the `staff_created_volunteers` flag; the header figure rides with the page, which is already gated. Note `screener.getActivityFeed` is an **`adminProcedure`** (`routers/screener.ts:256`), so the feed's "feature discovery for other staff" argument only reaches admins
   - Verify: assert the hours figure matches the impact report for the same org
-- [ ] **T32 (P1, human: ~4h / CC: ~25min)** — ui — Volunteer self-service: Organisations section on `/app/profile` with `Leave`
+- [x] **T32 (P1, human: ~4h / CC: ~25min)** — ui — Volunteer self-service: Organisations section on `/app/profile` with `Leave` ✅ **DONE**
   - Surfaced by: Design D13 — Security §2 claimed the recipient "can remove the roster link"; no such surface existed
-  - Files: `src/app/(app)/app/profile/page.tsx`, `src/server/services/staffVolunteerService.ts`, `sendRosterAddedEmail.ts`
-  - Verify: assert `Leave` soft-deletes only the caller's own edge and writes `VOLUNTEER_LEFT`
-- [ ] **T33 (P2, human: ~2h / CC: ~15min)** — ui — `Shifts` attended column, org-scoped
+  - Files: `src/app/(app)/app/profile/page.tsx` (`OrgMemberships`), `src/server/services/staffVolunteerService.ts` (`leaveOrgRoster`, `listMyOrgMemberships`), `repositories/orgVolunteerRepo.ts` (`listOrgVolunteersByUser`, `softDeleteOwnOrgVolunteer`), `routers/profile.ts`. `sendRosterAddedEmail.ts` needed no change — it already links here and promises exactly this
+  - **Ungated, per the Feature-flag gating table.** The procedures live on `profileRouter` under `protectedProcedure`, NOT on the `rosterProcedure`-throughout `volunteersRouter`: `ensureAppliedRosterRow` mints edges for every org regardless of the pilot flag, so gating the exit would strand volunteers on rosters they cannot leave. Housing them beside the flagged procedures would invite someone to make them "consistent"
+  - Section is named "Organizations you volunteer with", not "Organizations" — the stat card above already says "Organizations" and counts `OrganizationMember` (staff membership), which is a different thing
+  - The error branch renders BEFORE the empty check: on a consent surface a failed load must never read as "you are on nobody's roster"
+  - Confirm-row copy is honest about what leaving does not do — the application stays sent, the hours stay recorded, and the org can add you again. Same correction the claim flow's decline row took in v0.34.0.0. The application clause is stated **only on `APPLIED` rows**, where it is the consent-material one; review caught a first draft that named two of the three while this doc claimed all three
+  - `ORG_VOLUNTEER_SOURCE_COPY` (a `Record` over the enum, not a ternary with an `else`) so T17's concierge import cannot silently render as "Added by their staff" on the surface whose whole job is answering "why am I on this list?"
+  - `MY_MEMBERSHIPS_CAP` (200) on the list. Not pagination — the backstop for the fact that the row count is NOT the volunteer's to control: any org's staff can add any address, so the ceiling is however many orgs an attacker holds
+  - Verify: ✅ 4 service tests + 8 integration tests against real Postgres + 3 repository unit tests + 5 router tests + 15 component tests. Files: `services/__tests__/staffVolunteerService.test.ts`, `repositories/orgVolunteer.integration.test.ts`, `repositories/orgVolunteerRepo.leave.test.ts`, `trpc/routers/profile.leave.test.ts`, `app/(app)/app/profile/page.test.tsx`
+  - `SECURITY: cannot leave a roster on someone else's behalf` is **mutation-verified**: dropping the `userId` clause from one of the two statements leaves it green (the other still guards), dropping it from both turns it red
+  - **`profile.leave.test.ts` is what pins the ungated decision** — it calls both procedures with a no-org, no-role caller, so moving them onto `rosterProcedure` fails the suite rather than silently removing the exit
+  - `orgVolunteerRepo.leave.test.ts` covers the lost-race branch (`count === 0` after a successful read) that Postgres cannot be made to demonstrate on demand. Review found that branch had ZERO coverage and proved it by mutation — returning `row.orgId` unconditionally kept all 22 integration tests green while double-counting every two-tab leave
+- [x] **T33 (P2, human: ~2h / CC: ~15min)** — ui — `Shifts` attended column, org-scoped ✅ **DONE**
   - Surfaced by: Design D21 — present in the approved mockup and in no task; counting off `User` without the `Shift.orgId` join leaks cross-org activity
-  - Files: `src/server/repositories/orgVolunteerRepo.ts`, `src/app/(app)/app/volunteers/`
-  - Verify: `SECURITY:` test — a volunteer on two rosters shows each org only its own count
+  - Files: `src/server/repositories/orgVolunteerRepo.ts` (`countAttendedShiftsByUser`), `src/app/(app)/app/volunteers/page.tsx`
+  - One grouped query per page rather than an N+1, joined through `shift: { orgId }`
+  - Verify: ✅ `SECURITY: counts attended shifts for the CALLING org only` in `orgVolunteer.integration.test.ts` — one user attending shifts at two orgs sees each org report only its own count
 - [ ] **T34 (P3, human: ~1h / CC: ~10min)** — docs — Correct DESIGN.md: sidebar, width, top bar
   - Surfaced by: Design D16 — DESIGN.md:92 describes a forest-green sidebar the app does not have, which made round one of this review's own mockups wrong
   - Files: `DESIGN.md`

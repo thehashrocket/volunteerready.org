@@ -12,7 +12,15 @@ Agent orientation for the VolunteerReady codebase. Read these in order before wr
 
 ## The one rule that matters most
 
-This is a multi-tenant platform. Every query and mutation **must** be scoped to `orgId`. Missing org scope is a security bug, not a style issue.
+This is a multi-tenant platform. Every query and mutation **must** be scoped to the tenant. Missing scope is a security bug, not a style issue.
+
+Which key you scope by depends on who is calling:
+
+- **Staff procedures** scope by `orgId` from `ctx`. When the procedure also acts on a `userId` arriving in its *input*, that id is untrusted — call `requireOrgVolunteerRelationship()` first.
+- **Company procedures** scope by `companyId` read from the request, never from session state.
+- **Volunteer procedures** scope by the caller's own `userId`, held inside the Prisma `WHERE` of every statement. A volunteer is not an `OrganizationMember`, so there is no membership to check, and the client must never supply an `orgId` — read it back off the row the caller already owns. See `profile.leaveOrgRoster`.
+
+The reasoning behind each is in `docs/AGENT_RULES.md` §2.
 
 ## Layer order (never skip layers)
 
