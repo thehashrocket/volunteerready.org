@@ -35,9 +35,9 @@ UI (React / Next.js page or component)
 
 1. Volunteer opens application form.
 2. UI collects answers to screener questions.
-3. Client calls `screener.submitApplication` mutation.
+3. Client calls the `screener.submit` mutation (public; `submittedByEmail` is normalized to its canonical lowercase form by the input schema).
 4. Router validates input and ensures organization context.
-5. Router calls `volunteer-screening` service.
+5. Router calls `volunteer-screening` service (`submitVolunteerApplication()`).
 6. Service validates screener questions and answers.
 7. Service evaluates disqualifier and review rules -> screening result (PASS / REVIEW / FAIL).
 8. Service creates `VolunteerApplication` record with status and screening result.
@@ -53,7 +53,7 @@ UI (React / Next.js page or component)
 ```
 Volunteer
     -> UI Form
-        -> tRPC Mutation (submitApplication)
+        -> tRPC Mutation (screener.submit)
             -> volunteer-screening Service
                 -> ScreenerQuestion Repository
                 -> VolunteerApplication Repository
@@ -246,7 +246,7 @@ Staff UI (/credentials/claim/[token])
 Volunteer UI (/apply/[orgSlug])
     -> Checks "Bring my credentials" checkbox
     -> tRPC Mutation (screener.submit)
-        -> submitApplication() (committed)
+        -> submitVolunteerApplication() (committed)
         -> shareAllOnApply(userId, orgId) (try/catch, non-blocking)
             -> Fetch all VERIFIED credentials for user
             -> Filter: skip types already in target org, skip same org

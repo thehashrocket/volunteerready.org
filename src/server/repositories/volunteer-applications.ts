@@ -1,5 +1,19 @@
-import type { ApplicationStatus } from '@/prisma/generated/client';
+import type {
+	ApplicationStatus,
+	PrismaClient,
+} from '@/prisma/generated/client';
+import { normalizeEmail } from '@/server/domain/org-volunteer';
 import { prisma } from '@/server/repositories/prisma';
+
+/** Transactional client — works with both `prisma` and `prisma.$transaction(tx => …)`. */
+type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
+
+/**
+ * Cap on the claimable-candidate list. Exported so callers can detect
+ * truncation (`length === CLAIMABLE_LIST_CAP` means there may be more) rather
+ * than silently showing a partial list as if it were complete.
+ */
+export const CLAIMABLE_LIST_CAP = 50;
 
 interface PaginationInput {
 	page?: number;
@@ -121,6 +135,102 @@ export async function listUserApplications(userId: string) {
 			screeningReasons: true,
 			organization: { select: { id: true, name: true, slug: true } },
 		},
+	});
+}
+
+/**
+ * Orphan applications (`submittedByUserId: null`) submitted under `email`.
+ *
+ * SECURITY: these are *candidates*, never auto-attached. `screener.submit` is a
+ * publicProcedure accepting an arbitrary `submittedByEmail`, so anyone can
+ * create a row bearing someone else's address. Binding one to a user mints an
+ * `APPLICATION` edge, which `requireOrgVolunteerRelationship()` accepts as
+ * authorization — so the bind must be an explicit act by the address owner.
+ *
+ * Matched by PLAIN EQUALITY against the canonical form, never `mode:
+ * 'insensitive'`. Prisma compiles `insensitive` to `ILIKE $1` with the value
+ * interpolated unescaped, which makes `_` and `%` wildcards — and `_` is legal
+ * in an address that zod's `.email()` accepts. On an authorization predicate
+ * that is a hole: `j_smith@x.com` would match (and claim) `j.smith@x.com`.
+ * T1's migration already backfilled this column to `lower(btrim(...))`, and
+ * `screener.submit` now normalizes on write, so equality is correct.
+ */
+export async function listClaimableApplicationsByEmail(email: string) {
+	return prisma.volunteerApplication.findMany({
+		where: {
+			submittedByUserId: null,
+			submittedByEmail: normalizeEmail(email),
+		},
+		// OLDEST first. This NARROWS a starvation window; it does not close it.
+		//
+		// The cap is required — `screener.submit` is public, so a third party
+		// controls how many orphan rows carry a given address. But a cap over an
+		// attacker-controllable list is starvable from whichever end gets dropped,
+		// and ordering only chooses the end:
+		//   `desc` loses the OLDEST row, which is the common real case (you
+		//         applied anonymously, then signed up later) — an attacker plants
+		//         50 fresh rows and buries an application already sitting there.
+		//   `asc`  loses the NEWEST row, so an attacker must PRE-plant 50 rows
+		//         against an address before its owner applies.
+		// `asc` is the better trade because it costs the attacker foreknowledge
+		// and prior action, while `desc` is exploitable against applications that
+		// already exist. Both leave a residual window, and there is no other bind
+		// path since `linkApplicationsToUser()` was deleted, so a dropped row is
+		// unclaimable.
+		//
+		// Ordering cannot fix this. The real fixes are the deferred decline path
+		// (declining frees a slot) and/or bounding per (email, orgId) so one org
+		// cannot consume every slot. Tracked in docs/TODOS.md.
+		orderBy: { submittedAt: 'asc' },
+		take: CLAIMABLE_LIST_CAP,
+		select: {
+			id: true,
+			submittedAt: true,
+			organization: { select: { id: true, name: true, slug: true } },
+		},
+	});
+}
+
+/**
+ * Attach a single orphan application to `userId`, but only if it is still
+ * unclaimed AND was submitted under `email`.
+ *
+ * The email predicate is the authorization check and lives in the `where`, not
+ * in a caller-side comparison: passing another user's application id matches
+ * zero rows rather than binding it. Returns null when nothing matched, which
+ * also covers the concurrent double-claim race.
+ *
+ * Takes a `tx` so the caller can commit the bind and its `APPLICATION_CLAIMED`
+ * audit row atomically — an authorization edge that exists with no audit trail
+ * is exactly the state this fix was written to prevent.
+ */
+export async function claimApplicationForUser(
+	applicationId: string,
+	userId: string,
+	email: string,
+	tx: TxClient | typeof prisma = prisma,
+) {
+	const normalized = normalizeEmail(email);
+
+	const result = await tx.volunteerApplication.updateMany({
+		where: {
+			id: applicationId,
+			submittedByUserId: null,
+			// Plain equality, NOT `mode: 'insensitive'` — see the note on
+			// `listClaimableApplicationsByEmail`. ILIKE would turn this
+			// authorization check into a wildcard pattern match.
+			submittedByEmail: normalized,
+		},
+		data: { submittedByUserId: userId },
+	});
+
+	if (result.count === 0) {
+		return null;
+	}
+
+	return tx.volunteerApplication.findUnique({
+		where: { id: applicationId },
+		select: { id: true, orgId: true },
 	});
 }
 

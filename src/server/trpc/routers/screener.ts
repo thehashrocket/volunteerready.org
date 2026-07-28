@@ -7,6 +7,7 @@ import {
 	type Prisma,
 	ScreenerQuestionType,
 } from '@/prisma/generated/client';
+import { volunteerEmailSchema } from '@/server/domain/org-volunteer';
 import { screenerQuestionConfigSchema } from '@/server/domain/screener/configSchema';
 import {
 	screenerResponseSchema,
@@ -14,8 +15,10 @@ import {
 } from '@/server/domain/volunteer-screening';
 import * as qRepo from '@/server/repositories/screenerQuestionsRepo';
 import {
+	claimApplication,
 	getMyApplicationDetail,
 	getMyApplicationStatusTimeline,
+	listClaimableApplications,
 	listMyApplications,
 } from '@/server/services/my-applications';
 import {
@@ -116,7 +119,18 @@ export const screenerRouter = createTRPCRouter({
 			z.object({
 				orgId: z.string(),
 				opportunityId: z.string().optional(),
-				submittedByEmail: z.string().email(),
+				// Normalized on write so the stored value stays canonical. T1's
+				// migration backfilled this column but installed its trigger on
+				// `User` only, leaving this public path as the one writer that
+				// could re-dirty it — which then forces every reader to choose
+				// between missing rows and an unsafe ILIKE match.
+				// `volunteerEmailSchema` rather than a bare `.email()`: it carries the
+				// RFC 5321 254-char cap, and its own comment names this the one
+				// unbounded write in an otherwise bounded schema set. This is a
+				// publicProcedure, so an uncapped address is an unbounded row write.
+				// It also trims before validating, so whitespace-padded input is
+				// accepted rather than rejected.
+				submittedByEmail: volunteerEmailSchema,
 				profile: volunteerProfileSchema,
 				responses: z.array(screenerResponseSchema),
 				shareCredentials: z.boolean().optional(),
@@ -271,8 +285,49 @@ export const screenerRouter = createTRPCRouter({
 		if (!userId) {
 			throw new Error('Missing session user');
 		}
-		return listMyApplications(userId, ctx.session?.user?.email ?? null);
+		return listMyApplications(userId);
 	}),
+
+	/**
+	 * Anonymous applications submitted under this user's address, offered for
+	 * explicit confirmation. Deliberately not auto-attached — see
+	 * `listClaimableApplications()` for why.
+	 */
+	claimableApplications: protectedProcedure
+		.use(
+			rateLimitByUser({
+				limit: 30,
+				windowSeconds: 60,
+				prefix: 'screener:claimable',
+			}),
+		)
+		.query(async ({ ctx }) => {
+			const userId = ctx.session?.user?.id;
+			if (!userId) {
+				throw new TRPCError({ code: 'UNAUTHORIZED' });
+			}
+			// Deliberately NOT ctx.session.user.email — see
+			// listClaimableApplications. Under impersonation that address
+			// belongs to the real admin, not to this id.
+			return listClaimableApplications(userId);
+		}),
+
+	claimApplication: protectedProcedure
+		.use(
+			rateLimitByUser({
+				limit: 10,
+				windowSeconds: 60,
+				prefix: 'screener:claim',
+			}),
+		)
+		.input(z.object({ id: z.string().min(1) }))
+		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session?.user?.id;
+			if (!userId) {
+				throw new TRPCError({ code: 'UNAUTHORIZED' });
+			}
+			return claimApplication(userId, input.id);
+		}),
 
 	myApplicationDetail: protectedProcedure
 		.input(z.object({ id: z.string().min(1) }))
@@ -281,11 +336,7 @@ export const screenerRouter = createTRPCRouter({
 			if (!userId) {
 				throw new Error('Missing session user');
 			}
-			return getMyApplicationDetail(
-				userId,
-				input.id,
-				ctx.session?.user?.email ?? null,
-			);
+			return getMyApplicationDetail(userId, input.id);
 		}),
 
 	withdrawApplication: protectedProcedure
@@ -373,7 +424,12 @@ export const screenerRouter = createTRPCRouter({
 		.input(
 			z.object({
 				orgId: z.string().min(1),
-				email: z.string().email(),
+				// Must normalize to match `submit`, which now stores canonical.
+				// This reader compares against stored rows by exact equality, so an
+				// applicant typing `Jane@Example.com` would get no duplicate warning
+				// and submit a second application — silently regressing the
+				// duplicate-prevention control.
+				email: volunteerEmailSchema,
 				opportunityId: z.string().min(1),
 			}),
 		)

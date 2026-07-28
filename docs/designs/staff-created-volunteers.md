@@ -130,9 +130,17 @@ row to `ACTIVE`. Follow the repo convention: hand-written `migration.sql` with `
 ### Prerequisite: email canonicalization, enforced at the database
 
 `User.email` is `String? @unique` — plain text, no `citext`, no normalization.
-`linkApplicationsToUser` (`my-applications.ts:101`) compares with exact string equality. The
-email guard looks users up by lowercased address, so without this it silently misses a row stored
-as `Bob@shelter.org` and **fails open** on a privacy control.
+The email guard looks users up by lowercased address, so without this it silently misses a row
+stored as `Bob@shelter.org` and **fails open** on a privacy control.
+
+⚠️ Updated 2026-07-27 — this paragraph previously cited `linkApplicationsToUser`
+(`my-applications.ts:101`) as the exact-string-equality comparison that motivated canonicalization.
+That function was **deleted** (see §5). Its successor `claimApplicationForUser()`
+(`volunteer-applications.ts`) still compares stored addresses by exact equality, and
+`screener.submit` / `screener.checkAnonymousApplication` now normalize `submittedByEmail` on input
+so both sides of that comparison stay canonical. The argument for the DB-level constraint is
+unchanged — it is what lets the claim path use exact equality instead of an unsafe
+case-insensitive match.
 
 **Service-layer lowercasing is not sufficient.** New auth users are created by the raw
 `PrismaAdapter` (`src/server/auth.ts:26`), which never passes through a service. Enforce at the
@@ -295,10 +303,17 @@ Because the partial index is invisible to Prisma, this is
 `findFirst({ orgId, userId, deletedAt: null })` then `create` inside the approval transaction,
 with a `P2002` catch for the concurrent case. Not `upsert`.
 
-**Also create the row in the link path.** `linkApplicationsToUser` (`my-applications.ts:96-107`)
-attaches applications to a user on sign-in. An application approved *before* the applicant ever
-signed in gains `submittedByUserId` at that moment, and without handling it there the roster row
-is never created. Cover both entry points.
+**Also create the row in the CLAIM path.** ⚠️ Updated 2026-07-27 — this paragraph previously
+named `linkApplicationsToUser` (`my-applications.ts:96-107`), which **no longer exists**. That
+function auto-attached applications by email on every page load and was deleted as a privilege
+escalation; binding is now an explicit user action.
+
+The second entry point is `claimApplication()` in `my-applications.ts`. An application approved
+*before* the applicant ever signed in gains `submittedByUserId` at the moment they claim it, and
+without handling it there the roster row is never created — leaving an APPROVED application with
+a `submittedByUserId` and no `OrgVolunteer` row, never reconciled. Cover both entry points, and
+create the roster row **inside the same `prisma.$transaction` as the bind and its
+`APPLICATION_CLAIMED` audit row**, so a partial commit cannot produce that inconsistency.
 
 **Anonymous applications (`submittedByUserId = null`) do not create roster rows in v1a.** Doing so
 would mean minting a shadow `User` from `submittedByEmail` on every approval, which changes the
@@ -312,8 +327,11 @@ until v1b. Do not describe the roster as complete.
 
 1. **Wrong-email risk.** In v1a nothing is sent to a mistyped address and nothing is shown to
    them, so the blast radius is a row in one org's list. This is why the invite flow is deferred:
-   v1b is where a typo reaches a human inbox, and it needs `linkApplicationsToUser` org scoping
-   (TODOS.md P1) resolved first.
+   v1b is where a typo reaches a human inbox. ⚠️ Updated 2026-07-27 — the stated prerequisite was
+   "`linkApplicationsToUser` org scoping (TODOS.md P1)", which is **resolved**: that function is
+   deleted and binding is now an explicit claim the recipient must accept (see §"NOT in scope"
+   and the resolved P1 in TODOS.md). A coordinator typo can no longer silently attach anything;
+   it produces an offer to the wrong recipient, which they must decline or ignore.
 
 2. **Org adds an ACTIVE user's email.** That user is notified and can remove the roster link.
 
@@ -430,9 +448,12 @@ its own `layout.tsx` + `providers.tsx` copied from the `opportunities/` pair), c
 paths, expiry, one org-triggered reminder, per-org invite rate limiting, and E1b (mint an
 UNCLAIMED user on approval of an anonymous application).
 
-**Blocked on:** `linkApplicationsToUser()` org scoping (TODOS.md P1). It currently runs
+**~~Blocked on:~~ UNBLOCKED (2026-07-27).** `linkApplicationsToUser()` is deleted. It ran
 `updateMany({ where: { submittedByUserId: null, submittedByEmail: email } })` with no `orgId`
-filter, so any orphan application matching a signing-in address is silently attached.
+filter, so any orphan application matching a signing-in address was silently attached. Replaced
+by an explicit claim step (`listClaimableApplications()` / `claimApplication()`), which resolves
+the wrong-email scenario Security §1 worries about: a coordinator typo now produces an offer the
+wrong recipient must actively accept, not a silent bind. See the resolved P1 in TODOS.md.
 
 **Do not hand-roll the session mint.** Only `e2e/utils/db.ts:65` creates NextAuth `Session` rows
 today and there is zero production precedent. Prefer issuing a NextAuth `VerificationToken` and
@@ -455,7 +476,9 @@ protocol), `emailVerified`, and events are handled by machinery that already wor
 
 ## NOT in scope
 
-1. **Invite / claim flow and E1b (v1b)** — blocked on `linkApplicationsToUser()` org scoping.
+1. **Invite / claim flow and E1b (v1b)** — ~~blocked on `linkApplicationsToUser()` org scoping~~
+   **UNBLOCKED 2026-07-27** (that function is deleted; see the "Blocked on" note above). Still out
+   of scope for v1a on size alone, not on a dependency.
 2. **CSV import UI** — deferred pending five real spreadsheets. The concierge script is the bulk
    path; the single-add form is the trickle path. They do different jobs.
 3. **Bulk-select assign to shift** — cut. `validateSignup` has no waitlist outcome and
@@ -864,7 +887,7 @@ produces confidently wrong work.
   - Surfaced by: Code Quality Q1 — avoid a second implementation of capacity rules
   - Files: `src/server/services/shiftSignupService.ts`, `repositories/shiftSignupRepo.ts`, `routers/shifts.ts`
   - Verify: `pnpm test src/server/services/__tests__/shiftSignupService.test.ts`
-- [ ] **T10 (P1, human: ~4h / CC: ~25min)** — services — E1a: roster row on approval and in the sign-in link path
+- [ ] **T10 (P1, human: ~4h / CC: ~25min)** — services — E1a: roster row on approval AND in `claimApplication()` (was "the sign-in link path" — `linkApplicationsToUser` is deleted; see §5)
   - Surfaced by: Expansion E1, split per D4; Codex #1 — the link path was the retroactive gap
   - Files: `src/server/services/screener-queries.ts`, `src/server/services/my-applications.ts`, `repositories/orgVolunteerRepo.ts`
   - Verify: approve then sign in, and sign in then approve; assert a roster row in both orders

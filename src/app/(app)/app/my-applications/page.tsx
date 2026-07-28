@@ -2,6 +2,8 @@
 
 import { AlertTriangle, FileText, RefreshCw, Search } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
@@ -20,8 +22,108 @@ import {
 import { formatDate } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 
+/**
+ * Anonymous applications submitted under this user's address are offered here
+ * for explicit confirmation rather than attached automatically. Anyone can POST
+ * a public application bearing someone else's email, and attaching one grants
+ * the receiving org a relationship edge over this user — so the user, not the
+ * server, decides.
+ */
+function ClaimableApplications({
+	onCountChange,
+}: {
+	onCountChange: (count: number) => void;
+}) {
+	const utils = trpc.useUtils();
+	const query = trpc.screener.claimableApplications.useQuery();
+	const claim = trpc.screener.claimApplication.useMutation({
+		onSuccess: async () => {
+			await Promise.all([
+				utils.screener.claimableApplications.invalidate(),
+				utils.screener.myApplications.invalidate(),
+			]);
+		},
+	});
+
+	const claimable = query.data ?? [];
+	// Only a resolved, successful query reports a count. An errored query must
+	// report 0 so the page's empty state still renders — a broken candidate
+	// fetch must not imply an application exists.
+	const visibleCount = query.isLoading || query.isError ? 0 : claimable.length;
+
+	useEffect(() => {
+		onCountChange(visibleCount);
+	}, [visibleCount, onCountChange]);
+
+	// Fails silent on purpose: this card is an OFFER, not a promise. Surfacing
+	// an error here would tell a user an application might exist under their
+	// address when we could not confirm one does.
+	if (query.isLoading || query.isError || claimable.length === 0) {
+		return null;
+	}
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Is this you?</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				<p className="text-sm text-muted-foreground">
+					We found {claimable.length === 1 ? 'an application' : 'applications'}{' '}
+					submitted with your email address before you signed in. Add{' '}
+					{claimable.length === 1 ? 'it' : 'them'} to your account only if you
+					recognize {claimable.length === 1 ? 'it' : 'them'} — the organization
+					will be able to see your volunteer profile once you do.
+				</p>
+				<ul className="divide-y rounded-md border">
+					{claimable.map((application) => (
+						<li
+							key={application.id}
+							className="flex flex-wrap items-center justify-between gap-3 p-3"
+						>
+							<div className="min-w-0 text-sm">
+								<p className="break-words font-medium">
+									{application.organization?.name ?? 'Unknown organization'}
+								</p>
+								<p className="text-muted-foreground">
+									Submitted {formatDate(application.submittedAt)}
+								</p>
+							</div>
+							<Button
+								size="sm"
+								variant="outline"
+								disabled={claim.isPending}
+								onClick={() => claim.mutate({ id: application.id })}
+								// Every row's visible label is identical, so without this a
+								// screen reader announces "Add to my account" N times with
+								// nothing to distinguish which org each grants access to.
+								// Leads with the visible label verbatim so voice control
+								// still matches what the user reads (WCAG 2.5.3).
+								aria-label={`Add to my account: ${
+									application.organization?.name ?? 'unknown organization'
+								}, submitted ${formatDate(application.submittedAt)}`}
+							>
+								Add to my account
+							</Button>
+						</li>
+					))}
+				</ul>
+				{claim.isError ? (
+					<p role="alert" className="text-sm text-destructive">
+						{/* Allowlisted by code — an INTERNAL_SERVER_ERROR here would be a
+						    raw Prisma string, and this card is shown to volunteers. */}
+						{safeErrorMessage(claim.error) ??
+							"We couldn't add that application. Try again."}
+					</p>
+				) : null}
+			</CardContent>
+		</Card>
+	);
+}
+
 export default function MyApplicationsPage() {
 	const query = trpc.screener.myApplications.useQuery();
+	const [claimableCount, setClaimableCount] = useState(0);
 
 	if (query.isLoading) {
 		return (
@@ -73,7 +175,13 @@ export default function MyApplicationsPage() {
 				description="Track the status of your volunteer applications."
 			/>
 
-			{applications.length === 0 ? (
+			<ClaimableApplications onCountChange={setClaimableCount} />
+
+			{/* Suppressed while candidates are pending: "No applications yet" directly
+			    under "We found an application submitted with your email" reads as a
+			    contradiction, and this is the feature's PRIMARY first-run state — a
+			    volunteer who applied anonymously, then signed up. */}
+			{applications.length === 0 && claimableCount === 0 ? (
 				<EmptyState
 					title="No applications yet"
 					description="Browse volunteer opportunities and apply to get started."
