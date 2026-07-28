@@ -1,4 +1,3 @@
-import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import type { Role } from '@/prisma/generated/client';
 import {
@@ -9,6 +8,7 @@ import {
 	removeOrgMember,
 	updateOrgMemberRole,
 } from '@/server/services/memberService';
+import { effectiveUserId } from '@/server/trpc/audit-actor';
 import {
 	adminProcedure,
 	createTRPCRouter,
@@ -73,15 +73,10 @@ export const membersRouter = createTRPCRouter({
 	accept: protectedProcedure
 		.input(z.object({ token: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
-			const userId = ctx.session?.user?.id ?? '';
-			const userEmail = ctx.session?.user?.email ?? '';
-			if (!userEmail) {
-				throw new TRPCError({
-					code: 'BAD_REQUEST',
-					message: 'Your account has no email address.',
-				});
-			}
-			return acceptInvitation(input.token, userId, userEmail);
+			// Id only — the service resolves the address from this same id. Passing
+			// `ctx.session.user.email` alongside it mixed two identities under
+			// impersonation; see the note on `acceptInvitation`.
+			return acceptInvitation(input.token, effectiveUserId(ctx) ?? '');
 		}),
 
 	// Remove a member from the org

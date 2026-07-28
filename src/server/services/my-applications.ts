@@ -1,16 +1,19 @@
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from '@/prisma/generated/client';
+import { isUniqueViolationOn } from '@/server/lib/prisma-errors';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { findEmailByUserId } from '@/server/repositories/userAccountStateRepo';
 import {
 	claimApplicationForUser,
+	declineApplicationForUser,
 	getApplicationStatusTimeline,
 	getScreenerQuestionsByIds,
 	getUserApplicationDetail,
 	listClaimableApplicationsByEmail,
 	listUserApplications,
 } from '@/server/repositories/volunteer-applications';
+import { ensureAppliedRosterRow } from '@/server/services/appliedRosterService';
 
 export async function listMyApplications(userId: string) {
 	const applications = await listUserApplications(userId);
@@ -138,27 +141,83 @@ export async function claimApplication(userId: string, applicationId: string) {
 		});
 	}
 
-	// The bind and its audit row commit together. Writing the audit after the
-	// transaction would let a claim succeed with no trail of who acquired the
-	// relationship edge — the exact blind spot this fix exists to close.
-	const claimed = await prisma.$transaction(async (tx) => {
-		const row = await claimApplicationForUser(applicationId, userId, email, tx);
+	// The bind, its audit row, and any roster edge it implies commit together.
+	// Writing the audit after the transaction would let a claim succeed with no
+	// trail of who acquired the relationship edge — the exact blind spot this fix
+	// exists to close.
+	let claimed: { id: string; orgId: string } | null;
+	try {
+		claimed = await prisma.$transaction(async (tx) => {
+			const row = await claimApplicationForUser(
+				applicationId,
+				userId,
+				email,
+				tx,
+			);
 
-		if (!row) {
-			return null;
-		}
+			if (!row) {
+				return null;
+			}
 
-		await writeAuditLogTx(tx, {
-			orgId: row.orgId,
-			actorId: userId,
-			action: 'APPLICATION_CLAIMED',
-			entityType: 'VolunteerApplication',
-			entityId: row.id,
-			metadata: { claimedByEmail: email },
+			await writeAuditLogTx(tx, {
+				orgId: row.orgId,
+				actorId: userId,
+				action: 'APPLICATION_CLAIMED',
+				entityType: 'VolunteerApplication',
+				entityId: row.id,
+				metadata: { claimedByEmail: email },
+			});
+
+			// E1a, second entry point. An application approved BEFORE the
+			// applicant ever signed in gains `submittedByUserId` only now, so the
+			// roster edge has to be created here too — otherwise an APPROVED,
+			// linked application sits with no roster row and nothing ever
+			// reconciles it.
+			//
+			// `addedByUserId` is null on purpose: nobody added this volunteer, they
+			// added themselves.
+			if (row.status === 'APPROVED') {
+				await ensureAppliedRosterRow(tx, {
+					orgId: row.orgId,
+					userId,
+					applicationId: row.id,
+					actorId: userId,
+					addedByUserId: null,
+					fallbackDisplayName: email,
+				});
+			}
+
+			return row;
 		});
-
-		return row;
-	});
+	} catch (err) {
+		// The partial unique index on (submittedByUserId, opportunityId) WHERE the
+		// status is not REJECTED/WITHDRAWN. Setting the previously-null
+		// `submittedByUserId` collides when the caller already has an active
+		// application for the SAME opportunity — reachable because
+		// `submitVolunteerApplication` only dedupes once `submittedByUserId` is
+		// set, so an anonymous submission and a signed-in one can coexist.
+		//
+		// Deliberately NOT collapsed into the NOT_FOUND below. That code exists so
+		// "already claimed", "not yours" and "does not exist" are indistinguishable
+		// to someone probing ids — but reaching this line means the email predicate
+		// in the repository's `where` already matched, so the row IS the caller's
+		// and the collision is with their OWN other application. Nothing about a
+		// third party is disclosed, and NOT_FOUND here would be a dead end the user
+		// cannot act on.
+		if (
+			isUniqueViolationOn(
+				err,
+				'VolunteerApplication_userId_opportunityId_active',
+				'VolunteerApplication',
+			)
+		) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: "You've already applied to this opportunity.",
+			});
+		}
+		throw err;
+	}
 
 	if (!claimed) {
 		// Indistinguishable outcomes on purpose: "already claimed", "not yours",
@@ -170,6 +229,70 @@ export async function claimApplication(userId: string, applicationId: string) {
 	}
 
 	return { id: claimed.id };
+}
+
+/**
+ * Record that an orphan application offered to this user is not theirs.
+ *
+ * The claim card previously had one control — "Add to my account" — and hid only
+ * when the claimable list emptied, which it could do only by claiming. In the
+ * abuse case the card exists to stop (a third party planting an application
+ * under someone's address), the victim therefore saw a permanent card whose sole
+ * button granted the planting org an authorization edge over them. That is
+ * nag-until-yes on a security decision.
+ *
+ * The audit row is the point as much as the suppression is: a decline is
+ * EVIDENCE of a planted application, and a cluster of them against one org is a
+ * platform-admin signal.
+ */
+export async function declineApplication(
+	userId: string,
+	applicationId: string,
+) {
+	const email = await findEmailByUserId(userId);
+
+	if (!email) {
+		throw new TRPCError({
+			code: 'PRECONDITION_FAILED',
+			message: 'Your account has no email address on file.',
+		});
+	}
+
+	const declined = await prisma.$transaction(async (tx) => {
+		const row = await declineApplicationForUser(
+			applicationId,
+			userId,
+			email,
+			tx,
+		);
+
+		if (!row) {
+			return null;
+		}
+
+		await writeAuditLogTx(tx, {
+			orgId: row.orgId,
+			actorId: userId,
+			action: 'APPLICATION_CLAIM_DECLINED',
+			entityType: 'VolunteerApplication',
+			entityId: row.id,
+			metadata: { declinedByEmail: email },
+		});
+
+		return row;
+	});
+
+	if (!declined) {
+		// Same indistinguishability as the claim path: "already declined", "not
+		// yours" and "does not exist" are one outcome, so an id probe learns
+		// nothing from declining either.
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Application not found.',
+		});
+	}
+
+	return { id: declined.id };
 }
 
 export function normalizeReasons(

@@ -43,6 +43,59 @@ export function findLiveOrgVolunteer(
 	});
 }
 
+/**
+ * Insert a roster edge, doing nothing if a LIVE one already exists.
+ *
+ * Returns true when a row was inserted, false when one was already there.
+ *
+ * Why not `findLiveOrgVolunteer` then `createOrgVolunteer` with a P2002 catch —
+ * the shape `addVolunteer` uses and the shape the design doc prescribes for E1a?
+ * Because E1a runs inside a transaction that must COMMIT (the application
+ * approval, or the claim and its audit row), and in Postgres a failed statement
+ * poisons the whole transaction: verified against this database, swallowing a
+ * P2002 inside `prisma.$transaction` and issuing any further statement fails
+ * with `current transaction is aborted, commands ignored until end of
+ * transaction block`. So a concurrent roster race would roll back the approval
+ * itself. `createMany({ skipDuplicates: true })` compiles to
+ * `ON CONFLICT DO NOTHING`, which the server resolves without raising, so the
+ * enclosing transaction survives.
+ *
+ * `addVolunteer` keeps its catch-outside-the-transaction shape because there the
+ * duplicate IS the answer the coordinator needs ("Already on your roster"); here
+ * it is a no-op we want to absorb silently.
+ *
+ * Verified that `ON CONFLICT DO NOTHING` honours the PARTIAL index: a
+ * soft-deleted row does not block a fresh insert, so a re-approved volunteer who
+ * was previously removed is re-added rather than silently skipped.
+ */
+export async function createOrgVolunteerIfAbsent(
+	tx: TxClient,
+	data: {
+		orgId: string;
+		userId: string;
+		displayName: string;
+		phone?: string | null;
+		source?: OrgVolunteerSource;
+		addedByUserId?: string | null;
+	},
+): Promise<boolean> {
+	const { count } = await tx.orgVolunteer.createMany({
+		data: [
+			{
+				orgId: data.orgId,
+				userId: data.userId,
+				displayName: data.displayName,
+				phone: data.phone ?? null,
+				source: data.source ?? 'STAFF_ADDED',
+				addedByUserId: data.addedByUserId ?? null,
+			},
+		],
+		skipDuplicates: true,
+	});
+
+	return count > 0;
+}
+
 export function createOrgVolunteer(
 	tx: TxClient,
 	data: {

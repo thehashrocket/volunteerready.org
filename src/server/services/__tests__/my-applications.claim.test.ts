@@ -12,10 +12,12 @@
 
 const mocks = vi.hoisted(() => ({
 	claimApplicationForUser: vi.fn(),
+	declineApplicationForUser: vi.fn(),
 	listClaimableApplicationsByEmail: vi.fn(),
 	listUserApplications: vi.fn(),
 	getUserApplicationDetail: vi.fn(),
 	writeAuditLogTx: vi.fn(),
+	ensureAppliedRosterRow: vi.fn(),
 	updateMany: vi.fn(),
 	findEmailByUserId: vi.fn(),
 	// Stand-in transaction client. Running the callback inline means a throw
@@ -27,8 +29,13 @@ vi.mock('@/server/repositories/userAccountStateRepo', () => ({
 	findEmailByUserId: mocks.findEmailByUserId,
 }));
 
+vi.mock('@/server/services/appliedRosterService', () => ({
+	ensureAppliedRosterRow: mocks.ensureAppliedRosterRow,
+}));
+
 vi.mock('@/server/repositories/volunteer-applications', () => ({
 	claimApplicationForUser: mocks.claimApplicationForUser,
+	declineApplicationForUser: mocks.declineApplicationForUser,
 	getApplicationStatusTimeline: vi.fn(),
 	getScreenerQuestionsByIds: vi.fn().mockResolvedValue([]),
 	getUserApplicationDetail: mocks.getUserApplicationDetail,
@@ -52,15 +59,41 @@ vi.mock('@/server/repositories/prisma', () => ({
 
 import { TRPCError } from '@trpc/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Prisma } from '@/prisma/generated/client';
 import {
 	claimApplication,
+	declineApplication,
 	listClaimableApplications,
 	listMyApplications,
 } from '@/server/services/my-applications';
 
+/** A P2002 shaped the way the PrismaPg driver adapter actually reports one. */
+function uniqueViolation(constraint: string, modelName: string) {
+	const err = new Prisma.PrismaClientKnownRequestError('Unique constraint', {
+		code: 'P2002',
+		clientVersion: 'test',
+	});
+	// `meta.target` is deliberately absent — the adapter never populates it, which
+	// is why the detector reads modelName / originalMessage instead.
+	(err as { meta?: unknown }).meta = {
+		modelName,
+		driverAdapterError: {
+			cause: {
+				originalMessage: `duplicate key value violates unique constraint "${constraint}"`,
+			},
+		},
+	};
+	return err;
+}
+
 beforeEach(() => {
 	vi.clearAllMocks();
 	mocks.findEmailByUserId.mockResolvedValue('bob@example.test');
+	// `clearAllMocks` resets recorded CALLS but not implementations, so a
+	// `mockRejectedValue` set by one test leaks into every later one. These two are
+	// re-armed explicitly because tests below depend on their happy path.
+	mocks.writeAuditLogTx.mockResolvedValue(undefined);
+	mocks.ensureAppliedRosterRow.mockResolvedValue(true);
 });
 
 describe('listMyApplications', () => {
@@ -201,5 +234,218 @@ describe('claimApplication', () => {
 			(error: TRPCError) => error,
 		);
 		expect((noEmail as TRPCError).code).toBe('PRECONDITION_FAILED');
+	});
+
+	// -------------------------------------------------------------------------
+	// E1a — the roster edge an approved application implies
+	// -------------------------------------------------------------------------
+
+	it('creates the roster edge when claiming an already-APPROVED application', async () => {
+		// The second E1a entry point. An application approved BEFORE the applicant
+		// ever signed in gains `submittedByUserId` only at claim time, so without
+		// this the roster row is never created and never reconciled.
+		mocks.claimApplicationForUser.mockResolvedValue({
+			id: 'app-1',
+			orgId: 'org-1',
+			status: 'APPROVED',
+		});
+
+		await claimApplication('user-1', 'app-1');
+
+		expect(mocks.ensureAppliedRosterRow).toHaveBeenCalledWith(
+			{ tx: true },
+			expect.objectContaining({
+				orgId: 'org-1',
+				userId: 'user-1',
+				applicationId: 'app-1',
+				actorId: 'user-1',
+				// Nobody added this volunteer — they added themselves.
+				addedByUserId: null,
+				fallbackDisplayName: 'bob@example.test',
+			}),
+		);
+	});
+
+	it('does NOT create a roster edge when claiming a still-pending application', async () => {
+		// Claiming binds an application of ANY status. Only an APPROVED one means the
+		// org has accepted this person as a volunteer.
+		for (const status of ['SUBMITTED', 'REVIEW', 'REJECTED'] as const) {
+			vi.clearAllMocks();
+			mocks.findEmailByUserId.mockResolvedValue('bob@example.test');
+			mocks.claimApplicationForUser.mockResolvedValue({
+				id: 'app-1',
+				orgId: 'org-1',
+				status,
+			});
+
+			await claimApplication('user-1', 'app-1');
+
+			expect(mocks.ensureAppliedRosterRow).not.toHaveBeenCalled();
+		}
+	});
+
+	it('creates the roster edge on the same tx handle as the bind', async () => {
+		mocks.claimApplicationForUser.mockResolvedValue({
+			id: 'app-1',
+			orgId: 'org-1',
+			status: 'APPROVED',
+		});
+
+		await claimApplication('user-1', 'app-1');
+
+		expect(mocks.ensureAppliedRosterRow.mock.calls[0][0]).toEqual({ tx: true });
+	});
+
+	// -------------------------------------------------------------------------
+	// The duplicate-application collision
+	// -------------------------------------------------------------------------
+
+	it('maps a duplicate-application P2002 to CONFLICT, not a 500', async () => {
+		// Setting the previously-null `submittedByUserId` collides with the partial
+		// unique index when the caller ALREADY has an active application for the same
+		// opportunity — reachable because `submitVolunteerApplication` only dedupes
+		// once `submittedByUserId` is set. Unhandled, this surfaced as
+		// INTERNAL_SERVER_ERROR and left the row permanently unclaimable.
+		mocks.claimApplicationForUser.mockRejectedValue(
+			uniqueViolation(
+				'VolunteerApplication_userId_opportunityId_active',
+				'VolunteerApplication',
+			),
+		);
+
+		const error = await claimApplication('user-1', 'app-1').catch(
+			(e: TRPCError) => e,
+		);
+
+		expect((error as TRPCError).code).toBe('CONFLICT');
+		expect((error as TRPCError).message).toMatch(/already applied/i);
+	});
+
+	it('deliberately does NOT collapse that collision into NOT_FOUND', async () => {
+		// The indistinguishability rule governs the `!row` branch, which is what an
+		// id probe reaches. Getting here means the repository's email predicate
+		// already matched, so the row IS the caller's and the collision is with their
+		// OWN other application — nothing about a third party is disclosed, and
+		// NOT_FOUND would be a dead end they cannot act on.
+		mocks.claimApplicationForUser.mockRejectedValue(
+			uniqueViolation(
+				'VolunteerApplication_userId_opportunityId_active',
+				'VolunteerApplication',
+			),
+		);
+
+		const error = await claimApplication('user-1', 'app-1').catch(
+			(e: TRPCError) => e,
+		);
+
+		expect((error as TRPCError).code).not.toBe('NOT_FOUND');
+	});
+
+	it('does not swallow an unrelated unique violation as CONFLICT', async () => {
+		// Narrowing matters: reporting "you already applied" for a P2002 on some
+		// other table would tell the user something false.
+		mocks.claimApplicationForUser.mockRejectedValue(
+			uniqueViolation('User_email_key', 'User'),
+		);
+
+		const error = await claimApplication('user-1', 'app-1').catch(
+			(e: unknown) => e,
+		);
+
+		expect(error).not.toBeInstanceOf(TRPCError);
+	});
+
+	it('lets a non-P2002 failure propagate untouched', async () => {
+		mocks.claimApplicationForUser.mockRejectedValue(
+			new Error('connection lost'),
+		);
+
+		await expect(claimApplication('user-1', 'app-1')).rejects.toThrow(
+			'connection lost',
+		);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Declining
+// ---------------------------------------------------------------------------
+
+describe('declineApplication', () => {
+	beforeEach(() => {
+		mocks.declineApplicationForUser.mockResolvedValue({
+			id: 'app-1',
+			orgId: 'org-1',
+		});
+	});
+
+	it('records the decline and audits it', async () => {
+		// The audit row is the point as much as the suppression: a decline is
+		// EVIDENCE of a planted application, and a cluster against one org is a
+		// platform-admin signal.
+		const result = await declineApplication('user-1', 'app-1');
+
+		expect(result).toEqual({ id: 'app-1' });
+		expect(mocks.declineApplicationForUser).toHaveBeenCalledWith(
+			'app-1',
+			'user-1',
+			'bob@example.test',
+			{ tx: true },
+		);
+		expect(mocks.writeAuditLogTx).toHaveBeenCalledWith(
+			{ tx: true },
+			expect.objectContaining({
+				orgId: 'org-1',
+				actorId: 'user-1',
+				action: 'APPLICATION_CLAIM_DECLINED',
+				entityType: 'VolunteerApplication',
+				entityId: 'app-1',
+			}),
+		);
+	});
+
+	it('SECURITY: resolves the address from the id, never from a caller argument', async () => {
+		// Same reasoning as the claim path: under impersonation
+		// `session.user.email` is the real admin's while `id` is the target's.
+		await declineApplication('user-1', 'app-1');
+
+		expect(mocks.findEmailByUserId).toHaveBeenCalledWith('user-1');
+	});
+
+	it("SECURITY: throws NOT_FOUND for a row that is not the caller's", async () => {
+		// The repository enforces the email match in its `where`, so one user cannot
+		// suppress another user's claim candidate.
+		mocks.declineApplicationForUser.mockResolvedValue(null);
+
+		const error = await declineApplication('attacker', 'victims-app').catch(
+			(e: TRPCError) => e,
+		);
+
+		expect((error as TRPCError).code).toBe('NOT_FOUND');
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: never creates a roster edge — declining grants nothing', async () => {
+		await declineApplication('user-1', 'app-1');
+
+		expect(mocks.ensureAppliedRosterRow).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: an audit-write failure aborts the decline', async () => {
+		mocks.writeAuditLogTx.mockRejectedValue(new Error('audit table down'));
+
+		await expect(declineApplication('user-1', 'app-1')).rejects.toThrow(
+			'audit table down',
+		);
+	});
+
+	it('refuses when the user has no email on file', async () => {
+		mocks.findEmailByUserId.mockResolvedValue(null);
+
+		const error = await declineApplication('user-1', 'app-1').catch(
+			(e: TRPCError) => e,
+		);
+
+		expect((error as TRPCError).code).toBe('PRECONDITION_FAILED');
+		expect(mocks.declineApplicationForUser).not.toHaveBeenCalled();
 	});
 });

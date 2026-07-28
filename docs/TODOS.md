@@ -5,6 +5,74 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Deferred from the E1a roster-convergence ship (2026-07-28, v0.34.0.0)
+
+Shipped: E1a (roster rows on approval + on claim), the four correctness-debt
+items from the application-claim ship, and the CI workflow. See those entries
+below, now struck through.
+
+### The design doc's prescribed E1a shape does not work — corrected in code
+`docs/designs/staff-created-volunteers.md` §5 and this file both specified
+`findFirst({ orgId, userId, deletedAt: null })` then `create` with a **P2002
+catch**, inside the approval/claim transaction. That cannot work, and it is worth
+recording why so it is not "restored" later.
+
+**Verified against this database:** swallowing a P2002 inside
+`prisma.$transaction` and issuing any further statement fails with `current
+transaction is aborted, commands ignored until end of transaction block`. In
+Postgres a failed statement poisons the whole transaction. Since the enclosing
+transaction must COMMIT — it carries the application approval, or the claim and its
+audit row — a concurrent roster race would have rolled the approval back.
+
+`createMany({ skipDuplicates: true })` compiles to `ON CONFLICT DO NOTHING`, which
+the server resolves without raising, so the transaction survives. Also verified
+that it honours the hand-written PARTIAL index, so a soft-deleted row does not
+suppress a fresh insert. Both facts are pinned by
+`repositories/appliedRoster.integration.test.ts`, including a test that
+deliberately reproduces the abort.
+
+`addVolunteer` keeps its catch-outside-the-transaction shape, correctly: there the
+duplicate IS the answer the coordinator needs ("Already on your roster").
+
+### Roster creation is gated on the TRANSITION into APPROVED, not the status
+`updateOrgApplicationStatus` is **not idempotent** — re-saving an already-APPROVED
+application re-runs the update and re-writes `STATUS_CHANGED`. Gating on
+`status === 'APPROVED'` alone would therefore resurrect a volunteer a coordinator
+had deliberately removed, because the soft-deleted roster row does not block a
+fresh insert. The gate is `previousStatus !== 'APPROVED'`, matching the guard
+`notifyApplicationStatusChange` already uses three lines away. A genuine
+REJECTED→APPROVED or REVIEW→APPROVED transition *does* re-add, because that is an
+affirmative act. Pinned by `screener-queries.approvalRoster.test.ts`.
+
+### [P3] `company.ts` still inlines the `impersonatedBy` ternary at three call sites
+`src/server/trpc/audit-actor.ts` now holds `effectiveUserId()` / `impersonatedBy()`,
+extracted because a third copy was about to be written. `routers/volunteers.ts`
+and `routers/screener.ts` use it; `routers/company.ts` still has the expression
+inlined at its other call sites (`switchCompany`, `linkNonprofit`, `unlinkNonprofit`,
+`invite`) and was left alone to keep this diff focused. Getting that ternary
+subtly wrong is **silent** — omitting the `!== effective` comparison marks every
+audit row as impersonated and makes `queryAuditLog`'s `impersonatedOnly` filter
+useless — so it should exist once. **Fix:** replace those four with the shared
+helper. **Effort:** S.
+
+### [P3] `VolunteerApplication` has no `createdAt`/`updatedAt`
+Noticed while adding `declinedAt`. The model has `submittedAt` only, against
+CLAUDE.md's "every table gets createdAt, updatedAt, and if relevant deletedAt".
+Pre-existing and out of scope here; a backfill would have to decide what
+`createdAt` means for historical rows (presumably `submittedAt`). **Effort:** S.
+
+### [P2] E1a is not yet covered end to end by an automated test
+Both paths were verified against a real database by a throwaway script during the
+ship — 17 assertions covering approval, the transition gate, removal
+non-resurrection, claim of a pre-approved orphan, the `User.name === null`
+displayName fallback, decline suppression, and cross-user decline refusal — but
+that script was deleted rather than committed, because it drove services directly
+rather than going through HTTP. The unit and integration layers cover the pieces;
+nothing covers "approve in the UI, see them on `/app/volunteers`". Natural
+companion to the T15 e2e spec. **Effort:** M.
+
+---
+
 ## Deferred from the application-claim ship (`/ship`, 2026-07-27)
 
 Found by the 7-specialist review of the `linkApplicationsToUser()` fix. The two
@@ -20,48 +88,85 @@ Never use it to compare identities. Three regression tests in
 `applicationClaim.integration.test.ts` pin this; all three go red if the
 `insensitive` mode is reintroduced.
 
-### [P2] `volunteerDashboardService` still email-matches orphan applications
-`src/server/services/volunteerDashboardService.ts:57` and `:135` both do
-`...(email ? [{ submittedByEmail: email, submittedByUserId: null }] : [])`. The
-auto-*bind* is gone but the auto-*display* is not: an attacker-planted public
-application still shows on the victim's dashboard as their own pending
-application and still steers their recommended-opportunities query toward the
-attacker's org. It mints no `APPLICATION` edge, so it is spoofing/phishing, not
-the original escalation. Also uses case-sensitive equality, so it and the claim
-card can now disagree about which rows are "yours". **Fix:** restrict to
-`submittedByUserId: userId` and let the claim card be the only path by which an
-unlinked application becomes visible. **Effort:** S.
+### [P2] ~~`volunteerDashboardService` still email-matches orphan applications~~
+✅ **FIXED (v0.34.0.0).** Both sites now filter on `submittedByUserId: userId`
+alone, and the `email` parameter is **gone from the signature** — while it
+existed, every call site was one `session.user.email` away from restoring the
+leak.
 
-### [P2] The consent card has no decline path
-`src/app/(app)/app/my-applications/page.tsx` — the only control is "Add to my
-account", and the card's dismissal condition is `claimable.length === 0`, a list
-that only shrinks when the user claims. So in exactly the abuse case the feature
-exists to stop, the victim sees a permanent un-dismissible card whose sole
-button grants the attacker's org access. That is nag-until-yes on a security
-decision. **Fix:** add an equal-weight "Not mine" that records a per-user
-suppression, plus an audit row (a decline is *evidence* of the planted-
-application attack and should be a platform-admin signal). **Effort:** M.
+**The report understated it.** It described spoofing/phishing only. The `email`
+argument was `session.user?.email` (`routers/volunteer.ts:14`), which under
+impersonation is the **real admin's** while `userId` is the target's — so this was
+also an impersonation identity split of exactly the class fixed in the claim path,
+leaking the admin's own unlinked applications into the target's dashboard.
+Covered by two tests in `volunteerDashboardService.test.ts`, one asserting the
+function's arity so the parameter cannot quietly come back.
 
-### [P2] `claimApplication` does not handle P2002 on the partial unique index
-Migration `20260421151557` creates a partial unique index on
-`(submittedByUserId, opportunityId)`. The claim sets the previously-NULL
-`submittedByUserId`, so claiming when you already have an active application for
-the same opportunity raises P2002. Nothing catches it, so tRPC returns
-INTERNAL_SERVER_ERROR and the row is permanently unclaimable — and a 500 is
-distinguishable from NOT_FOUND, which defeats the deliberate indistinguishability
-of the refusal codes. Reachable because `submitVolunteerApplication` only dedupes
-when `submittedByUserId` is set. **Fix:** catch P2002 inside the transaction and
-return the same NOT_FOUND. **Effort:** S.
+### [P2] ~~The consent card has no decline path~~ ✅ FIXED (v0.34.0.0)
+`declinedByUserId` / `declinedAt` on `VolunteerApplication` (migration
+`20260727210000`), `declineApplicationForUser()` enforcing the same email
+predicate **inside the `where`** as the claim, a `declineApplication()` service
+writing an `APPLICATION_CLAIM_DECLINED` audit row, `screener.declineApplication`
+at the same rate limit as the claim, and an equal-weight "Not mine" with inline
+confirmation.
 
-### [P2] Integration tests are the only proof of the email predicate, and nothing runs them
-`vitest.config.mts` excludes `src/**/*.integration.test.ts`, and there is no
-`.github/workflows` directory at all. Both faster layers mock the predicate away.
-So the single check stopping a forged application from minting an authorization
-edge is proven only by `pnpm test:integration`, which needs a live Postgres and a
-separate command nobody is obliged to run. **Fix:** add a CI workflow with a
-Postgres service running all three suites; a `.githooks` pre-push is already
-wired (`"prepare": "git config core.hooksPath .githooks"`) if CI is too far off.
-**Effort:** S.
+Decisions worth not re-litigating:
+- **Two columns, not a join table.** `User.email` is unique and canonicalized and
+  claimability is email equality, so for any given orphan row there is exactly
+  ONE user who could ever claim it. A join table models a many-to-many that
+  cannot exist.
+- **Equal visual weight, pinned by a test** comparing the two buttons'
+  `className`. Declining is the SAFE action on this card, so it must not read as
+  weaker or more dangerous than accepting — which is also why it is not
+  `variant="destructive"` until the confirm step.
+- **Inline confirmation, not a modal.** There is no `AlertDialog` primitive or
+  radix dep for one, and inline keeps the org name — the entire basis for the
+  decision — on screen.
+- Declining also frees a slot in the `CLAIMABLE_LIST_CAP` starvation window that
+  `listClaimableApplicationsByEmail` documents as needing exactly this.
+
+The same migration adds a partial index `VolunteerApplication_claimable`: there
+was **no index on `submittedByEmail` at all**, so the claimable lookup — run by
+any signed-in user on every `/app/my-applications` load — scanned the whole table.
+Pre-existing; found while adding `declinedAt` to that predicate.
+
+### [P2] ~~`claimApplication` does not handle P2002 on the partial unique index~~ ✅ FIXED (v0.34.0.0)
+**Mapped to CONFLICT, not the NOT_FOUND this entry prescribed** — deliberately,
+with sign-off. To reach the P2002 the caller must already have passed the email
+predicate in the repository's `where`, so the row IS theirs and the collision is
+with their **own** other active application for the same opportunity. Nothing
+about a third party is disclosed, so the indistinguishability argument does not
+apply here; it still governs the `!row` branch, which is the one an id probe
+reaches. NOT_FOUND would have been a dead end the user cannot act on.
+
+Narrowed by constraint name via a new shared `isUniqueViolationOn()` in
+`src/server/lib/prisma-errors.ts`, which also absorbed the duplicated detector
+from `staffVolunteerService.isRosterDuplicate` (the PrismaPg adapter does not
+populate `meta.target`; see that file's comment).
+
+### [P2] ~~Integration tests are the only proof of the email predicate, and nothing runs them~~ ✅ FIXED (v0.34.0.0)
+`.github/workflows/ci.yml`: a `static` job (`pnpm lint`, `pnpm typecheck`) and a
+`test` job running `pnpm test`, `pnpm test:scripts` and `pnpm test:integration`
+against a `postgres:16-alpine` service container, on PRs to `main` and pushes to
+`main`. `prisma migrate deploy`, never `db push` — several migrations are
+hand-written SQL (triggers, functional and partial indexes) that a schema diff
+would silently omit, and those are exactly what the integration specs assert.
+
+e2e is deliberately **not** included: it needs Playwright browsers, a booted dev
+server and `seed:dev` data. It belongs with the T15 spec.
+
+Two things surfaced while wiring this up:
+- **`pnpm lint` had never been green.** It runs `biome check .` across the whole
+  repo while `check`/`format` scope to `src docs prisma/schema.prisma`, so
+  `package.json` had been failing the formatter indefinitely. Formatted
+  (whitespace only) so the CI gate actually means something.
+- **The integration suite had no local-database guard**, unlike `e2e/utils/db.ts`.
+  It cleans up with prefix-scoped `deleteMany` sweeps, so a misconfigured
+  `DATABASE_URL` would delete matching rows in whatever it pointed at. Guard added
+  at module scope in `src/test/integration-setup.ts` (so it fails before any
+  `beforeAll` can write), overridable with `INTEGRATION_ALLOW_REMOTE_DB=1`. This
+  mattered more once CI began supplying `DATABASE_URL` from the environment rather
+  than from a developer's `.env.local`.
 
 ### [P3] One more case-sensitivity divergence — and this entry was wrong twice
 **Corrected 2026-07-27 by the red-team re-review.** The original text said the
@@ -84,7 +189,31 @@ request), not with a backfill. **Effort:** S.
 same ship — it had been actively regressed by adding `.transform` to `submit`
 without adding it to the sibling reader.)
 
-### [P2] Two pre-existing procedures have the same id/email split just fixed here
+### [P2] ~~Two pre-existing procedures have the same id/email split just fixed here~~ ✅ FIXED (v0.34.0.0)
+Both `acceptInvitation` (`memberService.ts`) and `acceptCompanyInvite`
+(`companyService.ts`) **dropped the `userEmail` parameter entirely** and resolve
+the address with `findEmailByUserId(userId)`, so the id and the address cannot
+describe two people. Comparison is `normalizeEmail()` on both sides, not the
+previous bare `.toLowerCase()`, so a legacy non-canonicalized invitation row still
+matches. Both refuse with a specific error when the accepting account has no
+address on file, rather than falling through to a comparison against `''`.
+
+`company.acceptInvite` also now passes `impersonatedBy` — the service already
+supported it and wrote it to the audit metadata; the router simply never wired it
+up for accept, unlike `invite`.
+
+**One correction to the report:** the Server Component at
+`src/app/invite/company/[token]/page.tsx` was already doing this correctly, and
+was the only caller that did. It looked the address up from the effective user id
+by hand — which also put a Prisma call in `app/**`. That block is now dead code
+and deleted. The live bug was reachable through the tRPC procedure only.
+
+Covered by `services/__tests__/inviteAcceptIdentity.test.ts` (11 tests, both
+invitation types). The page's own security test was rewritten rather than deleted:
+it now asserts the page passes the TARGET id and **no** email at all, which is
+what stops the by-hand lookup being reintroduced alongside the service's.
+
+<details><summary>Original report</summary>
 Out of this diff, but the identical bug class. `members.ts:77` passes
 `ctx.session?.user?.email` alongside `ctx.session?.user?.id` into
 `acceptInvitation`, which authorizes on the **email**
@@ -98,6 +227,7 @@ as authorization. Notable that `company.ts` already knows about impersonation
 (it stamps `impersonatedBy` at line 127) and still pairs the two identities
 here. **Fix:** resolve the address with `findEmailByUserId(userId)`, exactly as
 the claim path now does. **Effort:** S each.
+</details>
 
 ### [P2] The claimable list is still starvable — ordering only narrowed it
 **Corrected 2026-07-28.** An earlier version of this entry said oldest-first

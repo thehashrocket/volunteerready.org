@@ -1,10 +1,10 @@
 import { TRPCError } from '@trpc/server';
-import { Prisma } from '@/prisma/generated/client';
 import {
 	type AddVolunteerOutcome,
 	normalizeEmail,
 	shouldNotifyByEmail,
 } from '@/server/domain/org-volunteer';
+import { isUniqueViolationOn } from '@/server/lib/prisma-errors';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
 	countAttendedShiftsByUser,
@@ -43,36 +43,10 @@ function alreadyOnRoster() {
  * the address now exists platform-wide. Narrow to the constraint we mean.
  */
 function isRosterDuplicate(err: unknown): boolean {
-	if (
-		!(err instanceof Prisma.PrismaClientKnownRequestError) ||
-		err.code !== 'P2002'
-	) {
-		return false;
-	}
-
-	// Prisma 7 with the PrismaPg driver adapter does NOT populate `meta.target`
-	// (the pre-adapter field most examples still show). Verified empirically
-	// against this database — a roster duplicate produces:
-	//   meta.modelName = 'OrgVolunteer'
-	//   meta.driverAdapterError.cause.originalMessage =
-	//     'duplicate key value violates unique constraint
-	//      "OrgVolunteer_orgId_userId_active"'
-	// Reading `meta.target` returns undefined for EVERY P2002 here, which would
-	// silently disable duplicate detection altogether.
-	const meta = err.meta as
-		| {
-				modelName?: string;
-				driverAdapterError?: { cause?: { originalMessage?: string } };
-		  }
-		| undefined;
-
-	if (meta?.modelName === 'OrgVolunteer') return true;
-
-	// Belt and braces if modelName is ever absent.
-	return Boolean(
-		meta?.driverAdapterError?.cause?.originalMessage?.includes(
-			'OrgVolunteer_orgId_userId_active',
-		),
+	return isUniqueViolationOn(
+		err,
+		'OrgVolunteer_orgId_userId_active',
+		'OrgVolunteer',
 	);
 }
 

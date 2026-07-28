@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import type { Role } from '@/prisma/generated/client';
+import { normalizeEmail } from '@/server/domain/org-volunteer';
 import { generateToken, hashToken } from '@/server/lib/tokens';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
@@ -9,6 +10,7 @@ import {
 } from '@/server/repositories/inviteRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { sendInviteEmail } from '@/server/repositories/sendInviteEmail';
+import { findEmailByUserId } from '@/server/repositories/userAccountStateRepo';
 
 const INVITE_EXPIRY_HOURS = 48;
 
@@ -85,17 +87,33 @@ export async function getInvitationDetails(rawToken: string) {
 	return findInvitationByHash(hashToken(rawToken));
 }
 
-export async function acceptInvitation(
-	rawToken: string,
-	userId: string,
-	userEmail: string,
-) {
+/**
+ * Accept an org invitation for `userId`.
+ *
+ * SECURITY: takes only a user id. The address is resolved from that SAME id
+ * rather than accepted from the caller, because `createTRPCContext` builds the
+ * session as `{ ...realSession.user, id: effectiveUserId }` — under
+ * impersonation only `id` is swapped, so `ctx.session.user.email` stays the real
+ * admin's. Authorizing on that email while creating the membership row for the
+ * impersonated id let an admin holding an invitation addressed to THEMSELVES
+ * mint an `OrganizationMember` row for the impersonated victim — and
+ * `ORG_MEMBER` is one of the relationship kinds
+ * `requireOrgVolunteerRelationship()` accepts as authorization over a volunteer.
+ * Same fix, and the same reasoning, as `claimApplication()`.
+ */
+export async function acceptInvitation(rawToken: string, userId: string) {
 	const invitation = await findValidInvitationByHash(hashToken(rawToken));
 	if (!invitation) {
 		throw new Error('This invitation is invalid or has expired.');
 	}
 
-	if (invitation.email.toLowerCase() !== userEmail.toLowerCase()) {
+	const userEmail = await findEmailByUserId(userId);
+
+	if (!userEmail) {
+		throw new Error('Your account has no email address on file.');
+	}
+
+	if (normalizeEmail(invitation.email) !== normalizeEmail(userEmail)) {
 		throw new Error('This invitation was sent to a different email address.');
 	}
 

@@ -17,6 +17,7 @@ import {
 	switchCompanyForSession,
 	unlinkNonprofit,
 } from '@/server/services/companyService';
+import { effectiveUserId, impersonatedBy } from '@/server/trpc/audit-actor';
 import {
 	companyScopedProcedure,
 	createTRPCRouter,
@@ -136,8 +137,12 @@ export const companyRouter = createTRPCRouter({
 			const tokenHash = hashToken(input.token);
 			return acceptCompanyInvite({
 				tokenHash,
-				userId: ctx.session?.user?.id ?? '',
-				userEmail: ctx.session?.user?.email ?? '',
+				// Id only — the service resolves the address from it. Passing
+				// `session.user.email` too mixed two identities under impersonation.
+				userId: effectiveUserId(ctx) ?? '',
+				// The service already stamps this into the audit metadata; the router
+				// simply never wired it up for accept, unlike `invite` above.
+				impersonatedBy: impersonatedBy(ctx),
 			});
 		}),
 });

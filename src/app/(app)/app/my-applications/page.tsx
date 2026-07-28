@@ -36,12 +36,22 @@ function ClaimableApplications({
 }) {
 	const utils = trpc.useUtils();
 	const query = trpc.screener.claimableApplications.useQuery();
+	// Which row is awaiting decline confirmation. Inline rather than a modal so
+	// the organization name stays on screen while the user decides — that name is
+	// the entire basis for the decision.
+	const [confirmingId, setConfirmingId] = useState<string | null>(null);
 	const claim = trpc.screener.claimApplication.useMutation({
 		onSuccess: async () => {
 			await Promise.all([
 				utils.screener.claimableApplications.invalidate(),
 				utils.screener.myApplications.invalidate(),
 			]);
+		},
+	});
+	const decline = trpc.screener.declineApplication.useMutation({
+		onSuccess: async () => {
+			setConfirmingId(null);
+			await utils.screener.claimableApplications.invalidate();
 		},
 	});
 
@@ -73,40 +83,88 @@ function ClaimableApplications({
 					submitted with your email address before you signed in. Add{' '}
 					{claimable.length === 1 ? 'it' : 'them'} to your account only if you
 					recognize {claimable.length === 1 ? 'it' : 'them'} — the organization
-					will be able to see your volunteer profile once you do.
+					will be able to see your volunteer profile once you do. If you don’t
+					recognize {claimable.length === 1 ? 'it' : 'one'}, choose{' '}
+					<strong>Not mine</strong> and we won’t ask again.
 				</p>
 				<ul className="divide-y rounded-md border">
-					{claimable.map((application) => (
-						<li
-							key={application.id}
-							className="flex flex-wrap items-center justify-between gap-3 p-3"
-						>
-							<div className="min-w-0 text-sm">
-								<p className="break-words font-medium">
-									{application.organization?.name ?? 'Unknown organization'}
-								</p>
-								<p className="text-muted-foreground">
-									Submitted {formatDate(application.submittedAt)}
-								</p>
-							</div>
-							<Button
-								size="sm"
-								variant="outline"
-								disabled={claim.isPending}
-								onClick={() => claim.mutate({ id: application.id })}
-								// Every row's visible label is identical, so without this a
-								// screen reader announces "Add to my account" N times with
-								// nothing to distinguish which org each grants access to.
-								// Leads with the visible label verbatim so voice control
-								// still matches what the user reads (WCAG 2.5.3).
-								aria-label={`Add to my account: ${
-									application.organization?.name ?? 'unknown organization'
-								}, submitted ${formatDate(application.submittedAt)}`}
+					{claimable.map((application) => {
+						const orgName =
+							application.organization?.name ?? 'unknown organization';
+						const submitted = formatDate(application.submittedAt);
+						const isConfirming = confirmingId === application.id;
+
+						return (
+							<li
+								key={application.id}
+								className="flex flex-wrap items-center justify-between gap-3 p-3"
 							>
-								Add to my account
-							</Button>
-						</li>
-					))}
+								<div className="min-w-0 text-sm">
+									<p className="break-words font-medium">
+										{application.organization?.name ?? 'Unknown organization'}
+									</p>
+									<p className="text-muted-foreground">
+										{isConfirming
+											? "We won't offer this one again."
+											: `Submitted ${submitted}`}
+									</p>
+								</div>
+								{isConfirming ? (
+									<div className="flex flex-wrap gap-2">
+										<Button
+											size="sm"
+											variant="outline"
+											disabled={decline.isPending}
+											onClick={() => setConfirmingId(null)}
+											aria-label={`Keep showing this application from ${orgName}`}
+										>
+											Cancel
+										</Button>
+										<Button
+											size="sm"
+											variant="destructive"
+											disabled={decline.isPending}
+											onClick={() => decline.mutate({ id: application.id })}
+											aria-label={`Confirm this application from ${orgName}, submitted ${submitted}, is not mine`}
+										>
+											Yes, remove it
+										</Button>
+									</div>
+								) : (
+									<div className="flex flex-wrap gap-2">
+										{/* Same size and variant as the accept control on purpose.
+										    Declining is the SAFE choice on this card — the accept
+										    grants an organization a relationship edge — so the
+										    refusal must not look weaker or more dangerous than the
+										    acceptance. */}
+										<Button
+											size="sm"
+											variant="outline"
+											disabled={claim.isPending || decline.isPending}
+											onClick={() => setConfirmingId(application.id)}
+											aria-label={`Not mine: ${orgName}, submitted ${submitted}`}
+										>
+											Not mine
+										</Button>
+										<Button
+											size="sm"
+											variant="outline"
+											disabled={claim.isPending || decline.isPending}
+											onClick={() => claim.mutate({ id: application.id })}
+											// Every row's visible label is identical, so without this a
+											// screen reader announces "Add to my account" N times with
+											// nothing to distinguish which org each grants access to.
+											// Leads with the visible label verbatim so voice control
+											// still matches what the user reads (WCAG 2.5.3).
+											aria-label={`Add to my account: ${orgName}, submitted ${submitted}`}
+										>
+											Add to my account
+										</Button>
+									</div>
+								)}
+							</li>
+						);
+					})}
 				</ul>
 				{claim.isError ? (
 					<p role="alert" className="text-sm text-destructive">
@@ -114,6 +172,12 @@ function ClaimableApplications({
 						    raw Prisma string, and this card is shown to volunteers. */}
 						{safeErrorMessage(claim.error) ??
 							"We couldn't add that application. Try again."}
+					</p>
+				) : null}
+				{decline.isError ? (
+					<p role="alert" className="text-sm text-destructive">
+						{safeErrorMessage(decline.error) ??
+							"We couldn't remove that application. Try again."}
 					</p>
 				) : null}
 			</CardContent>

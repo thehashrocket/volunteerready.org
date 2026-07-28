@@ -1,6 +1,9 @@
-import type { AccountState } from '@/prisma/generated/client';
+import type { AccountState, PrismaClient } from '@/prisma/generated/client';
 import { normalizeEmail } from '@/server/domain/org-volunteer';
 import { prisma } from './prisma';
+
+/** Works with both `prisma` and `prisma.$transaction(tx => …)`. */
+type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 
 /**
  * Look up a recipient's account state by email address.
@@ -44,6 +47,29 @@ export async function findEmailByUserId(
 		select: { email: true },
 	});
 	return row?.email ?? null;
+}
+
+/**
+ * The name and canonical email for a user id, read through a caller-supplied
+ * transaction client.
+ *
+ * Exists for the roster convergence path (E1a), which needs a `displayName`
+ * inside the approval/claim transaction. `VolunteerApplication` carries no name
+ * field, so the roster label is sourced from the `User` row.
+ *
+ * Deliberately keyed on the user ID rather than the application's
+ * `submittedByEmail`: the two are not guaranteed to agree (an application can be
+ * submitted under one address while linked to a user with another), and the
+ * roster must name the identity it actually grants the org access to.
+ */
+export async function findUserIdentity(
+	tx: TxClient,
+	userId: string,
+): Promise<{ name: string | null; email: string | null } | null> {
+	return tx.user.findUnique({
+		where: { id: userId },
+		select: { name: true, email: true },
+	});
 }
 
 /**

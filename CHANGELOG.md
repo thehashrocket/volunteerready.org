@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.34.0.0] - 2026-07-28
+
+### Added
+- Approving someone's application now adds them to your volunteer list. Until now that list only held people a coordinator had typed in by hand, so everyone who applied and was accepted was missing from it — it could not honestly be called your list of volunteers. Approving is the moment an organisation accepts someone, so that is the moment they appear. People who applied before ever signing in are added when they confirm the application is theirs, which is the point their account and their application first become connected.
+- Removing someone from your volunteer list now sticks. Re-saving an application that was already approved no longer quietly puts them back. Genuinely approving them again does, because that is a fresh decision.
+- "Not mine", on the card offering you applications submitted under your email address. Previously the only button was "Add to my account", and the card stayed until you pressed it — so in exactly the situation the card exists to protect you from, where a stranger has used your address, you were left with a notice that would not go away and a single button that handed them access. Declining asks you to confirm, then removes the application from the card for good and does not offer it again.
+
+### Fixed
+- Applications submitted under your email address by someone else no longer appear on your dashboard as your own pending applications, and no longer influence which opportunities are recommended to you. Attaching such an application already required your confirmation; showing it did not, so an organisation you had never applied to could still put itself on your dashboard. Only applications actually connected to your account are shown.
+- Someone signing in on your behalf from a support session no longer sees their own unattached applications on your dashboard. The two halves of "who is this" disagreed while support was acting as you.
+- Confirming an application is yours when you had already applied to the same opportunity now tells you so, instead of failing with an unexplained error and leaving that application permanently stuck.
+- Accepting an invitation to join an organisation or a company now checks the invitation against the account actually being joined. While support was acting on someone's behalf those were two different people, so an invitation addressed to the support account could have added the person they were helping to an organisation instead. Both kinds of invitation were affected.
+- Accepting a company invitation while support is acting on someone's behalf is now recorded against the support account too, so it is clear who actually clicked.
+- The list of applications offered to you is now found using an index. It previously read the whole table on every visit to your applications page.
+
+### Changed
+- Tests now run automatically on every proposed change and on every change to the main branch. The checks confirming that an application cannot be claimed by someone with a merely similar email address need a real database and a separate command, so nothing was obliged to run them. They now run on every change.
+
 ## [0.33.1.0] - 2026-07-28
 
 ### Fixed

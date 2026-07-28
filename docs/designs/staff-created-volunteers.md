@@ -299,9 +299,33 @@ design. Recorded here so it is a decision, not an oversight.
 Approving a `VolunteerApplication` creates an `OrgVolunteer` row with `source: APPLIED`, **when
 `submittedByUserId` is non-null.**
 
-Because the partial index is invisible to Prisma, this is
-`findFirst({ orgId, userId, deletedAt: null })` then `create` inside the approval transaction,
-with a `P2002` catch for the concurrent case. Not `upsert`.
+Because the partial index is invisible to Prisma, this is not `upsert`.
+
+⚠️ **Corrected during implementation (v0.34.0.0).** This paragraph prescribed
+`findFirst({ orgId, userId, deletedAt: null })` then `create` with a `P2002` catch. That
+shape cannot work here. In Postgres a failed statement poisons its whole transaction:
+verified against this database, swallowing a P2002 inside `prisma.$transaction` and issuing
+any further statement fails with `current transaction is aborted, commands ignored until end
+of transaction block`. Because the enclosing transaction must COMMIT — it carries the
+approval, or the claim and its audit row — a concurrent roster race would have rolled the
+approval back.
+
+The implementation uses `createOrgVolunteerIfAbsent()` in `orgVolunteerRepo.ts`, a
+`createMany({ skipDuplicates: true })` compiling to `ON CONFLICT DO NOTHING`, which the
+server resolves without raising. Also verified that this honours the PARTIAL index, so a
+previously-removed volunteer is re-added rather than silently skipped. Both facts are pinned
+by `repositories/appliedRoster.integration.test.ts`, including a test that deliberately
+reproduces the abort.
+
+`addVolunteer` deliberately keeps the catch-outside-the-transaction shape: there the
+duplicate IS the answer the coordinator needs ("Already on your roster").
+
+**Gate on the TRANSITION into APPROVED, not the resulting status.**
+`updateOrgApplicationStatus` is not idempotent — re-saving an already-APPROVED application
+re-runs the update — so `status === 'APPROVED'` alone would resurrect a volunteer a
+coordinator had deliberately removed, since the soft-deleted row does not block a fresh
+insert. The condition is `previousStatus !== 'APPROVED'`, matching the guard
+`notifyApplicationStatusChange` already uses.
 
 **Also create the row in the CLAIM path.** ⚠️ Updated 2026-07-27 — this paragraph previously
 named `linkApplicationsToUser` (`my-applications.ts:96-107`), which **no longer exists**. That

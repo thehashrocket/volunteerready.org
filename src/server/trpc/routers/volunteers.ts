@@ -13,6 +13,7 @@ import {
 	removeVolunteer,
 	restoreVolunteer,
 } from '@/server/services/staffVolunteerService';
+import { effectiveUserId, impersonatedBy } from '@/server/trpc/audit-actor';
 import { createTRPCRouter, staffProcedure } from '@/server/trpc/init';
 
 /**
@@ -47,30 +48,6 @@ const rosterProcedure = staffProcedure.use(async ({ ctx, next }) => {
  * `orgProcedure` already guarantees ctx.orgId is the caller's own org, so every
  * query and mutation here is org-scoped by construction.
  */
-type AuditCtx = {
-	session?: { user?: { id?: string | null } | null } | null;
-	realUserId?: string | null;
-};
-
-/** The user the action is attributed to — the impersonated target, if any. */
-function effectiveUserId(ctx: AuditCtx): string | null {
-	return ctx.session?.user?.id ?? null;
-}
-
-/**
- * The real admin behind an impersonated action, or null.
- *
- * `ctx.realUserId` is set for EVERY logged-in request, not only impersonated
- * ones (`trpc/init.ts:42`), so it must be compared against the effective user
- * before being stamped. Stamping it unconditionally would mark every audit row
- * as impersonated and make `queryAuditLog`'s `impersonatedOnly` filter useless.
- * Same expression as `routers/company.ts:58`.
- */
-function impersonatedBy(ctx: AuditCtx): string | null {
-	const effective = effectiveUserId(ctx);
-	return ctx.realUserId && ctx.realUserId !== effective ? ctx.realUserId : null;
-}
-
 export const volunteersRouter = createTRPCRouter({
 	list: rosterProcedure
 		.input(
