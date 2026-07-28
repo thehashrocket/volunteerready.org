@@ -5,6 +5,105 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Deferred from the application-claim ship (`/ship`, 2026-07-27)
+
+Found by the 7-specialist review of the `linkApplicationsToUser()` fix. The two
+CRITICALs that review caught (an `ILIKE` wildcard hole and an impersonation
+identity split) were fixed in that diff; these are what was left.
+
+**The headline lesson, worth reading before touching any email predicate:**
+`mode: 'insensitive'` in Prisma compiles to `ILIKE $1` with the value
+interpolated **unescaped**. `_` and `%` become wildcards, and `_` is legal in an
+address `zod.email()` accepts. Used on an authorization predicate that is a
+hole — verified in Postgres: `'jason.shultz@x' ILIKE 'jason_shultz@x'` is TRUE.
+Never use it to compare identities. Three regression tests in
+`applicationClaim.integration.test.ts` pin this; all three go red if the
+`insensitive` mode is reintroduced.
+
+### [P2] `volunteerDashboardService` still email-matches orphan applications
+`src/server/services/volunteerDashboardService.ts:57` and `:135` both do
+`...(email ? [{ submittedByEmail: email, submittedByUserId: null }] : [])`. The
+auto-*bind* is gone but the auto-*display* is not: an attacker-planted public
+application still shows on the victim's dashboard as their own pending
+application and still steers their recommended-opportunities query toward the
+attacker's org. It mints no `APPLICATION` edge, so it is spoofing/phishing, not
+the original escalation. Also uses case-sensitive equality, so it and the claim
+card can now disagree about which rows are "yours". **Fix:** restrict to
+`submittedByUserId: userId` and let the claim card be the only path by which an
+unlinked application becomes visible. **Effort:** S.
+
+### [P2] The consent card has no decline path
+`src/app/(app)/app/my-applications/page.tsx` — the only control is "Add to my
+account", and the card's dismissal condition is `claimable.length === 0`, a list
+that only shrinks when the user claims. So in exactly the abuse case the feature
+exists to stop, the victim sees a permanent un-dismissible card whose sole
+button grants the attacker's org access. That is nag-until-yes on a security
+decision. **Fix:** add an equal-weight "Not mine" that records a per-user
+suppression, plus an audit row (a decline is *evidence* of the planted-
+application attack and should be a platform-admin signal). **Effort:** M.
+
+### [P2] `claimApplication` does not handle P2002 on the partial unique index
+Migration `20260421151557` creates a partial unique index on
+`(submittedByUserId, opportunityId)`. The claim sets the previously-NULL
+`submittedByUserId`, so claiming when you already have an active application for
+the same opportunity raises P2002. Nothing catches it, so tRPC returns
+INTERNAL_SERVER_ERROR and the row is permanently unclaimable — and a 500 is
+distinguishable from NOT_FOUND, which defeats the deliberate indistinguishability
+of the refusal codes. Reachable because `submitVolunteerApplication` only dedupes
+when `submittedByUserId` is set. **Fix:** catch P2002 inside the transaction and
+return the same NOT_FOUND. **Effort:** S.
+
+### [P2] Integration tests are the only proof of the email predicate, and nothing runs them
+`vitest.config.mts` excludes `src/**/*.integration.test.ts`, and there is no
+`.github/workflows` directory at all. Both faster layers mock the predicate away.
+So the single check stopping a forged application from minting an authorization
+edge is proven only by `pnpm test:integration`, which needs a live Postgres and a
+separate command nobody is obliged to run. **Fix:** add a CI workflow with a
+Postgres service running all three suites; a `.githooks` pre-push is already
+wired (`"prepare": "git config core.hooksPath .githooks"`) if CI is too far off.
+**Effort:** S.
+
+### [P3] Two more case-sensitivity divergences on `submittedByEmail`
+`screener.submit` now normalizes on write, which fixes these going forward, but
+the readers are still bare equality and will miss any row written between T1 and
+this ship: `volunteerStatusRepo.ts:7` (the public `/apply/status` lookup returns
+"no applications") and `bulk-import-service.ts:126` (dedupe misses, so it can
+create a duplicate application). **Fix:** no code change needed if a one-time
+`UPDATE ... SET submittedByEmail = lower(btrim(submittedByEmail))` is run to
+catch the gap window. **Effort:** S.
+
+### [P3] Index `submittedByEmail` before ~250k rows
+Now that the query is plain equality it is finally indexable. Measured on a
+500k-row synthetic clone: seq scan 16 ms, exact-equality-with-btree 0.043 ms.
+Comfortable under ~250k rows, noticeable at 500k. **Fix:** partial index matching
+the predicate — `CREATE INDEX CONCURRENTLY "VolunteerApplication_submittedByEmail_unclaimed_idx" ON "VolunteerApplication" ("submittedByEmail") WHERE "submittedByUserId" IS NULL;`
+Hand-write it (CONCURRENTLY is the P3006 that breaks `prisma migrate dev` here).
+**Effort:** S.
+
+### [P3] `APPLICATION_CLAIMED` carries no `impersonatedBy`
+A claim taken while impersonating is attributed solely to the impersonated user.
+Every other identity-binding mutation stamps the real admin — `volunteers.ts:69`
+has the house helper. Note `ctx.realUserId` is set on EVERY logged-in request, so
+it must be compared, not truth-tested. **Effort:** S.
+
+### [P3] Design/a11y polish on the consent card
+Deferred from the design specialist: focus is dropped to `<body>` when a claimed
+row unmounts; no `aria-live` success announcement; `disabled={claim.isPending}`
+greys every row at once with no per-row spinner; `size="sm"` is 32px against a
+44px touch target on a phone-first surface; a plain `<Card>` gives a consent
+decision the same visual weight as the Status legend (the repo's `warning`
+register would fit); and the copy could name what "your volunteer profile"
+discloses and that the action has no undo. **Effort:** M total.
+
+### [P3] Small cleanups in the claim path
+`listClaimableApplications`'s `.map()` is a no-op identity mapper over the repo's
+own `select`. `claimApplicationForUser`'s `tx` defaults to `prisma`, which
+undercuts the atomicity invariant its own docstring asserts — a future 3-arg
+caller would bind with no audit row and no type error; make it required and have
+the integration test pass `prisma` explicitly. **Effort:** S.
+
+---
+
 ## Deferred from the unclaimed-identity ship (Lane C, 2026-07-27, v0.33.0.0)
 
 ### [P3] A never-claiming volunteer accumulates one `SUPPRESSED_UNCLAIMED` row per cron run
@@ -2081,7 +2180,53 @@ That plan was split into v1a (roster + staff shift assignment + email guard)
 and v1b (invite email, `/welcome/[token]`, token lib, claim/decline). Items
 below were deliberately kept out of the v1a diff.
 
-- **[P1] `linkApplicationsToUser()` auto-links applications across all orgs
+- ~~**[P1] `linkApplicationsToUser()` auto-links applications across all orgs
+  with no scope**~~ ✅ **FIXED (2026-07-27)** — took the "explicit confirmation"
+  branch of the two options below rather than org-scoping, because scoping by
+  org breaks the legitimate anonymous-apply-then-sign-up path that
+  `screener.submit` exists to serve, and that path is load-bearing for the
+  public marketplace. `linkApplicationsToUser()` is deleted; nothing binds an
+  orphan application implicitly any more.
+
+  Replaced by `listClaimableApplications()` / `claimApplication()` in
+  `my-applications.ts`, backed by `listClaimableApplicationsByEmail()` /
+  `claimApplicationForUser()` in `volunteer-applications.ts`, surfaced as an
+  "Is this you?" card on `/app/my-applications`. The email predicate lives in
+  the repository's `where` clause, not in a caller-side comparison, so passing
+  another user's application id matches zero rows instead of binding it;
+  `claimApplication` throws `NOT_FOUND` for all three of "already claimed",
+  "not yours", and "does not exist" so an id probe learns nothing. Claims write
+  an `APPLICATION_CLAIMED` audit row (no migration — `AuditLog.action` is a
+  plain `String`).
+
+  Two things fixed in passing: the lookup is now case-insensitive, which it had
+  to become — T1's trigger lowercased `User.email` but **not**
+  `VolunteerApplication.submittedByEmail`, so a bare equality against the
+  session's now-canonical address silently missed mixed-case submissions and
+  made them permanently unclaimable. And the read path no longer writes: the old
+  code ran an `updateMany` on every `/app/my-applications` load.
+
+  Coverage — four files (counts deliberately omitted; they rot on every added
+  case): `src/server/services/__tests__/my-applications.claim.test.ts`,
+  `src/server/trpc/routers/screener.claim.test.ts` (the suite that pins the
+  authorization boundary — that the address is resolved from the session user id
+  and never from procedure input),
+  `src/app/(app)/app/my-applications/__tests__/claimable-applications.test.tsx`,
+  and `src/server/repositories/applicationClaim.integration.test.ts` (real DB —
+  the security property is a `where` clause, which mocks cannot prove).
+
+  **Correction to the severity claim below:** the "authorizes a paid background
+  check" line was overstated. `backgroundChecks.initiate` requires the *caller*
+  to supply the SSN/DOB — see the `pii` object in its zod input
+  (`src/server/trpc/routers/background-checks.ts`, cited by symbol rather than
+  line so the reference does not rot) — so an attacker without the victim's SSN
+  could never reach the Checkr/Sterling call.
+  The real escalation was `profile.getOrgVisibleProfile` (a stranger's
+  staff-visible volunteer profile) and `credentials.issue`. Still P1, still
+  fixed — but noting it so the next audit isn't calibrated off an inflated
+  example. Original entry follows.
+
+  - **[P1] `linkApplicationsToUser()` auto-links applications across all orgs
   with no scope** — Codex outside voice. `src/server/services/my-applications.ts:96-107`
   runs `updateMany({ where: { submittedByUserId: null, submittedByEmail: email } })`
   on every sign-in with no `orgId` filter, so any orphaned application matching

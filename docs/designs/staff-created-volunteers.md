@@ -430,9 +430,12 @@ its own `layout.tsx` + `providers.tsx` copied from the `opportunities/` pair), c
 paths, expiry, one org-triggered reminder, per-org invite rate limiting, and E1b (mint an
 UNCLAIMED user on approval of an anonymous application).
 
-**Blocked on:** `linkApplicationsToUser()` org scoping (TODOS.md P1). It currently runs
+**~~Blocked on:~~ UNBLOCKED (2026-07-27).** `linkApplicationsToUser()` is deleted. It ran
 `updateMany({ where: { submittedByUserId: null, submittedByEmail: email } })` with no `orgId`
-filter, so any orphan application matching a signing-in address is silently attached.
+filter, so any orphan application matching a signing-in address was silently attached. Replaced
+by an explicit claim step (`listClaimableApplications()` / `claimApplication()`), which resolves
+the wrong-email scenario Security §1 worries about: a coordinator typo now produces an offer the
+wrong recipient must actively accept, not a silent bind. See the resolved P1 in TODOS.md.
 
 **Do not hand-roll the session mint.** Only `e2e/utils/db.ts:65` creates NextAuth `Session` rows
 today and there is zero production precedent. Prefer issuing a NextAuth `VerificationToken` and
