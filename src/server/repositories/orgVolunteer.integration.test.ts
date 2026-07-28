@@ -26,8 +26,10 @@ import {
 	countOrgVolunteers,
 	findLiveOrgVolunteer,
 	listOrgVolunteers,
+	listOrgVolunteersByUser,
 	restoreOrgVolunteer,
 	softDeleteOrgVolunteer,
+	softDeleteOwnOrgVolunteer,
 } from './orgVolunteerRepo';
 
 const PREFIX = '__orgvolunteer_integration__';
@@ -388,5 +390,153 @@ describe('orgVolunteerRepo — org scoping', () => {
 		// Whitespace-only search must behave as "no filter", not "match nothing".
 		const blank = await listOrgVolunteers({ orgId: org.id, search: '   ' });
 		expect(blank.volunteers).toHaveLength(2);
+	});
+});
+
+/**
+ * T32 — the volunteer's own exit.
+ *
+ * These MUST be integration tests. The authorization rule is a `userId` clause
+ * inside a Prisma WHERE; a mocked client returns whatever the mock was told to
+ * and would pass with the clause deleted. Only Postgres can answer "did that
+ * row actually survive?".
+ */
+describe('leaving your own roster (softDeleteOwnOrgVolunteer)', () => {
+	it('soft-deletes the caller own edge and returns the org it pointed at', async () => {
+		const [org, user] = await Promise.all([
+			makeOrg('leave'),
+			makeUser('leave'),
+		]);
+		const row = await addRoster(org.id, user.id);
+
+		const orgId = await softDeleteOwnOrgVolunteer(prisma, user.id, row.id);
+
+		expect(orgId).toBe(org.id);
+		// Soft, not hard: the row survives so ShiftSignup rows and recorded hours
+		// are untouched, exactly as for a staff-side removal.
+		const after = await prisma.orgVolunteer.findUnique({
+			where: { id: row.id },
+			select: { deletedAt: true },
+		});
+		expect(after?.deletedAt).not.toBeNull();
+	});
+
+	it("SECURITY: cannot leave a roster on someone else's behalf", async () => {
+		const [org, victim, attacker] = await Promise.all([
+			makeOrg('leave-sec'),
+			makeUser('leave-victim'),
+			makeUser('leave-attacker'),
+		]);
+		const victimRow = await addRoster(org.id, victim.id);
+
+		// The attacker holds the victim's OrgVolunteer.id — not a secret; it is the
+		// handle the profile page puts on the wire for its owner.
+		const result = await softDeleteOwnOrgVolunteer(
+			prisma,
+			attacker.id,
+			victimRow.id,
+		);
+
+		expect(result).toBeNull();
+		const after = await prisma.orgVolunteer.findUnique({
+			where: { id: victimRow.id },
+			select: { deletedAt: true },
+		});
+		// The row is UNTOUCHED. Mutation-verified: removing the userId clause from
+		// ONE of the two statements in softDeleteOwnOrgVolunteer leaves this green
+		// (the other still guards), removing it from BOTH turns it red.
+		expect(after?.deletedAt).toBeNull();
+	});
+
+	it('a second leave of the same row returns null rather than re-deleting', async () => {
+		const [org, user] = await Promise.all([
+			makeOrg('leave-twice'),
+			makeUser('leave-twice'),
+		]);
+		const row = await addRoster(org.id, user.id);
+
+		const first = await softDeleteOwnOrgVolunteer(prisma, user.id, row.id);
+		const second = await softDeleteOwnOrgVolunteer(prisma, user.id, row.id);
+
+		expect(first).toBe(org.id);
+		// Null is what stops the service writing a second VOLUNTEER_LEFT audit row
+		// for one departure.
+		expect(second).toBeNull();
+	});
+
+	it('leaving one org leaves the other rosters alone', async () => {
+		const [orgA, orgB, user] = await Promise.all([
+			makeOrg('leave-multi-a'),
+			makeOrg('leave-multi-b'),
+			makeUser('leave-multi'),
+		]);
+		const rowA = await addRoster(orgA.id, user.id);
+		await addRoster(orgB.id, user.id);
+
+		await softDeleteOwnOrgVolunteer(prisma, user.id, rowA.id);
+
+		const remaining = await listOrgVolunteersByUser(user.id);
+		expect(remaining).toHaveLength(1);
+		expect(remaining[0]?.organization.slug).toBe(`${PREFIX}leave-multi-b`);
+	});
+});
+
+describe('listOrgVolunteersByUser', () => {
+	it('returns live memberships across orgs and hides soft-deleted ones', async () => {
+		const [orgA, orgB, user, stranger] = await Promise.all([
+			makeOrg('mine-a'),
+			makeOrg('mine-b'),
+			makeUser('mine'),
+			makeUser('mine-stranger'),
+		]);
+		const rowA = await addRoster(orgA.id, user.id);
+		await addRoster(orgB.id, user.id);
+		// Another person on the same org roster must not appear in this list.
+		await addRoster(orgA.id, stranger.id);
+
+		await softDeleteOwnOrgVolunteer(prisma, user.id, rowA.id);
+
+		const rows = await listOrgVolunteersByUser(user.id);
+
+		expect(rows).toHaveLength(1);
+		expect(rows[0]?.organization.name).toBe(`${PREFIX}mine-b`);
+	});
+
+	it('returns the newest membership first, with a deterministic tie-break', async () => {
+		// The three rows are created back to back, so several can land in the same
+		// millisecond — which is exactly why the orderBy carries an `id` tie-break
+		// after `createdAt`. Without an assertion here the whole orderBy could be
+		// dropped and the profile list would silently reorder between loads.
+		const user = await makeUser('order');
+		const orgs = [
+			await makeOrg('order-1'),
+			await makeOrg('order-2'),
+			await makeOrg('order-3'),
+		];
+		for (const o of orgs) await addRoster(o.id, user.id);
+
+		const rows = await listOrgVolunteersByUser(user.id);
+
+		expect(rows).toHaveLength(3);
+		const times = rows.map((r) => r.createdAt.getTime());
+		expect(times).toEqual([...times].sort((a, b) => b - a));
+		// Stable across calls even when createdAt ties.
+		const again = await listOrgVolunteersByUser(user.id);
+		expect(again.map((r) => r.id)).toEqual(rows.map((r) => r.id));
+	});
+
+	it('does NOT project the organization id', async () => {
+		// The client's only handle is OrgVolunteer.id; org ids are the tenant key
+		// everywhere else in the app and this page has no use for one.
+		const [org, user] = await Promise.all([
+			makeOrg('mine-proj'),
+			makeUser('mine-proj'),
+		]);
+		await addRoster(org.id, user.id);
+
+		const [row] = await listOrgVolunteersByUser(user.id);
+
+		expect(row?.organization).not.toHaveProperty('id');
+		expect(row?.organization.name).toBe(`${PREFIX}mine-proj`);
 	});
 });
