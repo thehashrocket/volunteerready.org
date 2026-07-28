@@ -2,6 +2,8 @@ import { TRPCError } from '@trpc/server';
 import { findUniqueSlug, generateSlug } from '@/lib/slug';
 import type { CompanyMemberRole } from '@/prisma/generated/client';
 import { Prisma } from '@/prisma/generated/client';
+import { normalizeEmail } from '@/server/domain/org-volunteer';
+import { findEmailByUserId } from '@/server/repositories/userAccountStateRepo';
 import { sendNewCompanyAlert } from '../lib/admin-alerts';
 import { sendEmail } from '../lib/email';
 import { generateToken, hashToken } from '../lib/tokens';
@@ -275,10 +277,18 @@ export async function inviteCompanyMember(opts: {
 	return { sent };
 }
 
+/**
+ * Accept a company invitation for `opts.userId`.
+ *
+ * SECURITY: resolves the address from the user id rather than accepting it from
+ * the caller. Under impersonation `ctx.session.user.email` is the real admin's
+ * while `id` is the target's, so authorizing on the passed email and creating the
+ * `CompanyMember` row for the passed id described two different people. See the
+ * note on `acceptInvitation` in `memberService.ts` for the full reasoning.
+ */
 export async function acceptCompanyInvite(opts: {
 	tokenHash: string;
 	userId: string;
-	userEmail: string;
 	/** Real admin user id when the actor is being impersonated (audit trail). */
 	impersonatedBy?: string | null;
 }) {
@@ -305,7 +315,16 @@ export async function acceptCompanyInvite(opts: {
 		});
 	}
 
-	if (invitation.email.toLowerCase() !== opts.userEmail.toLowerCase()) {
+	const userEmail = await findEmailByUserId(opts.userId);
+
+	if (!userEmail) {
+		throw new TRPCError({
+			code: 'PRECONDITION_FAILED',
+			message: 'Your account has no email address on file.',
+		});
+	}
+
+	if (normalizeEmail(invitation.email) !== normalizeEmail(userEmail)) {
 		throw new TRPCError({
 			code: 'FORBIDDEN',
 			message: 'This invitation was sent to a different email address.',
@@ -347,7 +366,7 @@ export async function acceptCompanyInvite(opts: {
 				action: 'COMPANY_MEMBER_ADDED',
 				entityType: 'CompanyMember',
 				metadata: {
-					email: opts.userEmail,
+					email: userEmail,
 					role: invitation.role,
 					...(opts.impersonatedBy
 						? { impersonatedBy: opts.impersonatedBy }

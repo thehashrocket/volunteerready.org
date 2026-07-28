@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Dummy values for module-scope config that reads env at import time. Real
+  # secrets are never needed: no test talks to Resend, Checkr or Sterling.
+  # CHECKR_TOKEN_ENCRYPTION_KEY must be valid 64-hex or the crypto helpers throw
+  # on import rather than failing a specific assertion.
+  CHECKR_TOKEN_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+  NEXTAUTH_SECRET: "ci-not-a-real-secret"
+  NEXTAUTH_URL: "http://localhost:3005"
+
+jobs:
+  # Static checks need no database, so they fail fast and in parallel with the
+  # slower suite below rather than gating it.
+  static:
+    name: Lint + typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      # `postinstall` runs `prisma generate`; the generated client at
+      # src/prisma/generated/client is gitignored, and `tsc` cannot resolve
+      # `@/prisma/generated/client` without it.
+      - run: pnpm install --frozen-lockfile
+
+      # `lint`, not `check` — the latter is Biome in --write mode and would
+      # "pass" by rewriting the files it was asked to inspect.
+      - run: pnpm lint
+
+      - run: pnpm typecheck
+
+  test:
+    name: Tests (unit, scripts, integration)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # Matches docker-compose.yml so a failure here is reproducible locally.
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: volunteeermatch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d volunteeermatch"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+
+    env:
+      # localhost, so `src/test/integration-setup.ts`'s local-host guard passes
+      # without INTEGRATION_ALLOW_REMOTE_DB. This database is ephemeral and
+      # per-job; it must never be pointed at staging, because the integration
+      # specs clean up with prefix-scoped deletes.
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/volunteeermatch"
+      DATABASE_URL_UNPOOLED: "postgresql://postgres:postgres@localhost:5432/volunteeermatch"
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # `migrate deploy`, never `db push`. Several migrations are hand-written
+      # SQL that the Prisma schema cannot express — triggers, functional indexes,
+      # and the partial unique indexes on OrgVolunteer and VolunteerApplication.
+      # `db push` diffs the schema and would silently omit all of them, which is
+      # precisely what the integration specs assert the behaviour of.
+      - name: Apply migrations
+        run: pnpm prisma migrate deploy
+
+      - run: pnpm test
+
+      - run: pnpm test:scripts
+
+      # The reason this workflow exists. `vitest.config.mts` excludes
+      # src/**/*.integration.test.ts, so before CI these ran only when someone
+      # remembered a separate command — and they are the only layer that proves
+      # the email predicate in the application-claim path against a real
+      # Postgres. Both faster suites mock it away, so a reintroduced
+      # `mode: 'insensitive'` (an ILIKE wildcard hole on an authorization check)
+      # would ship green without this step.
+      - run: pnpm test:integration

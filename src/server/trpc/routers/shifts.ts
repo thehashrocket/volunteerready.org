@@ -19,7 +19,9 @@ import {
 	updateExistingShift,
 } from '@/server/services/shiftService';
 import {
+	assignVolunteerToShift,
 	cancelSignup,
+	getAssignableVolunteers,
 	getCheckinStats,
 	getMyCheckinStatus,
 	getMyUpcomingShifts,
@@ -31,6 +33,7 @@ import {
 	markAttendance,
 	signUpForShift,
 } from '@/server/services/shiftSignupService';
+import { impersonatedBy } from '@/server/trpc/audit-actor';
 import {
 	createTRPCRouter,
 	protectedProcedure,
@@ -41,6 +44,7 @@ import {
 	rateLimitByOrg,
 	rateLimitByUser,
 } from '@/server/trpc/rate-limit-middleware';
+import { rosterProcedure } from '@/server/trpc/roster-flag-middleware';
 
 /**
  * Throttles the two procedures that let ANY authenticated user write a row onto
@@ -168,6 +172,60 @@ export const shiftsRouter = createTRPCRouter({
 	getSignups: staffProcedure
 		.input(z.object({ shiftId: z.string() }))
 		.query(({ ctx, input }) => getShiftSignups(input.shiftId, ctx.orgId)),
+
+	// ---- Staff: Assign from the roster ---------------------------------------
+
+	/**
+	 * Roster rows that can still be put on this shift.
+	 *
+	 * `rosterProcedure`, not `staffProcedure`: hiding the picker in the UI is
+	 * cosmetic, and this query is what backs it.
+	 */
+	assignableVolunteers: rosterProcedure
+		.input(
+			z.object({
+				shiftId: z.string(),
+				// Bounded for the same reason `volunteers.list` bounds it: an
+				// unbounded search compiles to ILIKE '%…%' over the org's roster.
+				search: z.string().max(100).nullish(),
+			}),
+		)
+		.query(({ ctx, input }) =>
+			getAssignableVolunteers({
+				shiftId: input.shiftId,
+				orgId: ctx.orgId,
+				search: input.search,
+			}),
+		),
+
+	/**
+	 * Put a volunteer from the roster onto this shift.
+	 *
+	 * Takes `volunteerId` (an `OrgVolunteer.id`), never a `User.id` — the roster
+	 * projection deliberately withholds the latter from clients.
+	 *
+	 * First procedure in this router to stamp `impersonatedBy`. Note it goes
+	 * through the `impersonatedBy(ctx)` helper and NOT `ctx.realUserId`, which is
+	 * populated on every logged-in request and would mark every row impersonated.
+	 */
+	assignVolunteer: rosterProcedure
+		.input(
+			z.object({
+				shiftId: z.string(),
+				volunteerId: z.string().min(1),
+				allowOverCapacity: z.boolean().optional(),
+			}),
+		)
+		.mutation(({ ctx, input }) =>
+			assignVolunteerToShift({
+				shiftId: input.shiftId,
+				volunteerId: input.volunteerId,
+				orgId: ctx.orgId,
+				actorId: requireUserId(ctx.session),
+				allowOverCapacity: input.allowOverCapacity,
+				impersonatedBy: impersonatedBy(ctx),
+			}),
+		),
 
 	/** Mark a volunteer's attendance. */
 	markAttendance: staffProcedure

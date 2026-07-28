@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.35.0.0] - 2026-07-28
+
+### Added
+- Volunteers on your list can now be put on a shift. Until now that list was somewhere to record people and nothing else — you could add someone and then do nothing with them. Open a shift and there is now an "Assign volunteer" box that searches your own list; choosing someone puts them on the shift. Anyone already on that shift is left out of the search, so you cannot pick a name whose selection would only fail. Someone who signed up and later cancelled can be put back on, and someone waiting for a place can be given one.
+- Adding one more person to a full shift now asks first, and says how full it is: "Saturday Morning Sort is full — 9 of 9 spots taken. Add Maria Garcia anyway?" You can go over the limit — you just have to mean it. Afterwards the shift reads "10 / 9" in amber rather than quietly looking normal again, so a shift you deliberately overfilled keeps saying so.
+- Shift screens now show which volunteers will not get an automatic reminder. Version 0.33.0.0 stopped sending automatic emails to people who have never signed in, and said at the time that shift screens did not yet show this — so a coordinator had no way to tell a reminder had been withheld, and would reasonably assume the volunteer had been reminded. Those volunteers are now marked "No account yet" wherever they appear on the shift, and a line above the list reads "3 volunteers won't get an automatic reminder — no account yet." Assigning someone usually happens weeks ahead; this is what you see on the Friday afternoon you are checking Saturday is covered, which is the last point at which you can still phone them. The same mark appears beside each name in the assign box, so you know before choosing rather than after.
+
+### Changed
+- Shift and attendance statuses now read as words. They were previously shown exactly as they are stored inside the system, so the screen said WAITLISTED, NO_SHOW and COMPLETED. They now say Waitlisted, No Show and Completed, as every other status in the product already did.
+- All of the above is still switched on one organisation at a time while the volunteer list is being trialled. Organisations without it see their shift screens exactly as before, and the assign box is not merely hidden from them — the underlying actions refuse as well, so it cannot be reached by another route.
+
+## [0.34.0.0] - 2026-07-28
+
+### Added
+- Approving someone's application now adds them to your volunteer list. Until now that list only held people a coordinator had typed in by hand, so everyone who applied and was accepted was missing from it — it could not honestly be called your list of volunteers. Approving is the moment an organisation accepts someone, so that is the moment they appear. People who applied before ever signing in are added when they confirm the application is theirs, which is the point their account and their application first become connected.
+- Removing someone from your volunteer list now sticks. Re-saving an application that was already approved no longer quietly puts them back. Genuinely approving them again does, because that is a fresh decision.
+- "Not mine", on the card offering you applications submitted under your email address. Previously the only button was "Add to my account", and the card stayed until you pressed it — so in exactly the situation the card exists to protect you from, where a stranger has used your address, you were left with a notice that would not go away and a single button that handed them access. Declining asks you to confirm, then removes the application from the card for good and does not offer it again.
+
+### Fixed
+- Applications submitted under your email address by someone else no longer appear on your dashboard as your own pending applications, and no longer influence which opportunities are recommended to you. Attaching such an application already required your confirmation; showing it did not, so an organisation you had never applied to could still put itself on your dashboard. Only applications actually connected to your account are shown.
+- Someone signing in on your behalf from a support session no longer sees their own unattached applications on your dashboard. The two halves of "who is this" disagreed while support was acting as you.
+- Confirming an application is yours when you had already applied to the same opportunity now tells you so, instead of failing with an unexplained error and leaving that application permanently stuck.
+- Accepting an invitation to join an organisation or a company now checks the invitation against the account actually being joined. While support was acting on someone's behalf those were two different people, so an invitation addressed to the support account could have added the person they were helping to an organisation instead. Both kinds of invitation were affected.
+- Accepting a company invitation while support is acting on someone's behalf is now recorded against the support account too, so it is clear who actually clicked.
+- The list of applications offered to you is now found using an index. It previously read the whole table on every visit to your applications page.
+
+### Changed
+- Tests now run automatically on every proposed change and on every change to the main branch. The checks confirming that an application cannot be claimed by someone with a merely similar email address need a real database and a separate command, so nothing was obliged to run them. They now run on every change.
+
 ## [0.33.1.0] - 2026-07-28
 
 ### Fixed

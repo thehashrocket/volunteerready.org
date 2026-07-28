@@ -16,6 +16,7 @@ import {
 import * as qRepo from '@/server/repositories/screenerQuestionsRepo';
 import {
 	claimApplication,
+	declineApplication,
 	getMyApplicationDetail,
 	getMyApplicationStatusTimeline,
 	listClaimableApplications,
@@ -38,6 +39,7 @@ import {
 	updateOrgApplicationStatus,
 } from '@/server/services/screener-queries';
 import { submitVolunteerApplication } from '@/server/services/volunteer-screening';
+import { effectiveUserId, impersonatedBy } from '@/server/trpc/audit-actor';
 import {
 	adminProcedure,
 	createTRPCRouter,
@@ -220,7 +222,11 @@ export const screenerRouter = createTRPCRouter({
 				ctx.orgId,
 				input.id,
 				input.status,
-				ctx.session?.user?.id,
+				effectiveUserId(ctx),
+				// Approving an application now mints a roster edge (E1a), so the
+				// real admin behind an impersonated approval must be attributable
+				// on it, per the v0.30.0.0 convention.
+				impersonatedBy(ctx),
 			);
 		}),
 
@@ -302,7 +308,7 @@ export const screenerRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx }) => {
-			const userId = ctx.session?.user?.id;
+			const userId = effectiveUserId(ctx);
 			if (!userId) {
 				throw new TRPCError({ code: 'UNAUTHORIZED' });
 			}
@@ -322,11 +328,33 @@ export const screenerRouter = createTRPCRouter({
 		)
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
-			const userId = ctx.session?.user?.id;
+			const userId = effectiveUserId(ctx);
 			if (!userId) {
 				throw new TRPCError({ code: 'UNAUTHORIZED' });
 			}
 			return claimApplication(userId, input.id);
+		}),
+
+	/**
+	 * The equal-weight refusal beside `claimApplication`. Same rate limit: a
+	 * decline is no cheaper to process than a claim, and the two must not differ
+	 * in a way that makes refusing feel more restricted than accepting.
+	 */
+	declineApplication: protectedProcedure
+		.use(
+			rateLimitByUser({
+				limit: 10,
+				windowSeconds: 60,
+				prefix: 'screener:decline',
+			}),
+		)
+		.input(z.object({ id: z.string().min(1) }))
+		.mutation(async ({ ctx, input }) => {
+			const userId = effectiveUserId(ctx);
+			if (!userId) {
+				throw new TRPCError({ code: 'UNAUTHORIZED' });
+			}
+			return declineApplication(userId, input.id);
 		}),
 
 	myApplicationDetail: protectedProcedure

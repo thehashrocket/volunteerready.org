@@ -52,7 +52,8 @@ import AcceptCompanyInvitePage from '../page';
 const ADMIN_ID = 'admin-1';
 const ADMIN_EMAIL = 'admin@example.com';
 const TARGET_ID = 'target-1';
-const TARGET_EMAIL = 'target@example.com';
+// No TARGET_EMAIL: this page no longer resolves an address at all. The service
+// derives it from the user id, and `inviteAcceptIdentity.test.ts` covers that.
 const TOKEN = 'raw-invite-token';
 
 function notImpersonating(userId: string | null) {
@@ -128,36 +129,48 @@ describe('AcceptCompanyInvitePage', () => {
 		mockResolveEffectiveUserId.mockResolvedValueOnce(
 			notImpersonating(ADMIN_ID),
 		);
-		mockUserFindUnique.mockResolvedValueOnce({ email: ADMIN_EMAIL });
 		mockAcceptCompanyInvite.mockResolvedValueOnce({ ok: true });
 
 		await expect(renderPage()).rejects.toThrow('NEXT_REDIRECT:/app/company');
 		expect(mockAcceptCompanyInvite).toHaveBeenCalledWith({
 			tokenHash: expect.any(String),
 			userId: ADMIN_ID,
-			userEmail: ADMIN_EMAIL,
 			impersonatedBy: null,
 		});
 	});
 
-	it('impersonation: accepts using the target user id + target email, not the admin session email — fixing the prior always-FORBIDDEN bug', async () => {
+	it('impersonation: accepts as the TARGET user id, not the admin session id — fixing the prior always-FORBIDDEN bug', async () => {
 		mockGetServerSession.mockResolvedValueOnce({
 			user: { id: ADMIN_ID, email: ADMIN_EMAIL },
 		});
 		mockResolveEffectiveUserId.mockResolvedValueOnce(impersonating(TARGET_ID));
-		mockUserFindUnique.mockResolvedValueOnce({ email: TARGET_EMAIL });
 		mockAcceptCompanyInvite.mockResolvedValueOnce({ ok: true });
 
 		await expect(renderPage()).rejects.toThrow('NEXT_REDIRECT:/app/company');
-		expect(mockUserFindUnique).toHaveBeenCalledWith({
-			where: { id: TARGET_ID },
-			select: { email: true },
-		});
 		expect(mockAcceptCompanyInvite).toHaveBeenCalledWith({
 			tokenHash: expect.any(String),
 			userId: TARGET_ID,
-			userEmail: TARGET_EMAIL,
 			impersonatedBy: ADMIN_ID,
 		});
+	});
+
+	// The address is no longer resolved here — `acceptCompanyInvite` derives it
+	// from the user id it is given, so every caller gets that behaviour instead of
+	// only this page. This assertion is what stops the lookup being reintroduced
+	// alongside the service's own, which is how the two identities drifted apart
+	// in the tRPC procedure. The email half of the original bug is now pinned by
+	// `companyService`'s own tests.
+	it('SECURITY: never passes an email, so the id and address cannot describe different people', async () => {
+		mockGetServerSession.mockResolvedValueOnce({
+			user: { id: ADMIN_ID, email: ADMIN_EMAIL },
+		});
+		mockResolveEffectiveUserId.mockResolvedValueOnce(impersonating(TARGET_ID));
+		mockAcceptCompanyInvite.mockResolvedValueOnce({ ok: true });
+
+		await expect(renderPage()).rejects.toThrow('NEXT_REDIRECT:/app/company');
+		expect(mockUserFindUnique).not.toHaveBeenCalled();
+		expect(mockAcceptCompanyInvite).toHaveBeenCalledWith(
+			expect.not.objectContaining({ userEmail: expect.anything() }),
+		);
 	});
 });

@@ -3,11 +3,25 @@ import { prisma } from '@/server/repositories/prisma';
 /**
  * Fetches all data needed for the volunteer dashboard in a single call.
  * Queries are scoped to the authenticated user — no org context required.
+ *
+ * SECURITY: takes ONLY a user id, and deliberately no email. Both application
+ * queries below used to also match `{ submittedByEmail: email,
+ * submittedByUserId: null }`, which was wrong twice over:
+ *
+ *   1. `screener.submit` is a publicProcedure accepting an arbitrary
+ *      `submittedByEmail`, so anyone could plant an orphan application bearing
+ *      someone else's address and have it render on that person's dashboard as
+ *      their own pending application — and steer their recommended-opportunities
+ *      list toward the planting org. The companion auto-BIND was removed when
+ *      `linkApplicationsToUser()` was deleted; this auto-DISPLAY outlived it.
+ *   2. The address came from `ctx.session.user.email`, which under impersonation
+ *      is the REAL ADMIN'S while `userId` is the target's — so an admin's own
+ *      unlinked applications leaked into the impersonated volunteer's dashboard.
+ *
+ * An unlinked application becomes visible by exactly one route now: the user
+ * claiming it from `/app/my-applications`.
  */
-export async function getVolunteerDashboard(
-	userId: string,
-	email?: string | null,
-) {
+export async function getVolunteerDashboard(userId: string) {
 	const now = new Date();
 	const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -47,16 +61,10 @@ export async function getVolunteerDashboard(
 			},
 		}),
 
-		// Pending applications (SUBMITTED or REVIEW status)
-		// Include both linked (submittedByUserId) and unlinked (submittedByEmail) applications
+		// Pending applications (SUBMITTED or REVIEW status), linked to this user only
 		prisma.volunteerApplication.findMany({
 			where: {
-				OR: [
-					{ submittedByUserId: userId },
-					...(email
-						? [{ submittedByEmail: email, submittedByUserId: null }]
-						: []),
-				],
+				submittedByUserId: userId,
 				status: { in: ['SUBMITTED', 'REVIEW'] },
 			},
 			orderBy: { submittedAt: 'desc' },
@@ -128,14 +136,7 @@ export async function getVolunteerDashboard(
 		// Top 3 recommended opportunities (published, from orgs the volunteer has interacted with)
 		prisma.volunteerApplication
 			.findMany({
-				where: {
-					OR: [
-						{ submittedByUserId: userId },
-						...(email
-							? [{ submittedByEmail: email, submittedByUserId: null }]
-							: []),
-					],
-				},
+				where: { submittedByUserId: userId },
 				select: { orgId: true },
 				distinct: ['orgId'],
 			})

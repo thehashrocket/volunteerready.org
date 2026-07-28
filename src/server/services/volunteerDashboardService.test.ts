@@ -190,4 +190,41 @@ describe('getVolunteerDashboard', () => {
 
 		expect(result.recommendedOpportunities).toEqual([]);
 	});
+
+	// -----------------------------------------------------------------------
+	// The orphan-application leak
+	// -----------------------------------------------------------------------
+
+	describe('SECURITY: orphan applications are never matched by email', () => {
+		// Both application queries used to OR in
+		// `{ submittedByEmail: email, submittedByUserId: null }`. That was wrong
+		// twice: `screener.submit` is public, so anyone could plant an orphan row
+		// bearing a victim's address and have it render on the victim's dashboard and
+		// steer their recommendations toward the planting org; and the address came
+		// from `session.user.email`, which under impersonation is the REAL ADMIN'S
+		// while the id is the target's.
+		//
+		// An unlinked application becomes visible by exactly one route now: the user
+		// claiming it.
+
+		it('scopes both application queries to submittedByUserId alone', async () => {
+			await getVolunteerDashboard(USER_ID);
+
+			expect(mockPrisma.volunteerApplication.findMany).toHaveBeenCalledTimes(2);
+
+			for (const [args] of mockPrisma.volunteerApplication.findMany.mock
+				.calls) {
+				expect(args.where.submittedByUserId).toBe(USER_ID);
+				// No OR branch at all — its mere presence is the bug.
+				expect(args.where).not.toHaveProperty('OR');
+				expect(JSON.stringify(args.where)).not.toContain('submittedByEmail');
+			}
+		});
+
+		it('accepts no email argument, so no caller can reintroduce the pairing', async () => {
+			// The signature is the real fix. While the parameter existed, every call
+			// site was one `session.user.email` away from restoring the leak.
+			expect(getVolunteerDashboard).toHaveLength(1);
+		});
+	});
 });

@@ -13,6 +13,7 @@ import { prisma } from '@/server/repositories/prisma';
 import {
 	CLAIMABLE_LIST_CAP,
 	claimApplicationForUser,
+	declineApplicationForUser,
 	listClaimableApplicationsByEmail,
 } from '@/server/repositories/volunteer-applications';
 
@@ -291,5 +292,111 @@ describe('claimApplicationForUser', () => {
 			where: { id: application.id },
 		});
 		expect(row?.submittedByUserId).toBe(victimId);
+	});
+});
+
+describe('declineApplicationForUser', () => {
+	it('marks the row declined and stamps who declined it', async () => {
+		const application = await createOrphanApplication(VICTIM_EMAIL);
+
+		const declined = await declineApplicationForUser(
+			application.id,
+			victimId,
+			VICTIM_EMAIL,
+		);
+
+		expect(declined).not.toBeNull();
+		const row = await prisma.volunteerApplication.findUnique({
+			where: { id: application.id },
+		});
+		expect(row?.declinedByUserId).toBe(victimId);
+		expect(row?.declinedAt).toBeInstanceOf(Date);
+		// Declining must never bind the row.
+		expect(row?.submittedByUserId).toBeNull();
+	});
+
+	it('SECURITY: a declined application can no longer be CLAIMED', async () => {
+		// The hole this test exists for. `declinedAt: null` was originally added to
+		// `listClaimableApplicationsByEmail` only, which made declining terminal for
+		// the LISTING but not for the mutation. With the page open in two tabs a user
+		// could decline in one and then claim the same id from the other's stale
+		// cache — binding, and minting the `APPLICATION` authorization edge for, the
+		// very application they had just refused. Found by review.
+		const application = await createOrphanApplication(VICTIM_EMAIL);
+		await declineApplicationForUser(application.id, victimId, VICTIM_EMAIL);
+
+		const claimed = await claimApplicationForUser(
+			application.id,
+			victimId,
+			VICTIM_EMAIL,
+		);
+
+		expect(claimed).toBeNull();
+		const row = await prisma.volunteerApplication.findUnique({
+			where: { id: application.id },
+		});
+		expect(row?.submittedByUserId).toBeNull();
+	});
+
+	it('SECURITY: cannot decline an application submitted under a different address', async () => {
+		// Same predicate shape as the claim: one user must not be able to suppress
+		// another user's claim candidate.
+		const victim = await createOrphanApplication(VICTIM_EMAIL);
+
+		const declined = await declineApplicationForUser(
+			victim.id,
+			attackerId,
+			ATTACKER_EMAIL,
+		);
+
+		expect(declined).toBeNull();
+		const row = await prisma.volunteerApplication.findUnique({
+			where: { id: victim.id },
+		});
+		expect(row?.declinedAt).toBeNull();
+	});
+
+	it('SECURITY: the decline predicate is not an ILIKE wildcard match', async () => {
+		// Mirrors the claim-path regression tests. `_` is legal in an address
+		// `zod.email()` accepts, so `mode: \'insensitive\'` here would let
+		// `a_b_decline@…` suppress `a.b.decline@…`\'s candidate.
+		const victimEmail = `${PREFIX}a.b.decline@example.test`;
+		const victim = await createOrphanApplication(victimEmail);
+
+		const declined = await declineApplicationForUser(
+			victim.id,
+			attackerId,
+			`${PREFIX}a_b_decline@example.test`,
+		);
+
+		expect(declined).toBeNull();
+		const row = await prisma.volunteerApplication.findUnique({
+			where: { id: victim.id },
+		});
+		expect(row?.declinedAt).toBeNull();
+	});
+
+	it('a second decline is a no-op rather than an error', async () => {
+		const application = await createOrphanApplication(VICTIM_EMAIL);
+		await declineApplicationForUser(application.id, victimId, VICTIM_EMAIL);
+
+		const second = await declineApplicationForUser(
+			application.id,
+			victimId,
+			VICTIM_EMAIL,
+		);
+
+		expect(second).toBeNull();
+	});
+
+	it('a declined application drops out of the claimable list', async () => {
+		const application = await createOrphanApplication(VICTIM_EMAIL);
+		const before = await listClaimableApplicationsByEmail(VICTIM_EMAIL);
+		expect(before.map((a) => a.id)).toContain(application.id);
+
+		await declineApplicationForUser(application.id, victimId, VICTIM_EMAIL);
+
+		const after = await listClaimableApplicationsByEmail(VICTIM_EMAIL);
+		expect(after.map((a) => a.id)).not.toContain(application.id);
 	});
 });

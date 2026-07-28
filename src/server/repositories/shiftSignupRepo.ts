@@ -3,6 +3,25 @@ import { prisma } from './prisma';
 
 type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 
+/**
+ * The person fields every shift-roster read projects.
+ *
+ * `accountState` is here because an UNCLAIMED volunteer is silently excluded
+ * from shift reminders (`shift-reminder-service.ts:75` sets `suppressUnclaimed`),
+ * and the coordinator has to be able to see that on the Friday they are checking
+ * Saturday is covered. Without it the signups table and the assign picker have
+ * no data source for `VolunteerStatusBadge` — see design decision D7.
+ *
+ * Shared by the confirmed-signups and waitlist reads so the two cannot drift.
+ */
+const signupUserSelect = {
+	id: true,
+	name: true,
+	email: true,
+	image: true,
+	accountState: true,
+} as const;
+
 // ---------------------------------------------------------------------------
 // Reads
 // ---------------------------------------------------------------------------
@@ -10,9 +29,7 @@ type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 export async function getSignupsByShift(shiftId: string) {
 	return prisma.shiftSignup.findMany({
 		where: { shiftId },
-		include: {
-			user: { select: { id: true, name: true, email: true, image: true } },
-		},
+		include: { user: { select: signupUserSelect } },
 		orderBy: { createdAt: 'asc' },
 	});
 }
@@ -108,9 +125,7 @@ export async function getUpcomingSignupsForUser(userId: string, limit = 10) {
 export async function getWaitlistForShift(shiftId: string) {
 	return prisma.shiftSignup.findMany({
 		where: { shiftId, status: 'WAITLISTED' },
-		include: {
-			user: { select: { id: true, name: true, email: true, image: true } },
-		},
+		include: { user: { select: signupUserSelect } },
 		orderBy: { createdAt: 'asc' },
 	});
 }

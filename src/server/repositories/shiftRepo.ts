@@ -17,7 +17,18 @@ export async function getShiftWithSignups(id: string) {
 		include: {
 			signups: {
 				include: {
-					user: { select: { id: true, name: true, email: true, image: true } },
+					user: {
+						select: {
+							id: true,
+							name: true,
+							email: true,
+							image: true,
+							// Drives VolunteerStatusBadge in the signups table, and the
+							// "N volunteers won't get an automatic reminder" summary above
+							// it. See signupUserSelect in shiftSignupRepo.ts.
+							accountState: true,
+						},
+					},
 				},
 			},
 			opportunity: { select: { id: true, title: true } },

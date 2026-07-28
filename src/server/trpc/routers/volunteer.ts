@@ -11,6 +11,8 @@ export const volunteerRouter = createTRPCRouter({
 	getDashboard: protectedProcedure.query(({ ctx }) => {
 		const { session } = ctx;
 		if (!session) throw new TRPCError({ code: 'UNAUTHORIZED' });
-		return getVolunteerDashboard(requireUserId(session), session.user?.email);
+		// Id only. `session.user.email` is the REAL admin's under impersonation
+		// while `id` is the target's, so passing both described two people.
+		return getVolunteerDashboard(requireUserId(session));
 	}),
 });

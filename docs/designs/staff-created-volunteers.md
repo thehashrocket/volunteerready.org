@@ -285,8 +285,32 @@ design. Recorded here so it is a decision, not an oversight.
 
 - **Assign to shift.** New `assignVolunteerToShift()` in `shiftSignupService.ts`, reusing
   `validateSignup` from `domain/shift.ts` rather than reimplementing capacity rules. Takes an
-  explicit `allowOverCapacity` flag. `ShiftSignup @@unique([shiftId, userId])` makes reassignment
-  idempotent. **Single-assign only in v1a** — bulk assign was cut, see NOT in scope.
+  explicit `allowOverCapacity` flag. ~~`ShiftSignup @@unique([shiftId, userId])` makes reassignment
+  idempotent.~~ **Single-assign only in v1a** — bulk assign was cut, see NOT in scope.
+
+  ⚠️ **Two corrections during implementation (v0.35.0.0).**
+
+  1. **The unique index does the opposite of making reassignment idempotent.** `createSignup`
+     only ever creates, and `validateSignup`'s duplicate check matches `CONFIRMED` alone — so a
+     volunteer with a CANCELLED, ATTENDED or NO_SHOW row for that shift passed validation, reached
+     `create`, and raised an unhandled P2002. Re-adding someone who cancelled is an ordinary
+     coordinator action. The service resolves the existing row explicitly instead: CANCELLED and
+     WAITLISTED are revived to CONFIRMED on the SAME row (so `createdAt` and the audit trail
+     survive), and the three "already on this shift" states are refused by name. Pinned by
+     `services/assignVolunteer.integration.test.ts`, which reproduces the raw P2002 first so the
+     reason is recorded.
+
+  2. **`allowOverCapacity` is an option ON `validateSignup`, not a filter on its result.** Each
+     refusal in that function returns early, so a service that called it unchanged and ignored the
+     `SHIFT_FULL`/`AT_CAPACITY` codes would also be ignoring the fact that the duplicate and
+     time-conflict checks never ran — and would create a signup for someone already on the shift.
+     Skipping only the capacity block lets execution fall through to the rules nobody may waive.
+     Three `SECURITY:` domain tests hold that line.
+
+  Takes an `OrgVolunteer.id`, never a `User.id`: the roster projection deliberately withholds
+  `User.id` from clients, and resolving the row through `findOrgVolunteerById(orgId, …)` means the
+  org relationship is proven by construction rather than by a separate
+  `requireOrgVolunteerRelationship` call.
 - **Attendance.** **Already exists.** `shifts.markAttendance` (`routers/shifts.ts:143-159`) is a
   `staffProcedure` taking an arbitrary `userId`, wired into `shifts/page.tsx:252` and the
   search-by-name fallback at `scan/Scanner.tsx:97`. It requires a pre-existing `ShiftSignup`
@@ -299,9 +323,33 @@ design. Recorded here so it is a decision, not an oversight.
 Approving a `VolunteerApplication` creates an `OrgVolunteer` row with `source: APPLIED`, **when
 `submittedByUserId` is non-null.**
 
-Because the partial index is invisible to Prisma, this is
-`findFirst({ orgId, userId, deletedAt: null })` then `create` inside the approval transaction,
-with a `P2002` catch for the concurrent case. Not `upsert`.
+Because the partial index is invisible to Prisma, this is not `upsert`.
+
+⚠️ **Corrected during implementation (v0.34.0.0).** This paragraph prescribed
+`findFirst({ orgId, userId, deletedAt: null })` then `create` with a `P2002` catch. That
+shape cannot work here. In Postgres a failed statement poisons its whole transaction:
+verified against this database, swallowing a P2002 inside `prisma.$transaction` and issuing
+any further statement fails with `current transaction is aborted, commands ignored until end
+of transaction block`. Because the enclosing transaction must COMMIT — it carries the
+approval, or the claim and its audit row — a concurrent roster race would have rolled the
+approval back.
+
+The implementation uses `createOrgVolunteerIfAbsent()` in `orgVolunteerRepo.ts`, a
+`createMany({ skipDuplicates: true })` compiling to `ON CONFLICT DO NOTHING`, which the
+server resolves without raising. Also verified that this honours the PARTIAL index, so a
+previously-removed volunteer is re-added rather than silently skipped. Both facts are pinned
+by `repositories/appliedRoster.integration.test.ts`, including a test that deliberately
+reproduces the abort.
+
+`addVolunteer` deliberately keeps the catch-outside-the-transaction shape: there the
+duplicate IS the answer the coordinator needs ("Already on your roster").
+
+**Gate on the TRANSITION into APPROVED, not the resulting status.**
+`updateOrgApplicationStatus` is not idempotent — re-saving an already-APPROVED application
+re-runs the update — so `status === 'APPROVED'` alone would resurrect a volunteer a
+coordinator had deliberately removed, since the soft-deleted row does not block a fresh
+insert. The condition is `previousStatus !== 'APPROVED'`, matching the guard
+`notifyApplicationStatusChange` already uses.
 
 **Also create the row in the CLAIM path.** ⚠️ Updated 2026-07-27 — this paragraph previously
 named `linkApplicationsToUser` (`my-applications.ts:96-107`), which **no longer exists**. That
@@ -883,10 +931,12 @@ produces confidently wrong work.
   - Surfaced by: Q4, X3, Correction 1, Codex #6 — naked ids on profile, credentials issue/revoke/remove, bg-check, shifts
   - Files: `routers/profile.ts`, `routers/credentials.ts`, `routers/background-checks.ts`, `routers/shifts.ts`, `repositories/shiftRepo.ts`, `repositories/shiftSignupRepo.ts`
   - Verify: `SECURITY:` test asserting a REVIEW-stage applicant passes and a foreign-org user does not
-- [ ] **T8 (P1, human: ~3h / CC: ~20min)** — shifts — `assignVolunteerToShift()` reusing `domain/shift.ts`, `allowOverCapacity`
+- [x] **T8 (P1, human: ~3h / CC: ~20min)** — shifts — `assignVolunteerToShift()` reusing `domain/shift.ts`, `allowOverCapacity` ✅ **DONE (v0.35.0.0)**
   - Surfaced by: Code Quality Q1 — avoid a second implementation of capacity rules
-  - Files: `src/server/services/shiftSignupService.ts`, `repositories/shiftSignupRepo.ts`, `routers/shifts.ts`
-  - Verify: `pnpm test src/server/services/__tests__/shiftSignupService.test.ts`
+  - Files: `src/server/services/shiftSignupService.ts`, `repositories/orgVolunteerRepo.ts` (`findOrgVolunteerById`, `listAssignableVolunteers`), `domain/shift.ts`, `routers/shifts.ts`
+  - Shipped with the two corrections in §4 — the unique index does NOT make reassignment idempotent, and `allowOverCapacity` is an option on `validateSignup` rather than a filter on its result
+  - Gated by `rosterProcedure`, lifted out of `routers/volunteers.ts` into `trpc/roster-flag-middleware.ts` so both routers reach one predicate. Hiding the picker is cosmetic; this is the kill switch
+  - Verify: ✅ 27 service tests + 5 domain tests + 6 router gating tests + 8 integration tests against real Postgres. Every load-bearing assertion mutation-tested — reverting the revive branch, the flag gate, or the capacity-block shape each turns tests red
 - [ ] **T10 (P1, human: ~4h / CC: ~25min)** — services — E1a: roster row on approval AND in `claimApplication()` (was "the sign-in link path" — `linkApplicationsToUser` is deleted; see §5)
   - Surfaced by: Expansion E1, split per D4; Codex #1 — the link path was the retroactive gap
   - Files: `src/server/services/screener-queries.ts`, `src/server/services/my-applications.ts`, `repositories/orgVolunteerRepo.ts`
@@ -909,9 +959,11 @@ produces confidently wrong work.
   - Surfaced by: Architecture A6 — hard delete would cascade attendance
   - Files: `src/server/services/platformUserService.ts`, `routers/platformAdmin.ts`
   - Verify: assert hours survive a scrub
-- [ ] **T14 (P2, human: ~6h / CC: ~40min)** — tests — `staffVolunteerService`, `assignVolunteerToShift`, `markAttendance` backfill
+- [~] **T14 (P2, human: ~6h / CC: ~40min)** — tests — `staffVolunteerService`, `assignVolunteerToShift`, `markAttendance` backfill
   - Surfaced by: Test review T1 — `shiftSignupService` has no test file at all
   - Files: `src/server/services/__tests__/staffVolunteerService.test.ts`, `__tests__/shiftSignupService.test.ts`
+  - **DONE (v0.35.0.0):** `shiftSignupService.test.ts` now exists — 22 `assignVolunteerToShift` cases and a 5-case `markAttendance` backfill (authorization model, audit, idempotent repeat check-in, cancelled-signup refusal, missing signup)
+  - **Still open:** the other three untested functions in that file — `signUpForShift`, `cancelSignup` and the waitlist pair are covered only indirectly by `shiftSignupDisclosure.test.ts` / `shiftOrgScoping.test.ts`
   - Verify: `pnpm test`
 - [ ] **T15 (P2, human: ~1d / CC: ~45min)** — e2e — Identity paths + add→assign→attend→hours-in-report
   - Surfaced by: Test review T2 — mocks cannot verify real NextAuth behavior
@@ -922,7 +974,7 @@ produces confidently wrong work.
   - Files: `src/server/domain/feature-flags.ts`, `src/app/(app)/app/layout.tsx`, `src/components/app/app-shell.tsx`, `src/components/app/app-sidebar.tsx`, `src/app/(app)/app/volunteers/`, `src/app/(app)/app/shifts/page.tsx`, `src/components/app/activity-feed.tsx`
   - **Eng re-review, two corrections.** (1) The layout has **no `orgId`** — `layout.tsx:50` is a `.count()`. Resolving one means replicating `trpc/init.ts:77-149`, including the impersonation path that nulls `session.orgId`. (2) The flag must gate T23, T24 and T31 as well, or a non-pilot org gets an assign picker over a roster they cannot see. See **Feature-flag gating** for the full gated/ungated split. Re-estimated again: **~5h**, not 3h
   - Verify: toggle off, confirm nav, route, **and the shift-dialog assign picker** all disappear, that the item does not flash in before hydration, and that an impersonated multi-org target resolves the flag against the org whose page they are on
-  - ⚠️ **PARTIALLY DONE.** Shipped: flag registered in `FEATURE_FLAG_REGISTRY` (`defaultEnabled: false`) with an exported `STAFF_CREATED_VOLUNTEERS_FLAG` const so a typo cannot silently resolve to "off"; `resolveActiveOrgId()` in `domain/active-org.ts` (pure, 6 tests) + `listMembershipOrgIds()` in `repositories/membershipRepo.ts`; the app layout's bare `count()` upgraded to return ids (same query count, more information) and resolving the flag server-side; `hasVolunteerRoster` threaded through `AppShell` to **both** `AppSidebar` instances (desktop aside + mobile drawer); the conditional `Volunteers` nav item after `Applications` with `BookUser`; and `volunteers/layout.tsx` closing the route independently and failing closed. **Still to do when T24/T23/T31 land: gate the assign picker, the suppression disclosure, and the activity-feed events.**
+  - ⚠️ **PARTIALLY DONE.** Shipped: flag registered in `FEATURE_FLAG_REGISTRY` (`defaultEnabled: false`) with an exported `STAFF_CREATED_VOLUNTEERS_FLAG` const so a typo cannot silently resolve to "off"; `resolveActiveOrgId()` in `domain/active-org.ts` (pure, 6 tests) + `listMembershipOrgIds()` in `repositories/membershipRepo.ts`; the app layout's bare `count()` upgraded to return ids (same query count, more information) and resolving the flag server-side; `hasVolunteerRoster` threaded through `AppShell` to **both** `AppSidebar` instances (desktop aside + mobile drawer); the conditional `Volunteers` nav item after `Applications` with `BookUser`; and `volunteers/layout.tsx` closing the route independently and failing closed. **Update (v0.35.0.0):** the assign picker and the suppression disclosure are now gated too — `shifts/page.tsx` became a Server Component resolving the flag through the shared `server/lib/roster-flag.ts` (extracted from `volunteers/layout.tsx`), and both new procedures run under `rosterProcedure`. **Still to do when T31 lands: the activity-feed events.**
   - Verify so far: ✅ 6 `resolveActiveOrgId` tests including `SECURITY:` cases that it ignores `session.orgId` while impersonating and returns null rather than falling through to the admin's own org; 6 sidebar tests (hidden when off, shown when on, funnel position after Applications, distinct from Team, exactly one item highlighted on a child route, never shown to a non-org user); 5 layout tests including `SECURITY:` resolution against the target org while impersonating. 1552 unit + 72 integration + 9 script tests pass
 - [ ] **T17 (P2, human: ~4h / CC: ~25min)** — scripts — Concierge roster import: per-row transactions, idempotent, `--dry-run`
   - Surfaced by: §4 edge cases — row 31 of 60 failing left the run in an unknown state
@@ -952,18 +1004,19 @@ produces confidently wrong work.
   - Files: `src/components/volunteers/volunteer-status-badge.tsx`, `volunteer-status-badge.test.tsx`
   - Verify: ✅ 10 tests — approved copy for both states, never renders the raw enum, `neutral` (not `warning`) for `UNCLAIMED`, `success` for `ACTIVE`, className merge, icon `aria-hidden`, and a source scan asserting no hex literal. Typecheck + Biome clean, 1502 unit tests pass
   - Confirmed while building: `neutral` and `success` variants both exist in `badge.tsx`, the base class already supplies `gap-1`, and **lucide-react sets `aria-hidden="true"` automatically** when an icon has no children and no a11y prop — so T29 does not need to add it manually to badge icons
-- [ ] **T23 (P1, human: ~3h / CC: ~20min)** — ui — Disclose shift-reminder suppression at assign and persistently in the signups list
+- [x] **T23 (P1, human: ~3h / CC: ~20min)** — ui — Disclose shift-reminder suppression at assign and persistently in the signups list ✅ **DONE (v0.35.0.0, shipped with T24 — same file)**
   - Surfaced by: Design D7 — `shift-reminder-service.ts:75` suppresses silently; the coordinator assumes the volunteer was reminded and does not text them
-  - Files: `src/app/(app)/app/shifts/page.tsx`, `src/server/repositories/shiftSignupRepo.ts`, assign picker component
-  - **Eng re-review — this task cannot render its badge as scoped.** `getSignupsByShift` selects `{ id, name, email, image }` (`shiftSignupRepo.ts:14`); there is **no `accountState`**, so neither the per-row badge nor the "3 volunteers won't get an automatic reminder" count has a data source. Add `accountState` to that select (and to `getWaitlistForShift` at `:112`, same shape) before building the UI
-  - Gated by the `staff_created_volunteers` flag — see Feature-flag gating
-  - Verify: assign an `UNCLAIMED` volunteer, assert the badge persists in the signups table and the summary line counts correctly
-- [ ] **T24 (P1, human: ~5h / CC: ~30min)** — ui — Assign-to-shift picker in `ShiftDetailDialog` + over-capacity confirm
+  - Files: `src/app/(app)/app/shifts/ShiftDetailDialog.tsx`, `src/server/repositories/shiftSignupRepo.ts`, `repositories/shiftRepo.ts`
+  - The eng re-review was right that there was no data source. `accountState` added to a shared `signupUserSelect` in `shiftSignupRepo.ts` (covering `getSignupsByShift` and `getWaitlistForShift`) **and** to `getShiftWithSignups` in `shiftRepo.ts`, which is what `shifts.getById` — and therefore the dialog — actually reads. The original scoping named only the first file
+  - **One deliberate deviation.** The signups table badges `UNCLAIMED` rows only, not both states. A "Has account" badge on every other row is noise in an operational table whose Status column is about attendance; its absence says the same thing, and the summary line above carries the count. The picker renders both states, where the reassurance is informative at the moment of choosing
+  - Verify: ✅ 9 dialog tests — count excludes CANCELLED/WAITLISTED rows (they are not reminded either way, so counting them overstates the problem), singular vs plural copy, absent at zero, badge count, and both surfaces hidden when the flag is off
+- [x] **T24 (P1, human: ~5h / CC: ~30min)** — ui — Assign-to-shift picker in `ShiftDetailDialog` + over-capacity confirm ✅ **DONE (v0.35.0.0)**
   - Surfaced by: Design D3, D11 — `assignVolunteerToShift` had no specified entry point anywhere in the plan
-  - Files: `src/app/(app)/app/shifts/page.tsx`
-  - **Eng re-review — `command.tsx` is NOT unused.** It has three consumers today: `settings/team/page.tsx`, `opportunities/OpportunityDialog.tsx`, `my-skills/page.tsx`. `team/page.tsx` is the closest analog (a person picker keyed by email) — copy it. Do not build a novel wrapper on the assumption this is greenfield
-  - Gated by the `staff_created_volunteers` flag — see Feature-flag gating
-  - Verify: assign to a full shift, assert the confirm shows real `9 of 9` numbers and that `10 / 9` renders in the warning tone afterwards
+  - Files: `src/app/(app)/app/shifts/AssignVolunteerPicker.tsx`, `ShiftDetailDialog.tsx`, `ShiftsClient.tsx`, `page.tsx`
+  - **The eng re-review's "copy `team/page.tsx`" note is wrong.** `team/page.tsx:531` is a **timezone** picker filtering a static array in the browser; it is not a person picker. All three `command.tsx` consumers are client-side filters over static lists. This is the codebase's first server-search picker, so it uses `shouldFilter={false}` + a debounced `shifts.assignableVolunteers` query, with cmdk as the keyboard/aria shell only
+  - **Server-side exclusion is not optional.** The picker cannot filter out people already on the shift: roster rows are keyed by `OrgVolunteer.id` and signups by `User.id`, and the roster projection withholds `User.id` from clients — there is no join key. Hence `listAssignableVolunteers`, which excludes every non-CANCELLED signup
+  - **`page.tsx` is now a Server Component** wrapping the former page as `ShiftsClient`. There is no client flag-read path (D20), so a tRPC read would flash the picker in after hydration — which T16's own verify step forbids. The flag block previously inlined in `volunteers/layout.tsx` is now `server/lib/roster-flag.ts`, shared by both
+  - Verify: ✅ 8 picker tests (confirm strip shows the real `9 of 9`, `allowOverCapacity` set only after confirming, cancel writes nothing, both toast strings) + the `10 / 9` warning-tone assertions in the dialog suite. Also driven end-to-end against the running dev server over HTTP: assign, capacity refusal, override, reassign-after-cancel reviving the same row id, picker exclusion, and both procedures returning FORBIDDEN with the flag off
 - [ ] **T25 (P1, human: ~3h / CC: ~20min)** — ui — Add-volunteer dialog: repeat entry, three success strings, pre-submit hint
   - Surfaced by: Design D8, D12 — batch trickle entry is the core task; branches 1 and 3 must be indistinguishable
   - Files: `src/app/(app)/app/volunteers/`, `src/server/services/staffVolunteerService.ts`

@@ -160,6 +160,10 @@ export async function listClaimableApplicationsByEmail(email: string) {
 		where: {
 			submittedByUserId: null,
 			submittedByEmail: normalizeEmail(email),
+			// Declining is terminal: a row the address owner has said is not theirs
+			// is never offered again. Without this the card would keep re-offering
+			// it, which is the nag-until-yes behaviour the decline path fixes.
+			declinedAt: null,
 		},
 		// OLDEST first. This NARROWS a starvation window; it does not close it.
 		//
@@ -220,8 +224,59 @@ export async function claimApplicationForUser(
 			// `listClaimableApplicationsByEmail`. ILIKE would turn this
 			// authorization check into a wildcard pattern match.
 			submittedByEmail: normalized,
+			// A declined row is terminal, and that has to be enforced HERE, not only
+			// in the listing. Filtering it out of `listClaimableApplicationsByEmail`
+			// alone left the mutation reachable: with the page open in two tabs, a
+			// user could decline in one and then claim the same id from the other's
+			// stale cache — binding, and minting the `APPLICATION` authorization
+			// edge for, the exact application they had just refused. It also left
+			// the row in a state nothing expects, with both `declinedAt` and
+			// `submittedByUserId` set.
+			declinedAt: null,
 		},
 		data: { submittedByUserId: userId },
+	});
+
+	if (result.count === 0) {
+		return null;
+	}
+
+	return tx.volunteerApplication.findUnique({
+		where: { id: applicationId },
+		// `status` is read so the caller can materialize the roster edge for an
+		// application that was APPROVED before the applicant ever signed in (E1a).
+		// Without it that row would never be created and never reconciled.
+		select: { id: true, orgId: true, status: true },
+	});
+}
+
+/**
+ * Mark one orphan application as NOT belonging to the owner of `email`.
+ *
+ * The authorization predicate is the same shape as `claimApplicationForUser`'s
+ * and lives in the `where` for the same reason: a foreign application id matches
+ * zero rows rather than letting one user suppress another's claim candidate.
+ * `declinedAt: null` also makes a repeat decline a no-op rather than an error.
+ *
+ * PLAIN EQUALITY against the canonical form, never `mode: 'insensitive'` — see
+ * the note on `listClaimableApplicationsByEmail`.
+ *
+ * Returns null when nothing matched.
+ */
+export async function declineApplicationForUser(
+	applicationId: string,
+	userId: string,
+	email: string,
+	tx: TxClient | typeof prisma = prisma,
+) {
+	const result = await tx.volunteerApplication.updateMany({
+		where: {
+			id: applicationId,
+			submittedByUserId: null,
+			submittedByEmail: normalizeEmail(email),
+			declinedAt: null,
+		},
+		data: { declinedByUserId: userId, declinedAt: new Date() },
 	});
 
 	if (result.count === 0) {

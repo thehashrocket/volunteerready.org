@@ -15,6 +15,7 @@ import {
 	listUserAppliedOpportunitiesCrossOrg,
 	updateApplicationStatusTx,
 } from '@/server/repositories/volunteer-applications';
+import { ensureAppliedRosterRow } from '@/server/services/appliedRosterService';
 
 function escapeHtml(str: string): string {
 	return str
@@ -87,6 +88,7 @@ export async function updateOrgApplicationStatus(
 	id: string,
 	status: ApplicationStatus,
 	actorId?: string | null,
+	impersonatedBy?: string | null,
 ) {
 	const result = await prisma.$transaction(async (tx) => {
 		const { updated, previousStatus } = await updateApplicationStatusTx(
@@ -104,6 +106,33 @@ export async function updateOrgApplicationStatus(
 			entityId: id,
 			metadata: { from: previousStatus, to: status },
 		});
+
+		// E1a: an approved application makes the applicant one of this org's
+		// volunteers, so the roster row is created here rather than left for the
+		// coordinator to retype.
+		//
+		// Gated on the TRANSITION into APPROVED, not on the resulting status.
+		// This mutation is not idempotent — re-saving an already-APPROVED
+		// application re-runs the update and re-writes STATUS_CHANGED — so
+		// gating on `status === 'APPROVED'` alone would resurrect a volunteer a
+		// coordinator had deliberately removed from the roster (the soft-deleted
+		// row does not block a fresh insert). Same guard the notification below
+		// uses, for the same reason.
+		if (
+			status === 'APPROVED' &&
+			previousStatus !== 'APPROVED' &&
+			updated.submittedByUserId
+		) {
+			await ensureAppliedRosterRow(tx, {
+				orgId,
+				userId: updated.submittedByUserId,
+				applicationId: id,
+				actorId: actorId ?? null,
+				addedByUserId: actorId ?? null,
+				fallbackDisplayName: updated.submittedByEmail,
+				impersonatedBy,
+			});
+		}
 
 		return { updated, previousStatus };
 	});

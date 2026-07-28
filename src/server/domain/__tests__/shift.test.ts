@@ -184,6 +184,87 @@ describe('validateSignup', () => {
 		expect(result).toEqual({ ok: true });
 	});
 
+	// -------------------------------------------------------------------------
+	// allowOverCapacity — staff assignment
+	//
+	// It waives capacity and NOTHING else. The three SECURITY cases below are
+	// what make that true: each refusal here returns early, so a service that
+	// instead ignored the two capacity codes on the way out would silently be
+	// ignoring rules that never ran.
+	// -------------------------------------------------------------------------
+
+	it('allows a full shift when allowOverCapacity is set', () => {
+		const signups = Array.from({ length: 5 }, (_, i) =>
+			makeSignup({ id: `s-${i}`, userId: `u-${i}` }),
+		);
+
+		expect(
+			validateSignup(makeShift({ capacity: 5 }), signups, 'new-user'),
+		).toMatchObject({ code: 'AT_CAPACITY' });
+		expect(
+			validateSignup(makeShift({ capacity: 5 }), signups, 'new-user', [], {
+				allowOverCapacity: true,
+			}),
+		).toEqual({ ok: true });
+	});
+
+	it('allows a shift flagged FULL when allowOverCapacity is set', () => {
+		expect(
+			validateSignup(makeShift({ status: 'FULL' }), [], 'user-1', [], {
+				allowOverCapacity: true,
+			}),
+		).toEqual({ ok: true });
+	});
+
+	it('SECURITY: allowOverCapacity does not waive an existing signup', () => {
+		const signups = [makeSignup({ userId: 'user-1' })];
+
+		expect(
+			validateSignup(makeShift({ status: 'FULL' }), signups, 'user-1', [], {
+				allowOverCapacity: true,
+			}),
+		).toMatchObject({ code: 'ALREADY_SIGNED_UP' });
+	});
+
+	it('SECURITY: allowOverCapacity does not waive a time conflict', () => {
+		const overlapping = makeShift({
+			id: 'shift-2',
+			title: 'Overlapping Shift',
+			startTime: new Date('2026-04-01T10:00:00Z'),
+			endTime: new Date('2026-04-01T13:00:00Z'),
+		});
+
+		expect(
+			validateSignup(
+				makeShift({ status: 'FULL' }),
+				[],
+				'user-1',
+				[overlapping],
+				{ allowOverCapacity: true },
+			),
+		).toMatchObject({ code: 'TIME_CONFLICT' });
+	});
+
+	it('SECURITY: allowOverCapacity does not waive a cancelled or completed shift', () => {
+		for (const status of ['CANCELLED', 'COMPLETED'] as const) {
+			expect(
+				validateSignup(makeShift({ status }), [], 'user-1', [], {
+					allowOverCapacity: true,
+				}),
+			).toMatchObject({ ok: false });
+		}
+	});
+
+	it('leaves the volunteer path unchanged when the option is absent', () => {
+		// The option is additive: without it every refusal, and the order they
+		// are reported in, is exactly what `shifts.signup` saw before.
+		const signups = [makeSignup({ userId: 'user-1' })];
+
+		expect(
+			validateSignup(makeShift({ status: 'FULL' }), signups, 'user-1'),
+		).toMatchObject({ code: 'SHIFT_FULL' });
+	});
+
 	it('ignores cancelled/completed shifts in conflict check', () => {
 		const cancelled = makeShift({
 			id: 'shift-2',

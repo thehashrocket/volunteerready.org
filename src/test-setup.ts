@@ -25,6 +25,16 @@ if (
 	})) as unknown as typeof window.matchMedia;
 }
 
+// jsdom implements no layout, so it ships no scrollIntoView at all. cmdk calls
+// it on every selection change to keep the highlighted item visible, which
+// makes any Command-based picker unrenderable under jsdom without this.
+if (
+	typeof globalThis.Element !== 'undefined' &&
+	typeof globalThis.Element.prototype.scrollIntoView !== 'function'
+) {
+	globalThis.Element.prototype.scrollIntoView = () => {};
+}
+
 if (typeof globalThis.IntersectionObserver === 'undefined') {
 	globalThis.IntersectionObserver = class {
 		root = null;

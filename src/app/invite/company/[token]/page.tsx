@@ -5,7 +5,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth';
 import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
 import { resolveEffectiveUserId } from '@/server/lib/impersonation-context';
-import { prisma } from '@/server/repositories/prisma';
 import { acceptCompanyInvite } from '@/server/services/companyService';
 
 export default async function AcceptCompanyInvitePage({
@@ -30,19 +29,14 @@ export default async function AcceptCompanyInvitePage({
 		redirect(`/login?callbackUrl=/invite/company/${token}`);
 	}
 
-	// Look up the effective user's own email — under impersonation this must
-	// be the target's email, not the real admin's, since the invite check is
-	// keyed on the invited email address.
-	const effectiveUser = await prisma.user.findUnique({
-		where: { id: userId },
-		select: { email: true },
-	});
-	const userEmail = effectiveUser?.email ?? '';
-
 	const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
 	try {
-		await acceptCompanyInvite({ tokenHash, userId, userEmail, impersonatedBy });
+		// `acceptCompanyInvite` resolves the effective user's own address from this
+		// id. This page used to look it up here — correctly, unlike the tRPC
+		// `company.acceptInvite` procedure — but that made it the one caller doing
+		// the right thing by hand, and put a Prisma call in `app/**`.
+		await acceptCompanyInvite({ tokenHash, userId, impersonatedBy });
 	} catch (err) {
 		const message =
 			err instanceof Error ? err.message : 'Failed to accept invitation';

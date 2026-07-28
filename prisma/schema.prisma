@@ -33,6 +33,7 @@ model User {
   companyMemberships      CompanyMember[]
   auditLogs               AuditLog[]                 @relation("AuditActor")
   submittedApplications   VolunteerApplication[]     @relation("SubmittedApplications")
+  declinedApplications    VolunteerApplication[]     @relation("DeclinedApplications")
   volunteerSkills         VolunteerSkill[]
   profile                 VolunteerProfile?
   credentials             VolunteerCredential[]
@@ -281,14 +282,32 @@ model VolunteerApplication {
   submittedAt       DateTime          @default(now())
   source            ApplicationSource @default(DIRECT)
 
+  /// Set when the owner of `submittedByEmail` says an orphan application is not
+  /// theirs. `screener.submit` is public, so anyone can plant a row bearing
+  /// someone else's address; declining is how that person makes it go away.
+  /// Terminal — a declined row is never offered for claiming again.
+  ///
+  /// Two columns rather than a join table: `User.email` is unique and
+  /// canonicalized and claimability is email equality, so for any given orphan
+  /// row there is exactly ONE user who could ever claim it. A join table would
+  /// model a many-to-many that cannot exist.
+  declinedByUserId String?
+  declinedAt       DateTime?
+
   organization    Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
   opportunity     VolunteerOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   submittedByUser User?                 @relation("SubmittedApplications", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+  declinedByUser  User?                 @relation("DeclinedApplications", fields: [declinedByUserId], references: [id], onDelete: SetNull)
   answers         VolunteerAnswer[]
 
   @@index([orgId, status])
   @@index([submittedByUserId])
   @@index([opportunityId])
+  @@index([declinedByUserId])
+  // Plus a hand-written PARTIAL index Prisma cannot express, covering the
+  // claimable lookup: ("submittedByEmail") WHERE "submittedByUserId" IS NULL AND
+  // "declinedAt" IS NULL. See the 20260727210100 migration — before it that
+  // query had no usable index at all and scanned the whole table.
 }
 
 model VolunteerAnswer {

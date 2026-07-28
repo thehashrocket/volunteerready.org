@@ -38,6 +38,13 @@ const mocks = vi.hoisted(() => ({
 	generateCheckinTokenFromEnv: vi.fn(),
 	getShiftById: vi.fn(),
 	validateCheckinTokenFromEnv: vi.fn(),
+	assignVolunteerToShift: vi.fn(),
+	getAssignableVolunteers: vi.fn(),
+	isFeatureEnabled: vi.fn(),
+}));
+
+vi.mock('@/server/services/featureFlagService', () => ({
+	isFeatureEnabled: mocks.isFeatureEnabled,
 }));
 
 // orgProcedure does one indexed lookup per call to enforce org suspension
@@ -73,6 +80,8 @@ vi.mock('@/server/services/shiftSignupService', () => ({
 	joinWaitlist: vi.fn(),
 	leaveWaitlist: vi.fn(),
 	signUpForShift: vi.fn(),
+	assignVolunteerToShift: mocks.assignVolunteerToShift,
+	getAssignableVolunteers: mocks.getAssignableVolunteers,
 }));
 
 vi.mock('@/server/services/shiftAccessService', () => ({
@@ -128,6 +137,9 @@ beforeEach(() => {
 	mocks.getCheckinStats.mockResolvedValue({ attended: 0, total: 0, rate: 0 });
 	mocks.requireOrgShift.mockResolvedValue({ id: SHIFT_ID, status: 'OPEN' });
 	mocks.validateCheckinTokenFromEnv.mockReturnValue(true);
+	mocks.isFeatureEnabled.mockResolvedValue(true);
+	mocks.getAssignableVolunteers.mockResolvedValue([]);
+	mocks.assignVolunteerToShift.mockResolvedValue({ signupId: 'sg-1' });
 });
 
 describe('reads are scoped to ctx.orgId', () => {
@@ -344,6 +356,117 @@ describe('pre-authorization disclosure', () => {
 			ACTOR_ID,
 			{ by: 'self', userId: ACTOR_ID },
 			'geo',
+		);
+	});
+});
+
+/**
+ * The roster feature flag is a KILL SWITCH, not a nav-hiding convenience.
+ *
+ * `ShiftDetailDialog` withholds the assign picker when the flag is off, but
+ * that is cosmetic — both procedures below are live HTTP endpoints, and
+ * `assignVolunteer` writes a `ShiftSignup` and an audit row. If they were
+ * plain `staffProcedure`s, any staff user at a non-pilot org could POST
+ * straight to tRPC and schedule from a roster the product says they cannot see.
+ *
+ * This is the same argument `volunteers/layout.tsx` makes about the route and
+ * then does not apply to the mutations, which is why `rosterProcedure` is
+ * shared between the two routers rather than copied.
+ */
+describe('assign procedures are gated by the roster flag', () => {
+	it('SECURITY: assignVolunteer is FORBIDDEN when the flag is off', async () => {
+		mocks.isFeatureEnabled.mockResolvedValue(false);
+
+		await expect(
+			caller().assignVolunteer({ shiftId: SHIFT_ID, volunteerId: 'ov-1' }),
+		).rejects.toMatchObject({ code: 'FORBIDDEN' });
+
+		expect(mocks.assignVolunteerToShift).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: assignableVolunteers is FORBIDDEN when the flag is off', async () => {
+		mocks.isFeatureEnabled.mockResolvedValue(false);
+
+		await expect(
+			caller().assignableVolunteers({ shiftId: SHIFT_ID }),
+		).rejects.toMatchObject({ code: 'FORBIDDEN' });
+
+		expect(mocks.getAssignableVolunteers).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: the flag is resolved against ctx.orgId, not anything from input', async () => {
+		await caller().assignVolunteer({ shiftId: SHIFT_ID, volunteerId: 'ov-1' });
+
+		expect(mocks.isFeatureEnabled).toHaveBeenCalledWith(
+			CTX_ORG_ID,
+			'staff_created_volunteers',
+		);
+	});
+
+	it('SECURITY: assignVolunteer passes ctx.orgId and the session actor', async () => {
+		await caller().assignVolunteer({
+			shiftId: SHIFT_ID,
+			volunteerId: 'ov-1',
+			allowOverCapacity: true,
+		});
+
+		expect(mocks.assignVolunteerToShift).toHaveBeenCalledWith({
+			shiftId: SHIFT_ID,
+			volunteerId: 'ov-1',
+			orgId: CTX_ORG_ID,
+			actorId: ACTOR_ID,
+			allowOverCapacity: true,
+			impersonatedBy: null,
+		});
+	});
+
+	it('SECURITY: assignableVolunteers passes ctx.orgId', async () => {
+		await caller().assignableVolunteers({ shiftId: SHIFT_ID, search: 'mar' });
+
+		expect(mocks.getAssignableVolunteers).toHaveBeenCalledWith({
+			shiftId: SHIFT_ID,
+			orgId: CTX_ORG_ID,
+			search: 'mar',
+		});
+	});
+
+	/**
+	 * The trap the design doc flags for this exact task: `ctx.realUserId` is
+	 * populated on EVERY logged-in request, not only impersonated ones. Stamping
+	 * it unconditionally marks every audit row as impersonated and makes
+	 * `queryAuditLog`'s `impersonatedOnly` filter match everything.
+	 */
+	it('SECURITY: stamps impersonatedBy only when the real user differs', async () => {
+		await caller().assignVolunteer({ shiftId: SHIFT_ID, volunteerId: 'ov-1' });
+		expect(mocks.assignVolunteerToShift).toHaveBeenCalledWith(
+			expect.objectContaining({ impersonatedBy: null }),
+		);
+
+		mocks.assignVolunteerToShift.mockClear();
+		const impersonated = callerFactory({
+			session: { user: { id: 'target-user' } },
+			realSession: null,
+			realUserId: 'real-admin',
+			impersonation: null,
+			orgId: CTX_ORG_ID,
+			role: 'STAFF',
+			companyId: null,
+			companyRole: null,
+			prisma: {} as never,
+			sessionToken: null,
+			ip: null,
+		} as Parameters<typeof callerFactory>[0]);
+
+		await impersonated.assignVolunteer({
+			shiftId: SHIFT_ID,
+			volunteerId: 'ov-1',
+		});
+
+		expect(mocks.assignVolunteerToShift).toHaveBeenCalledWith(
+			expect.objectContaining({
+				actorId: 'target-user',
+				impersonatedBy: 'real-admin',
+			}),
 		);
 	});
 });

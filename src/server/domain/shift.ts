@@ -124,16 +124,36 @@ export function computeShiftCapacity(
 // ---- Signup validation ----------------------------------------------------
 
 /**
- * Validate whether a volunteer can sign up for a shift.
+ * Validate whether a volunteer can sign up for — or be assigned to — a shift.
  * Checks: shift status, capacity, duplicate signup, time conflict.
+ *
+ * Note the duplicate check matches `CONFIRMED` only. A CANCELLED, WAITLISTED,
+ * ATTENDED or NO_SHOW row for the same pair still satisfies
+ * `ShiftSignup @@unique([shiftId, userId])`, so a caller that CREATES rather
+ * than updates must resolve the existing row itself or the insert collides —
+ * see `assignVolunteerToShift`, which is where that bit the staff path.
+ *
+ * @param opts.allowOverCapacity Waive the two capacity refusals (`SHIFT_FULL`,
+ *   `AT_CAPACITY`) and nothing else. Staff-only, and never a default: the
+ *   coordinator confirms an over-capacity assignment explicitly (design
+ *   decision D11).
+ *
+ *   Waiving them as a guarded block rather than filtering the returned code at
+ *   the service is what keeps this safe. Each refusal here returns early, so a
+ *   service that instead called this unchanged and ignored the two capacity
+ *   codes would also be ignoring the fact that the duplicate and time-conflict
+ *   rules below never ran — and would create a signup for someone already on
+ *   the shift. Skipping the block lets execution fall through to them.
  */
 export function validateSignup(
 	shift: ShiftData,
 	signups: readonly SignupRecord[],
 	userId: string,
 	existingUserShifts?: readonly ShiftData[],
+	opts?: { allowOverCapacity?: boolean },
 ): SignupCheck {
-	// Shift must be open
+	// Shift must be open. Not waivable — an assignment onto a cancelled or
+	// completed shift is a mistake however emphatically it is confirmed.
 	if (shift.status === 'CANCELLED') {
 		return {
 			ok: false,
@@ -148,18 +168,20 @@ export function validateSignup(
 			reason: 'This shift has already been completed.',
 		};
 	}
-	if (shift.status === 'FULL') {
-		return { ok: false, code: 'SHIFT_FULL', reason: 'This shift is full.' };
-	}
 
-	// Check capacity
-	const cap = computeShiftCapacity(shift.capacity, signups);
-	if (cap.isFull) {
-		return {
-			ok: false,
-			code: 'AT_CAPACITY',
-			reason: 'This shift is at capacity.',
-		};
+	// Capacity — the one rule `allowOverCapacity` waives.
+	if (!opts?.allowOverCapacity) {
+		if (shift.status === 'FULL') {
+			return { ok: false, code: 'SHIFT_FULL', reason: 'This shift is full.' };
+		}
+		const cap = computeShiftCapacity(shift.capacity, signups);
+		if (cap.isFull) {
+			return {
+				ok: false,
+				code: 'AT_CAPACITY',
+				reason: 'This shift is at capacity.',
+			};
+		}
 	}
 
 	// Check for existing active signup

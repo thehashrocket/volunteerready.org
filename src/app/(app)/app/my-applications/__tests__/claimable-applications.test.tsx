@@ -28,11 +28,13 @@ const {
 	mockMyApplications,
 	mockClaimableApplications,
 	mockClaimMutation,
+	mockDeclineMutation,
 	mockUseUtils,
 } = vi.hoisted(() => ({
 	mockMyApplications: vi.fn(),
 	mockClaimableApplications: vi.fn(),
 	mockClaimMutation: vi.fn(),
+	mockDeclineMutation: vi.fn(),
 	mockUseUtils: vi.fn(),
 }));
 
@@ -42,6 +44,7 @@ vi.mock('@/lib/trpc/client', () => ({
 			myApplications: { useQuery: mockMyApplications },
 			claimableApplications: { useQuery: mockClaimableApplications },
 			claimApplication: { useMutation: mockClaimMutation },
+			declineApplication: { useMutation: mockDeclineMutation },
 		},
 		useUtils: mockUseUtils,
 	},
@@ -73,12 +76,14 @@ function setup({
 	claimableLoading = false,
 	claimableError = false,
 	claim = {} as ClaimState,
+	decline = {} as ClaimState,
 	applications = [] as unknown[],
 }: {
 	claimable?: ReturnType<typeof makeClaimable>[] | null;
 	claimableLoading?: boolean;
 	claimableError?: boolean;
 	claim?: ClaimState;
+	decline?: ClaimState;
 	applications?: unknown[];
 } = {}) {
 	// The parent page's own query must resolve, or the card never mounts.
@@ -110,6 +115,7 @@ function setup({
 	});
 
 	const mutate = vi.fn();
+	const declineMutate = vi.fn();
 	const invalidateClaimable = vi.fn().mockResolvedValue(undefined);
 	const invalidateMine = vi.fn().mockResolvedValue(undefined);
 
@@ -134,11 +140,26 @@ function setup({
 		},
 	);
 
+	let declineOptions: { onSuccess?: () => Promise<void> | void } = {};
+	mockDeclineMutation.mockImplementation(
+		(opts: { onSuccess?: () => Promise<void> | void }) => {
+			declineOptions = opts ?? {};
+			return {
+				mutate: declineMutate,
+				isPending: decline.isPending ?? false,
+				isError: decline.isError ?? false,
+				error: decline.error ?? null,
+			};
+		},
+	);
+
 	return {
 		mutate,
+		declineMutate,
 		invalidateClaimable,
 		invalidateMine,
 		getOptions: () => options,
+		getDeclineOptions: () => declineOptions,
 	};
 }
 
@@ -457,10 +478,15 @@ describe('ClaimableApplications — claiming', () => {
 		});
 		render(<MyApplicationsPage />);
 
-		// Each org name resolves to exactly one button — proving the labels are
-		// per-row, not a shared constant.
-		expect(screen.getByRole('button', { name: /Alpha/ })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /Beta/ })).toBeInTheDocument();
+		// Each org name resolves to exactly one CLAIM button — proving the labels
+		// are per-row, not a shared constant. Scoped to the claim label because
+		// every row also carries a "Not mine: <org>" control now.
+		expect(
+			screen.getByRole('button', { name: /Add to my account: Alpha/ }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', { name: /Add to my account: Beta/ }),
+		).toBeInTheDocument();
 		// Leads with the visible label verbatim so voice control still matches what
 		// the user reads (WCAG 2.5.3 Label in Name).
 		expect(
@@ -479,5 +505,195 @@ describe('ClaimableApplications — claiming', () => {
 
 		expect(invalidateClaimable).toHaveBeenCalledTimes(1);
 		expect(invalidateMine).toHaveBeenCalledTimes(1);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Declining — the escape hatch that stops this card being nag-until-yes
+// ---------------------------------------------------------------------------
+
+describe('ClaimableApplications — declining', () => {
+	it('SECURITY: offers a refusal, not only an acceptance', () => {
+		// Before the decline path the ONLY control was "Add to my account" and the
+		// card hid only when the claimable list emptied — which it could do only by
+		// claiming. So in exactly the abuse case this card exists to stop (a third
+		// party planting an application under the victim's address), the victim saw
+		// a permanent card whose sole button granted the planting org an
+		// authorization edge over them.
+		setup();
+		render(<MyApplicationsPage />);
+
+		expect(
+			screen.getByRole('button', { name: /^Not mine:/ }),
+		).toBeInTheDocument();
+	});
+
+	it('SECURITY: gives the refusal the same visual weight as the acceptance', () => {
+		// Declining is the SAFE action here, so it must not read as weaker or more
+		// dangerous than accepting. Same size and variant classes => same weight.
+		setup();
+		render(<MyApplicationsPage />);
+
+		const notMine = screen.getByRole('button', { name: /^Not mine:/ });
+		const add = screen.getByRole('button', { name: /^Add to my account:/ });
+
+		expect(notMine.className).toBe(add.className);
+	});
+
+	it('does not fire the mutation on the first click — it asks first', async () => {
+		// A misclick permanently orphans a legitimate application: declining is
+		// terminal, and `listClaimableApplicationsByEmail` filters declined rows out
+		// for good. One click must not be enough.
+		const { declineMutate } = setup();
+		render(<MyApplicationsPage />);
+
+		await userEvent.click(screen.getByRole('button', { name: /^Not mine:/ }));
+
+		expect(declineMutate).not.toHaveBeenCalled();
+		expect(
+			screen.getByRole('button', { name: /is not mine$/ }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', { name: /^Keep showing/ }),
+		).toBeInTheDocument();
+	});
+
+	it('declines the id of the row that was confirmed, not the first row', async () => {
+		const { declineMutate } = setup({
+			claimable: [
+				makeClaimable({
+					id: 'app-1',
+					organization: { id: 'o1', name: 'Alpha' },
+				}),
+				makeClaimable({
+					id: 'app-2',
+					organization: { id: 'o2', name: 'Beta' },
+				}),
+			],
+		});
+		render(<MyApplicationsPage />);
+
+		await userEvent.click(
+			screen.getByRole('button', { name: /^Not mine: Beta/ }),
+		);
+		await userEvent.click(
+			screen.getByRole('button', { name: /Beta.*is not mine$/ }),
+		);
+
+		expect(declineMutate).toHaveBeenCalledTimes(1);
+		expect(declineMutate).toHaveBeenCalledWith({ id: 'app-2' });
+	});
+
+	it('only the confirmed row enters the confirming state', async () => {
+		// Confirmation is per-row state. If it were a single boolean, confirming one
+		// row would ask about all of them and the user could decline the wrong org.
+		setup({
+			claimable: [
+				makeClaimable({
+					id: 'app-1',
+					organization: { id: 'o1', name: 'Alpha' },
+				}),
+				makeClaimable({
+					id: 'app-2',
+					organization: { id: 'o2', name: 'Beta' },
+				}),
+			],
+		});
+		render(<MyApplicationsPage />);
+
+		await userEvent.click(
+			screen.getByRole('button', { name: /^Not mine: Alpha/ }),
+		);
+
+		expect(
+			screen.getByRole('button', { name: /Alpha.*is not mine$/ }),
+		).toBeInTheDocument();
+		// Beta is untouched and still offers both original controls.
+		expect(
+			screen.getByRole('button', { name: /^Not mine: Beta/ }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', { name: /^Add to my account: Beta/ }),
+		).toBeInTheDocument();
+	});
+
+	it('cancelling returns the row to its original controls without mutating', async () => {
+		const { declineMutate } = setup();
+		render(<MyApplicationsPage />);
+
+		await userEvent.click(screen.getByRole('button', { name: /^Not mine:/ }));
+		await userEvent.click(
+			screen.getByRole('button', { name: /^Keep showing/ }),
+		);
+
+		expect(declineMutate).not.toHaveBeenCalled();
+		expect(
+			screen.getByRole('button', { name: /^Add to my account:/ }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', { name: /^Not mine:/ }),
+		).toBeInTheDocument();
+	});
+
+	it('names the organization in the confirmation control', async () => {
+		// The org name is the decision input for refusing just as much as for
+		// accepting — a bare "Yes, remove it" accessible name would strip it.
+		setup();
+		render(<MyApplicationsPage />);
+
+		await userEvent.click(screen.getByRole('button', { name: /^Not mine:/ }));
+
+		expect(
+			screen.getByRole('button', {
+				name: /Riverside Animal Shelter.*is not mine$/,
+			}),
+		).toBeInTheDocument();
+	});
+
+	it('announces a decline failure through a live region', () => {
+		setup({
+			decline: {
+				isError: true,
+				error: {
+					message: 'Application not found.',
+					data: { code: 'NOT_FOUND' },
+				},
+			},
+		});
+		render(<MyApplicationsPage />);
+
+		expect(screen.getByRole('alert')).toHaveTextContent(
+			'Application not found.',
+		);
+	});
+
+	it('SECURITY: does not render an internal decline error verbatim', () => {
+		setup({
+			decline: {
+				isError: true,
+				error: {
+					message:
+						'Invalid `prisma.volunteerApplication.updateMany()` invocation',
+					data: { code: 'INTERNAL_SERVER_ERROR' },
+				},
+			},
+		});
+		render(<MyApplicationsPage />);
+
+		expect(screen.queryByText(/prisma/i)).not.toBeInTheDocument();
+		expect(
+			screen.getByText("We couldn't remove that application. Try again."),
+		).toBeInTheDocument();
+	});
+
+	it('refreshes the candidate list after a successful decline', async () => {
+		// Without this the declined row stays on screen until a reload, which reads
+		// as "the refusal did not work" on the one card where that matters most.
+		const { invalidateClaimable, getDeclineOptions } = setup();
+		render(<MyApplicationsPage />);
+
+		await getDeclineOptions().onSuccess?.();
+
+		expect(invalidateClaimable).toHaveBeenCalledTimes(1);
 	});
 });

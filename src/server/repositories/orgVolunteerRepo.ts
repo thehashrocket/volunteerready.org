@@ -2,7 +2,10 @@ import type {
 	OrgVolunteerSource,
 	PrismaClient,
 } from '@/prisma/generated/client';
-import { ROSTER_PAGE_SIZE } from '@/server/domain/org-volunteer';
+import {
+	ASSIGN_PICKER_LIMIT,
+	ROSTER_PAGE_SIZE,
+} from '@/server/domain/org-volunteer';
 import { prisma } from './prisma';
 
 /** Works with both `prisma` and `prisma.$transaction(tx => …)`. */
@@ -41,6 +44,80 @@ export function findLiveOrgVolunteer(
 		where: { orgId, userId, deletedAt: null },
 		select: rosterSelect,
 	});
+}
+
+/**
+ * Find a LIVE roster row by its own id, scoped to the org that owns it.
+ *
+ * `orgId` is part of the WHERE, not checked afterwards: `OrgVolunteer.id` is the
+ * handle the assign picker puts on the wire, so without it a crafted id from
+ * another org would resolve to that org's volunteer and let staff schedule a
+ * stranger. Scoping here is also what lets `assignVolunteerToShift` skip
+ * `requireOrgVolunteerRelationship` — a live roster row IS the `ORG_VOLUNTEER`
+ * relationship that guard would look for.
+ */
+export function findOrgVolunteerById(
+	orgId: string,
+	id: string,
+	tx: TxClient | typeof prisma = prisma,
+) {
+	return tx.orgVolunteer.findFirst({
+		where: { id, orgId, deletedAt: null },
+		select: rosterSelect,
+	});
+}
+
+/**
+ * Insert a roster edge, doing nothing if a LIVE one already exists.
+ *
+ * Returns true when a row was inserted, false when one was already there.
+ *
+ * Why not `findLiveOrgVolunteer` then `createOrgVolunteer` with a P2002 catch —
+ * the shape `addVolunteer` uses and the shape the design doc prescribes for E1a?
+ * Because E1a runs inside a transaction that must COMMIT (the application
+ * approval, or the claim and its audit row), and in Postgres a failed statement
+ * poisons the whole transaction: verified against this database, swallowing a
+ * P2002 inside `prisma.$transaction` and issuing any further statement fails
+ * with `current transaction is aborted, commands ignored until end of
+ * transaction block`. So a concurrent roster race would roll back the approval
+ * itself. `createMany({ skipDuplicates: true })` compiles to
+ * `ON CONFLICT DO NOTHING`, which the server resolves without raising, so the
+ * enclosing transaction survives.
+ *
+ * `addVolunteer` keeps its catch-outside-the-transaction shape because there the
+ * duplicate IS the answer the coordinator needs ("Already on your roster"); here
+ * it is a no-op we want to absorb silently.
+ *
+ * Verified that `ON CONFLICT DO NOTHING` honours the PARTIAL index: a
+ * soft-deleted row does not block a fresh insert, so a re-approved volunteer who
+ * was previously removed is re-added rather than silently skipped.
+ */
+export async function createOrgVolunteerIfAbsent(
+	tx: TxClient,
+	data: {
+		orgId: string;
+		userId: string;
+		displayName: string;
+		phone?: string | null;
+		source?: OrgVolunteerSource;
+		addedByUserId?: string | null;
+	},
+): Promise<boolean> {
+	const { count } = await tx.orgVolunteer.createMany({
+		data: [
+			{
+				orgId: data.orgId,
+				userId: data.userId,
+				displayName: data.displayName,
+				phone: data.phone ?? null,
+				source: data.source ?? 'STAFF_ADDED',
+				addedByUserId: data.addedByUserId ?? null,
+			},
+		],
+		skipDuplicates: true,
+	});
+
+	return count > 0;
 }
 
 export function createOrgVolunteer(
@@ -149,6 +226,61 @@ export async function listOrgVolunteers(options: {
 		volunteers: sliced,
 		nextCursor: hasMore ? (sliced[sliced.length - 1]?.id ?? null) : null,
 	};
+}
+
+/**
+ * Roster rows the coordinator can still put on `shiftId`, newest first.
+ *
+ * Excludes anyone with a live signup on that shift — CONFIRMED, WAITLISTED,
+ * ATTENDED or NO_SHOW. CANCELLED is deliberately NOT excluded: re-adding
+ * someone who cancelled is an ordinary thing to do, and `assignVolunteerToShift`
+ * handles it by reviving the existing row.
+ *
+ * The exclusion has to happen here rather than in the component. The roster is
+ * keyed by `OrgVolunteer.id` and signups by `User.id`, and `getRoster`
+ * deliberately withholds `userId` from the client (it is a cross-tenant
+ * correlation handle — see the note on the roster projection), so a client-side
+ * filter has no join key to work with. Offering a volunteer whose selection is
+ * guaranteed to fail is worse than not offering them.
+ *
+ * Not paginated: the picker is a search box over a roster the coordinator is
+ * typing into, so a bounded `take` with a "keep typing" empty state is the
+ * right shape. `ASSIGN_PICKER_LIMIT` is small enough that the list stays
+ * scannable and large enough that a short roster fits in one page.
+ */
+export async function listAssignableVolunteers(options: {
+	orgId: string;
+	shiftId: string;
+	search?: string | null;
+	limit?: number;
+}) {
+	const search = options.search?.trim();
+
+	return prisma.orgVolunteer.findMany({
+		where: {
+			orgId: options.orgId,
+			deletedAt: null,
+			...(search
+				? {
+						OR: [
+							{ displayName: { contains: search, mode: 'insensitive' } },
+							{ user: { email: { contains: search, mode: 'insensitive' } } },
+						],
+					}
+				: {}),
+			user: {
+				shiftSignups: {
+					none: {
+						shiftId: options.shiftId,
+						status: { not: 'CANCELLED' },
+					},
+				},
+			},
+		},
+		take: options.limit ?? ASSIGN_PICKER_LIMIT,
+		orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+		select: rosterSelect,
+	});
 }
 
 export function countOrgVolunteers(orgId: string) {
