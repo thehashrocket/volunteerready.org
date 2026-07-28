@@ -73,18 +73,20 @@ function setup({
 	claimableLoading = false,
 	claimableError = false,
 	claim = {} as ClaimState,
+	applications = [] as unknown[],
 }: {
 	claimable?: ReturnType<typeof makeClaimable>[] | null;
 	claimableLoading?: boolean;
 	claimableError?: boolean;
 	claim?: ClaimState;
+	applications?: unknown[];
 } = {}) {
 	// The parent page's own query must resolve, or the card never mounts.
 	mockMyApplications.mockReturnValue({
 		isLoading: false,
 		isError: false,
 		error: null,
-		data: [],
+		data: applications,
 		refetch: vi.fn(),
 	});
 
@@ -98,7 +100,13 @@ function setup({
 		// load-bearing. Blanking data here made the error test vacuous: the
 		// `claimable.length === 0` term alone short-circuited, so the test
 		// passed with `query.isError ||` deleted from the component.
-		data: claimableLoading ? undefined : claimable,
+		// Populated in EVERY state, including loading and error. react-query keeps
+		// the last successful payload across a background refetch, so this is the
+		// real shape — and it is what makes the `isLoading` and `isError` terms of
+		// the render guard load-bearing. Blanking it made both tests vacuous: the
+		// `claimable.length === 0` term alone short-circuited, so each passed with
+		// its own guard term deleted from the component.
+		data: claimable,
 	});
 
 	const mutate = vi.fn();
@@ -143,11 +151,19 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('ClaimableApplications — non-rendering states', () => {
-	it('renders nothing while the claimable query is loading', () => {
+	it('renders nothing while a refetch is in flight, even with stale data present', () => {
+		// The setup keeps `data` populated (react-query's real background-refetch
+		// shape), so `query.isLoading` is the ONLY thing suppressing the card.
+		// Mutation-verified: deleting `query.isLoading ||` from the guard turns
+		// this red. Without stale data the assertion was satisfied by the
+		// zero-length term instead, and the test proved nothing.
 		setup({ claimableLoading: true });
 		render(<MyApplicationsPage />);
 
 		expect(screen.queryByText(/is this you\?/i)).not.toBeInTheDocument();
+		expect(
+			screen.queryByText('Riverside Animal Shelter'),
+		).not.toBeInTheDocument();
 	});
 
 	it('renders nothing — and leaks no error text — when the query errors', () => {
@@ -248,6 +264,53 @@ describe('ClaimableApplications — rendering', () => {
 		render(<MyApplicationsPage />);
 
 		expect(screen.getByText('Unknown organization')).toBeInTheDocument();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Page empty state — the `onCountChange` contract
+// ---------------------------------------------------------------------------
+
+describe('page empty state vs. pending candidates', () => {
+	it('suppresses "No applications yet" while a candidate is offered', () => {
+		// This is the feature's PRIMARY first-run state: a volunteer applied
+		// anonymously, then signed up. Rendering "No applications yet" directly
+		// under "We found an application submitted with your email address" is a
+		// flat contradiction, and the contradiction is what pushes the user to
+		// ignore the consent card.
+		setup({ applications: [], claimable: [makeClaimable()] });
+		render(<MyApplicationsPage />);
+
+		expect(screen.getByText('Is this you?')).toBeInTheDocument();
+		expect(screen.queryByText('No applications yet')).not.toBeInTheDocument();
+	});
+
+	it('renders "No applications yet" when there are no applications and no candidates', () => {
+		// The other half of the contract. Without this the suppression could be
+		// unconditional — a genuinely empty account would lose its call to action.
+		setup({ applications: [], claimable: [] });
+		render(<MyApplicationsPage />);
+
+		expect(screen.getByText('No applications yet')).toBeInTheDocument();
+	});
+
+	it('still renders the empty state when the candidate query errors', () => {
+		// `visibleCount` must report 0 on error, not the stale `data.length`.
+		// A failed candidate lookup is not evidence that an application exists, and
+		// suppressing the empty state off it would leave the page showing nothing
+		// at all — no list, no card, no call to action.
+		setup({ applications: [], claimableError: true });
+		render(<MyApplicationsPage />);
+
+		expect(screen.getByText('No applications yet')).toBeInTheDocument();
+		expect(screen.queryByText('Is this you?')).not.toBeInTheDocument();
+	});
+
+	it('still renders the empty state while the candidate query is loading', () => {
+		setup({ applications: [], claimableLoading: true });
+		render(<MyApplicationsPage />);
+
+		expect(screen.getByText('No applications yet')).toBeInTheDocument();
 	});
 });
 
@@ -353,6 +416,56 @@ describe('ClaimableApplications — claiming', () => {
 		render(<MyApplicationsPage />);
 
 		expect(screen.queryByText(/not found/i)).not.toBeInTheDocument();
+	});
+
+	it('announces a claim failure through a live region', () => {
+		// The button stays in place and its label is unchanged on failure, so a
+		// screen-reader user gets no signal at all unless the message is announced.
+		// role="alert" is the only thing that moves focus-free announcement here.
+		setup({
+			claim: {
+				isError: true,
+				error: {
+					message: 'Application not found.',
+					data: { code: 'NOT_FOUND' },
+				},
+			},
+		});
+		render(<MyApplicationsPage />);
+
+		expect(screen.getByRole('alert')).toHaveTextContent(
+			'Application not found.',
+		);
+	});
+
+	it('gives each row a distinct accessible name naming its own organization', () => {
+		// Every row's VISIBLE label is the same string, so a screen-reader user
+		// hears "Add to my account" N times with nothing to tell them which org
+		// each grants a relationship edge to — on the one control in the app whose
+		// entire purpose is informed consent about a specific org.
+		setup({
+			claimable: [
+				makeClaimable({
+					id: 'app-1',
+					organization: { id: 'o1', name: 'Alpha' },
+				}),
+				makeClaimable({
+					id: 'app-2',
+					organization: { id: 'o2', name: 'Beta' },
+				}),
+			],
+		});
+		render(<MyApplicationsPage />);
+
+		// Each org name resolves to exactly one button — proving the labels are
+		// per-row, not a shared constant.
+		expect(screen.getByRole('button', { name: /Alpha/ })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /Beta/ })).toBeInTheDocument();
+		// Leads with the visible label verbatim so voice control still matches what
+		// the user reads (WCAG 2.5.3 Label in Name).
+		expect(
+			screen.getByRole('button', { name: /^Add to my account: Alpha/ }),
+		).toBeInTheDocument();
 	});
 
 	it('invalidates BOTH the candidate list and the applications list on success', async () => {

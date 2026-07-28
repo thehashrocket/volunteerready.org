@@ -418,7 +418,12 @@ export const screenerRouter = createTRPCRouter({
 		.input(
 			z.object({
 				orgId: z.string().min(1),
-				email: z.string().email(),
+				// Must normalize to match `submit`, which now stores canonical.
+				// This reader compares against stored rows by exact equality, so an
+				// applicant typing `Jane@Example.com` would get no duplicate warning
+				// and submit a second application — silently regressing the
+				// duplicate-prevention control.
+				email: z.string().email().transform(normalizeEmail),
 				opportunityId: z.string().min(1),
 			}),
 		)

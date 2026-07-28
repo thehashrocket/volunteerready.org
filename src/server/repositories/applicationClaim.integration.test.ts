@@ -11,6 +11,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { prisma } from '@/server/repositories/prisma';
 import {
+	CLAIMABLE_LIST_CAP,
 	claimApplicationForUser,
 	listClaimableApplicationsByEmail,
 } from '@/server/repositories/volunteer-applications';
@@ -139,6 +140,70 @@ describe('listClaimableApplicationsByEmail', () => {
 		);
 
 		expect(found.map((a) => a.id)).not.toContain(victim.id);
+	});
+
+	it('SECURITY: caps the candidate list at 50 rows', async () => {
+		// A third party controls how many orphan rows carry a given address:
+		// `screener.submit` is a publicProcedure taking an arbitrary
+		// `submittedByEmail`. Unbounded, this query is a remote memory-amplification
+		// lever — every row joins the organization relation and is serialized into
+		// the victim's page payload. The bound is only real if the DB enforces it.
+		const flooded = `${PREFIX}flooded@example.test`;
+		await prisma.volunteerApplication.createMany({
+			data: Array.from({ length: 55 }, () => ({
+				orgId,
+				submittedByEmail: flooded,
+				submittedByUserId: null,
+			})),
+		});
+		const created = await prisma.volunteerApplication.findMany({
+			where: { submittedByEmail: flooded },
+			select: { id: true },
+		});
+		applicationIds.push(...created.map((a) => a.id));
+
+		const found = await listClaimableApplicationsByEmail(flooded);
+
+		expect(found).toHaveLength(CLAIMABLE_LIST_CAP);
+	});
+
+	it('SECURITY: a flood of newer rows cannot bury an older genuine one', async () => {
+		// The cap is necessary but `desc` + a cap is a starvation hole. The genuine
+		// application is the OLD one — you applied anonymously, then signed up
+		// later — while an attacker's planted rows are new. Newest-first would push
+		// the real row off the list permanently, and since `linkApplicationsToUser`
+		// was deleted there is no other bind path, so it could never be claimed.
+		const flooded = `${PREFIX}starved@example.test`;
+		const genuine = await prisma.volunteerApplication.create({
+			data: {
+				orgId,
+				submittedByEmail: flooded,
+				submittedByUserId: null,
+				submittedAt: new Date('2020-01-01T00:00:00Z'),
+			},
+		});
+		applicationIds.push(genuine.id);
+
+		await prisma.volunteerApplication.createMany({
+			data: Array.from({ length: 60 }, (_, i) => ({
+				orgId,
+				submittedByEmail: flooded,
+				submittedByUserId: null,
+				submittedAt: new Date(
+					`2030-01-01T00:00:${String(i).padStart(2, '0')}Z`,
+				),
+			})),
+		});
+		const planted = await prisma.volunteerApplication.findMany({
+			where: { submittedByEmail: flooded, id: { not: genuine.id } },
+			select: { id: true },
+		});
+		applicationIds.push(...planted.map((a) => a.id));
+
+		const found = await listClaimableApplicationsByEmail(flooded);
+
+		expect(found).toHaveLength(CLAIMABLE_LIST_CAP);
+		expect(found.map((a) => a.id)).toContain(genuine.id);
 	});
 
 	it('does not offer an application already bound to a user', async () => {

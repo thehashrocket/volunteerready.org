@@ -8,6 +8,13 @@ import { prisma } from '@/server/repositories/prisma';
 /** Transactional client — works with both `prisma` and `prisma.$transaction(tx => …)`. */
 type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 
+/**
+ * Cap on the claimable-candidate list. Exported so callers can detect
+ * truncation (`length === CLAIMABLE_LIST_CAP` means there may be more) rather
+ * than silently showing a partial list as if it were complete.
+ */
+export const CLAIMABLE_LIST_CAP = 50;
+
 interface PaginationInput {
 	page?: number;
 	pageSize?: number;
@@ -154,10 +161,16 @@ export async function listClaimableApplicationsByEmail(email: string) {
 			submittedByUserId: null,
 			submittedByEmail: normalizeEmail(email),
 		},
-		orderBy: { submittedAt: 'desc' },
-		// A third party controls how many orphan rows carry a given address
-		// (`screener.submit` is public), so this list must be bounded.
-		take: 50,
+		// OLDEST first, deliberately. The bound below is required because a third
+		// party controls how many orphan rows carry a given address
+		// (`screener.submit` is public), but `desc` + a cap is a starvation hole:
+		// the genuine application is the OLD one (you applied anonymously, then
+		// signed up later), so newest-first lets an attacker plant 50 fresh rows
+		// and push the real one off the list permanently. There is no other bind
+		// path since `linkApplicationsToUser()` was deleted, so a buried row
+		// would be unclaimable forever.
+		orderBy: { submittedAt: 'asc' },
+		take: CLAIMABLE_LIST_CAP,
 		select: {
 			id: true,
 			submittedAt: true,
