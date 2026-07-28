@@ -130,9 +130,17 @@ row to `ACTIVE`. Follow the repo convention: hand-written `migration.sql` with `
 ### Prerequisite: email canonicalization, enforced at the database
 
 `User.email` is `String? @unique` — plain text, no `citext`, no normalization.
-`linkApplicationsToUser` (`my-applications.ts:101`) compares with exact string equality. The
-email guard looks users up by lowercased address, so without this it silently misses a row stored
-as `Bob@shelter.org` and **fails open** on a privacy control.
+The email guard looks users up by lowercased address, so without this it silently misses a row
+stored as `Bob@shelter.org` and **fails open** on a privacy control.
+
+⚠️ Updated 2026-07-27 — this paragraph previously cited `linkApplicationsToUser`
+(`my-applications.ts:101`) as the exact-string-equality comparison that motivated canonicalization.
+That function was **deleted** (see §5). Its successor `claimApplicationForUser()`
+(`volunteer-applications.ts`) still compares stored addresses by exact equality, and
+`screener.submit` / `screener.checkAnonymousApplication` now normalize `submittedByEmail` on input
+so both sides of that comparison stay canonical. The argument for the DB-level constraint is
+unchanged — it is what lets the claim path use exact equality instead of an unsafe
+case-insensitive match.
 
 **Service-layer lowercasing is not sufficient.** New auth users are created by the raw
 `PrismaAdapter` (`src/server/auth.ts:26`), which never passes through a service. Enforce at the

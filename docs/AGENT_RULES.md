@@ -56,6 +56,19 @@ relationship (application, roster row, shift signup, or org membership) or throw
 relationship staff can mint unilaterally against a stranger (an invitation, a
 credential they are about to issue) authorizes nothing.
 
+That set stays safe only as long as nothing mints those relationships on a
+user's behalf. `application` qualifies **because** an anonymous application is
+bound to a user only by that user's explicit confirmation
+(`claimApplicationForUser()` in
+`src/server/repositories/volunteer-applications.ts`, v0.33.1.0). `screener.submit`
+is a `publicProcedure` accepting an arbitrary `submittedByEmail`, so orphan
+applications are attacker-controllable; its predecessor bound them automatically
+by address on every `/app/my-applications` load and thereby handed anyone an
+`APPLICATION` edge into a stranger's profile and credentials. If you add another
+path that sets `submittedByUserId`, route it through that function or repeat its
+`where` — and never relax the email predicate to Prisma's `mode: 'insensitive'`,
+which is a matching convenience, not an authorization check.
+
 The one exemption is a write that is already org-scoped by construction:
 `removeCredential()` deletes on the `(userId, orgId, type)` compound key, so a
 stranger's row cannot match and the delete throws instead. If your write can
