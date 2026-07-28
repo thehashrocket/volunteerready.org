@@ -41,10 +41,19 @@ export async function sendEmail(
 		// Critical mail (FCRA adverse-action notices) bypasses BOTH guards.
 		const isCritical = opts?.isCritical === true;
 		const checkBounce = !isCritical;
+		// SECURITY: the guard is coupled to the flip, not just to its own switch.
+		// UNCLAIMED is a state with exactly one exit — the sign-in flip. Turning
+		// the flip off while the guard runs creates a population that is
+		// permanently, silently cut off from bulk mail with no way back, and
+		// turning the flip on later does not retroactively claim anyone who
+		// signed in during the window. A suppression whose exit is disabled must
+		// not run. `.env.example` documented this combination as a known hazard;
+		// this makes it unreachable instead.
 		const checkUnclaimed =
 			!isCritical &&
 			opts?.suppressUnclaimed === true &&
-			isEnabled('UNCLAIMED_EMAIL_GUARD_ENABLED');
+			isEnabled('UNCLAIMED_EMAIL_GUARD_ENABLED') &&
+			isEnabled('ACCOUNT_STATE_FLIP_ENABLED');
 
 		// Concurrent, not sequential: neither lookup informs the other, and this
 		// runs per recipient on every cron send.

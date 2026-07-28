@@ -169,6 +169,40 @@ export const authOptions: NextAuthOptions = {
 		},
 	},
 	callbacks: {
+		// SECURITY: enforce the premise `allowDangerousEmailAccountLinking` rests on.
+		//
+		// That flag lets a Google sign-in adopt an EXISTING `User` row purely
+		// because the email strings match. The justification above is that Google
+		// verifies mailbox ownership before asserting `email` — but next-auth
+		// never checks the claim that says so, and our `profile()` mapper drops
+		// it. Without this callback the justification is an assertion, not a
+		// control, and the exposed set is every row in `User`, including org
+		// owners and platform admins, not just staff-created shadow rows.
+		//
+		// `email_verified` is false on Google Workspace / Cloud Identity accounts
+		// whose domain ownership was never DNS-verified. Refusing those is what
+		// makes the linking decision safe; it is NOT the UNCLAIMED-scoping design
+		// rejected earlier, which re-derived the linking decision itself. This
+		// only asserts a precondition.
+		//
+		// Runs BEFORE `callbackHandler` in the `provider.type === 'oauth'` branch
+		// of next-auth's `core/routes/callback.js`, so returning false here
+		// prevents the link rather than undoing it. Verified against 4.24.14.
+		//
+		// Everything that is not a Google OAuth sign-in returns true untouched —
+		// magic link most of all, since it is the only way out of UNCLAIMED and
+		// gating it would lock out the exact people this feature creates.
+		signIn: async ({ account, profile }) => {
+			if (account?.provider !== 'google') return true;
+			const verified = (profile as { email_verified?: boolean } | undefined)
+				?.email_verified;
+			if (verified === true) return true;
+			console.warn('[auth] Refused Google sign-in with unverified email:', {
+				email: profile?.email ?? null,
+				email_verified: verified ?? null,
+			});
+			return false;
+		},
 		session: async ({ session, user }) => {
 			const s = session as SessionWithExt;
 			// user.id is available with database sessions

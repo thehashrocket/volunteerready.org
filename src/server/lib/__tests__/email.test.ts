@@ -318,6 +318,26 @@ describe('sendEmail — unclaimed guard', () => {
 		expect(mockUserFindUnique).not.toHaveBeenCalled();
 	});
 
+	it('SECURITY: ACCOUNT_STATE_FLIP_ENABLED=false also disables the guard', async () => {
+		// UNCLAIMED has exactly one exit — the sign-in flip. Suppressing while
+		// that exit is switched off strands people permanently, and switching the
+		// flip back on later does not retroactively claim anyone who signed in
+		// during the window. The two switches must not be independently settable
+		// into that combination.
+		process.env.ACCOUNT_STATE_FLIP_ENABLED = 'false';
+		mockUserFindUnique.mockResolvedValue({ accountState: 'UNCLAIMED' });
+
+		const result = await sendEmail('shadow@example.com', 'D', '<p>x</p>', {
+			suppressUnclaimed: true,
+		});
+
+		expect(result).toBe(true);
+		expect(mockSend).toHaveBeenCalled();
+		expect(mockUserFindUnique).not.toHaveBeenCalled();
+
+		delete process.env.ACCOUNT_STATE_FLIP_ENABLED;
+	});
+
 	it('any value other than the exact string "false" leaves the guard on', async () => {
 		// A typo'd kill switch must fail toward the privacy control, not away.
 		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});

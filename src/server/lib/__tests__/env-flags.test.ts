@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { isEnabled } from '@/server/lib/env-flags';
 
-const NAME = 'TEST_KILL_SWITCH_FLAG';
+// A REAL switch name, not a placeholder. `isEnabled` takes a `KillSwitch`
+// union so a typo'd name cannot compile — but `tsconfig.json` excludes
+// `**/*.test.ts`, so a test is the one place that protection does not apply.
+// Using a real name keeps this honest about what it exercises.
+const NAME = 'UNCLAIMED_EMAIL_GUARD_ENABLED';
 
 describe('isEnabled', () => {
 	afterEach(() => {

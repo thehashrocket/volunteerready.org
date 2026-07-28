@@ -57,6 +57,92 @@ async function loadEvents() {
 	return authOptions.events ?? {};
 }
 
+async function loadSignInCallback() {
+	vi.resetModules();
+	const { authOptions } = await import('./auth');
+	const cb = authOptions.callbacks?.signIn;
+	if (!cb) throw new Error('callbacks.signIn not registered');
+	return cb;
+}
+
+describe('T6 — email_verified gate', () => {
+	it('SECURITY: refuses a Google profile whose email is not verified', async () => {
+		// This is what makes allowDangerousEmailAccountLinking safe. Without it
+		// the flag adopts an existing User row on a string match alone, and the
+		// exposed set is every row in User — org owners and platform admins
+		// included, not just staff-created shadow rows.
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const signIn = await loadSignInCallback();
+
+		const allowed = await signIn({
+			user: { id: 'u1', email: 'victim@nonprofit.org' },
+			account: { provider: 'google', type: 'oauth' },
+			profile: { email: 'victim@nonprofit.org', email_verified: false },
+			// biome-ignore lint/suspicious/noExplicitAny: partial callback message
+		} as any);
+
+		expect(allowed).toBe(false);
+		consoleWarn.mockRestore();
+	});
+
+	it('SECURITY: refuses when the claim is missing entirely', async () => {
+		// Absent must not read as verified — that would make the gate trivially
+		// bypassable by any provider that simply omits the claim.
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const signIn = await loadSignInCallback();
+
+		const allowed = await signIn({
+			user: { id: 'u1', email: 'v@x.test' },
+			account: { provider: 'google', type: 'oauth' },
+			profile: { email: 'v@x.test' },
+			// biome-ignore lint/suspicious/noExplicitAny: partial callback message
+		} as any);
+
+		expect(allowed).toBe(false);
+		consoleWarn.mockRestore();
+	});
+
+	it('allows a verified Google profile', async () => {
+		const signIn = await loadSignInCallback();
+
+		const allowed = await signIn({
+			user: { id: 'u1', email: 'v@x.test' },
+			account: { provider: 'google', type: 'oauth' },
+			profile: { email: 'v@x.test', email_verified: true },
+			// biome-ignore lint/suspicious/noExplicitAny: partial callback message
+		} as any);
+
+		expect(allowed).toBe(true);
+	});
+
+	it('SECURITY: never gates the magic-link provider', async () => {
+		// The magic link is the ONLY exit from UNCLAIMED. Gating it would lock
+		// out exactly the people the roster feature creates, and next-auth treats
+		// a false return as AccessDenied.
+		const signIn = await loadSignInCallback();
+
+		const allowed = await signIn({
+			user: { id: 'u1', email: 'v@x.test' },
+			account: { provider: 'email', type: 'email' },
+			// biome-ignore lint/suspicious/noExplicitAny: partial callback message
+		} as any);
+
+		expect(allowed).toBe(true);
+	});
+
+	it('does not gate a sign-in with no account (session continuation)', async () => {
+		const signIn = await loadSignInCallback();
+
+		const allowed = await signIn({
+			user: { id: 'u1', email: 'v@x.test' },
+			account: null,
+			// biome-ignore lint/suspicious/noExplicitAny: partial callback message
+		} as any);
+
+		expect(allowed).toBe(true);
+	});
+});
+
 describe('T6 — Google account linking', () => {
 	afterEach(() => {
 		delete process.env.GOOGLE_EMAIL_LINKING_ENABLED;

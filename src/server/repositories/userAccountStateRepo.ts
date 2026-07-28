@@ -68,33 +68,29 @@ export async function claimUnclaimedUser(
  * signed up by magic link months ago and links Google today, whose
  * `accountState` is a perfectly normal ACTIVE.
  *
- * BOTH SIDES OF THE COMPARISON ARE THE DATABASE CLOCK. The obvious
- * implementation — `createdAt: { gte: new Date(Date.now() - withinMs) }` —
- * compares a database timestamp against an application one, so a database
- * clock more than `withinMs` behind the app makes every genuinely-new row look
- * old and silently stops ALL sign-up alerts. Nothing would surface that: the
- * alert simply never arrives. `NOW()` on both sides removes the failure class
- * rather than widening the window until it is improbable.
+ * BOTH SIDES OF THE COMPARISON ARE THE APPLICATION CLOCK, which is what makes
+ * this comparison sound. `@default(now())` is NOT resolved by Postgres here:
+ * Prisma's query engine generates the value and sends it as a bound parameter
+ * (verified with `log_statement=all` — the INSERT reads
+ * `..."createdAt","updatedAt") VALUES ($1,$2,$3,...,$5,$6)`, not
+ * `CURRENT_TIMESTAMP`). So `createdAt` is written by an app instance, and
+ * comparing it against `Date.now()` is apples to apples.
  *
- * Raw SQL because Prisma has no way to express "compare to the server's own
- * clock". One static template with two bound parameters — never composed
- * `Prisma.sql` fragments, which break under Turbopack dev (CLAUDE.md).
+ * An earlier version of this used raw SQL with `NOW()` on the right-hand side,
+ * on the belief that `createdAt` was database-generated. That was backwards —
+ * it introduced the app-vs-database skew it claimed to remove, and bought
+ * nothing for the extra complexity. The residual risk is skew *between app
+ * instances*, which the deliberately generous window absorbs.
  *
- * The window is still generous: erring long means a volunteer who claims
- * within minutes of being added also triggers an alert, which is the harmless
- * direction to fail.
+ * Erring long means a volunteer who claims within minutes of being added also
+ * triggers an alert, which is the harmless direction to fail.
  */
 export async function wasUserCreatedWithin(
 	userId: string,
 	withinMs: number,
 ): Promise<boolean> {
-	const withinSeconds = withinMs / 1000;
-	const rows = await prisma.$queryRaw<{ recent: boolean }[]>`
-		SELECT true AS recent
-		FROM "User"
-		WHERE id = ${userId}
-		  AND "createdAt" >= NOW() - (${withinSeconds}::double precision * INTERVAL '1 second')
-		LIMIT 1
-	`;
-	return rows.length > 0;
+	const count = await prisma.user.count({
+		where: { id: userId, createdAt: { gte: new Date(Date.now() - withinMs) } },
+	});
+	return count > 0;
 }
