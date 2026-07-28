@@ -295,10 +295,17 @@ Because the partial index is invisible to Prisma, this is
 `findFirst({ orgId, userId, deletedAt: null })` then `create` inside the approval transaction,
 with a `P2002` catch for the concurrent case. Not `upsert`.
 
-**Also create the row in the link path.** `linkApplicationsToUser` (`my-applications.ts:96-107`)
-attaches applications to a user on sign-in. An application approved *before* the applicant ever
-signed in gains `submittedByUserId` at that moment, and without handling it there the roster row
-is never created. Cover both entry points.
+**Also create the row in the CLAIM path.** ⚠️ Updated 2026-07-27 — this paragraph previously
+named `linkApplicationsToUser` (`my-applications.ts:96-107`), which **no longer exists**. That
+function auto-attached applications by email on every page load and was deleted as a privilege
+escalation; binding is now an explicit user action.
+
+The second entry point is `claimApplication()` in `my-applications.ts`. An application approved
+*before* the applicant ever signed in gains `submittedByUserId` at the moment they claim it, and
+without handling it there the roster row is never created — leaving an APPROVED application with
+a `submittedByUserId` and no `OrgVolunteer` row, never reconciled. Cover both entry points, and
+create the roster row **inside the same `prisma.$transaction` as the bind and its
+`APPLICATION_CLAIMED` audit row**, so a partial commit cannot produce that inconsistency.
 
 **Anonymous applications (`submittedByUserId = null`) do not create roster rows in v1a.** Doing so
 would mean minting a shadow `User` from `submittedByEmail` on every approval, which changes the
@@ -867,7 +874,7 @@ produces confidently wrong work.
   - Surfaced by: Code Quality Q1 — avoid a second implementation of capacity rules
   - Files: `src/server/services/shiftSignupService.ts`, `repositories/shiftSignupRepo.ts`, `routers/shifts.ts`
   - Verify: `pnpm test src/server/services/__tests__/shiftSignupService.test.ts`
-- [ ] **T10 (P1, human: ~4h / CC: ~25min)** — services — E1a: roster row on approval and in the sign-in link path
+- [ ] **T10 (P1, human: ~4h / CC: ~25min)** — services — E1a: roster row on approval AND in `claimApplication()` (was "the sign-in link path" — `linkApplicationsToUser` is deleted; see §5)
   - Surfaced by: Expansion E1, split per D4; Codex #1 — the link path was the retroactive gap
   - Files: `src/server/services/screener-queries.ts`, `src/server/services/my-applications.ts`, `repositories/orgVolunteerRepo.ts`
   - Verify: approve then sign in, and sign in then approve; assert a roster row in both orders

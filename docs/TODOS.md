@@ -63,14 +63,49 @@ Postgres service running all three suites; a `.githooks` pre-push is already
 wired (`"prepare": "git config core.hooksPath .githooks"`) if CI is too far off.
 **Effort:** S.
 
-### [P3] Two more case-sensitivity divergences on `submittedByEmail`
-`screener.submit` now normalizes on write, which fixes these going forward, but
-the readers are still bare equality and will miss any row written between T1 and
-this ship: `volunteerStatusRepo.ts:7` (the public `/apply/status` lookup returns
-"no applications") and `bulk-import-service.ts:126` (dedupe misses, so it can
-create a duplicate application). **Fix:** no code change needed if a one-time
-`UPDATE ... SET submittedByEmail = lower(btrim(submittedByEmail))` is run to
-catch the gap window. **Effort:** S.
+### [P3] One more case-sensitivity divergence — and this entry was wrong twice
+**Corrected 2026-07-27 by the red-team re-review.** The original text said the
+remaining divergences were `volunteerStatusRepo.ts:7` and
+`bulk-import-service.ts:126`, fixable by a one-time row backfill. Both halves
+were wrong:
+
+- `bulk-import-service.ts` is **fine** — `parseCsv` already lowercases at line 57.
+- The problem is **input-side, not row-side**, so backfilling historical rows
+  fixes nothing: every future mixed-case request still misses. The reader
+  compares a raw user-typed address against canonical storage.
+
+Still open: `volunteerStatusRepo.ts:7`, fed the raw `StatusToken.email` from
+`publicStatusService.ts:19` — the public `/apply/status` lookup returns "no
+applications" for anyone who typed their address with capitals. **Fix:**
+normalize at the input boundary (`.transform(normalizeEmail)` on the token
+request), not with a backfill. **Effort:** S.
+
+(The third divergence, `checkAnonymousApplication`, was found and fixed in this
+same ship — it had been actively regressed by adding `.transform` to `submit`
+without adding it to the sibling reader.)
+
+### [P2] Two pre-existing procedures have the same id/email split just fixed here
+Out of this diff, but the identical bug class. `members.ts:77` passes
+`ctx.session?.user?.email` alongside `ctx.session?.user?.id` into
+`acceptInvitation`, which authorizes on the **email**
+(`memberService.ts:98`) but creates the row for the **id**
+(`memberService.ts:120`). `company.ts:140` does the same in `acceptInvite`
+(`companyService.ts:308`). Under impersonation the email is the real admin's and
+the id is the target's, so an admin holding an invitation addressed to
+themselves can mint an `OrganizationMember` row for the impersonated victim —
+and `ORG_MEMBER` is one of the kinds `requireOrgVolunteerRelationship()` accepts
+as authorization. Notable that `company.ts` already knows about impersonation
+(it stamps `impersonatedBy` at line 127) and still pairs the two identities
+here. **Fix:** resolve the address with `findEmailByUserId(userId)`, exactly as
+the claim path now does. **Effort:** S each.
+
+### [P3] The claimable list truncates silently
+`listClaimableApplicationsByEmail` caps at `CLAIMABLE_LIST_CAP` (50). Ordering
+is now oldest-first so a flood cannot bury a genuine older row (regression test
+in `applicationClaim.integration.test.ts`), but a user with more than 50
+candidates still sees a partial list presented as complete. **Fix:** return a
+`total` or `hasMore` flag and render "showing 50 of N". Pairs naturally with the
+deferred decline path, since declining would free slots. **Effort:** S.
 
 ### [P3] Index `submittedByEmail` before ~250k rows
 Now that the query is plain equality it is finally indexable. Measured on a
