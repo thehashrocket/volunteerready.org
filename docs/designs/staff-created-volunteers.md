@@ -327,8 +327,11 @@ until v1b. Do not describe the roster as complete.
 
 1. **Wrong-email risk.** In v1a nothing is sent to a mistyped address and nothing is shown to
    them, so the blast radius is a row in one org's list. This is why the invite flow is deferred:
-   v1b is where a typo reaches a human inbox, and it needs `linkApplicationsToUser` org scoping
-   (TODOS.md P1) resolved first.
+   v1b is where a typo reaches a human inbox. ⚠️ Updated 2026-07-27 — the stated prerequisite was
+   "`linkApplicationsToUser` org scoping (TODOS.md P1)", which is **resolved**: that function is
+   deleted and binding is now an explicit claim the recipient must accept (see §"NOT in scope"
+   and the resolved P1 in TODOS.md). A coordinator typo can no longer silently attach anything;
+   it produces an offer to the wrong recipient, which they must decline or ignore.
 
 2. **Org adds an ACTIVE user's email.** That user is notified and can remove the roster link.
 
@@ -473,7 +476,9 @@ protocol), `emailVerified`, and events are handled by machinery that already wor
 
 ## NOT in scope
 
-1. **Invite / claim flow and E1b (v1b)** — blocked on `linkApplicationsToUser()` org scoping.
+1. **Invite / claim flow and E1b (v1b)** — ~~blocked on `linkApplicationsToUser()` org scoping~~
+   **UNBLOCKED 2026-07-27** (that function is deleted; see the "Blocked on" note above). Still out
+   of scope for v1a on size alone, not on a dependency.
 2. **CSV import UI** — deferred pending five real spreadsheets. The concierge script is the bulk
    path; the single-add form is the trickle path. They do different jobs.
 3. **Bulk-select assign to shift** — cut. `validateSignup` has no waitlist outcome and

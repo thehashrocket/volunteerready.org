@@ -324,7 +324,7 @@ sequenceDiagram
 sequenceDiagram
     participant V as Volunteer
     participant UI as Application Form UI
-    participant R as screener.submitApplication
+    participant R as screener.submit
     participant S as volunteer-screening Service
     participant SQ as ScreenerQuestion Repository
     participant AR as VolunteerApplication Repository

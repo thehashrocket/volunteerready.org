@@ -2234,12 +2234,22 @@ below were deliberately kept out of the v1a diff.
   an `APPLICATION_CLAIMED` audit row (no migration — `AuditLog.action` is a
   plain `String`).
 
-  Two things fixed in passing: the lookup is now case-insensitive, which it had
-  to become — T1's trigger lowercased `User.email` but **not**
-  `VolunteerApplication.submittedByEmail`, so a bare equality against the
-  session's now-canonical address silently missed mixed-case submissions and
-  made them permanently unclaimable. And the read path no longer writes: the old
-  code ran an `updateMany` on every `/app/my-applications` load.
+  Two things fixed in passing: the case mismatch, and the writing read path.
+
+  ⚠️ Corrected — an earlier draft of this entry said "the lookup is now
+  case-insensitive." **It is not, and must not be.** That was the intermediate
+  version, and making it `mode: 'insensitive'` is the ILIKE wildcard CRITICAL
+  described at the top of this file. What actually shipped is **plain equality
+  against the canonical form**, made correct from both ends: T1's migration
+  backfilled `VolunteerApplication.submittedByEmail` to `lower(btrim(...))`, and
+  `screener.submit` / `screener.checkAnonymousApplication` now
+  `.transform(normalizeEmail)` on input so no new row can be written dirty. The
+  original problem was real — T1's trigger covered `User.email` but not this
+  column, so a bare equality would have missed mixed-case submissions — but the
+  fix was to canonicalize both sides, not to loosen the predicate.
+
+  And the read path no longer writes: the old code ran an `updateMany` on every
+  `/app/my-applications` load.
 
   Coverage — four files (counts deliberately omitted; they rot on every added
   case): `src/server/services/__tests__/my-applications.claim.test.ts`,

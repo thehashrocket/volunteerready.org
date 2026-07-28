@@ -275,7 +275,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `feedback` | submit, myFeedback, listAll (platform admin), updateStatus (platform admin), reply (platform admin), newCount (platform admin) |
 | `platformAdmin` | `orgs.{list,get}`, `users.{list,get,setPlatformAdmin,revokeAllSessions}`, `impersonation.{start,end,current,history}`, `audit.{query,options}` — all `platformAdminProcedure`. Audit metadata is redacted by `auditQueryService` before return. |
 | `profile` | getMyProfile, updateMyProfile, getMyStats, getMyUserId, getPublicProfile (public), getOrgVisibleProfile (staff + org-relationship gated) |
-| `screener` | submit (public), listApplications, getApplicationDetail, updateStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail, claimableApplications, claimApplication (rate-limited; explicit user-confirmed binding — see "Application claiming") |
+| `screener` | submit (public), list, detail, updateApplicationStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail, claimableApplications, claimApplication (rate-limited; explicit user-confirmed binding — see "Application claiming") |
 | `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |
 | `shiftTemplates` | list, create, update, remove, generate (staffProcedure, STARTER-gated) |
 | `notifications` | list, unreadCount, markRead, markAllRead (protectedProcedure) |
