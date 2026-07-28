@@ -205,7 +205,7 @@ docs/
 - Public stories: `src/app/(public)/stories/[orgSlug]/page.tsx`, consent pages at `stories/consent-confirmed` and `stories/consent-expired`
 - Case study API: consent flow at `src/app/api/case-study/consent/route.ts` (GET confirmation + POST mutation), PDF at `src/app/api/case-study/pdf/route.ts`
 - Testimonials: `src/components/testimonial-section.tsx` + `src/components/testimonial-block.tsx` (screening landing page)
-- Duplicate application prevention: partial unique index on `(submittedByUserId, opportunityId)` WHERE status NOT IN (REJECTED). P2002 race-condition handler in `volunteer-screening.ts`. Applied-status badges on opportunity listings. Apply form interception for already-applied users.
+- Duplicate application prevention: partial unique index on `(submittedByUserId, opportunityId)` WHERE `submittedByUserId IS NOT NULL` AND status NOT IN (REJECTED, WITHDRAWN) — withdrawn is excluded alongside rejected so a volunteer who withdraws can re-apply. P2002 race-condition handler in `volunteer-screening.ts`. Applied-status badges on opportunity listings. Apply form interception for already-applied users.
 - Status notification emails: branded emails sent on application status change (REVIEW/APPROVED/REJECTED) via `sendApplicationStatusEmail()` in `volunteer-screening.ts`
 - Public route auth providers: `src/app/opportunities/providers.tsx` wraps `SessionProvider` + `TRPCProvider` for public route groups that need auth-aware UI (e.g., applied-status badges)
 - Volunteer marketplace: public pages at `src/app/(public)/opportunities/` (browse) and `src/app/(public)/organizations/` (org discovery); tRPC router at `src/server/trpc/routers/marketplace.ts`; repository at `src/server/repositories/publicOpportunityRepo.ts`

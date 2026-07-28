@@ -114,7 +114,7 @@ Represents a volunteer submission to an organization.
 
 Applications are composed of answers to screening questions and may be linked to a specific opportunity.
 
-Status lifecycle: SUBMITTED -> REVIEW -> APPROVED / REJECTED
+Status lifecycle: SUBMITTED -> REVIEW -> APPROVED / REJECTED. A volunteer may also WITHDRAW their own application.
 
 Screening result: PASS / REVIEW / FAIL (auto-evaluated by disqualifier and review rules)
 
