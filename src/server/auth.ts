@@ -10,10 +10,17 @@ import { sendEmail } from '@/server/lib/email';
 import { isEnabled } from '@/server/lib/env-flags';
 import { getFromEmail } from '@/server/lib/resend';
 import { prisma } from '@/server/repositories/prisma';
+import { wasUserCreatedWithin } from '@/server/repositories/userAccountStateRepo';
 import { claimAccountOnSignIn } from '@/server/services/accountClaimService';
 
 /** Kill switch for Google account linking. See `lib/env-flags.ts`. */
 const GOOGLE_EMAIL_LINKING_FLAG = 'GOOGLE_EMAIL_LINKING_ENABLED';
+
+/**
+ * How recently a `User` row must have been created for a sign-up alert to be
+ * genuine. See `wasUserCreatedWithin` for why this is an age check at all.
+ */
+const NEW_USER_ALERT_WINDOW_MS = 5 * 60 * 1000;
 
 /** Extended session returned by our callback (custom fields NextAuth doesn't type) */
 type SessionWithExt = Session & {
@@ -57,19 +64,23 @@ export const authOptions: NextAuthOptions = {
 			// same proof our magic-link provider accepts.
 			//
 			// Without it, NextAuth throws AccountNotLinkedError whenever a `User`
-			// row exists for the email but no `Account` row is linked to it
-			// (next-auth/core/lib/callback-handler.js — the sole read of this
-			// flag). That is the exact shape of a staff-created volunteer: org
-			// staff type someone's address, we mint an UNCLAIMED shadow `User`,
-			// and that person is then permanently locked out of Google sign-in by
-			// an action they never took and cannot undo. It also already affects
-			// anyone who signed up by magic link and later tries Google.
+			// row exists for the email but no `Account` row is linked to it — the
+			// only place this flag is read in the compiled
+			// `next-auth/core/lib/callback-handler.js`. That is the exact shape of
+			// a staff-created volunteer: org staff type someone's address, we mint
+			// an UNCLAIMED shadow `User`, and that person is then permanently
+			// locked out of Google sign-in by an action they never took and cannot
+			// undo. It also already affects anyone who signed up by magic link and
+			// later tries Google.
 			//
 			// Scoping this to UNCLAIMED rows only was considered and rejected: it
 			// is a provider-level boolean, so narrowing it means hand-rolling the
-			// linking decision in `callbacks.signIn` (which runs BEFORE
-			// callbackHandler, at routes/callback.js:78 vs :104) to defend
-			// against a threat Google's own verification already covers.
+			// linking decision in `callbacks.signIn` — which the
+			// `provider.type === 'oauth'` branch of `core/routes/callback.js`
+			// invokes before it reaches `callbackHandler` — to defend against a
+			// threat Google's own verification already covers.
+			//
+			// Behaviour verified against next-auth 4.24.14.
 			allowDangerousEmailAccountLinking: isEnabled(GOOGLE_EMAIL_LINKING_FLAG),
 			// AVAILABILITY: normalize the address on the READ path.
 			//
@@ -106,7 +117,22 @@ export const authOptions: NextAuthOptions = {
 		}),
 	],
 	events: {
+		// `events.createUser` does NOT mean a user was created, once
+		// `allowDangerousEmailAccountLinking` is on. next-auth's OAuth branch
+		// picks between `user = userByEmail` and `createUser()`, then fires this
+		// event unconditionally after the if/else — so it also fires for a row
+		// that already existed and was merely linked to a Google account.
+		// Without the age check, every staff-created volunteer who claims their
+		// account with Google pages admins about a "new user" who has been in
+		// the database for weeks. Alerting is best-effort, so a failure to
+		// determine age falls through to sending.
 		createUser: async ({ user }) => {
+			const isGenuinelyNew = await wasUserCreatedWithin(
+				user.id,
+				NEW_USER_ALERT_WINDOW_MS,
+			).catch(() => true);
+			if (!isGenuinelyNew) return;
+
 			sendNewUserAlert({
 				id: user.id,
 				email: user.email ?? null,
@@ -119,23 +145,19 @@ export const authOptions: NextAuthOptions = {
 		//
 		// The design plan specified `events.updateUser`. That is wrong in the one
 		// case this exists to serve. On the Google account-linking path — the path
-		// `allowDangerousEmailAccountLinking` above opens — next-auth assigns
-		// `user = userByEmail` directly (core/lib/callback-handler.js) and never
-		// calls `adapter.updateUser`, so `events.updateUser` never fires. A
-		// volunteer who claimed their account with Google would stay UNCLAIMED and
-		// silently email-suppressed forever. `signIn` fires on every path:
-		// magic-link (routes/callback.js:295) and OAuth (:146) alike.
+		// `allowDangerousEmailAccountLinking` above opens — `callback-handler`
+		// assigns `user = userByEmail` directly and never calls
+		// `adapter.updateUser`, so `events.updateUser` never fires. A volunteer
+		// who claimed their account with Google would stay UNCLAIMED and silently
+		// email-suppressed forever. `events.signIn` fires from both the
+		// `provider.type === 'email'` and `provider.type === 'oauth'` branches of
+		// `core/routes/callback.js`. Verified against next-auth 4.24.14.
 		//
-		// AWAITED, not fire-and-forget. The plan called for `.catch(console.error)`
-		// on a detached promise, matching `sendNewUserAlert` above — but a dropped
-		// admin alert is a missing notification, while a dropped flip leaves a
-		// real person permanently unable to receive mail they have asked for. On
-		// serverless a detached promise can be killed when the response returns.
-		// It is one indexed UPDATE on a path that runs once per sign-in.
-		//
-		// The try/catch is what keeps this from being a regression: a thrown error
-		// here would surface to the user as a failed sign-in. Claiming is a
-		// side effect of signing in and must never be able to prevent it.
+		// AWAITED, not detached: on serverless a detached promise can be killed
+		// when the response returns, leaving the volunteer permanently
+		// email-suppressed. The try/catch is what makes that safe — a throw here
+		// would otherwise surface to the person as a failed sign-in, and claiming
+		// is a side effect of signing in, never a precondition for it.
 		signIn: async ({ user }) => {
 			try {
 				await claimAccountOnSignIn(user.id);

@@ -47,9 +47,8 @@ export async function sendEmail(
 			opts?.suppressUnclaimed === true &&
 			isEnabled(UNCLAIMED_GUARD_FLAG);
 
-		// Two independent reads. Running them sequentially would double the
-		// latency of every cron send for no benefit, since neither informs the
-		// other — both are pure "should I skip this address?" lookups.
+		// Concurrent, not sequential: neither lookup informs the other, and this
+		// runs per recipient on every cron send.
 		const [bounceStatus, recipient] = await Promise.all([
 			checkBounce
 				? prisma.emailBounceStatus.findUnique({

@@ -9,15 +9,21 @@ vi.mock('@/server/lib/resend', () => ({
 	getFromEmail: () => 'test@example.test',
 	getResend: () => ({ emails: { send: vi.fn() } }),
 }));
-vi.mock('@/server/lib/admin-alerts', () => ({
-	sendNewUserAlert: vi.fn().mockResolvedValue(undefined),
-}));
+const { mockSendNewUserAlert, mockClaimAccountOnSignIn, mockWasCreatedWithin } =
+	vi.hoisted(() => ({
+		mockSendNewUserAlert: vi.fn(),
+		mockClaimAccountOnSignIn: vi.fn(),
+		mockWasCreatedWithin: vi.fn(),
+	}));
 
-const { mockClaimAccountOnSignIn } = vi.hoisted(() => ({
-	mockClaimAccountOnSignIn: vi.fn(),
+vi.mock('@/server/lib/admin-alerts', () => ({
+	sendNewUserAlert: mockSendNewUserAlert,
 }));
 vi.mock('@/server/services/accountClaimService', () => ({
 	claimAccountOnSignIn: mockClaimAccountOnSignIn,
+}));
+vi.mock('@/server/repositories/userAccountStateRepo', () => ({
+	wasUserCreatedWithin: mockWasCreatedWithin,
 }));
 
 /**
@@ -157,5 +163,66 @@ describe('T5 — accountState flip on sign-in', () => {
 		} as any);
 
 		expect(resolved).toBe(true);
+	});
+});
+
+describe('new-user alert vs. account linking', () => {
+	beforeEach(() => {
+		mockSendNewUserAlert.mockReset();
+		mockWasCreatedWithin.mockReset();
+		mockSendNewUserAlert.mockResolvedValue(undefined);
+	});
+
+	async function fireCreateUser(userId = 'user-1') {
+		const events = await loadEvents();
+		await events.createUser?.({
+			user: { id: userId, email: 'a@b.test', name: 'Ada' },
+			// biome-ignore lint/suspicious/noExplicitAny: partial event message
+		} as any);
+	}
+
+	it('alerts for a genuinely new signup', async () => {
+		mockWasCreatedWithin.mockResolvedValueOnce(true);
+
+		await fireCreateUser();
+
+		expect(mockSendNewUserAlert).toHaveBeenCalledWith(
+			expect.objectContaining({ id: 'user-1', email: 'a@b.test' }),
+		);
+	});
+
+	it('SECURITY: does not alert when an existing row was merely linked', async () => {
+		// next-auth calls events.createUser unconditionally after its
+		// `user = userByEmail` / `createUser()` if/else, so enabling
+		// allowDangerousEmailAccountLinking makes this event fire for rows that
+		// already existed. Without this guard every staff-created volunteer
+		// claiming via Google pages admins about a weeks-old "new user".
+		mockWasCreatedWithin.mockResolvedValueOnce(false);
+
+		await fireCreateUser();
+
+		expect(mockSendNewUserAlert).not.toHaveBeenCalled();
+	});
+
+	it('falls back to alerting if the age check fails', async () => {
+		// Alerting is best-effort; a spurious alert beats a silently missed
+		// signup, so the failure direction is "send".
+		mockWasCreatedWithin.mockRejectedValueOnce(new Error('db down'));
+
+		await fireCreateUser();
+
+		expect(mockSendNewUserAlert).toHaveBeenCalled();
+	});
+
+	it('SECURITY: an alert failure never breaks sign-up', async () => {
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+		mockWasCreatedWithin.mockResolvedValueOnce(true);
+		mockSendNewUserAlert.mockRejectedValueOnce(new Error('resend down'));
+
+		await expect(fireCreateUser()).resolves.toBeUndefined();
+
+		consoleError.mockRestore();
 	});
 });

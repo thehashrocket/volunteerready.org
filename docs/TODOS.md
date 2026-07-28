@@ -5,6 +5,36 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Deferred from the unclaimed-identity ship (Lane C, 2026-07-27, v0.33.0.0)
+
+### [P3] A never-claiming volunteer accumulates one `SUPPRESSED_UNCLAIMED` row per cron run
+
+Three of the four opted-in senders — `digest-service.ts`, `reengagement-service.ts`,
+`opportunityDigestService.ts` — gate their "mark as sent" bookkeeping on `sendEmail`'s
+boolean, and the unclaimed guard returns `false`. The record therefore stays eligible,
+which is **deliberate and correct**: the moment the volunteer claims their account, the
+digest or nudge they were owed goes out. The cost is that a volunteer who never claims is
+re-attempted on every run forever, writing a fresh `SUPPRESSED_UNCLAIMED` row each time.
+
+Two reviewers split on this: one read it as unbounded row growth to fix, the other as the
+right retry semantics. Both are right about their half. The retry behaviour should stay;
+what's missing is a bound on the observability rows.
+
+`shift-reminder-service.ts` is deliberately different — it stamps `reminderSentAt`
+unconditionally (pre-existing), because a reminder is tied to one shift at one time and is
+worthless later.
+
+Note this is not new: bounce-suppressed addresses have had the same unbounded retry since
+that guard shipped, minus the rows (bounce suppression writes no `EmailEvent`).
+
+**Fix when it matters:** collapse repeats — either skip the write when an identical
+`(to, subject, SUPPRESSED_UNCLAIMED)` row already exists within some window, or add a
+retention sweep to the existing cleanup cron. Do **not** "fix" it by stamping the senders'
+bookkeeping on suppression; that trades a cheap row for a volunteer silently never
+receiving mail they became eligible for. **Effort:** S.
+
+---
+
 ## Deferred from the shift org-scoping ship (`/ship`, 2026-07-27, v0.32.2.0)
 
 Found by five specialists plus a Codex adversarial pass while reviewing the

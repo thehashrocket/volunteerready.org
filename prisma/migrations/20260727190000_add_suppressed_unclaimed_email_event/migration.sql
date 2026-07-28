@@ -16,7 +16,14 @@
 -- database in, so `migrate dev` fails with P3006 in this repo regardless of
 -- what changed. See the T2 note in docs/designs/staff-created-volunteers.md.
 --
--- ALTER TYPE ... ADD VALUE is transaction-safe on PostgreSQL 12+ (this repo
--- targets 16, see docker-compose.yml) provided the new value is not USED in
--- the same transaction. Nothing below uses it.
+-- ALTER TYPE ... ADD VALUE is transaction-safe from PostgreSQL 12 onward,
+-- provided the new value is not USED in the same transaction. Nothing below
+-- uses it. PG12 is the floor that matters; local dev runs 16 per
+-- docker-compose.yml, which says nothing about production.
+--
+-- Migration 20260421151557_add_withdrawn_status asserts the opposite ("ALTER
+-- TYPE ADD VALUE ... cannot run inside a transaction"). That note is stale —
+-- it describes pre-12 behaviour — and this comment supersedes it. It is left
+-- alone rather than corrected, because an already-applied migration should
+-- not be rewritten.
 ALTER TYPE "EmailEventType" ADD VALUE 'SUPPRESSED_UNCLAIMED';

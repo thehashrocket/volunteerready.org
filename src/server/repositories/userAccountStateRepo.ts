@@ -32,3 +32,35 @@ export async function claimUnclaimedUser(
 	});
 	return count > 0;
 }
+
+/**
+ * Was this `User` row actually created just now?
+ *
+ * Exists because next-auth's `events.createUser` lies once
+ * `allowDangerousEmailAccountLinking` is on. In `callback-handler`'s OAuth
+ * branch, the `user = userByEmail` assignment and the `createUser()` call are
+ * two arms of one if/else, and `events.createUser` is invoked UNCONDITIONALLY
+ * after that if/else — so it fires for a row that already existed and was
+ * merely linked to. Every staff-created volunteer claiming their account with
+ * Google would otherwise page admins with "new user signed up" about someone
+ * who has been in the database for weeks.
+ *
+ * Age, not `accountState`, is the test: it also covers the ordinary user who
+ * signed up by magic link months ago and links Google today, whose
+ * `accountState` is a perfectly normal ACTIVE.
+ *
+ * The window is generous because `createdAt` is the database clock and the
+ * comparison value is the application clock. A genuine create is milliseconds
+ * old, so any threshold well above the skew works; erring long means a
+ * volunteer who claims within minutes of being added still triggers an alert,
+ * which is the harmless direction to fail.
+ */
+export async function wasUserCreatedWithin(
+	userId: string,
+	withinMs: number,
+): Promise<boolean> {
+	const count = await prisma.user.count({
+		where: { id: userId, createdAt: { gte: new Date(Date.now() - withinMs) } },
+	});
+	return count > 0;
+}

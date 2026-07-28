@@ -15,7 +15,10 @@
 
 import { afterEach, describe, expect, it } from 'vitest';
 import { prisma } from '@/server/repositories/prisma';
-import { claimUnclaimedUser } from '@/server/repositories/userAccountStateRepo';
+import {
+	claimUnclaimedUser,
+	wasUserCreatedWithin,
+} from '@/server/repositories/userAccountStateRepo';
 
 const PREFIX = '__account_claim_integration__';
 
@@ -107,5 +110,35 @@ describe('claimUnclaimedUser', () => {
 		});
 		expect(other?.accountState).toBe('UNCLAIMED');
 		expect(other?.claimedAt).toBeNull();
+	});
+});
+
+describe('wasUserCreatedWithin', () => {
+	it('reports true for a row created moments ago', async () => {
+		const user = await makeUser('fresh', 'ACTIVE');
+
+		await expect(wasUserCreatedWithin(user.id, 5 * 60 * 1000)).resolves.toBe(
+			true,
+		);
+	});
+
+	it('SECURITY: reports false for a pre-existing row that was merely linked', async () => {
+		// The staff-created volunteer case. createdAt is set by the database
+		// default, so this backdates it the way a real shadow user would be.
+		const user = await makeUser('stale', 'UNCLAIMED');
+		await prisma.user.update({
+			where: { id: user.id },
+			data: { createdAt: new Date('2026-01-01T00:00:00.000Z') },
+		});
+
+		await expect(wasUserCreatedWithin(user.id, 5 * 60 * 1000)).resolves.toBe(
+			false,
+		);
+	});
+
+	it('reports false for an id that does not exist', async () => {
+		await expect(
+			wasUserCreatedWithin('does-not-exist', 5 * 60 * 1000),
+		).resolves.toBe(false);
 	});
 });

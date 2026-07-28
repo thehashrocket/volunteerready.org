@@ -27,7 +27,12 @@ vi.mock('@/server/repositories/prisma', () => ({
 			findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
 		},
 		emailEvent: {
-			create: (...args: unknown[]) => mockCreate(...args).catch(() => {}),
+			// NOT `.catch(() => {})`. That wrapper used to swallow every rejection
+			// before it reached the code under test, which made the "still
+			// suppresses when the audit write fails" case below assert nothing —
+			// it passed identically with `recordUnclaimedSuppression`'s try/catch
+			// deleted. Both production call sites handle rejection themselves.
+			create: (...args: unknown[]) => mockCreate(...args),
 		},
 	},
 }));
@@ -210,7 +215,7 @@ describe('sendEmail — unclaimed guard', () => {
 
 		expect(result).toBe(true);
 		expect(mockSend).toHaveBeenCalled();
-		// The lookup must not even run — the guard costs nothing for the ~20
+		// The lookup must not even run — the guard costs nothing for the
 		// transactional senders that never opt in.
 		expect(mockUserFindUnique).not.toHaveBeenCalled();
 	});
@@ -354,8 +359,11 @@ describe('sendEmail — unclaimed guard', () => {
 		expect(userStartedWhileBouncePending).toBe(true);
 	});
 
-	it('still suppresses when writing the SUPPRESSED_UNCLAIMED event fails', async () => {
+	it('still suppresses, as a decision not a crash, when the SUPPRESSED_UNCLAIMED write fails', async () => {
 		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
 		mockUserFindUnique.mockResolvedValueOnce({ accountState: 'UNCLAIMED' });
 		mockCreate.mockRejectedValueOnce(new Error('db down'));
 
@@ -368,7 +376,24 @@ describe('sendEmail — unclaimed guard', () => {
 		expect(result).toBe(false);
 		expect(mockSend).not.toHaveBeenCalled();
 
+		// Asserting on WHICH log fired is what makes this test mean anything.
+		// `false` alone proves nothing: if the rejection escaped
+		// `recordUnclaimedSuppression`, sendEmail's outer catch would swallow it
+		// and return `false` too. Only the log distinguishes "suppressed, and the
+		// bookkeeping happened to fail" from "the whole send blew up" — and the
+		// difference matters, because the second would mean an unrelated future
+		// throw in the suppression path silently reads as a normal suppression.
+		expect(consoleError).toHaveBeenCalledWith(
+			'[sendEmail] Failed to log SUPPRESSED_UNCLAIMED event:',
+			expect.any(Error),
+		);
+		expect(consoleError).not.toHaveBeenCalledWith(
+			'[sendEmail] Failed to send email:',
+			expect.anything(),
+		);
+
 		consoleWarn.mockRestore();
+		consoleError.mockRestore();
 	});
 
 	it('a bounce-suppressed UNCLAIMED address returns on the bounce branch and does not double-log', async () => {

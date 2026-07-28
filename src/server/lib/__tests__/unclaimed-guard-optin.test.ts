@@ -64,12 +64,6 @@ describe('unclaimed guard opt-in surface', () => {
 		expect(optedIn).toEqual([...ALLOWED].sort());
 	});
 
-	it('every allowed sender is still present in the tree', () => {
-		// Guards against a rename silently emptying ALLOWED and turning the
-		// assertion above into a tautology.
-		expect(optedIn.length).toBe(ALLOWED.size);
-	});
-
 	it('SECURITY: the magic-link sender never opts in', () => {
 		// NextAuth throws when sendEmail returns false, so suppressing here would
 		// turn "sign in" into a hard error for the exact users the roster creates
