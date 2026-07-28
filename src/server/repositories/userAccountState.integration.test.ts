@@ -17,6 +17,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { prisma } from '@/server/repositories/prisma';
 import {
 	claimUnclaimedUser,
+	findEmailByUserId,
 	wasUserCreatedWithin,
 } from '@/server/repositories/userAccountStateRepo';
 
@@ -110,6 +111,48 @@ describe('claimUnclaimedUser', () => {
 		});
 		expect(other?.accountState).toBe('UNCLAIMED');
 		expect(other?.claimedAt).toBeNull();
+	});
+});
+
+describe('findEmailByUserId', () => {
+	// The claim flow's authorization predicate is the address this returns.
+	// It is deliberately sourced from the user id rather than from
+	// `ctx.session.user.email`, which under impersonation is the real admin's
+	// address while `id` is the target's.
+
+	it('returns the CANONICAL stored address, not the string that was written', async () => {
+		// The DB trigger lowercases on write, so a caller normalizing its own input
+		// and comparing by equality only lines up if this reads back the stored
+		// form. Reading a non-canonical value would silently return zero claimable
+		// applications for anyone who signed up with mixed case.
+		const created = await prisma.user.create({
+			data: { email: `${PREFIX}MixedCase@Example.COM` },
+			select: { id: true },
+		});
+
+		await expect(findEmailByUserId(created.id)).resolves.toBe(
+			`${PREFIX}mixedcase@example.com`.toLowerCase(),
+		);
+	});
+
+	it('returns null for an id that does not exist rather than throwing', async () => {
+		// `claimApplication` turns this into PRECONDITION_FAILED. A throw here would
+		// surface as an opaque 500 on a stale session instead.
+		await expect(findEmailByUserId('does-not-exist')).resolves.toBeNull();
+	});
+
+	it('returns null for a user whose email column is null', async () => {
+		// OAuth providers can return no address. The null must propagate so the
+		// service refuses the claim — an empty-string fallback would match every
+		// orphan application ever written with an empty address.
+		const created = await prisma.user.create({
+			data: { email: null },
+			select: { id: true },
+		});
+
+		await expect(findEmailByUserId(created.id)).resolves.toBeNull();
+
+		await prisma.user.delete({ where: { id: created.id } });
 	});
 });
 

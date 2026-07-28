@@ -20,6 +20,11 @@ const mocks = vi.hoisted(() => ({
 	listMyApplications: vi.fn(),
 	getMyApplicationDetail: vi.fn(),
 	getMyApplicationStatusTimeline: vi.fn(),
+	checkRateLimit: vi.fn(),
+}));
+
+vi.mock('@/server/lib/rate-limit', () => ({
+	checkRateLimit: mocks.checkRateLimit,
 }));
 
 vi.mock('@/server/repositories/prisma', () => ({
@@ -68,6 +73,12 @@ beforeEach(() => {
 	vi.resetAllMocks();
 	mocks.claimApplication.mockResolvedValue({ id: 'app-1' });
 	mocks.listClaimableApplications.mockResolvedValue([]);
+	mocks.checkRateLimit.mockResolvedValue({
+		success: true,
+		limit: 0,
+		remaining: 0,
+		reset: 0,
+	});
 });
 
 describe('screener.claimApplication', () => {
@@ -110,6 +121,44 @@ describe('screener.claimApplication', () => {
 
 		expect(JSON.stringify(mocks.claimApplication.mock.calls[0])).not.toContain(
 			'real-admin@example.test',
+		);
+	});
+});
+
+describe('rate limiting', () => {
+	it('SECURITY: a refused limiter blocks the claim before the service runs', async () => {
+		// `claimApplication` is an id-guessing oracle bounded only by this limiter:
+		// each attempt is a one-shot test of "is this id an unclaimed application
+		// submitted under my address?", and a hit mints an APPLICATION relationship
+		// edge. The refusal must land BEFORE the service, not merely be reported
+		// after it — a limiter that runs downstream of the bind protects nothing.
+		mocks.checkRateLimit.mockResolvedValue({
+			success: false,
+			limit: 10,
+			remaining: 0,
+			reset: Date.now() + 60_000,
+		});
+
+		await expect(caller().claimApplication({ id: 'app-1' })).rejects.toThrow(
+			/rate limit/i,
+		);
+		expect(mocks.claimApplication).not.toHaveBeenCalled();
+	});
+
+	it('keys both procedures by the SESSION user id, under their own prefixes', async () => {
+		// Per-user, not per-IP: these are protectedProcedures, and an IP bucket
+		// would let one abuser exhaust a shared NAT's budget. Distinct prefixes
+		// keep the cheap read from consuming the mutation's budget.
+		await caller().claimApplication({ id: 'app-1' });
+		await caller().claimableApplications();
+
+		expect(mocks.checkRateLimit).toHaveBeenCalledWith(
+			expect.objectContaining({ prefix: 'screener:claim' }),
+			ACTOR_ID,
+		);
+		expect(mocks.checkRateLimit).toHaveBeenCalledWith(
+			expect.objectContaining({ prefix: 'screener:claimable' }),
+			ACTOR_ID,
 		);
 	});
 });
