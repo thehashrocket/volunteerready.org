@@ -9,6 +9,22 @@ export function formatDate(value: Date | string): string {
 	}).format(date);
 }
 
+/**
+ * Date without a time, for facts whose hour is noise.
+ *
+ * "Added by their staff · July 28, 2026" answers the question a volunteer is
+ * asking; the minute they were added to a list does not, and carrying it makes
+ * the line long enough to wrap on a phone.
+ */
+export function formatDateOnly(value: Date | string): string {
+	const date = value instanceof Date ? value : new Date(value);
+	return new Intl.DateTimeFormat('en-US', {
+		month: 'long',
+		day: 'numeric',
+		year: 'numeric',
+	}).format(date);
+}
+
 export function formatRelative(value: Date | string): string {
 	const date = value instanceof Date ? value : new Date(value);
 	const diff = Math.round((date.getTime() - Date.now()) / 1000);

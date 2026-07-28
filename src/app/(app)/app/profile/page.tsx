@@ -22,6 +22,10 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -45,8 +49,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { getCredentialMeta } from '@/lib/credential-meta';
+import { formatDateOnly } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 import { NOTIFICATION_TYPE_LABELS } from '@/server/domain/notification';
+import { ORG_VOLUNTEER_SOURCE_COPY } from '@/server/domain/org-volunteer';
 
 // ---------------------------------------------------------------------------
 // Interest chip-input (same pattern as SkillInput)
@@ -399,6 +405,15 @@ export default function ProfilePage() {
 				</TabsList>
 
 				<TabsContent value="profile" className="space-y-6">
+					{/* Above the form, and outside it. Outside because leaving a roster is
+					    its own mutation and must not ride on, or be submitted by, the
+					    profile save. Above because `sendRosterAddedEmail` links a
+					    possibly-surprised recipient straight to /app/profile, and a
+					    primary submit button reads as the end of a page — content past
+					    "Save profile" is routinely never scrolled to. The one person this
+					    section exists for should not have to hunt for it. */}
+					<OrgMemberships />
+
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 						{/* About */}
 						<Card>
@@ -573,6 +588,189 @@ export default function ProfilePage() {
 				</TabsContent>
 			</Tabs>
 		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Organizations you volunteer with — the roster memberships you can leave (T32)
+// ---------------------------------------------------------------------------
+
+/**
+ * An org can put someone on its volunteer roster by typing their email address,
+ * without their consent, and `sendRosterAddedEmail` tells them so and links
+ * here. This section is the other half of that promise: the place they can
+ * actually leave.
+ *
+ * Named "Organizations you volunteer with" rather than plain "Organizations"
+ * because the stat card above already says "Organizations" and counts something
+ * else entirely (`OrganizationMember` — staff membership).
+ */
+function OrgMemberships() {
+	const memberships = trpc.profile.listMyOrgMemberships.useQuery();
+	const utils = trpc.useUtils();
+	const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+	const leave = trpc.profile.leaveOrgRoster.useMutation({
+		onSuccess: async () => {
+			setConfirmingId(null);
+			toast.success('You left that roster.');
+			await utils.profile.listMyOrgMemberships.invalidate();
+		},
+		onError: (err) => {
+			setConfirmingId(null);
+			// safeErrorMessage, never raw err.message: there is no errorFormatter on
+			// this tRPC instance, so an unexpected throw inside the service's
+			// $transaction reaches the browser carrying the raw Prisma text
+			// (constraint and column names). The allowlist keeps the hand-authored
+			// NOT_FOUND copy and swaps anything internal for the fallback — which
+			// `err.message ?? …` could never reach, since that field is always a
+			// non-empty string.
+			toast.error(safeErrorMessage(err) ?? 'Could not leave that roster.');
+		},
+	});
+
+	// A failed load must never look like "you are on nobody's roster". This is a
+	// consent surface, and a silent empty state is the one wrong answer it can
+	// give — so the error branch renders before the empty check below.
+	// QueryErrorCard rather than a hand-rolled card: it carries role="alert", so
+	// a screen reader is actually told the surface failed rather than being shown
+	// nothing, which is the same failure this ordering exists to prevent.
+	if (memberships.isError) {
+		return (
+			<QueryErrorCard
+				title="Couldn't load your organizations"
+				message={safeErrorMessage(memberships.error)}
+				onRetry={() => memberships.refetch()}
+				isRetrying={memberships.isFetching}
+			/>
+		);
+	}
+
+	// Nothing is known yet, so assert nothing. A card that renders its empty state
+	// and then fills in says "you are on nobody's roster" for the half-second it
+	// is on screen — the same false statement the isError branch above exists to
+	// prevent. Silence is the honest intermediate state; the resolved states below
+	// both render the card.
+	if (memberships.isLoading) return null;
+
+	const rows = memberships.data ?? [];
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Organizations you volunteer with</CardTitle>
+				<CardDescription>
+					These organizations have you on their volunteer roster, so they can
+					schedule you for shifts and record your hours.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{/* The empty state is rendered, not skipped. Returning null here would
+				    mean the card a volunteer was just reading vanishes the instant they
+				    leave their last roster, leaving a transient toast as the only
+				    evidence anything happened — and on a consent surface "gone" is
+				    indistinguishable from "failed to render". It also keeps the surface
+				    findable for someone following the roster email after staff already
+				    removed them, which is otherwise a link to a page with no answer. */}
+				{rows.length === 0 ? (
+					<p aria-live="polite" className="text-sm text-muted-foreground">
+						No organizations have you on a volunteer roster.
+					</p>
+				) : (
+					/* aria-live: a row vanishing is the only confirmation that the leave
+					   worked once the toast has gone, and a screen-reader user gets no
+					   other statement of the resulting list state. */
+					<ul aria-live="polite" className="divide-y rounded-md border">
+						{rows.map((row) => {
+							const isConfirming = confirmingId === row.id;
+							const orgName = row.organization.name;
+
+							return (
+								<li
+									key={row.id}
+									className="flex flex-wrap items-center justify-between gap-3 p-3"
+								>
+									<div className="min-w-0 text-sm">
+										<p className="break-words font-medium">{orgName}</p>
+										<p className="text-muted-foreground">
+											{/* Phrased as a question, and honest about all THREE things
+										    leaving does not do. Leaving drops the roster edge only:
+										    an application you sent stays sent (and still satisfies
+										    requireOrgVolunteerRelationship as APPLICATION, so that
+										    org keeps the access it grants), recorded hours stay
+										    recorded, and nothing stops them adding you again.
+										    Naming only two of the three was the same overpromise
+										    the claim flow's decline row was corrected for in
+										    v0.34.0.0 — and the application is the consent-material
+										    one, so it is stated first on the rows where it applies. */}
+											{isConfirming
+												? row.source === 'APPLIED'
+													? 'Leave this roster? Your application stays with them, your recorded hours stay recorded, and they can add you again.'
+													: 'Leave this roster? Your recorded hours stay recorded, and they can add you again.'
+												: `${ORG_VOLUNTEER_SOURCE_COPY[row.source]} · ${formatDateOnly(row.createdAt)}`}
+										</p>
+									</div>
+
+									{/* BOTH branches render a div wrapping the buttons, even though
+								    the resting state has only one. React reconciles by element
+								    type at each position: swapping <Button> for <div> unmounts
+								    the focused trigger and drops focus to <body>, so a keyboard
+								    user who activates Leave never reaches the confirm they just
+								    summoned. Keeping the wrapper lets the index-0 button be
+								    reused (Leave → Cancel) and focus survives. Same reason
+								    my-applications/page.tsx wraps its single-button branch. */}
+									{/* Every aria-label leads with the button's VISIBLE text, then
+								    adds the org as context — the `Label: context` idiom from
+								    my-applications. Voice control matches what the user reads
+								    (WCAG 2.5.3), and a screen reader still hears which org each
+								    of N identically-labelled buttons acts on. The confirm's
+								    visible text is "Yes, leave" rather than a second "Leave" so
+								    the armed control is never announced identically to the one
+								    that merely arms it. */}
+									{isConfirming ? (
+										<div className="flex flex-wrap gap-2">
+											<Button
+												size="sm"
+												variant="outline"
+												className="h-11"
+												disabled={leave.isPending}
+												onClick={() => setConfirmingId(null)}
+												aria-label={`Cancel: stay on the roster for ${orgName}`}
+											>
+												Cancel
+											</Button>
+											<Button
+												size="sm"
+												variant="destructive"
+												className="h-11"
+												disabled={leave.isPending}
+												onClick={() => leave.mutate({ volunteerId: row.id })}
+												aria-label={`Yes, leave: ${orgName}`}
+											>
+												{leave.isPending ? 'Leaving…' : 'Yes, leave'}
+											</Button>
+										</div>
+									) : (
+										<div className="flex flex-wrap gap-2">
+											<Button
+												size="sm"
+												variant="outline"
+												className="h-11"
+												disabled={leave.isPending}
+												onClick={() => setConfirmingId(row.id)}
+												aria-label={`Leave: ${orgName}`}
+											>
+												Leave
+											</Button>
+										</div>
+									)}
+								</li>
+							);
+						})}
+					</ul>
+				)}
+			</CardContent>
+		</Card>
 	);
 }
 
