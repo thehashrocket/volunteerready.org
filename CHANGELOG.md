@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.35.0.0] - 2026-07-28
+
+### Added
+- Volunteers on your list can now be put on a shift. Until now that list was somewhere to record people and nothing else — you could add someone and then do nothing with them. Open a shift and there is now an "Assign volunteer" box that searches your own list; choosing someone puts them on the shift. Anyone already on that shift is left out of the search, so you cannot pick a name whose selection would only fail. Someone who signed up and later cancelled can be put back on, and someone waiting for a place can be given one.
+- Adding one more person to a full shift now asks first, and says how full it is: "Saturday Morning Sort is full — 9 of 9 spots taken. Add Maria Garcia anyway?" You can go over the limit — you just have to mean it. Afterwards the shift reads "10 / 9" in amber rather than quietly looking normal again, so a shift you deliberately overfilled keeps saying so.
+- Shift screens now show which volunteers will not get an automatic reminder. Version 0.33.0.0 stopped sending automatic emails to people who have never signed in, and said at the time that shift screens did not yet show this — so a coordinator had no way to tell a reminder had been withheld, and would reasonably assume the volunteer had been reminded. Those volunteers are now marked "No account yet" wherever they appear on the shift, and a line above the list reads "3 volunteers won't get an automatic reminder — no account yet." Assigning someone usually happens weeks ahead; this is what you see on the Friday afternoon you are checking Saturday is covered, which is the last point at which you can still phone them. The same mark appears beside each name in the assign box, so you know before choosing rather than after.
+
+### Changed
+- Shift and attendance statuses now read as words. They were previously shown exactly as they are stored inside the system, so the screen said WAITLISTED, NO_SHOW and COMPLETED. They now say Waitlisted, No Show and Completed, as every other status in the product already did.
+- All of the above is still switched on one organisation at a time while the volunteer list is being trialled. Organisations without it see their shift screens exactly as before, and the assign box is not merely hidden from them — the underlying actions refuse as well, so it cannot be reached by another route.
+
 ## [0.34.0.0] - 2026-07-28
 
 ### Added

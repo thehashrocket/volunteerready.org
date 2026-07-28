@@ -11,6 +11,16 @@ export const DISPLAY_NAME_MAX = 120;
 export const ROSTER_PAGE_SIZE = 25;
 
 /**
+ * How many roster rows the assign-to-shift picker offers at once.
+ *
+ * The picker is a search box, not a browsable list — it has no "load more",
+ * because the coordinator already knows which person they are looking for and
+ * typing two more letters is faster than paging. The cap keeps the popover
+ * scannable; a coordinator whose match is not in the first 20 narrows instead.
+ */
+export const ASSIGN_PICKER_LIMIT = 20;
+
+/**
  * Threshold at which a roster counts as "populated".
  *
  * Three things must agree on this number: the primary success metric (orgs

@@ -3,6 +3,7 @@ import type {
 	ShiftData,
 	SignupFailureCode,
 	SignupRecord,
+	SignupStatus,
 } from '@/server/domain/shift';
 import {
 	getNextWaitlistEntry,
@@ -10,6 +11,10 @@ import {
 	validateWaitlistJoin,
 } from '@/server/domain/shift';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
+import {
+	findOrgVolunteerById,
+	listAssignableVolunteers,
+} from '@/server/repositories/orgVolunteerRepo';
 import { prisma } from '@/server/repositories/prisma';
 import {
 	findMemberByUserAndOrg,
@@ -67,6 +72,35 @@ export async function getMyUpcomingShiftsWithWaitlist(
 export async function getShiftWaitlist(shiftId: string, orgId: string) {
 	await requireOrgShift(shiftId, orgId);
 	return getWaitlistForShift(shiftId);
+}
+
+/**
+ * Roster rows the assign picker can offer for this shift.
+ *
+ * `requireOrgShift` first, even though the listing is already scoped by `orgId`
+ * and a foreign `shiftId` would only fail to exclude anyone. The invariant
+ * worth keeping cheap to audit is "every shiftId arriving from input is scoped
+ * before use", not "this particular caller happens to be safe without it".
+ *
+ * Projects the same four fields the roster page does, and — like it —
+ * deliberately no `userId`. `OrgVolunteer.id` is the handle
+ * `assignVolunteerToShift` takes.
+ */
+export async function getAssignableVolunteers(input: {
+	shiftId: string;
+	orgId: string;
+	search?: string | null;
+}) {
+	await requireOrgShift(input.shiftId, input.orgId);
+
+	const rows = await listAssignableVolunteers(input);
+
+	return rows.map((v) => ({
+		id: v.id,
+		displayName: v.displayName,
+		email: v.user.email,
+		accountState: v.user.accountState,
+	}));
 }
 
 // ---------------------------------------------------------------------------
@@ -216,6 +250,192 @@ export async function signUpForShift(
 			});
 			return signup;
 		});
+}
+
+/**
+ * Why a staff assignment was refused, as a wire error.
+ *
+ * Deliberately NOT `mapSignupFailure`. That mapping collapses "cancelled" and
+ * "completed" into NOT_FOUND because `shifts.signup` is open to any
+ * authenticated user and the specific answer would confirm a guessed id. Here
+ * the caller is staff at the org that owns the shift — `requireOrgShift` has
+ * already established that — so they are entitled to every fact about it, and
+ * they are looking at the shift's status in the dialog while they read this.
+ * Collapsing it would tell a coordinator their own shift does not exist.
+ */
+function mapAssignFailure(reason: string): TRPCError {
+	return new TRPCError({ code: 'CONFLICT', message: reason });
+}
+
+/**
+ * The signup states that mean "this person is already on this shift", mapped to
+ * what staff should be told.
+ *
+ * CANCELLED and WAITLISTED are absent on purpose — those are the two states
+ * `assignVolunteerToShift` revives rather than refuses.
+ */
+const ASSIGN_BLOCKED_BY_STATUS: Partial<Record<SignupStatus, string>> = {
+	CONFIRMED: 'They are already assigned to this shift.',
+	ATTENDED: 'They are already marked attended for this shift.',
+	NO_SHOW: 'They are already marked a no-show for this shift.',
+};
+
+/**
+ * Put a volunteer from the org's roster onto one of the org's shifts.
+ *
+ * This is the mutation the roster exists to enable: without it `/app/volunteers`
+ * is a list that leads nowhere. Staff-initiated, so both ids arrive from client
+ * input and both are scoped before anything is read:
+ *
+ *   - `shiftId` through `requireOrgShift` — a foreign shift is NOT_FOUND.
+ *   - `volunteerId` is an `OrgVolunteer.id`, resolved through
+ *     `findOrgVolunteerById(orgId, …)`. The client never sees `User.id` (that
+ *     is a cross-tenant correlation handle — see the roster projection), so the
+ *     user id is derived here from a row the org demonstrably owns.
+ *
+ * ## Reassignment
+ *
+ * The design doc claimed `@@unique([shiftId, userId])` made this idempotent. It
+ * does not: `createSignup` only ever creates, and `validateSignup`'s duplicate
+ * check matches CONFIRMED alone — so a volunteer with a CANCELLED row passed
+ * validation, hit the unique index and produced an unhandled P2002. Re-adding
+ * someone who cancelled is an ordinary coordinator action, so the existing row
+ * is resolved explicitly instead: CANCELLED and WAITLISTED are revived to
+ * CONFIRMED, and the three states that mean "already on this shift" are
+ * refused by name.
+ *
+ * ## Over capacity
+ *
+ * `allowOverCapacity` waives capacity and nothing else — `validateSignup` puts
+ * the capacity checks last precisely so waiving them cannot skip the lifecycle,
+ * duplicate and time-conflict rules. It is never a default: the coordinator
+ * confirms against real numbers in the UI first (design decision D11).
+ */
+export async function assignVolunteerToShift(input: {
+	shiftId: string;
+	/** `OrgVolunteer.id`, never `User.id`. */
+	volunteerId: string;
+	orgId: string;
+	actorId: string;
+	allowOverCapacity?: boolean;
+	impersonatedBy?: string | null;
+}) {
+	const shift = await requireOrgShift(input.shiftId, input.orgId);
+
+	const volunteer = await findOrgVolunteerById(input.orgId, input.volunteerId);
+	if (!volunteer) {
+		// NOT_FOUND, not FORBIDDEN, matching the sibling guards: "not on your
+		// roster" and "not a real id" must be indistinguishable.
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Volunteer not found on your roster.',
+		});
+	}
+	const userId = volunteer.userId;
+
+	const existing = await getSignupByShiftAndUser(input.shiftId, userId);
+	if (existing) {
+		const blocked = ASSIGN_BLOCKED_BY_STATUS[existing.status];
+		if (blocked) throw mapAssignFailure(blocked);
+	}
+
+	const signups = await getSignupsByShift(input.shiftId);
+	const userShiftSignups = await getConfirmedShiftsForUser(userId);
+
+	const shiftData: ShiftData = {
+		id: shift.id,
+		title: shift.title,
+		startTime: shift.startTime,
+		endTime: shift.endTime,
+		capacity: shift.capacity,
+		status: shift.status as ShiftData['status'],
+		location: shift.location,
+		isRemote: shift.isRemote,
+	};
+
+	const signupRecords: SignupRecord[] = signups.map((s) => ({
+		id: s.id,
+		shiftId: s.shiftId,
+		userId: s.userId,
+		status: s.status as SignupRecord['status'],
+		createdAt: s.createdAt,
+	}));
+
+	const existingShifts: ShiftData[] = userShiftSignups.map((s) => ({
+		id: s.shift.id,
+		title: s.shift.title,
+		startTime: s.shift.startTime,
+		endTime: s.shift.endTime,
+		capacity: s.shift.capacity,
+		status: s.shift.status as ShiftData['status'],
+		location: s.shift.location,
+		isRemote: s.shift.isRemote,
+	}));
+
+	const validation = validateSignup(
+		shiftData,
+		signupRecords,
+		userId,
+		existingShifts,
+		{ allowOverCapacity: input.allowOverCapacity },
+	);
+	if (!validation.ok) {
+		throw mapAssignFailure(validation.reason);
+	}
+
+	const confirmedCount =
+		signupRecords.filter((s) => s.status === 'CONFIRMED').length + 1;
+	const overCapacity = confirmedCount > shift.capacity;
+
+	// No tenure-badge or re-engagement side effects follow the commit, unlike
+	// `signUpForShift`. Both of those record that the VOLUNTEER did something;
+	// being scheduled by staff is not something they did. Their participation is
+	// recorded when attendance is marked.
+	return prisma.$transaction(async (tx) => {
+		const signup = existing
+			? await updateSignupStatus(tx, input.shiftId, userId, 'CONFIRMED')
+			: await createSignup(tx, { shiftId: input.shiftId, userId });
+
+		// Same denormalisation `signUpForShift` maintains. Over capacity the shift
+		// is FULL by any reading, so this branch covers that case too.
+		if (confirmedCount >= shift.capacity && shift.status !== 'FULL') {
+			await tx.shift.update({
+				where: { id: input.shiftId },
+				data: { status: 'FULL' },
+			});
+		}
+
+		await writeAuditLogTx(tx, {
+			orgId: input.orgId,
+			// The STAFF member, not the volunteer — the whole point of this path is
+			// that somebody else put them on the shift.
+			actorId: input.actorId,
+			action: 'shift.volunteer.assigned',
+			entityType: 'ShiftSignup',
+			entityId: signup.id,
+			metadata: {
+				shiftId: input.shiftId,
+				shiftTitle: shift.title,
+				volunteerId: input.volunteerId,
+				assignedUserId: userId,
+				// Records that a cap was knowingly exceeded, and by whom. Without it
+				// "why does this shift have 10 of 9?" is unanswerable later.
+				overCapacity,
+				revivedFrom: existing?.status ?? null,
+				...(input.impersonatedBy
+					? { impersonatedBy: input.impersonatedBy }
+					: {}),
+			},
+		});
+
+		return {
+			signupId: signup.id,
+			displayName: volunteer.displayName,
+			accountState: volunteer.user.accountState,
+			shiftTitle: shift.title,
+			overCapacity,
+		};
+	});
 }
 
 export async function cancelSignup(shiftId: string, userId: string) {

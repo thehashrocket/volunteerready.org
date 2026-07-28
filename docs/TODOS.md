@@ -2781,19 +2781,19 @@ design completeness 3/10 → 9/10. Two further items (QueryErrorCard migration,
 mobile card lists for the four existing staff tables) were elected into the PR
 itself as T35 and T36 rather than deferred here.
 
-- **[P2] `shifts/page.tsx` renders raw enum values as user-facing labels** — the
-  inline `STATUS_VARIANTS` (`:91-100`) and `ATTENDANCE_VARIANTS` (`:281-287`)
-  maps use the enum string directly as the badge label, so a coordinator reads
-  `WAITLISTED`, `NO_SHOW` and `COMPLETED` in screaming snake case. One of the two
-  maps is declared inside the component body. Every other status in the product
-  goes through a `*StatusBadge` component with a `{label, icon, variant}` record
-  and human copy — see `ApplicationStatusBadge` ("In review", "Withdrawn"),
-  `ScreeningStatusBadge` ("Needs review"), `OpportunityStatusBadge`. Found while
-  mapping badge patterns for design decision D17. **Fix:** extract
-  `ShiftStatusBadge` and `AttendanceStatusBadge` following the existing three.
-  **Why not now:** T24 is already editing this file for the assign picker; a
-  parallel refactor of the same lines would conflict. **Depends on:** T24
-  landing. **Effort:** S.
+- ~~**[P2] `shifts/page.tsx` renders raw enum values as user-facing labels**~~ —
+  ✅ **RESOLVED v0.35.0.0**, folded into T24 as planned since it edited the same
+  lines. The inline `STATUS_VARIANTS` and `ATTENDANCE_VARIANTS` maps are gone,
+  replaced by `ShiftStatusBadge` / `SignupStatusBadge` in
+  `src/components/shifts/shift-status-badge.tsx`, following
+  `VolunteerStatusBadge`. The human copy already existed — `SHIFT_STATUS_LABELS`
+  and `SIGNUP_STATUS_LABELS` had been in `domain/shift.ts` since that module was
+  written and were imported nowhere — so the fix reuses them rather than
+  retyping the strings, and the labels cannot drift from the domain's
+  vocabulary. Both maps are now total `Record`s over their enum, so a new status
+  is a type error rather than a silent fallthrough to `neutral` with a raw enum
+  label, which is how the old `?? 'neutral'` shape hid this. 16 tests including
+  a no-hex source scan.
 
 - **[P2] No staff-side waitlist when assigning to a full shift** — design
   decision D11 gave staff an over-capacity override but no third option, because
@@ -2803,8 +2803,24 @@ itself as T35 and T36 rather than deferred here.
   while the sensible answer sits unused. Same root cause that cut bulk assign
   (NOT in scope #3). **Fix:** add "Add to waitlist" to the D11 confirm strip,
   which needs a position-ordering decision against volunteer-initiated waitlist
-  entries and coverage in the `shiftSignupService` tests. **Depends on:** T8,
-  T24. **Effort:** M.
+  entries and coverage in the `shiftSignupService` tests. ~~**Depends on:** T8,
+  T24.~~ **UNBLOCKED v0.35.0.0** — both landed. Note the confirm strip is now
+  `OverCapacityConfirm` in `AssignVolunteerPicker.tsx`, and
+  `assignVolunteerToShift` already promotes a WAITLISTED volunteer to CONFIRMED,
+  so "Add to waitlist" is the only missing direction. **Effort:** M.
+
+- **[P3] `signUpForShift` has the same latent P2002 that `assignVolunteerToShift`
+  was fixed for** — `validateSignup`'s duplicate check matches `CONFIRMED` only,
+  and `createSignup` only ever creates, so a volunteer who cancelled and then
+  signs up again for the same shift collides on
+  `ShiftSignup @@unique([shiftId, userId])` and gets an unhandled 500 rather
+  than a signup. Identical root cause to the staff path, fixed there in
+  v0.35.0.0 by resolving the existing row before writing; deliberately not
+  changed here in the same PR because it is the volunteer-facing flow and wants
+  its own thought about whether a cancelled-then-resigned-up volunteer should
+  land CONFIRMED or WAITLISTED on a shift that filled in between. **Fix:** the
+  same `getSignupByShiftAndUser` branch `assignVolunteerToShift` uses.
+  **Effort:** S.
 
 - **[P3] Volunteer detail is a dialog, not a deep-linkable route** — design
   decision D4 chose a dialog matching `ShiftDetailDialog`, which is the right
