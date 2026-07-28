@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.35.1.0] - 2026-07-28
+
+### Changed
+- The sign-in path a staff-added volunteer takes to claim their account is now tested for real, from end to end. Version 0.33.0.0 fixed two problems here — people whose email address an organisation had typed in were locked out of "Sign in with Google", and signing in did not clear the "never signed in" mark that holds back their email. Both fixes were correct, but the tests behind them stopped short of the thing that actually decides the outcome: they confirmed the right settings were in place, not that signing in produced the right result. Every existing test of a signed-in page skips signing in altogether. The tests now walk the whole way through — a volunteer is added to a list, a sign-in link is opened in a browser, and the list is checked afterwards to confirm it has stopped saying "No account yet" and now says "Has account".
+- The same for the promise the volunteer list is meant to keep. A volunteer who has never signed up is added, put on a shift, marked as having attended, and then found in the organisation's own report as hours worked — the figure checked against the length of the shift rather than merely confirming a row appeared. Each half of that journey was already tested; nothing had tested that it joins up.
+- "Sign in with Google" cannot be reached by a test browser, because it depends on Google itself. Those checks instead run the real sign-in machinery directly against a real database, which has the side benefit of running on every proposed change — the browser-based tests still have to be started by hand.
+
+No change to how anything behaves.
+
 ## [0.35.0.0] - 2026-07-28
 
 ### Added
