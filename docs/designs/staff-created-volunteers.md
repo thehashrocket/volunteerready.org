@@ -564,7 +564,7 @@ Design deferrals (`/plan-design-review`):
 | `sendEmail` guard | Guard suppresses a transactional sender | T9 | opt-in default | nothing — this is why the guard is opt-in |
 | Email guard lookup | Case-variant email misses the row, fails open | T9 | DB-level canonicalization | silent; closed by T1 |
 | `accountState` flip | No hook; user stays UNCLAIMED forever | T9 | `events.signIn` (**not** `updateUser` — see §2) | silent mail suppression |
-| Google sign-in | `AccountNotLinkedError` on a shadow user's email | T15 | `allowDangerousEmailAccountLinking` | hard error, no recovery |
+| Google sign-in | `AccountNotLinkedError` on a shadow user's email | T15 ✅ | `allowDangerousEmailAccountLinking` | hard error, no recovery |
 | Suppressed send | Cannot answer "did they get it?" | T9 | `EmailEvent.SUPPRESSED_UNCLAIMED` | queryable |
 | `addVolunteer` notify | Resend down; roster row rolls back with the email | T14 | fire-and-forget outside tx | roster row missing |
 | `addVolunteer` dup | Two coordinators add the same email concurrently | T14 | partial index → P2002 | "Already on your roster" |
@@ -914,13 +914,13 @@ produces confidently wrong work.
   - **Awaited, not fire-and-forget** — deviates from the plan's `.catch(console.error)`. That convention came from `sendNewUserAlert`, a droppable notification; a dropped flip leaves a real person permanently unable to receive mail they asked for, and a detached promise can be killed when a serverless response returns. `auth.ts` wraps the call in try/catch instead, so a failure logs and can never turn into a failed sign-in
   - `updateMany` scoped on the current state, not `update` by id: idempotent by construction (a second sign-in must not re-stamp `claimedAt`), a compare-and-set under concurrency, and it needs no prior read of an untyped `accountState` surviving the adapter cast
   - Writes an `ACCOUNT_CLAIMED` audit row, deliberately **not** in a transaction with the flip — a lost audit row is recoverable from `claimedAt`, a flip rolled back by a failed audit write is not
-  - Verify: ✅ 8 service tests + 5 auth-event tests + 6 **integration** tests in `repositories/userAccountState.integration.test.ts` (idempotence, concurrent single-winner, no-op on ACTIVE, missing id returns false rather than throwing P2025, no sibling touched). e2e badge flip still belongs to T15
+  - Verify: ✅ 8 service tests + 5 auth-event tests + 6 **integration** tests in `repositories/userAccountState.integration.test.ts` (idempotence, concurrent single-winner, no-op on ACTIVE, missing id returns false rather than throwing P2025, no sibling touched). e2e badge flip landed with T15 (v0.35.1.0)
 - [x] **T6 (P1, human: ~1h / CC: ~10min)** — auth — `allowDangerousEmailAccountLinking` + `SECURITY:` comment + env kill switch ✅ **DONE**
   - Surfaced by: Architecture A3 — `AccountNotLinkedError` locks out anyone whose email an org typed
   - Files: `src/server/auth.ts`
   - **The `email_verified` claim is now enforced.** A `callbacks.signIn` refuses any Google sign-in whose profile does not assert `email_verified: true`. Without it the `SECURITY:` rationale below was an assertion rather than a control: next-auth never inspects the claim and the `profile()` mapper discards it, so linking happened on a string match alone. Found independently by the security specialist, Codex, and the coverage audit. This is NOT the UNCLAIMED-scoping design rejected below — that one re-derived the linking decision; this only asserts its precondition. Magic link and any non-Google provider return `true` untouched, pinned by a test, because the magic link is the only exit from `UNCLAIMED`
   - **Blast radius is platform-wide, not roster-only, and that was an explicit decision.** It is a provider-level boolean read in exactly one place in next-auth, so it cannot be scoped to `UNCLAIMED` rows. It therefore also links anyone who signed up by magic link and later clicks "Sign in with Google" — today they get `OAuthAccountNotLinked`. Scoping it was considered: `callbacks.signIn` runs *before* `callbackHandler`, so a hand-rolled lookup there could reject an ACTIVE user with no linked `Account`. Rejected — ~30 lines of hand-rolled auth-critical logic to defend against a threat Google's email verification already covers, at the cost of keeping a papercut that is otherwise fixed for free
-  - Verify: ✅ 3 tests asserting the flag is set on the **configured** provider (read through `provider.options`, since next-auth merges caller options at runtime — reading the top-level field tests next-auth's default instead), that the kill switch turns it off, and that 5 mistyped kill-switch values leave it on. Real OAuth-against-a-shadow-user belongs to T15
+  - Verify: ✅ 3 tests asserting the flag is set on the **configured** provider (read through `provider.options`, since next-auth merges caller options at runtime — reading the top-level field tests next-auth's default instead), that the kill switch turns it off, and that 5 mistyped kill-switch values leave it on. OAuth-against-a-shadow-user landed with T15 (v0.35.1.0) — `auth-account-linking.integration.test.ts` drives next-auth's real `callbackHandler`, so the *effect* of the flag is now tested and not just its value
 - [x] **T9 (P1, human: ~3h / CC: ~20min)** — tests — Email guard suite ✅ **DONE** (landed with T4/T5/T6 rather than separately — it is their verify step)
   - Surfaced by: Test review — critical gap; `auth.ts:54-56` throws on a false return
   - Files: `lib/__tests__/email.test.ts`, `lib/__tests__/unclaimed-guard-optin.test.ts`, `lib/__tests__/env-flags.test.ts`, `services/__tests__/accountClaimService.test.ts`, `auth-account-linking.test.ts`, plus two integration specs
@@ -965,10 +965,43 @@ produces confidently wrong work.
   - **DONE (v0.35.0.0):** `shiftSignupService.test.ts` now exists — 22 `assignVolunteerToShift` cases and a 5-case `markAttendance` backfill (authorization model, audit, idempotent repeat check-in, cancelled-signup refusal, missing signup)
   - **Still open:** the other three untested functions in that file — `signUpForShift`, `cancelSignup` and the waitlist pair are covered only indirectly by `shiftSignupDisclosure.test.ts` / `shiftOrgScoping.test.ts`
   - Verify: `pnpm test`
-- [ ] **T15 (P2, human: ~1d / CC: ~45min)** — e2e — Identity paths + add→assign→attend→hours-in-report
+- [x] **T15 (P2, human: ~1d / CC: ~45min)** — e2e — Identity paths + add→assign→attend→hours-in-report ✅ **DONE (v0.35.1.0)**
   - Surfaced by: Test review T2 — mocks cannot verify real NextAuth behavior
-  - Files: `e2e/staff-created-volunteers.spec.ts`
-  - Verify: `pnpm e2e`
+  - Files: `e2e/staff-created-volunteers.spec.ts`, `e2e/utils/db.ts` (`mintMagicLinkUrl`), `src/server/auth-account-linking.integration.test.ts`
+  - **Split across two suites, because the identity paths are not equally reachable.**
+    The **magic-link** branch is drivable end to end: `mintMagicLinkUrl()` writes the
+    hashed half of a `VerificationToken` and the spec navigates to the real
+    `/api/auth/callback/email`, so `getUserFromEmail`, `callbacks.signIn`,
+    `callbackHandler`, session creation and `events.signIn` all execute. Only the
+    Resend send is bypassed — deliberately, since `RESEND_FROM_EMAIL` is the shared
+    `resend.dev` sandbox sender and the key in `.env.local` is live.
+    The **Google** branch is not: `authOptions` builds `GoogleProvider` against
+    Google's own discovery document and exchanges the token server-side, so there is
+    no seam to point it at a mock IdP without adding one to production code. Those
+    claims moved to an integration test that calls next-auth's real `callbackHandler`
+    with the real `PrismaAdapter` — which also means they run in CI, and e2e does not
+  - ⚠️ **The e2e half cannot distinguish `events.signIn` from `events.updateUser`**, even
+    in principle: on the email branch `callbackHandler` calls `updateUser` too. Only
+    the oauth branch separates them, which is precisely what the integration test
+    isolates. Do not read the green e2e run as covering the `auth.ts:143` SECURITY note
+  - Verify: ✅ 2 e2e (`pnpm e2e`) — a staff-added UNCLAIMED volunteer claims by magic link
+    and the roster badge flips `No account yet` → `Has account`, asserted in the DB
+    (`accountState`, `claimedAt`, same user id, a `Session` row, exactly one
+    `ACCOUNT_CLAIMED` audit row) **and** in the UI; plus add → assign → T23 disclosure →
+    Attended → **2.5 hours in `/app/analytics` → Top Volunteers**. Both mutation-tested:
+    disabling `claimAccountOnSignIn` turns the first red, asserting the wrong hours
+    figure turns the second red
+  - Verify: ✅ 8 integration (`pnpm test:integration`) — `AccountNotLinkedError` without
+    `allowDangerousEmailAccountLinking` and adoption with it, `adapter.updateUser`/
+    `events.updateUser` never called on the adopt path (**paired with a contrast test
+    asserting the email branch DOES call them**, so the negative cannot pass vacuously),
+    `events.createUser` firing for a pre-existing row, adoption leaving the account
+    UNCLAIMED until `claimAccountOnSignIn` runs, and both kill switches
+  - **Note the deep require.** `core/lib/callback-handler` is not in next-auth's `exports`
+    map and is resolved by path off the package root. Deliberate: the alternative is
+    leaving four `auth.ts` claims verified only by reading `node_modules`. A next-auth
+    upgrade that moves it breaks the test loudly, which is correct — those comments say
+    "Verified against next-auth 4.24.14" and would need re-verifying too
 - [ ] **T16 (P2, human: ~3h / CC: ~20min)** — config — `staff_created_volunteers` flag, default `false`, gating page + mutations
   - Surfaced by: Step 0 — first production consumer of `isFeatureEnabled()`. **Re-estimated from 1h by design review D20:** there is no client flag read path, so the original verify step could not pass. Resolve server-side in the app layout, thread a fourth prop through `AppShell` → `AppSidebar` following the `hasOrg` idiom, and guard the route with `redirect()` — nav hiding is cosmetic and does not close the route
   - Files: `src/server/domain/feature-flags.ts`, `src/app/(app)/app/layout.tsx`, `src/components/app/app-shell.tsx`, `src/components/app/app-sidebar.tsx`, `src/app/(app)/app/volunteers/`, `src/app/(app)/app/shifts/page.tsx`, `src/components/app/activity-feed.tsx`

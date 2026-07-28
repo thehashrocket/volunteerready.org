@@ -5,6 +5,49 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Deferred from the T15 identity-e2e ship (2026-07-28, v0.35.1.0)
+
+Shipped: `e2e/staff-created-volunteers.spec.ts` (2 tests), `mintMagicLinkUrl()` in
+`e2e/utils/db.ts`, and `src/server/auth-account-linking.integration.test.ts`
+(8 tests driving next-auth's real `callbackHandler`).
+
+### [P2] `/for/nonprofits` renders a marketing image the browser never decodes
+
+**Pre-existing, unrelated to this ship** — reproduced on a clean checkout of `main`
+with the T15 changes stashed. `e2e/public-pages.spec.ts:163` ("all marketing images
+on /for/nonprofits render with natural size") fails: image 0 passes `toBeVisible()`
+but `naturalWidth` stays `0` for the full 15s budget. Not a cold-compile flake — it
+reproduces with a warm optimizer cache, and the **dark-mode counterpart on the same
+page passes**, as do the light-mode assertions on every other page in
+`SCREENSHOT_PAGES`.
+
+Ruled out: the asset exists (`public/marketing/applications-queue.png`, 122KB) and
+`/_next/image?url=%2Fmarketing%2Fapplications-queue.png&w=3840&q=75` returns
+`200 image/png`, 35KB. So the bytes are served and something on the page side stops
+the decode. Worth checking whether the light/dark pair on this page is wired the
+opposite way round from the others (`dark:hidden` vs `hidden dark:block`), which
+would make the *hidden* variant image 0 and give exactly this signature.
+
+If it is a real rendering bug it is user-facing on a public marketing page. Left out
+of the T15 diff deliberately — folding an unrelated marketing fix into a
+test-coverage ship would have obscured both. **Effort:** S to diagnose.
+
+### [P3] e2e still does not run in CI, so the identity spec is a manual gate
+
+The Google half of T15 was deliberately routed to the integration suite partly
+because that suite *does* run in CI. The magic-link half cannot be: it needs a booted
+dev server, a browser, and `pnpm seed:dev`. So the one test that proves the real
+NextAuth callback chain works only runs when someone types `pnpm e2e`. Same
+constraint noted in the v0.34.0.0 CI entry. **Effort:** M.
+
+### [P3] `signUpForShift` / `cancelSignup` / the waitlist pair still have no direct service tests
+
+T14's remaining half, unchanged by this ship and explicitly left out of it. They are
+covered only indirectly via `shiftSignupDisclosure.test.ts` and
+`shiftOrgScoping.test.ts`. **Effort:** M.
+
+---
+
 ## Deferred from the E1a roster-convergence ship (2026-07-28, v0.34.0.0)
 
 Shipped: E1a (roster rows on approval + on claim), the four correctness-debt
@@ -129,6 +172,13 @@ that script was deleted rather than committed, because it drove services directl
 rather than going through HTTP. The unit and integration layers cover the pieces;
 nothing covers "approve in the UI, see them on `/app/volunteers`". Natural
 companion to the T15 e2e spec. **Effort:** M.
+
+**Narrowed by T15 (v0.35.1.0)**, not closed. `e2e/staff-created-volunteers.spec.ts`
+now covers the *staff-added* entry to the roster through the UI (add → assign →
+attend → hours). The **approval** entry — E1a's actual subject,
+`ensureAppliedRosterRow()` firing from `updateOrgApplicationStatus()` — is still
+uncovered end to end, as is the claim path. Adding them is a third test in that same
+file rather than new scaffolding.
 
 ---
 
