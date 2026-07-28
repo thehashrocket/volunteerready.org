@@ -150,7 +150,11 @@ export async function sendDigestEmails(): Promise<{
 			`;
 
 			const subject = `${notifications.length} update${notifications.length === 1 ? '' : 's'} from ${pref.organization.name}`;
-			const sent = await sendEmail(email, subject, html);
+			// Unrequested bulk mail — opts into the unclaimed guard so a
+			// staff-created volunteer who has never signed in is not digested at.
+			const sent = await sendEmail(email, subject, html, {
+				suppressUnclaimed: true,
+			});
 
 			if (sent) {
 				// Mark notifications as email-delivered

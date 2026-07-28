@@ -88,6 +88,8 @@ describe('sendReengagementEmails', () => {
 			'vol@test.com',
 			expect.stringContaining('love to see you'),
 			expect.any(String),
+			// Unrequested bulk mail — must opt into the T4 unclaimed guard.
+			{ suppressUnclaimed: true },
 		);
 		expect(mockMarkReengagementSent).toHaveBeenCalledWith('member-1', '30d');
 	});
@@ -116,6 +118,7 @@ describe('sendReengagementEmails', () => {
 			'vol@test.com',
 			expect.stringContaining('New opportunities'),
 			expect.stringContaining('Beach Cleanup'),
+			{ suppressUnclaimed: true },
 		);
 		expect(mockMarkReengagementSent).toHaveBeenCalledWith('member-1', '60d');
 	});
@@ -133,6 +136,7 @@ describe('sendReengagementEmails', () => {
 			'vol@test.com',
 			expect.stringContaining('miss you'),
 			expect.any(String),
+			{ suppressUnclaimed: true },
 		);
 		expect(mockMarkReengagementSent).toHaveBeenCalledWith('member-1', '90d');
 	});

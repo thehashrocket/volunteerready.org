@@ -1046,6 +1046,12 @@ enum EmailEventType {
   DELIVERED
   BOUNCED
   COMPLAINED
+  /// Written by sendEmail() when a `suppressUnclaimed` sender is asked to mail
+  /// an UNCLAIMED (staff-created, never-authenticated) user. Nothing reached
+  /// Resend, so `resendId` is null — this is the only EmailEventType recording
+  /// a non-delivery that originated here rather than from a Resend webhook.
+  /// Without it, "did this volunteer get their shift reminder?" is unanswerable.
+  SUPPRESSED_UNCLAIMED
 }
 
 /// Tracks email delivery lifecycle events.

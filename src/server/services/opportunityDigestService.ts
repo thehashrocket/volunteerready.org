@@ -171,10 +171,14 @@ export async function sendOpportunityDigestEmails(opts?: {
 				</p>
 			`;
 
+			// Unrequested bulk mail — opts into the unclaimed guard. The WEEKLY
+			// preference this iterates is auto-created on a marketplace heart,
+			// an action a never-authenticated user cannot have taken.
 			const sent = await sendEmail(
 				email,
 				'Your weekly volunteer opportunities',
 				html,
+				{ suppressUnclaimed: true },
 			);
 
 			if (sent) {

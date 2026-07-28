@@ -99,8 +99,17 @@ export async function sendShiftReminders(): Promise<{
 					</a>
 				</p>
 				`,
+				// Opts into the unclaimed guard: a staff-created volunteer who has
+				// never signed in gets no automatic reminder. T23 discloses this in
+				// the shift UI so the coordinator knows to text them instead —
+				// until it lands, this suppression is silent to staff.
+				{ suppressUnclaimed: true },
 			);
 
+			// Stamped regardless of whether the send was suppressed. A suppressed
+			// reminder is a decision, not a transient failure, so leaving
+			// reminderSentAt null would re-attempt it on every subsequent run
+			// forever and write a SUPPRESSED_UNCLAIMED row each time.
 			await prisma.shiftSignup.update({
 				where: { id: signup.id },
 				data: { reminderSentAt: now },

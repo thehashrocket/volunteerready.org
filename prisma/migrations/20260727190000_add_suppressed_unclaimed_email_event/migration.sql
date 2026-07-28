@@ -1,0 +1,22 @@
+-- T4 (staff-created volunteers): record suppressed sends to UNCLAIMED users.
+--
+-- `sendEmail()` already returns false for a bounce-suppressed address, but it
+-- writes no row when it does. Adding a second silent-drop reason without an
+-- accompanying event would make "did this volunteer get their shift reminder?"
+-- permanently unanswerable, since EmailEvent rows are written on SENT only.
+--
+-- Additive and forward-only. Removing an enum value later requires rewriting
+-- every row that uses it, so this is deliberately not paired with a down
+-- migration — the T4 rollback path is the UNCLAIMED_EMAIL_GUARD_ENABLED kill
+-- switch, which stops new rows being written and leaves existing ones readable.
+--
+-- Written by hand, NOT by `prisma migrate dev`: migration
+-- 20260320100000_add_activity_feed_indexes uses CREATE INDEX CONCURRENTLY,
+-- which Postgres refuses inside the transaction Prisma wraps the shadow
+-- database in, so `migrate dev` fails with P3006 in this repo regardless of
+-- what changed. See the T2 note in docs/designs/staff-created-volunteers.md.
+--
+-- ALTER TYPE ... ADD VALUE is transaction-safe on PostgreSQL 12+ (this repo
+-- targets 16, see docker-compose.yml) provided the new value is not USED in
+-- the same transaction. Nothing below uses it.
+ALTER TYPE "EmailEventType" ADD VALUE 'SUPPRESSED_UNCLAIMED';
