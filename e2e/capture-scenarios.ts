@@ -94,6 +94,15 @@ export const CAPTURE_SCENARIOS: CaptureScenario[] = [
 		key: 'profile',
 		actor: CAPTURE_ACTORS.volunteer,
 		path: '/app/profile',
+		// Stays 'Shifts' deliberately. `waitForText` is not only the settle
+		// proof — capture.spec.ts scrolls it to `block: 'center'`, so it is also
+		// the FRAMING ANCHOR, and `/for/volunteers` pins four annotation markers
+		// to this composition. Re-anchoring on the "Organizations you volunteer
+		// with" card (tried, reverted) centered that card instead, scrolling the
+		// page header out of frame and invalidating all four coordinates.
+		// Anchoring here is safe because the capture awaits `networkidle` BEFORE
+		// scrolling, so the client-queried roster card has already painted — the
+		// stat card being server-rendered does not let the shot settle early.
 		waitForText: 'Shifts',
 		variants: ['light', 'dark'],
 	},

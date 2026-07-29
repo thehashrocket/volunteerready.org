@@ -79,6 +79,12 @@ const thirdPartyServices = [
 
 const versionHistory = [
 	{
+		date: 'July 28, 2026',
+		version: '1.1',
+		changes:
+			"Disclosed roster data (organizations may add volunteers directly, before they apply or hold an account) and added the right to revoke an individual organization's access",
+	},
+	{
 		date: 'March 19, 2026',
 		version: '1.0',
 		changes: 'Initial privacy policy published',
@@ -150,6 +156,28 @@ export default function PrivacyPage() {
 							When you apply to volunteer, you provide information such as your
 							name, contact details, availability, skills, and qualifications.
 							Organizations you apply to can see this data.
+						</p>
+						<p>
+							<strong className="text-foreground">Roster data:</strong> An
+							organization may also add you to its volunteer roster directly,
+							using your email address — before you have applied to it, and
+							before you have created an account. Organizations use this to
+							schedule volunteers they already work with offline. Whether an
+							organization adds you this way or you apply and it approves you,
+							it can then see your volunteer profile, schedule you for shifts,
+							and request a background check on you. Organizations holding this
+							access are listed on your profile page, and you can revoke any of
+							them at any time — see{' '}
+							<a href="#your-rights" className="text-primary hover:underline">
+								Your Rights
+							</a>
+							. If an organization added you before you had an account, we
+							created one from that address: request a sign-in link at{' '}
+							<Link href="/login" className="text-primary hover:underline">
+								volunteerready.org/login
+							</Link>{' '}
+							using the same email the organization used, and the same controls
+							apply.
 						</p>
 						<p>
 							<strong className="text-foreground">
@@ -243,8 +271,22 @@ export default function PrivacyPage() {
 					</div>
 					<div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
 						<p>
-							We share your data only with the third-party services necessary to
-							operate the platform. We do not sell or rent your data to anyone.
+							<strong className="text-foreground">With organizations.</strong>{' '}
+							Organizations receive your volunteer data when you apply to them,
+							when they approve your application, or when they add you to their
+							roster directly. What they can see includes your name, contact
+							details, availability, skills, service history, and credential
+							status. You can see every organization holding this access, and
+							revoke any of them, from your profile page — see{' '}
+							<a href="#your-rights" className="text-primary hover:underline">
+								Your Rights
+							</a>
+							.
+						</p>
+						<p>
+							Otherwise, we share your data only with the third-party services
+							necessary to operate the platform. We do not sell or rent your
+							data to anyone.
 						</p>
 						<div className="mt-6 overflow-x-auto">
 							<table className="w-full text-left text-sm">
@@ -388,6 +430,21 @@ export default function PrivacyPage() {
 						</ul>
 						<p>
 							<strong className="text-foreground">
+								Revoking an organization's access is not the same as deletion.
+							</strong>{' '}
+							When you remove an organization's access from your profile page,
+							that organization can no longer open your volunteer record,
+							schedule you, or request a background check. Records of work you
+							already did stay with them: your application, any shifts you were
+							already booked on, and hours you volunteered remain on their
+							account. Shifts you were already booked on stay booked, and the
+							organization can still record whether you attended them — cancel
+							those signups yourself if you do not intend to go. To have those
+							records deleted rather than made inaccessible, use the request
+							below or contact the organization directly.
+						</p>
+						<p>
+							<strong className="text-foreground">
 								To request deletion of your data,
 							</strong>{' '}
 							email{' '}
@@ -485,6 +542,22 @@ export default function PrivacyPage() {
 							<li>
 								<strong className="text-foreground">Withdraw consent:</strong>{' '}
 								Opt out of analytics cookies at any time.
+							</li>
+							<li>
+								<strong className="text-foreground">
+									Revoke an organization's access:
+								</strong>{' '}
+								Remove a specific organization's ability to open your volunteer
+								record, schedule you, or request a background check. You do this
+								yourself from your profile page and it takes effect immediately
+								— you do not need to contact us, and the organization cannot add
+								you back. You can rejoin at any time by signing in and applying
+								to them, or by signing up for one of their shifts. Two limits
+								worth knowing: this does not un-publish a profile you have set
+								to Public, which stays visible to everyone — including
+								organizations you have left — until you change your profile
+								visibility; and if you are also on that organization's staff,
+								leaving its volunteer roster does not change your staff access.
 							</li>
 						</ul>
 						<p>
@@ -631,7 +704,7 @@ export default function PrivacyPage() {
 			{/* ── Effective date ── */}
 			<div className="border-t border-border/40 px-4 py-8">
 				<p className="mx-auto max-w-3xl text-xs text-muted-foreground">
-					This privacy policy is effective as of March 19, 2026 (Version 1.0).
+					This privacy policy is effective as of July 28, 2026 (Version 1.1).
 				</p>
 			</div>
 		</article>

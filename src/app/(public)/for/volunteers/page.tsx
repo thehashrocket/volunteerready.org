@@ -105,7 +105,22 @@ const volunteerFaqs = [
 	{
 		question: 'Can I volunteer with multiple organizations?',
 		answer:
-			"Absolutely. Your profile and credentials are portable. Apply to as many organizations as you'd like from a single dashboard.",
+			"Absolutely. Your profile and credentials are portable — apply to as many organizations as you'd like from a single dashboard. Leaving is just as easy: your profile lists every organization that can see you, and you can remove any of them at any time.",
+	},
+	{
+		question: 'How do I leave an organization?',
+		answer:
+			"Open your profile, find the organization under \"Organizations you volunteer with,\" and confirm Leave. It takes effect right away — they can no longer open your volunteer record, schedule you, or request a background check, and they can't add you back. Two exceptions: a profile you've set to Public stays visible to everyone until you change your profile visibility, and if you're also on that organization's staff, leaving its volunteer roster doesn't touch your staff access. You can rejoin any time by signing in and applying, or by signing up for one of their shifts.",
+	},
+	{
+		question: 'Does leaving delete my history with them?',
+		answer:
+			"No. Your application and the hours you volunteered stay on their account — leaving revokes their access going forward, it isn't a deletion request. Shifts you're already booked on also stay booked, and they can still record whether you turned up, so cancel those yourself if you're not going. To have records deleted rather than made inaccessible, email privacy@volunteerready.org.",
+	},
+	{
+		question: 'I applied before I had an account. Can I still track it?',
+		answer:
+			'Yes. Sign in with the same email you applied with, and the application shows up on your My Applications page asking whether it\'s yours. Confirm and it attaches to your account so you can follow its status; choose "Not mine" if you don\'t recognize it. We never attach an application to your account without you saying so.',
 	},
 	{
 		question: 'How do I track my hours?',
@@ -242,8 +257,8 @@ export default function ForVolunteersPage() {
 			<ScreenshotSection
 				src={MARKETING_SCREENSHOTS.profile.src}
 				darkSrc={MARKETING_SCREENSHOTS.profile.darkSrc}
-				alt="VolunteerReady volunteer profile showing portable credentials, upcoming shifts, and impact stats"
-				caption="Your volunteer profile — portable credentials, upcoming shifts, and impact stats."
+				alt="VolunteerReady volunteer profile showing profile completeness, verified credentials, and the list of organizations that can see you"
+				caption="Your volunteer profile — portable credentials and a running list of every organization that can see you. Leave any of them yourself, no email and no support ticket."
 				sectionBg="white"
 				containerBg="sand"
 				annotations={[
@@ -264,6 +279,16 @@ export default function ForVolunteersPage() {
 						y: 70.1,
 						label:
 							'The credential wallet: shareable proof of screening, orientation, and training.',
+					},
+					{
+						// Sits just past the end of the "Organizations you volunteer
+						// with" heading (which runs to ~x=693 of the 1280 frame), not on
+						// it — at 34.8 the dot covered the leading "Or" and the heading
+						// read "ganizations you volunteer with".
+						x: 56.0,
+						y: 81.9,
+						label:
+							'Every organization that can see you, in one list — leave any of them and their access is revoked for good.',
 					},
 				]}
 			/>
