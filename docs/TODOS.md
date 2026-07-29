@@ -11,6 +11,33 @@ Five specialists plus an adversarial pass reviewed a marketing-copy diff. Most
 findings turned out to be about the *product*, not the copy — the copy was only
 the first place the gaps became visible.
 
+### [P1] The privacy policy names Checkr as the only background-check provider; Sterling is live and receives SSN + DOB
+
+Found by the post-ship cross-model doc review, not by the five specialists —
+pre-existing, but this ship republished the policy as v1.1 and rewrote its
+sharing section without catching it, so it now ships under a fresh effective
+date. `src/app/(public)/privacy/page.tsx` names Checkr and only Checkr in four
+places: the `thirdPartyServices` table row (`:54`, "PII (name, SSN, DOB)"), and
+the prose at `:189`, `:382` ("Background check data (SSN, DOB) is sent directly
+to Checkr"), and `:423` (retention "according to FCRA requirements and Checkr's
+data retention policy").
+
+Sterling is not hypothetical. `connectSterlingAccount`/`initiateSterlingCheck`
+are live (`backgroundCheckService.ts:1038, :1103`), the adapter posts
+`dateOfBirth: pii.dob` and `ssn: pii.ssn` (`adapters/background-check/sterling.ts:129-130`),
+there is a production webhook at `src/app/api/sterling/webhook/route.ts`, and
+`/how-it-works` already advertises both providers to the public
+(`how-it-works/page.tsx:99, :196`). So the marketing site names a processor the
+privacy policy does not — and it is a processor handling Social Security numbers.
+
+Fix: add a Sterling row to `thirdPartyServices`, and make the three prose
+mentions provider-neutral ("our background check provider" / "Checkr or
+Sterling") rather than hardcoding one vendor, so adding a third provider does
+not silently repeat this. Needs a version bump to 1.2 plus a matching
+effective-date footer edit (see the P3 below on those being two hand-edited
+strings). Legal-copy change — wants human sign-off, not an agent edit.
+**Effort:** S to write, gated on review.
+
 ### [P2] `listMyOrgRelationships` caps at 200, and the copy nearly promised it does not
 
 `MY_MEMBERSHIPS_CAP = 200` (`org-volunteer.ts:20`) is applied as three separate
@@ -21,9 +48,16 @@ entirely. Those orgs still satisfy `findOrgVolunteerRelationship` through
 `SHIFT_SIGNUP`, and the Leave button is the only self-service exit — so their
 access, including `backgroundChecks.initiate`, becomes permanently unrevokable.
 
-The privacy policy and both FAQ pages were worded in this ship to avoid the
-absolute ("Organizations holding this access are listed on your profile page"),
-but that is a copy workaround for a product gap. The real fix is to make the
+**Correction (post-ship doc review, 2026-07-28): the copy workaround only
+covered one of the four sites.** `privacy/page.tsx:169` does avoid the absolute
+("Organizations holding this access are listed on your profile page"). The other
+three assert completeness outright — `privacy/page.tsx:279` ("You can see
+**every** organization holding this access"), and `for/volunteers/page.tsx:108`
+and `how-it-works/page.tsx:206`, both "your profile lists **every** organization
+that can see you". Past the cap those three sentences are false, in a published
+privacy policy and two public FAQs, and they are false precisely for the
+volunteer whose access has become unrevokable. Treat the cap fix as the remedy;
+if it slips, soften those three strings first. The real fix is to make the
 truncation distinct-by-`orgId` rather than per-source row counts — note the
 `shiftSignup` read's `distinct` is on `shiftId`, a no-op given
 `@@unique([shiftId, userId])`; it needs to be on `shift.orgId`. Surface an

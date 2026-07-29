@@ -88,12 +88,22 @@ Section icons (lucide-react):
 ```
 
 ### Version History Section
-Simple table at bottom of privacy page:
+Simple table at bottom of privacy page, showing the shape at launch:
 ```
 | Date       | Version | Changes                          |
 |------------|---------|----------------------------------|
 | 2026-03-19 | 1.0     | Initial privacy policy published |
 ```
+
+The live history is the `versionHistory` array in `src/app/(public)/privacy/page.tsx`
+— deliberately not mirrored here, because the published version already lives in two
+hand-edited places in that one file (`versionHistory[0]` and the effective-date footer
+literal, which must agree and which nothing asserts; P3 in `docs/TODOS.md`). A third
+copy in a design doc would be a third thing to drift on a legal document. As of
+v0.37.1.0 the page is at **1.1**
+(2026-07-28): roster data disclosed, and the right to revoke an individual
+organization's access added. Any change to the policy's substance needs a new row
+plus a matching footer bump, both in the page.
 
 ### Terms Page Layout
 Same pattern as privacy page: PublicHero + TOC + numbered sections.

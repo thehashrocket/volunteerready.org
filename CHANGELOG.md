@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 - The security page now lists volunteer-controlled access revocation as a practice, and no longer says "if you leave, your data leaves with you" without qualification — "leave" now has a second, narrower meaning where the opposite is true.
 
 ### Fixed
-- The six city pages now show the product screenshot beside the headline. They never have: the image pointed at a file that has never existed in the repository, and because a missing image is hidden rather than shown broken, the right-hand half of every one of those pages had simply been empty since they launched. The image now comes from the same catalogue as every other marketing screenshot, so a missing file fails the build instead of quietly blanking the page.
+- The six city pages now show the product screenshot beside the headline. They never have: the image pointed at a file that has never existed in the repository, and because a missing image is hidden rather than shown broken, the right-hand half of every one of those pages had simply been empty since they launched. The image now comes from the same catalogue as every other marketing screenshot, so a missing file fails CI instead of quietly blanking the page.
 - The volunteer profile screenshot was captured before the "Organisations you volunteer with" card existed, and its caption promised things the picture did not show. It has been retaken and the card is called out directly.
 - Several image descriptions read aloud by screen readers named things that are not in the picture. They now describe what is actually there.
 
