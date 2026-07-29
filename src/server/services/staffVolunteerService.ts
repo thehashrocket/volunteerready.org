@@ -10,12 +10,16 @@ import {
 	countAttendedShiftsByUser,
 	countOrgVolunteers,
 	createOrgVolunteer,
+	createOrgVolunteerBlock,
 	findLiveOrgVolunteer,
+	findOrgVolunteerBlock,
+	findRemovedOrgVolunteer,
+	hasLeavableOrgRelationship,
+	listMyOrgRelationships,
 	listOrgVolunteers,
-	listOrgVolunteersByUser,
 	restoreOrgVolunteer,
 	softDeleteOrgVolunteer,
-	softDeleteOwnOrgVolunteer,
+	softDeleteOwnOrgVolunteerByOrg,
 } from '@/server/repositories/orgVolunteerRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { sendRosterAddedEmail } from '@/server/repositories/sendRosterAddedEmail';
@@ -46,6 +50,28 @@ function alreadyOnRoster() {
  */
 function isRosterDuplicate(err: unknown): boolean {
 	return isUniqueViolationOn(err, 'OrgVolunteer_orgId_userId_active');
+}
+
+/**
+ * Thrown when the volunteer has left this org's roster and refused its access.
+ *
+ * FORBIDDEN, not the NOT_FOUND that `requireOrgVolunteerRelationship` uses. That
+ * guard hides "not yours" behind "not real" because it takes a `userId` from
+ * input and a caller could otherwise probe ids. Here the input is an email the
+ * coordinator already typed, about a person who was on their roster until that
+ * person removed themselves — the org already knows they exist, so there is
+ * nothing left to conceal and a vague error would just generate support mail.
+ *
+ * The copy names no mechanism ("blocked", "revoked") on purpose. The staff-side
+ * fact is simply that this is not theirs to undo; the volunteer re-engaging is
+ * what lifts it.
+ */
+function refusedByVolunteer() {
+	return new TRPCError({
+		code: 'FORBIDDEN',
+		message:
+			'This person left your roster and asked not to be added back. They can rejoin by applying or signing up for one of your shifts.',
+	});
 }
 
 export type AddVolunteerResult = {
@@ -132,6 +158,26 @@ export async function addVolunteer(input: {
 			// partial unique index to catch the concurrent one.
 			const live = await findLiveOrgVolunteer(input.orgId, userId, tx);
 			if (live) throw alreadyOnRoster();
+
+			// The volunteer's refusal outranks the coordinator's add. Checked here
+			// rather than left to `findOrgVolunteerRelationship` because that guard
+			// governs ACTIONS on a volunteer, not roster membership itself: without
+			// this, the add would succeed and put a row on the roster page that
+			// cannot be scheduled, credentialed, or background-checked, with no
+			// explanation anywhere in the UI.
+			//
+			// Inside the transaction and after the User branch above, so a shadow
+			// user minted moments ago is rolled back rather than left orphaned by a
+			// refusal.
+			//
+			// This is a read-then-insert under READ COMMITTED with no lock on the
+			// pair, so a leave committing between this read and the insert still
+			// produces a live roster row beside a block. That window is accepted,
+			// not closed: the resulting row is inert — `findOrgVolunteerRelationship`
+			// suppresses it and `assignVolunteerToShift` re-checks — so the failure
+			// mode is a confusing roster entry, not regained access.
+			const blocked = await findOrgVolunteerBlock(input.orgId, userId, tx);
+			if (blocked) throw refusedByVolunteer();
 
 			const volunteer = await createOrgVolunteer(tx, {
 				orgId: input.orgId,
@@ -261,6 +307,14 @@ export async function removeVolunteer(input: {
 /**
  * Undo a removal (T26's Undo toast). Restores the same row so provenance —
  * who added them, when — survives, which a re-add would not preserve.
+ *
+ * SECURITY: this is the FOURTH path that can put a live roster row in front of
+ * staff, and the one easiest to miss, because it does not look like a create.
+ * `restoreOrgVolunteer` matches any row with `deletedAt` set for the org, and
+ * `softDeleteOwnOrgVolunteer` — a volunteer leaving — produces exactly such a
+ * row. Nothing on `OrgVolunteer` records who deleted it, so without the block
+ * check below staff could undo a departure the volunteer chose, using an id
+ * their roster page handed them before the volunteer left.
  */
 export async function restoreVolunteer(input: {
 	orgId: string;
@@ -270,6 +324,25 @@ export async function restoreVolunteer(input: {
 }) {
 	try {
 		return await prisma.$transaction(async (tx) => {
+			// Read before restoring: the block is keyed on userId, which only the
+			// row carries, and a restore that has already happened cannot be undone
+			// by throwing afterwards.
+			const removed = await findRemovedOrgVolunteer(
+				tx,
+				input.orgId,
+				input.volunteerId,
+			);
+			if (!removed) {
+				throw new TRPCError({
+					code: 'NOT_FOUND',
+					message: 'That removal can no longer be undone.',
+				});
+			}
+
+			if (await findOrgVolunteerBlock(input.orgId, removed.userId, tx)) {
+				throw refusedByVolunteer();
+			}
+
 			const count = await restoreOrgVolunteer(
 				tx,
 				input.orgId,
@@ -311,15 +384,20 @@ export async function restoreVolunteer(input: {
 }
 
 /**
- * The orgs that currently have the caller on a roster (T32).
+ * The orgs that can currently act on the caller (T32, widened in v0.37.0.0).
  *
  * Lives in this service, beside `removeVolunteer`, rather than in a
  * volunteer-facing one: leaving and being removed are the same soft delete over
  * the same partial unique index, and splitting them across two files is how the
  * two sets of rules drift.
+ *
+ * No longer "orgs that have you on a roster". It lists orgs holding ANY edge
+ * that authorizes them — roster row, application, or shift signup — because
+ * listing only roster rows let an org deny the remedy by removing the volunteer
+ * first. See `listMyOrgRelationships`.
  */
 export function listMyOrgMemberships(userId: string) {
-	return listOrgVolunteersByUser(userId);
+	return listMyOrgRelationships(userId);
 }
 
 /**
@@ -337,45 +415,98 @@ export function listMyOrgMemberships(userId: string) {
  * design doc's gating table makes this split explicit.
  *
  * Soft delete, same as staff removal: recorded hours and `ShiftSignup` rows
- * survive, so leaving does not erase work the org legitimately recorded. It is
- * also not a block — nothing stops the org re-adding the same address, and the
- * UI says so rather than implying a door that stays shut.
+ * survive, so leaving does not erase work the org legitimately recorded.
+ *
+ * It IS a block, as of v0.37.0.0 — this paragraph previously said the opposite,
+ * and that was true when T32 shipped. The soft delete alone revoked nothing:
+ * every other edge in `findOrgVolunteerRelationship` is one staff can mint from
+ * an email address, so the org could undo the departure in two clicks. The
+ * transaction now also writes an `OrgVolunteerBlock`, which suppresses every
+ * relationship kind except `ORG_MEMBER` and makes `addVolunteer`,
+ * `ensureAppliedRosterRow` and `restoreVolunteer` refuse. Only the volunteer
+ * lifts it, by re-engaging — see `liftOrgVolunteerBlock`.
+ *
+ * Keyed on `orgId`, NOT on `OrgVolunteer.id` as it was through v0.36.0.0. The
+ * roster row is no longer the thing being left: an org holding only an
+ * application or a shift signup has no roster row at all, yet still has access,
+ * and under the id-keyed version it had no Leave button either — so an org
+ * could deny the remedy by removing the volunteer first and keeping everything
+ * the surviving edges authorize. The soft delete is now the OPTIONAL half and
+ * the block is the mandatory one.
  */
 export async function leaveOrgRoster(input: {
 	userId: string;
-	volunteerId: string;
+	orgId: string;
 	impersonatedBy?: string | null;
 }) {
 	return prisma.$transaction(async (tx) => {
-		const orgId = await softDeleteOwnOrgVolunteer(
+		// Precondition, not a formality: without it any authenticated user could
+		// POST an arbitrary orgId and mint blocks against orgs they have never
+		// interacted with. Checked BEFORE the write so a stranger's orgId cannot
+		// leave a row behind.
+		const leavable = await hasLeavableOrgRelationship(
 			tx,
+			input.orgId,
 			input.userId,
-			input.volunteerId,
 		);
-
-		if (orgId === null) {
+		if (!leavable) {
 			throw new TRPCError({
 				code: 'NOT_FOUND',
-				message: "You're not on that organization's roster.",
+				message: 'You have no relationship with that organization to leave.',
 			});
 		}
 
+		// Already blocked: the volunteer has acted, and a second audit row would
+		// double-count one departure. Reachable from a stale tab, since the listing
+		// filters blocked orgs out. NOT_FOUND rather than a success, matching the
+		// two-tab behaviour the id-keyed version had.
+		if (await findOrgVolunteerBlock(input.orgId, input.userId, tx)) {
+			throw new TRPCError({
+				code: 'NOT_FOUND',
+				message: 'You have already left that organization.',
+			});
+		}
+
+		// Optional half. Null is a NORMAL outcome — an application-only or
+		// shift-only org has no roster row to soft-delete — so unlike the id-keyed
+		// version this must not throw on null.
+		const rosterRowId = await softDeleteOwnOrgVolunteerByOrg(
+			tx,
+			input.userId,
+			input.orgId,
+		);
+
+		// The half that actually revokes, and the only mandatory one. Soft-deleting
+		// the roster row alone left every other edge in
+		// `findOrgVolunteerRelationship` intact — an APPLICATION the volunteer
+		// sent, or a SHIFT_SIGNUP staff created unilaterally — and `addVolunteer`
+		// could recreate the roster row from an email address anyway. Same
+		// transaction: a leave that dropped the row but not the block would report
+		// success while revoking nothing.
+		await createOrgVolunteerBlock(tx, input.orgId, input.userId);
+
 		await writeAuditLogTx(tx, {
-			orgId,
+			orgId: input.orgId,
 			// The volunteer is the actor. The org still sees the departure in its
-			// own audit log, scoped by the orgId resolved from the row above.
+			// own audit log, scoped by the orgId the caller named.
 			actorId: input.userId,
 			action: 'VOLUNTEER_LEFT',
-			entityType: 'OrgVolunteer',
-			entityId: input.volunteerId,
+			// The roster row when there was one, else the user — an
+			// application-only departure has no OrgVolunteer row to point at, and
+			// pointing at a stale id would be worse than pointing at the person.
+			entityType: rosterRowId ? 'OrgVolunteer' : 'OrgVolunteerBlock',
+			entityId: rosterRowId ?? input.userId,
 			metadata: {
+				// Records which half ran, so the audit log distinguishes "left a
+				// roster" from "revoked access they had without one".
+				hadRosterRow: rosterRowId !== null,
 				...(input.impersonatedBy
 					? { impersonatedBy: input.impersonatedBy }
 					: {}),
 			},
 		});
 
-		return { id: input.volunteerId };
+		return { orgId: input.orgId };
 	});
 }
 

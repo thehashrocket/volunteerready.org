@@ -3,6 +3,7 @@ import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
 	createOrgVolunteerIfAbsent,
 	findLiveOrgVolunteer,
+	findOrgVolunteerBlock,
 } from '@/server/repositories/orgVolunteerRepo';
 import { findUserIdentity } from '@/server/repositories/userAccountStateRepo';
 
@@ -57,6 +58,19 @@ export async function ensureAppliedRosterRow(
 		impersonatedBy?: string | null;
 	},
 ): Promise<boolean> {
+	// A volunteer who left this org and refused its access must not be put back
+	// on its roster by an approval. Reachable without any staff misbehaviour:
+	// apply → join the roster → leave (block written) → staff approve the
+	// application that was already sitting in the queue. The guard would keep the
+	// org from ACTING on the row, but the row itself would appear on
+	// /app/volunteers and `assignVolunteerToShift` reads roster rows directly, so
+	// the org could still schedule — and email — someone who had refused them.
+	//
+	// Returns false rather than throwing: an approval must not fail because of
+	// this, and false is already the "no row was created" signal callers handle.
+	const blocked = await findOrgVolunteerBlock(input.orgId, input.userId, tx);
+	if (blocked) return false;
+
 	const identity = await findUserIdentity(tx, input.userId);
 
 	if (!identity) {

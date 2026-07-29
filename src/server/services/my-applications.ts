@@ -14,6 +14,7 @@ import {
 	listUserApplications,
 } from '@/server/repositories/volunteer-applications';
 import { ensureAppliedRosterRow } from '@/server/services/appliedRosterService';
+import { liftOrgVolunteerBlock } from '@/server/services/orgVolunteerAccessService';
 
 export async function listMyApplications(userId: string) {
 	const applications = await listUserApplications(userId);
@@ -167,6 +168,12 @@ export async function claimApplication(userId: string, applicationId: string) {
 				entityId: row.id,
 				metadata: { claimedByEmail: email },
 			});
+
+			// Claiming is an explicit "yes, this is mine" against a named org, so
+			// it lifts any block on that org — and it has to run BEFORE the roster
+			// row below, or `ensureAppliedRosterRow` would create a membership the
+			// guard still treats as blocked.
+			await liftOrgVolunteerBlock(tx, row.orgId, userId);
 
 			// E1a, second entry point. An application approved BEFORE the
 			// applicant ever signed in gains `submittedByUserId` only now, so the

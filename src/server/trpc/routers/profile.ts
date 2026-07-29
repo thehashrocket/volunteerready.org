@@ -96,20 +96,23 @@ export const profileRouter = createTRPCRouter({
 		listMyOrgMemberships(requireUserId(ctx.session)),
 	),
 
-	/** Leave one org's roster. Soft delete — see `leaveOrgRoster`. */
+	/** Leave one org — revokes its access to you. See `leaveOrgRoster`. */
 	leaveOrgRoster: protectedProcedure
-		// `volunteerId` is an `OrgVolunteer.id` — a roster-ROW id, NOT a User.id,
-		// despite sitting ten lines from two procedures whose `userId` inputs are
-		// user ids. Named to match the sibling `volunteers.remove`/`restore`, which
-		// take the same kind of id. It is not a secret and needs no guard here:
-		// `softDeleteOwnOrgVolunteer` scopes every statement by the caller's userId.
-		.input(z.object({ volunteerId: orgVolunteerIdSchema }))
+		// `orgId`, NOT the `OrgVolunteer.id` this took through v0.36.0.0. An org
+		// holding only an application or a shift signup has no roster row to name,
+		// and those orgs must be leavable too — otherwise an org denies the remedy
+		// by removing the volunteer first, and keeps everything the surviving edges
+		// authorize. Org ids are not secret (they key every tenant-scoped route in
+		// the app) and need no guard here: the service requires a real relationship
+		// before writing anything, and every statement is scoped by the caller's
+		// own userId, so a crafted orgId can only ever reach the caller's own rows.
+		.input(z.object({ orgId: orgVolunteerIdSchema }))
 		.mutation(({ ctx, input }) =>
 			leaveOrgRoster({
 				// requireUserId, never session.user.email: under impersonation only
 				// `id` is swapped, so the two identities diverge.
 				userId: requireUserId(ctx.session),
-				volunteerId: input.volunteerId,
+				orgId: input.orgId,
 				impersonatedBy: impersonatedBy(ctx),
 			}),
 		),

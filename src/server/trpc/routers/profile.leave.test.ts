@@ -79,22 +79,22 @@ function volunteerCaller(over: Record<string, unknown> = {}) {
 
 beforeEach(() => {
 	vi.clearAllMocks();
-	mocks.leaveOrgRoster.mockResolvedValue({ id: 'ov-1' });
+	mocks.leaveOrgRoster.mockResolvedValue({ orgId: 'org-1' });
 	mocks.listMyOrgMemberships.mockResolvedValue([]);
 });
 
 describe('profile.leaveOrgRoster identity scoping', () => {
 	it('SECURITY: takes userId from the session, and a smuggled one cannot override it', async () => {
-		// The zod input declares only `volunteerId`, so an attacker-supplied
+		// The zod input declares only `orgId`, so an attacker-supplied
 		// userId is stripped. Asserting the observable consequence, since the
 		// stripping itself is invisible at the callsite.
 		await volunteerCaller().leaveOrgRoster({
-			volunteerId: 'ov-1',
+			orgId: 'org-1',
 			userId: 'user-victim',
 		} as never);
 
 		expect(mocks.leaveOrgRoster).toHaveBeenCalledWith(
-			expect.objectContaining({ userId: VOLUNTEER, volunteerId: 'ov-1' }),
+			expect.objectContaining({ userId: VOLUNTEER, orgId: 'org-1' }),
 		);
 		expect(mocks.leaveOrgRoster).not.toHaveBeenCalledWith(
 			expect.objectContaining({ userId: 'user-victim' }),
@@ -105,14 +105,14 @@ describe('profile.leaveOrgRoster identity scoping', () => {
 		// `ctx.realUserId` is set on every logged-in request. Stamping it
 		// unconditionally marks every departure as impersonated and makes the
 		// audit log's impersonatedOnly filter useless (see audit-actor.ts).
-		await volunteerCaller().leaveOrgRoster({ volunteerId: 'ov-1' });
+		await volunteerCaller().leaveOrgRoster({ orgId: 'org-1' });
 		expect(mocks.leaveOrgRoster).toHaveBeenCalledWith(
 			expect.objectContaining({ impersonatedBy: null }),
 		);
 
 		mocks.leaveOrgRoster.mockClear();
 		await volunteerCaller({ realUserId: 'real-admin' }).leaveOrgRoster({
-			volunteerId: 'ov-1',
+			orgId: 'org-1',
 		});
 		expect(mocks.leaveOrgRoster).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -127,12 +127,12 @@ describe('profile.leaveOrgRoster input validation', () => {
 	it.each([
 		['', 'empty'],
 		['x'.repeat(65), 'over-long'],
-	])('rejects a %s volunteerId before the service runs', async (volunteerId) => {
-		// The bound is `orgVolunteerIdSchema` (min 1, max 64). An OrgVolunteer.id is
+	])('rejects a %s orgId before the service runs', async (orgId) => {
+		// The bound is `orgVolunteerIdSchema` (min 1, max 64). An Organization.id is
 		// a 25-char cuid, so nothing legitimate is rejected; the point is that an
 		// unbounded string never reaches a Prisma WHERE.
 		await expect(
-			volunteerCaller().leaveOrgRoster({ volunteerId }),
+			volunteerCaller().leaveOrgRoster({ orgId }),
 		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
 
 		expect(mocks.leaveOrgRoster).not.toHaveBeenCalled();
@@ -140,8 +140,8 @@ describe('profile.leaveOrgRoster input validation', () => {
 
 	it('accepts a cuid-length id', async () => {
 		await expect(
-			volunteerCaller().leaveOrgRoster({ volunteerId: 'c'.repeat(25) }),
-		).resolves.toEqual({ id: 'ov-1' });
+			volunteerCaller().leaveOrgRoster({ orgId: 'c'.repeat(25) }),
+		).resolves.toEqual({ orgId: 'org-1' });
 	});
 });
 
@@ -154,8 +154,8 @@ describe('the volunteer exit is not behind the roster pilot flag', () => {
 			volunteerCaller().listMyOrgMemberships(),
 		).resolves.toBeDefined();
 		await expect(
-			volunteerCaller().leaveOrgRoster({ volunteerId: 'ov-1' }),
-		).resolves.toEqual({ id: 'ov-1' });
+			volunteerCaller().leaveOrgRoster({ orgId: 'org-1' }),
+		).resolves.toEqual({ orgId: 'org-1' });
 
 		expect(mocks.listMyOrgMemberships).toHaveBeenCalledWith(VOLUNTEER);
 	});

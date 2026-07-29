@@ -5,6 +5,7 @@ import type {
 import {
 	ASSIGN_PICKER_LIMIT,
 	MY_MEMBERSHIPS_CAP,
+	type MyOrgRelationshipReason,
 	ROSTER_PAGE_SIZE,
 } from '@/server/domain/org-volunteer';
 import { prisma } from './prisma';
@@ -164,93 +165,337 @@ export async function softDeleteOrgVolunteer(
 	return count;
 }
 
+/** One org on the volunteer's own list, whatever edge put it there. */
+export type MyOrgRelationship = {
+	orgId: string;
+	organization: { name: string; slug: string };
+	reason: MyOrgRelationshipReason;
+	/** When the edge that put this org on the list was created. */
+	since: Date;
+	/** True when a live roster row exists — false for application/shift-only. */
+	onRoster: boolean;
+	/** True when the caller is ALSO staff at this org (see the D3 note below). */
+	isStaff: boolean;
+};
+
 /**
- * Every live roster edge for ONE person, across every org — the read behind the
- * Organizations section on `/app/profile` (T32).
+ * Every org that can currently act on ONE person, across every org.
  *
- * The mirror image of `listOrgVolunteers`: that one is scoped to an org and
- * projects the people on it, this one is scoped to a person and projects the
- * orgs. Deliberately not cursor-paginated — a volunteer is on a handful of
- * rosters, not a page of them, and a "load more" on your own memberships would
- * be stranger than a long list.
+ * Replaces the roster-row-only read behind the Organizations section on
+ * `/app/profile` (`listOrgVolunteersByUser`, deleted in v0.37.0.0 rather than
+ * left as dead code). That version listed live `OrgVolunteer` rows and nothing
+ * else, which meant an org could DENY the
+ * remedy entirely: remove the volunteer from its roster, and the row vanished
+ * from this list along with the Leave button — while the `VolunteerApplication`
+ * or `ShiftSignup` it holds kept satisfying `findOrgVolunteerRelationship`, and
+ * with it `credentials.issue` and `backgroundChecks.initiate`. The org that saw
+ * a departure coming could pre-empt it. This list is therefore keyed on the
+ * ACCESS, not on the roster.
  *
- * It still takes a hard cap, because "a handful" is NOT a number this user
- * controls: staff at any org can attach any email address to their roster
- * without the owner's consent (the very wrong this list exists to undo), and
- * the partial unique index caps that at one live row per org — so the ceiling
- * is however many orgs an attacker holds, not however many the volunteer joined.
- * The cap is deliberately far above any honest roster count, so reaching it is
- * itself the signal.
+ * The three sources mirror the accepted kinds in `findOrgVolunteerRelationship`
+ * minus the two that must not appear:
+ *   - `ORG_MEMBER` is staff membership, not a volunteer relationship, and is not
+ *     what leaving revokes. It is surfaced as `isStaff` so the UI can be honest
+ *     that leaving changes nothing for that person, but it never PUTS an org on
+ *     this list on its own.
+ *   - `EXISTING_CREDENTIAL` is opt-in and reachable only by `revokeCredential`.
  *
- * `organization.id` is NOT projected. The client's only handle is
- * `OrgVolunteer.id`, which `softDeleteOwnOrgVolunteer` scopes by `userId`, so
- * the org id buys the page nothing and org ids are the tenant key everywhere
- * else in the app. `slug` is projected because it is already public — it is the
- * URL of the org's own apply page.
+ * Already-blocked orgs are excluded: the volunteer has already acted, there is
+ * nothing left to do, and listing them would offer a button that throws.
  *
- * `source` IS projected, and is the volunteer's own data about their own edge:
- * it answers "why am I on this list?", which for a staff-added volunteer is the
- * whole question this section exists to answer.
+ * Four queries plus a membership probe rather than a UNION, deliberately. A raw
+ * `$queryRaw` union here would need `Prisma.sql` composition, which Turbopack
+ * dev breaks by duplicating the generated `Sql` class across module graphs (see
+ * the raw-SQL rule in CLAUDE.md) — and this list is capped at
+ * MY_MEMBERSHIPS_CAP rows, so merging in JS costs nothing worth that risk.
+ *
+ * `organization.id` IS projected now, unlike the old read which deliberately
+ * withheld it. It has to be: an org with no roster row has no `OrgVolunteer.id`
+ * to identify it by, so `orgId` is the only stable handle the client can send
+ * back. That is not a disclosure — it is the volunteer's own relationship, and
+ * the org's `slug` (already projected, already public) identifies it anyway.
  */
-export function listOrgVolunteersByUser(userId: string) {
-	return prisma.orgVolunteer.findMany({
-		where: { userId, deletedAt: null },
-		take: MY_MEMBERSHIPS_CAP,
-		orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-		select: {
-			id: true,
-			source: true,
-			createdAt: true,
-			organization: { select: { name: true, slug: true } },
-		},
-	});
+export async function listMyOrgRelationships(
+	userId: string,
+): Promise<MyOrgRelationship[]> {
+	const [rosterRows, applications, signups, blocks] = await Promise.all([
+		prisma.orgVolunteer.findMany({
+			where: { userId, deletedAt: null },
+			take: MY_MEMBERSHIPS_CAP,
+			orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+			select: {
+				orgId: true,
+				source: true,
+				createdAt: true,
+				organization: { select: { name: true, slug: true } },
+			},
+		}),
+		// `distinct` on orgId: someone may have applied to the same org many
+		// times, and this list has one row per ORG, not per application.
+		prisma.volunteerApplication.findMany({
+			where: { submittedByUserId: userId },
+			take: MY_MEMBERSHIPS_CAP,
+			distinct: ['orgId'],
+			orderBy: [{ submittedAt: 'desc' }],
+			select: {
+				orgId: true,
+				submittedAt: true,
+				organization: { select: { name: true, slug: true } },
+			},
+		}),
+		// Joined THROUGH Shift.orgId, never off the signup alone — same rule as
+		// countAttendedShiftsByUser. Any status counts: a CANCELLED signup still
+		// satisfies the relationship probe, so it must still be leavable.
+		prisma.shiftSignup.findMany({
+			where: { userId },
+			take: MY_MEMBERSHIPS_CAP,
+			distinct: ['shiftId'],
+			orderBy: [{ createdAt: 'desc' }],
+			select: {
+				createdAt: true,
+				shift: {
+					select: {
+						orgId: true,
+						organization: { select: { name: true, slug: true } },
+					},
+				},
+			},
+		}),
+		prisma.orgVolunteerBlock.findMany({
+			where: { userId },
+			select: { orgId: true },
+		}),
+	]);
+
+	const blocked = new Set(blocks.map((b) => b.orgId));
+	const byOrg = new Map<string, MyOrgRelationship>();
+
+	// Insertion order is the precedence order: a roster row is the most specific
+	// answer to "why is this org here?", an application next, a shift last. The
+	// `has` check keeps the first (most specific) writer.
+	for (const row of rosterRows) {
+		if (blocked.has(row.orgId)) continue;
+		byOrg.set(row.orgId, {
+			orgId: row.orgId,
+			organization: row.organization,
+			reason: row.source,
+			since: row.createdAt,
+			onRoster: true,
+			isStaff: false,
+		});
+	}
+	for (const app of applications) {
+		if (blocked.has(app.orgId) || byOrg.has(app.orgId)) continue;
+		byOrg.set(app.orgId, {
+			orgId: app.orgId,
+			organization: app.organization,
+			reason: 'APPLICATION_ONLY',
+			since: app.submittedAt,
+			onRoster: false,
+			isStaff: false,
+		});
+	}
+	for (const signup of signups) {
+		const orgId = signup.shift.orgId;
+		if (blocked.has(orgId) || byOrg.has(orgId)) continue;
+		byOrg.set(orgId, {
+			orgId,
+			organization: signup.shift.organization,
+			reason: 'SHIFT_ONLY',
+			since: signup.createdAt,
+			onRoster: false,
+			isStaff: false,
+		});
+	}
+
+	const rows = [...byOrg.values()]
+		.sort((a, b) => b.since.getTime() - a.since.getTime())
+		.slice(0, MY_MEMBERSHIPS_CAP);
+
+	// D3: leaving does not revoke a staff member's own access to their own org
+	// (`findOrgVolunteerRelationship` exempts ORG_MEMBER), so the UI must not
+	// promise it does. One query for the whole page rather than per row.
+	if (rows.length > 0) {
+		const memberships = await prisma.organizationMember.findMany({
+			where: { userId, organizationId: { in: rows.map((r) => r.orgId) } },
+			select: { organizationId: true },
+		});
+		const staffAt = new Set(memberships.map((m) => m.organizationId));
+		for (const row of rows) row.isStaff = staffAt.has(row.orgId);
+	}
+
+	return rows;
 }
 
 /**
- * Leave a roster: soft-delete a single edge, scoped to the person leaving.
+ * Does this person have an edge that makes an org leavable?
  *
- * SECURITY: `userId` is inside the WHERE of BOTH statements, never checked
- * afterwards. `OrgVolunteer.id` is the handle the profile page puts on the
- * wire, so without it a crafted id would soft-delete a stranger's membership —
- * the volunteer-side mirror of the `orgId` scoping on `softDeleteOrgVolunteer`,
- * and the same bug class as v0.29.2.0 / v0.29.3.0.
+ * The precondition on writing a block. Without it any authenticated user could
+ * POST an arbitrary `orgId` and mint block rows against orgs they have never
+ * interacted with — junk data, and a way to pre-emptively lock an org out of a
+ * relationship that has not started yet.
  *
- * Either clause alone would close that hole, and mutation testing confirms it:
- * removing `userId` from one statement leaves the security test green, removing
- * it from both turns it red. Neither is therefore dead code to be tidied away.
- * The write needs it because it is the statement that actually mutates, and a
- * guard one refactor away from the thing it guards is how this bug class
- * recurs. The read needs it so a stranger's id never reaches a write statement
- * at all — defence in depth, not correctness of the returned `orgId`: `id` is
- * the primary key, so even an unscoped read could only pair with a
- * `userId`-scoped update that matches zero rows and returns null.
- *
- * Returns the `orgId` the edge pointed at, which the caller needs for the audit
- * row and cannot otherwise learn, or null when nothing matched — an unknown id,
- * someone else's id, or a row that was already left or removed. Those are
- * deliberately indistinguishable to the caller.
+ * Deliberately NOT `findOrgVolunteerRelationship`: that function now consults
+ * blocks and returns null once one exists, so using it here would make leaving
+ * un-idempotent in the wrong direction — the second call could not tell "no
+ * relationship" from "already blocked". It also accepts `ORG_MEMBER`, which
+ * must not by itself make an org leavable.
  */
-export async function softDeleteOwnOrgVolunteer(
+export async function hasLeavableOrgRelationship(
+	tx: TxClient,
+	orgId: string,
+	userId: string,
+): Promise<boolean> {
+	const id = { id: true } as const;
+
+	const roster = await tx.orgVolunteer.findFirst({
+		where: { orgId, userId, deletedAt: null },
+		select: id,
+	});
+	if (roster) return true;
+
+	const application = await tx.volunteerApplication.findFirst({
+		where: { orgId, submittedByUserId: userId },
+		select: id,
+	});
+	if (application) return true;
+
+	const signup = await tx.shiftSignup.findFirst({
+		where: { userId, shift: { orgId } },
+		select: id,
+	});
+	return signup !== null;
+}
+
+/**
+ * Soft-delete the caller's live roster row at an org, if they have one.
+ *
+ * The org-keyed counterpart to `softDeleteOwnOrgVolunteer`. Leaving is now
+ * addressed by `orgId` rather than by `OrgVolunteer.id`, because an org holding
+ * only an application or a shift signup has no roster row to name — and those
+ * orgs must be leavable too.
+ *
+ * SECURITY: `userId` is inside the WHERE, so a crafted `orgId` can only ever
+ * reach the CALLER'S OWN row at that org. This is structurally safer than the
+ * id-keyed version it replaces, where a crafted id could name a stranger's row
+ * and the `userId` clause was the only thing stopping it.
+ *
+ * Returns the row id when one was soft-deleted (for the audit entry), or null
+ * when there was nothing to delete — which is a normal outcome here, not an
+ * error: application-only and shift-only orgs have no roster row by definition.
+ */
+export async function softDeleteOwnOrgVolunteerByOrg(
 	tx: TxClient,
 	userId: string,
-	id: string,
+	orgId: string,
 ): Promise<string | null> {
 	const row = await tx.orgVolunteer.findFirst({
-		where: { id, userId, deletedAt: null },
-		select: { orgId: true },
+		where: { orgId, userId, deletedAt: null },
+		select: { id: true },
 	});
 	if (!row) return null;
 
 	const { count } = await tx.orgVolunteer.updateMany({
-		where: { id, userId, deletedAt: null },
+		where: { id: row.id, userId, deletedAt: null },
 		data: { deletedAt: new Date() },
 	});
 
-	// Zero means a concurrent leave (two tabs) or a staff removal landed between
-	// the read and the write. The end state the caller wanted holds either way,
-	// but the winner already wrote the audit row, so returning null keeps this
-	// one from double-counting the same departure.
-	return count === 1 ? row.orgId : null;
+	return count === 1 ? row.id : null;
+}
+
+/**
+ * Record that this volunteer refuses this org's access.
+ *
+ * Idempotent by upsert on the compound unique. The case that needs it is a
+ * SECOND leave: staff re-added the volunteer before this feature existed (or
+ * the volunteer rejoined and left again), so a block row may already be there.
+ * An `update: {}` rather than a create-and-catch because swallowing P2002
+ * inside `prisma.$transaction` poisons the transaction — the same Postgres
+ * behaviour that forced `createOrgVolunteerIfAbsent` onto
+ * `createMany({ skipDuplicates })` in the E1a roster-convergence ship.
+ */
+export async function createOrgVolunteerBlock(
+	tx: TxClient,
+	orgId: string,
+	userId: string,
+) {
+	return tx.orgVolunteerBlock.upsert({
+		where: { orgId_userId: { orgId, userId } },
+		create: { orgId, userId },
+		update: {},
+		select: { id: true },
+	});
+}
+
+/**
+ * Lift a block because the volunteer re-engaged with the org of their own
+ * accord — applied, claimed an application, or signed up for a shift.
+ *
+ * `deleteMany`, not `delete`: the overwhelmingly common case is that no block
+ * exists, and `delete` throws P2025 on a missing row. Every caller is a
+ * fire-and-forget step inside someone else's transaction, so a throw there would
+ * roll back an application submission to undo a block that was never there.
+ *
+ * Returns the number of rows removed so callers can decide whether an
+ * `ORG_ACCESS_RESTORED` audit row is warranted — writing one unconditionally
+ * would stamp an audit entry on every shift signup in the system.
+ */
+export async function deleteOrgVolunteerBlock(
+	tx: TxClient,
+	orgId: string,
+	userId: string,
+): Promise<number> {
+	const { count } = await tx.orgVolunteerBlock.deleteMany({
+		where: { orgId, userId },
+	});
+	return count;
+}
+
+/**
+ * Does this volunteer refuse this org's access?
+ *
+ * Read by the four paths that can put a live roster row in front of staff, plus
+ * `findOrgVolunteerRelationship` itself. They refuse in three DIFFERENT shapes
+ * on purpose, which is why this stays a plain read and each caller decides:
+ *
+ *   `addVolunteer`            → FORBIDDEN (staff typed an address; tell them)
+ *   `restoreVolunteer`        → FORBIDDEN (same, via the Undo toast)
+ *   `ensureAppliedRosterRow`  → returns false (an approval must not fail)
+ *   `assignVolunteerToShift`  → NOT_FOUND (matches its roster-miss answer)
+ *
+ * The point of refusing at all is that a roster row the guard treats as inert —
+ * a live row on the roster page that cannot be scheduled, credentialed, or
+ * background-checked — is a worse outcome than an error.
+ */
+export async function findOrgVolunteerBlock(
+	orgId: string,
+	userId: string,
+	tx: TxClient | typeof prisma = prisma,
+) {
+	return tx.orgVolunteerBlock.findUnique({
+		where: { orgId_userId: { orgId, userId } },
+		select: { id: true },
+	});
+}
+
+/**
+ * Find a SOFT-DELETED roster row by id, scoped to the org that owns it.
+ *
+ * Exists so `restoreVolunteer` can learn the row's `userId` before restoring
+ * it, which it needs in order to check for a block. Nothing on `OrgVolunteer`
+ * records WHO soft-deleted a row, so a staff removal and a volunteer's own
+ * departure are indistinguishable here — the block is the only thing that tells
+ * them apart, and reading it requires the userId this returns.
+ */
+export function findRemovedOrgVolunteer(
+	tx: TxClient,
+	orgId: string,
+	id: string,
+) {
+	return tx.orgVolunteer.findFirst({
+		where: { id, orgId, deletedAt: { not: null } },
+		select: { id: true, userId: true },
+	});
 }
 
 /**
@@ -261,6 +506,11 @@ export async function softDeleteOwnOrgVolunteer(
  * the undo, a live row already exists and restoring this one violates the
  * partial unique index (P2002). The caller must treat that as "already back"
  * rather than an error.
+ *
+ * SECURITY: this restores ANY soft-deleted row for the org, and the `where`
+ * cannot distinguish a staff removal from a volunteer's own departure. The
+ * block check therefore lives in `restoreVolunteer`, NOT here — see the note
+ * there. Do not call this without one.
  */
 export async function restoreOrgVolunteer(
 	tx: TxClient,
@@ -452,13 +702,40 @@ export type OrgRelationshipKind =
  * itself: the premise of the staff-created-volunteer feature is that a roster
  * row IS the org's assertion of a relationship, and dropping it would make
  * staff-added volunteers unschedulable. The residual risk (staff can roster
- * anyone whose email they know, then act on them) is inherent to that feature
- * and tracked in docs/TODOS.md.
+ * anyone whose email they know, then act on them) is inherent to that feature.
+ * `OrgVolunteerBlock` is the volunteer's answer to it — see below.
  *
  * Probes are sequential and short-circuit. `APPLICATION` leads because it is
  * the overwhelmingly common case — the roster table is new and near-empty for
  * existing orgs, and `ORG_MEMBER` is a staff table a volunteer rarely appears
  * in. Only the rejection path pays for all four.
+ *
+ * BLOCKS. A volunteer who leaves a roster writes an `OrgVolunteerBlock`, and it
+ * overrides every kind above except `ORG_MEMBER`. Three things about where that
+ * check sits:
+ *
+ * 1. It runs AFTER the probes, not before. A block is rare, so checking first
+ *    would add a query to every call to save one on almost none. Running it
+ *    only once a relationship was actually found means the rejection path —
+ *    already the expensive one at four queries — is unchanged, and the accept
+ *    path pays a single indexed lookup on a unique key.
+ * 2. `ORG_MEMBER` is exempt, and is therefore also allowed to short-circuit
+ *    before the block lookup. Staff membership is not a volunteer relationship
+ *    and is not what leaving a roster revokes; without the exemption, a person
+ *    who is both a coordinator at an org and on its volunteer roster would lock
+ *    themselves out of their own organization by leaving that roster.
+ * 3. When a block suppresses a volunteer-side kind, we re-probe for
+ *    `ORG_MEMBER` rather than returning null outright — otherwise that same
+ *    staff-and-volunteer person loses their membership access purely because
+ *    `APPLICATION` happened to be found first.
+ * 4. `EXISTING_CREDENTIAL` is ALSO exempt. Suppressing it looked right —
+ *    a blocked org should not act on you — but it recreates the exact dead end
+ *    `acceptExistingCredential` was added to prevent: `listOrgCredentials`
+ *    filters on `orgId` alone, so the credential stays visible and permanently
+ *    unrevokable, and only the volunteer can lift a block, so "later" may be
+ *    never. The kind is opt-in and reached by `revokeCredential` alone, which
+ *    is strictly narrowing — it cannot mint privilege or disclose anything, so
+ *    there is nothing for a block to protect against here.
  */
 export async function findOrgVolunteerRelationship(
 	orgId: string,
@@ -480,6 +757,50 @@ export async function findOrgVolunteerRelationship(
 		 */
 		acceptExistingCredential?: boolean;
 	},
+): Promise<OrgRelationshipKind | null> {
+	const relationship = await probeOrgRelationship(orgId, userId, opts);
+
+	// Nothing to suppress, or the two kinds a block does not reach. All skip the
+	// block lookup entirely — see notes 1, 2 and 4 on this function.
+	if (
+		relationship === null ||
+		relationship === 'ORG_MEMBER' ||
+		relationship === 'EXISTING_CREDENTIAL'
+	) {
+		return relationship;
+	}
+
+	// Via the shared helper rather than an inline findUnique: this read is
+	// authorization-critical and having two copies of it in one file is how the
+	// two drift when the block model grows a column.
+	const blocked = await findOrgVolunteerBlock(orgId, userId);
+	if (!blocked) return relationship;
+
+	// Blocked, but staff membership survives it — note 3. Re-probed rather than
+	// reused from above because the probe short-circuits: a blocked coordinator
+	// with an application on file returns `APPLICATION` there and never reaches
+	// the `ORG_MEMBER` check.
+	const member = await prisma.organizationMember.findUnique({
+		where: { organizationId_userId: { organizationId: orgId, userId } },
+		select: { id: true },
+	});
+	return member ? 'ORG_MEMBER' : null;
+}
+
+/**
+ * The four-and-a-bit relationship probes, with no block handling.
+ *
+ * Split out of `findOrgVolunteerRelationship` when blocks landed, purely so the
+ * block logic reads as a distinct step rather than being threaded through five
+ * early returns. NOT exported: calling this directly is calling the guard with
+ * the volunteer's revocation ignored, which is the bug the split makes easy to
+ * commit by accident. Everything outside this module goes through
+ * `findOrgVolunteerRelationship`.
+ */
+async function probeOrgRelationship(
+	orgId: string,
+	userId: string,
+	opts?: { acceptExistingCredential?: boolean },
 ): Promise<OrgRelationshipKind | null> {
 	const id = { id: true } as const;
 

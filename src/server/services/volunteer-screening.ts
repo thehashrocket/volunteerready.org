@@ -24,6 +24,7 @@ import {
 	getActiveQuestions,
 } from '@/server/repositories/volunteer-applications';
 import { tryNotify } from '@/server/services/notificationService';
+import { liftOrgVolunteerBlock } from '@/server/services/orgVolunteerAccessService';
 import { checkAndIssueTenureBadges } from '@/server/services/tenureBadgeService';
 
 interface SubmitVolunteerApplicationPayload {
@@ -185,6 +186,15 @@ export async function submitVolunteerApplication(
 					profile: payload.profile,
 				},
 			});
+
+			// Applying to an org is affirmative re-engagement, so it lifts any
+			// block that volunteer previously placed on it. Only when we know who
+			// they are: an anonymous submission carries an attacker-supplied email
+			// (`screener.submit` is a publicProcedure), and letting an address alone
+			// clear a block would hand the revocation back to anyone who can type it.
+			if (payload.submittedByUserId) {
+				await liftOrgVolunteerBlock(tx, orgId, payload.submittedByUserId);
+			}
 
 			// First-volunteer celebration — exactly-once conditional update.
 			// Only sets the timestamp if it hasn't been set yet (WHERE IS NULL).

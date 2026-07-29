@@ -12,6 +12,7 @@ import {
 } from '@/server/domain/shift';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
+	findOrgVolunteerBlock,
 	findOrgVolunteerById,
 	listAssignableVolunteers,
 } from '@/server/repositories/orgVolunteerRepo';
@@ -33,6 +34,7 @@ import {
 	updateSignupStatus,
 } from '@/server/repositories/shiftSignupRepo';
 import { tryNotify } from '@/server/services/notificationService';
+import { liftOrgVolunteerBlock } from '@/server/services/orgVolunteerAccessService';
 import {
 	type AttendanceAuthorization,
 	requireAttendanceAccess,
@@ -220,6 +222,13 @@ export async function signUpForShift(
 		.$transaction(async (tx) => {
 			const signup = await createSignup(tx, { shiftId, userId, notes });
 
+			// Volunteering for one of an org's shifts is affirmative re-engagement,
+			// so it lifts any block on that org. Only reachable on the SELF-signup
+			// path: `assignVolunteerToShift` is a separate function, and staff
+			// cannot get a blocked person onto a shift anyway, since that assign
+			// requires a live roster row and `addVolunteer` refuses to create one.
+			await liftOrgVolunteerBlock(tx, shift.orgId, userId);
+
 			// Auto-mark shift as FULL if at capacity
 			const confirmedCount =
 				signupRecords.filter((s) => s.status === 'CONFIRMED').length + 1;
@@ -332,6 +341,26 @@ export async function assignVolunteerToShift(input: {
 		});
 	}
 	const userId = volunteer.userId;
+
+	// Defence in depth. All THREE roster-row creators — `addVolunteer`,
+	// `ensureAppliedRosterRow`, `restoreVolunteer` — refuse while a block stands,
+	// so a live roster row and a block should not coexist. That invariant is
+	// upheld by three separate callsites and nothing enforces it structurally;
+	// `restoreVolunteer` was in fact missing its check until review caught it.
+	// This path reads the roster row DIRECTLY rather than through
+	// `requireOrgVolunteerRelationship`, so it is where that invariant failing
+	// would let an org schedule — and email — someone who refused them. A guard
+	// one refactor away from the thing it guards is how this bug class recurs;
+	// one indexed lookup on a staff action is cheap.
+	//
+	// NOT_FOUND for the same reason as the roster miss just above: staff learn
+	// only that this person is not theirs to schedule.
+	if (await findOrgVolunteerBlock(input.orgId, userId)) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Volunteer not found on your roster.',
+		});
+	}
 
 	const existing = await getSignupByShiftAndUser(input.shiftId, userId);
 	if (existing) {

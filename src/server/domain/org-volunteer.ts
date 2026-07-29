@@ -122,6 +122,43 @@ export const ORG_VOLUNTEER_SOURCE_COPY: Record<OrgVolunteerSource, string> = {
 	APPLIED: 'Added when they approved your application',
 };
 
+/**
+ * Why an org appears on the volunteer's own "organizations" list.
+ *
+ * Wider than `OrgVolunteerSource`, because that enum only describes a ROSTER
+ * ROW and this list stopped being roster rows in v0.37.0.0. An org that removed
+ * someone from its roster still holds their `VolunteerApplication` or a
+ * `ShiftSignup`, and both keep satisfying `findOrgVolunteerRelationship` — so
+ * both must be leavable. Otherwise an org that saw a departure coming could
+ * pre-empt it by removing the volunteer first, leaving them no control at all
+ * while the org kept `credentials.issue` and `backgroundChecks.initiate`.
+ *
+ * A `Record` for the same reason as `ORG_VOLUNTEER_SOURCE_COPY`: a new reason
+ * has to be a type error at every render site, not a silently wrong sentence on
+ * the surface whose entire job is answering "why is this organization here?".
+ */
+export type MyOrgRelationshipReason =
+	/** Live roster row, `source: STAFF_ADDED`. */
+	| 'STAFF_ADDED'
+	/** Live roster row, `source: APPLIED`. */
+	| 'APPLIED'
+	/** No roster row, but an application they submitted. */
+	| 'APPLICATION_ONLY'
+	/** No roster row and no application — only a shift signup. */
+	| 'SHIFT_ONLY';
+
+export const MY_ORG_RELATIONSHIP_COPY: Record<MyOrgRelationshipReason, string> =
+	{
+		STAFF_ADDED: 'Added by their staff',
+		APPLIED: 'Added when they approved your application',
+		// These two deliberately do NOT say "roster". They mean the org has access
+		// WITHOUT a roster row — precisely the case this list exists to surface —
+		// and claiming a roster membership that does not exist would be the
+		// confidently-wrong answer the Record shape is here to prevent.
+		APPLICATION_ONLY: 'You applied to this organization',
+		SHIFT_ONLY: 'You were signed up for one of their shifts',
+	};
+
 export type AddVolunteerInput = z.infer<typeof addVolunteerSchema>;
 
 /**

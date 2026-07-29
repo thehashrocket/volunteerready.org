@@ -11,6 +11,7 @@
 const mocks = vi.hoisted(() => ({
 	createOrgVolunteerIfAbsent: vi.fn(),
 	findLiveOrgVolunteer: vi.fn(),
+	findOrgVolunteerBlock: vi.fn(),
 	findUserIdentity: vi.fn(),
 	writeAuditLogTx: vi.fn(),
 }));
@@ -18,6 +19,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/server/repositories/orgVolunteerRepo', () => ({
 	createOrgVolunteerIfAbsent: mocks.createOrgVolunteerIfAbsent,
 	findLiveOrgVolunteer: mocks.findLiveOrgVolunteer,
+	findOrgVolunteerBlock: mocks.findOrgVolunteerBlock,
 }));
 
 vi.mock('@/server/repositories/userAccountStateRepo', () => ({
@@ -53,9 +55,38 @@ beforeEach(() => {
 	});
 	mocks.createOrgVolunteerIfAbsent.mockResolvedValue(true);
 	mocks.findLiveOrgVolunteer.mockResolvedValue({ id: 'vol-1' });
+	mocks.findOrgVolunteerBlock.mockResolvedValue(null);
 });
 
 describe('ensureAppliedRosterRow', () => {
+	it('SECURITY: creates NO roster row when the volunteer has blocked the org', async () => {
+		mocks.findOrgVolunteerBlock.mockResolvedValue({ id: 'block-1' });
+
+		// Reachable with no staff misbehaviour at all: apply → join the roster →
+		// leave (which writes the block) → staff approve the application that was
+		// already sitting in their queue. Without this the approval puts the
+		// volunteer back on /app/volunteers, and `assignVolunteerToShift` reads
+		// roster rows directly rather than through requireOrgVolunteerRelationship
+		// — so the org could schedule and email someone who had refused them.
+		const created = await ensureAppliedRosterRow(tx, input());
+
+		expect(created).toBe(false);
+		expect(mocks.createOrgVolunteerIfAbsent).not.toHaveBeenCalled();
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('checks the block on the caller transaction handle', async () => {
+		await ensureAppliedRosterRow(tx, input());
+
+		// Escaping the tx would read a block that a concurrent leave has written
+		// but not yet committed — or miss one it has.
+		expect(mocks.findOrgVolunteerBlock).toHaveBeenCalledWith(
+			'org-1',
+			'user-1',
+			tx,
+		);
+	});
+
 	it('creates the roster edge with source APPLIED', async () => {
 		const created = await ensureAppliedRosterRow(tx, input());
 

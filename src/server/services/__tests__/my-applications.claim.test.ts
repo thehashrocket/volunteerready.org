@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
 	getUserApplicationDetail: vi.fn(),
 	writeAuditLogTx: vi.fn(),
 	ensureAppliedRosterRow: vi.fn(),
+	liftOrgVolunteerBlock: vi.fn(),
 	updateMany: vi.fn(),
 	findEmailByUserId: vi.fn(),
 	// Stand-in transaction client. Running the callback inline means a throw
@@ -31,6 +32,10 @@ vi.mock('@/server/repositories/userAccountStateRepo', () => ({
 
 vi.mock('@/server/services/appliedRosterService', () => ({
 	ensureAppliedRosterRow: mocks.ensureAppliedRosterRow,
+}));
+
+vi.mock('@/server/services/orgVolunteerAccessService', () => ({
+	liftOrgVolunteerBlock: mocks.liftOrgVolunteerBlock,
 }));
 
 vi.mock('@/server/repositories/volunteer-applications', () => ({
@@ -275,6 +280,43 @@ describe('claimApplication', () => {
 		await claimApplication('user-1', 'app-1');
 
 		expect(mocks.ensureAppliedRosterRow.mock.calls[0][0]).toEqual({ tx: true });
+	});
+
+	it('lifts any block on the org, on the same tx handle', async () => {
+		mocks.claimApplicationForUser.mockResolvedValue({
+			id: 'app-1',
+			orgId: 'org-1',
+			status: 'SUBMITTED',
+		});
+
+		await claimApplication('user-1', 'app-1');
+
+		// Claiming is an explicit "yes, this is mine" against a named org, so it is
+		// one of the three volunteer-initiated acts that restore access. Unlike the
+		// roster row above it is NOT conditional on status: a block should lift
+		// whenever the volunteer re-engages, approved or not.
+		expect(mocks.liftOrgVolunteerBlock).toHaveBeenCalledWith(
+			{ tx: true },
+			'org-1',
+			'user-1',
+		);
+	});
+
+	it('lifts the block BEFORE creating the roster row', async () => {
+		mocks.claimApplicationForUser.mockResolvedValue({
+			id: 'app-1',
+			orgId: 'org-1',
+			status: 'APPROVED',
+		});
+
+		await claimApplication('user-1', 'app-1');
+
+		// Order is load-bearing: reversed, `ensureAppliedRosterRow` mints a roster
+		// membership while the block still stands, and the org holds a volunteer it
+		// cannot act on until something else happens to clear it.
+		expect(
+			mocks.liftOrgVolunteerBlock.mock.invocationCallOrder[0],
+		).toBeLessThan(mocks.ensureAppliedRosterRow.mock.invocationCallOrder[0]);
 	});
 
 	// -------------------------------------------------------------------------
