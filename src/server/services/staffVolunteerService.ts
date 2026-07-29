@@ -311,7 +311,7 @@ export async function removeVolunteer(input: {
  * SECURITY: this is the FOURTH path that can put a live roster row in front of
  * staff, and the one easiest to miss, because it does not look like a create.
  * `restoreOrgVolunteer` matches any row with `deletedAt` set for the org, and
- * `softDeleteOwnOrgVolunteer` — a volunteer leaving — produces exactly such a
+ * `softDeleteOwnOrgVolunteerByOrg` — a volunteer leaving — produces exactly such a
  * row. Nothing on `OrgVolunteer` records who deleted it, so without the block
  * check below staff could undo a departure the volunteer chose, using an id
  * their roster page handed them before the volunteer left.

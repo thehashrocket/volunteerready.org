@@ -23,17 +23,26 @@ undo unilaterally is not one.
 
 So the fix is (b): a `OrgVolunteerBlock` row written by `leaveOrgRoster` in the
 same transaction as the soft delete, checked by `findOrgVolunteerRelationship`
-after the probes, and refused by `addVolunteer`. It is the only state in the
-org↔volunteer relationship staff cannot clear. Lifted **only** by the volunteer
-re-engaging — applying, claiming an application, or signing up for a shift —
-via `liftOrgVolunteerBlock()` in `orgVolunteerAccessService.ts`.
+after the probes, and refused by FOUR paths: the three that create a roster row
+(`addVolunteer`, `ensureAppliedRosterRow`, `restoreVolunteer`) plus
+`assignVolunteerToShift`, which creates none but reads one directly. It is the
+only state in the org↔volunteer relationship staff cannot clear. Lifted **only**
+by the volunteer re-engaging — applying **while signed in**, claiming an
+application, or signing up for a shift — via `liftOrgVolunteerBlock()` in
+`orgVolunteerAccessService.ts`. The signed-in condition is load-bearing:
+`screener.submit` is a `publicProcedure` carrying an attacker-supplied address.
 
-Two design notes that are easy to get wrong later:
+Three design notes that are easy to get wrong later:
 - **`ORG_MEMBER` is exempt**, and the suppression path RE-PROBES for it rather
   than returning null. A coordinator who is also on their own org's volunteer
   roster would otherwise lock themselves out of their own organization by
   leaving that roster — and only when they also happened to have applied, since
   the probe short-circuits at `APPLICATION` and never reaches the member check.
+- **`EXISTING_CREDENTIAL` is exempt too.** Suppressing it recreated the dead
+  end `acceptExistingCredential` exists to prevent: `listOrgCredentials` filters
+  on `orgId` alone, so the credential stayed visible and permanently
+  unrevokable. Revocation is strictly narrowing, so a block has nothing to
+  protect against there.
 - **The block check runs after the probes, not before.** Blocks are rare;
   checking first adds a query to every call to save one on almost none. The
   rejection path is unchanged and the accept path pays one indexed lookup.
@@ -128,6 +137,40 @@ copy now says so. Separately, the card's capability list omitted background chec
 to avoid alarm; review showed that inverted WHO got the disclosure (the card is the
 stay-or-go decision, the confirm is reachable only by people already leaving), so it
 is named on both, loss-framed.
+
+### [P2] Leaving does not cancel upcoming shift signups, and staff can still mark attendance
+
+Found by a doc-accuracy audit *after* the PR was open — no review specialist
+caught it, because every one of them was reading the diff and this is a fact
+about what the diff does NOT touch.
+
+`leaveOrgRoster` writes nothing to `ShiftSignup`. So after revoking an org:
+- the volunteer is still `CONFIRMED` on next Saturday's shift,
+- the org still sees them in that shift's signup list,
+- and staff can still `markAttendance` them ATTENDED or NO_SHOW, because
+  `requireAttendanceAccess` authorizes through `requireOrgShift` (shift-scoped)
+  rather than `requireOrgVolunteerRelationship` (org-volunteer-scoped), so the
+  block is never consulted on that path.
+
+This is the residue of the rejected option (a): cancelling signups was never
+implemented because the block made it unnecessary *for authorization*. It is
+still necessary for **expectation** — a volunteer who revokes an org and is then
+marked a no-show for a shift they never meant to attend is worse off than before
+they left.
+
+The confirm copy now discloses it (*"Shifts you're already booked on stay
+booked"*) and volunteers can cancel their own signups (`cancelSignup` is a
+`protectedProcedure` on their own id), so nobody is trapped. The open question is
+behavioural: should leaving auto-cancel future CONFIRMED / WAITLISTED signups at
+that org? Arguments both ways — auto-cancelling is what people expect, but it
+silently drops an org from a shift it was counting on, with no notice to the
+coordinator. Probably wants a "cancel my upcoming shifts too" checkbox on the
+confirm rather than an implicit behaviour. **Effort:** M.
+
+Related P3: the disclosure is shown unconditionally, but most volunteers have no
+upcoming shifts at the org they are leaving. Gate the clause on a real count
+(`listMyOrgRelationships` already queries `ShiftSignup` and could aggregate it)
+so the sentence only appears when it is true of that reader. **Effort:** S.
 
 ### [P3] `TxClient` has escaped the repository layer
 

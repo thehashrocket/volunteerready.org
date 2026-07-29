@@ -121,11 +121,19 @@ themselves — applying while signed in, claiming an application, or signing up
 for a shift. Do not add a staff-reachable lift path, and do not lift on an
 anonymous application: `screener.submit` is a `publicProcedure` accepting an
 arbitrary `submittedByEmail`, so an address alone clearing a block would hand
-the revocation to anyone who can type it. Any new path that creates a live
-`OrgVolunteer` row must check `findOrgVolunteerBlock()` first — there are four
-today (`addVolunteer`, `ensureAppliedRosterRow`, `restoreVolunteer`, and
-`assignVolunteerToShift`, which reads roster rows directly rather than through
-the guard).
+the revocation to anyone who can type it. Any new path that **creates a live
+`OrgVolunteer` row, OR acts on one without going through
+`requireOrgVolunteerRelationship()`**, must check `findOrgVolunteerBlock()`
+first. Phrasing the rule as "creates" alone is not enough — it would miss
+`assignVolunteerToShift`, which creates no roster row but reads one directly and
+would otherwise schedule and email someone who had revoked the org.
+
+Three creators (`addVolunteer`, `ensureAppliedRosterRow`, `restoreVolunteer`)
+plus that one actor make **four refusal points** today. `restoreVolunteer` is the
+one to watch: it reads as a state flip rather than a create, and
+`restoreOrgVolunteer` matches any row with `deletedAt` set without recording who
+deleted it, so a volunteer's own departure is indistinguishable from a staff
+removal.
 
 ---
 

@@ -130,7 +130,7 @@ Key services:
 - `volunteerProfileService.ts` — profile management
 - `staffVolunteerService.ts` — org volunteer roster: staff add/remove/restore, plus the volunteer's own `listMyOrgMemberships` / `leaveOrgRoster`. `addVolunteer` and `restoreVolunteer` refuse with `FORBIDDEN` while an `OrgVolunteerBlock` stands
 - `appliedRosterService.ts` — materializes the roster row an approved application implies (`ensureAppliedRosterRow()`); returns false instead of creating one when the applicant has blocked the org
-- `orgVolunteerAccessService.ts` — `requireOrgVolunteerRelationship()`, the org↔volunteer authorization guard, plus `liftOrgVolunteerBlock()` — the only way a block is cleared, called from the three places a volunteer re-engages with an org of their own accord (application submit, claim, shift signup)
+- `orgVolunteerAccessService.ts` — `requireOrgVolunteerRelationship()`, the org↔volunteer authorization guard, plus `liftOrgVolunteerBlock()` — the only way a block is cleared, called from the three places a volunteer re-engages with an org of their own accord (application submit **only when `submittedByUserId` is set** — `screener.submit` is a `publicProcedure`, so an attacker-supplied address must not clear a block — plus claim and shift signup) (application submit, claim, shift signup)
 - `volunteerCredentialService.ts` — credential lifecycle
 - `shiftService.ts` — shift CRUD and status transitions
 - `shiftSignupService.ts` — signup with conflict detection, attendance, waitlist auto-promote

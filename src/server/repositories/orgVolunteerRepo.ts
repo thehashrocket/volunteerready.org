@@ -370,7 +370,7 @@ export async function hasLeavableOrgRelationship(
 /**
  * Soft-delete the caller's live roster row at an org, if they have one.
  *
- * The org-keyed counterpart to `softDeleteOwnOrgVolunteer`. Leaving is now
+ * Replaced `softDeleteOwnOrgVolunteer` (deleted). Leaving is now
  * addressed by `orgId` rather than by `OrgVolunteer.id`, because an org holding
  * only an application or a shift signup has no roster row to name — and those
  * orgs must be leavable too.

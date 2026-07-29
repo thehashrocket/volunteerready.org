@@ -50,10 +50,12 @@ type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
  * place rather than at each callsite. Do not inline it away.
  *
  * SCOPE NOTE (v0.37.0.0): "one module" covers deciding whether an org may ACT
- * on a user. It does NOT cover roster MEMBERSHIP, where four services import
- * `findOrgVolunteerBlock` from the repository directly. That is deliberate —
- * those four refuse in three different shapes (FORBIDDEN, a `false` return, and
- * NOT_FOUND) chosen to match each caller's surface, so routing them through one
+ * on a user. It does NOT cover roster MEMBERSHIP, where THREE services import
+ * `findOrgVolunteerBlock` from the repository directly, across five call sites
+ * (four refusals plus `leaveOrgRoster`'s own already-left check). That is
+ * deliberate — the four refusals answer in three different shapes (FORBIDDEN, a
+ * `false` return, and NOT_FOUND) chosen to match each caller's surface, so
+ * routing them through one
  * throwing helper would make the refusals uniform and wrong. What stays
  * centralized is which relationships authorize; what is callsite-local is how
  * to say no.

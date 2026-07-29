@@ -392,8 +392,9 @@ until v1b. Do not describe the roster as complete.
    unilaterally via `assignVolunteerToShift`, and `addVolunteer` recreates the roster row from an
    email address anyway. `leaveOrgRoster` now also writes an `OrgVolunteerBlock` in the same
    transaction. That row overrides every relationship kind except `ORG_MEMBER` and
-   `EXISTING_CREDENTIAL`, and `addVolunteer`, `ensureAppliedRosterRow` and `restoreVolunteer` all
-   refuse while it stands. It is the only state in this relationship staff cannot clear, which is
+   `EXISTING_CREDENTIAL`. Four paths refuse while it stands: the three that CREATE a roster row
+   (`addVolunteer`, `ensureAppliedRosterRow`, `restoreVolunteer`) plus `assignVolunteerToShift`,
+   which creates none but reads one directly. It is the only state in this relationship staff cannot clear, which is
    the entire point: the previous design left the volunteer with nothing the org could not undo.
 
    The two exemptions are deliberate. `ORG_MEMBER` is staff membership, not a volunteer
@@ -403,8 +404,10 @@ until v1b. Do not describe the roster as complete.
    recreated the dead end `acceptExistingCredential` exists to prevent, a credential
    `listOrgCredentials` still shows but nobody can ever revoke.
 
-   Lifted **only** by the volunteer re-engaging of their own accord — submitting an application,
-   claiming one, or signing up for a shift (`liftOrgVolunteerBlock()`). There is deliberately no
+   Lifted **only** by the volunteer re-engaging of their own accord — submitting an application
+   **while signed in**, claiming one, or signing up for a shift (`liftOrgVolunteerBlock()`). The
+   signed-in condition is load-bearing: `screener.submit` is a `publicProcedure` carrying an
+   attacker-supplied address, so an anonymous submission must never clear a block. There is deliberately no
    org-initiated lift; an org that wants someone back asks them, which is what v1b's
    `VolunteerActivationInvite` will carry.
 
@@ -473,6 +476,11 @@ until v1b. Do not describe the roster as complete.
    guard — it deletes on the `(userId, orgId, type)` compound key. The `shifts.ts` /
    `shiftRepo.ts` / `shiftSignupRepo.ts` org-scoping half of T7 is still open. Code:
    `src/server/services/orgVolunteerAccessService.ts`, `repositories/orgVolunteerRepo.ts`.
+
+   ⚠️ **Amended in v0.37.0.0.** This set is still what the guard PROBES, but an
+   `OrgVolunteerBlock` now suppresses all of it except `ORG_MEMBER` and `EXISTING_CREDENTIAL`. If
+   you are reading this section to answer "what does the guard accept?", the answer is
+   "these kinds, unless the volunteer has revoked the org" — see §2.
 
 6. **Erasure.** Roster removal soft-deletes the edge only. A separate platform-admin scrub nulls
    `name`/`email`/`phone` on the shadow `User` for a genuine erasure request. Hard-deleting the
@@ -790,6 +798,11 @@ recipient "can remove the roster link"; no such surface existed. It does now: an
 **Organisations** section on `/app/profile` listing orgs that have this person on a roster, each
 with a quiet `Leave` that soft-deletes the `OrgVolunteer` row and writes `VOLUNTEER_LEFT`. The
 T12 email says what happened, who did it, and links there.
+
+⚠️ **Superseded in v0.37.0.0 — this paragraph describes T32 as shipped, not current behaviour.**
+The list is keyed on ACCESS, not the roster: it also includes orgs holding only an application or
+a shift signup, because those authorize too. The soft delete became the OPTIONAL half and the
+`OrgVolunteerBlock` write the mandatory one. See §2.
 
 ### Payoff
 

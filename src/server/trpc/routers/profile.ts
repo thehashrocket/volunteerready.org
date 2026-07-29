@@ -82,7 +82,10 @@ export const profileRouter = createTRPCRouter({
 		.query(({ ctx, input }) => getOrgVisibleProfile(input.userId, ctx.orgId)),
 
 	/**
-	 * Orgs that currently have the caller on their volunteer roster (T32).
+	 * Orgs that can currently act on the caller (T32; widened in v0.37.0.0).
+	 *
+	 * NOT just roster rows — also orgs holding only an application or a shift
+	 * signup, because those authorize too and must therefore be leavable.
 	 *
 	 * Lives on `profileRouter`, not `volunteersRouter`, on purpose. That router is
 	 * `rosterProcedure` throughout — the pilot feature flag — and roster edges are

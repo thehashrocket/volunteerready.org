@@ -311,8 +311,22 @@ describe('OrgMemberships — confirm then leave', () => {
 		).toBeInTheDocument();
 		expect(
 			screen.getByText(
-				"Leave and remove their access? They won't be able to add you back, schedule you, see your profile, or request a background check. Hours you've already volunteered stay recorded. You can rejoin later by applying or signing up for one of their shifts.",
+				"Leave and remove their access? They won't be able to add you back, schedule you, see your profile, or request a background check. Shifts you're already booked on stay booked, and hours you've volunteered stay recorded. You can rejoin any time by applying or signing up for a shift.",
 			),
+		).toBeInTheDocument();
+	});
+
+	it('the confirm discloses that upcoming shifts survive the departure', async () => {
+		await openConfirm();
+
+		// leaveOrgRoster writes nothing to ShiftSignup, and markAttendance
+		// authorizes through requireAttendanceAccess, which is SHIFT-scoped rather
+		// than org-scoped — so the org still has this person on next Saturday's
+		// shift and can still mark them attended. "They won't be able to schedule
+		// you" is true only of NEW assignments; without this clause a reader
+		// reasonably assumes existing bookings were cancelled.
+		expect(
+			screen.getByText(/Shifts you're already booked on stay booked/),
 		).toBeInTheDocument();
 	});
 
@@ -327,7 +341,7 @@ describe('OrgMemberships — confirm then leave', () => {
 		// surface exists to avoid.
 		expect(
 			screen.getByText(
-				/You can rejoin later by applying or signing up for one of their shifts\./,
+				/You can rejoin any time by applying or signing up for a shift\./,
 			),
 		).toBeInTheDocument();
 	});

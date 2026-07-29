@@ -752,6 +752,19 @@ function OrgMemberships() {
 										    the rows where it applies — same reasoning that corrected
 										    the claim flow's decline row in v0.34.0.0.
 
+										    "Shifts you're already booked on stay booked" is the
+										    newest clause and the least obvious. leaveOrgRoster writes
+										    nothing to ShiftSignup, and markAttendance authorizes
+										    through requireAttendanceAccess — which is SHIFT-scoped,
+										    not org-scoped — so after leaving, the org still has you
+										    on next Saturday's shift, still sees you in its signup
+										    list, and can still mark you attended. "They won't be able
+										    to schedule you" is true only of NEW assignments, and a
+										    reader will otherwise assume existing ones are cancelled.
+										    Volunteers can cancel their own signups (cancelSignup is a
+										    protectedProcedure on their own id), which is why the copy
+										    can state this without offering a control.
+
 										    The `isStaff` branch exists because the promise is FALSE
 										    for that person: `findOrgVolunteerRelationship` exempts
 										    ORG_MEMBER from the block, deliberately, so a coordinator
@@ -763,8 +776,8 @@ function OrgMemberships() {
 												? row.isStaff
 													? `Leave ${orgName}'s volunteer roster? You're on their staff, so this does not change your staff access — they can still see your profile and schedule you. It only removes you from their volunteer list.`
 													: row.reason === 'APPLIED'
-														? "Leave and remove their access? They won't be able to add you back, schedule you, see your profile, or request a background check. Your application and any hours you've already volunteered stay with them. You can rejoin later by applying or signing up for one of their shifts."
-														: "Leave and remove their access? They won't be able to add you back, schedule you, see your profile, or request a background check. Hours you've already volunteered stay recorded. You can rejoin later by applying or signing up for one of their shifts."
+														? "Leave and remove their access? They won't be able to add you back, schedule you, see your profile, or request a background check. Shifts you're already booked on stay booked, and your application and recorded hours stay with them. You can rejoin any time by applying or signing up for a shift."
+														: "Leave and remove their access? They won't be able to add you back, schedule you, see your profile, or request a background check. Shifts you're already booked on stay booked, and hours you've volunteered stay recorded. You can rejoin any time by applying or signing up for a shift."
 												: `${MY_ORG_RELATIONSHIP_COPY[row.reason]} · ${formatDateOnly(row.since)}`}
 										</p>
 									</div>
