@@ -391,9 +391,17 @@ until v1b. Do not describe the roster as complete.
    satisfies `requireOrgVolunteerRelationship` with no status filter and staff mint one
    unilaterally via `assignVolunteerToShift`, and `addVolunteer` recreates the roster row from an
    email address anyway. `leaveOrgRoster` now also writes an `OrgVolunteerBlock` in the same
-   transaction. That row overrides every relationship kind except `ORG_MEMBER`, and `addVolunteer`
-   refuses while it stands. It is the only state in this relationship staff cannot clear, which is
+   transaction. That row overrides every relationship kind except `ORG_MEMBER` and
+   `EXISTING_CREDENTIAL`, and `addVolunteer`, `ensureAppliedRosterRow` and `restoreVolunteer` all
+   refuse while it stands. It is the only state in this relationship staff cannot clear, which is
    the entire point: the previous design left the volunteer with nothing the org could not undo.
+
+   The two exemptions are deliberate. `ORG_MEMBER` is staff membership, not a volunteer
+   relationship, and without the exemption a coordinator who is also on their own org's roster
+   would lock themselves out of their own organisation by leaving it. `EXISTING_CREDENTIAL` is
+   opt-in and reached by `revokeCredential` alone, which is strictly narrowing — suppressing it
+   recreated the dead end `acceptExistingCredential` exists to prevent, a credential
+   `listOrgCredentials` still shows but nobody can ever revoke.
 
    Lifted **only** by the volunteer re-engaging of their own accord — submitting an application,
    claiming one, or signing up for a shift (`liftOrgVolunteerBlock()`). There is deliberately no
@@ -1119,11 +1127,13 @@ produces confidently wrong work.
   - Verify: assert the hours figure matches the impact report for the same org
 - [x] **T32 (P1, human: ~4h / CC: ~25min)** — ui — Volunteer self-service: Organisations section on `/app/profile` with `Leave` ✅ **DONE**
   - Surfaced by: Design D13 — Security §2 claimed the recipient "can remove the roster link"; no such surface existed
-  - Files: `src/app/(app)/app/profile/page.tsx` (`OrgMemberships`), `src/server/services/staffVolunteerService.ts` (`leaveOrgRoster`, `listMyOrgMemberships`), `repositories/orgVolunteerRepo.ts` (`listOrgVolunteersByUser`, `softDeleteOwnOrgVolunteer`), `routers/profile.ts`. `sendRosterAddedEmail.ts` needed no change — it already links here and promises exactly this
+  - Files: `src/app/(app)/app/profile/page.tsx` (`OrgMemberships`), `src/server/services/staffVolunteerService.ts` (`leaveOrgRoster`, `listMyOrgMemberships`), `repositories/orgVolunteerRepo.ts`, `routers/profile.ts`. `sendRosterAddedEmail.ts` needed no change — it already links here and promises exactly this
+  - ⚠️ **The repo functions named here were DELETED in v0.37.0.0.** `listOrgVolunteersByUser` → `listMyOrgRelationships` (roster rows alone let an org deny the remedy), `softDeleteOwnOrgVolunteer` → `softDeleteOwnOrgVolunteerByOrg` (leaving is keyed on `orgId`, since an application-only org has no roster row to name). `sendRosterAddedEmail.ts` DID change in that ship — it now names profile visibility and says the exit removes access
   - **Ungated, per the Feature-flag gating table.** The procedures live on `profileRouter` under `protectedProcedure`, NOT on the `rosterProcedure`-throughout `volunteersRouter`: `ensureAppliedRosterRow` mints edges for every org regardless of the pilot flag, so gating the exit would strand volunteers on rosters they cannot leave. Housing them beside the flagged procedures would invite someone to make them "consistent"
   - Section is named "Organizations you volunteer with", not "Organizations" — the stat card above already says "Organizations" and counts `OrganizationMember` (staff membership), which is a different thing
   - The error branch renders BEFORE the empty check: on a consent surface a failed load must never read as "you are on nobody's roster"
-  - Confirm-row copy is honest about what leaving does not do — the application stays sent, the hours stay recorded, and the org can add you again. Same correction the claim flow's decline row took in v0.34.0.0. The application clause is stated **only on `APPLIED` rows**, where it is the consent-material one; review caught a first draft that named two of the three while this doc claimed all three
+  - Confirm-row copy is honest about what leaving does not do — the application stays sent, the hours stay recorded, and (as of T32) the org can add you again. Same correction the claim flow's decline row took in v0.34.0.0. The application clause is stated **only on `APPLIED` rows**, where it is the consent-material one; review caught a first draft that named two of the three while this doc claimed all three
+  - ⚠️ **The "can add you again" clause was INVERTED in v0.37.0.0** — it is now "they won't be able to add you back", and that clause is the one distinguishing the control from the version that revoked nothing. Do not restore the older copy from this checklist entry
   - `ORG_VOLUNTEER_SOURCE_COPY` (a `Record` over the enum, not a ternary with an `else`) so T17's concierge import cannot silently render as "Added by their staff" on the surface whose whole job is answering "why am I on this list?"
   - `MY_MEMBERSHIPS_CAP` (200) on the list. Not pagination — the backstop for the fact that the row count is NOT the volunteer's to control: any org's staff can add any address, so the ceiling is however many orgs an attacker holds
   - Verify: ✅ 4 service tests + 8 integration tests against real Postgres + 3 repository unit tests + 5 router tests + 15 component tests. Files: `services/__tests__/staffVolunteerService.test.ts`, `repositories/orgVolunteer.integration.test.ts`, `repositories/orgVolunteerRepo.leave.test.ts`, `trpc/routers/profile.leave.test.ts`, `app/(app)/app/profile/page.test.tsx`
