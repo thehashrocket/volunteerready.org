@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.37.2.0] - 2026-07-29
+
+### Changed
+- The privacy policy and terms now name both background check providers. They named only Checkr, and had since launch, while Sterling has been live the whole time — organisations connect it from their settings, and it receives the same Social Security number and date of birth Checkr does. The marketing pages had been advertising both providers for months, so the two halves of the site disagreed about who handles the most sensitive data we touch. The privacy policy goes to version 1.2.
+- The terms of service said "you authorize Checkr to conduct the check" and "you have the right to dispute the accuracy of background check results directly with Checkr". For anyone screened through Sterling, both sentences named the wrong company — the second being the sentence that tells you where to go to correct a report that could cost you a volunteer position. Section 6 now says the check is run by whichever provider the requesting organisation uses, and that if you do not know which one holds your report, you can ask them or ask us and we will tell you.
+- The security page said the adverse action workflow belongs to the Checkr integration. It does not: it lives in the platform and runs identically whichever provider a check goes through. It also said only Checkr tokens are encrypted before storage; Sterling API keys are encrypted the same way, and the page now says so.
+
+### Added
+- A test that reads the list of background check providers the platform can actually route to and fails if the privacy policy does not disclose one of them. This gap was found by a person reading the page against the code; adding a third provider without disclosing it is now a failing test rather than something somebody has to notice.
+
 ## [0.37.1.0] - 2026-07-28
 
 ### Changed
