@@ -105,7 +105,7 @@ const volunteerFaqs = [
 	{
 		question: 'Can I volunteer with multiple organizations?',
 		answer:
-			"Absolutely. Your profile and credentials are portable — apply to as many organizations as you'd like from a single dashboard. Leaving is just as easy: your profile lists every organization that can see you, and you can remove any of them at any time.",
+			"Absolutely. Your profile and credentials are portable — apply to as many organizations as you'd like from a single dashboard. Leaving is just as easy: your profile lists the organizations that can see you, and you can remove any of them at any time.",
 	},
 	{
 		question: 'How do I leave an organization?',
@@ -258,7 +258,7 @@ export default function ForVolunteersPage() {
 				src={MARKETING_SCREENSHOTS.profile.src}
 				darkSrc={MARKETING_SCREENSHOTS.profile.darkSrc}
 				alt="VolunteerReady volunteer profile showing profile completeness, verified credentials, and the list of organizations that can see you"
-				caption="Your volunteer profile — portable credentials and a running list of every organization that can see you. Leave any of them yourself, no email and no support ticket."
+				caption="Your volunteer profile — portable credentials and a running list of the organizations that can see you. Leave any of them yourself, no email and no support ticket."
 				sectionBg="white"
 				containerBg="sand"
 				annotations={[

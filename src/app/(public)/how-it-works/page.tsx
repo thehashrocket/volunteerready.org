@@ -203,7 +203,7 @@ const faqs = [
 	{
 		question: "Can I remove an organization's access to me?",
 		answer:
-			"Yes, and you do it yourself. Your profile lists every organization that can see you — including any that added you to their roster directly — and leaving one immediately stops them opening your volunteer record, scheduling you, or requesting a background check. They can't add you back; only you can restore the relationship, by signing in and applying to them or by signing up for one of their shifts. Two exceptions: a profile you've set to Public stays publicly visible until you change that, and if you're staff at that organization your staff access is unaffected.",
+			"Yes, and you do it yourself. Your profile lists the organizations that can see you — including any that added you to their roster directly — and leaving one immediately stops them opening your volunteer record, scheduling you, or requesting a background check. They can't add you back; only you can restore the relationship, by signing in and applying to them or by signing up for one of their shifts. Two exceptions: a profile you've set to Public stays publicly visible until you change that, and if you're staff at that organization your staff access is unaffected.",
 	},
 	{
 		question: 'What credentials can be tracked?',

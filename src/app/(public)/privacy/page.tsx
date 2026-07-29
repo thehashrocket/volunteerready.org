@@ -276,8 +276,8 @@ export default function PrivacyPage() {
 							when they approve your application, or when they add you to their
 							roster directly. What they can see includes your name, contact
 							details, availability, skills, service history, and credential
-							status. You can see every organization holding this access, and
-							revoke any of them, from your profile page — see{' '}
+							status. Organizations holding this access are listed on your
+							profile page, and you can revoke any of them there — see{' '}
 							<a href="#your-rights" className="text-primary hover:underline">
 								Your Rights
 							</a>
