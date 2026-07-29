@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.37.2.1] - 2026-07-29
+
+### Changed
+- The privacy policy names the background check providers where it matters and refers back everywhere else. It had started naming both in four separate places, which is four places to forget when the list changes. Both are now named where you are actually handing over a Social Security number, and in the table of everyone we share data with; the storage and retention sections point at that table instead of repeating it. Nothing is disclosed less clearly — the storage section sits directly beneath the table it refers to.
+
 ## [0.37.2.0] - 2026-07-29
 
 ### Changed
