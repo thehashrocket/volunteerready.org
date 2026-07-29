@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.37.0.0] - 2026-07-28
+
+### Changed
+- Leaving an organisation now actually removes its access to you. Version 0.36.0.0 added the Leave button and was honest that it did little: it took you off their list, and the confirmation said in as many words that nothing stopped them adding you straight back. That was true, and it meant the button did not really do the thing people pressed it for. An organisation could put you back with two clicks, and in the meantime it could still see your volunteer profile, give you credentials, and request a background check on you — the last of those being the one that collects a Social Security number and date of birth and sends them to a background-check company. Leaving now closes all of that. They cannot add you back, and no-one at the organisation can undo it.
+- You can still go back if you want to. Applying to them again, or signing up for one of their shifts, restores the relationship — and the confirmation says so, rather than promising something permanent and letting you find out later it was not. Coming back is always your move, never theirs.
+- The list now shows every organisation that holds your details, not only the ones that have you on a list right now. This closes the way around the whole thing: an organisation that saw you leaving could simply take you off its list first, and you would have had nothing left to press — while the shift it had signed you up for kept its access alive indefinitely. Organisations that only have an application you sent, or a shift you were signed up for, now appear too, each saying which it is.
+- The section says plainly what these organisations can do — schedule you for shifts, see your volunteer profile, and request a background check — instead of only describing the list. Background checks were left out of that sentence at first, on the grounds that most organisations never use them and naming it would worry people for no reason. That had it backwards: the people who most needed to know were the ones deciding whether to stay, and they were the only ones who never saw it.
+- If you are on an organisation's staff as well as its volunteer list, leaving the volunteer list does not touch your staff access, and the confirmation now says that rather than telling you access was removed when it was not.
+- Anyone who left an organisation before this release has been given the same protection, without having to do anything. Organisations that legitimately added someone back after they left are left alone.
+
+### For organisations
+- If a volunteer leaves you, you cannot add them back, and Undo will not restore them. You will see "This person left your roster and asked not to be added back. They can rejoin by applying or signing up for one of your shifts." Nothing you already recorded is affected: their application is still yours, every hour they volunteered is still in your reports, and any credential you issued is still there and can still be revoked. What ends is your ability to act on them going forward.
+- Approving an application from someone who has left you will no longer put them back on your list. The application is still approved and still yours; it just does not re-create the connection they ended.
+
 ## [0.36.0.0] - 2026-07-28
 
 ### Added
