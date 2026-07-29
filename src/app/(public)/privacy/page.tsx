@@ -39,7 +39,7 @@ const sections = [
 	{ id: 'contact-us', label: 'Contact Us' },
 ];
 
-const thirdPartyServices = [
+export const thirdPartyServices = [
 	{
 		service: 'Google OAuth',
 		purpose: 'Authentication',
@@ -52,6 +52,11 @@ const thirdPartyServices = [
 	},
 	{
 		service: 'Checkr',
+		purpose: 'Background checks',
+		data: 'PII (name, SSN, DOB)',
+	},
+	{
+		service: 'Sterling',
 		purpose: 'Background checks',
 		data: 'PII (name, SSN, DOB)',
 	},
@@ -77,7 +82,13 @@ const thirdPartyServices = [
 	},
 ];
 
-const versionHistory = [
+export const versionHistory = [
+	{
+		date: 'July 29, 2026',
+		version: '1.2',
+		changes:
+			'Disclosed Sterling alongside Checkr as a background check provider — both receive Social Security number and date of birth, and which one receives yours depends on the requesting organization',
+	},
 	{
 		date: 'July 28, 2026',
 		version: '1.1',
@@ -186,8 +197,11 @@ export default function PrivacyPage() {
 							If an organization requires a background check, you may provide
 							sensitive personal information including your Social Security
 							number, date of birth, and address. This data is sent directly to
-							our background check provider (Checkr) and is not stored on our
-							servers.
+							the background check provider that organization uses — Checkr or
+							Sterling — and is not stored on our servers. Which provider
+							receives it depends on the organization requesting the check; ask
+							them, or contact us, if you need to know which one holds your
+							data.
 						</p>
 						<p>
 							<strong className="text-foreground">
@@ -379,8 +393,11 @@ export default function PrivacyPage() {
 							</li>
 						</ul>
 						<p>
-							Background check data (SSN, DOB) is sent directly to Checkr and is
-							not stored on our servers.
+							Background check data (SSN, DOB) is sent directly to the provider
+							the requesting organization uses — Checkr or Sterling — and is not
+							stored on our servers. The credentials we hold to reach either
+							provider on an organization's behalf are encrypted at the
+							application layer before storage.
 						</p>
 					</div>
 				</div>
@@ -420,8 +437,9 @@ export default function PrivacyPage() {
 								<strong className="text-foreground">
 									Background check results
 								</strong>{' '}
-								are retained according to FCRA requirements and Checkr's data
-								retention policies.
+								are retained according to FCRA requirements and the data
+								retention policy of the provider that ran the check (Checkr or
+								Sterling).
 							</li>
 							<li>
 								<strong className="text-foreground">Billing records</strong> are
@@ -704,7 +722,7 @@ export default function PrivacyPage() {
 			{/* ── Effective date ── */}
 			<div className="border-t border-border/40 px-4 py-8">
 				<p className="mx-auto max-w-3xl text-xs text-muted-foreground">
-					This privacy policy is effective as of July 28, 2026 (Version 1.1).
+					This privacy policy is effective as of July 29, 2026 (Version 1.2).
 				</p>
 			</div>
 		</article>

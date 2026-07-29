@@ -33,12 +33,12 @@ const securityPractices = [
 	{
 		icon: Lock,
 		heading: 'Encryption at rest and in transit',
-		body: 'All data is encrypted in transit with TLS 1.3 and at rest using AES-256. Background check tokens from Checkr are additionally encrypted with application-level encryption before storage.',
+		body: 'All data is encrypted in transit with TLS 1.3 and at rest using AES-256. The credentials we hold to reach a background check provider on your behalf — Checkr OAuth tokens and Sterling API keys alike — are additionally encrypted with application-level encryption before storage.',
 	},
 	{
 		icon: ShieldCheck,
 		heading: 'FCRA-compliant background checks',
-		body: 'Our Checkr integration includes the full adverse action workflow required by the Fair Credit Reporting Act — pre-adverse notice, waiting period, and final adverse action. Organizations stay compliant without legal expertise.',
+		body: 'The full adverse action workflow required by the Fair Credit Reporting Act — pre-adverse notice, waiting period, and final adverse action — lives in the platform, not in one vendor integration, so it runs the same whether your checks go through Checkr or Sterling. Organizations stay compliant without legal expertise.',
 	},
 	{
 		icon: Users,

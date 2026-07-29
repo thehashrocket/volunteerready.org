@@ -89,7 +89,7 @@ export default function TermsPage() {
 				<ul className="list-disc space-y-2 pl-6">
 					<li>Volunteer opportunity posting and discovery</li>
 					<li>Volunteer application management</li>
-					<li>Background check facilitation (via Checkr)</li>
+					<li>Background check facilitation (via Checkr or Sterling)</li>
 					<li>Volunteer credential management</li>
 					<li>Organization administration tools</li>
 					<li>Billing and subscription management (via Stripe)</li>
@@ -164,23 +164,26 @@ export default function TermsPage() {
 			{/* ── 6. Background Checks ── */}
 			<Section id="background-checks" heading="6. Background Checks">
 				<p>
-					VolunteerReady facilitates background checks through Checkr, a
-					third-party consumer reporting agency. By consenting to a background
-					check:
+					VolunteerReady facilitates background checks through Checkr and
+					Sterling, third-party consumer reporting agencies. Which one runs your
+					check is determined by the organization requesting it. By consenting
+					to a background check:
 				</p>
 				<ul className="list-disc space-y-2 pl-6">
 					<li>
-						You authorize Checkr to conduct the check and share the results with
-						the requesting organization
+						You authorize the provider used by the requesting organization to
+						conduct the check and share the results with that organization
 					</li>
 					<li>
 						You understand that sensitive personal information (SSN, DOB) is
-						sent directly to Checkr and is not stored on VolunteerReady's
-						servers
+						sent directly to that provider and is not stored on
+						VolunteerReady&apos;s servers
 					</li>
 					<li>
 						You have the right to dispute the accuracy of background check
-						results directly with Checkr
+						results directly with the provider that ran the check. If you do not
+						know which provider holds your report, ask the requesting
+						organization or contact us and we will tell you
 					</li>
 				</ul>
 				<p>
@@ -350,7 +353,10 @@ export default function TermsPage() {
 			{/* ── Effective date ── */}
 			<div className="border-t border-border/40 px-4 py-8">
 				<p className="mx-auto max-w-3xl text-xs text-muted-foreground">
-					These Terms of Service are effective as of March 19, 2026.
+					These Terms of Service are effective as of July 29, 2026. Last
+					updated: section 6 (Background Checks) now reflects that checks are
+					run by Checkr or Sterling, whichever the requesting organization uses,
+					rather than naming a single provider.
 				</p>
 			</div>
 		</article>
