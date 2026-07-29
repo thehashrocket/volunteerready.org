@@ -394,10 +394,10 @@ export default function PrivacyPage() {
 						</ul>
 						<p>
 							Background check data (SSN, DOB) is sent directly to the provider
-							the requesting organization uses — Checkr or Sterling — and is not
-							stored on our servers. The credentials we hold to reach either
-							provider on an organization's behalf are encrypted at the
-							application layer before storage.
+							the requesting organization uses (see the table above) and is not
+							stored on our servers. The credentials we hold to reach a provider
+							on an organization's behalf are encrypted at the application layer
+							before storage.
 						</p>
 					</div>
 				</div>
@@ -438,8 +438,7 @@ export default function PrivacyPage() {
 									Background check results
 								</strong>{' '}
 								are retained according to FCRA requirements and the data
-								retention policy of the provider that ran the check (Checkr or
-								Sterling).
+								retention policy of the provider that ran the check.
 							</li>
 							<li>
 								<strong className="text-foreground">Billing records</strong> are
