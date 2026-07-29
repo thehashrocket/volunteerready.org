@@ -54,7 +54,9 @@ input-supplied `userId` must first call `requireOrgVolunteerRelationship()` in
 relationship (application, roster row, shift signup, or org membership) or throws
 `NOT_FOUND`. Do not widen the accepted-relationship set at a callsite — a
 relationship staff can mint unilaterally against a stranger (an invitation, a
-credential they are about to issue) authorizes nothing.
+credential they are about to issue) authorizes nothing. An `OrgVolunteerBlock`
+overrides the whole set except `ORG_MEMBER` and `EXISTING_CREDENTIAL`; see the
+volunteer-facing rules below.
 
 That set stays safe only as long as nothing mints those relationships on a
 user's behalf. `application` qualifies **because** an anonymous application is
@@ -79,30 +81,51 @@ REVOKED credential on an unrelated account.
 The same reasoning runs in reverse on **volunteer-facing** procedures. A
 volunteer is not an `OrganizationMember`, so there is no membership to check and
 no `ctx.orgId` to scope by — the scoping key is the caller's own `userId`. Three
-rules for that case, all of which `profile.leaveOrgRoster` (v0.36.0.0) follows:
+rules for that case, all of which `profile.leaveOrgRoster` follows:
 
-1. **The client never names an org.** It sends a row id; the server reads the
-   `orgId` back off the matched row (`leaveOrgRoster` needs it for the
-   `VOLUNTEER_LEFT` audit row). An `orgId` accepted from the client here is an
-   unauthenticated tenant selector.
+1. **A tenant id from the client is a claim, never an authorization.** Prefer
+   sending a row id and reading the `orgId` back off the matched row. Where that
+   is impossible, prove the relationship before writing: `leaveOrgRoster` takes
+   an `orgId` as of v0.37.0.0, because an org holding only a
+   `VolunteerApplication` or a `ShiftSignup` has no roster row to name and must
+   be leavable too — otherwise an org denies the remedy by removing the
+   volunteer first and keeps everything the surviving edges authorize. The
+   service calls `hasLeavableOrgRelationship()` first, so an arbitrary `orgId`
+   cannot mint an `OrgVolunteerBlock` against an org the caller has never
+   touched.
 2. **`userId` goes inside the Prisma `WHERE` of every statement**, read and
    write alike — never a caller-side comparison after the fact, and never in
-   only one of the two. Mutation testing on `softDeleteOwnOrgVolunteer()`
-   confirms neither clause is dead code: drop it from one statement and the
-   security test still passes, drop it from both and it fails. Do not tidy
-   either one away.
+   only one of the two. Mutation testing on the org-keyed
+   `softDeleteOwnOrgVolunteerByOrg()` confirms neither clause is dead code: drop
+   it from one statement and the security test still passes, drop it from both
+   and it fails. Do not tidy either one away.
 3. **"Not mine" and "not real" must be indistinguishable.** Return null /
    `NOT_FOUND` for both, the same way `requireOrgVolunteerRelationship()` throws
-   `NOT_FOUND` rather than `FORBIDDEN`.
+   `NOT_FOUND` rather than `FORBIDDEN`. `leaveOrgRoster` answers `NOT_FOUND` for
+   an unknown org, a stranger's org, and an org already left.
 
-Do not "fix" such a procedure by adding an org check or an `orgId` input to make
-it match the staff-side ones. And do not move volunteer-facing roster procedures
-onto `rosterProcedure`: `profile.listMyOrgMemberships` and
-`profile.leaveOrgRoster` are deliberately **ungated** by the roster feature
-flag, because roster rows get minted regardless of the flag and gating the exit
-would strand volunteers on rosters they cannot leave.
+Do not "fix" such a procedure by adding a membership check to make it match the
+staff-side ones. And do not move volunteer-facing roster procedures onto
+`rosterProcedure`: `profile.listMyOrgMemberships` and `profile.leaveOrgRoster`
+are deliberately **ungated** by the roster feature flag, because roster rows get
+minted regardless of the flag and gating the exit would strand volunteers on
+rosters they cannot leave.
 `src/server/trpc/routers/profile.leave.test.ts` goes red if you do. Corollary:
 grepping `rosterProcedure` does not enumerate every roster surface.
+
+One more rule, specific to the org↔volunteer guard. Leaving writes an
+`OrgVolunteerBlock`, and `findOrgVolunteerRelationship()` suppresses every kind
+except `ORG_MEMBER` and `EXISTING_CREDENTIAL` while one stands. Only the
+volunteer lifts it, through `liftOrgVolunteerBlock()`, and only by re-engaging
+themselves — applying while signed in, claiming an application, or signing up
+for a shift. Do not add a staff-reachable lift path, and do not lift on an
+anonymous application: `screener.submit` is a `publicProcedure` accepting an
+arbitrary `submittedByEmail`, so an address alone clearing a block would hand
+the revocation to anyone who can type it. Any new path that creates a live
+`OrgVolunteer` row must check `findOrgVolunteerBlock()` first — there are four
+today (`addVolunteer`, `ensureAppliedRosterRow`, `restoreVolunteer`, and
+`assignVolunteerToShift`, which reads roster rows directly rather than through
+the guard).
 
 ---
 

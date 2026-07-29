@@ -96,15 +96,46 @@ A row is created either by a coordinator typing a name and email into
 application (`source: APPLIED`). Staff can add any email address without the
 recipient's agreement, so the roster-added email tells the recipient they can
 leave — and `/app/profile` has an "Organizations you volunteer with" card where
-they do (`profile.leaveOrgRoster`).
+they do (`profile.leaveOrgRoster`). That card lists every org that can act on
+them, not just the ones holding a roster row.
 
 Removal from either side is a soft delete, so the row's provenance survives and
-a removed volunteer can be re-added or restored.
+a removed volunteer can be re-added or restored — with one exception: staff
+cannot re-add or restore someone who left of their own accord. See
+`OrgVolunteerBlock`.
 
-Leaving removes the roster edge only. If the volunteer also has an application
-or a shift signup with that org, the org keeps its existing access to their
-org-visible profile and can still issue credentials. It is a roster exit, not a
-revocation.
+---
+
+## OrgVolunteerBlock
+
+A volunteer's standing refusal of one organization's access to them, written
+when they leave that org from `/app/profile` (`profile.leaveOrgRoster`).
+
+Through v0.36.0.0 leaving soft-deleted the roster row and nothing else, which
+revoked nothing durable: staff can recreate that row from an email address, so
+the org could undo the departure in two clicks. As of v0.37.0.0 the same
+transaction also writes an `OrgVolunteerBlock`, and that row is the one piece of
+state in the relationship staff cannot clear.
+
+While a block stands:
+
+- the org's application, roster, and shift-signup edges stop authorizing it, so
+  it loses the volunteer's org-visible profile, credential issuing, and
+  background-check initiation
+- adding, restoring, or auto-rostering that person is refused
+- assigning them to a shift is refused
+
+Two things a block does **not** touch: staff membership (someone who is both a
+coordinator and a volunteer at the same org cannot lock themselves out of it),
+and revoking a credential the org already issued (otherwise that credential
+would stay visible and permanently unrevokable).
+
+Only the volunteer lifts a block, and only by re-engaging with that org
+themselves — applying, claiming an application, or signing up for a shift.
+
+Because leaving is now keyed on the organization rather than on a roster row,
+an org that holds only an application or a shift signup can be left too. An org
+cannot deny the exit by removing the volunteer from its roster first.
 
 ---
 

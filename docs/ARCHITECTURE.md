@@ -93,7 +93,7 @@ Key files:
 - `volunteer-screening.ts` — screening evaluation rules
 - `volunteer-matching.ts` — skill matching and scoring (0-100)
 - `volunteer-profile.ts` — profile completeness scoring
-- `org-volunteer.ts` — roster invariants: `normalizeEmail()`, display-name/phone/email Zod schemas, page-size and cap constants, add-volunteer outcome types
+- `org-volunteer.ts` — roster invariants: `normalizeEmail()`, display-name/phone/email Zod schemas, page-size and cap constants, add-volunteer outcome types, and `MyOrgRelationshipReason` + `MY_ORG_RELATIONSHIP_COPY` (why an org appears on the volunteer's own list — wider than `OrgVolunteerSource`, since that enum describes a roster row and the list is no longer roster-only)
 - `shift.ts` — shift capacity, signup validation, attendance
 - `notification.ts` — notification types and domain functions
 - `background-check.ts` — FCRA state machine, PII sanitization
@@ -128,9 +128,9 @@ Key services:
 - `volunteer-screening.ts` — screening evaluation, duplicate application prevention (P2002 handler), status notification emails (REVIEW/APPROVED/REJECTED)
 - `volunteerMatchingService.ts` — skill matching and recommendations
 - `volunteerProfileService.ts` — profile management
-- `staffVolunteerService.ts` — org volunteer roster: staff add/remove/restore, plus the volunteer's own `listMyOrgMemberships` / `leaveOrgRoster`
-- `appliedRosterService.ts` — materializes the roster row an approved application implies (`ensureAppliedRosterRow()`)
-- `orgVolunteerAccessService.ts` — `requireOrgVolunteerRelationship()`, the org↔volunteer authorization guard
+- `staffVolunteerService.ts` — org volunteer roster: staff add/remove/restore, plus the volunteer's own `listMyOrgMemberships` / `leaveOrgRoster`. `addVolunteer` and `restoreVolunteer` refuse with `FORBIDDEN` while an `OrgVolunteerBlock` stands
+- `appliedRosterService.ts` — materializes the roster row an approved application implies (`ensureAppliedRosterRow()`); returns false instead of creating one when the applicant has blocked the org
+- `orgVolunteerAccessService.ts` — `requireOrgVolunteerRelationship()`, the org↔volunteer authorization guard, plus `liftOrgVolunteerBlock()` — the only way a block is cleared, called from the three places a volunteer re-engages with an org of their own accord (application submit, claim, shift signup)
 - `volunteerCredentialService.ts` — credential lifecycle
 - `shiftService.ts` — shift CRUD and status transitions
 - `shiftSignupService.ts` — signup with conflict detection, attendance, waitlist auto-promote
@@ -189,6 +189,7 @@ Entities:
 - User
 - Organization / OrganizationMember (staff side)
 - OrgVolunteer (volunteer side of the same join — roster membership, no role)
+- OrgVolunteerBlock (the volunteer's standing refusal of one org's access)
 - VolunteerApplication / VolunteerAnswer
 - ScreenerQuestion
 - VolunteerOpportunity / OpportunityTag / OpportunityRequirement / OpportunityInterest
@@ -230,6 +231,8 @@ User
  │         └─ AuditLog
  ├─ OrgVolunteer (roster row, org-scoped, soft-deleted)
  │    └─ Organization
+ ├─ OrgVolunteerBlock (access revoked by the volunteer, org-scoped, hard row)
+ │    └─ Organization
  ├─ CompanyMember
  │    └─ CompanyAccount
  │         └─ CompanyNonprofitLink
@@ -243,7 +246,10 @@ User
 purpose: a volunteer on an org's roster is not a member of that org. The row is
 created by staff (or materialized from an approved application) and can be
 soft-deleted from either side — staff removal, or the volunteer leaving via
-`profile.leaveOrgRoster`.
+`profile.leaveOrgRoster`. `OrgVolunteerBlock` hangs off `User` for the same
+reason and is the volunteer's own row: staff can create, remove, and restore an
+`OrgVolunteer` row, but only the volunteer writes a block and only their own
+re-engagement lifts one.
 
 See `docs/DOMAIN.md` for canonical vocabulary.
 
@@ -317,20 +323,48 @@ from "not real". It gates `profile.getOrgVisibleProfile`, `credentials.issue`,
 relationship kind is written to the audit metadata as the record of why the
 action was permitted.
 
-The guard accepts several relationship kinds, so removing one does not
-necessarily end the org's access. A volunteer leaving a roster
-(`profile.leaveOrgRoster`, v0.36.0.0) soft-deletes the `OrgVolunteer` edge and
-nothing else: an application or a shift signup still resolves, and the org keeps
-`getOrgVisibleProfile` / `credentials.issue` / `backgroundChecks.initiate`.
-Leaving is a roster exit, not a revocation of access — do not document or
-describe it as the latter.
+The guard accepts several relationship kinds, so removing one does not by itself
+end the org's access — which is why leaving an org is not modelled as a removal.
+Through v0.36.0.0 `profile.leaveOrgRoster` soft-deleted the `OrgVolunteer` edge
+and nothing else, so an application or a shift signup still resolved and the org
+kept `getOrgVisibleProfile` / `credentials.issue` / `backgroundChecks.initiate`
+— and `addVolunteer` could recreate the roster row from an email address anyway.
+
+As of v0.37.0.0 leaving writes an `OrgVolunteerBlock` in the same transaction,
+and `findOrgVolunteerRelationship()` suppresses every kind it resolved except
+`ORG_MEMBER` and `EXISTING_CREDENTIAL` once one exists. Three properties of that
+design are load-bearing:
+
+- **The block check runs after the probes, not before.** Blocks are rare;
+  checking first would add a query to every call to save one on almost none. The
+  rejection path (already four queries) is unchanged and the accept path pays one
+  indexed lookup on a unique key.
+- **`ORG_MEMBER` is exempt, and is re-probed after a suppression.** Staff
+  membership is not a volunteer relationship and is not what leaving revokes.
+  Without the exemption a coordinator who is also on their own org's roster would
+  lock themselves out by leaving it; without the re-probe they would lose it
+  merely because `APPLICATION` was found first.
+- **`EXISTING_CREDENTIAL` is exempt.** It is opt-in and reached only by
+  `revokeCredential`, which is strictly narrowing. Suppressing it recreates the
+  dead end `acceptExistingCredential` exists to prevent — `listOrgCredentials`
+  filters on `orgId` alone, so the credential stays visible and permanently
+  unrevokable, and only the volunteer can lift a block.
+
+Blocks are lifted only by `liftOrgVolunteerBlock()`, and only from an act the
+volunteer takes themselves: submitting an application while signed in, claiming
+one, or signing up for a shift. Staff have no path to it — which is the whole
+point, since every other edge in the set is one they can mint from an email
+address.
 
 The mirror of this guard runs on volunteer-facing procedures, where the trust
-direction inverts again: the caller is the volunteer, there is no `ctx.orgId`
-(a volunteer is not an `OrganizationMember`), and the untrusted input is a row
-id. Those procedures put the caller's `userId` inside the Prisma `WHERE` of
-every statement that reads or writes the row, and read the `orgId` back off the
-matched row rather than accepting one from the client.
+direction inverts again: the caller is the volunteer and there is no `ctx.orgId`
+(a volunteer is not an `OrganizationMember`). Those procedures put the caller's
+`userId` inside the Prisma `WHERE` of every statement that reads or writes the
+row. Where the caller owns a row, the `orgId` is read back off it rather than
+accepted from the client; where they may not own one — `leaveOrgRoster` is now
+addressed by `orgId`, because an org holding only an application has no roster
+row to name — the service proves a real relationship exists before writing
+anything, so a crafted `orgId` still reaches only the caller's own rows.
 
 ### Platform Admin
 

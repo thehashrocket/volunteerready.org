@@ -147,6 +147,7 @@ flowchart TB
 erDiagram
     User ||--o{ OrganizationMember : belongs_to
     User ||--o{ OrgVolunteer : rostered_at
+    User ||--o{ OrgVolunteerBlock : revokes_access_of
     User ||--o{ CompanyMember : belongs_to
     User ||--o| VolunteerProfile : has
     User ||--o{ VolunteerSkill : has
@@ -154,6 +155,7 @@ erDiagram
 
     Organization ||--o{ OrganizationMember : has
     Organization ||--o{ OrgVolunteer : rosters
+    Organization ||--o{ OrgVolunteerBlock : blocked_by
     Organization ||--o{ ScreenerQuestion : has
     Organization ||--o{ VolunteerApplication : receives
     Organization ||--o{ VolunteerOpportunity : publishes
@@ -274,6 +276,13 @@ erDiagram
         datetime deletedAt
     }
 
+    OrgVolunteerBlock {
+        string id
+        string orgId
+        string userId
+        datetime createdAt
+    }
+
     CompanyAccount {
         string id
         string name
@@ -294,6 +303,13 @@ erDiagram
   index (`WHERE "deletedAt" IS NULL`), so a soft-deleted row does not block
   re-adding the same volunteer. Prisma cannot see it, so `upsert`/`findUnique`
   on the pair do not exist.
+- `OrgVolunteerBlock` is unique per `(orgId, userId)` via a **plain** compound
+  unique — no soft delete, so "at most one block per pair" is the whole rule and
+  `upsert`/`findUnique` on the pair DO exist. It is the volunteer's own row:
+  written only by `leaveOrgRoster`, cleared only by the volunteer re-engaging
+  (`liftOrgVolunteerBlock`). While it exists,
+  `findOrgVolunteerRelationship()` resolves nothing for that org except
+  `ORG_MEMBER` and `EXISTING_CREDENTIAL`.
 - `VolunteerCredential` is unique per `(userId, orgId, type)`.
 - `ShiftSignup` is unique per `(shiftId, userId)`.
 - `FeatureFlag` is unique per `(orgId, key)`.
@@ -486,17 +502,23 @@ Any **staff** org-scoped action should enforce:
    `src/server/services/orgVolunteerAccessService.ts`. Steps 1-5 prove the
    caller is staff and where; none of them says the person named in the input
    has ever heard of that org, and user ids are not secret (`/v/[userId]` is
-   public).
+   public). The relationship resolves to nothing but `ORG_MEMBER` /
+   `EXISTING_CREDENTIAL` once the volunteer has written an `OrgVolunteerBlock`
+   against that org.
 
 If any of those are skipped, the feature is likely insecure.
 
 **Volunteer-facing** org-scoped actions are the documented exception and skip
 steps 2-5 on purpose. A volunteer is not an `OrganizationMember`, so there is no
 membership to check; the scoping key is the caller's own `userId`, held inside
-the Prisma `WHERE` of every statement, and the `orgId` is read back off the
-matched row rather than accepted from the client. `profile.leaveOrgRoster` is
-the reference implementation. Adding an org check there would not harden it — it
-would introduce a client-supplied tenant selector.
+the Prisma `WHERE` of every statement. Where the caller owns a row, the `orgId`
+is read back off it rather than accepted from the client. `profile.leaveOrgRoster`
+is the reference implementation, and as of v0.37.0.0 it is the documented
+exception to that last part too: it takes an `orgId`, because an org holding
+only an application or a shift signup has no roster row to name and must still
+be leavable. The `orgId` is treated as a claim — `hasLeavableOrgRelationship()`
+proves a real edge before anything is written. Adding a membership check there
+would not harden it.
 
 ---
 

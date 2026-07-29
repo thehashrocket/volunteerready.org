@@ -83,57 +83,98 @@ If membership fails, the request should return an authorization error.
 
 This is the **staff** path. Volunteer-facing procedures that touch org-scoped
 rows do not follow it: a volunteer is not an `OrganizationMember`, so there is
-no membership to verify and no `currentOrgId` to resolve. See "Volunteer Roster
-Exit Flow" below for the shape those take instead.
+no membership to verify and no `currentOrgId` to resolve. See "Volunteer Access
+Revocation Flow" below for the shape those take instead.
 
 ---
 
-# Volunteer Roster Exit Flow
+# Volunteer Access Revocation Flow
 
-A volunteer removes themselves from one organization's roster. Staff can add any
-email address to a roster without the recipient's consent, and the roster-added
-email promises the recipient they can leave from `/app/profile`, so this is the
+A volunteer revokes one organization's access to them. Staff can add any email
+address to a roster without the recipient's consent, and the roster-added email
+promises the recipient they can leave from `/app/profile`, so this is the
 surface that keeps that promise.
 
 ```
 Volunteer UI (/app/profile → "Organizations you volunteer with")
     -> tRPC Query (profile.listMyOrgMemberships)   [protectedProcedure, UNGATED]
         -> staffVolunteerService.listMyOrgMemberships(userId)
-            -> listOrgVolunteersByUser(userId)   WHERE userId, deletedAt: null
-        -> Returns { id, source, createdAt, organization { name, slug } }
-           (never userId — a cross-tenant correlation handle)
+            -> listMyOrgRelationships(userId)
+                 roster rows   WHERE userId, deletedAt: null
+                 applications  WHERE submittedByUserId = userId, distinct orgId
+                 shift signups WHERE userId, joined THROUGH Shift.orgId
+                 blocks        WHERE userId          <-- excluded from the list
+                 org memberships for the surviving orgs  -> isStaff
+        -> Returns { orgId, organization { name, slug }, reason, since,
+                     onRoster, isStaff }
+           (never the volunteer's userId — a cross-tenant correlation handle)
 
-    -> tRPC Mutation (profile.leaveOrgRoster { volunteerId })
-       volunteerId is an OrgVolunteer.id — a ROW id, not a User.id
+    -> tRPC Mutation (profile.leaveOrgRoster { orgId })
         -> staffVolunteerService.leaveOrgRoster()
-            -> softDeleteOwnOrgVolunteer(tx, userId, id)
-                -> findFirst  WHERE id, userId, deletedAt: null   <-- userId in WHERE
-                -> updateMany WHERE id, userId, deletedAt: null   <-- userId in WHERE
-                -> returns orgId, or null if nothing matched
-            -> Write AuditLog (VOLUNTEER_LEFT, scoped to the returned orgId)
+            -> hasLeavableOrgRelationship(tx, orgId, userId)   <-- precondition
+                 roster row OR application OR shift signup, else NOT_FOUND
+            -> findOrgVolunteerBlock(orgId, userId)  -> already left? NOT_FOUND
+            -> softDeleteOwnOrgVolunteerByOrg(tx, userId, orgId)   [OPTIONAL]
+                 -> findFirst  WHERE orgId, userId, deletedAt: null
+                 -> updateMany WHERE id, userId, deletedAt: null
+                 -> returns the row id, or null when there was no roster row
+            -> createOrgVolunteerBlock(tx, orgId, userId)         [MANDATORY]
+                 upsert on the (orgId, userId) compound unique
+            -> Write AuditLog (VOLUNTEER_LEFT, metadata.hadRosterRow)
     -> UI drops the row from the card
 ```
 
-Three properties worth preserving:
+Four properties worth preserving:
 
-- **The client never names an org.** `orgId` comes back off the matched row, so
-  the audit entry is scoped to the org that lost the volunteer without the
-  caller being able to pick one.
-- **`userId` sits in the `WHERE` of both statements.** Either alone closes the
-  hole; both are kept so a later refactor of one does not silently open it.
-- **Null covers every miss.** Unknown id, someone else's id, and an
-  already-left row are deliberately indistinguishable to the caller. A zero-row
-  update also means a concurrent leave already wrote the audit row, so this one
-  returns null rather than double-counting the departure.
+- **The block is the half that revokes, and it is not optional.** The soft
+  delete is: an application-only or shift-only org has no roster row, and `null`
+  there is a normal outcome rather than an error. Both run in one transaction —
+  a leave that dropped the row but not the block would report success while
+  revoking nothing.
+- **The `orgId` is a claim, checked before any write.**
+  `hasLeavableOrgRelationship()` runs first, so an arbitrary `orgId` cannot mint
+  a block against an org the caller has never interacted with. It deliberately
+  does not reuse `findOrgVolunteerRelationship()`: that function now consults
+  blocks, so it could not tell "no relationship" from "already blocked", and it
+  accepts `ORG_MEMBER`, which must not by itself make an org leavable.
+- **`userId` sits in the `WHERE` of both roster statements.** Either alone
+  closes the hole; both are kept so a later refactor of one does not silently
+  open it.
+- **`NOT_FOUND` covers every miss.** Unknown org, an org the caller has no edge
+  with, and an org already left are deliberately indistinguishable. The
+  already-left case is reachable from a stale tab, since the listing filters
+  blocked orgs out, and answering `NOT_FOUND` keeps one departure from writing
+  two audit rows.
 
 Both procedures are `protectedProcedure`, deliberately **not** `rosterProcedure`
 — the roster feature flag gates staff surfaces, and gating the volunteer's exit
 would strand people on rosters they cannot leave.
 
-Leaving soft-deletes the `OrgVolunteer` edge and nothing more. An application or
-shift signup still satisfies `requireOrgVolunteerRelationship()`, so the org
-retains `getOrgVisibleProfile` / `credentials.issue` /
-`backgroundChecks.initiate`. This is a roster exit, not a revocation.
+The list is keyed on the ACCESS, not on the roster. Listing only live roster
+rows let an org deny the remedy by removing the volunteer first: the row (and
+the Leave button) vanished, while the `VolunteerApplication` or `ShiftSignup` it
+still held kept satisfying `requireOrgVolunteerRelationship()`. `ORG_MEMBER`
+never puts an org on the list — it is surfaced as `isStaff` so the UI can say
+plainly that leaving changes nothing for a coordinator at their own org.
+
+While the block stands, the org loses `getOrgVisibleProfile` /
+`credentials.issue` / `backgroundChecks.initiate`, and `addVolunteer`,
+`ensureAppliedRosterRow`, `restoreVolunteer`, and `assignVolunteerToShift` all
+refuse. Only the volunteer lifts it:
+
+```
+Volunteer applies / claims an application / signs up for a shift
+    -> liftOrgVolunteerBlock(tx, orgId, userId)
+        -> deleteOrgVolunteerBlock  (deleteMany — a missing block is the norm)
+        -> if a row was removed: Write AuditLog (ORG_ACCESS_RESTORED)
+```
+
+It is a no-op when nothing was blocked, because every caller invokes it
+unconditionally inside a transaction that is really about something else. An
+anonymous application does **not** lift: `screener.submit` is a
+`publicProcedure` accepting an arbitrary `submittedByEmail`, so letting an
+address alone clear a block would hand the revocation back to anyone who can
+type it.
 
 ---
 
