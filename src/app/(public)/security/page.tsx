@@ -5,6 +5,7 @@ import {
 	Lock,
 	Shield,
 	ShieldCheck,
+	UserMinus,
 	Users,
 } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -55,9 +56,14 @@ const securityPractices = [
 		body: 'Every significant action — application approvals, credential issuance, background check requests, team changes — is logged with timestamps, attribution, and before/after state.',
 	},
 	{
+		icon: UserMinus,
+		heading: 'Volunteer-controlled access revocation',
+		body: "Volunteers can revoke any single organization's access to them from their profile, instantly and without asking us. That organization can no longer open their volunteer record, schedule them, or request a background check — and it cannot undo the revocation or re-add them. Only the volunteer can restore the relationship. Two documented limits: a profile set to Public stays publicly visible until the volunteer changes that, and a volunteer who is also staff at that organization keeps their staff access.",
+	},
+	{
 		icon: Database,
 		heading: 'Data portability',
-		body: "Organizations can export their data anytime via CSV. Volunteers own their portable credentials. We don't hold your data hostage — if you leave, your data leaves with you.",
+		body: "Organizations can export their data anytime via CSV. Volunteers own their portable credentials. We don't hold your data hostage — if you leave the platform, your data leaves with you.",
 	},
 ];
 

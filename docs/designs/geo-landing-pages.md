@@ -227,8 +227,8 @@ model LeadCapture {
 - Skip link: include in page layout for keyboard users to skip to lead form
 - Form success state: `role="status"` + `aria-live="polite"` so screen readers announce the confirmation
 
-**Motion spec (3 intentional motions, per DESIGN.md minimal-functional):**
-1. Hero screenshot: `FadeInOnScroll` with 200ms delay (screenshot appears as user's eye moves right)
+**Motion spec (2 live motions as of v0.37.1.0 — 3 as originally designed, per DESIGN.md minimal-functional):**
+1. ~~Hero screenshot: `FadeInOnScroll` with 200ms delay (screenshot appears as user's eye moves right)~~ **Superseded in v0.37.1.0 — do not reinstate.** The hero screenshot is above the fold and carries `priority` (it is the LCP candidate), and `FadeInOnScroll` holds its children at `opacity-0` until an IntersectionObserver reports 15% visibility — a threshold that never fires for content already in view on shorter viewports (~<820px). The `delay={200}` made it strictly worse. `screenshot-section.tsx` carries the same rule as `{priority ? content : <FadeInOnScroll>}`; `LocationHero` renders the image unwrapped. The hero has no entrance motion; motions 2 and 3 below stand.
 2. Comparison table rows: staggered `FadeInOnScroll` with 75ms delay per row (reuse existing pattern from FaqSection)
 3. Lead form success state: 250ms ease-out transition from form to confirmation card (opacity + translateY)
 No other animations. No decorative motion. These three serve comprehension.

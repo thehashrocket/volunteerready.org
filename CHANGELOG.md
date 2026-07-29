@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.37.1.0] - 2026-07-28
+
+### Changed
+- The privacy policy now describes how the platform actually works. It said your data reaches an organisation "when you apply" — which stopped being the whole story when organisations gained the ability to add volunteers to a roster directly, from an email address, before you have applied and before you have an account. That path is now written down, along with what an organisation can do once it holds you: see your volunteer profile, schedule you for shifts, and request a background check. The section on who your data is shared with previously named only our suppliers and not organisations at all, which had become the largest omission in the document.
+- Leaving an organisation is now listed as a right you hold, alongside access, correction, deletion and portability. It is the only one you exercise yourself, from your profile, without emailing anyone and without waiting thirty days — and the policy says so, rather than routing every right through the same contact address.
+- The policy is explicit that revoking is not deleting. An organisation you leave keeps your application, the shifts you were already booked on, and the hours you volunteered. It can also still record whether you turned up to a shift you had already agreed to, which nothing previously told you.
+- Both limits on leaving are stated plainly wherever leaving is described. A profile you have set to Public stays publicly visible until you change that, so leaving one organisation does not hide you from anyone. And if you are on that organisation's staff as well, leaving its volunteer list does not touch your staff access. The in-app confirmation had been saying both for a release; the public pages had not.
+- Rejoining an organisation you left requires signing in first. Applying while signed out submits an application that is not linked to you, so it cannot lift the block you placed — the pages that suggested plain "apply again" were describing a route that quietly does not work.
+- New questions on the volunteer and how-it-works pages cover leaving an organisation, what leaving does not undo, and what happens to an application you submitted before you had an account. The last of those had shipped with no public explanation anywhere, so anyone who applied anonymously met a consent prompt they had no way to look up.
+- The security page now lists volunteer-controlled access revocation as a practice, and no longer says "if you leave, your data leaves with you" without qualification — "leave" now has a second, narrower meaning where the opposite is true.
+
+### Fixed
+- The six city pages now show the product screenshot beside the headline. They never have: the image pointed at a file that has never existed in the repository, and because a missing image is hidden rather than shown broken, the right-hand half of every one of those pages had simply been empty since they launched. The image now comes from the same catalogue as every other marketing screenshot, so a missing file fails CI instead of quietly blanking the page.
+- The volunteer profile screenshot was captured before the "Organisations you volunteer with" card existed, and its caption promised things the picture did not show. It has been retaken and the card is called out directly.
+- Several image descriptions read aloud by screen readers named things that are not in the picture. They now describe what is actually there.
+
 ## [0.37.0.0] - 2026-07-28
 
 ### Changed

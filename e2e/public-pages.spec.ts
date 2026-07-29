@@ -156,6 +156,14 @@ const SCREENSHOT_PAGES = [
 	{ path: '/for/animal-shelters', minImages: 1 },
 	{ path: '/how-it-works', minImages: 1 },
 	{ path: '/screening', minImages: 1 },
+	// One representative geo page — all six share `LocationHero`, so a second
+	// slug would re-test the same component against the same asset. This entry
+	// exists because the hero pointed at `/images/dashboard-screenshot.png`,
+	// which has never existed on disk, from the day the location pages shipped
+	// until this entry was added. `onError` blanked the hero's right column rather than
+	// showing a broken icon, so it degraded quietly on all six lead-capture
+	// pages and no test looked. `minImages: 1` is what makes that loud.
+	{ path: '/locations/stockton', minImages: 1 },
 ] as const;
 
 test.describe('Marketing screenshots load', () => {

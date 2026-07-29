@@ -197,7 +197,7 @@ export default async function Home() {
 
 			<ScreenshotSection
 				src={MARKETING_SCREENSHOTS.dashboard.src}
-				alt="VolunteerReady dashboard showing volunteer roster, credential status, and shift coverage"
+				alt="VolunteerReady dashboard showing published opportunities, application counts by status, and organization setup progress"
 				caption="The dashboard coordinators open every morning."
 				priority
 			/>
