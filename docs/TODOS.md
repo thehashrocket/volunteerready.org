@@ -11,7 +11,40 @@ Five specialists plus an adversarial pass reviewed a marketing-copy diff. Most
 findings turned out to be about the *product*, not the copy — the copy was only
 the first place the gaps became visible.
 
-### [P1] The privacy policy names Checkr as the only background-check provider; Sterling is live and receives SSN + DOB
+### [P1] ~~The privacy policy names Checkr as the only background-check provider; Sterling is live and receives SSN + DOB~~ ✅ FIXED (v0.37.2.0)
+
+Fixed, and the scope was wider than this entry described. It was not four sites
+on one page — it was **eleven across three legal/trust pages**, and `/terms` had
+the sharper defect:
+
+- `/terms` §6 said *"You authorize **Checkr** to conduct the check"* and *"You
+  have the right to dispute the accuracy of background check results directly
+  with **Checkr**."* For anyone screened through Sterling those named the wrong
+  consumer reporting agency — the second being the FCRA dispute-rights sentence,
+  i.e. the one telling a volunteer where to go to correct a report that could
+  cost them a position. Terms also has no version history, only an effective
+  date, which is now bumped with a note saying what changed.
+- `/security` was under-inclusive rather than false in two places: the adverse
+  action workflow is **platform-level** (verified: no `CHECKR`/`STERLING`
+  branching anywhere in the FCRA path), not part of "our Checkr integration";
+  and Sterling API keys get the same `encrypt()` treatment Checkr OAuth tokens
+  do (`connectSterlingAccount`, `backgroundCheckService.ts:1044`).
+
+The prose is provider-neutral where the reader does not need the vendor name and
+names both where they do — with an explicit "ask the organization, or ask us,
+which one holds your data", since which provider receives a given volunteer's
+SSN is per-org and not something the policy can state statically.
+
+**Regression guard added.** `src/app/(public)/privacy/page.test.ts` derives the
+expectation from the `BackgroundCheckProvider` enum — the same enum
+`registry.ts`'s `getAdapter()` switches on — so a third provider that reaches
+production without a disclosure row is a red test, not something a human has to
+notice on a re-read. Mutation-verified: deleting the Sterling row fails it with
+an actionable message. This also partly closes the P3 below on version/date
+being two hand-edited strings (shape and ordering are now pinned; the footer
+prose itself is still hand-copied).
+
+Original write-up follows.
 
 Found by the post-ship cross-model doc review, not by the five specialists —
 pre-existing, but this ship republished the policy as v1.1 and rewrote its
