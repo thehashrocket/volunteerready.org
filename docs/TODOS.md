@@ -5,6 +5,81 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the site-content accuracy ship (2026-07-28, v0.37.1.0)
+
+Five specialists plus an adversarial pass reviewed a marketing-copy diff. Most
+findings turned out to be about the *product*, not the copy — the copy was only
+the first place the gaps became visible.
+
+### [P2] `listMyOrgRelationships` caps at 200, and the copy nearly promised it does not
+
+`MY_MEMBERSHIPS_CAP = 200` (`org-volunteer.ts:20`) is applied as three separate
+`take: 200` reads (roster, applications, shift signups — `orgVolunteerRepo.ts:224,
+237, 251`) then `.slice(0, 200)` over the merge (`:313`). A volunteer with 200+
+shift signups at recent orgs silently drops older orgs off `/app/profile`
+entirely. Those orgs still satisfy `findOrgVolunteerRelationship` through
+`SHIFT_SIGNUP`, and the Leave button is the only self-service exit — so their
+access, including `backgroundChecks.initiate`, becomes permanently unrevokable.
+
+The privacy policy and both FAQ pages were worded in this ship to avoid the
+absolute ("Organizations holding this access are listed on your profile page"),
+but that is a copy workaround for a product gap. The real fix is to make the
+truncation distinct-by-`orgId` rather than per-source row counts — note the
+`shiftSignup` read's `distinct` is on `shiftId`, a no-op given
+`@@unique([shiftId, userId])`; it needs to be on `shift.orgId`. Surface an
+explicit "showing N of M" if the cap is ever hit. **Effort:** M.
+
+### [P2] There is no admin path to revoke an org on a volunteer's behalf
+
+Drafted privacy copy promised "email privacy@volunteerready.org and we will
+remove the entry for you" before review caught that nothing implements it:
+nothing under `app/admin` or `routers/admin.ts` touches `OrgVolunteer`,
+`OrgVolunteerBlock`, or `leaveOrgRoster`. Fulfilling it means hand-editing the
+database, and a hand-issued soft delete writes **no block** — so the org re-adds
+the person via `addVolunteer` in two clicks, which is precisely what v0.37.0.0
+exists to prevent. The copy now routes these users to the magic-link sign-in
+path instead. To make an emailed remedy real, add a platform-admin action calling
+`leaveOrgRoster` (or a wrapper writing the same block + `VOLUNTEER_LEFT` audit
+row) for a named user+org. The population needing it most — staff-created shadow
+users — is the one that gets no notification email at all (`shouldNotifyByEmail`
+returns true only for `LINKED_ACTIVE`). **Effort:** M.
+
+### [P3] `LocationHero` hides on the first image error; the siblings retry
+
+`AnnotatedScreenshot` retries the raw unoptimized asset before hiding, precisely
+so "a transient optimizer 5xx must degrade to an unoptimized image, not silently
+delete marketing content" (`annotated-screenshot.tsx:61-64`, 5 tests).
+`LocationHero` hides on error #1, so a transient `/_next/image` 5xx still blanks
+the hero on all six lead-capture pages — the same silent-degradation class this
+ship fixed, moved from "404 forever" to "transient error". Either render the hero
+through `AnnotatedScreenshot` or extract the retry. **Effort:** S.
+
+### [P3] The `Organizations` stat card contradicts the marketing screenshot
+
+Already recorded as a P3 from the T32 ship (the card counts
+`OrganizationMember`, the section below counts roster relationships). It is now
+**visible in a shipped marketing asset**: `public/marketing/profile.png` shows
+"0 Organizations" directly above "Organizations you volunteer with: Riverside
+Animal Shelter", and the new annotation marker points the reader at that region.
+Fix at the next recapture — either give the `volunteer` capture actor a staff
+membership, or rename the card to "Staff roles". **Effort:** S.
+
+### [P3] `/for/volunteers` annotations are unasserted
+
+`ANNOTATED_PAGES` in `e2e/public-pages.spec.ts` covers only `/how-it-works` and
+`/screening`, and hardcodes `toHaveCount(3)`. `/for/volunteers` now has four
+markers and nothing checks markers and legend entries stay 1:1. Drive the count
+from the page's annotations array rather than adding another literal.
+**Effort:** S.
+
+### [P3] Privacy policy version and effective date are two hand-edited strings
+
+`versionHistory[0]` and the footer literal must agree and nothing asserts it. A
+bump touching only one publishes a legal document contradicting its own
+changelog. Derive the footer from `versionHistory[0]`. **Effort:** S.
+
+---
+
 ## Deferred from the T32 volunteer-exit ship (2026-07-28, v0.36.0.0)
 
 Shipped: `leaveOrgRoster()` + the "Organizations you volunteer with" card on
