@@ -92,6 +92,26 @@ describe('sendRosterAddedEmail', () => {
 		const body = bodyOf(mocks.sendEmail.mock.calls[0]);
 		expect(body).toContain('/app/profile');
 		expect(body).toMatch(/leave/i);
+		// The exit REVOKES as of v0.37.0.0; before that it only dropped a roster
+		// row. `/leave/i` alone passed under both meanings, so it cannot tell the
+		// email is still describing the old one.
+		expect(body).toMatch(/remove that\s+access/i);
+	});
+
+	it('names the profile-visibility capability, but not background checks', async () => {
+		await sendRosterAddedEmail({
+			to: 'ada@example.com',
+			orgName: 'Helping Hands',
+		});
+
+		const body = bodyOf(mocks.sendEmail.mock.calls[0]);
+		expect(body).toMatch(/see your volunteer\s+profile/i);
+		// Deliberate omission, pinned so it is a decision rather than a drift: this
+		// is a cold notice, and leading with the SSN-collecting capability would
+		// misrepresent a feature most orgs never touch. The full list lives on the
+		// /app/profile confirm, where someone who followed the link deliberates.
+		// If this assertion is ever flipped, flip the card description with it.
+		expect(body).not.toMatch(/background check/i);
 	});
 
 	it('does not mark itself critical or request unclaimed suppression', async () => {

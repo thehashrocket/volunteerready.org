@@ -52,7 +52,7 @@ import { getCredentialMeta } from '@/lib/credential-meta';
 import { formatDateOnly } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
 import { NOTIFICATION_TYPE_LABELS } from '@/server/domain/notification';
-import { ORG_VOLUNTEER_SOURCE_COPY } from '@/server/domain/org-volunteer';
+import { MY_ORG_RELATIONSHIP_COPY } from '@/server/domain/org-volunteer';
 
 // ---------------------------------------------------------------------------
 // Interest chip-input (same pattern as SkillInput)
@@ -613,7 +613,12 @@ function OrgMemberships() {
 	const leave = trpc.profile.leaveOrgRoster.useMutation({
 		onSuccess: async () => {
 			setConfirmingId(null);
-			toast.success('You left that roster.');
+			// Deliberately does not claim access was removed. It usually was, but
+			// not for the ORG_MEMBER-exempt case (staff at their own org), and this
+			// one string is shared by every row. The confirm above is where the
+			// per-row promise is made, and it branches; the toast only confirms the
+			// action happened.
+			toast.success('You left that organization.');
 			await utils.profile.listMyOrgMemberships.invalidate();
 		},
 		onError: (err) => {
@@ -659,9 +664,25 @@ function OrgMemberships() {
 		<Card>
 			<CardHeader>
 				<CardTitle>Organizations you volunteer with</CardTitle>
+				{/* Names capabilities, not just the list, because Leave revokes them —
+				    a permissions surface has to say what the permissions are before
+				    the button is pressed.
+
+				    Background checks ARE named here. They were omitted at first, on
+				    the reasoning that "they can request a background check" reads as a
+				    threat about a capability most orgs never use, with the full list
+				    kept for the confirm. Review inverted that: the card is the
+				    stay-or-go decision and the confirm is reachable only by people
+				    already leaving, so the omission showed the most consent-material
+				    fact — the path that collects SSN and date of birth — only to those
+				    who had decided to go, and hid it from everyone deciding to stay.
+				    The alarm concern was real but is a FRAMING problem, so it is
+				    solved by framing ("Leaving removes all of it") rather than by
+				    omission. The email is still deliberately non-exhaustive; it is a
+				    cold notice, not a decision surface (see sendRosterAddedEmail). */}
 				<CardDescription>
-					These organizations have you on their volunteer roster, so they can
-					schedule you for shifts and record your hours.
+					These organizations can schedule you for shifts, see your volunteer
+					profile, and request a background check. Leaving removes all of it.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -674,7 +695,7 @@ function OrgMemberships() {
 				    removed them, which is otherwise a link to a page with no answer. */}
 				{rows.length === 0 ? (
 					<p aria-live="polite" className="text-sm text-muted-foreground">
-						No organizations have you on a volunteer roster.
+						No organizations have access to your volunteer profile.
 					</p>
 				) : (
 					/* aria-live: a row vanishing is the only confirmation that the leave
@@ -682,32 +703,69 @@ function OrgMemberships() {
 					   other statement of the resulting list state. */
 					<ul aria-live="polite" className="divide-y rounded-md border">
 						{rows.map((row) => {
-							const isConfirming = confirmingId === row.id;
+							const isConfirming = confirmingId === row.orgId;
 							const orgName = row.organization.name;
 
 							return (
 								<li
-									key={row.id}
+									key={row.orgId}
 									className="flex flex-wrap items-center justify-between gap-3 p-3"
 								>
 									<div className="min-w-0 text-sm">
 										<p className="break-words font-medium">{orgName}</p>
-										<p className="text-muted-foreground">
-											{/* Phrased as a question, and honest about all THREE things
-										    leaving does not do. Leaving drops the roster edge only:
-										    an application you sent stays sent (and still satisfies
-										    requireOrgVolunteerRelationship as APPLICATION, so that
-										    org keeps the access it grants), recorded hours stay
-										    recorded, and nothing stops them adding you again.
-										    Naming only two of the three was the same overpromise
-										    the claim flow's decline row was corrected for in
-										    v0.34.0.0 — and the application is the consent-material
-										    one, so it is stated first on the rows where it applies. */}
+										{/* Promoted out of muted while confirming. --muted-foreground
+									    on --card is ~4.16:1, under the 4.5:1 AA floor at this size
+									    — tolerable for the resting metadata line ("Added by their
+									    staff · Jul 3"), not for the only statement of what a
+									    destructive, security-relevant action does. Styling the most
+									    consequential sentence on the page as its least important
+									    text tells the reader to skip it. */}
+										<p
+											className={
+												isConfirming
+													? 'text-foreground'
+													: 'text-muted-foreground'
+											}
+										>
+											{/* Question, then what CHANGES, then what persists, then
+										    how to come back. Order matters: until the
+										    OrgVolunteerBlock landed, leaving revoked nothing durable,
+										    so these strings could only list what stayed the same —
+										    and had to end on "they can add you again", the admission
+										    that the control did not work. That clause is now
+										    inverted to "add you back" and moved FIRST, because it is
+										    the one that distinguishes this control from the version
+										    that revoked nothing, and a skimmer stops reading before
+										    a fourth list item.
+
+										    The closing sentence is not a hedge. Three ordinary
+										    volunteer actions lift the block (apply, claim, sign up
+										    for a shift), and the marketplace is cross-org — someone
+										    could hand access back months later without registering
+										    whose listing they answered. Promising an absolute and
+										    letting them discover it was conditional is the failure
+										    this card exists to avoid. It also reads stronger: the
+										    door is theirs, and they hold the key.
+
+										    Still honest about what leaving does NOT undo. The
+										    application is the consent-material one, so it leads on
+										    the rows where it applies — same reasoning that corrected
+										    the claim flow's decline row in v0.34.0.0.
+
+										    The `isStaff` branch exists because the promise is FALSE
+										    for that person: `findOrgVolunteerRelationship` exempts
+										    ORG_MEMBER from the block, deliberately, so a coordinator
+										    does not lock themselves out of their own org by leaving
+										    its volunteer roster. Telling them access was removed when
+										    it was not is exactly the overclaim this surface keeps
+										    getting corrected for. */}
 											{isConfirming
-												? row.source === 'APPLIED'
-													? 'Leave this roster? Your application stays with them, your recorded hours stay recorded, and they can add you again.'
-													: 'Leave this roster? Your recorded hours stay recorded, and they can add you again.'
-												: `${ORG_VOLUNTEER_SOURCE_COPY[row.source]} · ${formatDateOnly(row.createdAt)}`}
+												? row.isStaff
+													? `Leave ${orgName}'s volunteer roster? You're on their staff, so this does not change your staff access — they can still see your profile and schedule you. It only removes you from their volunteer list.`
+													: row.reason === 'APPLIED'
+														? "Leave and remove their access? They won't be able to add you back, schedule you, see your profile, or request a background check. Your application and any hours you've already volunteered stay with them. You can rejoin later by applying or signing up for one of their shifts."
+														: "Leave and remove their access? They won't be able to add you back, schedule you, see your profile, or request a background check. Hours you've already volunteered stay recorded. You can rejoin later by applying or signing up for one of their shifts."
+												: `${MY_ORG_RELATIONSHIP_COPY[row.reason]} · ${formatDateOnly(row.since)}`}
 										</p>
 									</div>
 
@@ -744,7 +802,7 @@ function OrgMemberships() {
 												variant="destructive"
 												className="h-11"
 												disabled={leave.isPending}
-												onClick={() => leave.mutate({ volunteerId: row.id })}
+												onClick={() => leave.mutate({ orgId: row.orgId })}
 												aria-label={`Yes, leave: ${orgName}`}
 											>
 												{leave.isPending ? 'Leaving…' : 'Yes, leave'}
@@ -757,7 +815,7 @@ function OrgMemberships() {
 												variant="outline"
 												className="h-11"
 												disabled={leave.isPending}
-												onClick={() => setConfirmingId(row.id)}
+												onClick={() => setConfirmingId(row.orgId)}
 												aria-label={`Leave: ${orgName}`}
 											>
 												Leave
