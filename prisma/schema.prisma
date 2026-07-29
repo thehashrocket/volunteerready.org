@@ -63,6 +63,7 @@ model User {
   claimedAt               DateTime? // stamped on first authenticated session
   orgVolunteers           OrgVolunteer[]
   addedOrgVolunteers      OrgVolunteer[]             @relation("OrgVolunteerAddedBy")
+  orgVolunteerBlocks      OrgVolunteerBlock[]
   createdAt               DateTime                   @default(now())
   updatedAt               DateTime                   @updatedAt
 }
@@ -188,6 +189,7 @@ model Organization {
   companyLinks               CompanyNonprofitLink[]
   backgroundCheckRequests    BackgroundCheckRequest[]
   orgVolunteers              OrgVolunteer[]
+  orgVolunteerBlocks         OrgVolunteerBlock[]
   volunteerInvitations       VolunteerInvitation[]
   notifications              Notification[]
   notificationPreferences    NotificationPreference[]
@@ -1282,5 +1284,44 @@ model OrgVolunteer {
   // 23505 on a partial unique index and Prisma still maps it to P2002.
   // Precedent: VolunteerApplication's withdrawn-status partial index.
   @@index([orgId, createdAt]) // cursor pagination on the roster page
+  @@index([userId])
+}
+
+/// A volunteer's standing refusal of one org's access to them.
+///
+/// Written when a volunteer leaves a roster (`leaveOrgRoster`). It exists
+/// because every OTHER edge in `findOrgVolunteerRelationship` is one the org can
+/// mint unilaterally: `addVolunteer` takes an email and needs no consent, so
+/// soft-deleting the `OrgVolunteer` row alone left the volunteer with no state
+/// the org could not simply recreate — two clicks and the access was back. A
+/// consent mechanism the other party can undo is not one. This row is the only
+/// piece of state in the org↔volunteer relationship that staff cannot clear.
+///
+/// Deliberately a HARD row with no `deletedAt`: lifting a block means the
+/// volunteer re-engaged of their own accord (applied, claimed an application, or
+/// signed up for a shift), and the history of the block lives in the audit log
+/// as `VOLUNTEER_LEFT` / `ORG_ACCESS_RESTORED` rather than in a tombstone here.
+///
+/// A block suppresses the volunteer-side relationship kinds but NOT
+/// `ORG_MEMBER` — see `findOrgVolunteerRelationship`, which would otherwise let
+/// a person who is both staff and a rostered volunteer lock themselves out of
+/// their own organization by leaving its roster.
+model OrgVolunteerBlock {
+  id        String   @id @default(cuid())
+  orgId     String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // A plain compound unique, unlike OrgVolunteer's hand-written PARTIAL index:
+  // there is no soft delete here, so "at most one block per (org, user)" is the
+  // whole rule and Prisma can express it. That also makes the generated
+  // compound-unique input available, so the lift path is a single deleteMany
+  // and the create is an upsert — neither needs the findFirst-then-create
+  // dance OrgVolunteer requires.
+  @@unique([orgId, userId])
   @@index([userId])
 }

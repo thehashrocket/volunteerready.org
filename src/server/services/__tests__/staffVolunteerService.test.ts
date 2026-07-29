@@ -15,8 +15,12 @@ const mocks = vi.hoisted(() => ({
 	findLiveOrgVolunteer: vi.fn(),
 	createOrgVolunteer: vi.fn(),
 	softDeleteOrgVolunteer: vi.fn(),
-	softDeleteOwnOrgVolunteer: vi.fn(),
+	softDeleteOwnOrgVolunteerByOrg: vi.fn(),
+	hasLeavableOrgRelationship: vi.fn(),
 	restoreOrgVolunteer: vi.fn(),
+	createOrgVolunteerBlock: vi.fn(),
+	findOrgVolunteerBlock: vi.fn(),
+	findRemovedOrgVolunteer: vi.fn(),
 	writeAuditLogTx: vi.fn(),
 	orgFindUnique: vi.fn(),
 	sendRosterAddedEmail: vi.fn(),
@@ -51,10 +55,14 @@ vi.mock('@/server/repositories/orgVolunteerRepo', () => ({
 	findLiveOrgVolunteer: mocks.findLiveOrgVolunteer,
 	createOrgVolunteer: mocks.createOrgVolunteer,
 	softDeleteOrgVolunteer: mocks.softDeleteOrgVolunteer,
-	softDeleteOwnOrgVolunteer: mocks.softDeleteOwnOrgVolunteer,
+	softDeleteOwnOrgVolunteerByOrg: mocks.softDeleteOwnOrgVolunteerByOrg,
 	restoreOrgVolunteer: mocks.restoreOrgVolunteer,
+	createOrgVolunteerBlock: mocks.createOrgVolunteerBlock,
+	findOrgVolunteerBlock: mocks.findOrgVolunteerBlock,
+	findRemovedOrgVolunteer: mocks.findRemovedOrgVolunteer,
 	listOrgVolunteers: vi.fn(),
-	listOrgVolunteersByUser: vi.fn(),
+	listMyOrgRelationships: vi.fn(),
+	hasLeavableOrgRelationship: mocks.hasLeavableOrgRelationship,
 	countOrgVolunteers: vi.fn(),
 	countAttendedShiftsByUser: vi.fn(),
 }));
@@ -95,6 +103,13 @@ function baseInput(
 beforeEach(() => {
 	vi.resetAllMocks();
 	mocks.findLiveOrgVolunteer.mockResolvedValue(null);
+	// Unblocked is the default; the block describe below overrides it.
+	mocks.findOrgVolunteerBlock.mockResolvedValue(null);
+	mocks.createOrgVolunteerBlock.mockResolvedValue({ id: 'block-1' });
+	mocks.findRemovedOrgVolunteer.mockResolvedValue({
+		id: 'ov-1',
+		userId: 'user-1',
+	});
 	mocks.createOrgVolunteer.mockResolvedValue({ id: 'ov-1' });
 	mocks.userCreate.mockResolvedValue({ id: 'user-new' });
 	mocks.orgFindUnique.mockResolvedValue({ name: 'Helping Hands' });
@@ -233,6 +248,45 @@ describe('addVolunteer', () => {
 		});
 	});
 
+	it('SECURITY: refuses to add a volunteer who has blocked this org', async () => {
+		mocks.userFindUnique.mockResolvedValue({
+			id: 'user-1',
+			name: 'Ada',
+			accountState: 'ACTIVE',
+		});
+		mocks.findOrgVolunteerBlock.mockResolvedValue({ id: 'block-1' });
+
+		// The whole point of the block: `addVolunteer` takes an email and needs no
+		// consent, so without this refusal staff undo a volunteer's departure in
+		// one call and the exit revokes nothing durable.
+		await expect(addVolunteer(baseInput())).rejects.toMatchObject({
+			code: 'FORBIDDEN',
+		});
+
+		expect(mocks.createOrgVolunteer).not.toHaveBeenCalled();
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: the block is checked against the resolved user, not the raw email', async () => {
+		mocks.userFindUnique.mockResolvedValue({
+			id: 'user-1',
+			name: 'Ada',
+			accountState: 'ACTIVE',
+		});
+		mocks.findOrgVolunteerBlock.mockResolvedValue(null);
+
+		await addVolunteer(baseInput({ email: 'ADA@Example.com ' }));
+
+		// Blocks key on (orgId, userId). Checking a caller-supplied address instead
+		// would miss whenever the same person's row is reached by a different
+		// spelling — the exact failure `normalizeEmail` exists to prevent.
+		expect(mocks.findOrgVolunteerBlock).toHaveBeenCalledWith(
+			ORG,
+			'user-1',
+			fakeTx,
+		);
+	});
+
 	it('maps a concurrent P2002 to the same CONFLICT message', async () => {
 		// Two coordinators adding the same email at once: findLiveOrgVolunteer
 		// passes for both and the partial unique index rejects the loser.
@@ -358,6 +412,19 @@ describe('removeVolunteer', () => {
 		);
 	});
 
+	it('a staff removal is NOT a volunteer refusal, so it writes no block', async () => {
+		mocks.softDeleteOrgVolunteer.mockResolvedValue(1);
+
+		await removeVolunteer({ orgId: ORG, volunteerId: 'ov-1', actorId: ACTOR });
+
+		// The contrast to leaveOrgRoster, which DOES write one. The whole premise
+		// is that these are different acts by different parties. A future edit
+		// "making them consistent" by adding createOrgVolunteerBlock here would
+		// pass every other test in this file while permanently breaking staff's own
+		// Undo — restoreVolunteer now refuses while a block stands.
+		expect(mocks.createOrgVolunteerBlock).not.toHaveBeenCalled();
+	});
+
 	it('SECURITY: a row that does not belong to this org is NOT_FOUND', async () => {
 		// The repo scopes its updateMany by orgId, so a crafted id from another
 		// org matches nothing and comes back as a zero count.
@@ -371,6 +438,52 @@ describe('removeVolunteer', () => {
 });
 
 describe('restoreVolunteer', () => {
+	it('SECURITY: refuses to restore a volunteer who has blocked this org', async () => {
+		mocks.findOrgVolunteerBlock.mockResolvedValue({ id: 'block-1' });
+
+		// The fourth roster-creating path, and the one that does not look like a
+		// create. `restoreOrgVolunteer` matches ANY row with deletedAt set for the
+		// org, and a volunteer's own leave produces exactly such a row — nothing on
+		// OrgVolunteer records who deleted it. Without this check staff undo a
+		// departure the volunteer chose, using an id their roster page handed them
+		// before the volunteer left. Found by five independent review specialists.
+		await expect(
+			restoreVolunteer({ orgId: ORG, volunteerId: 'ov-1', actorId: ACTOR }),
+		).rejects.toMatchObject({ code: 'FORBIDDEN' });
+
+		expect(mocks.restoreOrgVolunteer).not.toHaveBeenCalled();
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('checks the block against the removed row own userId', async () => {
+		mocks.findRemovedOrgVolunteer.mockResolvedValue({
+			id: 'ov-1',
+			userId: 'user-99',
+		});
+		mocks.restoreOrgVolunteer.mockResolvedValue(1);
+
+		await restoreVolunteer({ orgId: ORG, volunteerId: 'ov-1', actorId: ACTOR });
+
+		// The caller supplies an OrgVolunteer.id, never a userId — blocks are keyed
+		// on (orgId, userId), so the id has to be resolved through the row first or
+		// the lookup silently checks nothing.
+		expect(mocks.findOrgVolunteerBlock).toHaveBeenCalledWith(
+			ORG,
+			'user-99',
+			fakeTx,
+		);
+	});
+
+	it('is NOT_FOUND when the row to restore no longer exists', async () => {
+		mocks.findRemovedOrgVolunteer.mockResolvedValue(null);
+
+		await expect(
+			restoreVolunteer({ orgId: ORG, volunteerId: 'ov-1', actorId: ACTOR }),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+		expect(mocks.restoreOrgVolunteer).not.toHaveBeenCalled();
+	});
+
 	it('restores the same row and audits VOLUNTEER_RESTORED', async () => {
 		mocks.restoreOrgVolunteer.mockResolvedValue(1);
 
@@ -437,37 +550,42 @@ describe('P2002 discrimination', () => {
 });
 
 /**
- * T32 — the volunteer's own exit from a roster edge staff created without asking.
+ * T32 — the volunteer's own exit, widened in v0.37.0.0 from "leave a roster" to
+ * "revoke this org's access".
  *
- * The security predicate lives in the repository's WHERE (`softDeleteOwnOrgVolunteer`
- * scopes by `userId`), which these tests can only observe as "the repo returned
- * null". The predicate itself is proven against real Postgres in
- * `orgVolunteer.integration.test.ts`; what this suite pins is that the service
- * refuses rather than auditing a departure that never happened.
+ * Keyed on `orgId` now, not `OrgVolunteer.id`. The roster row became the
+ * OPTIONAL half: an org holding only an application or a shift signup has no
+ * roster row at all, still has access, and must still be leavable — otherwise
+ * an org denies the remedy by removing the volunteer first.
+ *
+ * The security predicate lives in the repository's WHERE
+ * (`softDeleteOwnOrgVolunteerByOrg` scopes by `userId`), which these tests can
+ * only observe as "the repo returned null". The predicate itself is proven
+ * against real Postgres in `orgVolunteer.integration.test.ts`; what this suite
+ * pins is the service's own decisions.
  */
 describe('leaveOrgRoster', () => {
 	const VOLUNTEER = 'user-42';
 
-	it('soft-deletes the edge and audits VOLUNTEER_LEFT against the row own org', async () => {
-		mocks.softDeleteOwnOrgVolunteer.mockResolvedValue(ORG);
+	beforeEach(() => {
+		// Default: a real relationship exists and is not yet blocked.
+		mocks.hasLeavableOrgRelationship.mockResolvedValue(true);
+	});
 
-		const result = await leaveOrgRoster({
-			userId: VOLUNTEER,
-			volunteerId: 'ov-1',
-		});
+	it('soft-deletes the roster row and audits VOLUNTEER_LEFT against the named org', async () => {
+		mocks.softDeleteOwnOrgVolunteerByOrg.mockResolvedValue('ov-1');
 
-		expect(result).toEqual({ id: 'ov-1' });
-		expect(mocks.softDeleteOwnOrgVolunteer).toHaveBeenCalledWith(
+		const result = await leaveOrgRoster({ userId: VOLUNTEER, orgId: ORG });
+
+		expect(result).toEqual({ orgId: ORG });
+		expect(mocks.softDeleteOwnOrgVolunteerByOrg).toHaveBeenCalledWith(
 			fakeTx,
 			VOLUNTEER,
-			'ov-1',
+			ORG,
 		);
 		expect(mocks.writeAuditLogTx).toHaveBeenCalledWith(
 			fakeTx,
 			expect.objectContaining({
-				// orgId comes from the ROW, not from any caller input — the volunteer
-				// never names an org, so this is the only way the audit row can be
-				// scoped to the org that loses them.
 				orgId: ORG,
 				actorId: VOLUNTEER,
 				action: 'VOLUNTEER_LEFT',
@@ -477,34 +595,103 @@ describe('leaveOrgRoster', () => {
 		);
 	});
 
-	it('refuses and audits NOTHING whenever the repo reports no row', async () => {
-		// The repo collapses three causes to one `null` — an unknown id, someone
-		// else's id, and a row a concurrent leave already claimed — so this pins
-		// the service's response to all three at once: refuse, and write no audit
-		// row. That last assertion is the load-bearing one. A departure that never
-		// happened must not be recorded, and a concurrent leave must not be
-		// recorded twice for a single edge.
-		//
-		// It does NOT pin the userId predicate itself: the mock is what returns
-		// null here, so the WHERE clause could be deleted and this stays green.
-		// That predicate is proven against real Postgres in
-		// `orgVolunteer.integration.test.ts` ("SECURITY: cannot leave a roster on
-		// someone else's behalf"), and its shape in `orgVolunteerRepo.leave.test.ts`.
-		mocks.softDeleteOwnOrgVolunteer.mockResolvedValue(null);
+	it('SECURITY: writes the block on the same tx handle as the soft delete', async () => {
+		mocks.softDeleteOwnOrgVolunteerByOrg.mockResolvedValue('ov-1');
+
+		await leaveOrgRoster({ userId: VOLUNTEER, orgId: ORG });
+
+		// The half of leaving that actually revokes. Without it, an APPLICATION the
+		// volunteer sent or a SHIFT_SIGNUP staff created keeps satisfying
+		// requireOrgVolunteerRelationship forever — and addVolunteer can recreate
+		// the roster row from an email address regardless.
+		expect(mocks.createOrgVolunteerBlock).toHaveBeenCalledWith(
+			fakeTx,
+			ORG,
+			VOLUNTEER,
+		);
+	});
+
+	it('revokes an org that has NO roster row — the whole point of the widening', async () => {
+		// Application-only or shift-only. Under the id-keyed version this org never
+		// appeared on the volunteer's list and had no Leave button, so an org could
+		// pre-empt a departure it saw coming by removing the volunteer first and
+		// keeping everything the surviving edges authorize.
+		mocks.softDeleteOwnOrgVolunteerByOrg.mockResolvedValue(null);
+
+		const result = await leaveOrgRoster({ userId: VOLUNTEER, orgId: ORG });
+
+		expect(result).toEqual({ orgId: ORG });
+		// The block is written even though nothing was soft-deleted.
+		expect(mocks.createOrgVolunteerBlock).toHaveBeenCalledWith(
+			fakeTx,
+			ORG,
+			VOLUNTEER,
+		);
+	});
+
+	it('audits against the user, not a roster row, when there was no roster row', async () => {
+		mocks.softDeleteOwnOrgVolunteerByOrg.mockResolvedValue(null);
+
+		await leaveOrgRoster({ userId: VOLUNTEER, orgId: ORG });
+
+		const [, entry] = mocks.writeAuditLogTx.mock.calls[0];
+		// Pointing at a stale or absent OrgVolunteer id would be worse than
+		// pointing at the person the entry is actually about.
+		expect(entry).toMatchObject({
+			entityType: 'OrgVolunteerBlock',
+			entityId: VOLUNTEER,
+		});
+		expect(entry.metadata).toMatchObject({ hadRosterRow: false });
+	});
+
+	it('SECURITY: refuses an org the caller has no relationship with', async () => {
+		mocks.hasLeavableOrgRelationship.mockResolvedValue(false);
 
 		await expect(
-			leaveOrgRoster({ userId: VOLUNTEER, volunteerId: 'someone-elses-row' }),
+			leaveOrgRoster({ userId: VOLUNTEER, orgId: 'org-never-heard-of' }),
 		).rejects.toMatchObject({ code: 'NOT_FOUND' });
 
+		// orgId is caller-supplied now, so without this precondition any
+		// authenticated user could mint block rows against arbitrary orgs.
+		expect(mocks.createOrgVolunteerBlock).not.toHaveBeenCalled();
+		expect(mocks.softDeleteOwnOrgVolunteerByOrg).not.toHaveBeenCalled();
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('checks the relationship BEFORE writing anything', async () => {
+		mocks.hasLeavableOrgRelationship.mockResolvedValue(false);
+
+		await leaveOrgRoster({ userId: VOLUNTEER, orgId: ORG }).catch(() => {});
+
+		// A stranger's orgId must not reach a write statement at all, not even one
+		// that would match zero rows.
+		expect(mocks.hasLeavableOrgRelationship).toHaveBeenCalledWith(
+			fakeTx,
+			ORG,
+			VOLUNTEER,
+		);
+	});
+
+	it('refuses a second leave rather than double-auditing one departure', async () => {
+		mocks.findOrgVolunteerBlock.mockResolvedValue({ id: 'block-1' });
+
+		await expect(
+			leaveOrgRoster({ userId: VOLUNTEER, orgId: ORG }),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+		// Reachable from a stale tab: the listing filters blocked orgs out, so the
+		// only way here is a client that has not refetched. The upsert would make
+		// the write itself harmless, but the audit row would count one departure
+		// twice.
 		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
 	});
 
 	it('stamps impersonatedBy when an admin leaves on the volunteer behalf', async () => {
-		mocks.softDeleteOwnOrgVolunteer.mockResolvedValue(ORG);
+		mocks.softDeleteOwnOrgVolunteerByOrg.mockResolvedValue('ov-1');
 
 		await leaveOrgRoster({
 			userId: VOLUNTEER,
-			volunteerId: 'ov-1',
+			orgId: ORG,
 			impersonatedBy: 'real-admin',
 		});
 
@@ -520,9 +707,9 @@ describe('leaveOrgRoster', () => {
 	it('omits impersonatedBy entirely when the volunteer acts for themselves', async () => {
 		// Not `impersonatedBy: null` — an always-present key makes every row look
 		// like it was considered for impersonation and defeats a metadata filter.
-		mocks.softDeleteOwnOrgVolunteer.mockResolvedValue(ORG);
+		mocks.softDeleteOwnOrgVolunteerByOrg.mockResolvedValue('ov-1');
 
-		await leaveOrgRoster({ userId: VOLUNTEER, volunteerId: 'ov-1' });
+		await leaveOrgRoster({ userId: VOLUNTEER, orgId: ORG });
 
 		const [, entry] = mocks.writeAuditLogTx.mock.calls[0];
 		expect(entry.metadata).not.toHaveProperty('impersonatedBy');

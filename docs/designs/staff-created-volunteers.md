@@ -385,23 +385,49 @@ until v1b. Do not describe the roster as complete.
    ⚠️ Updated — this was **aspirational when written**: the notification shipped with T12 and
    linked to `/app/profile`, but the surface it promised did not exist until T32. Now real:
    `leaveOrgRoster()` behind the "Organizations you volunteer with" section on `/app/profile`.
-   Note the exit is narrower than "undo" — it soft-deletes the `OrgVolunteer` edge only. An
-   application the volunteer sent stays sent (and still satisfies
-   `requireOrgVolunteerRelationship` as `APPLICATION`), recorded hours stay with the org, and
-   nothing stops the org adding the same address again. The UI names the hours and the
-   re-add on every row, and the application on `APPLIED` rows where it applies.
 
-   ⚠️ **The exit does NOT close every authorization edge, and that gap is open.** A
-   `ShiftSignup` also satisfies `requireOrgVolunteerRelationship`, with no status filter — and
-   staff can create one unilaterally via `assignVolunteerToShift` against anyone they rostered.
-   So: staff add a stranger's address → assign them to a shift → the stranger leaves → the
-   `ORG_VOLUNTEER` edge is soft-deleted but `SHIFT_SIGNUP` survives permanently (cancelling does
-   not help; `CANCELLED` still matches). That surviving edge keeps satisfying the sole guard on
-   `profile.getOrgVisibleProfile`, `credentials.issue`, and `backgroundChecks.initiate` — the
-   last of which takes staff-supplied SSN and date of birth and makes a paid third-party call.
-   Found in the T32 ship review; tracked as a P1 in `docs/TODOS.md`. Until it closes, this
-   surface is "remove me from the list", not "revoke this org's access to me", and the copy must
-   not claim otherwise.
+   ✅ **Updated again (v0.37.0.0): the exit now revokes, and the button means it.** As shipped in
+   T32 it soft-deleted the `OrgVolunteer` edge only, which closed almost nothing — a `ShiftSignup`
+   satisfies `requireOrgVolunteerRelationship` with no status filter and staff mint one
+   unilaterally via `assignVolunteerToShift`, and `addVolunteer` recreates the roster row from an
+   email address anyway. `leaveOrgRoster` now also writes an `OrgVolunteerBlock` in the same
+   transaction. That row overrides every relationship kind except `ORG_MEMBER` and
+   `EXISTING_CREDENTIAL`. Four paths refuse while it stands: the three that CREATE a roster row
+   (`addVolunteer`, `ensureAppliedRosterRow`, `restoreVolunteer`) plus `assignVolunteerToShift`,
+   which creates none but reads one directly. It is the only state in this relationship staff cannot clear, which is
+   the entire point: the previous design left the volunteer with nothing the org could not undo.
+
+   The two exemptions are deliberate. `ORG_MEMBER` is staff membership, not a volunteer
+   relationship, and without the exemption a coordinator who is also on their own org's roster
+   would lock themselves out of their own organisation by leaving it. `EXISTING_CREDENTIAL` is
+   opt-in and reached by `revokeCredential` alone, which is strictly narrowing — suppressing it
+   recreated the dead end `acceptExistingCredential` exists to prevent, a credential
+   `listOrgCredentials` still shows but nobody can ever revoke.
+
+   Lifted **only** by the volunteer re-engaging of their own accord — submitting an application
+   **while signed in**, claiming one, or signing up for a shift (`liftOrgVolunteerBlock()`). The
+   signed-in condition is load-bearing: `screener.submit` is a `publicProcedure` carrying an
+   attacker-supplied address, so an anonymous submission must never clear a block. There is deliberately no
+   org-initiated lift; an org that wants someone back asks them, which is what v1b's
+   `VolunteerActivationInvite` will carry.
+
+   **The volunteer's list is keyed on ACCESS, not on the roster.** `listMyOrgRelationships()`
+   returns every org holding any authorizing edge — roster row, `VolunteerApplication`, or
+   `ShiftSignup`. The first cut listed live roster rows only, which let an org deny the remedy
+   outright: remove the volunteer, and the row vanished from their profile along with the Leave
+   button, while the `ShiftSignup` staff had minted kept satisfying the guard. So leaving is
+   addressed by `orgId`, the soft delete became the optional half, and the block the mandatory
+   one. Note there are **four** roster-row creators that must refuse while a block stands, not
+   three: `restoreVolunteer` is the one that does not look like a create, and it was missed
+   until review caught it.
+
+   Still narrower than deletion, and the UI says so: the application stays sent, recorded hours
+   stay recorded. What changes is that neither is a key any more.
+
+   **Two things this does NOT cover**, both now tracked in `docs/TODOS.md`: an org can still
+   background-check a volunteer it rostered who never left and never consented (the block answers
+   "I left", not "I never agreed"); and an UNCLAIMED shadow user has no account, so never sees
+   this control at all.
 
 3. **Cross-org name collision — accepted, not closed.** `User.email` is unique, so two orgs adding
    the same person share one `User` row and `User.name` is global. First-writer-wins means org B
@@ -450,6 +476,11 @@ until v1b. Do not describe the roster as complete.
    guard — it deletes on the `(userId, orgId, type)` compound key. The `shifts.ts` /
    `shiftRepo.ts` / `shiftSignupRepo.ts` org-scoping half of T7 is still open. Code:
    `src/server/services/orgVolunteerAccessService.ts`, `repositories/orgVolunteerRepo.ts`.
+
+   ⚠️ **Amended in v0.37.0.0.** This set is still what the guard PROBES, but an
+   `OrgVolunteerBlock` now suppresses all of it except `ORG_MEMBER` and `EXISTING_CREDENTIAL`. If
+   you are reading this section to answer "what does the guard accept?", the answer is
+   "these kinds, unless the volunteer has revoked the org" — see §2.
 
 6. **Erasure.** Roster removal soft-deletes the edge only. A separate platform-admin scrub nulls
    `name`/`email`/`phone` on the shadow `User` for a genuine erasure request. Hard-deleting the
@@ -767,6 +798,11 @@ recipient "can remove the roster link"; no such surface existed. It does now: an
 **Organisations** section on `/app/profile` listing orgs that have this person on a roster, each
 with a quiet `Leave` that soft-deletes the `OrgVolunteer` row and writes `VOLUNTEER_LEFT`. The
 T12 email says what happened, who did it, and links there.
+
+⚠️ **Superseded in v0.37.0.0 — this paragraph describes T32 as shipped, not current behaviour.**
+The list is keyed on ACCESS, not the roster: it also includes orgs holding only an application or
+a shift signup, because those authorize too. The soft delete became the OPTIONAL half and the
+`OrgVolunteerBlock` write the mandatory one. See §2.
 
 ### Payoff
 
@@ -1104,11 +1140,13 @@ produces confidently wrong work.
   - Verify: assert the hours figure matches the impact report for the same org
 - [x] **T32 (P1, human: ~4h / CC: ~25min)** — ui — Volunteer self-service: Organisations section on `/app/profile` with `Leave` ✅ **DONE**
   - Surfaced by: Design D13 — Security §2 claimed the recipient "can remove the roster link"; no such surface existed
-  - Files: `src/app/(app)/app/profile/page.tsx` (`OrgMemberships`), `src/server/services/staffVolunteerService.ts` (`leaveOrgRoster`, `listMyOrgMemberships`), `repositories/orgVolunteerRepo.ts` (`listOrgVolunteersByUser`, `softDeleteOwnOrgVolunteer`), `routers/profile.ts`. `sendRosterAddedEmail.ts` needed no change — it already links here and promises exactly this
+  - Files: `src/app/(app)/app/profile/page.tsx` (`OrgMemberships`), `src/server/services/staffVolunteerService.ts` (`leaveOrgRoster`, `listMyOrgMemberships`), `repositories/orgVolunteerRepo.ts`, `routers/profile.ts`. `sendRosterAddedEmail.ts` needed no change — it already links here and promises exactly this
+  - ⚠️ **The repo functions named here were DELETED in v0.37.0.0.** `listOrgVolunteersByUser` → `listMyOrgRelationships` (roster rows alone let an org deny the remedy), `softDeleteOwnOrgVolunteer` → `softDeleteOwnOrgVolunteerByOrg` (leaving is keyed on `orgId`, since an application-only org has no roster row to name). `sendRosterAddedEmail.ts` DID change in that ship — it now names profile visibility and says the exit removes access
   - **Ungated, per the Feature-flag gating table.** The procedures live on `profileRouter` under `protectedProcedure`, NOT on the `rosterProcedure`-throughout `volunteersRouter`: `ensureAppliedRosterRow` mints edges for every org regardless of the pilot flag, so gating the exit would strand volunteers on rosters they cannot leave. Housing them beside the flagged procedures would invite someone to make them "consistent"
   - Section is named "Organizations you volunteer with", not "Organizations" — the stat card above already says "Organizations" and counts `OrganizationMember` (staff membership), which is a different thing
   - The error branch renders BEFORE the empty check: on a consent surface a failed load must never read as "you are on nobody's roster"
-  - Confirm-row copy is honest about what leaving does not do — the application stays sent, the hours stay recorded, and the org can add you again. Same correction the claim flow's decline row took in v0.34.0.0. The application clause is stated **only on `APPLIED` rows**, where it is the consent-material one; review caught a first draft that named two of the three while this doc claimed all three
+  - Confirm-row copy is honest about what leaving does not do — the application stays sent, the hours stay recorded, and (as of T32) the org can add you again. Same correction the claim flow's decline row took in v0.34.0.0. The application clause is stated **only on `APPLIED` rows**, where it is the consent-material one; review caught a first draft that named two of the three while this doc claimed all three
+  - ⚠️ **The "can add you again" clause was INVERTED in v0.37.0.0** — it is now "they won't be able to add you back", and that clause is the one distinguishing the control from the version that revoked nothing. Do not restore the older copy from this checklist entry
   - `ORG_VOLUNTEER_SOURCE_COPY` (a `Record` over the enum, not a ternary with an `else`) so T17's concierge import cannot silently render as "Added by their staff" on the surface whose whole job is answering "why am I on this list?"
   - `MY_MEMBERSHIPS_CAP` (200) on the list. Not pagination — the backstop for the fact that the row count is NOT the volunteer's to control: any org's staff can add any address, so the ceiling is however many orgs an attacker holds
   - Verify: ✅ 4 service tests + 8 integration tests against real Postgres + 3 repository unit tests + 5 router tests + 15 component tests. Files: `services/__tests__/staffVolunteerService.test.ts`, `repositories/orgVolunteer.integration.test.ts`, `repositories/orgVolunteerRepo.leave.test.ts`, `trpc/routers/profile.leave.test.ts`, `app/(app)/app/profile/page.test.tsx`

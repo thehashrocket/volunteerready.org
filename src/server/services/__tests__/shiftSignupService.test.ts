@@ -26,6 +26,8 @@ const mocks = vi.hoisted(() => ({
 	updateSignupStatus: vi.fn(),
 	writeAuditLogTx: vi.fn(),
 	findOrgVolunteerById: vi.fn(),
+	findOrgVolunteerBlock: vi.fn(),
+	liftOrgVolunteerBlock: vi.fn(),
 	listAssignableVolunteers: vi.fn(),
 	requireOrgShift: vi.fn(),
 	requireAttendanceAccess: vi.fn(),
@@ -53,7 +55,12 @@ vi.mock('@/server/repositories/shiftSignupRepo', () => ({
 
 vi.mock('@/server/repositories/orgVolunteerRepo', () => ({
 	findOrgVolunteerById: mocks.findOrgVolunteerById,
+	findOrgVolunteerBlock: mocks.findOrgVolunteerBlock,
 	listAssignableVolunteers: mocks.listAssignableVolunteers,
+}));
+
+vi.mock('@/server/services/orgVolunteerAccessService', () => ({
+	liftOrgVolunteerBlock: mocks.liftOrgVolunteerBlock,
 }));
 
 vi.mock('@/server/repositories/auditRepo', () => ({
@@ -92,6 +99,7 @@ import {
 	assignVolunteerToShift,
 	getAssignableVolunteers,
 	markAttendance,
+	signUpForShift,
 } from '@/server/services/shiftSignupService';
 
 const ORG = 'org-1';
@@ -149,6 +157,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	mocks.requireOrgShift.mockResolvedValue(makeShift());
 	mocks.findOrgVolunteerById.mockResolvedValue(makeRosterRow());
+	mocks.findOrgVolunteerBlock.mockResolvedValue(null);
 	mocks.getSignupByShiftAndUser.mockResolvedValue(null);
 	mocks.getSignupsByShift.mockResolvedValue([]);
 	mocks.getConfirmedShiftsForUser.mockResolvedValue([]);
@@ -171,6 +180,32 @@ describe('assignVolunteerToShift', () => {
 			shiftTitle: 'Saturday Morning Sort',
 			overCapacity: false,
 		});
+	});
+
+	it('SECURITY: refuses to assign a volunteer who has blocked the org', async () => {
+		mocks.findOrgVolunteerBlock.mockResolvedValue({ id: 'block-1' });
+
+		// Defence in depth: `addVolunteer` and `ensureAppliedRosterRow` both refuse
+		// while a block stands, so a live roster row and a block should not
+		// coexist. But this path reads the roster row DIRECTLY rather than through
+		// requireOrgVolunteerRelationship, so if that invariant ever breaks this is
+		// the call that schedules — and emails — someone who refused the org.
+		await expect(assign()).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+		expect(mocks.createSignup).not.toHaveBeenCalled();
+	});
+
+	it('the block refusal is indistinguishable from a roster miss', async () => {
+		mocks.findOrgVolunteerBlock.mockResolvedValue({ id: 'block-1' });
+		const blockedError = await assign().catch((e: { message: string }) => e);
+
+		mocks.findOrgVolunteerBlock.mockResolvedValue(null);
+		mocks.findOrgVolunteerById.mockResolvedValue(null);
+		const missingError = await assign().catch((e: { message: string }) => e);
+
+		// Staff learn only that this person is not theirs to schedule — the same
+		// answer the sibling guards give, for the same reason.
+		expect(blockedError.message).toBe(missingError.message);
 	});
 
 	it('audits the STAFF member as actor, not the volunteer', async () => {
@@ -398,6 +433,67 @@ describe('assignVolunteerToShift', () => {
 
 		expect(mocks.checkAndIssueTenureBadges).not.toHaveBeenCalled();
 		expect(mocks.findMemberByUserAndOrg).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: a staff assignment never lifts a block', async () => {
+		await assign();
+
+		// Only the volunteer restores their own access. If this path lifted, the
+		// org could clear a refusal with a staff-side action, which is precisely
+		// the "consent the other party can undo" the block exists to prevent.
+		expect(mocks.liftOrgVolunteerBlock).not.toHaveBeenCalled();
+	});
+});
+
+/**
+ * The third volunteer-initiated lift. Self-signup only: `assignVolunteerToShift`
+ * is a separate function that refuses a blocked pair outright (above), so this
+ * is reachable exclusively by the volunteer acting for themselves.
+ */
+describe('signUpForShift — lifting an org block', () => {
+	beforeEach(() => {
+		mocks.getShiftById.mockResolvedValue(makeShift({ capacity: 5 }));
+		// Fire-and-forget re-engagement touch, awaited nowhere but `.then`-ed.
+		mocks.findMemberByUserAndOrg.mockResolvedValue(null);
+	});
+
+	it('lifts any block on the shift org, on the same tx handle as the signup', async () => {
+		await signUpForShift(SHIFT, VOLUNTEER_USER);
+
+		// Same handle as createSignup: escaping the tx would clear the block even
+		// when the signup that justified it rolls back.
+		const tx = mocks.createSignup.mock.calls[0][0];
+		expect(mocks.liftOrgVolunteerBlock).toHaveBeenCalledWith(
+			tx,
+			ORG,
+			VOLUNTEER_USER,
+		);
+	});
+
+	it('scopes the lift to the org that owns the shift', async () => {
+		mocks.getShiftById.mockResolvedValue(
+			makeShift({ orgId: 'org-other', capacity: 5 }),
+		);
+
+		await signUpForShift(SHIFT, VOLUNTEER_USER);
+
+		// Blocks are per (org, user). Signing up with one org must not restore
+		// access for another the volunteer is still refusing.
+		expect(mocks.liftOrgVolunteerBlock).toHaveBeenCalledWith(
+			expect.anything(),
+			'org-other',
+			VOLUNTEER_USER,
+		);
+	});
+
+	it('does not reach the lift when the signup itself is refused', async () => {
+		mocks.getShiftById.mockResolvedValue(null);
+
+		await expect(signUpForShift(SHIFT, VOLUNTEER_USER)).rejects.toMatchObject({
+			code: 'NOT_FOUND',
+		});
+
+		expect(mocks.liftOrgVolunteerBlock).not.toHaveBeenCalled();
 	});
 });
 

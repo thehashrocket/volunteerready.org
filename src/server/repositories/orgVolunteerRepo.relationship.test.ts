@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
 	credentialFindFirst: vi.fn(),
 	backgroundCheckFindFirst: vi.fn(),
 	interestFindFirst: vi.fn(),
+	blockFindUnique: vi.fn(),
 }));
 
 vi.mock('./prisma', () => ({
@@ -30,6 +31,7 @@ vi.mock('./prisma', () => ({
 		orgVolunteer: { findFirst: mocks.orgVolunteerFindFirst },
 		shiftSignup: { findFirst: mocks.shiftSignupFindFirst },
 		organizationMember: { findUnique: mocks.orgMemberFindUnique },
+		orgVolunteerBlock: { findUnique: mocks.blockFindUnique },
 		// Present so a query against them would succeed rather than throw — the
 		// exclusion tests below prove they are never consulted.
 		volunteerInvitation: { findFirst: mocks.invitationFindFirst },
@@ -62,6 +64,10 @@ function onlyExcludedRelationsPresent() {
 	mocks.credentialFindFirst.mockResolvedValue({ id: 'cred-1' });
 	mocks.backgroundCheckFindFirst.mockResolvedValue({ id: 'bg-1' });
 	mocks.interestFindFirst.mockResolvedValue({ id: 'int-1' });
+
+	// Unblocked is the default for every pre-existing case in this file. The
+	// block-specific describe below overrides it.
+	mocks.blockFindUnique.mockResolvedValue(null);
 }
 
 beforeEach(() => {
@@ -237,5 +243,116 @@ describe('findOrgVolunteerRelationship — short-circuiting', () => {
 		expect(mocks.orgVolunteerFindFirst).toHaveBeenCalledOnce();
 		expect(mocks.shiftSignupFindFirst).toHaveBeenCalledOnce();
 		expect(mocks.orgMemberFindUnique).toHaveBeenCalledOnce();
+	});
+});
+
+/**
+ * OrgVolunteerBlock — the volunteer's standing refusal.
+ *
+ * The P1 these tests exist for: leaving a roster soft-deleted the OrgVolunteer
+ * row and nothing else, so an APPLICATION the volunteer had sent, or a
+ * SHIFT_SIGNUP staff created unilaterally, kept satisfying this guard forever —
+ * and `backgroundChecks.initiate` is gated on nothing but this function.
+ */
+describe('findOrgVolunteerRelationship — blocks', () => {
+	/** Each volunteer-side kind, and the mock that produces it. */
+	const suppressible = [
+		['APPLICATION', () => mocks.applicationFindFirst],
+		['ORG_VOLUNTEER', () => mocks.orgVolunteerFindFirst],
+		['SHIFT_SIGNUP', () => mocks.shiftSignupFindFirst],
+	] as const;
+
+	// Table-driven on purpose. A block that suppressed only the kind someone
+	// happened to test would leave the other two as live bypasses, and the probe
+	// short-circuits, so whichever one is found FIRST is the one that matters.
+	for (const [kind, probe] of suppressible) {
+		it(`SECURITY: a block suppresses ${kind}`, async () => {
+			probe().mockResolvedValue({ id: 'row-1' });
+			mocks.blockFindUnique.mockResolvedValue({ id: 'block-1' });
+
+			expect(await findOrgVolunteerRelationship(ORG, USER)).toBeNull();
+		});
+	}
+
+	it('EXISTING_CREDENTIAL survives a block, so a credential stays revokable', async () => {
+		mocks.credentialFindFirst.mockResolvedValue({ id: 'cred-1' });
+		mocks.blockFindUnique.mockResolvedValue({ id: 'block-1' });
+
+		const result = await findOrgVolunteerRelationship(ORG, USER, {
+			acceptExistingCredential: true,
+		});
+
+		// Suppressing this looked right — a blocked org should not act on you —
+		// but it recreates the exact dead end `acceptExistingCredential` exists to
+		// prevent: `listOrgCredentials` filters on orgId alone, so the credential
+		// stays visible and permanently unrevokable, and only the volunteer can
+		// lift a block, so "later" may be never. The kind is opt-in and reached by
+		// `revokeCredential` alone, which is strictly narrowing — it cannot mint
+		// privilege or disclose anything, so a block has nothing to protect here.
+		expect(result).toBe('EXISTING_CREDENTIAL');
+	});
+
+	it('does not pay for a block lookup when the match is EXISTING_CREDENTIAL', async () => {
+		mocks.credentialFindFirst.mockResolvedValue({ id: 'cred-1' });
+
+		await findOrgVolunteerRelationship(ORG, USER, {
+			acceptExistingCredential: true,
+		});
+
+		expect(mocks.blockFindUnique).not.toHaveBeenCalled();
+	});
+
+	it('ORG_MEMBER survives a block', async () => {
+		mocks.orgMemberFindUnique.mockResolvedValue({ id: 'member-1' });
+		mocks.blockFindUnique.mockResolvedValue({ id: 'block-1' });
+
+		// Staff membership is not what leaving a roster revokes. Without this a
+		// coordinator who is also on their own org's volunteer roster would lock
+		// themselves out of their own organization by leaving it.
+		expect(await findOrgVolunteerRelationship(ORG, USER)).toBe('ORG_MEMBER');
+	});
+
+	it('ORG_MEMBER survives a block even when a suppressed kind is found first', async () => {
+		mocks.applicationFindFirst.mockResolvedValue({ id: 'app-1' });
+		mocks.orgMemberFindUnique.mockResolvedValue({ id: 'member-1' });
+		mocks.blockFindUnique.mockResolvedValue({ id: 'block-1' });
+
+		// The probe short-circuits at APPLICATION and never reaches the member
+		// check, so suppression has to RE-probe rather than return null. Without
+		// the re-probe this returns null and the same coordinator is locked out —
+		// just only when they also happen to have applied.
+		expect(await findOrgVolunteerRelationship(ORG, USER)).toBe('ORG_MEMBER');
+	});
+
+	it('scopes the block lookup to the pair, never the user alone', async () => {
+		mocks.applicationFindFirst.mockResolvedValue({ id: 'app-1' });
+		mocks.blockFindUnique.mockResolvedValue(null);
+
+		await findOrgVolunteerRelationship(ORG, USER);
+
+		// A block against org A must not revoke org B. Asserted on the WHERE
+		// rather than by behaviour because with a single org in the fixture the
+		// two are indistinguishable.
+		expect(mocks.blockFindUnique).toHaveBeenCalledWith(
+			expect.objectContaining({
+				where: { orgId_userId: { orgId: ORG, userId: USER } },
+			}),
+		);
+	});
+
+	it('does not pay for a block lookup when no relationship was found', async () => {
+		await findOrgVolunteerRelationship(ORG, USER);
+
+		// The rejection path already costs four queries and is the common one for
+		// a probing caller. Nothing to suppress means nothing to look up.
+		expect(mocks.blockFindUnique).not.toHaveBeenCalled();
+	});
+
+	it('does not pay for a block lookup when the match is ORG_MEMBER', async () => {
+		mocks.orgMemberFindUnique.mockResolvedValue({ id: 'member-1' });
+
+		await findOrgVolunteerRelationship(ORG, USER);
+
+		expect(mocks.blockFindUnique).not.toHaveBeenCalled();
 	});
 });

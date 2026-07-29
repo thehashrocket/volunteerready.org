@@ -26,10 +26,16 @@
  *      importantly, why several plausible-looking ones deliberately do not.
  */
 import { TRPCError } from '@trpc/server';
+import type { PrismaClient } from '@/prisma/generated/client';
+import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
+	deleteOrgVolunteerBlock,
 	findOrgVolunteerRelationship,
 	type OrgRelationshipKind,
 } from '@/server/repositories/orgVolunteerRepo';
+
+/** Works with both `prisma` and `prisma.$transaction(tx => …)`. */
+type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 
 /**
  * Non-throwing form, for callers that render "nothing here" as a normal empty
@@ -42,6 +48,17 @@ import {
  * whether high-stakes paths (a paid background check) should require a stricter
  * set than a profile read is exactly the kind of change that must land in one
  * place rather than at each callsite. Do not inline it away.
+ *
+ * SCOPE NOTE (v0.37.0.0): "one module" covers deciding whether an org may ACT
+ * on a user. It does NOT cover roster MEMBERSHIP, where THREE services import
+ * `findOrgVolunteerBlock` from the repository directly, across five call sites
+ * (four refusals plus `leaveOrgRoster`'s own already-left check). That is
+ * deliberate — the four refusals answer in three different shapes (FORBIDDEN, a
+ * `false` return, and NOT_FOUND) chosen to match each caller's surface, so
+ * routing them through one
+ * throwing helper would make the refusals uniform and wrong. What stays
+ * centralized is which relationships authorize; what is callsite-local is how
+ * to say no.
  */
 export async function getOrgVolunteerRelationship(
 	orgId: string,
@@ -73,4 +90,50 @@ export async function requireOrgVolunteerRelationship(
 	}
 
 	return relationship;
+}
+
+/**
+ * Clear a volunteer's block on an org because they re-engaged with it
+ * themselves, and record that they did.
+ *
+ * This is the ONLY way a block is lifted. That is the whole point: every other
+ * edge in the relationship set is one staff can mint from an email address, so
+ * if the org could clear this one too, leaving a roster would revoke nothing
+ * durable. Re-entry is volunteer-initiated by construction.
+ *
+ * Called from the three places a volunteer acts toward an org of their own
+ * accord — submitting an application, claiming one, and signing up for a shift.
+ * A staff assignment is deliberately NOT one of them: `assignVolunteerToShift`
+ * needs a live `OrgVolunteer` row, and all three creators of that row
+ * (`addVolunteer`, `ensureAppliedRosterRow`, `restoreVolunteer`) refuse while a
+ * block stands, so staff cannot reach a signup for a blocked person at all.
+ * That assign path also re-checks the block itself, because this argument is a
+ * chain of four callsites rather than a structural guarantee.
+ *
+ * Takes a `tx` and no-ops silently when nothing was blocked, because every
+ * caller invokes it unconditionally inside a transaction that is really about
+ * something else. It must never be the reason an application submission or a
+ * shift signup rolls back.
+ */
+export async function liftOrgVolunteerBlock(
+	tx: TxClient,
+	orgId: string,
+	userId: string,
+): Promise<boolean> {
+	const removed = await deleteOrgVolunteerBlock(tx, orgId, userId);
+	if (removed === 0) return false;
+
+	await writeAuditLogTx(tx, {
+		orgId,
+		// The volunteer is the actor: nobody else can cause this.
+		actorId: userId,
+		action: 'ORG_ACCESS_RESTORED',
+		// The block row is already gone, so the subject of the entry is the user
+		// whose access decision changed rather than the deleted row's own id.
+		entityType: 'OrgVolunteerBlock',
+		entityId: userId,
+		metadata: {},
+	});
+
+	return true;
 }

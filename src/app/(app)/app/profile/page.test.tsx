@@ -18,7 +18,7 @@
  * the credentials and notifications tabs stay unmounted and their queries are
  * never reached.
  */
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -94,17 +94,45 @@ function membershipsResult(over: Record<string, unknown> = {}) {
 }
 
 const STAFF_ROW = {
-	id: 'ov-staff',
-	source: 'STAFF_ADDED' as const,
-	createdAt: new Date('2026-03-01T12:00:00Z'),
+	orgId: 'org-staff',
+	reason: 'STAFF_ADDED' as const,
+	since: new Date('2026-03-01T12:00:00Z'),
+	onRoster: true,
+	isStaff: false,
 	organization: { name: 'Riverside Animal Shelter', slug: 'riverside' },
 };
 
 const APPLIED_ROW = {
-	id: 'ov-applied',
-	source: 'APPLIED' as const,
-	createdAt: new Date('2026-02-01T12:00:00Z'),
+	orgId: 'org-applied',
+	reason: 'APPLIED' as const,
+	since: new Date('2026-02-01T12:00:00Z'),
+	onRoster: true,
+	isStaff: false,
 	organization: { name: 'Helping Hands', slug: 'helping-hands' },
+};
+
+/**
+ * An org with NO roster row — it holds only an application. Under the id-keyed
+ * version this org was invisible here and had no Leave button, which is how an
+ * org could deny the remedy by removing the volunteer first.
+ */
+const APPLICATION_ONLY_ROW = {
+	orgId: 'org-app-only',
+	reason: 'APPLICATION_ONLY' as const,
+	since: new Date('2026-01-15T12:00:00Z'),
+	onRoster: false,
+	isStaff: false,
+	organization: { name: 'Coastal Food Bank', slug: 'coastal-food-bank' },
+};
+
+/** Staff at their own org: ORG_MEMBER is exempt from the block (D3). */
+const STAFF_MEMBER_ROW = {
+	orgId: 'org-i-work-at',
+	reason: 'STAFF_ADDED' as const,
+	since: new Date('2026-01-01T12:00:00Z'),
+	onRoster: true,
+	isStaff: true,
+	organization: { name: 'My Own Shelter', slug: 'my-own-shelter' },
 };
 
 beforeEach(() => {
@@ -137,7 +165,9 @@ describe('OrgMemberships — load states', () => {
 
 		expect(screen.getByText(SECTION)).toBeInTheDocument();
 		expect(
-			screen.getByText('No organizations have you on a volunteer roster.'),
+			screen.getByText(
+				'No organizations have access to your volunteer profile.',
+			),
 		).toBeInTheDocument();
 		expect(screen.queryAllByRole('listitem')).toHaveLength(0);
 	});
@@ -229,24 +259,48 @@ describe('OrgMemberships — rows', () => {
 			screen.getByText(/Added when they approved your application/),
 		).toBeInTheDocument();
 	});
+
+	it('lists an org that has NO roster row, and says why it is there', () => {
+		// The reason D1 exists. Under the roster-row-only listing this org was
+		// invisible and had no Leave button, so an org could deny the remedy by
+		// removing the volunteer first — while the application it still holds kept
+		// satisfying requireOrgVolunteerRelationship, and with it credentials.issue
+		// and backgroundChecks.initiate.
+		mocks.useMemberships.mockReturnValue(
+			membershipsResult({ data: [APPLICATION_ONLY_ROW] }),
+		);
+		render(<ProfilePage />);
+
+		expect(screen.getByText('Coastal Food Bank')).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', { name: 'Leave: Coastal Food Bank' }),
+		).toBeInTheDocument();
+		// Deliberately does NOT claim a roster membership that does not exist.
+		expect(
+			screen.getByText(/You applied to this organization/),
+		).toBeInTheDocument();
+		expect(screen.queryByText(/roster/i)).not.toBeInTheDocument();
+	});
 });
 
 describe('OrgMemberships — confirm then leave', () => {
-	async function openConfirm(rows = [STAFF_ROW, APPLIED_ROW]) {
+	async function openConfirm(
+		rows = [STAFF_ROW, APPLIED_ROW],
+		orgName = 'Riverside Animal Shelter',
+	) {
 		mocks.useMemberships.mockReturnValue(membershipsResult({ data: rows }));
 		const user = userEvent.setup();
 		render(<ProfilePage />);
-		await user.click(
-			screen.getByRole('button', {
-				name: 'Leave: Riverside Animal Shelter',
-			}),
-		);
+		await user.click(screen.getByRole('button', { name: `Leave: ${orgName}` }));
 		return user;
 	}
 
-	it('the first click confirms rather than leaving, and is honest about what leaving does NOT do', async () => {
-		// Same correction the claim flow's decline row took in v0.34.0.0: do not
-		// imply a door that stays shut, and do not imply recorded hours vanish.
+	it('the first click confirms rather than leaving, and states what access is lost', async () => {
+		// The confirm names what the org LOSES. Until OrgVolunteerBlock landed,
+		// leaving revoked nothing durable, so this string could only list what
+		// stayed the same and had to end on "they can add you again" — the
+		// admission that the control did not work. The inverse clause is now the
+		// load-bearing one, and is asserted separately below.
 		await openConfirm();
 
 		expect(mocks.leaveMutate).not.toHaveBeenCalled();
@@ -257,9 +311,86 @@ describe('OrgMemberships — confirm then leave', () => {
 		).toBeInTheDocument();
 		expect(
 			screen.getByText(
-				'Leave this roster? Your recorded hours stay recorded, and they can add you again.',
+				"Leave and remove their access? They won't be able to add you back, schedule you, see your profile, or request a background check. Shifts you're already booked on stay booked, and hours you've volunteered stay recorded. You can rejoin any time by applying or signing up for a shift.",
 			),
 		).toBeInTheDocument();
+	});
+
+	it('the confirm discloses that upcoming shifts survive the departure', async () => {
+		await openConfirm();
+
+		// leaveOrgRoster writes nothing to ShiftSignup, and markAttendance
+		// authorizes through requireAttendanceAccess, which is SHIFT-scoped rather
+		// than org-scoped — so the org still has this person on next Saturday's
+		// shift and can still mark them attended. "They won't be able to schedule
+		// you" is true only of NEW assignments; without this clause a reader
+		// reasonably assumes existing bookings were cancelled.
+		expect(
+			screen.getByText(/Shifts you're already booked on stay booked/),
+		).toBeInTheDocument();
+	});
+
+	it('the confirm discloses that the block is reversible by the volunteer', async () => {
+		await openConfirm();
+
+		// Three ordinary volunteer actions call liftOrgVolunteerBlock — applying,
+		// claiming an application, and signing up for a shift — and the
+		// marketplace is cross-org, so someone could hand access back months later
+		// without registering whose listing they answered. Promising an absolute
+		// and letting them discover it was conditional is the failure this consent
+		// surface exists to avoid.
+		expect(
+			screen.getByText(
+				/You can rejoin any time by applying or signing up for a shift\./,
+			),
+		).toBeInTheDocument();
+	});
+
+	it('the confirm promises no re-add, and the card names every capability', async () => {
+		// Two halves of one decision, so they are pinned together — splitting them
+		// lets a future copy edit satisfy one and quietly break the other.
+		await openConfirm();
+
+		// (1) "add you back" is the clause that distinguishes this control from the
+		// version that revoked nothing. If it goes, so has the guarantee. It leads
+		// the list on purpose — a skimmer stops before a fourth item.
+		expect(
+			screen.getByText(/won't be able to add you back/),
+		).toBeInTheDocument();
+
+		// (2) The card names background checks too. It was omitted at first, to
+		// avoid alarming people at rest, with the full list kept for the confirm —
+		// but the card is the stay-or-go decision and the confirm is reachable only
+		// by people already leaving, so that showed the most consent-material fact
+		// only to those who had decided to go. The alarm concern is handled by
+		// loss-framing ("Leaving removes all of it"), not by omission.
+		expect(
+			screen.getByText(
+				/These organizations can schedule you for shifts, see your volunteer profile, and request a background check\. Leaving removes all of it\./,
+			),
+		).toBeInTheDocument();
+	});
+
+	it('does NOT promise revocation to staff at their own org', async () => {
+		// D3. `findOrgVolunteerRelationship` exempts ORG_MEMBER from the block,
+		// deliberately, so a coordinator does not lock themselves out of their own
+		// org by leaving its volunteer roster. For that person the standard confirm
+		// is simply false — they would press a destructive button, read that access
+		// was removed, and nothing would have changed.
+		await openConfirm([STAFF_MEMBER_ROW], 'My Own Shelter');
+
+		expect(
+			screen.getByText(
+				/You're on their staff, so this does not change your staff access/,
+			),
+		).toBeInTheDocument();
+
+		// Scoped to the ROW, not the document: the card description above
+		// legitimately names background checks for everyone. What must not appear
+		// is the standard confirm's promise, inside this row, for this person.
+		const row = screen.getByRole('listitem');
+		expect(within(row).queryByText(/add you back/)).not.toBeInTheDocument();
+		expect(within(row).queryByText(/won't be able to/)).not.toBeInTheDocument();
 	});
 
 	it('confirms only the row that was clicked', async () => {
@@ -295,7 +426,7 @@ describe('OrgMemberships — confirm then leave', () => {
 		).toBeInTheDocument();
 	});
 
-	it('confirming sends the row own OrgVolunteer id, never a user or org id', async () => {
+	it('confirming sends the row own orgId, never a user or roster-row id', async () => {
 		const user = await openConfirm();
 
 		await user.click(
@@ -304,7 +435,7 @@ describe('OrgMemberships — confirm then leave', () => {
 			}),
 		);
 
-		expect(mocks.leaveMutate).toHaveBeenCalledWith({ volunteerId: 'ov-staff' });
+		expect(mocks.leaveMutate).toHaveBeenCalledWith({ orgId: 'org-staff' });
 	});
 
 	it('a pending leave disables the confirm button, so a double-click cannot double-submit', async () => {
@@ -355,7 +486,9 @@ describe('OrgMemberships — mutation outcomes', () => {
 			await mocks.onSuccess?.();
 		});
 
-		expect(mocks.toastSuccess).toHaveBeenCalledWith('You left that roster.');
+		expect(mocks.toastSuccess).toHaveBeenCalledWith(
+			'You left that organization.',
+		);
 		// Without the invalidate the row stays on screen and the user cannot tell
 		// whether anything happened.
 		expect(mocks.invalidate).toHaveBeenCalledOnce();
@@ -438,7 +571,9 @@ describe('OrgMemberships — mutation outcomes', () => {
 
 		expect(screen.getByText(SECTION)).toBeInTheDocument();
 		expect(
-			screen.getByText('No organizations have you on a volunteer roster.'),
+			screen.getByText(
+				'No organizations have access to your volunteer profile.',
+			),
 		).toBeInTheDocument();
 		expect(screen.queryAllByRole('listitem')).toHaveLength(0);
 	});

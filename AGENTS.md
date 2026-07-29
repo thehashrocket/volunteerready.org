@@ -18,7 +18,7 @@ Which key you scope by depends on who is calling:
 
 - **Staff procedures** scope by `orgId` from `ctx`. When the procedure also acts on a `userId` arriving in its *input*, that id is untrusted — call `requireOrgVolunteerRelationship()` first.
 - **Company procedures** scope by `companyId` read from the request, never from session state.
-- **Volunteer procedures** scope by the caller's own `userId`, held inside the Prisma `WHERE` of every statement. A volunteer is not an `OrganizationMember`, so there is no membership to check, and the client must never supply an `orgId` — read it back off the row the caller already owns. See `profile.leaveOrgRoster`.
+- **Volunteer procedures** scope by the caller's own `userId`, held inside the Prisma `WHERE` of every statement. A volunteer is not an `OrganizationMember`, so there is no membership to check. Where the caller owns a row, read the `orgId` back off it rather than accepting one. Where they do not — `profile.leaveOrgRoster` (v0.37.0.0) is addressed by `orgId`, because an org holding only an application has no roster row to name — prove the relationship first, then keep `userId` in every `WHERE` so a crafted `orgId` can only ever reach the caller's own rows.
 
 The reasoning behind each is in `docs/AGENT_RULES.md` §2.
 

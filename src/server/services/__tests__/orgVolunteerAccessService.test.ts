@@ -9,19 +9,29 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
 	findOrgVolunteerRelationship: vi.fn(),
+	deleteOrgVolunteerBlock: vi.fn(),
+	writeAuditLogTx: vi.fn(),
 }));
 
 vi.mock('@/server/repositories/orgVolunteerRepo', () => ({
 	findOrgVolunteerRelationship: mocks.findOrgVolunteerRelationship,
+	deleteOrgVolunteerBlock: mocks.deleteOrgVolunteerBlock,
+}));
+
+vi.mock('@/server/repositories/auditRepo', () => ({
+	writeAuditLogTx: mocks.writeAuditLogTx,
 }));
 
 import {
 	getOrgVolunteerRelationship,
+	liftOrgVolunteerBlock,
 	requireOrgVolunteerRelationship,
 } from '../orgVolunteerAccessService';
 
 const ORG = 'org-1';
 const USER = 'user-1';
+/** Opaque to the service — it only ever forwards it. */
+const TX = {} as never;
 
 beforeEach(() => {
 	vi.resetAllMocks();
@@ -98,5 +108,47 @@ describe('getOrgVolunteerRelationship', () => {
 		await expect(getOrgVolunteerRelationship(ORG, USER)).resolves.toBe(
 			'SHIFT_SIGNUP',
 		);
+	});
+});
+
+describe('liftOrgVolunteerBlock', () => {
+	it('audits ORG_ACCESS_RESTORED against the volunteer when a block was cleared', async () => {
+		mocks.deleteOrgVolunteerBlock.mockResolvedValue(1);
+
+		await expect(liftOrgVolunteerBlock(TX, ORG, USER)).resolves.toBe(true);
+
+		expect(mocks.deleteOrgVolunteerBlock).toHaveBeenCalledWith(TX, ORG, USER);
+		expect(mocks.writeAuditLogTx).toHaveBeenCalledWith(
+			TX,
+			expect.objectContaining({
+				orgId: ORG,
+				// The volunteer is the actor: no other party can cause this.
+				actorId: USER,
+				action: 'ORG_ACCESS_RESTORED',
+			}),
+		);
+	});
+
+	it('writes NO audit row when there was no block to lift', async () => {
+		mocks.deleteOrgVolunteerBlock.mockResolvedValue(0);
+
+		await expect(liftOrgVolunteerBlock(TX, ORG, USER)).resolves.toBe(false);
+
+		// All three callers invoke this unconditionally inside a transaction about
+		// something else, so an unconditional audit row would stamp one on every
+		// shift signup and every application in the system.
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('forwards the caller transaction handle to both writes', async () => {
+		mocks.deleteOrgVolunteerBlock.mockResolvedValue(1);
+
+		await liftOrgVolunteerBlock(TX, ORG, USER);
+
+		// Escaping the caller's tx would let the block clear while the application
+		// or signup that justified it rolls back — access restored for an act that
+		// never happened.
+		expect(mocks.deleteOrgVolunteerBlock.mock.calls[0][0]).toBe(TX);
+		expect(mocks.writeAuditLogTx.mock.calls[0][0]).toBe(TX);
 	});
 });

@@ -162,11 +162,57 @@ Two rules that follow from the model:
    recipient agreeing, so an `OrgVolunteer` row alone says nothing about what
    the volunteer wants. The volunteer can soft-delete their own row from
    `/app/profile` (`profile.leaveOrgRoster`).
-2. **Leaving is narrower than a revocation.** It removes the roster edge only.
-   A `VolunteerApplication` or `ShiftSignup` still satisfies
-   `requireOrgVolunteerRelationship()`, so the org keeps access to
+2. **Leaving revokes the org's access, and the soft delete is not what does
+   it.** Through v0.36.0.0 leaving removed the roster edge only, and a surviving
+   `VolunteerApplication` or `ShiftSignup` still satisfied
+   `requireOrgVolunteerRelationship()` — so the org kept
    `profile.getOrgVisibleProfile`, `credentials.issue`, and
-   `backgroundChecks.initiate`. The confirm copy in the UI says so.
+   `backgroundChecks.initiate`, and could recreate the roster row from an email
+   address anyway. As of v0.37.0.0 the same transaction writes an
+   `OrgVolunteerBlock`, which suppresses those edges. The soft delete is the
+   optional half; the block is the mandatory one.
+
+---
+
+## OrgVolunteerBlock
+
+A volunteer's standing refusal of ONE organization's access to them. Written by
+`leaveOrgRoster` in the same transaction as the roster soft delete.
+
+It exists because every other edge in `findOrgVolunteerRelationship()` is one
+the org can mint unilaterally — `addVolunteer` takes an email address and needs
+no consent — so soft-deleting the roster row left the volunteer with no state
+the org could not simply recreate. A consent mechanism the other party can undo
+is not one.
+
+Key fields: `orgId`, `userId`, `createdAt`, `updatedAt`. No `deletedAt` — a
+block is a hard row, and its history lives in `AuditLog` as `VOLUNTEER_LEFT` /
+`ORG_ACCESS_RESTORED` rather than in a tombstone.
+
+Constraint: `(orgId, userId)` is a plain compound unique, **not** the partial
+index `OrgVolunteer` uses. With no soft delete, "at most one block per pair" is
+the whole rule, so Prisma can express it and the generated compound-unique input
+stays available — the create is an `upsert` and the lift is one `deleteMany`.
+
+Rules that follow from the model:
+
+1. **A block suppresses every relationship kind except `ORG_MEMBER` and
+   `EXISTING_CREDENTIAL`.** Staff membership is exempt so a person who is both a
+   coordinator and a rostered volunteer at the same org cannot lock themselves
+   out of it. `EXISTING_CREDENTIAL` is exempt because it is opt-in and reached
+   only by `revokeCredential`, which is strictly narrowing — suppressing it
+   would leave an already-issued credential visible in `listOrgCredentials` and
+   permanently unrevokable.
+2. **Four paths refuse while a block stands**, in three different shapes chosen
+   to match each surface: `addVolunteer` and `restoreVolunteer` throw
+   `FORBIDDEN` (staff typed the address; tell them), `ensureAppliedRosterRow`
+   returns false (an approval must not fail because of this), and
+   `assignVolunteerToShift` throws `NOT_FOUND` (matching its roster-miss answer).
+3. **Only the volunteer lifts a block**, via `liftOrgVolunteerBlock()` and only
+   from an act of their own — submitting an application with a known
+   `submittedByUserId`, claiming one, or signing up for a shift. Staff have no
+   path to it. An anonymous submission deliberately does not lift, because
+   `screener.submit` accepts an attacker-supplied email address.
 
 ---
 
@@ -612,9 +658,12 @@ Rules:
 5. Company-scoped records use `companyId` as the tenant boundary.
 6. Volunteer-facing procedures are the one place the scoping key is `userId`
    rather than `orgId`. A volunteer is not an `OrganizationMember`, so there is
-   no membership to check and the client must never name an org — the `orgId`
-   is read back off the row the caller already owns. `profile.leaveOrgRoster`
-   is the reference implementation.
+   no membership to check. Where the caller owns a row, the `orgId` is read back
+   off it rather than accepted from the client. Where they may not own one —
+   `profile.leaveOrgRoster` takes an `orgId` as of v0.37.0.0, because an org
+   holding only an application has no roster row to name — the service proves a
+   real relationship before writing, and `userId` stays inside the `WHERE` of
+   every statement, so a crafted `orgId` reaches only the caller's own rows.
 
 ---
 
@@ -627,6 +676,7 @@ Use these terms consistently across the codebase:
 - OrganizationMember
 - OrgVolunteer
 - OrgVolunteerSource
+- OrgVolunteerBlock
 - AccountState
 - VolunteerApplication
 - VolunteerAnswer

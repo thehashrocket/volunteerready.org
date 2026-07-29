@@ -82,7 +82,10 @@ export const profileRouter = createTRPCRouter({
 		.query(({ ctx, input }) => getOrgVisibleProfile(input.userId, ctx.orgId)),
 
 	/**
-	 * Orgs that currently have the caller on their volunteer roster (T32).
+	 * Orgs that can currently act on the caller (T32; widened in v0.37.0.0).
+	 *
+	 * NOT just roster rows — also orgs holding only an application or a shift
+	 * signup, because those authorize too and must therefore be leavable.
 	 *
 	 * Lives on `profileRouter`, not `volunteersRouter`, on purpose. That router is
 	 * `rosterProcedure` throughout — the pilot feature flag — and roster edges are
@@ -96,20 +99,23 @@ export const profileRouter = createTRPCRouter({
 		listMyOrgMemberships(requireUserId(ctx.session)),
 	),
 
-	/** Leave one org's roster. Soft delete — see `leaveOrgRoster`. */
+	/** Leave one org — revokes its access to you. See `leaveOrgRoster`. */
 	leaveOrgRoster: protectedProcedure
-		// `volunteerId` is an `OrgVolunteer.id` — a roster-ROW id, NOT a User.id,
-		// despite sitting ten lines from two procedures whose `userId` inputs are
-		// user ids. Named to match the sibling `volunteers.remove`/`restore`, which
-		// take the same kind of id. It is not a secret and needs no guard here:
-		// `softDeleteOwnOrgVolunteer` scopes every statement by the caller's userId.
-		.input(z.object({ volunteerId: orgVolunteerIdSchema }))
+		// `orgId`, NOT the `OrgVolunteer.id` this took through v0.36.0.0. An org
+		// holding only an application or a shift signup has no roster row to name,
+		// and those orgs must be leavable too — otherwise an org denies the remedy
+		// by removing the volunteer first, and keeps everything the surviving edges
+		// authorize. Org ids are not secret (they key every tenant-scoped route in
+		// the app) and need no guard here: the service requires a real relationship
+		// before writing anything, and every statement is scoped by the caller's
+		// own userId, so a crafted orgId can only ever reach the caller's own rows.
+		.input(z.object({ orgId: orgVolunteerIdSchema }))
 		.mutation(({ ctx, input }) =>
 			leaveOrgRoster({
 				// requireUserId, never session.user.email: under impersonation only
 				// `id` is swapped, so the two identities diverge.
 				userId: requireUserId(ctx.session),
-				volunteerId: input.volunteerId,
+				orgId: input.orgId,
 				impersonatedBy: impersonatedBy(ctx),
 			}),
 		),

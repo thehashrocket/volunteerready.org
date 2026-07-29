@@ -10,6 +10,49 @@ Each item includes enough context for a future engineer to pick it up cold.
 Shipped: `leaveOrgRoster()` + the "Organizations you volunteer with" card on
 `/app/profile`, the exit `sendRosterAddedEmail` has promised since T12.
 
+### [P1] ~~Leaving a roster does not close the `SHIFT_SIGNUP` authorization edge~~ ✅ FIXED (v0.37.0.0)
+
+Fixed by `OrgVolunteerBlock` — neither of the two options below, and the reason
+is worth keeping. **Option (a) does not hold.** Cancelling the signups and
+tightening the probe closes the chain as written, but `addVolunteer` takes an
+email address and needs no consent, so staff re-add the volunteer and re-assign
+them in two clicks and the edge is back. The T32 confirm copy said so out loud
+— *"and they can add you again"* — which made (a) a fix whose own limitation was
+printed on the button that triggered it. A consent mechanism the other party can
+undo unilaterally is not one.
+
+So the fix is (b): a `OrgVolunteerBlock` row written by `leaveOrgRoster` in the
+same transaction as the soft delete, checked by `findOrgVolunteerRelationship`
+after the probes, and refused by FOUR paths: the three that create a roster row
+(`addVolunteer`, `ensureAppliedRosterRow`, `restoreVolunteer`) plus
+`assignVolunteerToShift`, which creates none but reads one directly. It is the
+only state in the org↔volunteer relationship staff cannot clear. Lifted **only**
+by the volunteer re-engaging — applying **while signed in**, claiming an
+application, or signing up for a shift — via `liftOrgVolunteerBlock()` in
+`orgVolunteerAccessService.ts`. The signed-in condition is load-bearing:
+`screener.submit` is a `publicProcedure` carrying an attacker-supplied address.
+
+Three design notes that are easy to get wrong later:
+- **`ORG_MEMBER` is exempt**, and the suppression path RE-PROBES for it rather
+  than returning null. A coordinator who is also on their own org's volunteer
+  roster would otherwise lock themselves out of their own organization by
+  leaving that roster — and only when they also happened to have applied, since
+  the probe short-circuits at `APPLICATION` and never reaches the member check.
+- **`EXISTING_CREDENTIAL` is exempt too.** Suppressing it recreated the dead
+  end `acceptExistingCredential` exists to prevent: `listOrgCredentials` filters
+  on `orgId` alone, so the credential stayed visible and permanently
+  unrevokable. Revocation is strictly narrowing, so a block has nothing to
+  protect against there.
+- **The block check runs after the probes, not before.** Blocks are rare;
+  checking first adds a query to every call to save one on almost none. The
+  rejection path is unchanged and the accept path pays one indexed lookup.
+
+This also changed what the Leave button *means*, which was the actual decision:
+from "drop the roster row" to "revoke this org's access." Copy on `/app/profile`
+and in `sendRosterAddedEmail` was rewritten to match — see the design doc §2.
+
+Original write-up follows.
+
 ### [P1] Leaving a roster does not close the `SHIFT_SIGNUP` authorization edge
 
 Found by the security specialist during this ship's review. `leaveOrgRoster`
@@ -50,6 +93,152 @@ Deliberately NOT fixed in the T32 diff: it changes the meaning of an existing
 authorization predicate that four callsites depend on, and folding that into a
 UI ship would have buried it. The confirm copy and design doc §2 were corrected
 instead to stop over-claiming while it is open. **Effort:** M.
+
+---
+
+## Opened by the OrgVolunteerBlock ship (2026-07-28, v0.37.0.0)
+
+### Caught by review in this same ship — fixed, recorded so they are not reintroduced
+
+**`restoreVolunteer` had no block check.** Found independently by FIVE review
+specialists; the testing specialist wrote the test and watched it fail before
+reporting it. `restoreOrgVolunteer`'s `where` is
+`{ id, orgId, deletedAt: { not: null } }` and nothing on `OrgVolunteer` records WHO
+soft-deleted a row, so a volunteer's own departure is indistinguishable from a staff
+removal — staff could undo a departure using an id their roster page handed them
+before the volunteer left. It is the fourth roster-creating path and the one that
+does not look like a create. Fixed with `findRemovedOrgVolunteer` + the same refusal
+`addVolunteer` got, and mutation-verified.
+
+**A block suppressed `EXISTING_CREDENTIAL`.** That recreated the exact dead end
+`acceptExistingCredential` exists to prevent: `listOrgCredentials` filters on `orgId`
+alone, so the credential stayed visible and permanently unrevokable, and only the
+volunteer can lift a block. That kind is opt-in and reached by `revokeCredential`
+alone, which is strictly narrowing — it cannot mint privilege or disclose anything,
+so a block has nothing to protect against there. Now exempt alongside `ORG_MEMBER`.
+
+**Three stale docstrings**, the worst being `leaveOrgRoster`'s own: it still read
+*"It is also not a block — nothing stops the org re-adding the same address, and the
+UI says so"*, twelve lines above the `createOrgVolunteerBlock` call this ship added
+to that same function.
+
+**No backfill for volunteers who already left under v0.36.0.0.** Their exit revoked
+nothing and their surviving edges still authorized. The migration now backfills from
+`AuditLog` `VOLUNTEER_LEFT` rows, keyed on `action` (NOT `entityType`, which is
+`OrgVolunteer` there), excluding any pair with a LIVE roster row today — an org that
+legitimately re-added someone after they left, which the old confirm copy openly
+permitted, must not be retro-blocked into the zombie state this feature prevents.
+Verified against real Postgres with fixtures for all three branches.
+
+**The confirm promised an absolute the mechanism could not keep** — three ordinary
+volunteer actions lift a block, and the marketplace is cross-org, so someone could
+hand access back months later without registering whose listing they answered. The
+copy now says so. Separately, the card's capability list omitted background checks
+to avoid alarm; review showed that inverted WHO got the disclosure (the card is the
+stay-or-go decision, the confirm is reachable only by people already leaving), so it
+is named on both, loss-framed.
+
+### [P2] Leaving does not cancel upcoming shift signups, and staff can still mark attendance
+
+Found by a doc-accuracy audit *after* the PR was open — no review specialist
+caught it, because every one of them was reading the diff and this is a fact
+about what the diff does NOT touch.
+
+`leaveOrgRoster` writes nothing to `ShiftSignup`. So after revoking an org:
+- the volunteer is still `CONFIRMED` on next Saturday's shift,
+- the org still sees them in that shift's signup list,
+- and staff can still `markAttendance` them ATTENDED or NO_SHOW, because
+  `requireAttendanceAccess` authorizes through `requireOrgShift` (shift-scoped)
+  rather than `requireOrgVolunteerRelationship` (org-volunteer-scoped), so the
+  block is never consulted on that path.
+
+This is the residue of the rejected option (a): cancelling signups was never
+implemented because the block made it unnecessary *for authorization*. It is
+still necessary for **expectation** — a volunteer who revokes an org and is then
+marked a no-show for a shift they never meant to attend is worse off than before
+they left.
+
+The confirm copy now discloses it (*"Shifts you're already booked on stay
+booked"*) and volunteers can cancel their own signups (`cancelSignup` is a
+`protectedProcedure` on their own id), so nobody is trapped. The open question is
+behavioural: should leaving auto-cancel future CONFIRMED / WAITLISTED signups at
+that org? Arguments both ways — auto-cancelling is what people expect, but it
+silently drops an org from a shift it was counting on, with no notice to the
+coordinator. Probably wants a "cancel my upcoming shifts too" checkbox on the
+confirm rather than an implicit behaviour. **Effort:** M.
+
+Related P3: the disclosure is shown unconditionally, but most volunteers have no
+upcoming shifts at the org they are leaving. Gate the clause on a real count
+(`listMyOrgRelationships` already queries `ShiftSignup` and could aggregate it)
+so the sentence only appears when it is true of that reader. **Effort:** S.
+
+### [P3] `TxClient` has escaped the repository layer
+
+The alias (already a known P3, "copy-pasted across repositories") gained a 23rd copy
+and, for only the second time, one outside `server/repositories/**` — in
+`orgVolunteerAccessService.ts`, which drags a `PrismaClient` type import into a
+layer CLAUDE.md scopes to business logic. Export it once from
+`repositories/prisma.ts` and import everywhere. **Effort:** S.
+
+### [P3] The block read-then-insert has an accepted TOCTOU window
+
+`addVolunteer` and `ensureAppliedRosterRow` check the block and then insert, under
+READ COMMITTED with no lock on the pair, so a leave committing in between produces a
+live roster row beside a block. Accepted, not closed: the row is inert
+(`findOrgVolunteerRelationship` suppresses it, `assignVolunteerToShift` re-checks),
+so the failure mode is a confusing roster entry rather than regained access. Closing
+it needs `INSERT ... WHERE NOT EXISTS` or a row lock. No integration test interleaves
+two real transactions to pin the current behaviour either way. **Effort:** M.
+
+### [P3] `VOLUNTEER_LEFT` and `ORG_ACCESS_RESTORED` file under different entityTypes
+
+So no single `[entityType, entityId]` query reconstructs one block's lifecycle. The
+departure writes `OrgVolunteer`/rowId (or `OrgVolunteerBlock`/userId when there was
+no roster row), the restore writes `OrgVolunteerBlock`/userId. Joining requires
+`orgId` + `actorId`. **Effort:** S.
+
+### [P3] No e2e for leave → staff re-add refused
+
+`e2e/staff-created-volunteers.spec.ts` covers add → assign → attend → hours but not
+the exit, and now not the refusal either. e2e is still not in CI. **Effort:** M.
+
+### [P2] The never-consented case is untouched — an org can background-check a stranger it rostered
+
+The block fixes *"I left and they still can."* It does nothing about *"they added
+me off a spreadsheet, I never knew, and they can order a background check on me."*
+`requireOrgVolunteerRelationship` accepts `ORG_VOLUNTEER`, which staff mint from
+an email address alone, and that is the sole gate on `backgroundChecks.initiate`
+— a paid third-party call carrying staff-supplied SSN and date of birth.
+
+The fix shape is already named in `orgVolunteerAccessService.ts`'s own docstring:
+tier the accepted set by action sensitivity, so high-stakes writes
+(`credentials.issue`, `backgroundChecks.initiate`) require a consent-bearing edge
+(`APPLICATION`, `ORG_MEMBER`, or a volunteer-confirmed roster row) while profile
+reads keep the full set.
+
+Counter-argument worth resolving before building it: to initiate a check staff
+must already hold the person's SSN and DOB, which they got from that person on
+paper. An in-app edge requirement may add no consent that is not already there,
+in which case the real fix is notifying the volunteer rather than refusing the
+org. Kept out of the block diff deliberately — different bug, different blast
+radius. **Effort:** M.
+
+### [P3] Unclaimed volunteers cannot reach the Leave control at all
+
+`sendRosterAddedEmail` only fires for existing **ACTIVE** users — the
+unclaimed-suppression guard blocks the other two add branches. A shadow user
+created from a spreadsheet gets no email and has no account, so the population
+with the weakest consent has no access to the remedy. Nothing about the block
+changes this; it is v1b's `VolunteerActivationInvite` territory. Recorded here so
+it is not rediscovered as a surprise. **Effort:** part of v1b.
+
+### [P3] A block does not stop shift reminders or cross-org discovery
+
+Both live outside `requireOrgVolunteerRelationship`, so neither is affected by a
+block. Reminders are already suppressed for UNCLAIMED users but not for a
+claimed volunteer who left, and `volunteerDiscoveryRepo` filters on profile
+visibility rather than on any org relationship. Scoped out of this ship to keep
+the diff to one authorization predicate. **Effort:** S each.
 
 ### [P2] `qc.invalidateQueries()` with no arguments on the profile page
 
