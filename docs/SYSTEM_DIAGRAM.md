@@ -281,6 +281,7 @@ erDiagram
         string orgId
         string userId
         datetime createdAt
+        datetime updatedAt
     }
 
     CompanyAccount {

@@ -131,7 +131,10 @@ and revoking a credential the org already issued (otherwise that credential
 would stay visible and permanently unrevokable).
 
 Only the volunteer lifts a block, and only by re-engaging with that org
-themselves — applying, claiming an application, or signing up for a shift.
+themselves — applying **while signed in**, claiming an application, or signing
+up for a shift. An anonymous application does not lift one: the public apply
+form accepts any email address typed into it, so an address alone must not be
+able to hand an organization its access back.
 
 Because leaving is now keyed on the organization rather than on a roster row,
 an org that holds only an application or a shift signup can be left too. An org
