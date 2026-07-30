@@ -415,7 +415,8 @@ Platform admin is DB-backed via `User.isPlatformAdmin` (with env-var fallback du
 
 TypeScript constants are the source of truth for permissions — no DB tables in v1.
 
-- **Constants:** `src/server/domain/permissions.ts` — flat permission keys (`namespace.action`), role-to-permission mappings
+- **Constants:** `src/server/domain/permissions.ts` — flat permission keys (`namespace.action`), role-to-permission mappings, and `roleRank`
+- **`roleRank`** — the total order on `Role`, which is a *different* question from `ROLE_PERMISSIONS` and not a replacement for it: rank answers "is this role at least X?" for the `minRole` gates in `staffProcedure`, `memberService` and `requireOrgAccess`, while `ROLE_PERMISSIONS` answers "may this role do Y?". It was consolidated here from two private copies when `orgAccessService` became the third caller; `trpc/init.ts` re-exports it for back-compat
 - **`hasPermission(role, permission)`** — in-memory lookup, no DB query per call
 - **Advisory mode:** Global middleware in `publicProcedure` runs `advisoryPermissionCheck()` for all org-scoped procedures. Logs warnings when middleware and `hasPermission()` disagree. Never blocks.
 - **Procedure map:** `src/server/trpc/advisory-permission-middleware.ts` — maps tRPC procedure paths to permission keys
