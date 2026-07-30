@@ -99,7 +99,10 @@ Key files:
 - `background-check.ts` — FCRA state machine, PII sanitization
 - `billing.ts` — plan tier limits, trial validation (includes `maxShiftTemplates`)
 - `credential-sharing.ts` — share token lifecycle guards, expiry computation
-- `esg-report.ts` — ESG report types, CSV formatting, formula injection defense
+- `csv.ts` — the repo's ONE CSV parser and writer: `parseCsvRecords` (RFC 4180 — quoted fields, embedded commas and newlines, `""` escapes, BOM, CRLF/LF/CR), `escapeCsvField` + the formula-injection defense, `toCsvLine`, and `unescapeCsvField` (the inverse, because our own export is an input to our own importer). Consumers: ESG export, roster export, roster import
+- `esg-report.ts` — ESG report types, `computeESGSummary`, `formatESGCsv`. Re-exports `escapeCsvField` from `csv.ts`; the escaping and formula-injection defense moved there when the roster export became their second consumer
+- `roster-import.ts` — concierge import: column-header aliases, per-row validation reusing `org-volunteer.ts`'s name/email/phone schemas
+- `roster-export.ts` — roster export column contract, `ROSTER_EXPORT_CAP` (10k) and `ROSTER_EXPORT_BATCH`, `rosterExportFilename()`, and the two terminal notices (`formatTruncationNotice`, `formatFailureNotice`) that keep a capped or interrupted file from looking complete
 - `org-health.ts` — `computeOrgHealth()` pure domain function — 0-100 org health score with four 25-pt metrics and next actionable tip
 - `user-feedback.ts` — feedback mood/status enums, validation (max 2000 chars), rate limit constants, Zod schemas, volunteer-friendly status labels
 - `reference-data.ts` — `SKILL_CATALOG` constant (13 families, 62 skills), `CATALOG_VERSION`, `PLATFORM_ORG_SLUG`; imported by both `referenceDataService` and `prisma/seed-helpers.ts`
@@ -148,7 +151,10 @@ Key services:
 - `companyService.ts` — corporate account management
 - `employerReportService.ts` — ESG report generation and CSV export
 - `volunteerDashboardService.ts` — volunteer-facing dashboard: upcoming shifts, pending applications, expiring credentials, impact stats, recommended opportunities (user-scoped, no org context)
-- `onboardingAnalyticsService.ts` — platform admin onboarding funnel: 4-step funnel counts + per-org progress detail (last 20 orgs)
+- `onboardingAnalyticsService.ts` — platform admin onboarding funnel: 5-step funnel counts (the fifth is "roster populated") + per-org progress detail (last 20 orgs), plus `rosterActivation` — the launch success metric, deliberately NOT a sixth funnel step because it measures something else: orgs that added `ROSTER_POPULATED_THRESHOLD`+ volunteers **themselves** (`STAFF_ADDED`) within `ROSTER_ACTIVATION_WINDOW_DAYS` of signup
+- `orgAccessService.ts` — `requireOrgAccess({ userId, orgId, minRole })`, the Route-Handler counterpart to tRPC's `staffProcedure`; see Authorization below
+- `rosterImportService.ts` — concierge CSV import: per-row transactions through `addVolunteer()` (never a parallel insert), so the block refusal, shadow-user branch and audit row are the same code the add form runs. Writes no audit rows of its own. Opts out of `addVolunteer`'s fire-and-forget notification and paces the sends itself, sequentially and awaited
+- `rosterExportService.ts` — streams the roster CSV in `ROSTER_EXPORT_BATCH` pages, appends the truncation notice at the cap and the failure notice on a mid-stream error
 - `feedbackService.ts` — in-app feedback lifecycle: submit (rate-limited 5/hr), list with filters (status/mood), update status, reply with email notification, admin triage
 - `referenceDataService.ts` — boot guard (`ensureReferenceData()`) — self-healing runtime check that ensures the skill catalog and platform org exist before serving requests; uses a module-level `_seeded` flag and promise dedup to make subsequent calls free; called by `volunteerMatchingService` and `tenureBadgeService`, and at startup via `src/instrumentation.ts`
 - `marketplaceService.ts` — volunteer marketplace: `toggleInterest` (heart-toggle with auto-enroll into weekly digest, idempotent P2002/P2025 handling), extracted from the tRPC router so the router stays thin
@@ -286,6 +292,14 @@ tRPC procedure types (defined in `src/server/trpc/init.ts`):
 | `adminProcedure` | ADMIN or OWNER role | `role: Role` |
 | `companyScopedProcedure(opts?)` | Company membership (+ optional `minRole`/`minPlanTier`) | `companyId: string`, `companyRole: CompanyMemberRole` |
 | `planTierProcedure(tier)` | Org plan at or above tier | — |
+| `rosterProcedure` | `staffProcedure` + the roster flag on for `ctx.orgId` | `role: Role` (via `staffProcedure`) |
+
+`rosterProcedure` lives in `src/server/trpc/roster-flag-middleware.ts` rather than
+`init.ts` because it is a temporary launch gate, and it is shared by
+`routers/volunteers.ts` and `routers/shifts.ts` so a hand-copied flag check in a
+second router cannot be the one that gets missed when the flag retires. Grepping
+`rosterProcedure` does **not** enumerate every roster surface — grep
+`isRosterEnabledForOrg` (in `services/featureFlagService.ts`) instead; see CLAUDE.md.
 
 Use the narrowest access level possible.
 
@@ -305,6 +319,28 @@ in v0.29.2.0 after a bug let multi-company users see another company's data
 when the session's active company didn't match the URL.
 
 Each middleware narrows the context type via `next({ ctx: { ... } })`, so downstream code can use `ctx.orgId` and `ctx.role` without non-null assertions.
+
+## Route Handlers under `/api/org/[orgId]/**`
+
+A tRPC procedure type is not available to a raw Route Handler, and `staffProcedure`
+could not be reused even if it were: it reads `ctx.orgId` from the **session's active
+org**, while a URL-scoped route is being asked about the org in its path. Those two
+can differ for a multi-org user, which is the same shape as the v0.29.2.0
+company bug above. So `requireOrgAccess({ userId, orgId, minRole })` in
+`src/server/services/orgAccessService.ts` (v0.38.0.0) is the Route-Handler
+counterpart to `staffProcedure`: it takes `orgId` as a **parameter** and re-checks
+membership, then role rank, then org suspension against it, throwing
+`OrgAccessDeniedError` for the handler to convert. **Any new
+`/api/org/[orgId]/**` handler must use it.** Two deliberate boundaries: feature
+flags are not folded in (the caller checks those itself, *after* the access check,
+so a stranger cannot probe pilot membership), and the handler — not the service —
+decides the response, which for `GET /api/org/[orgId]/roster/csv` is a uniform 404
+for every miss so the address cannot enumerate orgs.
+
+`roleRank` — the total order on `Role` that both this guard and `staffProcedure`
+compare against — lives in `src/server/domain/permissions.ts`. It was consolidated
+there from two private copies when `orgAccessService` became its third caller;
+`trpc/init.ts` re-exports it for back-compat.
 
 A procedure type is only half the authorization story. `staffProcedure`
 establishes that the caller is staff and `ctx.orgId` establishes where, but a
