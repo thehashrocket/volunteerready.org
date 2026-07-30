@@ -97,7 +97,8 @@ export type AddVolunteerResult = {
  *
  * The notification send is deliberately NOT inside the transaction and NOT
  * awaited here: Resend being down must not roll back a roster row the
- * coordinator can see on their screen. The caller fires it after commit.
+ * coordinator can see on their screen. This function fires it after commit,
+ * unless `sendNotification: false` — see that option.
  */
 export async function addVolunteer(input: {
 	orgId: string;
@@ -106,6 +107,32 @@ export async function addVolunteer(input: {
 	phone?: string | null;
 	actorId: string | null;
 	impersonatedBy?: string | null;
+	/**
+	 * Provenance, stamped on the audit row. Omitted for the interactive form so
+	 * existing audit metadata keeps its shape; the concierge importer (T17) sets
+	 * it so a bulk-loaded roster is distinguishable from one typed in by hand.
+	 *
+	 * Deliberately NOT a third `OrgVolunteerSource`. The success metric counts
+	 * `source = STAFF_ADDED` rows, and an imported row IS staff-added — the
+	 * staff sent us the spreadsheet. Splitting the enum would drop every
+	 * concierge-onboarded org out of the metric the concierge motion exists to
+	 * move, and `ORG_VOLUNTEER_SOURCE_COPY` would need a fourth sentence saying
+	 * the same thing as "Added by their staff".
+	 */
+	via?: 'CONCIERGE_IMPORT';
+	/**
+	 * Whether THIS call sends the roster-added email. Default true — the
+	 * interactive path is unchanged.
+	 *
+	 * The importer passes false and sends them itself after the loop, awaited
+	 * and paced. Firing 60 un-awaited sends at Resend in a tight loop gets rate
+	 * limited, and the failure lands in a `.catch(console.error)` on a promise
+	 * nobody is holding — so the population that most needs this email (people
+	 * added from a spreadsheet they never saw) is the one whose notices would
+	 * silently vanish. The returned `notify` flag is unaffected either way: it
+	 * reports what is OWED, not what was sent.
+	 */
+	sendNotification?: boolean;
 }): Promise<AddVolunteerResult> {
 	const email = normalizeEmail(input.email);
 	const displayName = input.displayName.trim();
@@ -197,6 +224,7 @@ export async function addVolunteer(input: {
 				metadata: {
 					email,
 					outcome,
+					...(input.via ? { via: input.via } : {}),
 					// Attributes the action to the real admin, not just the
 					// impersonated user, per the v0.30.0.0 convention.
 					...(input.impersonatedBy
@@ -226,7 +254,7 @@ export async function addVolunteer(input: {
 	// failure mode we want is "one email missing", not "the row vanished".
 	// `.catch(console.error)`, never a bare `void`: an unhandled rejection here
 	// would take the process down (learning: nextauth-events-createuser-void-rejection).
-	if (result.notify) {
+	if (result.notify && input.sendNotification !== false) {
 		void notifyRosterAdd(input.orgId, input.actorId, email).catch(
 			console.error,
 		);
@@ -235,7 +263,55 @@ export async function addVolunteer(input: {
 	return result;
 }
 
-/** Look up the display context the notification needs, then send it. */
+/**
+ * The display context a roster-added notice needs: both values are invariant for
+ * a whole import run.
+ *
+ * Exported so a bulk sender resolves them ONCE. `notifyRosterAdd` below re-reads
+ * them per recipient, which is right for a single interactive add and wasteful
+ * for sixty — pre-fix, a 60-row import issued 120 redundant single-row reads for
+ * an org name that cannot change mid-run.
+ */
+export async function resolveRosterNotificationContext(
+	orgId: string,
+	actorId: string | null,
+): Promise<{ orgName: string; addedByName: string | null } | null> {
+	const [org, actor] = await Promise.all([
+		prisma.organization.findUnique({
+			where: { id: orgId },
+			select: { name: true },
+		}),
+		actorId
+			? prisma.user.findUnique({
+					where: { id: actorId },
+					select: { name: true },
+				})
+			: Promise.resolve(null),
+	]);
+
+	if (!org) return null;
+	return { orgName: org.name, addedByName: actor?.name ?? null };
+}
+
+/** Send one notice against an already-resolved context. */
+export function sendRosterAddedNotice(
+	context: { orgName: string; addedByName: string | null },
+	to: string,
+) {
+	return sendRosterAddedEmail({
+		to,
+		orgName: context.orgName,
+		addedByName: context.addedByName,
+	});
+}
+
+/**
+ * Look up the display context the notification needs, then send it.
+ *
+ * The single-add path. A bulk sender should resolve the context once with
+ * `resolveRosterNotificationContext` and call `sendRosterAddedNotice` per
+ * recipient instead.
+ */
 async function notifyRosterAdd(
 	orgId: string,
 	actorId: string | null,
