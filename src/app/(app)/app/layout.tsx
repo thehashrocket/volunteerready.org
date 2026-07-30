@@ -7,11 +7,10 @@ import { ImpersonationBanner } from '@/components/app/impersonation-banner';
 import { AuthFeedback } from '@/components/auth-feedback';
 import { authOptions } from '@/server/auth';
 import { resolveActiveOrgId } from '@/server/domain/active-org';
-import { STAFF_CREATED_VOLUNTEERS_FLAG } from '@/server/domain/feature-flags';
 import { getImpersonationContext } from '@/server/lib/impersonation-context';
 import { listCompaniesForUser } from '@/server/repositories/companyRepo';
 import { listMembershipOrgIds } from '@/server/repositories/membershipRepo';
-import { isFeatureEnabled } from '@/server/services/featureFlagService';
+import { isRosterEnabledForOrg } from '@/server/services/featureFlagService';
 
 // Routes that are exempt from the no-org redirect guard.
 // These pages must be reachable by logged-in users who have no org yet.
@@ -98,7 +97,7 @@ export default async function AppLayout({
 		isImpersonating: impersonation.isImpersonating,
 	});
 	const hasVolunteerRoster = activeOrgId
-		? await isFeatureEnabled(activeOrgId, STAFF_CREATED_VOLUNTEERS_FLAG)
+		? await isRosterEnabledForOrg(activeOrgId)
 		: false;
 
 	return (

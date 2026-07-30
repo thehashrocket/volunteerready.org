@@ -30,6 +30,26 @@ export async function findAccountStateByEmail(
 }
 
 /**
+ * The user id for a canonical email address, if one exists.
+ *
+ * Exists for the concierge import's `--dry-run`, which has to answer "is this
+ * person already on the roster?" without writing anything — and the roster is
+ * keyed on `userId` while the spreadsheet is keyed on an address.
+ *
+ * Same `normalizeEmail()` reasoning as `findAccountStateByEmail` above: storage
+ * is canonicalized by the T1 trigger, so a raw address misses the row. Here a
+ * miss is reported as "would create a new person", which for a dry run whose
+ * whole job is to preview the write would be a confidently wrong answer.
+ */
+export async function findUserIdByEmail(email: string): Promise<string | null> {
+	const row = await prisma.user.findUnique({
+		where: { email: normalizeEmail(email) },
+		select: { id: true },
+	});
+	return row?.id ?? null;
+}
+
+/**
  * The canonical email address stored for a user id.
  *
  * SECURITY: exists so identity-binding code can source the address from the

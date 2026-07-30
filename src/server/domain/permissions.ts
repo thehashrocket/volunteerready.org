@@ -287,6 +287,27 @@ const ROLE_PERMISSIONS: Record<Role, ReadonlySet<string>> = {
 	OWNER: OWNER_PERMISSIONS,
 };
 
+/**
+ * Total order on org roles, for "at least this role" comparisons.
+ *
+ * This module is the documented home for role maps, and this one had already
+ * drifted into two identical private copies — `trpc/init.ts` and
+ * `services/memberService.ts` — before a third caller (`orgAccessService`, the
+ * Route-Handler counterpart to `staffProcedure`) made consolidating it worth
+ * doing. Three independent definitions of "is this role senior enough" is how
+ * one of them ends up disagreeing after a role is added.
+ *
+ * Distinct from `ROLE_PERMISSIONS` above, and not a replacement for it: this
+ * answers "is A at least B", that answers "may this role do X". Reach for the
+ * permission set unless the rule is genuinely about seniority.
+ */
+export const roleRank: Record<Role, number> = {
+	READONLY: 0,
+	STAFF: 1,
+	ADMIN: 2,
+	OWNER: 3,
+};
+
 // ---------------------------------------------------------------------------
 // hasPermission()
 // ---------------------------------------------------------------------------

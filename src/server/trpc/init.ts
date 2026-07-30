@@ -12,6 +12,7 @@ import { authOptions } from '@/server/auth';
 import { assertPlanAtLeast } from '@/server/domain/billing';
 import type { EffectiveUser } from '@/server/domain/impersonation';
 import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
+import { roleRank } from '@/server/domain/permissions';
 import { resolveEffectiveUserId } from '@/server/lib/impersonation-context';
 import { getOrgPlanTier } from '@/server/repositories/orgRepo';
 import { prisma } from '@/server/repositories/prisma';
@@ -219,12 +220,9 @@ export const t = initTRPC
 		transformer: superjson,
 	});
 
-export const roleRank: Record<Role, number> = {
-	READONLY: 0,
-	STAFF: 1,
-	ADMIN: 2,
-	OWNER: 3,
-};
+// Re-exported so the existing `import { roleRank } from '@/server/trpc/init'`
+// call sites keep working; the definition lives in domain/permissions.ts.
+export { roleRank };
 
 export const createTRPCRouter = t.router;
 

@@ -3,6 +3,7 @@ import {
 	FEATURE_FLAG_REGISTRY,
 	getFlagDefinition,
 	isKnownFlag,
+	STAFF_CREATED_VOLUNTEERS_FLAG,
 } from '@/server/domain/feature-flags';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
@@ -105,4 +106,29 @@ export async function isFeatureEnabled(
 	if (override) return override.enabled;
 	const def = getFlagDefinition(key);
 	return def?.defaultEnabled ?? false;
+}
+
+/**
+ * Is the volunteer roster enabled for THIS org id?
+ *
+ * The predicate has six callers now and they do not share a shape: a tRPC
+ * middleware (`rosterProcedure`), two Server Components (the app shell's nav
+ * gate in `app/(app)/app/layout.tsx` and `resolveVolunteerRosterFlag`), a raw
+ * Route Handler (the roster CSV export), and the two onboarding surfaces, which
+ * hide the roster milestone rather than showing a step that links to a route
+ * the org would be redirected out of.
+ *
+ * One definition rather than six copies of `isFeatureEnabled(orgId, FLAG)`,
+ * because grepping `rosterProcedure` does NOT enumerate every roster surface —
+ * two profile procedures are deliberately ungated, the export is not a
+ * procedure, and the onboarding checks are reads rather than guards. When the
+ * flag retires, grep THIS.
+ *
+ * It lives in this service, not in `lib/roster-flag.ts` where it started,
+ * because that module imports next-auth and `next/headers` to resolve the
+ * session — weight the onboarding queries and the tRPC middleware should not
+ * take on for a one-line flag read.
+ */
+export function isRosterEnabledForOrg(orgId: string): Promise<boolean> {
+	return isFeatureEnabled(orgId, STAFF_CREATED_VOLUNTEERS_FLAG);
 }
