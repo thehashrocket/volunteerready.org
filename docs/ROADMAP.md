@@ -618,11 +618,14 @@ Delivered (v0.38.0.0) — the concierge motion becomes an actual mechanism:
   `addVolunteer()` rather than a parallel insert, so the `OrgVolunteerBlock` refusal,
   shadow-user minting and audit rows behave exactly as they do in the UI
 - ✅ Roster CSV export at `GET /api/org/[orgId]/roster/csv` — FREE tier on purpose,
-  streamed, 10k cap with an in-file truncation notice, rate limited, uniform 404 on
-  every refusal. Authorized by the new `requireOrgAccess()` (URL `orgId`, not session)
-- ✅ `roster` onboarding milestone — a 5th checklist/wizard step, complete at
-  `ROSTER_POPULATED_THRESHOLD` volunteers, omitted entirely for orgs outside the pilot
-  rather than shown-and-uncompletable
+  streamed, 10k cap with an in-file truncation notice, rate limited. Unknown org, not
+  a member, insufficient role, suspended org and flag-off all collapse to one
+  indistinguishable 404, so the URL cannot enumerate orgs (no session is still 401 and
+  a tripped rate limit is still 429). Authorized by the new `requireOrgAccess()` —
+  URL `orgId`, never the session's active org
+- ✅ `roster` onboarding milestone — a 5th step on the **dashboard checklist**, complete
+  at `ROSTER_POPULATED_THRESHOLD` volunteers, omitted entirely for orgs outside the
+  pilot rather than shown-and-uncompletable
 - ✅ 5th onboarding-funnel bar + per-org roster counts for platform admins, plus
   `rosterActivation`, the launch success metric: orgs that added 10+ volunteers
   themselves within 7 days of signup

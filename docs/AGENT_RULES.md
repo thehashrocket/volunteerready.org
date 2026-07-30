@@ -21,12 +21,22 @@ UI
 Do not skip layers unless absolutely necessary.
 
 tRPC is the usual first layer but not the only legal one. A Route Handler under
-`src/app/api/**` and a maintenance script under `scripts/**` may both enter at the
-**service** layer — and must enter no lower. `scripts/import-roster.ts` loads a CSV
-onto a roster by calling `addVolunteer()`, not by writing `OrgVolunteer` rows itself,
-which is why it inherits the block refusal, the shadow-user branch, the notification
-and the audit row for free. A bulk path that reimplements the insert is the way those
-guards get skipped.
+`src/app/api/**` and a maintenance script under `scripts/**` both enter at the
+**service** layer, and may additionally read straight from a repository for plain
+resolution — `/api/org/[orgId]/roster/csv` and `scripts/import-roster.ts` each call
+`findOrgByIdOrSlug()` directly. The rule that does not bend is the write side: **every
+write goes through a service**, so audit logging and the guards around it cannot be
+skipped. `scripts/import-roster.ts` loads a CSV by calling `addVolunteer()` per row
+rather than inserting `OrgVolunteer` rows itself, which is why the `OrgVolunteerBlock`
+refusal, the shadow-user branch, first-writer-wins on `User.name` and the audit row are
+the same code the add form runs — and why the import service writes no audit rows of its
+own. A bulk path that reimplements the insert is exactly how those guards get missed.
+
+One deliberate exception worth knowing, because it looks like a violation: the importer
+passes `sendNotification: false` and sends the roster-added emails itself afterwards.
+`addVolunteer`'s own send is fire-and-forget behind a `.catch`, which is right for one
+coordinator clicking Add and wrong for sixty rows against a rate limiter. Opting out of
+a service's side effect to pace it is fine; opting out of its guards is not.
 
 ---
 
@@ -133,8 +143,9 @@ rosters they cannot leave.
 `src/server/trpc/routers/profile.leave.test.ts` goes red if you do. Corollary:
 grepping `rosterProcedure` does not enumerate every roster surface. **Grep
 `isRosterEnabledForOrg` instead** — it lives in `src/server/services/featureFlagService.ts`
-and has six callers of three shapes (the `rosterProcedure` middleware, two Server
-Components, the roster CSV Route Handler, and two onboarding reads). Note the concierge
+and has six callers of four shapes (the `rosterProcedure` middleware, two Server
+Components, the roster CSV Route Handler, and two onboarding reads — which hide a
+checklist step rather than guarding anything). Note the concierge
 importer checks no flag at all, so it matches neither grep; see CLAUDE.md.
 
 One more rule, specific to the org↔volunteer guard. Leaving writes an

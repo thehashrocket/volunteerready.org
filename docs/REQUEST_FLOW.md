@@ -449,14 +449,26 @@ No HTTP request at all — a CLI entry point that joins at the **service** layer
 ```
 pnpm import:roster --org <slug-or-id> --file <path.csv> [--dry-run] [--yes] [--actor <email>] [--no-notify]
     -> scripts/import-roster.ts
-        -> Reject unknown flags (so --dryrun cannot become a live import)
-        -> Write run requires --yes; --dry-run requires nothing
-        -> parseCsvRecords()  (domain/csv.ts — RFC 4180)
-        -> validate rows      (domain/roster-import.ts)
-        -> rosterImportService: per-row transaction
-             -> addVolunteer(..., { sendNotification: false, via: 'CONCIERGE_IMPORT' })
-        -> then send the roster-added emails itself: sequential, awaited, failures named
-        -> summary report; re-running the same file reports "already on roster", exits 0
+        -> Reject unknown flags (so --dryrun cannot silently become a live import)
+        -> A write run requires --yes; --dry-run requires nothing
+        -> findOrgByIdOrSlug(args.org)      -> no match      → exit 1
+        -> Refuse a suspended org                             → exit 1
+        -> If --actor: resolve the address, then require that
+           user to be a member of THIS org                     → exit 1
+        -> parseRosterCsv(file)  (domain/roster-import.ts over domain/csv.ts, RFC 4180)
+             -> an unbalanced quote refuses the WHOLE file, naming the line
+        -> Echo the plan (database, org, file, actor, mode, notify, valid/invalid counts)
+        -> Print the invalid rows FIRST, in both modes
+        -> branch:
+             --dry-run  -> previewRosterImport()   — reads only, writes nothing
+             write      -> importRoster()          — per-row transaction,
+                             addVolunteer(..., { sendNotification: false,
+                                                 via: 'CONCIERGE_IMPORT' }),
+                             streaming each row's outcome as it commits
+        -> Summary
+        -> If a write run AND notify is on (default; suppressed by --no-notify):
+             sendImportNotifications() — sequential, awaited, each failure named
+        -> Re-running the same file reports every row "already on roster", exits 0
 ```
 
 It calls `addVolunteer()` rather than inserting `OrgVolunteer` rows, which is why the
@@ -508,7 +520,7 @@ Feature flags allow gradual rollout.
 
 That is one of several read shapes, and the tRPC one is not the most common. The roster
 flag predicate `isRosterEnabledForOrg()` (in `services/featureFlagService.ts`) has six
-callers of three shapes: the `rosterProcedure` middleware, two Server Components
+callers of four shapes: the `rosterProcedure` middleware, two Server Components
 (`app/(app)/app/layout.tsx`'s nav gate and `resolveVolunteerRosterFlag()` in
 `lib/roster-flag.ts`), the roster CSV Route Handler, and two onboarding reads — which
 hide a checklist step rather than guarding anything. Two rules follow:
