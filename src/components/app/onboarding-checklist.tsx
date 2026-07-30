@@ -4,6 +4,7 @@ import { CheckCircle2, Circle, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { trpc } from '@/lib/trpc/client';
+import { ROSTER_POPULATED_THRESHOLD } from '@/server/domain/org-volunteer';
 
 type OnboardingData = {
 	complete: boolean;
@@ -11,30 +12,51 @@ type OnboardingData = {
 	opportunityCount: number;
 	applicationCount: number;
 	backgroundCheckCompleteCount: number;
+	rosterVolunteerCount: number;
+	rosterEnabled: boolean;
 };
 
-const steps = [
+type Step = {
+	label: string;
+	href: string;
+	check: (d: OnboardingData) => boolean;
+	/** Omit the step entirely when this returns false. */
+	applies?: (d: OnboardingData) => boolean;
+};
+
+const STEPS: readonly Step[] = [
 	{
 		label: 'Invite a team member',
 		href: '/app/settings/team',
-		check: (d: OnboardingData) => d.teamMemberCount > 1,
+		check: (d) => d.teamMemberCount > 1,
+	},
+	{
+		// OMITTED, not shown-and-incomplete, for an org without the roster flag:
+		// the link goes to `/app/volunteers`, which redirects a non-pilot org
+		// straight back to the dashboard. A step the product forbids you to
+		// complete is worse than no step, and counting it would peg those orgs at
+		// "3 of 5" permanently.
+		label: 'Add your volunteers',
+		href: '/app/volunteers',
+		check: (d) => d.rosterVolunteerCount >= ROSTER_POPULATED_THRESHOLD,
+		applies: (d) => d.rosterEnabled,
 	},
 	{
 		label: 'Create your first opportunity',
 		href: '/app/opportunities',
-		check: (d: OnboardingData) => d.opportunityCount > 0,
+		check: (d) => d.opportunityCount > 0,
 	},
 	{
 		label: 'Receive your first application',
 		href: '/app/applications',
-		check: (d: OnboardingData) => d.applicationCount > 0,
+		check: (d) => d.applicationCount > 0,
 	},
 	{
 		label: 'Complete your first background check',
 		href: '/app/settings/background-checks',
-		check: (d: OnboardingData) => d.backgroundCheckCompleteCount > 0,
+		check: (d) => d.backgroundCheckCompleteCount > 0,
 	},
-] as const;
+];
 
 export function OnboardingChecklist({
 	onboarding,
@@ -51,6 +73,7 @@ export function OnboardingChecklist({
 
 	if (onboarding.complete) return null;
 
+	const steps = STEPS.filter((s) => s.applies?.(onboarding) ?? true);
 	const completed = steps.filter((s) => s.check(onboarding)).length;
 	const progress = (completed / steps.length) * 100;
 

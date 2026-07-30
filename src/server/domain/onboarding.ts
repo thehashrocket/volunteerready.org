@@ -7,7 +7,11 @@
  *   2. Screener setup — at least one screener question exists
  *   3. Opportunity     — at least one opportunity is published
  *   4. First volunteer — at least one application received
+ *   5. Roster          — >= ROSTER_POPULATED_THRESHOLD volunteers on the roster,
+ *                        and only when the roster is enabled for this org
  */
+
+import { ROSTER_POPULATED_THRESHOLD } from './org-volunteer';
 
 export interface OnboardingInput {
 	orgName: string;
@@ -16,10 +20,14 @@ export interface OnboardingInput {
 	publishedOpportunityCount: number;
 	firstApplicationReceivedAt: Date | null;
 	onboardingDismissedAt: Date | null;
+	/** Live roster rows, any source. */
+	rosterVolunteerCount: number;
+	/** `staff_created_volunteers` for this org. Hides the step when false. */
+	rosterEnabled: boolean;
 }
 
 export interface OnboardingStep {
-	key: 'org_basics' | 'screener' | 'opportunity' | 'first_volunteer';
+	key: 'org_basics' | 'screener' | 'opportunity' | 'first_volunteer' | 'roster';
 	label: string;
 	description: string;
 	complete: boolean;
@@ -70,6 +78,25 @@ export function computeOnboardingStatus(
 			href: '/app/applications',
 		},
 	];
+
+	// Appended, not inserted: it is the only step an org can complete before
+	// publishing anything, so it must not sit between two steps that do have an
+	// order.
+	//
+	// OMITTED ENTIRELY, not shown-and-incomplete, when the flag is off. The step
+	// links to `/app/volunteers`, which `volunteers/layout.tsx` redirects away
+	// from for a non-pilot org — so showing it would be an instruction the
+	// product refuses to let the reader follow. Omitting also keeps `totalCount`
+	// honest, instead of pinning every non-pilot org at "4 of 5" forever.
+	if (input.rosterEnabled) {
+		steps.push({
+			key: 'roster',
+			label: 'Add your volunteers',
+			description: `Add the ${ROSTER_POPULATED_THRESHOLD} volunteers you already work with so you can schedule them and track their hours.`,
+			complete: input.rosterVolunteerCount >= ROSTER_POPULATED_THRESHOLD,
+			href: '/app/volunteers',
+		});
+	}
 
 	const completedCount = steps.filter((s) => s.complete).length;
 

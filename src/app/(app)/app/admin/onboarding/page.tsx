@@ -14,6 +14,7 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { trpc } from '@/lib/trpc/client';
+import { ROSTER_POPULATED_THRESHOLD } from '@/server/domain/org-volunteer';
 
 // ---------------------------------------------------------------------------
 // Funnel bar
@@ -61,7 +62,7 @@ export default function OnboardingAnalyticsPage() {
 		<div className="space-y-8">
 			<PageHeader
 				title="Onboarding Funnel"
-				description="How organizations progress through the 4-step onboarding flow."
+				description="How organizations progress through the 5-step onboarding flow."
 			/>
 
 			{/* ── Funnel visualization ── */}
@@ -74,7 +75,7 @@ export default function OnboardingAnalyticsPage() {
 				<CardContent>
 					{isLoading ? (
 						<div className="space-y-4">
-							{Array.from({ length: 4 }).map((_, i) => (
+							{Array.from({ length: 5 }).map((_, i) => (
 								<Skeleton key={i} className="h-10 rounded-lg" />
 							))}
 						</div>
@@ -89,6 +90,47 @@ export default function OnboardingAnalyticsPage() {
 								/>
 							))}
 						</div>
+					)}
+				</CardContent>
+			</Card>
+
+			{/* ── The roster launch's primary success metric ──
+			    Deliberately its own card rather than a sixth funnel bar. It is not
+			    a funnel step: it is narrower on two axes the bars do not show
+			    (STAFF_ADDED rows only, inside the first week), and rendering it
+			    beside them would read as "step 5, but stricter" rather than as the
+			    separate question it answers — did the concierge motion work? */}
+			<Card className="border-border/70">
+				<CardHeader className="pb-3">
+					<CardTitle className="text-base font-semibold">
+						Roster activation
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					{isLoading || !data ? (
+						// Shaped like the content it replaces, so the card does not grow
+						// and push the table down when data lands.
+						<div className="space-y-2">
+							<Skeleton className="h-8 w-28 rounded-lg" />
+							<Skeleton className="h-4 w-72 rounded" />
+						</div>
+					) : (
+						<>
+							{/* font-mono per DESIGN.md ("Geist Mono for data values") and to
+							    match the house KpiItem treatment on /app — without it this
+							    figure is byte-identical to the page's own h1. */}
+							<p className="font-mono text-2xl font-bold tabular-nums tracking-tight text-foreground">
+								{data.rosterActivation.orgs}
+								<span className="ml-1.5 font-sans text-base font-normal text-muted-foreground">
+									{data.rosterActivation.orgs === 1 ? 'org' : 'orgs'}
+								</span>
+							</p>
+							<p className="mt-1 text-sm text-muted-foreground">
+								Reached {data.rosterActivation.threshold}+ staff-added
+								volunteers within {data.rosterActivation.withinDays} days of
+								signing up.
+							</p>
+						</>
 					)}
 				</CardContent>
 			</Card>
@@ -112,6 +154,9 @@ export default function OnboardingAnalyticsPage() {
 									<TableHead className="text-center">Screener</TableHead>
 									<TableHead className="text-center">Opportunity</TableHead>
 									<TableHead className="text-center">Application</TableHead>
+									<TableHead className="text-center">
+										Roster ({ROSTER_POPULATED_THRESHOLD}+)
+									</TableHead>
 									<TableHead className="text-center">Progress</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -132,13 +177,31 @@ export default function OnboardingAnalyticsPage() {
 											<StepIcon done={org.hasApplication} />
 										</TableCell>
 										<TableCell className="text-center">
+											{/* The count, not just a tick: "7" is the number that
+											    says whether a concierge nudge is worth making. But
+											    it still carries the pass/fail signal its four
+											    neighbours do, from `hasRoster` — otherwise 9 and 10
+											    look identical while differing by a badge step. */}
+											<span
+												className={
+													org.hasRoster
+														? 'font-mono text-sm tabular-nums text-success'
+														: 'font-mono text-sm tabular-nums text-muted-foreground'
+												}
+											>
+												{org.rosterVolunteerCount}
+											</span>
+										</TableCell>
+										<TableCell className="text-center">
 											<Badge
 												variant={
-													org.stepsCompleted === 4 ? 'default' : 'secondary'
+													org.stepsCompleted === (data?.funnel.length ?? 5)
+														? 'default'
+														: 'secondary'
 												}
 												className="text-xs"
 											>
-												{org.stepsCompleted}/4
+												{org.stepsCompleted}/{data?.funnel.length ?? 5}
 											</Badge>
 										</TableCell>
 									</TableRow>
