@@ -1,6 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { STAFF_CREATED_VOLUNTEERS_FLAG } from '@/server/domain/feature-flags';
-import { isFeatureEnabled } from '@/server/services/featureFlagService';
+import { isRosterEnabledForOrg } from '@/server/services/featureFlagService';
 import { staffProcedure } from '@/server/trpc/init';
 
 /**
@@ -23,12 +22,16 @@ import { staffProcedure } from '@/server/trpc/init';
  * hand-copied flag check in a second router is the copy that gets missed when
  * the flag is retired.
  *
+ * The predicate itself is `isRosterEnabledForOrg` in `featureFlagService`,
+ * shared with the CSV export route and the two onboarding surfaces — none of
+ * which are procedures, so none would be found by grepping this file.
+ *
  * One indexed lookup per call, mirroring the org-suspension check
  * `orgProcedure` already performs. `ctx.orgId` is guaranteed non-null by
  * `orgProcedure`.
  */
 export const rosterProcedure = staffProcedure.use(async ({ ctx, next }) => {
-	if (!(await isFeatureEnabled(ctx.orgId, STAFF_CREATED_VOLUNTEERS_FLAG))) {
+	if (!(await isRosterEnabledForOrg(ctx.orgId))) {
 		throw new TRPCError({
 			code: 'FORBIDDEN',
 			message: 'The volunteer roster is not enabled for this organization.',

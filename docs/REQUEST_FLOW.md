@@ -81,10 +81,18 @@ Client
 
 If membership fails, the request should return an authorization error.
 
-This is the **staff** path. Volunteer-facing procedures that touch org-scoped
-rows do not follow it: a volunteer is not an `OrganizationMember`, so there is
-no membership to verify and no `currentOrgId` to resolve. See "Volunteer Access
-Revocation Flow" below for the shape those take instead.
+This is the **staff tRPC** path, and note that line 4 — resolving `orgId` from
+`Session.currentOrgId` — is what makes it specifically that. Two other shapes do not
+follow it:
+
+- Volunteer-facing procedures: a volunteer is not an `OrganizationMember`, so there is
+  no membership to verify and no `currentOrgId` to resolve. See "Volunteer Access
+  Revocation Flow" below.
+- Route Handlers under `/api/org/[orgId]/**`: membership is still confirmed, but the
+  `orgId` comes from the **URL** and never from the session. Resolving it from the
+  session there is the v0.29.2.0 bug class — for a multi-org user the active org and
+  the org in the path can differ, so the route would serve the wrong tenant. See
+  "Roster CSV Export Flow" below.
 
 ---
 
@@ -393,6 +401,88 @@ the audit log entry as a system action.
 
 ---
 
+# Roster CSV Export Flow
+
+The fourth Route Handler shape: session-authenticated and **URL-scoped**, rather than
+signature-verified (webhooks) or `CRON_SECRET`-bearing (crons).
+
+```
+Browser (<a href> — the page never sees the response)
+    -> GET /api/org/[orgId]/roster/csv
+        -> Read params.orgId
+        -> Resolve session + impersonation (resolveEffectiveUserId)
+             -> resolutionFailed → 401 (fail closed, never the real admin's identity)
+        -> Bounds-check the segment (3-64 chars)
+        -> PROBE rate limit, keyed on userId alone — BEFORE the org lookup
+        -> findOrgByIdOrSlug(orgId)          (id wins over apply slug on collision)
+        -> requireOrgAccess({ userId, orgId: org.id, minRole: 'STAFF' })
+        -> isRosterEnabledForOrg(org.id)     — AFTER the access check
+        -> EXPORT rate limit, keyed on `${userId}:${org.id}`
+        -> rosterExportService.streamRosterCsv()
+             -> paged reads (ROSTER_EXPORT_BATCH), live rows only
+             -> at ROSTER_EXPORT_CAP: append formatTruncationNotice()
+             -> on mid-stream error: append formatFailureNotice(rowsEmitted)
+        -> 200 text/csv, Cache-Control: no-store, private
+```
+
+Four properties worth preserving:
+
+1. **Every miss returns the same 404** — unknown org, not a member, insufficient role,
+   suspended org, flag off. The URL therefore cannot be used to discover which orgs
+   exist or which are in the pilot.
+2. **The order is the security property.** The probe rate limit runs before the org
+   lookup so an unauthenticated-ish prober cannot use lookups as an oracle; the flag
+   read runs *after* `requireOrgAccess` for the same reason.
+3. **The cap and the failure notice are rows in the file, not a toast.** The response is
+   already committed as a 200 with headers flushed by the time either is known, and the
+   page never receives the body anyway. A truncated file that looks complete is the
+   failure mode both notices exist to prevent.
+4. **FREE tier on purpose.** An org that cannot get its data back out has not chosen to
+   stay.
+
+---
+
+# Concierge Roster Import Flow
+
+No HTTP request at all — a CLI entry point that joins at the **service** layer.
+
+```
+pnpm import:roster --org <slug-or-id> --file <path.csv> [--dry-run] [--yes] [--actor <email>] [--no-notify]
+    -> scripts/import-roster.ts
+        -> Reject unknown flags (so --dryrun cannot silently become a live import)
+        -> A write run requires --yes; --dry-run requires nothing
+        -> findOrgByIdOrSlug(args.org)      -> no match      → exit 1
+        -> Refuse a suspended org                             → exit 1
+        -> If --actor: resolve the address, then require that
+           user to be a member of THIS org                     → exit 1
+        -> parseRosterCsv(file)  (domain/roster-import.ts over domain/csv.ts, RFC 4180)
+             -> an unbalanced quote refuses the WHOLE file, naming the line
+        -> Echo the plan (database, org, file, actor, mode, notify, valid/invalid counts)
+        -> Print the invalid rows FIRST, in both modes
+        -> branch:
+             --dry-run  -> previewRosterImport()   — reads only, writes nothing
+             write      -> importRoster()          — per-row transaction,
+                             addVolunteer(..., { sendNotification: false,
+                                                 via: 'CONCIERGE_IMPORT' }),
+                             streaming each row's outcome as it commits
+        -> Summary
+        -> If a write run AND notify is on (default; suppressed by --no-notify):
+             sendImportNotifications() — sequential, awaited, each failure named
+        -> Re-running the same file reports every row "already on roster", exits 0
+```
+
+It calls `addVolunteer()` rather than inserting `OrgVolunteer` rows, which is why the
+`OrgVolunteerBlock` refusal, the shadow-user branch, first-writer-wins on `User.name`
+and the audit row are all the same code the add form runs — and why
+`rosterImportService` writes no audit rows of its own. Notifications are the one thing
+it does *not* delegate: `addVolunteer` fires its send as fire-and-forget behind a
+`.catch`, which is right for one coordinator clicking Add and wrong for sixty rows
+against a rate limiter — and the people owed that email are precisely those added from
+a spreadsheet they never saw, since it carries the only link to the page where they can
+revoke the org's access.
+
+---
+
 # Matching / Recommendations Flow
 
 ```
@@ -427,6 +517,20 @@ Client
 ```
 
 Feature flags allow gradual rollout.
+
+That is one of several read shapes, and the tRPC one is not the most common. The roster
+flag predicate `isRosterEnabledForOrg()` (in `services/featureFlagService.ts`) has six
+callers of four shapes: the `rosterProcedure` middleware, two Server Components
+(`app/(app)/app/layout.tsx`'s nav gate and `resolveVolunteerRosterFlag()` in
+`lib/roster-flag.ts`), the roster CSV Route Handler, and two onboarding reads — which
+hide a checklist step rather than guarding anything. Two rules follow:
+
+- **There is no client flag-read path, deliberately.** Reading a gate over tRPC from the
+  client flashes the gated surface in after hydration. That is why `shifts/page.tsx` is
+  a Server Component wrapping a client child rather than querying the flag itself.
+- **A flag read is not an access check and must not run before one.** The CSV route reads
+  the flag *after* `requireOrgAccess`, so a stranger cannot use the response to probe
+  which orgs are in the pilot.
 
 ---
 

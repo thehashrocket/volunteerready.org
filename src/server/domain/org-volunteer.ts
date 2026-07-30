@@ -44,6 +44,17 @@ export const ASSIGN_PICKER_LIMIT = 20;
 export const ROSTER_POPULATED_THRESHOLD = 10;
 
 /**
+ * Days after signup within which staff-added rows count toward the roster
+ * launch's primary success metric.
+ *
+ * Named because the number is used twice: once as the query's window and once in
+ * the sentence the admin page renders describing that window. As two literals,
+ * changing the metric in one place made the UI describe a window the query did
+ * not use.
+ */
+export const ROSTER_ACTIVATION_WINDOW_DAYS = 7;
+
+/**
  * Canonical email form. MUST match the database trigger
  * (`normalize_user_email`, migration 20260726231500) exactly — that trigger is
  * `lower(btrim(...))`. If these two ever disagree, a lookup built on this

@@ -28,7 +28,9 @@ Users are global identities.
 
 Account state: `accountState` is `AccountState` — `ACTIVE` (default; every
 pre-existing user backfilled to this) or `UNCLAIMED`. An `UNCLAIMED` user was
-created by org staff typing an email address into the roster; nobody has ever
+created by org staff putting an email address on the roster — by hand, or in bulk
+via `pnpm import:roster`, which mints shadow users through the same
+`addVolunteer()` service so the branch behaves identically. Nobody has ever
 authenticated as them. `claimedAt` is stamped on the first authenticated
 session. A user's email is canonicalized on write (`normalizeEmail()` in
 `src/server/domain/org-volunteer.ts`) and is unique case-insensitively, so an
@@ -142,8 +144,13 @@ Key fields:
   volunteer's own profile name.
 - `phone` — org-typed. Deliberately NOT copied onto `VolunteerProfile`, which
   is for what the volunteer sets themselves.
-- `source` — `OrgVolunteerSource`: `STAFF_ADDED` (typed in by a coordinator) or
-  `APPLIED` (materialized from an approved `VolunteerApplication`).
+- `source` — `OrgVolunteerSource`: `STAFF_ADDED` (the org put them there — typed in
+  by a coordinator, or loaded in bulk from a spreadsheet by `pnpm import:roster`) or
+  `APPLIED` (materialized from an approved `VolunteerApplication`). There is
+  deliberately **no** third member for the concierge import: an imported row IS
+  staff-added, and splitting the enum would drop every concierge-onboarded org out of
+  the `rosterActivation` success metric, which counts `STAFF_ADDED`. Import provenance
+  goes on the audit row instead, as `metadata.via = 'CONCIERGE_IMPORT'`.
 - `addedByUserId` — the staff user who added the row, if any.
 - `deletedAt` — soft delete. Set by staff removal *and* by the volunteer
   leaving.

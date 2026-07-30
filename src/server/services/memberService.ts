@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import type { Role } from '@/prisma/generated/client';
 import { normalizeEmail } from '@/server/domain/org-volunteer';
+import { roleRank } from '@/server/domain/permissions';
 import { generateToken, hashToken } from '@/server/lib/tokens';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
@@ -13,14 +14,6 @@ import { sendInviteEmail } from '@/server/repositories/sendInviteEmail';
 import { findEmailByUserId } from '@/server/repositories/userAccountStateRepo';
 
 const INVITE_EXPIRY_HOURS = 48;
-
-/** Role rank for inline business rules (ADMIN can't invite ADMIN). */
-const roleRank: Record<Role, number> = {
-	READONLY: 0,
-	STAFF: 1,
-	ADMIN: 2,
-	OWNER: 3,
-};
 
 export async function inviteMember(
 	orgId: string,

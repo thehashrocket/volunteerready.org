@@ -20,6 +20,24 @@ UI
 
 Do not skip layers unless absolutely necessary.
 
+tRPC is the usual first layer but not the only legal one. A Route Handler under
+`src/app/api/**` and a maintenance script under `scripts/**` both enter at the
+**service** layer, and may additionally read straight from a repository for plain
+resolution — `/api/org/[orgId]/roster/csv` and `scripts/import-roster.ts` each call
+`findOrgByIdOrSlug()` directly. The rule that does not bend is the write side: **every
+write goes through a service**, so audit logging and the guards around it cannot be
+skipped. `scripts/import-roster.ts` loads a CSV by calling `addVolunteer()` per row
+rather than inserting `OrgVolunteer` rows itself, which is why the `OrgVolunteerBlock`
+refusal, the shadow-user branch, first-writer-wins on `User.name` and the audit row are
+the same code the add form runs — and why the import service writes no audit rows of its
+own. A bulk path that reimplements the insert is exactly how those guards get missed.
+
+One deliberate exception worth knowing, because it looks like a violation: the importer
+passes `sendNotification: false` and sends the roster-added emails itself afterwards.
+`addVolunteer`'s own send is fire-and-forget behind a `.catch`, which is right for one
+coordinator clicking Add and wrong for sixty rows against a rate limiter. Opting out of
+a service's side effect to pace it is fine; opting out of its guards is not.
+
 ---
 
 # 2. Organization Scope Is Mandatory
@@ -43,6 +61,18 @@ tracks one "active" company, but a multi-company user can be viewing a
 *different* company's URL; authorizing against the session instead of the
 request serves or mutates the wrong tenant. See
 `src/server/services/companyAccessService.ts`'s `requireCompanyAccess()`.
+
+**Route Handlers under `/api/org/[orgId]/**` must call `requireOrgAccess()`** in
+`src/server/services/orgAccessService.ts` (v0.38.0.0). This is the same rule as the
+company paragraph above, with one wrinkle: for tRPC, reading the session's active org
+is *correct* — that is what `staffProcedure` and `ctx.orgId` do. It is only wrong for a
+URL-scoped route, where the org being asked about is the one in the path and the two
+can differ for a multi-org user. So `staffProcedure` cannot be reused here even in
+spirit: `requireOrgAccess({ userId, orgId, minRole })` takes `orgId` as a parameter and
+re-checks membership, role rank AND org suspension against it. Do not hand-roll the
+check in the handler, and do not add a second copy of `roleRank` — it lives in
+`src/server/domain/permissions.ts` (it was consolidated there from two private copies
+when this guard became the third caller).
 
 Org scope is not only about the rows you read. A `userId` arriving in a
 procedure's **input** is untrusted even when the caller is staff: `staffProcedure`
@@ -111,7 +141,12 @@ are deliberately **ungated** by the roster feature flag, because roster rows get
 minted regardless of the flag and gating the exit would strand volunteers on
 rosters they cannot leave.
 `src/server/trpc/routers/profile.leave.test.ts` goes red if you do. Corollary:
-grepping `rosterProcedure` does not enumerate every roster surface.
+grepping `rosterProcedure` does not enumerate every roster surface. **Grep
+`isRosterEnabledForOrg` instead** — it lives in `src/server/services/featureFlagService.ts`
+and has six callers of four shapes (the `rosterProcedure` middleware, two Server
+Components, the roster CSV Route Handler, and two onboarding reads — which hide a
+checklist step rather than guarding anything). Note the concierge
+importer checks no flag at all, so it matches neither grep; see CLAUDE.md.
 
 One more rule, specific to the org↔volunteer guard. Leaving writes an
 `OrgVolunteerBlock`, and `findOrgVolunteerRelationship()` suppresses every kind
@@ -193,6 +228,18 @@ sent to Postgres as one literal parameter — "invalid input syntax" 500s that
 only reproduce under `next dev`. Write a single static template with
 NULL-checked optional filters instead (see the "Raw SQL" rule in `CLAUDE.md`
 for the preferred sargable patterns).
+
+CSV rule: there is exactly one parser and one writer, in
+`src/server/domain/csv.ts` (`parseCsvRecords`, `escapeCsvField`, `toCsvLine`,
+`unescapeCsvField`). Never hand-roll `line.split(',')` and never add a second
+escaper. A naive split is wrong for the files this product actually receives — a real
+volunteer spreadsheet contains `"Smith, Jane"`, and splitting on the comma shifts every
+later column left, so the email field arrives holding a first name. Two copies of a
+formula-injection guard is also where one of them stops being maintained, which is why
+`esg-report.ts` now re-exports `escapeCsvField` rather than keeping its own. There is
+still one violation on purpose-not-yet-fixed: `bulk-import-service.parseCsv` (the
+applications importer) has its own naive parser, tracked in `docs/TODOS.md` — converting
+it is the fix, not a precedent.
 
 ---
 

@@ -20,9 +20,19 @@ vi.mock('@/server/lib/impersonation-context', () => ({
 vi.mock('@/server/repositories/membershipRepo', () => ({
 	listMembershipOrgIds: mocks.listMembershipOrgIds,
 }));
-vi.mock('@/server/services/featureFlagService', () => ({
-	isFeatureEnabled: mocks.isFeatureEnabled,
-}));
+vi.mock('@/server/services/featureFlagService', async () => {
+	const { STAFF_CREATED_VOLUNTEERS_FLAG } = await import(
+		'@/server/domain/feature-flags'
+	);
+	return {
+		isFeatureEnabled: mocks.isFeatureEnabled,
+		// A thin wrapper over isFeatureEnabled in the real module. Delegating
+		// rather than mocking it outright keeps the flag-KEY assertions below
+		// meaningful — otherwise they would only prove some helper was called.
+		isRosterEnabledForOrg: (orgId: string) =>
+			mocks.isFeatureEnabled(orgId, STAFF_CREATED_VOLUNTEERS_FLAG),
+	};
+});
 vi.mock('@/server/repositories/prisma', () => ({ prisma: {} }));
 
 import VolunteersLayout from './layout';

@@ -27,6 +27,56 @@ export async function findOrgBySlug(slug: string) {
 	});
 }
 
+/**
+ * Suspension state alone, for guards that must not pull the whole org row.
+ *
+ * `orgProcedure` inlines this same lookup; `requireOrgAccess` — the raw
+ * Route-Handler counterpart — needs it too, and a suspended org bulk-exporting
+ * its roster through a route that skipped tRPC is exactly the gap that would
+ * open if the second guard forgot it.
+ */
+export async function getOrgSuspension(orgId: string) {
+	return prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { suspendedAt: true },
+	});
+}
+
+/**
+ * Resolve an org from whatever an operator typed on a command line.
+ *
+ * Exists for the concierge importer (T17), where the person running it knows
+ * the org by its apply slug ("riverside-animal-shelter") but the id is what
+ * actually appears in a support thread. Accepting either removes a lookup step
+ * from a flow whose whole point is being fast.
+ *
+ * Returns `name` because the script prints it back for confirmation before
+ * writing — an import into the wrong org is the mistake worth spending a query
+ * to prevent.
+ */
+export async function findOrgByIdOrSlug(idOrSlug: string) {
+	// SECURITY: id FIRST, as two separate unique lookups — never one `findFirst`
+	// with `OR: [{ id }, { slug }]`. `Organization.id` is a cuid, a 25-char
+	// lowercase alphanumeric string, and `ORG_SLUG_PATTERN`
+	// (/^[a-z0-9]+(-[a-z0-9]+)*$/) accepts exactly that shape — verified. So an
+	// org can register another org's id as its own slug, and an unordered
+	// `findFirst` would return whichever row Postgres happened to reach. That
+	// hands the squatter a concierge import aimed at the victim's id, and 404s
+	// the victim's own roster export. Two `findUnique` calls make the precedence
+	// explicit: an id always beats a slug, and the second query only runs on a
+	// miss.
+	const byId = await prisma.organization.findUnique({
+		where: { id: idOrSlug },
+		select: { id: true, slug: true, name: true, suspendedAt: true },
+	});
+	if (byId) return byId;
+
+	return prisma.organization.findUnique({
+		where: { slug: idOrSlug },
+		select: { id: true, slug: true, name: true, suspendedAt: true },
+	});
+}
+
 export async function getOrgPlanTier(orgId: string): Promise<PlanTier> {
 	const org = await prisma.organization.findUniqueOrThrow({
 		where: { id: orgId },

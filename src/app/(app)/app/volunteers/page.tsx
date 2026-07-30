@@ -1,6 +1,6 @@
 'use client';
 
-import { BookUser, Search } from 'lucide-react';
+import { BookUser, Download, Search } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import {
@@ -104,6 +104,15 @@ export default function VolunteersPage() {
 		},
 	);
 	const count = trpc.volunteers.count.useQuery();
+	// The export URL needs a concrete org id: the route is scoped by its path
+	// segment and deliberately will not fall back to session state.
+	//
+	// NOT a guaranteed cache read, despite OrgSwitcher issuing the same query in
+	// the app shell — that one is `enabled: Boolean(currentOrgId)` and
+	// `staleTime: 10_000`, so it never runs for a session without a current org
+	// and goes stale ten seconds after mount. Treated as a real fetch here, which
+	// is why the control is gated on `org.data` below rather than assumed present.
+	const org = trpc.org.getCurrentOrg.useQuery();
 	const utils = trpc.useUtils();
 
 	const removeVolunteer = trpc.volunteers.remove.useMutation({
@@ -142,8 +151,11 @@ export default function VolunteersPage() {
 				actions={<AddVolunteerDialog onAdded={refresh} />}
 			/>
 
-			<div className="flex items-center gap-2">
-				<div className="relative max-w-md flex-1">
+			{/* Stacks below sm: the export button is ~120px and the search field is
+			    the primary control on a phone-first surface, so they must not
+			    compete for one row. */}
+			<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+				<div className="relative w-full sm:max-w-md sm:flex-1">
 					{/* An sr-only label, not placeholder-as-label: a placeholder stops
 					    being a label the moment the field has content. */}
 					<Label htmlFor="volunteer-search" className="sr-only">
@@ -158,9 +170,34 @@ export default function VolunteersPage() {
 							setSearch(e.target.value);
 							setCursor(null);
 						}}
-						className="pl-8"
+						// h-11 to match Remove and the repo's 44px convention, and to
+						// stay level with the export button beside it.
+						className="h-11 pl-8"
 					/>
 				</div>
+
+				{/* An anchor, not a fetch-and-blob: the response streams, and letting
+				    the browser own the download means a large roster never has to
+				    materialize in the tab.
+				    Withheld until the org id resolves (a download button that does
+				    nothing on click is worse than one that appears a beat later) AND
+				    while the roster is empty — the approved spec hides it at 0 rows,
+				    since a header-only download beside "add your first volunteer" is
+				    an offer with nothing behind it. */}
+				{org.data && total > 0 ? (
+					<Button variant="outline" asChild className="h-11">
+						<a
+							href={`/api/org/${org.data.id}/roster/csv`}
+							// No `download` attribute: the route sets
+							// Content-Disposition with a dated filename, and `download`
+							// with no value would let the URL's last segment ("csv") win.
+							data-testid="export-roster-csv"
+						>
+							<Download className="h-4 w-4" />
+							Export CSV
+						</a>
+					</Button>
+				) : null}
 			</div>
 
 			{roster.isLoading ? (

@@ -1,10 +1,9 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth';
 import { resolveActiveOrgId } from '@/server/domain/active-org';
-import { STAFF_CREATED_VOLUNTEERS_FLAG } from '@/server/domain/feature-flags';
 import { getImpersonationContext } from '@/server/lib/impersonation-context';
 import { listMembershipOrgIds } from '@/server/repositories/membershipRepo';
-import { isFeatureEnabled } from '@/server/services/featureFlagService';
+import { isRosterEnabledForOrg } from '@/server/services/featureFlagService';
 
 /**
  * Resolve `staff_created_volunteers` for the org the current request is acting
@@ -58,8 +57,5 @@ export async function resolveVolunteerRosterFlag(): Promise<{
 
 	if (!orgId) return { orgId: null, enabled: false };
 
-	return {
-		orgId,
-		enabled: await isFeatureEnabled(orgId, STAFF_CREATED_VOLUNTEERS_FLAG),
-	};
+	return { orgId, enabled: await isRosterEnabledForOrg(orgId) };
 }

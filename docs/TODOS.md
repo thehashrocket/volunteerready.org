@@ -5,6 +5,260 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by Lane G — roster import, export, metrics (2026-07-29, v0.38.0.0)
+
+Shipped T17 (`pnpm import:roster`), T19 (`/api/org/[orgId]/roster/csv`) and T20
+(the `roster_populated` milestone across all three onboarding surfaces).
+
+### [P2] `bulk-import-service.parseCsv` still splits on commas
+
+T17 added a real RFC 4180 parser at `src/server/domain/csv.ts` and uses it. The
+**applications** bulk importer (`bulk-import-service.ts:24`) still does
+`line.split(',').map(c => c.trim())`, so any quoted field containing a comma
+shifts every later column left. Its own column contract is narrower (`email`,
+optional `opportunityId`) and an email cannot contain a comma, so today the
+damage is confined to `opportunityId` being read as garbage rather than to the
+identity column — which is why this is P2 and not P1.
+
+Deliberately not converted in the Lane G diff: it is a shipped surface with
+existing tests and its own error-reporting shape, and folding it into an import
+ship would have put a behaviour change to the applications pipeline inside a
+diff about rosters. **Fix:** swap `parseCsv` onto `parseCsvRecords`, keeping the
+existing `{ rows, errors }` return shape, and reuse the `line` field for the
+error row numbers it already reports. **Effort:** S.
+
+### [P3] The dry run is a rehearsal, and two runs can disagree
+
+`previewRosterImport` classifies each row against the database as it stands, and
+nothing holds that state until the real run. A volunteer who applies, or leaves,
+between the two changes the answer. The script says so in its output rather than
+pretending otherwise, which is the right call for a tool a human runs twice
+minutes apart — but it does mean "the dry run said 40 adds" is not a promise.
+Closing it would need a snapshot or an advisory lock over the whole run, which
+costs more than it buys at concierge scale. **Effort:** M if it ever matters.
+
+### [P3] The import has no e2e, and the exported CSV has no scrolled-render check
+
+Both were driven by hand against the dev server during the ship — the importer
+run twice (idempotence), a leave-then-reimport (the block refusal), and the
+export checked for a soft-deleted row, a formula-injection name and a FREE-tier
+org. None of that is automated, and e2e still does not run in CI. The natural
+home is a third test in `e2e/staff-created-volunteers.spec.ts`. **Effort:** M.
+
+### [P3] `sendImportNotifications` paces at a fixed 600ms with no retry
+
+Enough for Resend's 2 req/s default, and failures are reported rather than
+swallowed — but a transient 429 still costs that volunteer their notice, and the
+remedy is "re-send by hand" printed at the end of the run. A bounded retry with
+backoff on 429 specifically would close it. Note the deliberate design here: the
+importer owns pacing precisely because `addVolunteer`'s fire-and-forget send
+would lose these silently. **Effort:** S.
+
+### Caught by review in this same ship — fixed, recorded so they are not reintroduced
+
+Seven specialists, a Claude adversarial pass and Codex. **Nine CRITICALs, all fixed and
+mutation-verified.** Five were real defects in new code; the rest were false claims
+in comments I had just written, which is its own lesson.
+
+**`--dry-run=false --yes` performed a live production write.** Found independently by the
+API-contract AND data-migration specialists. `flags.get('dry-run') === true` fails OPEN when
+the switch carries a value, so `--dry-run=false`, `--dry-run=0` and `--dry-run false` (the
+`--key value` branch swallows the next bare token) all yielded `dryRun: false, yes: true` —
+a production write, emailing real people, from a command line that visibly reads
+`--dry-run`. The file already guarded a typo'd flag NAME (`--dryrun`); it did not guard a
+value on the right name. `--no-notify=true` had the same root cause and inverted to "send
+the mail anyway". Fixed with a `SWITCH_FLAGS` allowlist that rejects any valued switch, plus
+`--dry-run`/`--yes` now mutually exclusive rather than "dry-run wins". Six tests.
+
+**An unterminated quote silently dropped every following row and misdiagnosed the loss.**
+`parseCsvRecords` discarded `inQuotes` at EOF, so one unbalanced quote swallowed the rest of
+the file into a single field. Verified: a 4-line file became 1 record with 1 field, and the
+operator's report read `0 valid, 1 invalid — Email is required. ("")` for a file with three
+populated email cells. `ROSTER_IMPORT_CAP` cannot catch it — the runaway quote is exactly
+what makes the record count small. Now a `CsvFormatError`, rethrown as
+`RosterCsvFormatError`, naming the line the quote opened on.
+
+**Export → import was not a round trip.** `escapeCsvField` prefixes `@`/`=`/`+`/`-`-leading
+values with `'` against spreadsheet formula execution, and nothing undid it on the way back
+in. Verified: `+1 555 0100` re-imported and PERSISTED as `'+1 555 0100`, and
+`volunteerPhoneSchema`/`displayNameSchema` both accept a leading apostrophe, so it was
+silent. Every international phone number was affected. `unescapeCsvField` now inverts it,
+and only where the writer could have added it — `'tis Jones` is left alone.
+
+**A lone `\r` escaped a CSV field, bypassing the formula guard.** `escapeCsvField` quoted on
+`\n` but not `\r`, while the new `parseCsvRecords` accepts a lone CR as a record terminator
+— so a volunteer-controlled `displayName` of `Jane\r=cmd|…` round-tripped as TWO records
+with the payload leading the second, where the `'` prefix never applies. Pre-existing
+function, newly exploitable because this ship gave it a CR-terminating parser and a second
+consumer that hands the file to a coordinator. `MUST_QUOTE = /[",\n\r]/`, and `FORMULA_LEAD`
+now also catches a payload hidden behind leading whitespace.
+
+**`findOrgByIdOrSlug` had no precedence between id and slug.** A `findFirst` with
+`OR: [{ id }, { slug }]` and no `orderBy`. `Organization.id` is a 25-char cuid and
+`ORG_SLUG_PATTERN` (`/^[a-z0-9]+(-[a-z0-9]+)*$/`) accepts exactly that shape — verified — so
+an org can register another org's id as its own slug and win the race. That points a
+concierge import at the squatter and 404s the victim's own export. Now two sequential
+`findUnique` calls, id first.
+
+**Four false claims in comments this ship wrote.** Worth recording because they are the
+failure mode CLAUDE.md's disclosure rule exists for, and they slipped through anyway:
+(1) `isRosterEnabledForOrg`'s docstring said "five callers … grep THIS when the flag
+retires" while `app/(app)/app/layout.tsx` still resolved the flag inline — a SIXTH surface
+the instruction missed, and CLAUDE.md repeated the instruction. Now six callers and layout
+goes through the helper. (2) The export route's rate-limit comment claimed "probing many ids
+from one account consumes one budget"; the key was `${userId}:${orgId}`, so every candidate
+id minted a FRESH bucket. Split into a per-caller PROBE limit before the lookup and a
+per-resolved-org EXPORT limit after. (3) `addVolunteer`'s docstring said "the caller fires it
+after commit" — it fires it itself. (4) `roster-import.ts` documented "the two skips" when
+the union has one.
+
+Also fixed: the importer ignored `suspendedAt` (a field `findOrgByIdOrSlug` now selects);
+`--actor` accepted any address in the database, so a typo resolving to a real stranger wrote
+a confidently wrong audit trail and told volunteers "Added by \<that stranger\>" — now
+checked with `userIsMemberOfOrg`; a mid-stream export failure produced a well-formed CSV
+prefix that looked complete — now ends with an `# EXPORT FAILED … do not use it` row; the
+truncation notice was a one-field row in a seven-column file, which parses as a phantom
+volunteer — now padded to the header width; `ROSTER_IMPORT_CAP` refuses a mis-selected
+50k-row export before it mints 50k shadow users; `sendImportNotifications` re-read the
+invariant org and actor once per recipient (120 redundant queries on a 60-row run).
+
+Design (all sourced to DESIGN.md or the approved mockup): the activation figure was
+`text-2xl font-semibold`, byte-identical to the page's own `h1` and missing the `font-mono`
+DESIGN.md assigns to data values; its loading skeleton was one `h-10` bar against ~70px of
+content, so the card grew and pushed the table down; the Roster column dropped the pass/fail
+signal its four neighbours carry while the service already computed `hasRoster`; Export CSV
+was rendered at 0 rows against a spec that hides it, and sat as a non-wrapping flex sibling
+that stole width from the search field below ~600px.
+
+### [P2] `rosterActivation` has no eligible-cohort denominator
+
+The launch metric counts orgs reaching the threshold in `STAFF_ADDED` rows within 7 days of
+signup. It was rendered as `N / totalOrgs`, and `totalOrgs` is every org ever created —
+including orgs that predate the `OrgVolunteer` table, orgs whose `staff_created_volunteers`
+flag is off (they cannot enter the numerator at all, since `addVolunteer` is behind
+`rosterProcedure`), and orgs still inside their own 7-day window. As a ratio it deflates
+monotonically whether or not the concierge motion works.
+
+Shipped as a raw count with the cohort named in prose, which is honest but less useful than
+a rate. **Fix:** compute the eligible cohort — orgs created at least 7 days ago AND
+flag-enabled — and report against that. Wants a second query or a widened
+`countOrgsWithPopulatedRoster` that returns the cohort size with the HAVING dropped.
+**Effort:** S.
+
+### [P2] Funnel step 5 counts flag-off orgs the checklist deliberately does not
+
+Found by the adversarial pass. Step 5 and the per-org `hasRoster` apply no flag filter,
+while `computeOnboardingStatus` omits the step entirely when `rosterEnabled` is false. Since
+`ensureAppliedRosterRow` mints roster rows regardless of the flag, a non-pilot org's roster
+fills on its own — so the admin table can show it 5/5 complete while its own checklist has
+only four steps. The service comment claims step 5 "match[es] the checklist … so the product
+cannot congratulate an org it is still nudging", which is false for exactly the non-pilot
+population. **Fix:** filter both on the flag, or correct the comment. **Effort:** S.
+
+### [P2] The importer has no non-local-DATABASE_URL confirmation
+
+`--yes` is the entire gate on a script whose header says it is normally pointed at
+production. The preamble prints the target database and org name and then writes on the next
+statement — no prompt, no affirmation. This repo has the opposite convention everywhere
+else: `pnpm fixture:email-collisions`, `src/test/integration-setup.ts` and `e2e/utils/db.ts`
+all REFUSE a non-local `DATABASE_URL`. The one script designed to be aimed at production is
+the one with no environment check. Compounding it, `parseArgs` lets `--org` appear twice with
+last-write-wins, so one mistyped slug plus a habitual `--yes` writes shadow users into a
+stranger's tenant and emails them.
+**Fix:** when `DATABASE_URL` is non-local, require the resolved `org.slug` typed back on
+stdin (the resolver already returns it for this purpose), and reject duplicate flags.
+**Effort:** S.
+
+### [P2] An interrupted import can never send its notifications
+
+`sendImportNotifications` runs only after `importRoster` returns the whole result set, so a
+run killed at row 55 of 60 leaves 55 rows committed and zero notices sent. Re-running is the
+documented remedy, but every committed row then returns `SKIPPED_ALREADY_ON_ROSTER`, which
+carries no `notify` flag — so `owed` is empty and those notices can never be sent by the
+tool. The rows grant an org access; the notice is the only thing carrying the link to revoke
+it. The existing P3 below covers a transient 429, not this.
+Compounding it: the send loop prints nothing per recipient, so 60 notices at 600ms is 36
+seconds of silence — which invites exactly the Ctrl-C that creates the state.
+**Fix:** a `--notify-only` mode that recomputes owed notices from `AuditLog` rows carrying
+`metadata.via = 'CONCIERGE_IMPORT'`, plus one line per send. **Effort:** M.
+
+### [P3] `--no-notify`'s only reachable effect is the harmful one
+
+Its documented legitimate use — re-running an import whose notices already went out — is
+already free, because a re-run's rows come back `SKIPPED_ALREADY_ON_ROSTER` with `notify`
+unset and no notices are sent whether or not the flag is passed. So the flag's only distinct
+behaviour is suppressing notices for genuinely NEW rows, which is what its own USAGE text
+warns against. **Fix:** restrict it to a local `DATABASE_URL` (its real use is dev testing,
+where the Resend key is live), or remove it. **Effort:** S.
+
+### [P3] `controller.error()` may discard the failure notice it was just handed
+
+`rosterExportService` enqueues the `# EXPORT FAILED` row and then calls
+`controller.error(err)`. Per the Streams spec `error()` runs `ResetQueue`, which drops
+anything still queued — the notice survives only because a read request is normally pending
+inside `pull`, which fulfils the enqueue directly. Usually true, not guaranteed across
+queuing strategies and runtimes, so the marker is best-effort rather than the invariant its
+comment reads as. Also: no `cancel()` handler, benign today because no connection is held
+between pages. **Effort:** S.
+
+### [P3] Two latent full-table scans on the admin onboarding page
+
+Measured with EXPLAIN against real Postgres. (1) `countOrgsWithPopulatedRoster` is called
+TWICE per page load and each is an unbounded aggregate over `OrgVolunteer` with no `orgId`
+predicate; one pass with conditional aggregates (`count(*) FILTER (WHERE …)`) answers both.
+(2) Prisma's filtered `_count` on the org relation compiles to a LEFT JOIN against a derived
+table aggregating the ENTIRE `OrgVolunteer` table BEFORE `LIMIT 20` is applied — so listing
+20 orgs costs a full aggregation; a bounded `groupBy` over the 20 ids fixes it. Both are
+unmeasurable today (the table is nearly empty) and admin-only. Noted because `OrgVolunteer`
+is the one relation here that grows per-volunteer-per-org. **Effort:** S each.
+
+### [P3] `previewRosterImport` issues three sequential queries per row
+
+Up to 1,500 round trips for a 500-row dry run (~75s at 50ms RTT), 15,000 for a 5,000-row
+file at the cap. The code comment defends this as "batching would be a second
+implementation of the same classification" — but batching only the three READS into Maps and
+leaving the per-row branch order byte-identical keeps the classification single-sourced,
+which is the property the comment is protecting. Defensible at concierge scale, painful
+somewhere around 300-500 rows. **Effort:** S.
+
+### [P3] The concierge importer is invisible to the flag-retirement grep
+
+`grep isRosterEnabledForOrg` — the enumeration CLAUDE.md now prescribes — does not match
+`scripts/import-roster.ts` or `rosterImportService.ts`, because the importer checks no flag
+at all. Loading a roster before flipping the pilot flag may well be the intended concierge
+sequence, but nothing says so, which makes the omission indistinguishable from the miss the
+rule exists to prevent. **Fix:** either check the flag, or add one sentence saying why it
+deliberately does not. **Effort:** S.
+
+### [P3] Three test-mock copies and an untested one-line predicate
+
+The delegating `isRosterEnabledForOrg` mock is copy-pasted verbatim into four test files now
+(`routers/volunteers.test.ts`, `routers/shifts.access.test.ts`, `volunteers/layout.test.tsx`,
+`app/__tests__/layout.test.tsx`). Worse, they RE-IMPLEMENT the function they replace, so the
+real one-line body has zero executed coverage: point production at a different flag key and
+all four still pass. **Fix:** extract `src/test/roster-flag-mock.ts`, and add one direct test
+in `featureFlagService.test.ts` asserting the predicate reads
+`staff_created_volunteers`. **Effort:** S.
+
+### [P3] `scripts/import-roster.ts::main()` has no tests
+
+~55 statements on a `--yes`-gated, production-pointed, email-sending path. `parseArgs` proves
+the flags PARSE; nothing proves `main` honours them — the `args.dryRun ? preview : import`
+dispatch, the org/actor refusals, and the `!args.dryRun && args.notify` guard are all
+uncovered. Needs the orchestration extracted behind an injectable deps object to be testable
+at all. **Effort:** M.
+
+### [P3] Funnel step 5 and `rosterActivation` count different things, and the page shows both
+
+By design — step 5 is the checklist's predicate (any source, any time) and
+`rosterActivation` is the launch metric (`STAFF_ADDED`, within 7 days). They are
+rendered in separate cards with the narrower one spelled out in prose. Recorded
+because two roster numbers on one admin page will read as a bug to whoever sees
+it next, and the answer is in `onboardingAnalyticsService.ts`'s header comment.
+No action unless the page proves confusing in use.
+
+---
+
 ## Opened by the site-content accuracy ship (2026-07-28, v0.37.1.0)
 
 Five specialists plus an adversarial pass reviewed a marketing-copy diff. Most

@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
 	useListQuery: vi.fn(),
 	useCountQuery: vi.fn(),
 	useRemoveMutation: vi.fn(),
+	useCurrentOrgQuery: vi.fn(),
 	invalidate: vi.fn(),
 }));
 
@@ -17,6 +18,7 @@ vi.mock('@/lib/trpc/client', () => ({
 			remove: { useMutation: mocks.useRemoveMutation },
 			add: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
 		},
+		org: { getCurrentOrg: { useQuery: mocks.useCurrentOrgQuery } },
 		useUtils: () => ({ volunteers: { invalidate: mocks.invalidate } }),
 	},
 }));
@@ -58,6 +60,33 @@ beforeEach(() => {
 	mocks.useRemoveMutation.mockReturnValue({
 		mutate: vi.fn(),
 		isPending: false,
+	});
+	mocks.useCurrentOrgQuery.mockReturnValue({ data: { id: 'org-1' } });
+});
+
+describe('Export CSV', () => {
+	it('points at the org-scoped export route', () => {
+		mocks.useCountQuery.mockReturnValue({ data: 3 });
+		render(<VolunteersPage />);
+		expect(screen.getByTestId('export-roster-csv')).toHaveAttribute(
+			'href',
+			'/api/org/org-1/roster/csv',
+		);
+	});
+
+	it('is withheld until the org id resolves, rather than linking nowhere', () => {
+		mocks.useCountQuery.mockReturnValue({ data: 3 });
+		mocks.useCurrentOrgQuery.mockReturnValue({ data: undefined });
+		render(<VolunteersPage />);
+		expect(screen.queryByTestId('export-roster-csv')).not.toBeInTheDocument();
+	});
+
+	it('is withheld on an empty roster, per the approved spec', () => {
+		// A header-only download offered beside "add your first volunteer" is an
+		// offer with nothing behind it.
+		mocks.useCountQuery.mockReturnValue({ data: 0 });
+		render(<VolunteersPage />);
+		expect(screen.queryByTestId('export-roster-csv')).not.toBeInTheDocument();
 	});
 });
 

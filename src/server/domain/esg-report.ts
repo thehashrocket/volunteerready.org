@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { z } from 'zod';
+import { escapeCsvField } from './csv';
 
 // ---- Types ----------------------------------------------------------------
 
@@ -110,22 +111,13 @@ const CSV_HEADERS = [
 ];
 
 /**
- * Escape a CSV field value. Handles:
- * - Commas, quotes, newlines → wrap in double quotes
- * - Formula injection (=, +, -, @) → prefix with single quote
+ * Re-exported so this module's existing callers and tests are unchanged.
+ *
+ * The definition moved to `domain/csv.ts` when the roster export (T19) became
+ * its second consumer — two copies of a formula-injection guard is exactly the
+ * shape where one of them quietly stops being maintained.
  */
-export function escapeCsvField(value: string): string {
-	// Neutralize formula injection: prefix dangerous leading chars with '
-	const first = value.charAt(0);
-	if (first === '=' || first === '+' || first === '-' || first === '@') {
-		value = `'${value}`;
-	}
-
-	if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-		return `"${value.replace(/"/g, '""')}"`;
-	}
-	return value;
-}
+export { escapeCsvField };
 
 export function formatESGCsv(summary: ESGReportSummary): string {
 	const lines: string[] = [];

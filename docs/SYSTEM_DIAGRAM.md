@@ -349,6 +349,8 @@ sequenceDiagram
 - `adminProcedure` requires ADMIN or OWNER.
 - `companyScopedProcedure(opts?)` requires company membership, keyed off the `companyId` in the request input (never session state).
 - `planTierProcedure(tier)` requires org plan at or above specified tier.
+- `rosterProcedure` is `staffProcedure` plus the roster feature flag for `ctx.orgId` (`src/server/trpc/roster-flag-middleware.ts`).
+- `requireOrgAccess()` is the Route-Handler counterpart to `staffProcedure`, for `/api/org/[orgId]/**` (`src/server/services/orgAccessService.ts`). It keys off the `orgId` in the **URL**, not the session's active org, and re-checks membership, role rank and org suspension against it.
 
 ---
 

@@ -21,9 +21,19 @@ const mocks = vi.hoisted(() => ({
 	isFeatureEnabled: vi.fn(),
 }));
 
-vi.mock('@/server/services/featureFlagService', () => ({
-	isFeatureEnabled: mocks.isFeatureEnabled,
-}));
+vi.mock('@/server/services/featureFlagService', async () => {
+	const { STAFF_CREATED_VOLUNTEERS_FLAG } = await import(
+		'@/server/domain/feature-flags'
+	);
+	return {
+		isFeatureEnabled: mocks.isFeatureEnabled,
+		// A thin wrapper over isFeatureEnabled in the real module. Delegating
+		// rather than mocking it outright keeps the flag-KEY assertions below
+		// meaningful — otherwise they would only prove some helper was called.
+		isRosterEnabledForOrg: (orgId: string) =>
+			mocks.isFeatureEnabled(orgId, STAFF_CREATED_VOLUNTEERS_FLAG),
+	};
+});
 
 // orgProcedure does one indexed lookup per call to enforce org suspension
 // (init.ts:279). Return an unsuspended org so the guard passes.

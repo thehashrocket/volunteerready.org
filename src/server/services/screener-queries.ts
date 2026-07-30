@@ -2,6 +2,7 @@ import type { ApplicationStatus } from '@/prisma/generated/client';
 import { sendEmail } from '@/server/lib/email';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { countOpportunitiesByStatus } from '@/server/repositories/opportunityRepo';
+import { countOrgVolunteers } from '@/server/repositories/orgVolunteerRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
 import {
@@ -16,6 +17,7 @@ import {
 	updateApplicationStatusTx,
 } from '@/server/repositories/volunteer-applications';
 import { ensureAppliedRosterRow } from '@/server/services/appliedRosterService';
+import { isRosterEnabledForOrg } from '@/server/services/featureFlagService';
 
 function escapeHtml(str: string): string {
 	return str
@@ -338,6 +340,8 @@ export async function getOrgDashboardStats(orgId: string) {
 		teamMemberCount,
 		completedBackgroundCheckCount,
 		org,
+		rosterVolunteerCount,
+		rosterEnabled,
 	] = await Promise.all([
 		countApplicationsByStatus(orgId),
 		countOpportunitiesByStatus(orgId),
@@ -362,6 +366,10 @@ export async function getOrgDashboardStats(orgId: string) {
 			where: { id: orgId },
 			select: { onboardingComplete: true, slug: true },
 		}),
+		// The same count the roster page and the concierge offer read, so the
+		// checklist cannot congratulate an org that page is still nudging.
+		countOrgVolunteers(orgId),
+		isRosterEnabledForOrg(orgId),
 	]);
 
 	const appTotal =
@@ -399,6 +407,10 @@ export async function getOrgDashboardStats(orgId: string) {
 			opportunityCount: oppTotal,
 			applicationCount: appTotal,
 			backgroundCheckCompleteCount: completedBackgroundCheckCount,
+			rosterVolunteerCount,
+			// Drives whether the roster step is offered at all — see the note in
+			// onboarding-checklist.tsx.
+			rosterEnabled,
 		},
 	};
 }
