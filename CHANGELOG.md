@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.0.0] - 2026-07-29
+
+### Added
+- Organisations on the volunteer roster pilot can now download their whole roster as a spreadsheet. There is an **Export CSV** button above the list on the Volunteers page, and it works on every plan including the free one — an organisation that cannot get its data back out has not really chosen to stay. The file has one row per volunteer: name, email, phone, whether they have signed in yet, how they joined you, when they were added, and how many shifts they have attended.
+- Sending us your volunteer spreadsheet is now a real offer rather than an intention. We can load a `name,email,phone` CSV straight onto your roster, through exactly the same path as adding someone by hand — so a volunteer who previously asked an organisation not to add them back is still refused, and you are told which row and why. Column headings are flexible ("Full Name", "E-Mail" and a dozen other spellings all work), rows go in one at a time so a single bad row cannot cost you the other fifty-nine, and running the same file twice adds nobody twice.
+- Everyone loaded from a spreadsheet who already has an account gets the same email they would have got if a coordinator had added them by hand — the one naming the organisation and linking to the page where they can revoke its access. They go out one at a time rather than all at once, and any that fail are reported by name instead of disappearing.
+- The dashboard checklist and the setup wizard now carry an "Add your volunteers" step, complete once ten people are on your roster — the same number at which we stop offering to import your spreadsheet, so the product cannot congratulate you for finishing something it is still nudging you about. Organisations outside the pilot do not see the step at all, rather than seeing one they are not allowed to complete.
+- Platform admins get a fifth bar on the onboarding funnel for organisations whose roster has filled up, a per-organisation roster count in the table, and a separate "Roster activation" figure for the launch metric that actually matters: organisations that added ten or more volunteers themselves within a week of signing up.
+
+### Fixed
+- A volunteer's own display name could carry a hidden carriage return that broke out of its column in an exported spreadsheet, letting the text after it land in the first column of a new row — where it skipped the protection that stops a spreadsheet treating a cell as a formula. Names and phone numbers are now quoted whenever they contain one, and a formula hidden behind a leading tab or newline is caught too.
+- Exporting a roster and importing it again could quietly corrupt it. Values we defend against spreadsheet formulas — anything beginning with `@`, `=`, `+` or `-`, which includes every international phone number — came back with an extra apostrophe on the front and were saved that way. The importer now undoes that, so a roster survives the round trip.
+- One unbalanced quote mark in a spreadsheet used to swallow every line after it into a single field. A sixty-row file would report "0 valid, 1 invalid" and blame a missing email address, with nothing to suggest fifty-nine people had been dropped. The importer now refuses the file and names the line the quote started on.
+- Looking an organisation up by either its id or its web address had no rule about which won when the two collided, and an organisation's web address is allowed to look exactly like another organisation's id. Ids now always win.
+
+### Changed
+- The roster download is rate limited, and refuses anyone who is not staff at that organisation, whose organisation is suspended, or whose organisation is not in the pilot — answering all three with the same "not found", so the address cannot be used to discover which organisations exist.
+- A roster download interrupted part-way now ends with a line saying the file is incomplete and must not be used, instead of stopping mid-way and looking finished.
+
 ## [0.37.2.1] - 2026-07-29
 
 ### Changed

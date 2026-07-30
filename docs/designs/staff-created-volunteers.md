@@ -1066,22 +1066,32 @@ produces confidently wrong work.
   - Verify: toggle off, confirm nav, route, **and the shift-dialog assign picker** all disappear, that the item does not flash in before hydration, and that an impersonated multi-org target resolves the flag against the org whose page they are on
   - ⚠️ **PARTIALLY DONE.** Shipped: flag registered in `FEATURE_FLAG_REGISTRY` (`defaultEnabled: false`) with an exported `STAFF_CREATED_VOLUNTEERS_FLAG` const so a typo cannot silently resolve to "off"; `resolveActiveOrgId()` in `domain/active-org.ts` (pure, 6 tests) + `listMembershipOrgIds()` in `repositories/membershipRepo.ts`; the app layout's bare `count()` upgraded to return ids (same query count, more information) and resolving the flag server-side; `hasVolunteerRoster` threaded through `AppShell` to **both** `AppSidebar` instances (desktop aside + mobile drawer); the conditional `Volunteers` nav item after `Applications` with `BookUser`; and `volunteers/layout.tsx` closing the route independently and failing closed. **Update (v0.35.0.0):** the assign picker and the suppression disclosure are now gated too — `shifts/page.tsx` became a Server Component resolving the flag through the shared `server/lib/roster-flag.ts` (extracted from `volunteers/layout.tsx`), and both new procedures run under `rosterProcedure`. **Still to do when T31 lands: the activity-feed events.**
   - Verify so far: ✅ 6 `resolveActiveOrgId` tests including `SECURITY:` cases that it ignores `session.orgId` while impersonating and returns null rather than falling through to the admin's own org; 6 sidebar tests (hidden when off, shown when on, funnel position after Applications, distinct from Team, exactly one item highlighted on a child route, never shown to a non-org user); 5 layout tests including `SECURITY:` resolution against the target org while impersonating. 1552 unit + 72 integration + 9 script tests pass
-- [ ] **T17 (P2, human: ~4h / CC: ~25min)** — scripts — Concierge roster import: per-row transactions, idempotent, `--dry-run`
+- [x] **T17 (P2, human: ~4h / CC: ~25min)** — scripts — Concierge roster import: per-row transactions, idempotent, `--dry-run` ✅ **DONE**
   - Surfaced by: §4 edge cases — row 31 of 60 failing left the run in an unknown state
-  - Files: `scripts/import-roster.ts`, `scripts/import-roster.test.ts`, `package.json`
-  - Verify: `pnpm test:scripts`; run twice, assert no duplicates
+  - Files: `scripts/import-roster.ts`, `scripts/import-roster.test.ts`, `src/server/services/rosterImportService.ts`, `src/server/domain/roster-import.ts`, `src/server/domain/csv.ts`, `package.json`
+  - Verify: ✅ 32 script tests + 16 service tests; run twice against real Postgres — second run reported every row `already on roster` and added nothing. Also verified: quoted `"Nguyen, Thu"` survives, `MARCUS.WEBB@Import-Test.Local` canonicalizes, shadow users land `UNCLAIMED` + `PRIVATE`, and a volunteer who had left came back `REFUSED` rather than being re-added
+  - **Writes through `addVolunteer()`, not a parallel implementation** — so the block refusal, the shadow-user branch, first-writer-wins on `User.name` and the audit row are the same code the add form runs. A bulk loader is exactly the "new path that creates OR acts on a roster row" CLAUDE.md warns about, and reusing the service is what makes it impossible to miss the block
+  - **No third `OrgVolunteerSource`.** `ORG_VOLUNTEER_SOURCE_COPY`'s docstring anticipated one; deliberately not added. An imported row IS staff-added (the staff sent the spreadsheet), and splitting the enum would drop every concierge-onboarded org out of the success metric that counts `STAFF_ADDED`. Provenance goes on the audit row instead: `metadata.via = 'CONCIERGE_IMPORT'`
+  - **Notifications are paced by the script, not fired by `addVolunteer`.** New `sendNotification: false` option; the importer sends them afterwards, sequentially and awaited, and reports failures. `addVolunteer`'s own send is fire-and-forget behind `.catch(console.error)` — right for one click, wrong for sixty rows, and the people owed this email are precisely those added from a spreadsheet they never saw
+  - **A write run needs `--yes`; `--dry-run` needs nothing.** Unknown flags are rejected rather than ignored, so `--dryrun` cannot silently become a live import
 - [ ] **T18 (P3, human: ~30min / CC: ~5min)** — lib — `checkin-token` timing-safe compare
   - Surfaced by: Code Quality Q5 — plain `===` where both sibling modules use `timingSafeEqual`
   - Files: `src/server/lib/checkin-token.ts`, `checkin-token.test.ts`
   - Verify: `pnpm test src/server/lib/checkin-token.test.ts`
-- [ ] **T19 (P2, human: ~4h / CC: ~25min)** — api — Roster CSV at `/api/org/[orgId]/roster/csv`, FREE tier, 10k cap, streamed, rate-limited
+- [x] **T19 (P2, human: ~4h / CC: ~25min)** — api — Roster CSV at `/api/org/[orgId]/roster/csv`, FREE tier, 10k cap, streamed, rate-limited ✅ **DONE**
   - Surfaced by: Expansion E3; Codex #7 — a global route would derive tenancy from the session, the v0.29.2.0 bug
-  - Files: `src/app/api/org/[orgId]/roster/csv/route.ts`
-  - Verify: assert a FREE org can download, soft-deleted rows excluded, org id read from the URL
-- [ ] **T20 (P2, human: ~6h / CC: ~35min)** — analytics — `roster_populated` step + checklist milestone across all three onboarding surfaces
+  - Files: `src/app/api/org/[orgId]/roster/csv/route.ts`, `src/server/services/rosterExportService.ts`, `src/server/services/orgAccessService.ts`, `src/server/domain/roster-export.ts`, `src/server/domain/csv.ts`, plus the `Export CSV` control on `/app/volunteers`
+  - Verify: ✅ 15 route tests + 8 stream tests + 8 guard tests + 9 domain tests, and driven live against the dev server: 200 with `Transfer-Encoding: chunked`, a soft-deleted volunteer absent from the file, `=cmd|calc` emitted as `'=cmd|calc`, and the downloading org confirmed `planTier = FREE`. Refusals: no session → 401; foreign org → 404 byte-identical to a nonexistent org; flag off → 404
+  - **`requireOrgAccess` is new** (`orgAccessService.ts`) — the Route-Handler counterpart to `staffProcedure`, which cannot be reused because it reads `ctx.orgId` from the session's ACTIVE org. It re-checks membership, role rank AND org suspension against the `orgId` in the URL. Consolidating `roleRank` into `domain/permissions.ts` came with it: there were already two private copies (`trpc/init.ts`, `memberService.ts`) and this would have been the third
+  - **The route is flag-gated too.** `isRosterEnabledForOrg()` now lives in `featureFlagService` with five callers, because grepping `rosterProcedure` does not enumerate roster surfaces — this one is not a procedure at all
+  - **Streamed via `ReadableStream` paging the cursor**, not a built string: first bytes go out after the first page, and no single query holds a connection for the whole scan. The 10k cap appends a `# Truncated` row rather than silently returning a prefix
+- [x] **T20 (P2, human: ~6h / CC: ~35min)** — analytics — `roster_populated` step + checklist milestone across all three onboarding surfaces ✅ **DONE**
   - Surfaced by: Expansion E4 — the success metric is currently unmeasurable
-  - Files: `onboardingAnalyticsService.ts`, `screener-queries.ts`, `onboarding-service.ts`, `domain/onboarding.ts`, `onboarding-checklist.tsx`
-  - Verify: seed 10 `STAFF_ADDED` rows, assert the step reports complete
+  - Files: `onboardingAnalyticsService.ts`, `screener-queries.ts`, `onboarding-service.ts`, `domain/onboarding.ts`, `onboarding-checklist.tsx`, `admin/onboarding/page.tsx`, `repositories/rosterMetricsRepo.ts`
+  - Verify: ✅ 10 domain tests + 8 analytics tests + 13 integration tests, and driven live: 10 imported rows flipped the wizard step to complete, put `rosterVolunteerCount: 12` on the dashboard payload, and moved funnel step 5 and `rosterActivation` to 1
+  - **The step is OMITTED, not shown-incomplete, when the flag is off.** It links to `/app/volunteers`, which `volunteers/layout.tsx` redirects a non-pilot org away from — so showing it would be an instruction the product refuses to let the reader follow, and counting it would peg those orgs at "4 of 5" forever
+  - **Two different measures, deliberately.** Funnel step 5 is "≥10 live roster rows, any source, any time" — the same predicate as the checklist and the concierge offer, so the product cannot congratulate an org it is still nudging. The launch's PRIMARY success metric (`STAFF_ADDED` only, within 7 days of signup) is reported separately as `rosterActivation`, because it answers a different question: did the concierge motion work?
+  - **`countOrgsWithPopulatedRoster` is hand-written SQL and had to be.** The window compares `OrgVolunteer.createdAt` against `Organization.createdAt`, and `prisma.groupBy` cannot express a HAVING over a joined column. One static template with NULL-checked optional filters, per the raw-SQL rule. Mutation-verified against real Postgres: neutering the source filter, the window filter, or the soft-delete filter each turns exactly the tests that name it red
 - [ ] **T21 (P3, human: ~1h / CC: ~10min)** — copy — Data-migration FAQ + cold email line + `page.tsx:200` alt text
   - Surfaced by: Expansion E5; Codex #8 — a per-org flag cannot make a sitewide claim true
   - Files: `for/animal-shelters/page.tsx`, `docs/cold-email-template.md`, `(public)/page.tsx`
@@ -1196,7 +1206,7 @@ capture; fidelity came from the written brief.
 | **D** | T7 | Lane A |
 | **E** | T8, T23, T24 | Lane A + D + T22 |
 | **F** ✅ | ~~T18, T34~~ **DONE** | — (fully independent, land first) |
-| **G** | T19, T20 | Lane A + T2 (`OrgVolunteerSource`) |
+| **G** ✅ | ~~T17, T19, T20~~ **DONE** — the roster is loadable in bulk, exportable, and measurable | Lane A + T2 (`OrgVolunteerSource`) |
 | **H** | T21 | flag enablement, not code |
 | **I** | T16 | Lane A (touches `app/layout.tsx` + `AppShell`) |
 | **J** ✅ | ~~T22~~ **DONE** | Lane A — was the shared barrier for B and E; both now unblocked |
