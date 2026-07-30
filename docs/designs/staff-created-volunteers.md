@@ -742,8 +742,20 @@ threshold as the success metric and the T20 checklist milestone. The org that ty
 and stalls is exactly the org that needs the offer and, if it lived only in the empty state,
 is exactly the org that would never see it again.
 
-**`Export CSV` is hidden at 0 rows.** T19's 10k cap is surfaced as a final row in the file plus
-a toast — never a silent truncation (the failure mode of open TODO :137).
+**`Export CSV` is hidden at 0 rows.** T19's 10k cap is surfaced as a final row in the file
+~~plus a toast~~ — never a silent truncation (the failure mode of open TODO :137).
+
+⚠️ **Corrected in v0.38.0.0 — the toast half was never buildable.** The final row shipped and is
+the whole mechanism. `Export CSV` is a plain `<a href>` to `/api/org/[orgId]/roster/csv`, so the
+browser owns the download: the page never receives the response, never learns the row count, and
+has no event to hang a toast on. Getting one would mean fetching the CSV into JS to inspect it
+and then re-materialising the file as a Blob — buying a toast by loading a 10k-row export into
+memory twice. The truncation notice therefore lives **only** in the file, which is also the one
+place the person who opens it three days later will still find it. The same mechanism carries the
+interrupted-stream case (`formatFailureNotice` — a partial export ends by saying the file is
+INCOMPLETE and must not be used), so the file is where both failures are disclosed, and neither
+is disclosed anywhere else. Both notices are padded to the full column width, so a strict parser
+does not read them as a phantom volunteer.
 
 ### Add-form copy — three branches, two of which must be identical
 
