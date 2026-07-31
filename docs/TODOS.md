@@ -37,6 +37,26 @@ worth a look next time that page is touched.
 which survives is a detail of the merge. Visibility now sits on wrapper `div`s.
 A `lg:block` that "worked" here would have silently disabled Card's flex column.
 
+### [P2] T37 — the `safeErrorMessage` migration stops after four pages
+
+T35 converted `applications`, `opportunities`, `settings/team` and `shifts`. The
+same leak stands everywhere else: counted after this ship, **13 files under
+`src/app` render a tRPC `{error.message}` straight into JSX, and 31 touch one at
+all** once mutation `onError` toasts are included. The loudest are
+`settings/background-checks/page.tsx` (12 sites), `profile/page.tsx:300,862,870`,
+`my-applications/page.tsx:229`, every `admin/platform/*` page,
+`apply/status/status-client.tsx` and the root `app/error.tsx`. A tRPC error can
+carry database text, and there is no `errorFormatter` on the server side
+stripping it — `safeErrorMessage()`'s allowlist is the only thing standing
+between an internal message and a coordinator's screen.
+
+**Run the audit by grepping for `QueryErrorCard` and `safeErrorMessage` and
+listing the files that lack them** — not by grepping `isError`. That is the
+exact grep that let T35 nearly ship having done a quarter of the work, because
+three of its four pages already had an `isError` branch that printed the raw
+message. Tracked as **T37** in `docs/designs/staff-created-volunteers.md`.
+**Effort:** ~1d human / ~45min CC, mechanical but wide.
+
 ### [P2] The app shell's top bar overflows ~22px at 375px, on EVERY authenticated page
 
 **Found by running T28's own e2e**, which asserted `documentElement.scrollWidth
