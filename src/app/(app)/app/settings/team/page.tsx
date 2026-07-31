@@ -1,10 +1,14 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronsUpDown, Globe, RefreshCw, Users } from 'lucide-react';
+import { Check, ChevronsUpDown, Globe, Users } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -84,7 +88,7 @@ export default function TeamPage() {
 			void qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to send invitation.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to send invitation.');
 		},
 	});
 
@@ -94,7 +98,7 @@ export default function TeamPage() {
 			void qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to remove member.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to remove member.');
 		},
 	});
 
@@ -104,7 +108,7 @@ export default function TeamPage() {
 			void qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to update role.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to update role.');
 		},
 	});
 
@@ -136,15 +140,12 @@ export default function TeamPage() {
 					title="Team members"
 					description="Could not load members."
 				/>
-				<Card>
-					<CardContent className="space-y-4 pt-6 text-sm text-muted-foreground">
-						<p>{query.error.message}</p>
-						<Button onClick={() => query.refetch()} variant="outline" size="sm">
-							<RefreshCw className="h-4 w-4" />
-							Try again
-						</Button>
-					</CardContent>
-				</Card>
+				<QueryErrorCard
+					title="Could not load members"
+					message={safeErrorMessage(query.error)}
+					onRetry={() => query.refetch()}
+					isRetrying={query.isFetching}
+				/>
 			</div>
 		);
 	}
@@ -356,7 +357,9 @@ function MarketplaceCard() {
 			void qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to save marketplace settings.');
+			toast.error(
+				safeErrorMessage(err) ?? 'Failed to save marketplace settings.',
+			);
 		},
 	});
 
@@ -506,7 +509,7 @@ function TimezoneCard() {
 			void qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to update timezone.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to update timezone.');
 		},
 	});
 

@@ -1,16 +1,20 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Briefcase, Plus, RefreshCw } from 'lucide-react';
+import { Briefcase, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { OpportunityStatusBadge } from '@/components/opportunities/OpportunityStatusBadge';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
 	Select,
 	SelectContent,
@@ -87,7 +91,8 @@ export function OpportunitiesClient() {
 			await qc.invalidateQueries();
 			toast.success('Status updated.');
 		},
-		onError: (err) => toast.error(err.message ?? 'Failed to update status.'),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Failed to update status.'),
 	});
 
 	const opportunities = (query.data?.items ?? []).filter(
@@ -131,18 +136,12 @@ export function OpportunitiesClient() {
 					title="Volunteer Opportunities"
 					description="Manage your organization's volunteer roles."
 				/>
-				<Card>
-					<CardHeader>
-						<CardTitle>Could not load opportunities</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						<p>{query.error.message}</p>
-						<Button onClick={() => query.refetch()} variant="outline" size="sm">
-							<RefreshCw className="h-4 w-4" />
-							Try again
-						</Button>
-					</CardContent>
-				</Card>
+				<QueryErrorCard
+					title="Could not load opportunities"
+					message={safeErrorMessage(query.error)}
+					onRetry={() => query.refetch()}
+					isRetrying={query.isFetching}
+				/>
 			</div>
 		);
 	}

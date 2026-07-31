@@ -15,6 +15,10 @@ import type { Resolver } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { ShiftTemplatesTab } from '@/components/app/shift-templates';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
@@ -97,7 +101,8 @@ function CreateShiftDialog() {
 			form.reset();
 			qc.invalidateQueries();
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Could not create that shift.'),
 	});
 
 	const form = useForm<CreateShiftValues>({
@@ -233,18 +238,20 @@ export function ShiftsClient({
 	const [statusFilter, setStatusFilter] = useState<string>('ALL');
 	const qc = useQueryClient();
 
-	const { data: shifts, isLoading } = trpc.shifts.list.useQuery(
+	const shiftsQuery = trpc.shifts.list.useQuery(
 		statusFilter === 'ALL'
 			? {}
 			: { status: statusFilter as 'OPEN' | 'FULL' | 'CANCELLED' | 'COMPLETED' },
 	);
+	const { data: shifts, isLoading } = shiftsQuery;
 
 	const cancelMut = trpc.shifts.cancel.useMutation({
 		onSuccess: () => {
 			toast.success('Shift cancelled');
 			qc.invalidateQueries();
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Could not cancel that shift.'),
 	});
 
 	const completeMut = trpc.shifts.complete.useMutation({
@@ -252,7 +259,8 @@ export function ShiftsClient({
 			toast.success('Shift marked complete');
 			qc.invalidateQueries();
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Could not complete that shift.'),
 	});
 
 	const removeMut = trpc.shifts.remove.useMutation({
@@ -260,7 +268,8 @@ export function ShiftsClient({
 			toast.success('Shift deleted');
 			qc.invalidateQueries();
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Could not delete that shift.'),
 	});
 
 	return (
@@ -308,6 +317,17 @@ export function ShiftsClient({
 										<Skeleton key={i} className="h-12 w-full" />
 									))}
 								</div>
+							) : shiftsQuery.isError ? (
+								// Without this branch a failed query falls through to
+								// "No shifts found" — a broken page that looks correct,
+								// and the worst possible answer on a schedule someone is
+								// checking to see whether Saturday is covered.
+								<QueryErrorCard
+									title="Couldn't load your shifts"
+									message={safeErrorMessage(shiftsQuery.error)}
+									onRetry={() => shiftsQuery.refetch()}
+									isRetrying={shiftsQuery.isFetching}
+								/>
 							) : !shifts?.length ? (
 								<EmptyState
 									icon={Calendar}
