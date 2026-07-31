@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.1.0] - 2026-07-30
+
+### Changed
+- The Volunteers page now works on a phone. It used to be a five-column table that ran off the side of the screen, so checking your roster on a Saturday morning meant scrolling sideways to read anybody's name. Below tablet width it is now a list of cards: name and account status on one line, email and a quiet **Remove** on the next. The columns that only matter at a desk — when someone was added, how many shifts they have done — drop away rather than being squashed.
+- Adding a volunteer from a phone opens a sheet that slides up from the bottom instead of a box floating in the middle of the screen, so the on-screen keyboard no longer fights the form. Every field, and the wording, is identical to the desktop version.
+- **Undo** now appears on the toast after you remove someone, and the toast stays up long enough to reach for it. If that person has since asked your organisation to stop contacting them, the undo is refused and says so, rather than quietly doing nothing.
+
+### Fixed
+- When something goes wrong loading your applications, opportunities, team members or shifts, you now get a clear "we couldn't load this" message with a **Try again** button. Before, these pages could show raw internal error text — including database detail that should never reach a screen.
+- The Shifts page no longer claims you have no shifts when it simply failed to load them. That was the worst possible answer to give someone checking whether Saturday is covered: a broken page that looked correct.
+- Screen readers now announce removals and undos by name, and every **Remove** button says who it removes instead of repeating the word "Remove" down the page. Errors in the add-volunteer form are announced when they appear — including the common, harmless "already on your roster", which previously made a working form seem to do nothing.
+- Removing one volunteer no longer greys out the **Remove** button on every other row while it saves.
+
 ## [0.38.0.0] - 2026-07-29
 
 ### Added
