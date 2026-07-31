@@ -395,13 +395,18 @@ describe('VolunteersPage mobile card list (T28)', () => {
 			volunteerId: 'ov-2',
 		});
 
+		// Both clicks target the SECOND row on purpose. Clicking the first would
+		// pass even if the handler closed over `volunteers[0]` instead of the
+		// row it belongs to — which is precisely the stale-closure bug this
+		// test exists to catch, and it survived an earlier version that clicked
+		// Maria here.
 		await user.click(
 			cardList().getByRole('button', {
-				name: 'Remove Maria Garcia from your roster',
+				name: 'Remove Ada Lovelace from your roster',
 			}),
 		);
 		expect(mocks.removeMutate).toHaveBeenLastCalledWith({
-			volunteerId: 'ov-1',
+			volunteerId: 'ov-2',
 		});
 	});
 
