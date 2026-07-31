@@ -172,7 +172,7 @@ src/
 │   ├── trpc/                     # Client-side tRPC setup + provider
 │   ├── credential-meta.ts        # Shared credential labels + icons (single source of truth)
 │   ├── feedback-config.ts        # Feedback UI config (mood icons, labels, confirmation messages)
-│   ├── hooks/use-media-query.ts  # Responsive media query hook (mobile detection for feedback widget)
+│   ├── hooks/use-media-query.ts  # Responsive media query hook — safe ONLY for Dialog↔Drawer switching (feedback widget, org profile form, add-volunteer form). Never for page layout: it initialises to false and resolves in an effect, so it flashes the mobile tree to desktop. admin/feedback/page.tsx still does this and should be converted. See CLAUDE.md "Responsive staff tables"
 │   ├── slug.ts                   # URL slug utilities
 │   └── utils.ts                  # General utilities (cn, etc.)
 │

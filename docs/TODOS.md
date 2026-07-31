@@ -5,6 +5,168 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the roster mobile + a11y ship (2026-07-30, T28/T29)
+
+Shipped T28 (card list below `lg`, Drawer add form), the unblocked half of T29,
+T26's UI half (undo toast) and all four pages of T35.
+
+### Caught by review in this same ship — fixed, recorded so they are not reintroduced
+
+**T35 was nearly checked off having done a quarter of it.** The first pass fixed
+`ShiftsClient`'s missing `isError` branch and marked T35 done, on the reasoning
+that `applications`, `opportunities` and `settings/team` "already had one". They
+did — a hand-rolled `Card` rendering `{query.error.message}` **raw**, with no
+`safeErrorMessage()`, which is the internal-error leak that helper exists to
+prevent. *Having* an error state and having a *safe* error state are different
+properties, and the grep that was run (`isError`) answers the wrong one. All four
+now render `QueryErrorCard` with `safeErrorMessage`. The general lesson matches
+CLAUDE.md's disclosure rule: when checking off a migration, grep for the thing
+being migrated TO, never for the symptom it happens to fix.
+
+**`Card` silently fights `divide-y`.** `Card`'s base is
+`flex flex-col gap-6 … py-6`, so the `<Card className="divide-y">` idiom cited by
+the design spec (and shipped at `admin/platform/users/page.tsx:57`) draws each
+hairline on a row's top edge while the 24px gap holds the rows apart — a line
+floating in open space rather than separating anything. The roster card list
+passes `gap-0 divide-y py-0`. **`admin/platform/users/page.tsx` still has the
+un-neutralised version** and presumably renders with the same floating rules;
+worth a look next time that page is touched.
+
+**`hidden` on a `Card` is resolved by tailwind-merge, not by this codebase.**
+`hidden` and Card's own `flex` are both display utilities, so one is dropped and
+which survives is a detail of the merge. Visibility now sits on wrapper `div`s.
+A `lg:block` that "worked" here would have silently disabled Card's flex column.
+
+### [P2] T37 — the `safeErrorMessage` migration stops after four pages
+
+T35 converted `applications`, `opportunities`, `settings/team` and `shifts`. The
+same leak stands everywhere else: counted after this ship, **13 files under
+`src/app` render a tRPC `{error.message}` straight into JSX, and 31 touch one at
+all** once mutation `onError` toasts are included. The loudest are
+`settings/background-checks/page.tsx` (12 sites), `profile/page.tsx:300,862,870`,
+`my-applications/page.tsx:229`, every `admin/platform/*` page,
+`apply/status/status-client.tsx` and the root `app/error.tsx`. A tRPC error can
+carry database text, and there is no `errorFormatter` on the server side
+stripping it — `safeErrorMessage()`'s allowlist is the only thing standing
+between an internal message and a coordinator's screen.
+
+**Run the audit by grepping for `QueryErrorCard` and `safeErrorMessage` and
+listing the files that lack them** — not by grepping `isError`. That is the
+exact grep that let T35 nearly ship having done a quarter of the work, because
+three of its four pages already had an `isError` branch that printed the raw
+message. Tracked as **T37** in `docs/designs/staff-created-volunteers.md`.
+**Effort:** ~1d human / ~45min CC, mechanical but wide.
+
+### [P2] The app shell's top bar overflows ~22px at 375px, on EVERY authenticated page
+
+**Found by running T28's own e2e**, which asserted `documentElement.scrollWidth
+<= 375` and failed at 591. None of the overflow was the roster: the offending
+nodes were the app-shell `<header>` and the sonner toaster. Measured again on a
+clean load with no interaction — `scrollWidth = 397`, widest node the account
+initial `div` at `right=397`.
+
+**It is much worse in the tablet band than on a phone.** The R4 e2e at 800px
+measured `scrollWidth = 926` — a **126px** overhang, against 22px at 375px.
+The reason is that the mobile toggle is `lg:hidden` but the wordmark text,
+`OrgSwitcher` and `CompanySwitcher` are all still rendered between 768 and
+1023px, so the left cluster is at its widest exactly where it has least room
+to spare. Anyone testing this on a phone alone will conclude it is a rounding
+error; it is not.
+
+`app-shell.tsx:54-82` is `flex h-14 items-center justify-between px-4` with two
+clusters. The left one — mobile toggle (44px), the `V` mark plus the
+`VolunteerReady` wordmark, `OrgSwitcher` and `CompanySwitcher` — has no
+`min-w-0`, so it never shrinks and pushes the right cluster (theme toggle,
+notification bell, account button) off the right edge. Visible in the 375px
+screenshot as `Riverside Anim…` and a clipped `Add company sponsor`. The
+magnitude scales with org name length, so a long org name makes it worse.
+
+This is why T28's e2e asserts against the roster region rather than the whole
+document: a page-level assertion fails on this pre-existing bug and says nothing
+about the roster, so it would get deleted or padded with a tolerance the first
+time someone hit it. **Fix:** `min-w-0` on the left cluster plus `truncate` on
+the wordmark, or hide the wordmark text below `sm` (the `V` mark alone still
+identifies it). Then tighten the e2e assertion to
+`documentElement.scrollWidth <= 375` and delete the comment pointing here.
+**Effort:** S, but it is shared chrome — it wants a look at every staff page at
+375px, not just the roster. **Note the sonner toaster is a second, smaller
+offender** (`ol` at width 375 with a 16px inset → 391), which no amount of
+app-shell work will fix; it needs a narrow-viewport width cap on `AppToaster`.
+
+### [P2] Three T29 obligations are still open, each blocked on a different task
+
+Do not let a reviewer check these off against the T28 diff — the design doc's
+Accessibility list reads as one unit but its items have different owners.
+Focus return to the name input after each add, and the `aria-live` running
+count, both need **T25**'s stay-open repeat entry; the dialog closes on success
+today, so there is no count to announce and nowhere to return focus to. The
+animated header count being `aria-hidden` during transition needs **T30**, which
+adds the animation. `aria-label="View {name}"` on a mobile row needs **T27** to
+give the row something to open. **Effort:** each rides with its owning task.
+
+### [P2] `Remove` on the mobile card is a deliberate deviation, and T27 must undo it
+
+The approved spec parks `Remove` in T27's detail dialog and makes the card row
+itself tappable. T27 is unbuilt, and shipping the card list without a `Remove`
+would have left a phone unable to remove a volunteer at all — a capability the
+horizontally-scrolling table has today. The spec's stated reason for moving it
+("a `Remove` button inside a full-width **tappable** row is a nested interactive
+target") holds only once the row is tappable, which it is not: the card is a
+plain `div` with exactly one control, pinned by a test asserting one button per
+row. **When T27 lands** it must make the row the tap target, move `Remove` into
+the dialog, and delete both the card's button and the e2e assertion that carries
+a note pointing here. **Effort:** rides with T27.
+
+### [P3] A third hand-rolled Drawer/Dialog switch now exists, with no shared wrapper
+
+`AddVolunteerDialog` joins `feedback-widget.tsx:282-308` and
+`org-profile-form.tsx:399-434`. Each re-solves a subset of the same quirks, and
+no two of them hit the same subset — which is the argument for a wrapper.
+**Two** re-solve the footer-order quirk (`org-profile-form`, `AddVolunteerDialog`):
+`DrawerFooter`'s plain `flex-col` stacks the primary action last, where the
+`DialogFooter` it replaces puts it first (`flex-col-reverse` narrow, `sm:flex-row
+sm:justify-end` wide). `feedback-widget` dodges it entirely — it renders no
+footer component at all, keeping its buttons inside the shared form body.
+**Two** re-solve the body-padding quirk — `DrawerContent` supplies none, so
+callers add their own `px-4 pb-6` (`feedback-widget.tsx:303`,
+`AddVolunteerDialog.tsx:125`). `org-profile-form` escapes that one because its
+drawer body is a static `confirmBody` living entirely inside
+`DrawerHeader`/`DrawerFooter`, which the primitive pads itself. **And a third
+quirk surfaced during review:** `DrawerFooter`'s own `p-4` stacks on top of the
+body wrapper's `px-4`, insetting the buttons 32px against 16px inputs —
+`AddVolunteerDialog` passes `px-0 pb-0` to cancel it. A `ResponsiveModal` wrapper was considered and
+rejected **for now**: adopting it in one place while leaving the two shipped,
+tested consumers alone gives an abstraction with a single real consumer, and its
+API already needed `breakpoint` and footer-order escape hatches to cover shapes
+it would not be used for. The three also differ structurally — feedback-widget
+has an external trigger and no footer slot, org-profile-form is trigger-less.
+**Revisit when a fourth appears, or opportunistically the next time either
+existing file is touched for an unrelated reason.** **Effort:** M.
+
+### [P3] The three breakpoints on this page are not all the same kind of thing
+
+`page.tsx` switches table↔cards with Tailwind `lg:` classes; `AddVolunteerDialog`
+switches Dialog↔Drawer with `useMediaQuery('(min-width: 1024px)')`. They agree on
+`lg` by intent, but nothing enforces it — changing one leaves the other, and the
+failure is a band of widths where the list is cards and the form is a centred
+dialog. A shared constant cannot fix it (one side is a Tailwind class name, the
+other a media-query string). **Effort:** S, if a lint rule or a comment pair is
+judged worth it.
+
+### [P3] `AddVolunteerDialog.test.tsx` patches `window.getComputedStyle` globally
+
+vaul reads `style.transform || style.webkitTransform || style.mozTransform` and
+calls `.match()` on the result; jsdom computes `transform` as `''` and defines
+neither alias, so the chain yields `undefined` and every pointer release inside
+the drawer throws. It throws **asynchronously**, so the run fails while every
+test still reports green — which is how it was found. The shim shadows the one
+property and is file-local, matching the pointer-capture polyfills'
+already-per-file precedent (`org-profile-form.test.tsx:47-50`). If a third file
+renders a Drawer, move both into `src/test-setup.ts` rather than copying them a
+third time. **Effort:** S.
+
+---
+
 ## Opened by Lane G — roster import, export, metrics (2026-07-29, v0.38.0.0)
 
 Shipped T17 (`pnpm import:roster`), T19 (`/api/org/[orgId]/roster/csv`) and T20
