@@ -66,6 +66,8 @@ let workerName: string;
 /** Added through the Drawer in the 375px test. */
 let mobileEmail: string;
 let mobileName: string;
+/** Seeded directly for the 768-1023px band test. */
+let tabletEmail: string;
 
 test.beforeAll(async () => {
 	const prisma = getPrisma();
@@ -76,6 +78,7 @@ test.beforeAll(async () => {
 	workerName = `${PREFIX}Wanda ${run}`;
 	mobileEmail = `${PREFIX}mobile-${run}@e2e.local`;
 	mobileName = `${PREFIX}Mo ${run}`;
+	tabletEmail = `${PREFIX}tablet-${run}@e2e.local`;
 	shiftTitle = `${PREFIX}Saturday Kennel Shift ${run}`;
 
 	const org = await prisma.organization.create({
@@ -134,7 +137,12 @@ test.afterAll(async () => {
 
 	// The volunteers are created by the app, not by this file, so their ids are
 	// recovered from the run-suffixed addresses rather than assumed.
-	const volunteerEmails = [claimerEmail, workerEmail, mobileEmail].filter(
+	const volunteerEmails = [
+		claimerEmail,
+		workerEmail,
+		mobileEmail,
+		tabletEmail,
+	].filter(
 		Boolean,
 	);
 	const volunteers =
@@ -439,5 +447,80 @@ test.describe('Roster on a phone (T28, 375px)', () => {
 				name: `Remove ${mobileName} from your roster`,
 			}),
 		).toBeVisible();
+	});
+});
+
+
+test.describe('Roster in the tablet band (R4, 800px)', () => {
+	test('search and Export CSV stack, and the card list is what renders', async ({
+		context,
+		page,
+		baseURL,
+	}) => {
+		if (!baseURL) throw new Error('baseURL is required');
+
+		// 800px is the band this ship changed: the controls row moved from
+		// `sm:flex-row` (side by side from 640px) to `lg:flex-row`, so between
+		// 768 and 1023 they now STACK where they previously shared a row. That
+		// is a layout change for every existing user at this width, and no unit
+		// test can see it — jsdom has no layout engine and evaluates no media
+		// query, so only a real viewport proves it.
+		const prisma = getPrisma();
+		const volunteer = await prisma.user.create({
+			data: { name: `${PREFIX}Tessa`, email: tabletEmail },
+		});
+		await prisma.orgVolunteer.create({
+			data: {
+				orgId,
+				userId: volunteer.id,
+				displayName: `${PREFIX}Tessa`,
+				source: 'STAFF_ADDED',
+				addedByUserId: staffUserId,
+			},
+		});
+
+		await context.addCookies([
+			{ name: SESSION_COOKIE_NAME, value: staffSessionToken, url: baseURL },
+		]);
+		await page.setViewportSize({ width: 800, height: 900 });
+		await page.goto('/app/volunteers');
+		await page.getByTestId('roster-card-list').waitFor();
+
+		// Below `lg`, so the card list is what a human sees here too — the page
+		// has ONE breakpoint, which is the whole reason the controls row moved.
+		await expect(page.getByTestId('roster-table')).toBeHidden();
+
+		const search = page.getByLabel('Search volunteers');
+		const exportLink = page.getByTestId('export-roster-csv');
+		const searchBox = await search.boundingBox();
+		const exportBox = await exportLink.boundingBox();
+		if (!searchBox || !exportBox) throw new Error('controls not laid out');
+
+		// Stacked, not side by side: the export control sits BELOW the search
+		// field rather than beside it. Asserting on geometry rather than class
+		// names, so the test survives a refactor that keeps the behaviour.
+		expect(exportBox.y).toBeGreaterThanOrEqual(searchBox.y + searchBox.height);
+
+		// And the search field takes the full column rather than a half-row.
+		expect(searchBox.width).toBeGreaterThan(600);
+
+		// Roster-region scoped, for the same reason as the 375px test: the app
+		// shell's top bar overflows here too, and MORE — measured 926 against an
+		// 800px viewport, a 126px overhang versus 22px at 375px, because the
+		// wordmark and both switchers are all still rendered at this width.
+		// Recorded on the P2 in docs/TODOS.md. Tighten to documentElement here
+		// and at 375px together, once the shell is fixed.
+		const rosterOverflow = await page.evaluate(() => {
+			const root = document.querySelector('[data-testid="roster-card-list"]');
+			if (!root) return -1;
+			let worst = 0;
+			for (const el of [root, ...Array.from(root.querySelectorAll('*'))]) {
+				const r = el.getBoundingClientRect();
+				if (r.width > 0 && r.right > worst) worst = r.right;
+			}
+			return Math.round(worst);
+		});
+		expect(rosterOverflow).toBeGreaterThan(0);
+		expect(rosterOverflow).toBeLessThanOrEqual(800);
 	});
 });

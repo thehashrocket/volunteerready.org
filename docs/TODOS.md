@@ -65,6 +65,14 @@ nodes were the app-shell `<header>` and the sonner toaster. Measured again on a
 clean load with no interaction — `scrollWidth = 397`, widest node the account
 initial `div` at `right=397`.
 
+**It is much worse in the tablet band than on a phone.** The R4 e2e at 800px
+measured `scrollWidth = 926` — a **126px** overhang, against 22px at 375px.
+The reason is that the mobile toggle is `lg:hidden` but the wordmark text,
+`OrgSwitcher` and `CompanySwitcher` are all still rendered between 768 and
+1023px, so the left cluster is at its widest exactly where it has least room
+to spare. Anyone testing this on a phone alone will conclude it is a rounding
+error; it is not.
+
 `app-shell.tsx:54-82` is `flex h-14 items-center justify-between px-4` with two
 clusters. The left one — mobile toggle (44px), the `V` mark plus the
 `VolunteerReady` wordmark, `OrgSwitcher` and `CompanySwitcher` — has no
