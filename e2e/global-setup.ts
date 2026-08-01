@@ -34,45 +34,39 @@
 // ---------------------------------------------------------------------------
 
 import { LOCATIONS } from '../src/lib/locations';
+import { PUBLIC_PAGES } from '../src/lib/public-pages';
 
 /**
- * Every public route the suite navigates to. Kept in sync with
- * `PUBLIC_PAGES` in `public-pages.spec.ts` — the geo slugs come from the same
- * `LOCATIONS` array, so a seventh location warms itself.
+ * Every public route, DERIVED from the registry rather than retyped.
+ *
+ * `src/lib/public-pages.ts` is the documented single source of truth for public
+ * routes (CLAUDE.md) — the header, footer, sitemap and OG route all read it. A
+ * hand-maintained list here would be a fourth copy, and the first draft of this
+ * file proved the point immediately: it omitted `/map` and `/search`. Harmless
+ * on the day it was written, because no spec navigates them — which is exactly
+ * how it would have stayed wrong, until a spec did and the symptom was the
+ * manifest-race 500 this file exists to prevent, reported against an unrelated
+ * page.
+ *
+ * `/locations` is in the registry; the six geo slugs under it are not, so they
+ * come from `LOCATIONS` — the same array `public-pages.spec.ts` builds its own
+ * list from, so a seventh location warms itself.
  *
  * Authenticated routes are deliberately absent: they need a seeded session, and
  * the specs that use them are far fewer and have never produced this failure.
- * Add one here if that changes.
+ * Add them here if that changes.
  */
 const ROUTES_TO_WARM = [
-	'/',
-	'/about',
-	'/how-it-works',
-	'/for',
-	'/for/volunteers',
-	'/for/nonprofits',
-	'/for/employers',
-	'/for/animal-shelters',
-	'/pricing',
-	'/screening',
-	'/security',
-	'/privacy',
-	'/terms',
-	'/opportunities',
-	'/organizations',
-	'/stories',
-	'/locations',
+	...PUBLIC_PAGES.map((page) => page.href),
 	...LOCATIONS.map((location) => `/locations/${location.slug}`),
 ];
 
 export default async function globalSetup() {
-	const baseURL =
-		process.env.PLAYWRIGHT_BASE_URL ??
-		`http://localhost:${process.env.PORT ?? 3005}`;
-
 	// A remote or already-built target serves precompiled routes, so there is
 	// nothing to warm and no manifest being written while it answers.
 	if (process.env.PLAYWRIGHT_BASE_URL) return;
+
+	const baseURL = `http://localhost:${process.env.PORT ?? 3005}`;
 
 	const started = Date.now();
 	const failed: string[] = [];
