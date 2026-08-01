@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
 	restoreVolunteer: vi.fn(),
 	getRoster: vi.fn(),
 	getRosterCount: vi.fn(),
+	getVolunteerDetail: vi.fn(),
 	isFeatureEnabled: vi.fn(),
 }));
 
@@ -52,6 +53,7 @@ vi.mock('@/server/services/staffVolunteerService', () => ({
 	restoreVolunteer: mocks.restoreVolunteer,
 	getRoster: mocks.getRoster,
 	getRosterCount: mocks.getRosterCount,
+	getVolunteerDetail: mocks.getVolunteerDetail,
 }));
 
 import { t } from '@/server/trpc/init';
@@ -161,6 +163,44 @@ describe('volunteersRouter audit attribution', () => {
 	});
 });
 
+describe('volunteersRouter getById', () => {
+	beforeEach(() => {
+		mocks.getVolunteerDetail.mockResolvedValue({
+			id: 'ov-1',
+			displayName: 'Maria Garcia',
+			email: 'maria@example.com',
+			phone: null,
+			accountState: 'UNCLAIMED',
+			source: 'STAFF_ADDED',
+			addedAt: new Date('2026-03-01T00:00:00Z'),
+			totalHours: 0,
+			shifts: [],
+		});
+	});
+
+	it('SECURITY: pairs the input volunteerId with ctx.orgId, never an input org', async () => {
+		// The whole authorization argument for this procedure is that the service
+		// resolves the row through a WHERE carrying this orgId, so a crafted id
+		// from another tenant misses. That only holds if the org comes from ctx.
+		await caller({ realUserId: ACTOR_ID }).getById({ volunteerId: 'ov-1' });
+
+		expect(mocks.getVolunteerDetail).toHaveBeenCalledWith({
+			orgId: ORG_ID,
+			volunteerId: 'ov-1',
+		});
+	});
+
+	it('SECURITY: rejects a volunteerId longer than the id bound', async () => {
+		// orgVolunteerIdSchema exists so this input is not an unbounded string.
+		await expect(
+			caller({ realUserId: ACTOR_ID }).getById({
+				volunteerId: 'x'.repeat(65),
+			}),
+		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+		expect(mocks.getVolunteerDetail).not.toHaveBeenCalled();
+	});
+});
+
 describe('volunteersRouter add response shape', () => {
 	// REGRESSION: the router originally returned the internal AddVolunteerOutcome
 	// straight to the client. The UI rendered identical copy for CREATED_SHADOW
@@ -247,6 +287,7 @@ describe('volunteersRouter feature-flag gate', () => {
 	it.each([
 		'list',
 		'count',
+		'getById',
 		'add',
 		'remove',
 		'restore',

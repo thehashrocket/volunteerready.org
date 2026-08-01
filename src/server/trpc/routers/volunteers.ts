@@ -1,12 +1,14 @@
 import { z } from 'zod';
 import {
 	addVolunteerSchema,
+	orgVolunteerIdSchema,
 	toClientResult,
 } from '@/server/domain/org-volunteer';
 import {
 	addVolunteer,
 	getRoster,
 	getRosterCount,
+	getVolunteerDetail,
 	removeVolunteer,
 	restoreVolunteer,
 } from '@/server/services/staffVolunteerService';
@@ -43,6 +45,21 @@ export const volunteersRouter = createTRPCRouter({
 
 	count: rosterProcedure.query(({ ctx }) => getRosterCount(ctx.orgId)),
 
+	// Named for `shifts.getById`, the sibling detail read behind the other
+	// row-click dialog in this app.
+	//
+	// Takes an `OrgVolunteer.id`, never a `userId` — `getRoster` withholds the
+	// latter from clients on purpose, and the service resolves it through a
+	// query whose WHERE already carries `ctx.orgId`.
+	getById: rosterProcedure
+		.input(z.object({ volunteerId: orgVolunteerIdSchema }))
+		.query(({ ctx, input }) =>
+			getVolunteerDetail({
+				orgId: ctx.orgId,
+				volunteerId: input.volunteerId,
+			}),
+		),
+
 	// SECURITY: mapped through toClientResult so the internal AddVolunteerOutcome
 	// never reaches the client. Returning it would let a coordinator read
 	// `LINKED_UNCLAIMED` off the network tab and learn that another organisation
@@ -63,7 +80,7 @@ export const volunteersRouter = createTRPCRouter({
 		),
 
 	remove: rosterProcedure
-		.input(z.object({ volunteerId: z.string().min(1) }))
+		.input(z.object({ volunteerId: orgVolunteerIdSchema }))
 		.mutation(({ ctx, input }) =>
 			removeVolunteer({
 				orgId: ctx.orgId,
@@ -74,7 +91,7 @@ export const volunteersRouter = createTRPCRouter({
 		),
 
 	restore: rosterProcedure
-		.input(z.object({ volunteerId: z.string().min(1) }))
+		.input(z.object({ volunteerId: orgVolunteerIdSchema }))
 		.mutation(({ ctx, input }) =>
 			restoreVolunteer({
 				orgId: ctx.orgId,
