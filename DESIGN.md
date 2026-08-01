@@ -68,7 +68,22 @@
 - **Max content width:** 1120px
 - **App shell chrome** (`src/components/app/app-shell.tsx`) — the authenticated staff layout:
   - **Top bar:** 56px (`h-14`), sticky, `border-b border-border/60`, `bg-background/95` with
-    `backdrop-blur-sm`. Carries the wordmark, mobile nav toggle, and org switcher.
+    `backdrop-blur-sm`. Two clusters, `justify-between`. Left: the 44px mobile nav toggle
+    (`lg:hidden`), the `V` mark + **wordmark**, `OrgSwitcher`, `CompanySwitcher`. Right:
+    theme toggle, notification bell, account menu.
+  - **The top bar's shrink contract is load-bearing, not styling.** The left cluster is
+    `min-w-0` and the right is `shrink-0`: the left is the side that gives. Without
+    `min-w-0` a flex child's `min-width: auto` floor is its content width, so the cluster
+    refuses to shrink and pushes the account menu off the right edge — ~22px at 375px and
+    **~126px in the 768-1023px band**, where the wordmark and both switchers render beside
+    a toggle that is still `lg:hidden`. The switchers truncate themselves correctly already;
+    nothing they do helps while their parent cannot shrink. Both switchers also carry
+    explicit width caps.
+  - **The wordmark is hidden below `sm`** (`hidden … sm:inline`), not truncated: it is the
+    widest unshrinkable node in the cluster, and "Volunt…" is a worse answer than the `V`
+    mark alone, which already identifies the app.
+  - `PageHeader` carries the same `min-width: auto` fix (`min-w-0 flex-wrap`), so a heading
+    with a filter and a button beside it wraps instead of pinning them to the edge.
   - **Sidebar:** 224px (`w-56`), **no background fill**. It sits on the page background,
     separated only by a `border-r border-border/60` hairline, sticky below the top bar.
   - **Active nav item:** `bg-primary/10 text-primary border-l-2 border-primary`
@@ -98,6 +113,20 @@
 ## Dual Personality
 The staff dashboard and volunteer-facing pages are different visual contexts:
 - **Staff dashboard:** Data-dense, operational, Geist everywhere, Geist Mono for data values. Light sidebar on the page background with a hairline border and a green *accent* on the active item only — not a filled green panel. Feels like a command center.
+  - **Every staff list has two shapes, switched at `lg`.** Volunteers, Applications,
+    Opportunities, Shifts and Team render a `Table` above `lg` and a flush divided card
+    list below it. The switch is **pure CSS** — both trees render from the same array
+    inside `hidden lg:block` / `lg:hidden` wrappers, never a JS media query, which would
+    paint the mobile shape to every desktop user and swap it after hydration.
+  - The card list is `CardList` (`src/components/app/card-list.tsx`), which is `Card` plus
+    `gap-0 divide-y py-0`. That override is a design fact, not an implementation detail:
+    `Card`'s own `gap-6 … py-6` fights `divide-y`, so a bare `<Card className="divide-y">`
+    draws each hairline on a row's top edge while the 24px gap holds the rows apart, and
+    the rule floats in open space instead of separating anything.
+  - A card drops a column only when the detail view it links to actually holds that
+    column's actions. Where it does not — Publish/Close on Opportunities, Complete/Cancel/
+    Delete on Shifts, the whole of Team — the actions stay on the card, so a layout change
+    never quietly becomes a capability change.
 - **Public/volunteer pages:** Warmer, Fraunces headlines, more generous spacing, cream backgrounds, editorial feel. Feels like a well-designed nonprofit annual report.
 - **Shared:** Same color palette, same spacing system, same border radius scale. The green anchors both worlds.
 
@@ -109,3 +138,4 @@ The staff dashboard and volunteer-facing pages are different visual contexts:
 | 2026-04-04 | Deep forest green (#1B3C2A) over ochre gold | Green is category-appropriate (trust, growth) but differentiated by depth. Gold used as warm accent instead of primary. |
 | 2026-04-04 | Warm cream backgrounds (#FAFAF8) over pure white | Reduces eye strain, signals taste, breaks from clinical SaaS white. Both outside voices recommended this. |
 | 2026-07-26 | Corrected the staff-shell description to match the shipped app | This document said the staff dashboard had a **forest green sidebar** and a 220px sidebar. Neither was true: `app-shell.tsx:128` renders `border-r border-border/60` with no fill, at `w-56` (224px), and the 56px sticky top bar was undocumented entirely. CLAUDE.md instructs every agent to read DESIGN.md before a visual decision, so this drove a whole round of `/plan-design-review` mockups to generate a solid green sidebar — confidently wrong work produced by a stale sentence. Corrected during that review (T34). **A design system that misdescribes the shipped product is worse than none.** |
+| 2026-08-01 | Staff data tables become card lists below `lg`; the top bar's shrink contract is documented | T36 (v0.38.4.0) finished what T28 started: all five staff lists now have a table shape and a card shape, switched by CSS at `lg`. Recorded here because it changes what a staff surface *is* — a mockup that shows only a table is now half a design. The same entry documents the top-bar fix it depended on: the shell overflowed the viewport on every authenticated page (~126px at 800px), so any "does this page fit" judgement made before v0.38.4.0 was measured against broken chrome. Per the T34 row above, this file describes the shipped app or it misleads. |

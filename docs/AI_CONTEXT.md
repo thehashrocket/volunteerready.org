@@ -120,6 +120,7 @@ src/
 ├── components/
 │   ├── ui/                       # shadcn/ui primitives (button, input, dialog, etc.)
 │   ├── app/                      # Page-specific compound components (notification-bell, shift-templates, org-health-widget, activity-feed, feedback-widget, feedback-admin-notice)
+│   ├── app/card-list.tsx         # `CardList` + `CARD_LIST` (`gap-0 divide-y py-0`) — the below-`lg` card counterpart of a staff data table. Card's own `flex flex-col gap-6 py-6` fights `divide-y`, so a bare `<Card className="divide-y">` draws hairlines floating in 24px of space. Four consumers (applications, opportunities, team, volunteers); ShiftsClient deliberately uses neither, its list already sits inside a Card. Never pass `hidden`/`lg:hidden` to it — visibility belongs on a wrapper `div`, since tailwind-merge would drop either it or Card's `flex`
 │   ├── plan-gate.tsx             # Plan-tier gating UI (lock card with upgrade CTA)
 │   ├── org/                      # Organization management components
 │   ├── my-applications/          # Volunteer application tracking
@@ -177,6 +178,7 @@ src/
 │   ├── feedback-config.ts        # Feedback UI config (mood icons, labels, confirmation messages)
 │   ├── hooks/use-media-query.ts  # Responsive media query primitive — safe ONLY for Dialog↔Drawer switching, and as of v0.38.3.0 not the thing a new modal calls (use the hook below). Never for page layout: it initialises to false and resolves in an effect, so it flashes the mobile tree to desktop. admin/feedback/page.tsx still does this and should be converted. Still read directly by feedback-widget.tsx and org-profile-form.tsx, which switch at `md`
 │   ├── hooks/use-frozen-desktop-shell.ts # `useFrozenDesktopShell(open, query?)` + `DESKTOP_QUERY` (`lg`) — the sanctioned Dialog↔Drawer switch. Reads the query while closed and FREEZES it while open, because Dialog and Drawer are different roots: a live value crossing the breakpoint mid-session (an iPad rotating portrait→landscape crosses 1024) unmounts the modal and takes everything typed into it. Extracted from AddVolunteerDialog at T27's second consumer (VolunteerDetailDialog); do not re-inline it and do not call useMediaQuery directly in a new modal — pass a query override for an `md` one. See CLAUDE.md "Responsive staff tables", "Stay-open add-volunteer form", "Volunteer detail dialog"
+│   ├── hooks/use-pending-ids.ts  # `usePendingIds()` — a `Set` of row ids with a mutation in flight, so a list disables exactly the acting rows and leaves the rest live. Fed from `onMutate`/`onSettled` (settled, not success — releasing only on success strands a failed row disabled forever). Replaces `mutation.isPending ? mutation.variables?.id`, which is wrong under concurrency: query-core's `MutationObserver.mutate()` detaches the observer from the previous call, so `variables`/`isPending` describe only the MOST RECENT mutation and at most one row is ever disabled. Keyed by row, not by mutation (shifts has three acting on one row). Used by volunteers, opportunities, shifts and team — NOT applications, which has no row mutations
 │   ├── slug.ts                   # URL slug utilities
 │   └── utils.ts                  # General utilities (cn, etc.)
 │
@@ -453,6 +455,7 @@ pnpm typecheck            # tsc --noEmit
 pnpm test                 # Vitest (run once)
 pnpm test:watch           # Vitest (watch mode)
 pnpm e2e                  # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
+                          #   Pauses ~30-60s first while e2e/global-setup.ts warms every public route
 pnpm screenshots          # Regenerate marketing screenshots in public/marketing/ (CAPTURE=1 Playwright project; needs pnpm seed:dev data; refuses non-local DATABASE_URL; filter with CAPTURE_ONLY=key1,key2)
 pnpm check                # Biome check on src/docs/prisma (applies safe fixes)
 pnpm prisma migrate deploy  # Apply migrations
@@ -468,7 +471,7 @@ pnpm docs:dev               # VitePress dev server
 ## Conventions
 
 - **Files:** `kebab-case.ts` (e.g., `volunteer-screening.ts`)
-- **Components:** `PascalCase` (e.g., `PageHeader.tsx`)
+- **Component files:** `kebab-case` (e.g. `page-header.tsx`, `card-list.tsx`) — matching CLAUDE.md's repo-wide file naming rule. The *exported component* is `PascalCase` (`PageHeader`, `CardList`); only the filename is kebab. A handful of pre-existing files deviate (`OrgSwitcher.tsx`, `CompanySwitcher.tsx`, `ApplicationStatusBadge.tsx`) — those are the exception and are tracked in `docs/UI_CONSISTENCY_REVIEW.md`, not the convention to copy
 - **Functions/variables:** `camelCase`
 - **Types/interfaces:** `PascalCase`
 - **Indentation:** 2 spaces
@@ -544,6 +547,8 @@ pnpm docs:dev               # VitePress dev server
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
 | `playwright.config.ts` | E2E configuration (boots `pnpm dev`; `PLAYWRIGHT_BASE_URL` override; `CAPTURE=1` swaps the `chromium` project for the marketing-screenshot `capture` project — mutually exclusive so a leaked env var can't rewrite `public/marketing/*.png` mid-e2e) |
 | `e2e/utils/db.ts` | Playwright auth harness — seeds a NextAuth database session for authenticated e2e specs; refuses non-local `DATABASE_URL` unless `E2E_ALLOW_REMOTE_DB=1` |
+| `e2e/global-setup.ts` | Playwright `globalSetup` — fetches every public route SEQUENTIALLY before the workers start. `webServer.url` only proves `/` answers; in `next dev` the rest are uncompiled, and N workers hitting ~20 at once makes Next read a `.next` manifest another compile is mid-write, surfacing as `SyntaxError: Unexpected end of JSON input` 500s (worst on `/locations/*` — six slugs share one `generateStaticParams` with `dynamicParams = false`). Route list is DERIVED from `PUBLIC_PAGES` + `LOCATIONS`, never retyped. Skipped when `PLAYWRIGHT_BASE_URL` is set; warns rather than throws |
+| `e2e/utils/layout.ts` | Layout assertions — `expectNoHorizontalOverflow` (document-level, names the widest node), `expectNoInternalScroll` (a `Table`'s `overflow-auto` wrapper scrolls internally while the document stays exactly the viewport width), `expectEllipsized` (proves `truncate` is doing work; needs a fixture string with no line-break opportunities — underscores, not spaces or hyphens). All three are different properties; the document check alone is necessary but not sufficient. Consumers: `staff-tables-mobile.spec.ts`, `staff-created-volunteers.spec.ts` |
 | `src/lib/marketing-screenshots.ts` | Marketing screenshot asset manifest — single source of truth for `public/marketing/*.png`; pages import entries; each entry has `src` and an optional `darkSrc` dark-mode variant; `marketing-screenshots.test.ts` asserts every asset exists on disk |
 | `src/components/annotated-screenshot.tsx` | `AnnotatedScreenshot` — product screenshot with numbered %-positioned markers + HTML legend (homepage pillar rows, `/how-it-works`, `/screening`, `/for/animal-shelters`; `ScreenshotSection`'s optional `annotations` prop); optional `darkSrc` prop renders a paired dark-mode image, toggled via Tailwind `dark:` classes (no `useTheme()` hook) |
 | `e2e/capture-scenarios.ts` | Typed capture scenarios (actor/path/clickTabs/waitForText/`variants`) for `pnpm screenshots` — deterministic 1280×720 captures from seeded demo data, one pass per declared color-scheme variant (`e2e/capture.spec.ts`) |
@@ -567,9 +572,22 @@ pnpm docs:dev               # VitePress dev server
 | 7 — Network Growth & Volunteer Identity | ✅ Complete |
 | 8 — Operational Polish & CEO Quick Wins | ✅ Complete |
 | 9 — Production-Ready + Activation | ✅ Complete |
+| 10 — Scale & Enterprise Readiness | ✅ Complete |
 | 11A — Volunteer Marketplace (browse + map) | ✅ Complete |
 | 11B — Marketplace Interest + Digest | ✅ Complete |
 | 11C — Marketplace Phase Review | ✅ Complete |
+| 12 — Concierge Activation Engine | ✅ Complete |
+
+The staff-created-volunteer roster (v0.32.0.0 onward) is tracked as a **lane** in
+[`docs/designs/staff-created-volunteers.md`](designs/staff-created-volunteers.md), not as a
+phase here. Its most recent ships: Lane G concierge import/export/metrics (v0.38.0.0),
+responsive staff tables T28 (v0.38.1.0), the stay-open add form T25 (v0.38.2.0), the
+volunteer detail dialog T27 (v0.38.3.0), and the remaining four staff tables T36
+(v0.38.4.0).
+
+The per-phase notes below stop at v0.26.2.0 and are kept as history. **`CHANGELOG.md` is
+authoritative for anything more recent** — do not read the last note below as the latest
+release.
 
 Phase 7 delivered: `/v/[userId]` public identity page, OG share card, volunteer identity panel on screener, tenure badge auto-issuance (TENURE_1YR/3YR/5YR), reliability score, availability + credential matching bonuses, volunteer discovery (`/app/discover`) with invite-to-apply (rate-limited), org analytics dashboard (`/app/analytics`, PRO-gated).
 
@@ -611,3 +629,5 @@ When you need framework-specific guidance, consult these:
 9. **Pagination** — opportunity and application list endpoints use cursor-based pagination. Use `take + cursor + skip: 1` pattern, not offset-based `skip`.
 10. **Trusting a `userId` from the input because the caller is staff** — `staffProcedure` proves the caller is staff and `ctx.orgId` says where; neither says the person named in the input belongs to that org, and user ids are public (`/v/[userId]`). Call `requireOrgVolunteerRelationship(ctx.orgId, input.userId)` before acting on them, and don't widen the accepted-relationship set at the callsite. If your path creates a live `OrgVolunteer` row instead of acting on one, check `findOrgVolunteerBlock()` too — the guard governs actions, not membership, so without it a block produces an inert roster row staff cannot schedule, credential, or background-check, with no explanation in the UI.
 11. **Unscoped e2e cleanup under `fullyParallel`** — `playwright.config.ts` runs spec files in parallel worker processes, each with its own `beforeAll`/`afterAll`. A shared-prefix cleanup sweep (`startsWith: PREFIX`) run in `afterAll` can delete a sibling worker's still-in-use rows mid-test — scope `afterAll` to the exact IDs that worker's `beforeAll` created instead (see `e2e/esg-dashboard.spec.ts`).
+12. **Disabling a list row with `mutation.variables`** — `mutation.isPending ? mutation.variables?.id : undefined` looks like per-row pending state and is not. query-core's `MutationObserver.mutate()` detaches the observer from the previous call before starting the next, so both fields describe only the MOST RECENT mutation: act on row B while row A is in flight and A's controls silently re-enable, leaving at most one row disabled however many requests are open. That is strictly worse than the bare `mutation.isPending` it usually replaces, which at least made concurrent submits impossible. Use `usePendingIds()` (`src/lib/hooks/use-pending-ids.ts`), fed from `onMutate`/`onSettled`.
+13. **Gating page LAYOUT on `useMediaQuery`** — it initialises to `false` and only reads `matchMedia` in an effect, so every desktop user gets the mobile tree painted first and swapped after hydration. Table↔card switches are pure CSS (`hidden lg:block` / `lg:hidden`, both trees rendered from the same array). The hook is safe only inside a modal, which mounts after the effect has run — and there it must be frozen while open via `useFrozenDesktopShell`, never re-read live. `src/app/(app)/app/admin/feedback/page.tsx` still violates this.

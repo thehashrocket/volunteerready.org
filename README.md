@@ -299,6 +299,7 @@ Used to enable or disable experimental or premium functionality.
 src/
  ├─ app/                # Next.js routes and page composition
  ├─ components/         # Reusable UI components
+ ├─ lib/                # Client-side utilities, constants, and React hooks (src/lib/hooks/)
  └─ server/
      ├─ domain/         # Domain types, invariants, pure functions
      ├─ repositories/   # Database access layer (Prisma only)
@@ -315,7 +316,9 @@ prisma/
 
 docs/                   # VitePress documentation site
 
-e2e/                    # Playwright end-to-end tests (auth harness in e2e/utils/)
+e2e/                    # Playwright end-to-end tests
+ ├─ global-setup.ts     # Warms every public route before the workers start (see below)
+ └─ utils/              # Auth harness (db.ts) and layout assertions (layout.ts)
 ```
 
 ---
@@ -345,6 +348,10 @@ pnpm lint           # Biome lint
 pnpm format         # Biome format
 pnpm test           # Vitest (run once)
 pnpm e2e            # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
+                    #   Pauses ~30-60s first: e2e/global-setup.ts compiles every public route
+                    #   sequentially, because `next dev` serves an uncompiled route while it
+                    #   rewrites the .next manifest, and N workers hitting ~20 at once turns
+                    #   that into intermittent 500s. Skipped when PLAYWRIGHT_BASE_URL is set.
 pnpm screenshots    # Regenerate marketing screenshots in public/marketing/ (needs pnpm seed:dev data; refuses non-local DATABASE_URL; filter with CAPTURE_ONLY=key1,key2)
 pnpm typecheck      # tsc --noEmit
 pnpm check          # Biome check on src/docs/prisma (applies safe fixes)
@@ -441,13 +448,16 @@ See `docs/ROADMAP.md` for full detail.
 
 # Design System
 
-The public marketing site follows a documented design system defined in `DESIGN.md`. Key choices:
+The product follows a documented design system defined in `DESIGN.md` — the public marketing
+site and the authenticated staff shell alike. Key choices:
 
-- **Aesthetic:** Organic/Natural — warm, grounded, intentional
+- **Aesthetic:** Refined Editorial — warm editorial authority meets operational precision
 - **Typography:** Fraunces (display) + Geist (body)
 - **Color:** `#1B3C2A` primary, `#C4A882` secondary, warm neutrals
 - **Touch targets:** 44px minimum on all interactive elements
 - **Motion:** `prefers-reduced-motion` respected on all animations
+- **Staff lists:** every staff table has two shapes — a `Table` above `lg`, a card list below
+  it — switched by CSS, never a JS media query
 
 See `DESIGN.md` for the full specification.
 

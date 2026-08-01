@@ -5,6 +5,22 @@
 **Pages audited**: 22 routes (17 authenticated, 5 public)
 **Components audited**: 22 shared components (13 UI primitives + 9 feature components)
 
+> **This is a dated snapshot, not a live document.** It records what the UI looked like on
+> March 8, 2026 and is deliberately left as written; the counts above have not been
+> maintained since. Known divergence as of v0.38.4.0 (2026-08-01):
+>
+> - **Finding #8's premise no longer holds.** It says authenticated pages inherit a flat
+>   `px-4 py-10`; `app-shell.tsx` is now `px-4 py-8 sm:px-6 lg:px-8`.
+> - **The Component Usage Matrix predates responsive staff tables.** Volunteers,
+>   Applications, Opportunities, Shifts and Team each now render a `Table` above `lg` and a
+>   `CardList` below it. The matrix has no column for that and no `/app/volunteers` row.
+> - **`CardList` is a 23rd shared component**, and the authenticated route count has grown
+>   well past 17.
+> - **P3 #15 (PascalCase filenames) has widened, not closed** — `OrgSwitcher.tsx` and
+>   `CompanySwitcher.tsx` were both edited in v0.38.4.0 without renaming.
+>
+> For current UI rules read `CLAUDE.md` ("Responsive staff tables") and `DESIGN.md`.
+
 ---
 
 ## Executive Summary

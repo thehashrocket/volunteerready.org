@@ -42,6 +42,10 @@ Each layer has a single responsibility:
 src/
  ├─ app/                # Next.js App Router pages
  ├─ components/         # Reusable UI components
+ │   ├─ ui/             # shadcn/ui primitives
+ │   └─ app/            # Authenticated-shell components (app-shell, card-list, …)
+ ├─ lib/                # Client-side utilities, constants, and React hooks
+ │   └─ hooks/          # use-pending-ids, use-frozen-desktop-shell, use-media-query
  └─ server/
      ├─ domain/         # Pure types, invariants, functions (no framework code)
      ├─ repositories/   # Database access layer (Prisma only)
@@ -75,6 +79,18 @@ Should not contain business logic.
 Reusable UI components and forms.
 
 Should not contain database queries or workflow orchestration.
+
+Two shared primitives are worth knowing before writing a staff surface, because both were
+extracted after the hand-rolled version had been copied several times:
+
+| Module | What it is |
+|--------|-----------|
+| `components/app/card-list.tsx` | `CardList` + `CARD_LIST` — the below-`lg` card counterpart of a staff data table. Never pass visibility utilities (`hidden`, `lg:hidden`) to it; those belong on a wrapper `div`, since they and `Card`'s own `flex` are both display utilities and tailwind-merge would drop one. |
+| `lib/hooks/use-pending-ids.ts` | `usePendingIds()` — tracks which ROWS have a mutation in flight. Use it instead of `mutation.variables`, which describes only the most recent mutation and so disables at most one row however many requests are open. |
+
+A table↔card switch is **pure CSS** — both trees render from the same array inside
+`hidden lg:block` / `lg:hidden` wrappers. Gating layout on `useMediaQuery` paints the mobile
+tree to every desktop user and swaps it after hydration.
 
 ---
 
@@ -524,7 +540,12 @@ pnpm start                # Production server
 pnpm lint                 # Biome lint
 pnpm format               # Biome format
 pnpm test                 # Vitest
-pnpm e2e                  # Playwright e2e (boots the dev server)
+pnpm e2e                  # Playwright e2e (boots the dev server; authenticated specs only
+                          #   run against localhost. Pauses ~30-60s first while
+                          #   e2e/global-setup.ts warms every public route — `next dev`
+                          #   serves an uncompiled route while rewriting the .next
+                          #   manifest, and N workers hitting ~20 at once turns that into
+                          #   intermittent 500s. Skipped when PLAYWRIGHT_BASE_URL is set.)
 pnpm check                # Biome check on src/docs/prisma (applies safe fixes)
 pnpm prisma migrate deploy
 pnpm prisma db seed
