@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.3.0] - 2026-07-31
+
+### Added
+- Click any volunteer on the **Volunteers** page to open their record. It shows their email and phone, the date you added them and why they are on your roster, whether they have an account yet, and every shift they have worked with you — each with its date, time and hours — plus the total. Until now the roster was the only list in the product that went nowhere when you clicked it.
+- On a phone or tablet, tapping a volunteer's card opens the same record as a sheet that slides up from the bottom.
+- The shift history and hours are **your organization's only**. If a volunteer also works with another organization, none of that appears here, and the totals match the shift count already shown in their row.
+- A volunteer with a long history shows their fifty most recent shifts, and says so. The totals above the list still count all of them.
+
+### Changed
+- On a phone, **Remove** has moved off the volunteer's card and into their record. Tapping the card opens the record; removing someone is one step further in, which makes a mis-tap on a list you are scrolling much less likely. On a desktop, **Remove** stays on the row.
+
+### Fixed
+- A volunteer with no email address on file now shows a dash in the roster instead of a blank line.
+
 ## [0.38.2.0] - 2026-07-31
 
 ### Changed
