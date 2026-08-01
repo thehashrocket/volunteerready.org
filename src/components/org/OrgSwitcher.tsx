@@ -69,7 +69,12 @@ export function OrgSwitcher() {
 
 	if (orgs.length === 1) {
 		return (
-			<div className="max-w-[120px] truncate text-xs text-muted-foreground sm:max-w-[200px]">
+			// Narrower at base than the old flat `max-w-[120px]`: the header's left
+			// cluster is now allowed to shrink, so this cap is a FLOOR on
+			// readability rather than a ceiling on width — at 375px a 120px name
+			// beside the toggle, the mark and the company switcher is what pushed
+			// the account button off the edge.
+			<div className="max-w-24 truncate text-xs text-muted-foreground sm:max-w-40 lg:max-w-[200px]">
 				{orgs[0]?.name}
 			</div>
 		);
@@ -81,7 +86,7 @@ export function OrgSwitcher() {
 				<Button
 					variant="outline"
 					size="sm"
-					className="h-8 max-w-[160px] justify-between text-xs sm:max-w-[220px]"
+					className="h-8 max-w-[120px] shrink justify-between text-xs sm:max-w-[180px] lg:max-w-[220px]"
 					disabled={switchMutation.isPending}
 				>
 					<span className="truncate">{currentName}</span>

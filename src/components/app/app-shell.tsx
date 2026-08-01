@@ -51,13 +51,22 @@ export function AppShell({
 				className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-sm"
 				data-theme-transition
 			>
-				<div className="flex h-14 items-center justify-between px-4">
-					<div className="flex items-center gap-3">
+				{/* `min-w-0` on the left cluster is what stops this row overflowing the
+				    viewport. A flex item's default `min-width: auto` resolves to its
+				    content's intrinsic width, so without it the cluster refuses to
+				    shrink and `justify-between` pushes the right cluster (theme,
+				    bell, account) straight off the right edge — ~22px at 375px, and
+				    ~126px in the 768-1023px band, where the wordmark and BOTH
+				    switchers render alongside a toggle that is still `lg:hidden`.
+				    The switchers already truncate themselves correctly; nothing they
+				    do helps while their parent cannot shrink. */}
+				<div className="flex h-14 items-center justify-between gap-2 px-4">
+					<div className="flex min-w-0 items-center gap-2 sm:gap-3">
 						{/* Mobile sidebar toggle */}
 						<Button
 							variant="ghost"
 							size="icon"
-							className="h-11 w-11 lg:hidden"
+							className="h-11 w-11 shrink-0 lg:hidden"
 							onClick={() => setSidebarOpen(!sidebarOpen)}
 							aria-label="Toggle navigation"
 						>
@@ -68,18 +77,34 @@ export function AppShell({
 							)}
 						</Button>
 
-						<Link className="flex items-center gap-2.5" href={homeHref}>
-							<div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
+						<Link
+							className="flex shrink-0 items-center gap-2.5"
+							href={homeHref}
+						>
+							<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
 								V
 							</div>
-							<span className="text-sm font-semibold tracking-tight text-foreground">
+							{/* Hidden below `sm` rather than truncated: this is the widest
+							    node in the cluster that cannot shrink (no `truncate`, so
+							    its min-content width is the whole 14-character word), and
+							    "Volunt…" is a worse answer than the mark alone, which
+							    already identifies the app. */}
+							<span className="hidden text-sm font-semibold tracking-tight text-foreground sm:inline">
 								VolunteerReady
 							</span>
 						</Link>
 						<OrgSwitcher />
 						<CompanySwitcher />
 					</div>
-					<div className="flex items-center gap-1">
+					{/* `shrink-0` declares the intent — these are the row's actions and
+					    the left cluster is the side that gives. It is currently
+					    DEFENSIVE rather than load-bearing: measured at 375/800/1280 the
+					    account control is the same width with or without it, because
+					    `min-w-0` plus truncation on the left absorbs all the pressure
+					    before this cluster feels any. Kept because it is free and
+					    becomes real the moment anything unshrinkable lands here; NOT
+					    pinned by a test, since one would assert nothing today. */}
+					<div className="flex shrink-0 items-center gap-1">
 						<ThemeToggle />
 						<NotificationBell />
 						{mounted ? (
@@ -89,7 +114,14 @@ export function AppShell({
 										<div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
 											{initial}
 										</div>
-										<span className="hidden text-muted-foreground sm:inline">
+										{/* Capped because the right cluster is `shrink-0`: an
+										    uncapped address (a seeded
+										    `orgadmin@volunteermatch.local` is ~200px) is taken
+										    out of the row before the org name gets any, so the
+										    switchers end up squeezed to bare ellipses in the
+										    tablet band. The dropdown below still shows it in
+										    full. */}
+										<span className="hidden max-w-40 truncate text-muted-foreground sm:inline">
 											{session?.user?.email ?? 'Account'}
 										</span>
 										<ChevronDown className="h-4 w-4 text-muted-foreground" />
