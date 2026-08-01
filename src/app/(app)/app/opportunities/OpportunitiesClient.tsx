@@ -2,9 +2,11 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { Briefcase, Plus } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { CardList } from '@/components/app/card-list';
 import {
 	QueryErrorCard,
 	safeErrorMessage,
@@ -32,6 +34,7 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { formatDateRange } from '@/lib/format-date';
+import { usePendingIds } from '@/lib/hooks/use-pending-ids';
 import { trpc } from '@/lib/trpc/client';
 import { OpportunityDialog } from './OpportunityDialog';
 
@@ -86,7 +89,10 @@ export function OpportunitiesClient() {
 
 	const query = trpc.opportunities.list.useQuery();
 
+	const pending = usePendingIds();
 	const updateStatus = trpc.opportunities.updateStatus.useMutation({
+		onMutate: (vars) => pending.start(vars.id),
+		onSettled: (_data, _err, vars) => pending.finish(vars.id),
 		onSuccess: async () => {
 			await qc.invalidateQueries();
 			toast.success('Status updated.');
@@ -154,8 +160,15 @@ export function OpportunitiesClient() {
 				<PageHeader
 					title="Volunteer Opportunities"
 					description={`${total} opportunit${total === 1 ? 'y' : 'ies'}`}
+					// A fragment, not a wrapper `div`: `PageHeader` already lays its
+					// actions out as a `flex min-w-0 flex-wrap items-center gap-2` row,
+					// and a second identical row nested inside it re-introduced the
+					// `min-width: auto` overhang that one was given `min-w-0` to fix —
+					// at 375px this Select plus the button is 343px of content in a
+					// 311px column, and the inner row ran past the page padding to sit
+					// flush against the viewport edge.
 					actions={
-						<div className="flex items-center gap-2">
+						<>
 							<Select value={statusFilter} onValueChange={setStatusFilter}>
 								<SelectTrigger className="w-44">
 									<SelectValue placeholder="All statuses" />
@@ -171,7 +184,7 @@ export function OpportunitiesClient() {
 								<Plus className="mr-2 h-4 w-4" />
 								New opportunity
 							</Button>
-						</div>
+						</>
 					}
 				/>
 
@@ -188,113 +201,232 @@ export function OpportunitiesClient() {
 						}
 					/>
 				) : (
-					<Card>
-						<CardContent className="pt-6">
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Title</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead>Location</TableHead>
-										<TableHead>Dates</TableHead>
-										<TableHead>Capacity</TableHead>
-										<TableHead>Tags</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{opportunities.map((opp) => (
-										<TableRow
-											key={opp.id}
-											className="cursor-pointer"
-											onClick={() =>
-												router.push(`/app/opportunities/${opp.id}`)
-											}
-										>
-											<TableCell className="font-medium">{opp.title}</TableCell>
-											<TableCell>
-												<OpportunityStatusBadge status={opp.status} />
-											</TableCell>
-											<TableCell className="text-sm text-muted-foreground">
-												{locationLabel(opp)}
-											</TableCell>
-											<TableCell className="text-sm text-muted-foreground">
-												{formatDateRange(opp.startDate, opp.endDate) ?? '—'}
-											</TableCell>
-											<TableCell className="text-sm text-muted-foreground">
-												{opp.capacity ?? '—'}
-											</TableCell>
-											<TableCell>
-												<div className="flex flex-wrap gap-1">
-													{opp.tags.length > 0 ? (
-														opp.tags.map((t) => (
-															<Badge
-																key={t.id}
-																variant="outline"
-																className="text-xs"
+					<>
+						{/* Both trees render from the same array and are switched by CSS,
+						    never by `useMediaQuery`: that hook initialises to `false` and
+						    only resolves in an effect, so gating the LIST on it paints the
+						    card shape to every desktop user and swaps it after hydration.
+						    `display: none` also removes the hidden tree from the
+						    accessibility tree, so exactly one Publish/Close/Edit per
+						    opportunity is ever reachable. Visibility goes on a wrapper,
+						    never on `Card`/`CardList` — `hidden` and Card's own `flex` are
+						    both display utilities and tailwind-merge drops one of them. */}
+						<div className="hidden lg:block" data-testid="opportunities-table">
+							<Card>
+								<CardContent className="pt-6">
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>Title</TableHead>
+												<TableHead>Status</TableHead>
+												<TableHead>Location</TableHead>
+												<TableHead>Dates</TableHead>
+												<TableHead>Capacity</TableHead>
+												<TableHead>Tags</TableHead>
+												<TableHead className="text-right">Actions</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{opportunities.map((opp) => (
+												<TableRow
+													key={opp.id}
+													className="cursor-pointer"
+													onClick={() =>
+														router.push(`/app/opportunities/${opp.id}`)
+													}
+												>
+													<TableCell className="font-medium">
+														{opp.title}
+													</TableCell>
+													<TableCell>
+														<OpportunityStatusBadge status={opp.status} />
+													</TableCell>
+													<TableCell className="text-sm text-muted-foreground">
+														{locationLabel(opp)}
+													</TableCell>
+													<TableCell className="text-sm text-muted-foreground">
+														{formatDateRange(opp.startDate, opp.endDate) ?? '—'}
+													</TableCell>
+													<TableCell className="text-sm text-muted-foreground">
+														{opp.capacity ?? '—'}
+													</TableCell>
+													<TableCell>
+														<div className="flex flex-wrap gap-1">
+															{opp.tags.length > 0 ? (
+																opp.tags.map((t) => (
+																	<Badge
+																		key={t.id}
+																		variant="outline"
+																		className="text-xs"
+																	>
+																		{t.name}
+																	</Badge>
+																))
+															) : (
+																<span className="text-sm text-muted-foreground">
+																	—
+																</span>
+															)}
+														</div>
+													</TableCell>
+													<TableCell className="text-right">
+														{/* The visible labels stay one word, per the table's
+												    density; only the accessible names name the target,
+												    so a rotor does not read N identical "Publish"
+												    buttons. Same treatment as ShiftsClient's icon
+												    buttons and the roster's Remove. */}
+														<div className="flex items-center justify-end gap-2">
+															{opp.status === 'DRAFT' && (
+																<Button
+																	size="sm"
+																	variant="outline"
+																	aria-label={`Publish "${opp.title}"`}
+																	disabled={pending.has(opp.id)}
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		updateStatus.mutate({
+																			id: opp.id,
+																			status: 'PUBLISHED',
+																		});
+																	}}
+																>
+																	Publish
+																</Button>
+															)}
+															{opp.status === 'PUBLISHED' && (
+																<Button
+																	size="sm"
+																	variant="outline"
+																	aria-label={`Close "${opp.title}"`}
+																	disabled={pending.has(opp.id)}
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		updateStatus.mutate({
+																			id: opp.id,
+																			status: 'CLOSED',
+																		});
+																	}}
+																>
+																	Close
+																</Button>
+															)}
+															<Button
+																size="sm"
+																variant="ghost"
+																aria-label={`Edit "${opp.title}"`}
+																onClick={(e) => {
+																	e.stopPropagation();
+																	openEdit(opp);
+																}}
 															>
-																{t.name}
-															</Badge>
-														))
-													) : (
-														<span className="text-sm text-muted-foreground">
-															—
-														</span>
-													)}
-												</div>
-											</TableCell>
-											<TableCell className="text-right">
-												<div className="flex items-center justify-end gap-2">
-													{opp.status === 'DRAFT' && (
-														<Button
-															size="sm"
-															variant="outline"
-															disabled={updateStatus.isPending}
-															onClick={(e) => {
-																e.stopPropagation();
-																updateStatus.mutate({
-																	id: opp.id,
-																	status: 'PUBLISHED',
-																});
-															}}
-														>
-															Publish
-														</Button>
-													)}
-													{opp.status === 'PUBLISHED' && (
-														<Button
-															size="sm"
-															variant="outline"
-															disabled={updateStatus.isPending}
-															onClick={(e) => {
-																e.stopPropagation();
-																updateStatus.mutate({
-																	id: opp.id,
-																	status: 'CLOSED',
-																});
-															}}
-														>
-															Close
-														</Button>
-													)}
+																Edit
+															</Button>
+														</div>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</CardContent>
+							</Card>
+						</div>
+
+						{/* `Tags` drops out below `lg` and location/dates/capacity fold
+						    into one muted line. The ACTIONS stay, which is the one place
+						    this deliberately departs from the roster's shape: there the
+						    row became the whole tap target and `Remove` moved into the
+						    detail dialog, but `Publish`/`Close` exist on this list and
+						    NOWHERE else — the opportunity detail page has only `Edit`. So
+						    a whole-row card here would not be a narrower surface, it would
+						    be a phone that cannot publish an opportunity at all.
+
+						    Because the card holds its own buttons it is a `<div>`, not a
+						    `<button>`: the title carries the navigation, and a nested
+						    interactive element inside a tappable row is both a mis-tap
+						    generator and invalid markup. */}
+						<div className="lg:hidden" data-testid="opportunities-card-list">
+							<CardList>
+								{opportunities.map((opp) => {
+									const dates = formatDateRange(opp.startDate, opp.endDate);
+									return (
+										<div key={opp.id} className="flex flex-col gap-3 px-4 py-3">
+											<div className="flex items-start justify-between gap-2">
+												{/* min-w-0 so truncate engages inside the flex row: a
+												    long title otherwise widens the card past the
+												    viewport, which is the sideways scroll this layout
+												    exists to remove. */}
+												<Link
+													href={`/app/opportunities/${opp.id}`}
+													className="min-w-0 truncate font-medium hover:underline"
+												>
+													{opp.title}
+												</Link>
+												<OpportunityStatusBadge
+													status={opp.status}
+													className="shrink-0"
+												/>
+											</div>
+
+											<div className="truncate text-xs text-muted-foreground">
+												{[
+													locationLabel(opp),
+													dates,
+													opp.capacity == null
+														? null
+														: `${opp.capacity} places`,
+												]
+													.filter(Boolean)
+													.join(' · ')}
+											</div>
+
+											<div className="flex gap-2">
+												{opp.status === 'DRAFT' && (
 													<Button
-														size="sm"
-														variant="ghost"
-														onClick={(e) => {
-															e.stopPropagation();
-															openEdit(opp);
-														}}
+														className="h-11 flex-1"
+														variant="outline"
+														aria-label={`Publish "${opp.title}"`}
+														disabled={pending.has(opp.id)}
+														onClick={() =>
+															updateStatus.mutate({
+																id: opp.id,
+																status: 'PUBLISHED',
+															})
+														}
 													>
-														Edit
+														Publish
 													</Button>
-												</div>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</CardContent>
-					</Card>
+												)}
+												{opp.status === 'PUBLISHED' && (
+													<Button
+														className="h-11 flex-1"
+														variant="outline"
+														aria-label={`Close "${opp.title}"`}
+														disabled={pending.has(opp.id)}
+														onClick={() =>
+															updateStatus.mutate({
+																id: opp.id,
+																status: 'CLOSED',
+															})
+														}
+													>
+														Close
+													</Button>
+												)}
+												<Button
+													className="h-11 flex-1"
+													variant="outline"
+													aria-label={`Edit "${opp.title}"`}
+													onClick={() => openEdit(opp)}
+												>
+													Edit
+												</Button>
+											</div>
+										</div>
+									);
+								})}
+							</CardList>
+						</div>
+					</>
 				)}
 			</div>
 

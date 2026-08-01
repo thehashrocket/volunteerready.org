@@ -1,8 +1,10 @@
 'use client';
 
 import { ChevronRight, FileText } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { CardList } from '@/components/app/card-list';
 import {
 	QueryErrorCard,
 	safeErrorMessage,
@@ -42,7 +44,7 @@ function flagCount(screeningReasons: unknown): number {
 
 function TableSkeleton() {
 	return (
-		<Card>
+		<Card data-testid="applications-skeleton-table">
 			<CardContent className="pt-6">
 				<Table>
 					<TableHeader>
@@ -77,6 +79,29 @@ function TableSkeleton() {
 	);
 }
 
+/**
+ * The card list needs its own skeleton shape for the same reason the table one
+ * exists: it stands in for a two-line row, not for seven cells, and reusing the
+ * table shape below `lg` reserves the wrong height and reflows the moment data
+ * lands. Bar heights match the real row's LINE BOXES (`font-medium` 24px,
+ * `text-xs` 16px), not the glyph heights.
+ */
+function CardListSkeleton() {
+	return (
+		<CardList data-testid="applications-skeleton-cards">
+			{Array.from({ length: 5 }).map((_, i) => (
+				<div key={i} className="flex flex-col gap-2 px-4 py-3">
+					<div className="flex items-center justify-between gap-2">
+						<Skeleton className="h-6 w-48" />
+						<Skeleton className="h-6 w-20 rounded-full" />
+					</div>
+					<Skeleton className="h-4 w-40" />
+				</div>
+			))}
+		</CardList>
+	);
+}
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -106,7 +131,12 @@ export default function ApplicationsPage() {
 					title="Applications"
 					description="Review and act on incoming volunteer applications."
 				/>
-				<TableSkeleton />
+				<div className="hidden lg:block">
+					<TableSkeleton />
+				</div>
+				<div className="lg:hidden">
+					<CardListSkeleton />
+				</div>
 			</div>
 		);
 	}
@@ -156,68 +186,153 @@ export default function ApplicationsPage() {
 					icon={FileText}
 				/>
 			) : (
-				<Card>
-					<CardContent className="pt-6">
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Submitted</TableHead>
-									<TableHead>Email</TableHead>
-									<TableHead>Opportunity</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead>Screening</TableHead>
-									<TableHead>Flags</TableHead>
-									<TableHead />
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{applications.map((app) => {
-									const flags = flagCount(app.screeningReasons);
-									return (
-										<TableRow
-											key={app.id}
-											className="cursor-pointer"
-											onClick={() => router.push(`/app/applications/${app.id}`)}
-										>
-											<TableCell>
-												<div>{formatDate(app.submittedAt)}</div>
-												<div className="text-xs text-muted-foreground">
-													{formatRelative(app.submittedAt)}
-												</div>
-											</TableCell>
-											<TableCell className="font-medium">
-												{app.submittedByEmail}
-											</TableCell>
-											<TableCell className="text-sm text-muted-foreground">
-												{app.opportunity?.title ?? (
-													<span className="text-muted-foreground">—</span>
-												)}
-											</TableCell>
-											<TableCell>
-												<ApplicationStatusBadge status={app.status} />
-											</TableCell>
-											<TableCell>
-												<ScreeningStatusBadge status={app.screeningStatus} />
-											</TableCell>
-											<TableCell>
-												{flags === 0 ? (
-													<span className="text-muted-foreground">—</span>
-												) : (
-													<Badge variant="destructive">
-														{flags} flag{flags > 1 ? 's' : ''}
-													</Badge>
-												)}
-											</TableCell>
-											<TableCell>
-												<ChevronRight className="h-4 w-4 text-muted-foreground" />
-											</TableCell>
+				<>
+					{/* Both trees render from the same array and are switched by CSS,
+					    never by `useMediaQuery`: that hook initialises to `false` and
+					    only resolves in an effect, so gating the LIST on it paints the
+					    card shape to every desktop user and swaps it after hydration.
+					    The cost is one hidden subtree in the DOM, which `display: none`
+					    also removes from the accessibility tree — so exactly one control
+					    per application is ever reachable.
+
+					    Visibility sits on a wrapper rather than on `Card`/`CardList`:
+					    `hidden` and Card's own `flex` are both display utilities, so one
+					    is dropped by tailwind-merge and which survives is a detail of the
+					    merge rather than of this file. */}
+					<div className="hidden lg:block" data-testid="applications-table">
+						<Card>
+							<CardContent className="pt-6">
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Submitted</TableHead>
+											<TableHead>Email</TableHead>
+											<TableHead>Opportunity</TableHead>
+											<TableHead>Status</TableHead>
+											<TableHead>Screening</TableHead>
+											<TableHead>Flags</TableHead>
+											<TableHead />
 										</TableRow>
-									);
-								})}
-							</TableBody>
-						</Table>
-					</CardContent>
-				</Card>
+									</TableHeader>
+									<TableBody>
+										{applications.map((app) => {
+											const flags = flagCount(app.screeningReasons);
+											return (
+												<TableRow
+													key={app.id}
+													className="cursor-pointer"
+													onClick={() =>
+														router.push(`/app/applications/${app.id}`)
+													}
+												>
+													<TableCell>
+														<div>{formatDate(app.submittedAt)}</div>
+														<div className="text-xs text-muted-foreground">
+															{formatRelative(app.submittedAt)}
+														</div>
+													</TableCell>
+													<TableCell className="font-medium">
+														{app.submittedByEmail}
+													</TableCell>
+													<TableCell className="text-sm text-muted-foreground">
+														{app.opportunity?.title ?? (
+															<span className="text-muted-foreground">—</span>
+														)}
+													</TableCell>
+													<TableCell>
+														<ApplicationStatusBadge status={app.status} />
+													</TableCell>
+													<TableCell>
+														<ScreeningStatusBadge
+															status={app.screeningStatus}
+														/>
+													</TableCell>
+													<TableCell>
+														{flags === 0 ? (
+															<span className="text-muted-foreground">—</span>
+														) : (
+															<Badge variant="destructive">
+																{flags} flag{flags > 1 ? 's' : ''}
+															</Badge>
+														)}
+													</TableCell>
+													<TableCell>
+														<ChevronRight className="h-4 w-4 text-muted-foreground" />
+													</TableCell>
+												</TableRow>
+											);
+										})}
+									</TableBody>
+								</Table>
+							</CardContent>
+						</Card>
+					</div>
+
+					{/* `Opportunity` and the absolute date fold into a second muted
+					    line, and `Screening` drops out entirely — reference detail one
+					    tap away on the application itself, not what a coordinator scans
+					    a queue for. `Flags` STAYS: it is the only cell that says "this
+					    one needs you", and dropping it would make the phone a worse
+					    triage surface rather than a narrower one.
+
+					    A `<Link>` rather than the table's `router.push` on a `<tr>`.
+					    The row is navigation, so it should be middle-clickable and
+					    reachable by keyboard; the desktop row-click has no keyboard path
+					    at all, which is a pre-existing gap this deliberately does not
+					    copy down. */}
+					<div className="lg:hidden" data-testid="applications-card-list">
+						<CardList>
+							{applications.map((app) => {
+								const flags = flagCount(app.screeningReasons);
+								return (
+									<Link
+										key={app.id}
+										href={`/app/applications/${app.id}`}
+										// The row's own text is four separate facts run together;
+										// without an explicit name a rotor reads all of them as the
+										// link's name and never says where it goes.
+										aria-label={`View application from ${app.submittedByEmail}`}
+										className="flex flex-col gap-1 px-4 py-3"
+									>
+										<div className="flex items-start justify-between gap-2">
+											{/* min-w-0 so truncate engages inside the flex row: a
+											    long address otherwise widens the card past the
+											    viewport, which is the sideways scroll this layout
+											    exists to remove. */}
+											<div className="min-w-0 truncate font-medium">
+												{app.submittedByEmail}
+											</div>
+											{/* `shrink-0` like every other card badge here.
+											    `Badge` carries no `whitespace-nowrap` (unlike
+											    `Button`, which is `shrink-0` by default), so as a
+											    plain flex item it takes its proportional share of
+											    the negative space and a two-word label such as
+											    "In review" wraps to two lines instead of the email
+											    ellipsizing. */}
+											<ApplicationStatusBadge
+												status={app.status}
+												className="shrink-0"
+											/>
+										</div>
+										<div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+											<span className="min-w-0 truncate">
+												{formatRelative(app.submittedAt)}
+												{app.opportunity?.title
+													? ` · ${app.opportunity.title}`
+													: ''}
+											</span>
+											{flags > 0 ? (
+												<Badge variant="destructive" className="shrink-0">
+													{flags} flag{flags > 1 ? 's' : ''}
+												</Badge>
+											) : null}
+										</div>
+									</Link>
+								);
+							})}
+						</CardList>
+					</div>
+				</>
 			)}
 		</div>
 	);

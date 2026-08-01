@@ -106,6 +106,23 @@ export function ShiftDetailDialog({
 							? `${new Date(shift.startTime).toLocaleString()} — ${new Date(shift.endTime).toLocaleTimeString()}`
 							: 'Loading…'}
 					</DialogDescription>
+					{/* The linked opportunity. The desktop shifts table shows this
+					    beside the title; the mobile card drops it to keep the row to
+					    three lines, and this is the surface it drops TO. It was added
+					    here when review caught that the card's comment already claimed
+					    the dialog carried it and the dialog did not — the layout change
+					    would otherwise have quietly been a capability change, which is
+					    rule (6) of CLAUDE.md's responsive-tables entry. The repo has
+					    always selected `opportunity` in `findShiftById`; only the render
+					    was missing. */}
+					{shift?.opportunity ? (
+						<p className="text-sm text-muted-foreground">
+							Part of{' '}
+							<span className="font-medium text-foreground">
+								{shift.opportunity.title}
+							</span>
+						</p>
+					) : null}
 				</DialogHeader>
 				{shift && (
 					<div className="space-y-4">
