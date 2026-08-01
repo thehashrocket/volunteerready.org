@@ -52,6 +52,21 @@ When adding queries or mutations:
 
 Failure to enforce org scope is a security bug.
 
+**A table with no `orgId` column is still org-scoped.** `ShiftSignup` is keyed on
+`(shiftId, userId)` and the org lives on `Shift`. A `User` row is shared by every
+org that person volunteers for — that is the premise of the shadow-user model —
+so a read keyed only on `userId` is a cross-tenant read, not an org-scoped one.
+Join through the row that owns the org: `where: { userId, shift: { orgId } }`.
+Where two surfaces show the same fact at different resolutions (the roster row's
+`Shifts` count and the detail dialog's history behind it), share ONE `where`
+builder instead of hand-writing the join twice — `attendedShiftWhere()` in
+`src/server/repositories/orgVolunteerRepo.ts`, which returns the complete
+predicate rather than a fragment to spread, since `{ ...fragment, shift: { … } }`
+compiles, typechecks and silently drops the org join. The one deliberately
+cross-org read is `getAttendedShiftsForUser()` in `shiftSignupRepo.ts` (a
+volunteer's own lifetime hours, platform tenure badges); it must never back a
+staff surface.
+
 Company-scoped resources (`CompanyAccount`, `CompanyMember`,
 `CompanyNonprofitLink`, ESG reports) follow the same rule with `companyId`
 as the tenant boundary. `companyId` must come from the request (URL param

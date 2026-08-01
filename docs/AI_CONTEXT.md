@@ -72,6 +72,7 @@ src/
 │   │   ├── my-shifts/            # Volunteer: upcoming shift signups
 │   │   ├── my-skills/            # Volunteer: manage skill tags
 │   │   ├── opportunities/        # Staff: manage opportunities
+│   │   ├── volunteers/           # Staff: volunteer roster (rosterProcedure/feature-flagged) — add, search, remove/undo, row-click detail dialog
 │   │   ├── analytics/            # Staff: org engagement dashboard (PRO-gated) — funnel, retention, fill rate, top volunteers
 │   │   ├── discover/             # Staff: search PUBLIC volunteers + invite to apply (rate-limited)
 │   │   ├── my-feedback/          # Volunteer: feedback history with admin replies
@@ -142,7 +143,9 @@ src/
 │   │   ├── root.ts               # App router (combines all sub-routers)
 │   │   └── routers/              # auth, health, members, notifications, onboarding,
 │   │                               analytics, feedback, opportunities, org, screener,
-│   │                               shift-templates, status, volunteer
+│   │                               shift-templates, status, volunteer (volunteer's own
+│   │                               dashboard), volunteers (staff roster), … — see the
+│   │                               tRPC Routers table below
 │   ├── services/                 # Business logic layer
 │   ├── repositories/             # Prisma data access layer (includes statsRepo for homepage aggregates)
 │   ├── lib/                      # Shared utilities and adapters
@@ -172,7 +175,8 @@ src/
 │   ├── trpc/                     # Client-side tRPC setup + provider
 │   ├── credential-meta.ts        # Shared credential labels + icons (single source of truth)
 │   ├── feedback-config.ts        # Feedback UI config (mood icons, labels, confirmation messages)
-│   ├── hooks/use-media-query.ts  # Responsive media query hook — safe ONLY for Dialog↔Drawer switching (feedback widget, org profile form, add-volunteer form). Never for page layout: it initialises to false and resolves in an effect, so it flashes the mobile tree to desktop. admin/feedback/page.tsx still does this and should be converted. A modal that accumulates state across submits must also FREEZE the value while it is open (add-volunteer form, v0.38.2.0) — Dialog and Drawer are different roots, so crossing the breakpoint mid-session unmounts the form and everything typed into it. See CLAUDE.md "Responsive staff tables" and "Stay-open add-volunteer form"
+│   ├── hooks/use-media-query.ts  # Responsive media query primitive — safe ONLY for Dialog↔Drawer switching, and as of v0.38.3.0 not the thing a new modal calls (use the hook below). Never for page layout: it initialises to false and resolves in an effect, so it flashes the mobile tree to desktop. admin/feedback/page.tsx still does this and should be converted. Still read directly by feedback-widget.tsx and org-profile-form.tsx, which switch at `md`
+│   ├── hooks/use-frozen-desktop-shell.ts # `useFrozenDesktopShell(open, query?)` + `DESKTOP_QUERY` (`lg`) — the sanctioned Dialog↔Drawer switch. Reads the query while closed and FREEZES it while open, because Dialog and Drawer are different roots: a live value crossing the breakpoint mid-session (an iPad rotating portrait→landscape crosses 1024) unmounts the modal and takes everything typed into it. Extracted from AddVolunteerDialog at T27's second consumer (VolunteerDetailDialog); do not re-inline it and do not call useMediaQuery directly in a new modal — pass a query override for an `md` one. See CLAUDE.md "Responsive staff tables", "Stay-open add-volunteer form", "Volunteer detail dialog"
 │   ├── slug.ts                   # URL slug utilities
 │   └── utils.ts                  # General utilities (cn, etc.)
 │
@@ -280,6 +284,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `screener` | submit (public), list, detail, updateApplicationStatus, createQuestion, listQuestions, getDashboardStats, myApplications, myApplicationDetail, claimableApplications, claimApplication (rate-limited; explicit user-confirmed binding — see "Application claiming") |
 | `shifts` | list, getById, create, update, cancel, complete, remove, getSignups, markAttendance, myUpcoming, signup, cancelSignup |
 | `shiftTemplates` | list, create, update, remove, generate (staffProcedure, STARTER-gated) |
+| `volunteers` | list, count, getById, add, remove, restore — all `rosterProcedure` (`staffProcedure` + the roster feature flag for `ctx.orgId`). Every `volunteerId` input is an `OrgVolunteer.id`, never a `User.id`, and both reads withhold `userId` from the client — it is a cross-org correlation handle. `getById` (v0.38.3.0) backs the roster's row-click detail dialog; the roster row IS the org relationship, so it needs no `requireOrgVolunteerRelationship` |
 | `notifications` | list, unreadCount, markRead, markAllRead (protectedProcedure) |
 | `analytics` | getDashboard (staffProcedure, PRO-gated via `planTierProcedure('PRO')`) |
 | `billing` | createCheckoutSession, createBillingPortalSession, getBillingStatus |
@@ -501,13 +506,13 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/domain/volunteer-profile.ts` | Profile completeness scoring + credential validation |
 | `src/server/services/volunteerProfileService.ts` | Profile service orchestration |
 | `src/server/services/volunteerCredentialService.ts` | Credential service orchestration |
-| `src/server/domain/shift.ts` | Shift capacity, signup validation, attendance summaries |
+| `src/server/domain/shift.ts` | Shift capacity, signup validation, attendance summaries, and hours math (`shiftDurationHours`, `sumAttendedHours` — the total rounds ONCE from the raw millisecond sum, never by adding rounded per-row figures) |
 | `src/server/services/shiftService.ts` | Shift CRUD with audit logging |
 | `src/server/services/shiftSignupService.ts` | Signup orchestration with capacity + conflict checks |
 | `src/server/services/volunteerIdentityService.ts` | Public volunteer identity assembly — getPublicProfile (React.cache-wrapped), getOrgVisibleProfile(userId, orgId) (staff-only; `orgId` required and checked — returns null for not-found, PRIVATE, and out-of-org alike), reliability score |
 | `src/server/services/orgVolunteerAccessService.ts` | Org↔volunteer guard — `requireOrgVolunteerRelationship(orgId, userId, opts?)` (throws NOT_FOUND) and `getOrgVolunteerRelationship()` (returns null); the one module that decides whether an org may act on an input-supplied `userId` |
 | `src/server/services/orgAccessService.ts` | `requireOrgAccess({ userId, orgId, minRole })` — the Route-Handler counterpart to tRPC's `staffProcedure`, for `/api/org/[orgId]/**`. `staffProcedure` reads `ctx.orgId` from the session's ACTIVE org, so a URL-scoped route cannot reuse it; this takes `orgId` as a parameter and re-checks membership, role rank AND suspension against it. Any new `/api/org/[orgId]/**` handler must use this |
-| `src/server/repositories/orgVolunteerRepo.ts` | Roster reads + `findOrgVolunteerRelationship()` — the accepted-relationship set, the reasoning for what is deliberately excluded, and the `OrgVolunteerBlock` suppression that overrides all of it except `ORG_MEMBER` / `EXISTING_CREDENTIAL`. Also `listMyOrgRelationships()` (the volunteer's own list, keyed on access rather than roster) and the block create/delete/find helpers |
+| `src/server/repositories/orgVolunteerRepo.ts` | Roster reads + `findOrgVolunteerRelationship()` — the accepted-relationship set, the reasoning for what is deliberately excluded, and the `OrgVolunteerBlock` suppression that overrides all of it except `ORG_MEMBER` / `EXISTING_CREDENTIAL`. Also `listMyOrgRelationships()` (the volunteer's own list, keyed on access rather than roster) and the block create/delete/find helpers. Holds the ONE definition of "an attended shift, at this org" — a private `attendedShiftWhere(orgId, user)` shared by `countAttendedShiftsByUser` (the roster row's `Shifts` cell) and `listAttendedShiftsForUserInOrg` (the detail dialog behind it), joined through `shift.orgId` because `ShiftSignup` has no `orgId` column. Do not reach for `getAttendedShiftsForUser` in `shiftSignupRepo.ts` from a staff surface: it is cross-org on purpose |
 | `src/server/services/my-applications.ts` | Volunteer-facing application reads + `listClaimableApplications()` / `claimApplication()` — the only sanctioned path that binds an anonymous application to a user; takes a user id, never a session email |
 | `src/server/repositories/volunteer-applications.ts` | `listClaimableApplicationsByEmail()` / `claimApplicationForUser()` — the email match lives in the Prisma `where`, so a foreign application id matches zero rows |
 | `src/server/repositories/userAccountStateRepo.ts` | `AccountState` transitions + `findEmailByUserId()` — resolve an address from the id you are acting on, since `ctx.session.user.email` is the real admin's under impersonation |
