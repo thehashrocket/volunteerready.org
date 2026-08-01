@@ -551,4 +551,4 @@ pnpm prisma migrate deploy
 pnpm prisma db seed
 ```
 
-Health check: http://localhost:3005/health
+Health check: `http://localhost:3005/health`
