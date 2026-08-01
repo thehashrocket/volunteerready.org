@@ -1,5 +1,23 @@
 # Design System — VolunteerReady
 
+> **Superseded. The canonical design system is [`DESIGN.md`](../DESIGN.md) in the repo root.**
+>
+> This is an older fork, not a copy — the two diverge from line 4 onward, and where they
+> disagree the root file is correct. Known divergences as of v0.38.4.0:
+>
+> | | root `DESIGN.md` | this file |
+> |---|---|---|
+> | Direction | Refined Editorial | Organic/Natural (below) |
+> | App shell chrome | documented in full | **absent entirely** |
+> | Info color | `#2563EB` | `#2A6496` |
+> | Max content width | 1120px | 1280px |
+> | Decisions Log | through 2026-08-01 | ends 2026-03-16 |
+>
+> The missing app-shell section is the specific gap that matters: correcting it in the root
+> file (T34) was prompted by a stale sentence generating a whole round of wrong mockups, and
+> that correction was never applied here. `CLAUDE.md` points every agent at the root file.
+> This copy should be deleted and the VitePress nav pointed at the root one.
+
 ## Product Context
 - **What this is:** Multi-tenant SaaS for nonprofits to recruit, screen, schedule, and credential volunteers. Also serves corporate CSR buyers and individual volunteers.
 - **Who it's for:** Nonprofit directors, volunteer coordinators, corporate CSR managers, individual volunteers.

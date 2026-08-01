@@ -88,9 +88,14 @@ export function CompanySwitcher() {
 	if (companiesQ.isLoading) return null;
 	if (memberships.length === 0) {
 		return (
+			// Hidden below `sm`. This is the only one of the four states with no
+			// width constraint of its own — plain text, so it neither truncates nor
+			// shrinks — and it is shown to the majority of users, who have no
+			// company at all. It is a discovery affordance rather than navigation
+			// anyone needs on a phone, and the sidebar still carries the path.
 			<Link
 				href="/app/company/new"
-				className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+				className="hidden whitespace-nowrap text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline sm:inline"
 			>
 				Add company sponsor
 			</Link>
@@ -99,7 +104,7 @@ export function CompanySwitcher() {
 
 	if (memberships.length === 1) {
 		return (
-			<div className="max-w-[120px] truncate text-xs text-muted-foreground sm:max-w-[180px]">
+			<div className="max-w-24 truncate text-xs text-muted-foreground sm:max-w-36 lg:max-w-[180px]">
 				{memberships[0]?.company.name}
 			</div>
 		);
@@ -111,7 +116,7 @@ export function CompanySwitcher() {
 				<Button
 					variant="outline"
 					size="sm"
-					className="h-8 max-w-[140px] justify-between text-xs sm:max-w-[180px]"
+					className="h-8 max-w-[110px] shrink justify-between text-xs sm:max-w-[150px] lg:max-w-[180px]"
 					disabled={switchMutation.isPending}
 				>
 					<span className="truncate">{currentName}</span>

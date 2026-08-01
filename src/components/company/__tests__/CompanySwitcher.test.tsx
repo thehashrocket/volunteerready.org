@@ -178,3 +178,54 @@ describe('CompanySwitcher — zero-membership state', () => {
 		expect(link.closest('a')).toHaveAttribute('href', '/app/company/new');
 	});
 });
+
+// ---------------------------------------------------------------------------
+// Width discipline (app-shell overflow fix)
+//
+// jsdom evaluates no media query and has no layout, so these assert the CLASS
+// STRINGS rather than rendered widths — the same technique the roster's
+// dual-tree tests use, and the only evidence available here. The rendered
+// consequence is covered by the 800px e2e in `staff-tables-mobile.spec.ts`.
+//
+// These exist because every one of these caps was revertible with the whole
+// suite green: removing them does not overflow the DOCUMENT (the left cluster
+// now shrinks), it squeezes the switchers to bare ellipses, which no assertion
+// was watching.
+// ---------------------------------------------------------------------------
+
+describe('CompanySwitcher — width discipline', () => {
+	it('hides the zero-membership link below sm', () => {
+		// The only one of the four states with no width constraint of its own —
+		// plain text, so it neither truncates nor shrinks — and it is the state
+		// most users are in. At 375px it was pushing the account button off the
+		// right edge.
+		mockUsePathname.mockReturnValue('/app');
+		mockListMyCompaniesQuery.mockReturnValue({ data: [], isLoading: false });
+		render(<CompanySwitcher />);
+
+		const link = screen.getByText('Add company sponsor');
+		expect(link).toHaveClass('hidden', 'sm:inline', 'whitespace-nowrap');
+	});
+
+	it('caps and truncates the single-membership name, tightest at the base width', () => {
+		mockUsePathname.mockReturnValue('/app');
+		mockListMyCompaniesQuery.mockReturnValue({
+			data: [MEMBERSHIPS[0]],
+			isLoading: false,
+		});
+		render(<CompanySwitcher />);
+
+		const label = screen.getByText('Company A');
+		expect(label).toHaveClass('truncate', 'max-w-24', 'sm:max-w-36');
+	});
+
+	it('lets the multi-membership trigger SHRINK, overriding Button’s base shrink-0', () => {
+		// `Button` is `shrink-0` by default. Without the explicit `shrink` the
+		// trigger cannot give up width, so `min-w-0` on the parent cluster buys
+		// nothing in the tablet band — the widest state in the header.
+		mockUsePathname.mockReturnValue('/app');
+		render(<CompanySwitcher />);
+
+		expect(screen.getByRole('button')).toHaveClass('shrink', 'max-w-[110px]');
+	});
+});

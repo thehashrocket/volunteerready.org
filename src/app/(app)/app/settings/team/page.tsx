@@ -5,6 +5,7 @@ import { Check, ChevronsUpDown, Globe, Users } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { CardList } from '@/components/app/card-list';
 import {
 	QueryErrorCard,
 	safeErrorMessage,
@@ -47,6 +48,7 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { usePendingIds } from '@/lib/hooks/use-pending-ids';
 import { trpc } from '@/lib/trpc/client';
 
 // ---------------------------------------------------------------------------
@@ -60,10 +62,103 @@ const ROLE_LABELS: Record<string, string> = {
 	READONLY: 'Read-only',
 };
 
-function RoleBadge({ role }: { role: string }) {
+function RoleBadge({ role, className }: { role: string; className?: string }) {
 	const variant =
 		role === 'OWNER' ? 'default' : role === 'ADMIN' ? 'secondary' : 'outline';
-	return <Badge variant={variant}>{ROLE_LABELS[role] ?? role}</Badge>;
+	return (
+		<Badge variant={variant} className={className}>
+			{ROLE_LABELS[role] ?? role}
+		</Badge>
+	);
+}
+
+type Member = {
+	id: string;
+	role: string;
+	user: { id: string; name: string | null; email: string | null };
+};
+
+function memberLabel(member: Member): string {
+	return member.user.name ?? member.user.email ?? 'this member';
+}
+
+/**
+ * The role selector and Remove, shared by the table and the card list.
+ *
+ * Extracted rather than written twice because the interesting part is not the
+ * markup, it is WHO may be managed: never the OWNER row, never yourself, and
+ * `ADMIN` is only offered by an OWNER. Two copies of that is one copy that
+ * eventually disagrees, on a permissions surface.
+ *
+ * `compact` is the table; the card gets the repo's 44px targets, since a role
+ * change and a removal are both one-tap-and-done on a phone.
+ */
+function MemberRowActions({
+	member,
+	isOwner,
+	isCurrentUser,
+	isPending,
+	compact,
+	onRoleChange,
+	onRemove,
+	className,
+}: {
+	member: Member;
+	isOwner: boolean;
+	isCurrentUser: boolean;
+	isPending: boolean;
+	compact?: boolean;
+	onRoleChange: (role: 'ADMIN' | 'STAFF' | 'READONLY') => void;
+	onRemove: () => void;
+	className?: string;
+}) {
+	if (member.role === 'OWNER' || isCurrentUser) {
+		return (
+			<span className="text-xs text-muted-foreground">
+				{isCurrentUser ? 'You' : '—'}
+			</span>
+		);
+	}
+
+	const label = memberLabel(member);
+	return (
+		<div className={className}>
+			<Select
+				value={member.role}
+				disabled={isPending}
+				onValueChange={(newRole) =>
+					onRoleChange(newRole as 'ADMIN' | 'STAFF' | 'READONLY')
+				}
+			>
+				{/* Both controls are duplicated across the two trees, so a bare
+				    "Remove" or an unnamed combobox would list N identical entries in
+				    a rotor. Only the accessible names carry the target; the visible
+				    text stays as the mockups have it. */}
+				<SelectTrigger
+					aria-label={`Role for ${label}`}
+					className={compact ? 'h-8 w-32 text-xs' : 'h-11 flex-1 text-xs'}
+				>
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent>
+					{isOwner && <SelectItem value="ADMIN">Admin</SelectItem>}
+					<SelectItem value="STAFF">Staff</SelectItem>
+					<SelectItem value="READONLY">Read-only</SelectItem>
+				</SelectContent>
+			</Select>
+
+			<Button
+				variant="outline"
+				size={compact ? 'sm' : 'default'}
+				aria-label={`Remove ${label} from this organization`}
+				className={compact ? undefined : 'h-11'}
+				disabled={isPending}
+				onClick={onRemove}
+			>
+				Remove
+			</Button>
+		</div>
+	);
 }
 
 // ---------------------------------------------------------------------------
@@ -92,7 +187,10 @@ export default function TeamPage() {
 		},
 	});
 
+	const pending = usePendingIds();
 	const removeMutation = trpc.members.removeMember.useMutation({
+		onMutate: (vars) => pending.start(vars.memberId),
+		onSettled: (_data, _err, vars) => pending.finish(vars.memberId),
 		onSuccess: () => {
 			toast.success('Member removed.');
 			void qc.invalidateQueries();
@@ -103,6 +201,8 @@ export default function TeamPage() {
 	});
 
 	const updateRoleMutation = trpc.members.updateRole.useMutation({
+		onMutate: (vars) => pending.start(vars.memberId),
+		onSettled: (_data, _err, vars) => pending.finish(vars.memberId),
 		onSuccess: () => {
 			toast.success('Role updated.');
 			void qc.invalidateQueries();
@@ -165,99 +265,123 @@ export default function TeamPage() {
 					icon={Users}
 				/>
 			) : (
-				<Card>
-					<CardHeader>
-						<CardTitle>Members</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Member</TableHead>
-									<TableHead>Role</TableHead>
-									<TableHead className="text-right">Actions</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{members.map((member) => {
-									const isCurrentUser = member.user.email === currentUserEmail;
-									const isOwnerRow = member.role === 'OWNER';
-									const isPending =
-										removeMutation.isPending || updateRoleMutation.isPending;
+				<>
+					{/* Both trees render from the same array and are switched by CSS,
+					    never by `useMediaQuery`: that hook initialises to `false` and
+					    only resolves in an effect, so gating the LIST on it paints the
+					    card shape to every desktop user and swaps it after hydration.
+					    `display: none` also removes the hidden tree from the
+					    accessibility tree, so exactly one role selector and one Remove
+					    per member is ever reachable.
 
-									return (
-										<TableRow key={member.id}>
-											<TableCell>
-												<p className="font-medium">
-													{member.user.name ?? member.user.email}
-												</p>
-												{member.user.name && (
-													<p className="text-xs text-muted-foreground">
-														{member.user.email}
-													</p>
-												)}
-											</TableCell>
-											<TableCell>
-												<RoleBadge role={member.role} />
-											</TableCell>
-											<TableCell className="text-right">
-												{!isOwnerRow && !isCurrentUser ? (
-													<div className="flex items-center justify-end gap-2">
-														{/* Role selector */}
-														<Select
-															value={member.role}
-															disabled={isPending}
-															onValueChange={(newRole) =>
-																updateRoleMutation.mutate({
-																	memberId: member.id,
-																	role: newRole as
-																		| 'ADMIN'
-																		| 'STAFF'
-																		| 'READONLY',
-																})
-															}
-														>
-															<SelectTrigger className="h-8 w-32 text-xs">
-																<SelectValue />
-															</SelectTrigger>
-															<SelectContent>
-																{isOwner && (
-																	<SelectItem value="ADMIN">Admin</SelectItem>
-																)}
-																<SelectItem value="STAFF">Staff</SelectItem>
-																<SelectItem value="READONLY">
-																	Read-only
-																</SelectItem>
-															</SelectContent>
-														</Select>
-
-														{/* Remove button */}
-														<Button
-															variant="outline"
-															size="sm"
-															disabled={isPending}
-															onClick={() =>
-																removeMutation.mutate({
-																	memberId: member.id,
-																})
-															}
-														>
-															Remove
-														</Button>
-													</div>
-												) : (
-													<span className="text-xs text-muted-foreground">
-														{isCurrentUser ? 'You' : '—'}
-													</span>
-												)}
-											</TableCell>
+					    Visibility goes on a wrapper, never on `Card`/`CardList` —
+					    `hidden` and Card's own `flex` are both display utilities, so
+					    tailwind-merge keeps one and drops the other. */}
+					<div className="hidden lg:block" data-testid="team-table">
+						<Card>
+							<CardHeader>
+								<CardTitle>Members</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Member</TableHead>
+											<TableHead>Role</TableHead>
+											<TableHead className="text-right">Actions</TableHead>
 										</TableRow>
-									);
-								})}
-							</TableBody>
-						</Table>
-					</CardContent>
-				</Card>
+									</TableHeader>
+									<TableBody>
+										{members.map((member) => (
+											<TableRow key={member.id}>
+												<TableCell>
+													<p className="font-medium">
+														{member.user.name ?? member.user.email}
+													</p>
+													{member.user.name && (
+														<p className="text-xs text-muted-foreground">
+															{member.user.email}
+														</p>
+													)}
+												</TableCell>
+												<TableCell>
+													<RoleBadge role={member.role} />
+												</TableCell>
+												<TableCell className="text-right">
+													<MemberRowActions
+														member={member}
+														isOwner={isOwner}
+														isCurrentUser={
+															member.user.email === currentUserEmail
+														}
+														isPending={pending.has(member.id)}
+														compact
+														className="flex items-center justify-end gap-2"
+														onRoleChange={(role) =>
+															updateRoleMutation.mutate({
+																memberId: member.id,
+																role,
+															})
+														}
+														onRemove={() =>
+															removeMutation.mutate({ memberId: member.id })
+														}
+													/>
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</CardContent>
+						</Card>
+					</div>
+
+					{/* The narrowest of the five tables — name, role, two controls — so
+					    nothing has to drop. The controls move to their own row beneath
+					    the name rather than sharing it: a 32px select and a Remove
+					    button side by side with a name leaves all three too narrow to
+					    read or hit. */}
+					<div className="lg:hidden" data-testid="team-card-list">
+						<CardList>
+							<div className="px-4 py-3 font-semibold">Members</div>
+							{members.map((member) => (
+								<div key={member.id} className="flex flex-col gap-3 px-4 py-3">
+									<div className="flex items-start justify-between gap-2">
+										{/* min-w-0 so truncate engages inside the flex row: a long
+										    name or address otherwise widens the card past the
+										    viewport, which is the sideways scroll this layout
+										    exists to remove. */}
+										<div className="min-w-0">
+											<p className="truncate font-medium">
+												{member.user.name ?? member.user.email}
+											</p>
+											{member.user.name && (
+												<p className="truncate text-xs text-muted-foreground">
+													{member.user.email}
+												</p>
+											)}
+										</div>
+										<RoleBadge role={member.role} className="shrink-0" />
+									</div>
+
+									<MemberRowActions
+										member={member}
+										isOwner={isOwner}
+										isCurrentUser={member.user.email === currentUserEmail}
+										isPending={pending.has(member.id)}
+										className="flex items-center gap-2"
+										onRoleChange={(role) =>
+											updateRoleMutation.mutate({ memberId: member.id, role })
+										}
+										onRemove={() =>
+											removeMutation.mutate({ memberId: member.id })
+										}
+									/>
+								</div>
+							))}
+						</CardList>
+					</div>
+				</>
 			)}
 
 			{/* Invite form */}

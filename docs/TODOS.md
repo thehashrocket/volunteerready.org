@@ -5,6 +5,266 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the T36 staff-tables ship (2026-07-31)
+
+### Caught while building — recorded so it is not reintroduced
+
+**The roster's shape does not transfer to three of the four pages, and copying
+it literally would have removed capabilities from phones.** T28's rule is "the
+row is the whole tap target; row actions move into the detail view." That worked
+because T27 had just built a detail dialog containing `Remove`. Here:
+`Publish`/`Close` exist on the opportunities LIST and nowhere else (the
+opportunity detail page has only `Edit`); `Complete`/`Cancel`/`Delete` exist on
+the shifts list and nowhere else (`ShiftDetailDialog` holds signups, the assign
+picker and attendance, none of the three); and the team page has no detail view
+at all. So all three keep their actions on the card, and the card is a `<div>`
+with a linked title rather than a `<button>` — which is also what makes the
+markup valid, since a nested `<button>` inside a tappable row is not.
+**The general rule: check the detail view actually HAS the action before
+deciding the card can drop it.**
+
+**The shifts card list must not use `CardList`.** It is the only one of the five
+that already sits inside a `Card` (the page's "Shift Schedule" card), so another
+one is double chrome. A first pass used `CardList` pulled out with `-mx-6` to
+cancel the inherited `px-6`; that makes the list wider than the wrapper the e2e
+measures, and it failed as **internal sideways scroll** — the exact failure mode
+these lists exist to remove. Plain `divide-y` on the wrapper is the whole
+requirement there.
+
+**`CARD_LIST` moved to `src/components/app/card-list.tsx`** at its fifth copy,
+as a `CardList` component, and `volunteers/page.tsx` was migrated to it. The
+class string is not self-explanatory and its reason lived two components away —
+the shape that gets "simplified" back to a bare `<Card className="divide-y">` by
+someone who cannot see why the dividers then look wrong.
+
+**A Playwright name match is a SUBSTRING match.** `getByRole('button', { name:
+shiftTitle })` matched four nodes, because the three action buttons are labelled
+`Mark "{title}" complete` and friends. `exact: true` on the title button.
+
+**`PageHeader` had the same `min-width: auto` bug as the app shell**, found by
+screenshotting the four pages rather than by any test. Its actions row is a flex
+item, so it forced itself wider than its own parent instead of reflowing, and on
+`/app/opportunities` the fix was really that the page had nested a SECOND
+identical flex row inside `PageHeader`'s — the inner one overflowed while the
+outer stayed in bounds. `PageHeader` now carries `min-w-0 flex-wrap` and the
+page passes a fragment.
+
+**Three e2e assertions in this ship were written, mutation-tested, and found
+vacuous.** All three were fixed rather than kept: the header-actions geometry
+check measured the wrapper (which stays in bounds) rather than its widest
+descendant; the fixture strings were hyphenated, and a hyphen is a line-break
+opportunity, so removing `truncate` would have wrapped harmlessly and left the
+suite green (underscores now); and the toaster assertion passed with the cap
+removed, which is what revealed the cap was inert. **Mutation-test a layout
+assertion before believing it** — three of the four written here did not hold
+on the first attempt.
+
+### [P3] Three of the four pages still render a generic loading skeleton
+
+`applications` gained a card-shaped `CardListSkeleton` alongside its table one,
+per the T28 rule that a skeleton must reserve the real row's height.
+`opportunities`, `shifts` and `settings/team` still render one unconditional
+stack of `Skeleton h-12 w-full` bars for both trees, so on a phone the loading
+state is a list of 48px bars that resolves into a two-or-three-line card with
+badges — the reflow the rule exists to prevent. Pre-existing (the generic stack
+was there before T36) but now inconsistent with the sibling page. **Effort:** S
+each. Raised by the conventions review of this ship.
+
+### [P3] Two card lists announce a vanishing row only through a toast
+
+`settings/team`'s Remove and `shifts`' Delete both drop a row from the list on
+success with nothing but `toast.success`. The roster states the rule directly
+(`volunteers/page.tsx`): *"A row vanishing is the only durable confirmation that
+a removal happened — the toast is transient and a screen-reader user may be
+reading elsewhere when it fires."* Both pages want the same discrete
+`<output aria-live="polite" className="sr-only">`. Not done here because the
+diff was already a layout change across five files, and this is a behaviour
+change on two of them. **Effort:** S each. Raised by the conventions review.
+
+### [P3] The card title is the smallest tap target on two cards
+
+On `opportunities` and `shifts` the card's navigation control is a bare
+`<Link>`/`<button>` around the title text, ~24px tall, while the action buttons
+beside it are `h-11`. The roster avoids this by making the whole row the target,
+which these two cannot do (they carry their own action buttons, and a nested
+button inside a tappable row is invalid markup). `py-2` on the title, or an
+invisible padded hit area, closes it. **Effort:** S. Raised by the conventions
+review.
+
+### [P3] ~~Untested branches the T36 unit tests cannot reach~~ → mostly CLOSED; two remain
+
+The ship's coverage audit found these; a second generation pass closed most of
+them, each mutation-verified. Closed: the per-mutation pending isolation on
+shifts and team (the tRPC mock returned ONE shared object for every
+`useMutation`, so `isShiftPending`'s three clauses and `isMemberPending`'s two
+were copies of one expression — two of three and one of two were deletable with
+everything green; the mock is keyed by procedure now); the Delete `confirm()`
+gate; the desktop side of the CSS switch on all four pages; `PageHeader` and
+`CardList`, which had no tests at all; both switchers' width caps; applications'
+loading skeleton; team's desktop tree and its 44px card targets; opportunities'
+per-row action naming; and the shifts date-format extraction.
+
+**The switcher dropdown states are now seeded** — `staff-tables-mobile.spec.ts`
+creates a second org and a company membership, so the widest header state
+finally renders in a test, at 375/800/1280.
+
+Still open:
+- **`settings/team`: `ADMIN` is only offered by an OWNER** (`page.tsx`) — the
+  stated reason `MemberRowActions` was extracted, and the one rule of the three
+  still uncovered. The mocked caller is an ADMIN so the branch never renders,
+  and Radix does not mount `SelectContent` items until opened, so it needs a
+  `fireEvent`-open test or an e2e. Confirm the server refuses it too. The role
+  change itself is also never fired from either tree.
+- **`memberLabel`'s `name ?? email ?? 'this member'` fallback** — feeds an
+  accessible name, never exercised with a null name.
+
+**Effort:** S for the remainder.
+
+### [P3] `app-shell`'s `shrink-0` on the right cluster is inert, not load-bearing
+
+Flagged by the audit as "revertible green", and it is — but measurement showed
+the reason is not a missing test. With and without it the account control is
+**240px at 800px**, identical, because `min-w-0` plus truncation on the left
+cluster absorbs all the pressure before the right one feels any. An earlier
+127-vs-240 reading that appeared to prove otherwise was the pre-hydration
+fallback branch (which renders no email span), caught by waiting for the
+hydrated button.
+
+Kept anyway: it costs nothing, it declares the intent the layout depends on
+(left gives, right does not), and it becomes real the moment anything
+unshrinkable lands in that cluster. Deliberately NOT pinned by a test — one
+would assert nothing today, and this ship already removed two assertions that
+turned out to prove nothing. The comment in `app-shell.tsx` says so explicitly
+so nobody "fixes" the missing coverage by writing a vacuous test.
+
+Same shape as the sonner cap, one step less far along: that one was a no-op
+change and was deleted; this one is a no-op guard and was kept. **Effort:** —
+(no action; revisit if the right cluster gains content).
+
+### [P3] ~~`/locations/*` returns a 500 under parallel e2e load~~ ✅ ROOT-CAUSED AND FIXED (2026-07-31)
+
+**It was Next's dev server reading a `.next` manifest another concurrent
+route-compile was still writing.** Caught by capturing the `[WebServer]` output
+during a cold run with 8 workers — the output every previous run had filtered
+away:
+
+```
+⨯ SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>) { page: '/locations/modesto' }
+```
+
+It landed on `/locations/*` far more often than anywhere else because those six
+slugs share ONE `generateStaticParams` with `dynamicParams = false`, so every
+request to them consults the prerender manifest — six routes racing one file.
+Which slug lost was luck, which is why it looked like a different test each run
+(`fresno`, `san-joaquin-county`, `modesto`, `stanislaus-county`, `sacramento`
+across five runs) and why re-running one spec alone always passed.
+
+**Production is unaffected, and that was VERIFIED rather than assumed** — the
+open question this entry was originally filed to keep. All six slugs prerender
+at build time (`● /locations/[slug]`), and 18 concurrent requests against
+`pnpm build && pnpm start` returned 200 with no manifest error in the log.
+Manifests are written once at build time and are immutable at serve time; only
+`next dev` writes them while serving.
+
+**Fix:** `e2e/global-setup.ts`, wired as Playwright's `globalSetup`. It compiles
+every public route SEQUENTIALLY before the workers start, so there is no
+concurrent manifest write to race. `webServer.url` only ever proved `/` answers;
+this makes "ready" mean what that setting implies. Deliberately **not** a retry:
+a retry that swallows a 500 on a public smoke test swallows the next real one
+too. Verified under the exact conditions that reproduced it — cold `.next`,
+8 workers, `--repeat-each=2` (88 tests) — 0 manifest errors where there were
+previously 3 failures, plus two full cold `pnpm e2e` runs at 0.
+
+Side effect worth knowing: this also cleared most `/for/nonprofits` marketing-image
+flakes, which were the same stampede. It did **not** clear all of them — see the
+open P2 above, which reproduces with a warm cache and is a different bug.
+
+### [P2] `updateOrgMemberRole` never checks the CALLER's role — an ADMIN can grant ADMIN
+
+Found by the security specialist during T36's ship review. `MemberRowActions`
+renders `{isOwner && <SelectItem value="ADMIN">}`, and its docstring now states
+that rule as the reason the component was extracted — but
+`updateOrgMemberRole()` (`memberService.ts`) rejects only `newRole === 'OWNER'`,
+the OWNER target row and self. It never looks at the acting member's role.
+`members.updateRole` is an `adminProcedure`, which admits anyone at
+`roleRank >= ADMIN`, so an ADMIN can promote any STAFF/READONLY member to ADMIN
+by calling the mutation directly.
+
+**Pre-existing and byte-identical before this diff** — the gate was inline JSX
+and is now inside a shared component. Not self-escalation, and not a tenancy
+break. But it is admin-tier privilege spread with no server-side control, and
+T36 is what promoted the claim from an inline conditional to a documented
+invariant, which is exactly when it should be made true.
+
+Fix: resolve the acting member's role inside `updateOrgMemberRole`'s existing
+transaction and refuse `newRole === 'ADMIN'` unless the caller is OWNER. Then
+the client `isOwner &&` becomes an affordance rather than the control. The other
+two client gates (`OWNER` row, self) DO have server counterparts in both
+`removeOrgMember` and `updateOrgMemberRole`. **Effort:** S.
+
+### [P3] `settings/team` decides "is this me?" from the session email, not the effective user
+
+`const currentUserEmail = session?.user?.email ?? ''` drives both `isCurrentUser`
+and `isOwner`. `authOptions.callbacks.session` has no impersonation branch, so
+the client session is always the REAL admin's identity — the same identity-mixing
+CLAUDE.md forbids server-side (`ctx.session.user.email` is not the effective
+user's address). While impersonating, the target's own row renders live controls
+(the server then refuses with "Cannot remove yourself."), the real admin's row
+renders "You", and `isOwner` reflects the wrong person's role.
+
+Pre-existing and unchanged here; the server-side self-checks are the real
+control, so this is a wrong-affordance bug rather than a bypass. Fix by having
+`members.list` return an `isSelf` flag computed from `effectiveUserId(ctx)` and
+dropping the client-side email comparison. **Effort:** S.
+
+### [P3] ~~The per-row pending idiom is now hand-written in five files~~ → EXTRACTED, and it was hiding a regression
+
+Filed as a DRY nit; the adversarial review then found the idiom itself was
+wrong. `mutation.isPending ? mutation.variables?.id : undefined` reads only the
+most recent call, because query-core's `MutationObserver.mutate()` runs
+`this.#currentMutation?.removeObserver(this)` before starting the next one. So
+acting on row B re-enabled row A while A's request was still open.
+
+On `/app/opportunities` and `/app/settings/team` that was **worse than what it
+replaced** — both had a bare global `isPending`, which greyed out the whole list
+but did make concurrent submits impossible. The concrete failure on team is two
+`members.updateRole` writes for one member in flight on separate requests with
+no ordering guarantee: the member lands on the role from the FIRST click while
+the coordinator watched the second succeed. On shifts it was still an
+improvement (that page had no disabled state at all), but incomplete.
+
+Now `usePendingIds()` (`src/lib/hooks/use-pending-ids.ts`) — a `Set` fed from
+`onMutate`/`onSettled`, keyed by row rather than by mutation. All five staff
+lists use it, including the roster, which carried the original `variables`
+shape. Mutation-verified: collapsing the set to a single id reddens the
+concurrency test. CLAUDE.md's rule is corrected, since it prescribed the broken
+shape.
+
+**The lesson worth keeping: a DRY finding and a correctness finding can be the
+same finding.** Five hand-written copies of an expression is also five chances
+for nobody to check whether the expression is right.
+
+### [P3] Three of the four pages still have no pagination
+
+`applications` hardcodes `page: 1, pageSize: 50`; `opportunities` fetches a
+cursor page and never asks for the next; `shifts` takes 50 with no `hasMore`
+surfaced. Pre-existing and deliberately out of T36's scope — but the card list
+makes it more visible, since fifty rows is a much longer scroll on a phone than
+fifty table rows are on a desktop. The roster's `LoadMore` is the pattern.
+**Effort:** M.
+
+### [P3] The desktop row-click on applications and opportunities is still mouse-only
+
+Both put `onClick={() => router.push(...)}` on a `<tr>` with no focusable child,
+so there is no keyboard path to the detail page on desktop. The new card trees
+use a real `<Link>` and are reachable — so the phone is now MORE accessible than
+the desktop on these two pages. The roster solved this with a real `<button>` in
+the name cell (`volunteers/page.tsx`); the same fix applies. Deliberately not
+folded into a layout diff. **Effort:** S.
+
+---
+
 ## Opened by the T27 detail-dialog ship (2026-07-31)
 
 ### [P2] The roster CSV export ships VOLUNTEER-voiced copy to staff
@@ -269,6 +529,50 @@ exact grep that let T35 nearly ship having done a quarter of the work, because
 three of its four pages already had an `isError` branch that printed the raw
 message. Tracked as **T37** in `docs/designs/staff-created-volunteers.md`.
 **Effort:** ~1d human / ~45min CC, mechanical but wide.
+
+### [P2] ~~The app shell's top bar overflows ~22px at 375px, on EVERY authenticated page~~ ✅ FIXED (2026-07-31, with T36)
+
+`min-w-0` on the left cluster (the fix; a flex item's default `min-width: auto`
+is its content's intrinsic width, so nothing else could take effect while it was
+missing), `shrink-0` on the right cluster and on the toggle and mark, the
+wordmark `hidden … sm:inline`, narrower base caps on both switchers, and the
+account email capped at `max-w-40 truncate` — without that last one the right
+cluster consumed ~200px before the org name got any, and the switchers ended up
+bare ellipses in the tablet band. `CompanySwitcher`'s zero-membership
+`Add company sponsor` link is hidden below `sm`: it was the only one of that
+component's four states with no width constraint at all, and it is the state
+most users are in.
+
+**The "second, smaller offender" — the sonner toaster — turned out not to be
+one, and the original note below is wrong about it.** A
+`--width: min(356px, calc(100vw - 2rem))` override was written, then removed
+after measuring: the toast `<li>` renders at 288px inside a 320px viewport with
+the override **and 288px without it**. Sonner already clamps a toast to the
+viewport. The `391` figure is real but describes the `<ol>` — a
+`position: fixed`, zero-height container that paints nothing and, being fixed,
+does not extend `documentElement.scrollWidth` either. Caught by mutation-testing
+the fix: the assertion written to guard it passed with the cap removed, which is
+what prompted measuring instead of assuming. The reasoning is recorded in
+`sonner.tsx` so the number does not send someone back down the same path.
+
+**All four scoped e2e assertions are now `documentElement`-level**, via the new
+shared `expectNoHorizontalOverflow` / `expectNoInternalScroll` in
+`e2e/utils/layout.ts`, and the comments pointing here are deleted.
+Mutation-verified: removing `min-w-0` alone turns the 800px test red at 895px,
+and the failure names the offending node. The 800px assertion is the load-bearing
+one — see the original note below on why a phone-only check would have called
+this a rounding error.
+
+**A document-level overflow assertion is necessary but NOT sufficient**, and
+T36 found that out on `/app/opportunities`: its header actions ran 32px past the
+page padding and stopped at exactly 375, so `documentElement.scrollWidth` was
+still 375 and every assertion passed while the button sat flush against the
+screen edge. Content can break its container and still land inside the viewport.
+Where a container's bounds are the requirement, assert against the container —
+see the header-actions check in `staff-tables-mobile.spec.ts`. Both limitations
+are now written into `e2e/utils/layout.ts`'s docstring.
+
+Original write-up follows.
 
 ### [P2] The app shell's top bar overflows ~22px at 375px, on EVERY authenticated page
 

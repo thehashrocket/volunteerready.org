@@ -43,6 +43,10 @@ import {
 	mintMagicLinkUrl,
 	SESSION_COOKIE_NAME,
 } from './utils/db';
+import {
+	expectNoHorizontalOverflow,
+	expectNoInternalScroll,
+} from './utils/layout';
 
 const PREFIX = '__t15_e2e__';
 
@@ -524,46 +528,18 @@ test.describe('Roster on a phone (T28, 375px)', () => {
 		// `roster-table` toBeHidden() assertion above; what THIS measures is that
 		// the card content itself (long names, long addresses) stays inside 375px.
 		//
-		// Scoped to the roster region rather than `documentElement.scrollWidth`,
-		// and that is a real limitation, not a convenience. The app shell's own
-		// top bar (`app-shell.tsx:54-82`) already overflows ~22px at this width on
-		// EVERY authenticated page — a `justify-between` row whose left cluster
-		// (toggle, wordmark, OrgSwitcher, CompanySwitcher) has no `min-w-0` and so
-		// never shrinks. A page-level assertion here would fail on that
-		// pre-existing bug and say nothing about the roster, so it would get
-		// deleted or padded with a tolerance the first time someone hit it.
-		// Tracked separately in docs/TODOS.md. When the shell is fixed, tighten
-		// this to `documentElement.scrollWidth <= 375`.
-		const overflow = await page.evaluate(() => {
-			const root = document.querySelector('[data-testid="roster-card-list"]');
-			if (!root) return { found: false, worst: 0, offender: 'no card list' };
-			let worst = 0;
-			let offender = '';
-			for (const el of [root, ...Array.from(root.querySelectorAll('*'))]) {
-				const r = el.getBoundingClientRect();
-				if (r.width > 0 && r.right > worst) {
-					worst = r.right;
-					offender = el.tagName.toLowerCase() + '.' + String(el.className);
-				}
-			}
-			return { found: true, worst: Math.round(worst), offender };
-		});
-		expect(overflow.found).toBe(true);
-		expect(
-			overflow.worst,
-			`widest node in the roster: ${overflow.offender}`,
-		).toBeLessThanOrEqual(375);
+		// Document-level as of the app-shell overflow fix. It was scoped to the
+		// roster region while the shell's own top bar overflowed ~22px here on
+		// every authenticated page; that was a real limitation, and the point of
+		// widening it is that it now catches a new offender in SHARED chrome, not
+		// only one inside the region someone remembered to scope to.
+		await expectNoHorizontalOverflow(page, 375);
 
 		// And the list must not carry its own internal sideways scroll — the
 		// failure mode `Table`'s `overflow-auto` wrapper produces, which is what
-		// this replaced.
-		const internal = await page.evaluate(() => {
-			const el = document.querySelector('[data-testid="roster-card-list"]');
-			return el
-				? { scroll: el.scrollWidth, client: el.clientWidth }
-				: { scroll: -1, client: -1 };
-		});
-		expect(internal.scroll).toBeLessThanOrEqual(internal.client);
+		// this replaced, and which the assertion above cannot see because the
+		// document stays exactly 375 while the table scrolls inside it.
+		await expectNoInternalScroll(page, '[data-testid="roster-card-list"]');
 
 		// T28 shipped `Remove` on the card as a tracked deviation from the
 		// approved spec, because until T27 existed honouring the spec literally
@@ -596,20 +572,12 @@ test.describe('Roster on a phone (T28, 375px)', () => {
 		// the drawer exists and is scoped to the card list, so nothing covered the
 		// drawer itself — and a grid item without `min-w-0` overflows on a long
 		// address exactly here, which is the failure T28 exists to prevent.
-		const drawerOverflow = await page.evaluate(() => {
-			const el = document.querySelector('[data-slot="drawer-content"]');
-			if (!el) return { found: false, scroll: -1, client: -1 };
-			return { found: true, scroll: el.scrollWidth, client: el.clientWidth };
-		});
-		expect(drawerOverflow.found).toBe(true);
-		expect(drawerOverflow.scroll).toBeLessThanOrEqual(drawerOverflow.client);
-		// Scoped to the drawer, NOT `documentElement.scrollWidth`, for the same
-		// reason the card-list assertion above is scoped: the app shell's top bar
-		// already overflows at 375px on every authenticated page (measured 591 —
-		// see the open P2 in docs/TODOS.md). A document-level assertion here fails
-		// on that pre-existing bug, says nothing about this dialog, and would end
-		// up padded with a tolerance the first time someone hit it. Tried it; it
-		// failed at exactly 591.
+		await expectNoInternalScroll(page, '[data-slot="drawer-content"]');
+		// Document-level too, now that the shell is fixed. This one runs with the
+		// sheet OPEN, which the check before the drawer existed could not cover —
+		// and a grid item without `min-w-0` overflows on a long address exactly
+		// here.
+		await expectNoHorizontalOverflow(page, 375);
 
 		// The control that moved. Removing from here has to drive the page's one
 		// mutation, so the Undo toast still appears and the row still goes.
@@ -677,23 +645,12 @@ test.describe('Roster in the tablet band (R4, 800px)', () => {
 		// And the search field takes the full column rather than a half-row.
 		expect(searchBox.width).toBeGreaterThan(600);
 
-		// Roster-region scoped, for the same reason as the 375px test: the app
-		// shell's top bar overflows here too, and MORE — measured 926 against an
-		// 800px viewport, a 126px overhang versus 22px at 375px, because the
-		// wordmark and both switchers are all still rendered at this width.
-		// Recorded on the P2 in docs/TODOS.md. Tighten to documentElement here
-		// and at 375px together, once the shell is fixed.
-		const rosterOverflow = await page.evaluate(() => {
-			const root = document.querySelector('[data-testid="roster-card-list"]');
-			if (!root) return -1;
-			let worst = 0;
-			for (const el of [root, ...Array.from(root.querySelectorAll('*'))]) {
-				const r = el.getBoundingClientRect();
-				if (r.width > 0 && r.right > worst) worst = r.right;
-			}
-			return Math.round(worst);
-		});
-		expect(rosterOverflow).toBeGreaterThan(0);
-		expect(rosterOverflow).toBeLessThanOrEqual(800);
+		// This band is where the shell overflow was WORST — 926 against an 800px
+		// viewport, a 126px overhang versus 22px at 375px, because the wordmark
+		// and both switchers all render here beside a toggle that is still
+		// `lg:hidden`. Anyone who tested the fix on a phone alone would have
+		// concluded it was a rounding error, so this assertion is the one that
+		// actually holds the shell fix in place.
+		await expectNoHorizontalOverflow(page, 800);
 	});
 });

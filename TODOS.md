@@ -1,5 +1,17 @@
 # TODOS
 
+> **Not the live backlog. See [`docs/TODOS.md`](docs/TODOS.md).**
+>
+> This file holds five marketplace items deferred around v0.25–v0.26 and has not been
+> written to since (newest entry: v0.26.1.0, twelve minor releases ago). Everything
+> referenced as "tracked in `docs/TODOS.md`" by `CLAUDE.md` and `docs/AGENT_RULES.md` is in
+> that file, not this one — including the entire section opened by the T36 staff-tables
+> ship. Opening this file to check the backlog and concluding it is nearly empty is the
+> mistake this banner exists to prevent.
+>
+> The five items below are still open; they should be folded into `docs/TODOS.md` and this
+> file deleted.
+
 ## Marketplace
 
 ### P3 — Member count privacy on org discovery

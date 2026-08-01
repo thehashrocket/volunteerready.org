@@ -4,6 +4,7 @@ import { BookUser, Download, Search } from 'lucide-react';
 import type * as React from 'react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { CardList } from '@/components/app/card-list';
 import {
 	QueryErrorCard,
 	safeErrorMessage,
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/table';
 import { VolunteerStatusBadge } from '@/components/volunteers/volunteer-status-badge';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
+import { usePendingIds } from '@/lib/hooks/use-pending-ids';
 import { trpc } from '@/lib/trpc/client';
 import { ROSTER_POPULATED_THRESHOLD } from '@/server/domain/org-volunteer';
 import { AddVolunteerButton, AddVolunteerDialog } from './AddVolunteerDialog';
@@ -32,15 +34,6 @@ import { RemoveVolunteerButton } from './RemoveVolunteerButton';
 import { VolunteerDetailDialog } from './VolunteerDetailDialog';
 
 const COLUMNS = ['Volunteer', 'Added', 'Shifts', 'Status', ''] as const;
-
-/**
- * `Card` is `flex flex-col gap-6 … py-6`, which fights `divide-y`: the rule
- * draws a hairline on each row's top edge while the gap holds the rows 24px
- * apart, so the line floats in open space instead of separating anything.
- * Zeroing both gives the flush divided list the spec asks for, with Card still
- * supplying the surface, border and radius.
- */
-const CARD_LIST = 'gap-0 divide-y py-0';
 
 /**
  * Marks the one focusable control per row that opens the detail dialog — the
@@ -95,7 +88,7 @@ function TableSkeleton() {
  */
 function CardListSkeleton() {
 	return (
-		<Card className={CARD_LIST} data-testid="roster-skeleton-cards">
+		<CardList data-testid="roster-skeleton-cards">
 			{Array.from({ length: 5 }).map((_, i) => (
 				<div key={i} className="flex flex-col gap-3 px-4 py-3">
 					{/* Bar heights match the real row's LINE BOXES, not the glyph
@@ -113,7 +106,7 @@ function CardListSkeleton() {
 					</div>
 				</div>
 			))}
-		</Card>
+		</CardList>
 	);
 }
 
@@ -243,6 +236,8 @@ export default function VolunteersPage() {
 	const showConcierge = total < ROSTER_POPULATED_THRESHOLD;
 	const nextCursor = roster.data?.nextCursor ?? null;
 
+	const pendingRemovals = usePendingIds();
+
 	const restoreVolunteer = trpc.volunteers.restore.useMutation({
 		onSuccess: (_data, variables) => {
 			const name = removedNames.current.get(variables.volunteerId);
@@ -264,6 +259,8 @@ export default function VolunteersPage() {
 	});
 
 	const removeVolunteer = trpc.volunteers.remove.useMutation({
+		onMutate: (vars) => pendingRemovals.start(vars.volunteerId),
+		onSettled: (_data, _err, vars) => pendingRemovals.finish(vars.volunteerId),
 		onSuccess: (_data, variables) => {
 			const name = volunteers.find(
 				(v) => v.id === variables.volunteerId,
@@ -372,14 +369,6 @@ export default function VolunteersPage() {
 		// nothing sends it too; there is simply nowhere better to go.
 		if (detailTrigger.current?.isConnected) detailTrigger.current.focus();
 	}
-
-	// Only the row actually being removed goes disabled. Gating every Remove on
-	// the bare `isPending` greys out the whole list on one click — worst on the
-	// card list, where the button is half the row, so the page reads as broken
-	// and nothing says WHICH volunteer is going.
-	const pendingRemovalId = removeVolunteer.isPending
-		? removeVolunteer.variables?.volunteerId
-		: undefined;
 
 	function loadMore() {
 		if (nextCursor) setCursor(nextCursor);
@@ -609,7 +598,7 @@ export default function VolunteersPage() {
 												<TableCell className="text-right">
 													<RemoveVolunteerButton
 														displayName={v.displayName}
-														disabled={pendingRemovalId === v.id}
+														disabled={pendingRemovals.has(v.id)}
 														onRemove={(e) => {
 															// The row opens the dialog, so a click that
 															// lands on Remove must not also do that —
@@ -646,7 +635,7 @@ export default function VolunteersPage() {
 					    following the spec literally would have left a phone unable to
 					    remove a volunteer at all. */}
 					<div className="lg:hidden" data-testid="roster-card-list">
-						<Card className={CARD_LIST}>
+						<CardList>
 							{volunteers.map((v) => (
 								// Two lines, matching the approved Responsive spec: identity and
 								// status on the first, address on the second. An earlier
@@ -690,7 +679,7 @@ export default function VolunteersPage() {
 									<LoadMore onClick={loadMore} isFetching={roster.isFetching} />
 								</div>
 							) : null}
-						</Card>
+						</CardList>
 					</div>
 				</>
 			)}
@@ -708,7 +697,9 @@ export default function VolunteersPage() {
 				// removedNames map, and identical behaviour whether Remove was
 				// pressed here or in a table row.
 				onRemove={(volunteerId) => removeVolunteer.mutate({ volunteerId })}
-				removePending={pendingRemovalId === selectedVolunteerId}
+				removePending={
+					selectedVolunteerId ? pendingRemovals.has(selectedVolunteerId) : false
+				}
 			/>
 
 			{showConcierge && !roster.isLoading && !roster.isError ? (

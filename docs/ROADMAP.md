@@ -635,8 +635,10 @@ Full plan for this lane: [`docs/designs/staff-created-volunteers.md`](designs/st
 across v0.32.0.0–v0.37.2.1, and has kept shipping since Lane G: responsive staff tables
 (T28, v0.38.1.0), the stay-open add-volunteer form (T25, v0.38.2.0), and the row-click
 volunteer detail dialog (T27, v0.38.3.0) — org-scoped shift history and hours, staff-voiced
-source copy, and `Remove` moved off the mobile card into the record. All of it is tracked in
-that design doc rather than as a phase here.
+source copy, and `Remove` moved off the mobile card into the record — and the same treatment
+carried to the other four staff tables (T36, v0.38.4.0): applications, opportunities, shifts
+and team, plus the app-shell top-bar overflow fix every one of those pages sat behind. All of
+it is tracked in that design doc rather than as a phase here.
 
 This phase establishes **the concierge onboarding playbook** — white-glove activation
 for the first 3 nonprofits, with built-in feedback loops and referral mechanics.

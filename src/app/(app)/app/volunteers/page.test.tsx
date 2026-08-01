@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
+	pendingIds: new Set<string>(),
 	useListQuery: vi.fn(),
 	useCountQuery: vi.fn(),
 	useDetailQuery: vi.fn(),
@@ -61,6 +62,17 @@ vi.mock('sonner', () => ({
 
 // The roster page renders a Dialog above lg and a Drawer below. Pin it to the
 // desktop branch here so these tests exercise the page, not vaul.
+// `usePendingIds` owns which ROWS are mid-request. Mocked so a test can declare
+// a set directly; the hook's own semantics — including the concurrency property
+// it exists to provide — are covered in `src/lib/hooks/use-pending-ids.test.ts`.
+vi.mock('@/lib/hooks/use-pending-ids', () => ({
+	usePendingIds: () => ({
+		has: (id: string) => mocks.pendingIds.has(id),
+		start: vi.fn(),
+		finish: vi.fn(),
+	}),
+}));
+
 vi.mock('@/lib/hooks/use-media-query', () => ({
 	useMediaQuery: () => true,
 }));
@@ -103,6 +115,7 @@ const VOLUNTEER = {
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	mocks.pendingIds.clear();
 	mocks.onRemoveSuccess = null;
 	mocks.onRestoreSuccess = null;
 	mocks.useListQuery.mockReturnValue(listResult());
@@ -621,11 +634,7 @@ describe('VolunteersPage mobile card list (T28)', () => {
 				data: { volunteers: [VOLUNTEER, second], nextCursor: null },
 			}),
 		);
-		mocks.useRemoveMutation.mockImplementation(() => ({
-			mutate: mocks.removeMutate,
-			isPending: true,
-			variables: { volunteerId: 'ov-2' },
-		}));
+		mocks.pendingIds.add('ov-2');
 		render(<VolunteersPage />);
 
 		expect(
@@ -1074,10 +1083,10 @@ describe('VolunteersPage detail dialog (T27)', () => {
 				return {
 					mutate: mocks.removeMutate,
 					isPending: true,
-					variables: { volunteerId: 'ov-1' },
 				};
 			},
 		);
+		mocks.pendingIds.add('ov-1');
 		const user = userEvent.setup();
 		render(<VolunteersPage />);
 		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
@@ -1143,8 +1152,8 @@ describe('VolunteersPage detail dialog (T27)', () => {
 		mocks.useRemoveMutation.mockImplementation(() => ({
 			mutate: mocks.removeMutate,
 			isPending: true,
-			variables: { volunteerId: 'ov-2' },
 		}));
+		mocks.pendingIds.add('ov-2');
 		const user = userEvent.setup();
 		render(<VolunteersPage />);
 		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));

@@ -44,4 +44,23 @@ No Prisma in routers. No Prisma in components. No business logic in repositories
 - Validation: Zod (shared client/server)
 - UI: Tailwind + shadcn/ui + lucide-react
 - Lint/Format: Biome (`pnpm lint` / `pnpm format`)
+- Tests: Vitest unit + component (`pnpm test`), Vitest integration against real Postgres
+  (`pnpm test:integration`), Playwright e2e (`pnpm e2e`)
 - Package manager: pnpm
+
+## Before a visual or UI change
+
+`DESIGN.md` is the source of truth for aesthetic direction, type, color, spacing and the
+authenticated shell. Read it first — it describes the *shipped* app deliberately, because a
+design doc that drifts from the product has already generated a round of confidently wrong
+work here (see its Decisions Log).
+
+Two conventions that are easy to get wrong and are not obvious from the code:
+
+- A responsive table↔card switch is **pure CSS** (`hidden lg:block` / `lg:hidden`, both
+  trees rendered from the same array). `useMediaQuery` is safe inside a modal and nowhere
+  else — for layout it paints the mobile tree to every desktop user and swaps it after
+  hydration.
+- Per-row pending state comes from `usePendingIds()`, never `mutation.variables`.
+
+Both are spelled out under "Responsive staff tables" in `CLAUDE.md`.

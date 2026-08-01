@@ -5,6 +5,12 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
 	testDir: './e2e',
+	// Compiles the dev server's routes sequentially before the workers start.
+	// `webServer.url` below only proves `/` answers; in `next dev` every other
+	// route is still uncompiled, and releasing N workers onto ~20 of them at
+	// once made Next read a `.next` manifest another compile was still writing
+	// ("SyntaxError: Unexpected end of JSON input" → 500). See the file header.
+	globalSetup: './e2e/global-setup.ts',
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
