@@ -26,7 +26,7 @@ import { VolunteerStatusBadge } from '@/components/volunteers/volunteer-status-b
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { trpc } from '@/lib/trpc/client';
 import { ROSTER_POPULATED_THRESHOLD } from '@/server/domain/org-volunteer';
-import { AddVolunteerDialog } from './AddVolunteerDialog';
+import { AddVolunteerButton, AddVolunteerDialog } from './AddVolunteerDialog';
 
 const COLUMNS = ['Volunteer', 'Added', 'Shifts', 'Status', ''] as const;
 
@@ -203,6 +203,26 @@ export default function VolunteersPage() {
 	const [cursor, setCursor] = useState<string | null>(null);
 	const [liveMessage, setLiveMessage] = useState('');
 
+	// The page owns the add form's open state so exactly ONE of them exists. The
+	// form stays open across a successful add (D12), and the empty state below
+	// unmounts on that same add — an `AddVolunteerDialog` rendered inside it
+	// would take the half-typed second volunteer with it.
+	const [addOpen, setAddOpen] = useState(false);
+
+	// Everything that confirms a batch landed dies at the moment the form closes:
+	// the toasts have long expired (a twenty-name batch runs minutes), and the
+	// running count lives INSIDE the dialog and unmounts with it. Meanwhile the
+	// list behind it is still filtered, because `refresh()` deliberately keeps
+	// `search`. So "3 added" could be followed immediately by "No volunteers match
+	// that search." — a filtered-empty state that renders no add button, reached
+	// by exactly the sequence this feature encourages (search for someone, not
+	// find them, add them from the header).
+	//
+	// The notice carries the count out of the dialog so it outlives the form, and
+	// offers to clear the filter when one is what is hiding the new rows.
+	const [addedThisBatch, setAddedThisBatch] = useState(0);
+	const [batchNotice, setBatchNotice] = useState<string | null>(null);
+
 	// Keyed by volunteer id rather than holding one "last removed" value: two
 	// quick removals leave two undo toasts on screen at once, and a single slot
 	// would make the older one restore the newer one's name in its confirmation.
@@ -289,7 +309,29 @@ export default function VolunteersPage() {
 
 	function refresh() {
 		setCursor(null);
+		setAddedThisBatch((n) => n + 1);
 		utils.volunteers.invalidate();
+	}
+
+	/**
+	 * Opening resets the batch; closing publishes it. Both the header trigger and
+	 * the empty state's action route through here, so neither can skip the reset
+	 * and inherit the previous batch's count.
+	 */
+	function handleAddOpenChange(next: boolean) {
+		if (next) {
+			setAddedThisBatch(0);
+			setBatchNotice(null);
+		} else if (addedThisBatch > 0) {
+			const message = `${addedThisBatch} ${
+				addedThisBatch === 1 ? 'volunteer' : 'volunteers'
+			} added to your roster.`;
+			setBatchNotice(message);
+			// Same announcer the remove/undo flow uses, so the batch result is
+			// spoken once rather than being inferred from the list changing.
+			setLiveMessage(message);
+		}
+		setAddOpen(next);
 	}
 
 	// Only the row actually being removed goes disabled. Gating every Remove on
@@ -313,7 +355,13 @@ export default function VolunteersPage() {
 						? undefined
 						: `${total} ${total === 1 ? 'volunteer' : 'volunteers'}`
 				}
-				actions={<AddVolunteerDialog onAdded={refresh} />}
+				actions={
+					<AddVolunteerDialog
+						onAdded={refresh}
+						open={addOpen}
+						onOpenChange={handleAddOpenChange}
+					/>
+				}
 			/>
 
 			{/* A row vanishing is the only durable confirmation that a removal
@@ -329,6 +377,26 @@ export default function VolunteersPage() {
 			<output aria-live="polite" className="sr-only">
 				{liveMessage}
 			</output>
+
+			{batchNotice ? (
+				<div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed bg-muted/30 px-4 py-3 text-sm">
+					<span className="tabular-nums">{batchNotice}</span>
+					{isSearching ? (
+						// The one case where the notice is not merely reassurance: the
+						// rows just added may not match the active filter, so the list
+						// below can read as empty. Offer the way out rather than leaving
+						// the coordinator to work out that a filter is hiding their work.
+						<Button
+							className="h-11"
+							onClick={() => setSearch('')}
+							size="sm"
+							variant="outline"
+						>
+							Clear search to see them
+						</Button>
+					) : null}
+				</div>
+			) : null}
 
 			{/* Stacks below lg: the export button is ~120px and the search field is
 			    the primary control on a phone-first surface, so they must not
@@ -407,7 +475,20 @@ export default function VolunteersPage() {
 						icon={BookUser}
 						title="No volunteers yet"
 						description="Add the volunteers you already work with. They don't need to sign up first — you can schedule them and track their hours right away."
-						action={<AddVolunteerDialog onAdded={refresh} />}
+						// Opens the page's one dialog rather than mounting a second:
+						// this branch disappears on the first successful add, and the
+						// form is meant to survive it.
+						//
+						// The testid exists because this button and the header's carry
+						// the SAME accessible name, so a test reaching for it by role
+						// silently gets the header one — and a regression test for the
+						// hazard above is worthless unless it opens THIS button.
+						action={
+							<AddVolunteerButton
+								data-testid="empty-roster-add-volunteer"
+								onClick={() => handleAddOpenChange(true)}
+							/>
+						}
 					/>
 				)
 			) : (

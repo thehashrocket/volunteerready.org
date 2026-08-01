@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
 	// Captured too — the restore error branch is the OrgVolunteerBlock refusal,
 	// which the design doc calls "not optional". Without capturing onError the
 	// whole handler could be deleted and every test would stay green.
+	onAddSuccess: null as (() => void) | null,
 	onRemoveError: null as ((e: unknown) => void) | null,
 	onRestoreError: null as ((e: unknown) => void) | null,
 }));
@@ -36,7 +37,16 @@ vi.mock('@/lib/trpc/client', () => ({
 			count: { useQuery: mocks.useCountQuery },
 			remove: { useMutation: mocks.useRemoveMutation },
 			restore: { useMutation: mocks.useRestoreMutation },
-			add: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+			add: {
+				useMutation: (opts: { onSuccess: (r: unknown) => void }) => {
+					// Captured so these tests can land an add without a server. The
+					// DIALOG owns this mutation, so driving it exercises both halves:
+					// the dialog's own running count and the page's batch bookkeeping.
+					mocks.onAddSuccess = () =>
+						opts.onSuccess({ notified: false, displayName: 'Ada Lovelace' });
+					return { mutate: vi.fn(), isPending: false };
+				},
+			},
 		},
 		org: { getCurrentOrg: { useQuery: mocks.useCurrentOrgQuery } },
 		useUtils: () => ({ volunteers: { invalidate: mocks.invalidate } }),
@@ -213,10 +223,136 @@ describe('VolunteersPage states', () => {
 		expect(screen.getByText(/Have a spreadsheet/)).toBeInTheDocument();
 	});
 
+	it("the empty state's action opens the page's ONE add form (T25)", async () => {
+		// The empty state used to mount its own `AddVolunteerDialog`. That was
+		// harmless while the form closed on every success, and a live bug once it
+		// stayed open: this branch unmounts on the first add and would take the
+		// half-typed second volunteer with it. `open` now lives on the page.
+		//
+		// Reached by testid, not by role: this button and the header's share the
+		// accessible name `Add volunteer`, so a role query silently opens the
+		// header's instead and the test passes against the very design it exists
+		// to rule out.
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+		await user.click(screen.getByTestId('empty-roster-add-volunteer'));
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(screen.getByLabelText('Name')).toBeInTheDocument();
+	});
+
+	it('carries the batch result out of the form that produced it', async () => {
+		// Everything confirming a batch landed dies when the form closes: the
+		// toasts have expired and the running count unmounts with the dialog. The
+		// notice is the only thing left, and it is what stops "3 added" being
+		// followed by a list that looks empty.
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+
+		await user.click(screen.getByTestId('empty-roster-add-volunteer'));
+		act(() => {
+			mocks.onAddSuccess?.();
+			mocks.onAddSuccess?.();
+		});
+		await user.click(screen.getByRole('button', { name: 'Done' }));
+
+		// TWICE, deliberately: the visible notice and the page's `sr-only`
+		// announcer. A screen-reader user gets it spoken; everyone else gets it on
+		// screen after the count that said it has gone.
+		expect(
+			screen.getAllByText('2 volunteers added to your roster.'),
+		).toHaveLength(2);
+		expect(screen.getByRole('status')).toHaveTextContent(
+			'2 volunteers added to your roster.',
+		);
+	});
+
+	it('offers a way out when a search filter is hiding the new rows', async () => {
+		// The dead end this exists for: `refresh()` keeps `search`, so rows just
+		// added may not match it and the list reads as "No volunteers match that
+		// search." — an empty state that renders no add button.
+		const user = userEvent.setup();
+		const { rerender } = render(<VolunteersPage />);
+
+		await user.type(screen.getByLabelText('Search volunteers'), 'zzz');
+		rerender(<VolunteersPage />);
+
+		await user.click(screen.getByRole('button', { name: /add volunteer/i }));
+		act(() => {
+			mocks.onAddSuccess?.();
+		});
+		await user.click(screen.getByRole('button', { name: 'Done' }));
+
+		expect(
+			screen.getAllByText('1 volunteer added to your roster.').length,
+		).toBeGreaterThan(0);
+		await user.click(
+			screen.getByRole('button', { name: 'Clear search to see them' }),
+		);
+		rerender(<VolunteersPage />);
+
+		expect(screen.getByLabelText('Search volunteers')).toHaveValue('');
+	});
+
+	it('starts a fresh batch count on the next open', async () => {
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+
+		await user.click(screen.getByTestId('empty-roster-add-volunteer'));
+		act(() => {
+			mocks.onAddSuccess?.();
+		});
+		await user.click(screen.getByRole('button', { name: 'Done' }));
+		expect(
+			screen.getAllByText('1 volunteer added to your roster.').length,
+		).toBeGreaterThan(0);
+
+		// Reopening clears the previous batch's VISIBLE notice, so a second session
+		// cannot inherit the first one's number. Down from two matches to one: the
+		// `sr-only` announcer deliberately keeps its last message. A live region
+		// only speaks on CHANGE, so stale text there is never re-announced — and
+		// clearing it would wipe an unrelated remove/undo announcement, which
+		// shares the same element.
+		await user.click(screen.getByTestId('empty-roster-add-volunteer'));
+		const remaining = screen.queryAllByText(
+			'1 volunteer added to your roster.',
+		);
+		expect(remaining).toHaveLength(1);
+		expect(remaining[0]).toHaveClass('sr-only');
+	});
+
+	it('keeps that form mounted once the first add empties the empty state', async () => {
+		// The actual regression. Opening from the empty state and then having the
+		// roster go non-empty is the sequence that unmounted the old instance.
+		const user = userEvent.setup();
+		const { rerender } = render(<VolunteersPage />);
+
+		await user.click(screen.getByTestId('empty-roster-add-volunteer'));
+		await user.type(screen.getByLabelText('Name'), 'Grace Hopper');
+
+		// The add lands: the list now returns a row, so the empty-state branch —
+		// and with it the button that opened this form — is gone.
+		mocks.useListQuery.mockReturnValue(
+			listResult({ data: { volunteers: [VOLUNTEER], nextCursor: null } }),
+		);
+		mocks.useCountQuery.mockReturnValue({ data: 1 });
+		rerender(<VolunteersPage />);
+
+		expect(
+			screen.queryByTestId('empty-roster-add-volunteer'),
+		).not.toBeInTheDocument();
+		// The form, and the name already typed into it, survive.
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(screen.getByLabelText('Name')).toHaveValue('Grace Hopper');
+	});
+
 	it('shows DIFFERENT copy for a filtered-empty result', async () => {
 		// Conflating the two makes a working filter look like an empty roster.
 		const { rerender } = render(<VolunteersPage />);
-		const user = (await import('@testing-library/user-event')).default.setup();
+		const user = userEvent.setup();
 
 		await user.type(screen.getByLabelText('Search volunteers'), 'zzz');
 		rerender(<VolunteersPage />);

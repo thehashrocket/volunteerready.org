@@ -5,6 +5,182 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the T25 repeat-entry ship (2026-07-31)
+
+### Caught while building — recorded so it is not reintroduced
+
+**The empty state could not keep its own `AddVolunteerDialog`.** It sits inside
+`page.tsx`'s `volunteers.length === 0` branch, so the first successful add flips
+that branch and unmounts it. Harmless while the form closed on success; once it
+stays open, it takes the half-typed second volunteer with it — and the roster's
+empty state is precisely the batch-entry case the whole task exists for. `open`
+now lives on the page, there is exactly ONE dialog, and the empty state renders
+a shared `AddVolunteerButton` that opens it. **The unit tests could not have
+caught this**: they render the component directly, never through the page.
+
+**And the first draft of this entry claimed the e2e covered it when it did
+not.** `addVolunteerViaUi` added exactly ONE volunteer and closed the form, so
+nothing ever typed a second name into a form that had just survived the
+empty→populated flip — the only sequence that can fail. Caught in review, by
+reading the claim against the spec rather than trusting it. The helper is now
+`addVolunteersViaUi(page, entries[])` and the identity test passes **two**
+entries, from the one call site guaranteed to start from a truly empty roster.
+Naming the submit per iteration (`Add volunteer` then `Add another`) means a
+form that closed on success fails on the second pass with nothing to click.
+**A one-add e2e is not coverage of a stay-open form.**
+
+**`Done` had to be disabled while a mutation is in flight.** Closing unmounts
+the form and with it the mutation's `onSuccess`, so a volunteer the server DID
+create gets no toast, no count, and — the part that outlives the moment — no
+`onAdded()`, leaving the roster behind the form permanently missing them, with
+nothing to suggest it is wrong. Reachable before this ship via Cancel, but
+`Add another` → `Done` in one motion is how a batch naturally ends, so T25 made
+it the likely path rather than a race.
+
+**The `aria-live` count region is mounted EMPTY with the dialog**, with only its
+content conditional. A live region inserted in the same commit as its first text
+is unreliably announced — screen readers announce changes to regions they were
+already observing — so the first add, the one that tells the coordinator the
+form works at all, is the one most likely to be silent. It must not be hidden
+with `hidden`/`empty:hidden` while empty either: `display: none` takes it back
+out of the accessibility tree and restores the same bug.
+
+### [P3] ~~Repeat entry issues one full `volunteers.invalidate()` per name~~ — CORRECTED, and it is cheaper than this said
+
+**The first version of this entry was wrong twice, and review caught both.** It
+claimed T25 introduced the per-add invalidation and cost "forty queries" for
+twenty names. Neither holds:
+
+1. **The rate is pre-existing.** `git show main:…/AddVolunteerDialog.tsx` shows
+   the old `onSuccess` ended `onAdded(); onClose();` — `onAdded()` already fired
+   on every successful add. This diff only deletes `onClose()`. Do not read the
+   per-add refetch as a T25 regression.
+2. **The wire cost is one request per add, not two.** `httpBatchLink` coalesces
+   the two invalidated active queries (`list` + `count`) into a single HTTP
+   request, and the server side is three indexed statements.
+3. **Refetches cancel rather than stack.** query-core's `refetchQueries` sets
+   `cancelRefetch: true` and `invalidateQueries` defaults to `type: 'active'`,
+   so a second add aborts the in-flight refetch and inactive cursor pages are
+   marked stale without being fetched. There is no queue growth while typing.
+
+The original conclusion survives and is worth keeping: **do not add a debounce.**
+It could swallow the final refresh, which is the one the coordinator actually
+reads, and the last invalidate always wins anyway. Nothing to fix here; the
+entry is retained because a future reader would otherwise re-derive the wrong
+version of it. **Effort:** none.
+
+### [P3] Batch entry makes the accepted account-enumeration oracle cheaper
+
+Security §7 knowingly accepted that `notified` tells a coordinator whether an
+address belongs to an existing ACTIVE account. That bit has not changed, and the
+two SILENT branches remain indistinguishable — the invariant is intact. What
+changed is the *cost per probe*: the form now clears and returns focus to Name,
+so an address list can be walked at typing speed instead of one trigger →
+submit → close cycle each. `volunteers.add` has no rate limit.
+
+Self-limiting for now: every probe writes a real roster row and a
+`VOLUNTEER_ADDED` audit row carrying the email and outcome, and mails the ACTIVE
+ones — noisy, attributable, and requires authenticated staff at a real org. **If
+the roster leaves pilot, add a per-org rate limit on `volunteers.add`**;
+`TOO_MANY_REQUESTS` is already in `safeErrorMessage`'s allowlist, so the refusal
+would render inline with no new plumbing. **Effort:** S.
+
+### [P3] The two silent branches still differ in server-side latency
+
+`CREATED_SHADOW` runs two INSERTs (the `User` plus its `VolunteerProfile`);
+`LINKED_UNCLAIMED` runs at most one conditional `user.update`. Pre-existing, and
+practically unexploitable — a second add of the same address throws `CONFLICT`,
+so each email yields exactly one timing sample and no averaging is possible.
+
+Recorded because a future change that adds per-branch work on the response path
+would widen it. In particular, `notifyRosterAdd`'s fire-and-forget
+`void … .catch(console.error)` is load-bearing: awaiting it would put
+`LINKED_ACTIVE`'s network call on the response path. **Effort:** none, unless
+someone touches that path.
+
+### [P3] Two buttons named "Add volunteer" on an empty roster
+
+Pre-existing, not introduced by T25 — the empty state has always rendered an
+action with the same label as the header's. A screen-reader rotor therefore
+lists two identical "Add volunteer" buttons, and it is why the empty-state
+action needs `data-testid="empty-roster-add-volunteer"` for tests to reach the
+right one at all. Distinct copy on the empty-state action (e.g. "Add your first
+volunteer") would fix the ambiguity, remove the need for the testid, and soften
+the focus-return P3 above. Not done here because the approved spec names the
+action `Add volunteer`, and changing user-facing copy is a design call, not a
+review cleanup. **Effort:** S, with a copy decision attached.
+
+### Resolved during this ship's own review — recorded so they are not reintroduced
+
+**Crossing `lg` mid-batch used to destroy the batch.** `Dialog` and `Drawer` are
+different roots, so a resize past 1024px unmounted one subtree and mounted the
+other, taking `AddVolunteerForm` and with it the running count and every
+half-typed field — and because `open` now lives on the page, the replacement
+shell reopened IMMEDIATELY, blank, with the footer reverted to `Cancel`. An iPad
+rotating portrait→landscape (834 → 1194) crosses it, as does snapping a desktop
+window. Before T25 this cost one in-flight entry over about a second; a
+stay-open form made it a whole batch. **The shell is now frozen while `open` is
+true** and re-read while closed. Not reachable in jsdom (no layout) or the e2e
+(fixed viewport), so it is held by a comment, not a test — do not "simplify"
+`shellIsDesktop` back to a bare `useMediaQuery` read.
+
+**`DrawerContent` has no scroll container.** It is `max-h-[85vh] flex flex-col`
+and `drawer.tsx` declares no `overflow` utility anywhere, so past the cap the
+default `flex-shrink: 1` compressed children below their content size and the
+form spilled outside the painted sheet with no way to reach the buttons. T25
+added a row to the tallest shell and a 375×667 phone has only ~567px of budget.
+The body wrapper now carries `overflow-y-auto min-h-0` — **`min-h-0` is not
+optional**, a flex child will not shrink below its content without it and
+`overflow-y-auto` alone does nothing.
+
+### [P3] Closing from the empty state returns focus to the header trigger
+
+Radix stores the trigger node in `context.triggerRef`, and only a real
+`DialogTrigger`/`DrawerTrigger` sets it (vaul's `Drawer.Trigger` IS
+`DialogPrimitive.Trigger`). The empty state's `AddVolunteerButton` is a plain
+button calling `setAddOpen(true)`, so it never registers — and `onCloseAutoFocus`
+sends focus to the header trigger no matter which button was pressed.
+
+Only one path is actually wrong: open from the empty state, close **without**
+adding anyone. Add someone and the empty state has unmounted, at which point the
+header trigger is the only sensible target and Radix already picks it. The wrong
+case lands the user on a different button with the *same* accessible name
+("Add volunteer"), so nobody is stranded — which is why this is a P3 and not a
+fix. **It is a regression against pre-T25 behaviour**, where the empty state
+had its own dialog and its own real trigger.
+
+The fix is a `returnFocusRef` on the page, set from the empty-state button's
+`onClick`, consumed by an `onCloseAutoFocus` override that calls `preventDefault`
+and focuses it **only when the node is still connected** — a ref to an unmounted
+button focuses nothing, which is worse than the current behaviour. That
+connected-check is the whole subtlety, and it is why this wants a test rather
+than a quick patch. **Effort:** S.
+
+### [P3] Escape and the overlay still close over an in-flight add
+
+`Done`/`Cancel` are now `disabled` while `addVolunteer.isPending`, but Escape
+and an overlay click still reach Radix's own close and still orphan the
+mutation's `onSuccess` — no toast, no count, and no `onAdded()`, so the roster
+silently omits a volunteer the server created.
+
+Deliberately not closed by intercepting `onOpenChange`/`onEscapeKeyDown`:
+trapping someone in a modal because a request is slow is a worse failure than
+the one being prevented. The durable fix is to hoist the mutation to `page.tsx`
+so its callbacks outlive the form — which also fixes it for the Cancel path
+without disabling anything, and is worth doing if a second surface ever needs to
+add a volunteer (see the entry below). **Effort:** M.
+
+### [P3] Nothing stops a second `AddVolunteerDialog` being mounted
+
+The single-instance rule above is a comment, not a constraint. A future surface
+(the detail dialog in T27, say, or a shift-side "add someone new") that mounts
+its own would get its own running count, and the two would disagree about how
+many were added this session. A shared context or a page-level provider would
+make it structural; at one consumer that is an abstraction with no second user.
+**Revisit when a second surface wants an add form.** **Effort:** S.
+
+---
+
 ## Opened by the roster mobile + a11y ship (2026-07-30, T28/T29)
 
 Shipped T28 (card list below `lg`, Drawer add form), the unblocked half of T29,
@@ -93,16 +269,19 @@ identifies it). Then tighten the e2e assertion to
 offender** (`ol` at width 375 with a 16px inset → 391), which no amount of
 app-shell work will fix; it needs a narrow-viewport width cap on `AppToaster`.
 
-### [P2] Three T29 obligations are still open, each blocked on a different task
+### [P2] ~~Three T29 obligations are still open~~ → TWO remain (T25 closed the first two)
 
 Do not let a reviewer check these off against the T28 diff — the design doc's
 Accessibility list reads as one unit but its items have different owners.
-Focus return to the name input after each add, and the `aria-live` running
-count, both need **T25**'s stay-open repeat entry; the dialog closes on success
-today, so there is no count to announce and nowhere to return focus to. The
-animated header count being `aria-hidden` during transition needs **T30**, which
-adds the animation. `aria-label="View {name}"` on a mobile row needs **T27** to
-give the row something to open. **Effort:** each rides with its owning task.
+
+✅ **Closed by T25 (2026-07-31):** focus return to the name input after each add,
+and the `aria-live` running count. Both needed the stay-open repeat entry to
+exist before there was a count to announce or anywhere to return focus to.
+
+Still open: the animated header count being `aria-hidden` during transition
+needs **T30**, which adds the animation. `aria-label="View {name}"` on a mobile
+row needs **T27** to give the row something to open. **Effort:** each rides with
+its owning task.
 
 ### [P2] `Remove` on the mobile card is a deliberate deviation, and T27 must undo it
 

@@ -20,10 +20,17 @@
 // The magic link is minted, not mailed — see `mintMagicLinkUrl` in ./utils/db
 // for why that still exercises the real chain.
 //
-// Parallelism: `fullyParallel` runs these two tests in separate workers, each
-// with its own `beforeAll`. That is safe here because every fixture is keyed by
-// a per-worker `run` suffix and `afterAll` deletes only ids/emails its own
+// Parallelism: `fullyParallel` CAN run these tests in separate workers, each
+// with its own `beforeAll`. That is safe because every fixture is keyed by a
+// per-worker `run` suffix and `afterAll` deletes only ids/emails its own
 // `beforeAll` produced — never a sweep on the shared PREFIX (CLAUDE.md).
+//
+// Do NOT read that as isolation you can rely on: CI sets `workers: 1`, so there
+// the tests share ONE `beforeAll` org and run in declaration order. The identity
+// test's T25 regression guard needs a genuinely EMPTY roster (it opens the
+// empty-state action, which only renders at zero rows), so it must stay first
+// among the tests that write to this org. It asserts that precondition rather
+// than assuming it — see `addVolunteersViaUi`.
 // ---------------------------------------------------------------------------
 
 import { randomUUID } from 'node:crypto';
@@ -66,8 +73,14 @@ let workerName: string;
 /** Added through the Drawer in the 375px test. */
 let mobileEmail: string;
 let mobileName: string;
+/** The second name typed into the OPEN sheet at 375px — T25 repeat entry. */
+let mobileSecondEmail: string;
+let mobileSecondName: string;
 /** Seeded directly for the 768-1023px band test. */
 let tabletEmail: string;
+/** The SECOND name typed into one open form — T25's empty-state regression. */
+let batchEmail: string;
+let batchName: string;
 
 test.beforeAll(async () => {
 	const prisma = getPrisma();
@@ -78,7 +91,11 @@ test.beforeAll(async () => {
 	workerName = `${PREFIX}Wanda ${run}`;
 	mobileEmail = `${PREFIX}mobile-${run}@e2e.local`;
 	mobileName = `${PREFIX}Mo ${run}`;
+	mobileSecondEmail = `${PREFIX}mobile2-${run}@e2e.local`;
+	mobileSecondName = `${PREFIX}Moe ${run}`;
 	tabletEmail = `${PREFIX}tablet-${run}@e2e.local`;
+	batchEmail = `${PREFIX}batch-${run}@e2e.local`;
+	batchName = `${PREFIX}Bea ${run}`;
 	shiftTitle = `${PREFIX}Saturday Kennel Shift ${run}`;
 
 	const org = await prisma.organization.create({
@@ -141,7 +158,9 @@ test.afterAll(async () => {
 		claimerEmail,
 		workerEmail,
 		mobileEmail,
+		mobileSecondEmail,
 		tabletEmail,
+		batchEmail,
 	].filter(
 		Boolean,
 	);
@@ -187,23 +206,65 @@ test.afterAll(async () => {
 	await disconnectPrisma();
 });
 
-/** Add a volunteer through the roster UI and return once the row is on screen. */
-async function addVolunteerViaUi(
+/**
+ * Add one or more volunteers through the roster UI in a SINGLE open session,
+ * and return once every row is on screen.
+ *
+ * TWO entries opened from `'empty-state'` is the regression test for T25's
+ * empty-state hazard. Both halves are required: the first add flips
+ * `volunteers.length === 0` and unmounts that whole branch, so a form mounted
+ * inside it goes with it, taking the half-typed second volunteer. One add
+ * cannot catch that (nothing has been unmounted yet), and opening from the
+ * header cannot either (that instance was never at risk).
+ */
+async function addVolunteersViaUi(
 	page: import('@playwright/test').Page,
-	name: string,
-	email: string,
+	entries: readonly { name: string; email: string }[],
+	openFrom: 'header' | 'empty-state' = 'header',
 ) {
-	// The trigger renders twice once the empty state is up (header + empty
-	// state), and the dialog's own submit carries the same name — so both the
-	// open and the submit have to be scoped rather than matched by name alone.
-	await page.getByRole('button', { name: 'Add volunteer' }).first().click();
+	// WHICH trigger opens the form is load-bearing, not a detail. Both carry the
+	// accessible name `Add volunteer`, so `.first()` always resolves to the
+	// header's — and the header's dialog was never the one at risk. Opening from
+	// the empty state is the only sequence the pre-lift two-dialog design fails,
+	// because that is the instance the first add unmounts. A two-entry batch
+	// opened from the header passes under BOTH designs and proves nothing.
+	if (openFrom === 'empty-state') {
+		// Only rendered while the roster has zero rows. Asserted, not assumed:
+		// under CI's `workers: 1` these tests share an org in declaration order, so
+		// a future roster-writing test added above this one would otherwise turn
+		// the regression guard into a confusing locator timeout.
+		const emptyStateAdd = page.getByTestId('empty-roster-add-volunteer');
+		await expect(emptyStateAdd).toBeVisible();
+		await emptyStateAdd.click();
+	} else {
+		await page.getByRole('button', { name: 'Add volunteer' }).first().click();
+	}
 
 	const dialog = page.getByRole('dialog');
-	await dialog.getByLabel('Name').fill(name);
-	await dialog.getByLabel('Email').fill(email);
-	await dialog.getByRole('button', { name: 'Add volunteer' }).click();
 
-	await expect(page.getByRole('row').filter({ hasText: email })).toBeVisible();
+	for (const [i, entry] of entries.entries()) {
+		await dialog.getByLabel('Name').fill(entry.name);
+		await dialog.getByLabel('Email').fill(entry.email);
+		// The submit RELABELS to `Add another` after the first success, so naming
+		// the button per iteration asserts that flip rather than assuming it —
+		// and a form that closed on success would fail here on the second pass
+		// with nothing to click.
+		await dialog
+			.getByRole('button', { name: i === 0 ? 'Add volunteer' : 'Add another' })
+			.click();
+		await expect(dialog.getByText(`${i + 1} added`)).toBeVisible();
+	}
+
+	// Radix marks everything outside an open modal `aria-hidden` and Playwright's
+	// role selectors honour the accessibility tree, so the roster behind the form
+	// is unreachable by role until it is dismissed.
+	await dialog.getByRole('button', { name: 'Done' }).click();
+
+	for (const entry of entries) {
+		await expect(
+			page.getByRole('row').filter({ hasText: entry.email }),
+		).toBeVisible();
+	}
 }
 
 test.describe('Staff-created volunteers (authenticated, dev server)', () => {
@@ -225,7 +286,18 @@ test.describe('Staff-created volunteers (authenticated, dev server)', () => {
 			page.getByRole('heading', { name: 'Volunteers' }),
 		).toBeVisible();
 
-		await addVolunteerViaUi(page, `${PREFIX}Casey`, claimerEmail);
+		await addVolunteersViaUi(
+			page,
+			[
+				{ name: `${PREFIX}Casey`, email: claimerEmail },
+				// Typed into the SAME open form, after the add above has already
+				// emptied the empty state out from under it.
+				{ name: batchName, email: batchEmail },
+			],
+			// From the empty state specifically — see the helper. This is the
+			// regression guard for the form being unmounted mid-batch.
+			'empty-state',
+		);
 
 		const row = page.getByRole('row').filter({ hasText: claimerEmail });
 		await expect(row.getByText('No account yet')).toBeVisible();
@@ -302,7 +374,7 @@ test.describe('Staff-created volunteers (authenticated, dev server)', () => {
 
 		// --- add -------------------------------------------------------------
 		await page.goto('/app/volunteers');
-		await addVolunteerViaUi(page, workerName, workerEmail);
+		await addVolunteersViaUi(page, [{ name: workerName, email: workerEmail }]);
 
 		// --- assign ------------------------------------------------------------
 		await page.goto('/app/shifts');
@@ -387,6 +459,28 @@ test.describe('Roster on a phone (T28, 375px)', () => {
 		await sheet.getByLabel('Name').fill(mobileName);
 		await sheet.getByLabel('Email').fill(mobileEmail);
 		await sheet.getByRole('button', { name: 'Add volunteer' }).click();
+
+		// T25's repeat entry, at the width it matters most, and it takes a SECOND
+		// name to show it: one add proves the sheet stayed open, not that another
+		// volunteer can be entered without reopening it. The drawer is where vaul
+		// owns focus and animation, so this is the only non-jsdom evidence that
+		// clearing the fields and returning focus works on a phone.
+		//
+		// The count is the only durable confirmation of how many landed — the
+		// toasts are transient and the roster is behind the sheet.
+		await expect(sheet.getByText('1 added')).toBeVisible();
+
+		await sheet.getByLabel('Name').fill(mobileSecondName);
+		await sheet.getByLabel('Email').fill(mobileSecondEmail);
+		await sheet.getByRole('button', { name: 'Add another' }).click();
+		await expect(sheet.getByText('2 added')).toBeVisible();
+		await sheet.getByRole('button', { name: 'Done' }).click();
+		// Asserted on the drawer's own slot, NOT on `sheet`. `getByRole('dialog')`
+		// also matches the cookie-preferences banner; that only resolves to one
+		// node while a modal is open, because Radix marks everything outside it
+		// `aria-hidden`. The moment the sheet closes the banner comes back and
+		// `expect(sheet).toBeHidden()` fails against the wrong element.
+		await expect(page.locator('[data-slot="drawer-content"]')).toBeHidden();
 
 		// --- the card list is what renders, and the table is not -----------------
 		const cards = page.getByTestId('roster-card-list');
