@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.5.0] - 2026-08-01
+
+Nothing in this release changes the product. It repairs the project's own
+documentation, which had two competing copies of two files and a docs site that
+had not built since March.
+
+### Removed
+- **The duplicate `TODOS.md` and `DESIGN.md` in the repo root and `docs/`.** There were two of each, they had drifted apart, and neither was a superset — so reading one and concluding you had the full picture was a mistake anyone could make and several people did. There is now exactly one of each: `DESIGN.md` in the repo root, `TODOS.md` under `docs/`. Rules and open items that existed only in the deleted copies were merged into the survivors first, not dropped.
+
+### Fixed
+- **The documentation site builds again.** It had been failing outright since a `{{ … }}` in prose was read as template syntax, and its entire navigation pointed at six pages deleted on 2026-03-09 — so every link was dead for about five months. Nothing caught it because nothing built the site.
+- **The docs site was titled with a competitor's name** ("VolunteerMatch" rather than "VolunteerReady") from the day it was created.
+- The design system no longer overstates how consistent the app is. Three rules described as settled — the focus ring, the disabled state, and explicit transition lists — are each honest now about the parts of the codebase that do it differently, so nobody reads an aspiration as a description of what ships.
+
+### Added
+- **CI now builds the documentation site,** so the failure above cannot silently return.
+- **A test that every navigation link resolves to a page that exists.** Building the site is not enough on its own: the site builder only checks links written inside pages, and stays green when a link in the navigation config points at a file that was deleted — which is precisely how the dead navigation survived five months unnoticed.
+
 ## [0.38.4.0] - 2026-08-01
 
 ### Added

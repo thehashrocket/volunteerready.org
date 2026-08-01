@@ -19,8 +19,13 @@
 - **UI/Labels:** Same as body (Geist)
 - **Data/Tables:** Geist Mono — tabular-nums, dates, counts, IDs, application numbers. Gives data fields terminal authority.
 - **Code:** Geist Mono
-- **Loading:** Google Fonts for Fraunces (`https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700`). Vercel CDN / npm for Geist (`geist` package).
+- **Loading:** Google Fonts for Fraunces (`https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700`). Vercel CDN / npm for Geist (`geist` package). Use `font-display: swap` and preconnect to the font CDN — a display serif that blocks first paint costs more than the FOUT it avoids.
 - **Scale:** 12px / 14px / 16px / 20px / 24px / 30px / 36px / 48px / 60px / 72px
+- **Rules:**
+  - `text-wrap: balance` on headings (h1–h3)
+  - Body line length 65–75 characters
+  - Minimum 12px for labels, 16px for body text — never smaller
+  - No letterspacing on lowercase body text
 
 ## Color
 - **Approach:** Restrained — deep forest green primary, warm neutrals, gold accent for warmth
@@ -43,6 +48,9 @@
   - Error: `#B33A3A`
   - Info: `#2563EB`
 - **Dark mode strategy:** Same hues, adjusted for dark surfaces. Reduce saturation 10-20%.
+  Surfaces read as elevation (darker = lower, lighter = higher), not a straight inversion.
+  Set `color-scheme: dark` on the html element so native controls, scrollbars and form
+  widgets follow — without it they render light against a dark page.
   - Background: `#111110`
   - Surface: `#1A1918`
   - Surface Strong: `#252422`
@@ -59,12 +67,21 @@
 
 ## Spacing
 - **Base unit:** 8px
-- **Density:** Comfortable
-- **Scale:** 2xs(2px) xs(4px) sm(8px) md(16px) lg(24px) xl(32px) 2xl(48px) 3xl(64px)
+- **Density:** Comfortable (public/marketing) / Compact (staff app)
+- **Scale:** 2xs(2px) xs(4px) sm(8px) md(16px) lg(24px) xl(32px) 2xl(48px) 3xl(64px) 4xl(96px)
+- **Section padding (public pages):** vary between `py-12`/`py-16`/`py-20`/`py-24`. Never the
+  same padding on two consecutive sections — uniform rhythm is on the anti-pattern list below.
+- **Component spacing:** use `gap-` utilities rather than margins. Card inner padding 16–24px,
+  button padding 8–12px.
 
 ## Layout
 - **Approach:** Hybrid — grid-disciplined for the app dashboard, creative-editorial for marketing/public pages
 - **Grid:** 12-column grid. Dashboard uses sidebar (224px, `w-56`) + main content. Marketing pages use asymmetric splits (7/5, 8/4).
+- **Public/marketing page rules:**
+  - Heroes are left-aligned, not centered, with an optional right-side visual on desktop
+  - Feature sections alternate left/right rather than repeating one uniform grid
+  - Testimonials are a left-aligned blockquote, never a centered card
+  - CTA banners run full-width with generous vertical padding
 - **Max content width:** 1120px
 - **App shell chrome** (`src/components/app/app-shell.tsx`) — the authenticated staff layout:
   - **Top bar:** 56px (`h-14`), sticky, `border-b border-border/60`, `bg-background/95` with
@@ -94,21 +111,71 @@
   - md: 8px (buttons, inputs, cards)
   - lg: 12px (panels, modals, dashboard sections)
   - full: 9999px (badges, pills, avatars)
+  - **Inner radius rule:** a nested rounded element is `outer − gap`, never the same radius
+    as its container.
+- **Breakpoints:** Tailwind defaults — `sm` 640px, `md` 768px, `lg` 1024px, `xl` 1280px.
+  `lg` is the one that carries meaning here: it is where every staff list switches between
+  its table and card shapes, and where the sidebar becomes an overlay drawer.
+  - **The 768–1023px band is the load-bearing viewport for layout bugs, not 375px.** It is
+    where the widest chrome renders (wordmark + both switchers) beside a nav toggle that is
+    still `lg:hidden`. The app shell was 126px over at 800px against 22px at 375px — anyone
+    checking a chrome fix on a phone alone will read the real bug as a rounding error.
 
 ## Motion
 - **Approach:** Minimal-functional — only transitions that aid comprehension. No decorative animation.
 - **Easing:** enter(ease-out) exit(ease-in) move(ease-in-out)
-- **Duration:** micro(50-100ms) short(150-250ms) medium(250-400ms)
+- **Duration:** micro(50-100ms) short(150-250ms) medium(250-400ms) long(400-700ms, page
+  transitions and large reveals only). Nothing animates longer than 700ms.
+- **Animate `transform` and `opacity` only** — never layout properties (width, height, top,
+  left), which force layout on every frame.
+- **Prefer explicit transition property lists** to `transition-all`, so a later style change
+  cannot silently start animating layout. ⚠️ **Not universally held:** `transition-all` is the
+  shadcn baseline and still appears in ~19 components including `ui/button.tsx`. Treat this as
+  the rule for new and touched code, not as a description of the current tree.
+- **`prefers-reduced-motion: reduce` is handled globally** at `src/app/globals.css:216`, which
+  clamps every animation and transition to 0.01ms. New motion inherits the suppression for
+  free — but anything driven by JS (a count that tweens, a staggered reveal) does not, and has
+  to check the query itself.
+- **Scroll-triggered reveals:** fade + `translateY(8px→0)`, siblings staggered ~75ms. Never on
+  above-the-fold content — `FadeInOnScroll` holds children at `opacity-0` until an
+  IntersectionObserver reports 15% visibility, which never fires on short viewports, so a
+  `priority` LCP image gets preloaded and then painted invisible.
+
+## Interaction States
+- **Hover:** every interactive element needs a visible hover state — color shift, elevation,
+  or scale. Cards lift ~1.01; buttons darken.
+- **Focus-visible:** `focus-visible:ring-ring/50 focus-visible:ring-[3px]` against the `--ring`
+  token (`ui/button.tsx:8` is the reference). Never `outline: none` without a replacement.
+  ⚠️ **Aspiration, not a description.** The older `ring-2 … ring-offset-2` shape is still the
+  MAJORITY in the tree — 18 call sites against 6 for `ring-[3px]`, including
+  `ui/checkbox.tsx`, `ui/input.tsx`, `ui/select.tsx` and `public-header.tsx`. Both give a
+  visible focus ring, so this is a consistency debt, not an a11y bug. Use the token form for
+  new and touched code; do not read this line as a claim the app is uniform.
+- **Active/pressed:** subtle darken or scale to 0.98.
+- **Disabled:** `opacity-50` plus a non-interactive cue. `ui/button.tsx` uses
+  `pointer-events-none`; the form primitives (`input`, `select`, `textarea`, `checkbox`,
+  `switch`, `radio-group`, `label`, `command` — 8 files) use `cursor-not-allowed`. Both are
+  live and correct: `cursor-not-allowed` still shows a cursor cue on a natively-disabled
+  field, which `pointer-events-none` suppresses. Match the primitive you are near rather
+  than converting one to the other. Either way, show the control as unavailable rather than
+  removing it — a control that vanishes mid-task reads as a broken page.
+- **Touch targets:** minimum 44×44px (`h-11`) on every interactive element; pad small links up
+  to it. This is enforced in the staff card lists and asserted in the mobile e2e specs.
 
 ## Anti-Patterns (never use)
-- Purple/violet gradients
-- 3-column feature grids with icons in colored circles
+- Purple/violet/indigo gradients
+- 3-column feature grids with icons in colored circles (the single strongest AI tell)
+- Icons in colored circles as section decoration, anywhere
 - Centered-everything layouts
 - Stock photography of volunteers
-- Decorative illustrations or blobs
+- Decorative illustrations, SVG blobs, floating shapes, or wavy section dividers
 - Gradient buttons as primary CTA
 - Uniform bubbly border-radius on all elements
-- Generic "Built for X" / "Designed for Y" marketing copy
+- Cookie-cutter section rhythm — every section the same height and padding
+- Emoji as design elements
+- Fake testimonials with invented names
+- Generic hero/marketing copy ("Built for X", "Designed for Y", "Connect with…",
+  "Unlock the power of…", "Your all-in-one…")
 
 ## Dual Personality
 The staff dashboard and volunteer-facing pages are different visual contexts:
@@ -138,4 +205,6 @@ The staff dashboard and volunteer-facing pages are different visual contexts:
 | 2026-04-04 | Deep forest green (#1B3C2A) over ochre gold | Green is category-appropriate (trust, growth) but differentiated by depth. Gold used as warm accent instead of primary. |
 | 2026-04-04 | Warm cream backgrounds (#FAFAF8) over pure white | Reduces eye strain, signals taste, breaks from clinical SaaS white. Both outside voices recommended this. |
 | 2026-07-26 | Corrected the staff-shell description to match the shipped app | This document said the staff dashboard had a **forest green sidebar** and a 220px sidebar. Neither was true: `app-shell.tsx:128` renders `border-r border-border/60` with no fill, at `w-56` (224px), and the 56px sticky top bar was undocumented entirely. CLAUDE.md instructs every agent to read DESIGN.md before a visual decision, so this drove a whole round of `/plan-design-review` mockups to generate a solid green sidebar — confidently wrong work produced by a stale sentence. Corrected during that review (T34). **A design system that misdescribes the shipped product is worse than none.** |
+| 2026-08-01 | Absorbed `docs/DESIGN.md` and deleted it | A second, older fork of this file had sat in `docs/` since 2026-03-16, describing a different aesthetic direction (Organic/Natural), a different info color and a different max width, and omitting the app shell entirely. Nothing linked to it — not the VitePress nav, not `CLAUDE.md` — but it was not merely redundant: **nine rule sets existed only there, and the shipped code follows them.** Touch targets (41 `h-11` call sites, asserted in the mobile e2e), the transform/opacity motion rule (cited by CHANGELOG when `transition-all` was replaced), `prefers-reduced-motion` (`globals.css:216`), the focus-visible contract, the inner-radius rule, font-loading (`font-display: swap` + preconnect), the public-page layout rules, `color-scheme: dark`, and the 700ms animation ceiling. **The first pass merged only five of the nine and the adversarial review caught the other four** — which is the honest lesson here: "I checked what was unique to the stale file" is a claim that needs a diff, not a memory. Values were rewritten to match the shipped app rather than imported verbatim, and where the app is NOT uniform the rule says so out loud: `transition-all` has ~19 deviations, `ring-[3px]` is outnumbered 18-to-6 by the older `ring-2 … ring-offset-2`, and `pointer-events-none` vs `cursor-not-allowed` is a real split across 8 form primitives. Per the T34 row above: this file describes what ships, or it misleads — and an aspiration stated as a description is the specific way it misleads. |
+| 2026-08-01 | The design system is deliberately NOT a page on the docs site | VitePress builds from `docs/`, and this file lives at the repo root because `CLAUDE.md` sends every agent to `DESIGN.md` there. Deleting `docs/DESIGN.md` therefore removed the design system from the site entirely; a `/DESIGN` bookmark now 404s. Accepted rather than fixed: the site is not deployed anywhere (`vercel-build.sh` never invokes vitepress, no workflow builds it, `dist` is gitignored), and the alternative — a second copy under `docs/` — is the exact duplication this ship exists to end. `docs/index.md` names the file and its path instead of linking it. If the docs site is ever published, revisit with a symlink or a VitePress `rewrites` entry, never a copy. |
 | 2026-08-01 | Staff data tables become card lists below `lg`; the top bar's shrink contract is documented | T36 (v0.38.4.0) finished what T28 started: all five staff lists now have a table shape and a card shape, switched by CSS at `lg`. Recorded here because it changes what a staff surface *is* — a mockup that shows only a table is now half a design. The same entry documents the top-bar fix it depended on: the shell overflowed the viewport on every authenticated page (~126px at 800px), so any "does this page fit" judgement made before v0.38.4.0 was measured against broken chrome. Per the T34 row above, this file describes the shipped app or it misleads. |
