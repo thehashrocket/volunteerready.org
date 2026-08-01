@@ -5,6 +5,56 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the docs-tree cleanup (2026-08-01, v0.38.5.0)
+
+### Caught while building — recorded so it is not reintroduced
+
+**`vitepress build` does NOT validate `themeConfig.nav`/`sidebar` links.** Verified
+by experiment, not inferred: inserting `link: "/THIS_PAGE_DOES_NOT_EXIST"` into the
+nav *and* into the sidebar both report `build complete` and exit 0. VitePress only
+accumulates dead-link failures while transforming `.md` files. This is exactly how
+the nav rotted for ~5 months after 3109623 deleted the six `docs/guide/*` stubs it
+pointed at — the dead links that *did* fail the build were the ones in
+`docs/index.md`'s markdown, not the config. `pnpm docs:build` in CI is therefore
+necessary but **not sufficient**; config links are covered by
+`scripts/docs-nav-links.test.ts` (`pnpm test:scripts`), mutation-verified against a
+replay of the real 2026-03-09 regression. **Do not delete that test as redundant
+with the build step — it is the half the build cannot see.**
+
+**Merging a forked doc needs a diff, not a read.** The first pass at merging the
+deleted `docs/DESIGN.md` into the root one carried over five rule sets and wrote
+"five rule sets existed only there" into the decisions log. Adversarial review then
+found **four more** that had been silently dropped (`font-display: swap` +
+preconnect, the public-page layout rules, `color-scheme: dark`, the 700ms animation
+ceiling). The assertion of completeness was the harmful part — it tells the next
+reader not to check. Diff section-by-section before claiming what is unique.
+
+### [P3] The design system is not reachable from the docs site
+
+VitePress builds from `docs/`, and `DESIGN.md` is canonically at the repo root
+(that is where `CLAUDE.md` sends everyone), so deleting `docs/DESIGN.md` removed the
+design system from the site and a `/DESIGN` bookmark now 404s. Accepted for now: the
+site is not deployed anywhere (`vercel-build.sh` never invokes vitepress, no workflow
+builds it, `dist` is gitignored), and a second copy under `docs/` is the exact
+duplication this ship existed to end. `docs/index.md` names the file and its location
+instead. **If the docs site is ever published, fix with a symlink or a VitePress
+`rewrites` entry — never a copy.** **Effort:** S.
+
+### [P3] Focus-ring consistency debt, now written down rather than papered over
+
+`DESIGN.md` states the focus contract as the `--ring` token at `ring-[3px]`
+(`ui/button.tsx:8`), but the older `ring-2 … ring-offset-2` shape is the **majority**
+in the tree: 18 call sites against 6, including `ui/checkbox.tsx`, `ui/input.tsx`,
+`ui/select.tsx` and `public-header.tsx`. Both render a visible focus ring, so this is
+consistency debt, not an a11y defect. The doc now says so out loud rather than
+implying uniformity. Converging them is a mechanical sweep whenever someone wants it.
+Related: the disabled state is a genuine two-way split (`pointer-events-none` on
+`ui/button.tsx`, `cursor-not-allowed` across 8 form primitives) and is **not** debt —
+`cursor-not-allowed` keeps a cursor cue on a natively-disabled field that
+`pointer-events-none` suppresses. Do not "unify" that one. **Effort:** M.
+
+---
+
 ## Opened by the T36 staff-tables ship (2026-07-31)
 
 ### Caught while building — recorded so it is not reintroduced
@@ -2977,6 +3027,60 @@ The full suite would add: (1) keyword/pattern scanning on opportunity creation (
 
 ---
 
+### Folded in from the deleted root `TODOS.md` (2026-08-01)
+
+These five were deferred around v0.25–v0.26 and lived in a second `TODOS.md` at the
+repo root, which nothing linked to and which had not been written to in twelve minor
+releases. Opening it to check the backlog and concluding the project was nearly done
+was a real trap — it was deleted and its open items moved here, which is the file
+`CLAUDE.md` and `docs/AGENT_RULES.md` actually point at. All five are still open.
+
+#### [P3] Member count privacy on org discovery
+
+`/organizations` shows `{org._count.members} member(s)`. Small orgs (1–2 members) may
+not want this exposed. Needs platform product sign-off on whether to show, hide, or
+threshold the count. Deferred from v0.25.0.0 (Phase 11A).
+
+#### [P3] "This Weekend" uses server UTC, not org/user time zone
+
+`getThisWeekendOpportunities` computes "next 3 days" in server UTC, so events starting
+Friday evening local time may or may not appear depending on the reader's offset.
+Fixing it properly requires storing opportunity time zones. Same root cause as the
+digest-delivery item above — both are blocked on the platform having no time-zone
+reference for a cross-org user. Deferred from v0.25.0.0 (Phase 11A).
+
+#### [P3] Rate limiter IP fallback shares one bucket
+
+When `ctx.ip` is null (Vercel edge/proxy cases), the marketplace browse rate limiter
+keys on the literal string `'unknown'`, so all null-IP traffic shares a single bucket.
+Investigate whether Vercel always populates X-Forwarded-For in the tRPC context.
+Deferred from v0.25.0.0 (Phase 11A).
+
+#### [P3] Digest service issues N+1 per-user queries
+
+In `opportunityDigestService.ts` each user in the 100-user batch triggers 3 DB queries
+(applied ids, interested ids, opportunities fetch) — 300 queries per Monday cron batch.
+Fix when active digest users approach 500+: batch-fetch applied + interested ids for the
+whole batch at once and join in memory. Deferred from v0.26.0.0 (Phase 11C).
+
+#### [P3] `/app/browse` full pagination migration
+
+`listAllPublishedOpportunities` is capped at 200 rows as an OOM guard, but the
+authenticated browse page still loads every result server-side so it can rank by
+skill match on the client. Full fix: move skill-match ranking into the
+`searchMarketplaceOpportunities` tRPC procedure (accept `userId`, look up skills, rank
+server-side), then paginate. Until then the 200-row cap prevents memory spikes — and
+note it is the same cap behind the qualification-filter false-empty-state gap recorded
+under the Phase 11 filter rules in `CLAUDE.md`. Deferred from v0.26.0.0 (Phase 11C review).
+
+**Completed items carried over for the record:** the composite `@@index([status, createdAt])`
+on `VolunteerOpportunity` (P2, shipped in the Phase 11C migration, v0.26.0.0) and the
+marketplace service-layer extraction — `getMyInterests`/`toggleInterest` to
+`marketplaceService.ts`, `updateMarketplaceSettings` to `orgMarketplaceService.ts`
+(P3, v0.26.1.0).
+
+---
+
 ## Phase 10 — Scale & Enterprise Readiness (Deferred Items)
 
 ### ~~[P3] Volunteer Re-Engagement Emails~~ ✅ Complete
@@ -3870,7 +3974,7 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   DESIGN.md "md: 8px buttons"; the pills look intentional — recommend
   amending DESIGN.md instead of the buttons.
 - **[P3] JSON-LD script-tag console warning** on public pages (FAQ/breadcrumb
-  components render <script> inside React trees).
+  components render `<script>` inside React trees).
 
 Full report: `~/.gstack/projects/thehashrocket-volunteerready.org/designs/design-audit-20260712/`
 
