@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -77,11 +78,30 @@ window.getComputedStyle = ((
 	}) as CSSStyleDeclaration;
 }) as typeof window.getComputedStyle;
 
-async function openDialog() {
+/**
+ * `open` is owned by the roster page, so the component is controlled. This is
+ * the smallest thing that owns it — see AddVolunteerButton's docstring for why
+ * the page holds it rather than the dialog.
+ */
+function Harness({ onAdded }: { onAdded: () => void }) {
+	const [open, setOpen] = useState(false);
+	return (
+		<AddVolunteerDialog onAdded={onAdded} open={open} onOpenChange={setOpen} />
+	);
+}
+
+async function openDialog(onAdded: () => void = vi.fn()) {
 	const user = userEvent.setup();
-	render(<AddVolunteerDialog onAdded={vi.fn()} />);
+	render(<Harness onAdded={onAdded} />);
 	await user.click(screen.getByRole('button', { name: /add volunteer/i }));
 	return user;
+}
+
+/** Drives the mutation's success handler the way a real add would. */
+function succeed(displayName = 'Ava Thompson', notified = false) {
+	act(() => {
+		mocks.onSuccess?.({ notified, displayName });
+	});
 }
 
 beforeEach(() => {
@@ -241,6 +261,266 @@ describe('AddVolunteerDialog behaviour', () => {
 
 		const submit = screen.getByRole('button', { name: 'Adding…' });
 		expect(submit).toBeDisabled();
+	});
+});
+
+describe('AddVolunteerDialog repeat entry (T25)', () => {
+	it('stays open after a successful add, with the fields cleared', async () => {
+		// THE task this surface exists for is a coordinator typing in a sign-up
+		// sheet. Closing after each name makes that N trips through the trigger.
+		const user = await openDialog();
+
+		await user.type(screen.getByLabelText('Name'), 'Ada Lovelace');
+		await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+		succeed('Ada Lovelace');
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(screen.getByLabelText('Name')).toHaveValue('');
+		expect(screen.getByLabelText('Email')).toHaveValue('');
+		expect(screen.getByLabelText(/phone/i)).toHaveValue('');
+	});
+
+	it('submits the SECOND entry with its own values, not stale or empty ones', async () => {
+		// The core claim of T25, and until now only the e2e proved it — which is
+		// not in CI. Every other test in this suite drives `succeed()` directly and
+		// never clicks the relabelled primary, so nothing here exercised a real
+		// second submit. Clearing three fields and then reading them back on the
+		// next submit is exactly where a stale-closure or reset bug would land, and
+		// it would ship a batch where every row after the first repeats person one.
+		const user = await openDialog();
+
+		await user.type(screen.getByLabelText('Name'), 'Ada Lovelace');
+		await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+		await user.click(screen.getByRole('button', { name: 'Add volunteer' }));
+		succeed('Ada Lovelace');
+
+		// Named `Add another` now — clicking it by that name also proves the relabel.
+		await user.type(screen.getByLabelText('Name'), 'Grace Hopper');
+		await user.type(screen.getByLabelText('Email'), 'grace@example.com');
+		await user.type(screen.getByLabelText(/phone/i), '555-0100');
+		await user.click(screen.getByRole('button', { name: 'Add another' }));
+
+		expect(mocks.mutate).toHaveBeenCalledTimes(2);
+		expect(mocks.mutate).toHaveBeenNthCalledWith(1, {
+			displayName: 'Ada Lovelace',
+			email: 'ada@example.com',
+			phone: null,
+		});
+		expect(mocks.mutate).toHaveBeenNthCalledWith(2, {
+			displayName: 'Grace Hopper',
+			email: 'grace@example.com',
+			phone: '555-0100',
+		});
+	});
+
+	it('returns focus to the name field so the next name can be typed', async () => {
+		// T29: without this the coordinator's focus is left on the submit button
+		// and every subsequent name costs a shift-tab hunt back up the form.
+		const user = await openDialog();
+
+		await user.type(screen.getByLabelText('Name'), 'Ada Lovelace');
+		await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+		succeed('Ada Lovelace');
+
+		expect(screen.getByLabelText('Name')).toHaveFocus();
+	});
+
+	it('announces a running count from a region that exists BEFORE the first add', async () => {
+		// T29: `polite`, not `assertive` — it must not interrupt the name being
+		// typed into the field focus was just returned to.
+		//
+		// The region is mounted EMPTY with the dialog rather than appearing
+		// alongside its first value. Screen readers announce changes to regions
+		// they were already observing, so one inserted in the same commit as its
+		// text can miss the very first add — the one that tells the coordinator
+		// the form is working at all. `<output>` carries an implicit role=status.
+		//
+		// Holding the SAME node across both adds is the assertion: if the region
+		// is ever made conditional again it is a different element each time, and
+		// `toHaveTextContent` below fails on a detached node.
+		await openDialog();
+
+		const region = screen.getByRole('status');
+		expect(region).toHaveAttribute('aria-live', 'polite');
+		expect(region).toBeEmptyDOMElement();
+
+		succeed('Ada Lovelace');
+		expect(region).toHaveTextContent('1 added');
+
+		succeed('Grace Hopper');
+		expect(region).toHaveTextContent('2 added');
+	});
+
+	it('offers Add another beside Done once something has been committed', async () => {
+		// "Cancel" stops being true after the first add: it reads as an offer to
+		// undo adds this button cannot undo.
+		await openDialog();
+
+		expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+
+		succeed('Ada Lovelace');
+
+		expect(
+			screen.getByRole('button', { name: 'Add another' }),
+		).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument();
+		expect(
+			screen.queryByRole('button', { name: 'Cancel' }),
+		).not.toBeInTheDocument();
+	});
+
+	it('refreshes the roster after EVERY add, not once at the end', async () => {
+		// The list and the header count are behind an open form now. Refreshing
+		// only on close means the coordinator types the fourth name while reading
+		// a roster showing none of the first three.
+		const onAdded = vi.fn();
+		await openDialog(onAdded);
+
+		succeed('Ada Lovelace');
+		succeed('Grace Hopper');
+
+		expect(onAdded).toHaveBeenCalledTimes(2);
+	});
+
+	it('starts a fresh count on the next open', async () => {
+		// Same mechanism as the stale-error regression above: both shells unmount
+		// their subtree on close, so the count clears without an explicit reset.
+		// If either is ever changed to stay mounted, reopening would greet the
+		// coordinator with a stale "2 added" over an untouched form.
+		const user = await openDialog();
+
+		succeed('Ada Lovelace');
+		succeed('Grace Hopper');
+		expect(screen.getByText('2 added')).toBeInTheDocument();
+
+		await user.click(screen.getByRole('button', { name: 'Done' }));
+		await user.click(screen.getByRole('button', { name: /add volunteer/i }));
+
+		expect(screen.queryByText('2 added')).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+	});
+
+	it('the running count does not become a third branch signal', async () => {
+		// NOT independent evidence of the two-branch collapse, and it must not be
+		// described as such. The client only ever receives `notified`, so both
+		// drives here are the same payload — a component cannot distinguish inputs
+		// it is never given, and an equality assertion over identical drives cannot
+		// fail for the reason "the branches diverged". That evidence lives in
+		// `SECURITY: shadow-mint and other-org-UNCLAIMED produce IDENTICAL copy`
+		// above, plus the service and router tests.
+		//
+		// What IS worth pinning is the new surface: the running count is a second
+		// thing that moves on every success, and it must stay a pure function of
+		// how many adds happened — never of which branch ran, and never leaking
+		// into the message. A count that appeared in the toast, or advanced
+		// differently per branch, would reopen the channel the toast closed.
+		await openDialog();
+
+		succeed('Ava Thompson', false);
+		expect(screen.getByText('1 added')).toBeInTheDocument();
+		expect(mocks.toastSuccess).toHaveBeenLastCalledWith(
+			'Ava Thompson added to your roster.',
+		);
+
+		succeed('Ava Thompson', false);
+		expect(screen.getByText('2 added')).toBeInTheDocument();
+		// The message is byte-identical on the second add — the count did not
+		// bleed into it.
+		expect(mocks.toastSuccess).toHaveBeenLastCalledWith(
+			'Ava Thompson added to your roster.',
+		);
+	});
+
+	it('keeps the count and the batch labels when a later add fails', async () => {
+		// The commonest error here is the benign "Already on your roster", and it
+		// arrives mid-batch — a coordinator working down a list will hit someone
+		// they already added. `onSuccess` and `onError` are independent state
+		// transitions, so nothing but this test stops a future edit from resetting
+		// the count on error and telling the coordinator the first two names went
+		// nowhere.
+		await openDialog();
+
+		succeed('Ada Lovelace');
+		act(() => {
+			mocks.onError?.({
+				message: 'Already on your roster',
+				data: { code: 'CONFLICT' },
+			});
+		});
+
+		expect(await screen.findByRole('alert')).toHaveTextContent(
+			'Already on your roster',
+		);
+		expect(screen.getByText('1 added')).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', { name: 'Add another' }),
+		).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument();
+	});
+
+	it('disables DONE mid-batch, not just Cancel, and re-enables after', async () => {
+		// The case the guard exists for is `Add another` → `Done` in one motion,
+		// which only happens once `addedCount > 0` — i.e. on the button labelled
+		// `Done`. A test that pins `isPending` before the dialog opens asserts on
+		// `Cancel` at a count of zero and never reaches that branch, which is how
+		// the first version of this suite "covered" the guard without testing it.
+		//
+		// Flipping the mock between adds is what forces a re-render at
+		// `addedCount > 0 && isPending` — also the only path that renders
+		// `Adding…` mid-batch.
+		await openDialog();
+
+		succeed('Ada Lovelace');
+		expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled();
+
+		mocks.isPending = true;
+		succeed('Grace Hopper');
+
+		expect(screen.getByRole('button', { name: 'Done' })).toBeDisabled();
+		expect(screen.getByRole('button', { name: 'Adding…' })).toBeDisabled();
+
+		mocks.isPending = false;
+		succeed('Katherine Johnson');
+
+		expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled();
+		expect(screen.getByRole('button', { name: 'Add another' })).toBeEnabled();
+	});
+
+	it('disables the secondary action during the very first add', async () => {
+		// The count-zero half of the guard: `Cancel`, before anything has been
+		// committed. The mid-batch `Done` case — the one the guard actually exists
+		// for — is the test above; this asserts only that the button is disabled,
+		// NOT that the form cannot be closed. It can: Escape and an overlay click
+		// still reach Radix's own close and still orphan `onSuccess` (accepted P3
+		// in docs/TODOS.md), so do not rename this to a claim about closing.
+		mocks.isPending = true;
+		await openDialog();
+
+		expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+		expect(screen.getByRole('button', { name: 'Adding…' })).toBeDisabled();
+	});
+
+	it('behaves the same in the Drawer as in the Dialog', async () => {
+		// The form is one component, but the shell around it is not: vaul owns
+		// focus and animation below `lg` and has already needed jsdom shims in
+		// this file for its own quirks. The repeat-entry contract — focus back to
+		// Name, count, relabelled footer — is asserted against the Dialog branch
+		// everywhere above, so this is the only thing standing between a vaul
+		// upgrade and a phone-only regression on the surface T28 exists for.
+		mocks.mediaQueryState.isDesktop = false;
+		const user = await openDialog();
+
+		await user.type(screen.getByLabelText('Name'), 'Ada Lovelace');
+		await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+		succeed('Ada Lovelace');
+
+		expect(screen.getByRole('dialog').dataset.slot).toBe('drawer-content');
+		expect(screen.getByLabelText('Name')).toHaveFocus();
+		expect(screen.getByLabelText('Name')).toHaveValue('');
+		expect(screen.getByText('1 added')).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', { name: 'Add another' }),
+		).toBeInTheDocument();
 	});
 });
 
