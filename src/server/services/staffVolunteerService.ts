@@ -1,9 +1,15 @@
 import { TRPCError } from '@trpc/server';
+import type {
+	AccountState,
+	OrgVolunteerSource,
+} from '@/prisma/generated/client';
 import {
 	type AddVolunteerOutcome,
 	normalizeEmail,
+	SHIFT_HISTORY_WIRE_CAP,
 	shouldNotifyByEmail,
 } from '@/server/domain/org-volunteer';
+import { shiftDurationHours, sumAttendedHours } from '@/server/domain/shift';
 import { isUniqueViolationOn } from '@/server/lib/prisma-errors';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
@@ -13,8 +19,10 @@ import {
 	createOrgVolunteerBlock,
 	findLiveOrgVolunteer,
 	findOrgVolunteerBlock,
+	findOrgVolunteerById,
 	findRemovedOrgVolunteer,
 	hasLeavableOrgRelationship,
+	listAttendedShiftsForUserInOrg,
 	listMyOrgRelationships,
 	listOrgVolunteers,
 	restoreOrgVolunteer,
@@ -618,4 +626,105 @@ export async function getRoster(input: {
 
 export function getRosterCount(orgId: string) {
 	return countOrgVolunteers(orgId);
+}
+
+/** One row of the detail dialog's shift history. */
+export type VolunteerDetailShift = {
+	shiftId: string;
+	title: string;
+	startTime: Date;
+	endTime: Date;
+	hours: number;
+};
+
+export type VolunteerDetail = {
+	id: string;
+	displayName: string;
+	/**
+	 * Nullable because `User.email` is — NextAuth's schema allows an account
+	 * without one. `addVolunteer` always supplies one, so this is `null` only
+	 * for a roster row pointing at a user created by some other path. Mirrors
+	 * what `getRoster` already projects.
+	 */
+	email: string | null;
+	phone: string | null;
+	accountState: AccountState;
+	source: OrgVolunteerSource;
+	addedAt: Date;
+	/**
+	 * Hours at THIS org, summed from `shifts` below — not the volunteer's
+	 * platform-wide total. `getOrgVisibleProfile.totalHours` is the cross-org
+	 * figure and is deliberately not used here: pairing it with an org-scoped
+	 * shift list would put "3 shifts · 47 hours" in one card.
+	 */
+	totalHours: number;
+	/**
+	 * How many attended shifts exist at this org — NOT `shifts.length`, which is
+	 * capped at `SHIFT_HISTORY_WIRE_CAP`. This is the figure the dialog shows and
+	 * the one that has to agree with the roster row's `Shifts` cell.
+	 */
+	shiftCount: number;
+	/** The most recent `SHIFT_HISTORY_WIRE_CAP` of them. */
+	shifts: VolunteerDetailShift[];
+};
+
+/**
+ * One volunteer's detail, for the roster's row-click dialog.
+ *
+ * `findOrgVolunteerById` both loads the row AND establishes the org
+ * relationship — `orgId` is inside its WHERE, so a crafted id from another org
+ * resolves to null rather than to that org's volunteer. That is why this needs
+ * no `requireOrgVolunteerRelationship`: a live roster row IS the
+ * `ORG_VOLUNTEER` edge that guard looks for. Same reasoning as
+ * `assignVolunteerToShift`.
+ *
+ * SECURITY: `userId` is used to query and is NEVER returned. Same rule
+ * `getRoster` documents — `User.id` is shared across orgs by design in the
+ * shadow-user model, so putting it on the wire hands one org a stable global
+ * identifier for a person. Nothing this dialog renders needs it.
+ */
+export async function getVolunteerDetail(input: {
+	orgId: string;
+	volunteerId: string;
+}): Promise<VolunteerDetail> {
+	const volunteer = await findOrgVolunteerById(input.orgId, input.volunteerId);
+	if (!volunteer) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Volunteer not found on your roster.',
+		});
+	}
+
+	const attended = await listAttendedShiftsForUserInOrg(
+		input.orgId,
+		volunteer.userId,
+	);
+
+	return {
+		id: volunteer.id,
+		displayName: volunteer.displayName,
+		email: volunteer.user.email,
+		phone: volunteer.phone,
+		accountState: volunteer.user.accountState,
+		source: volunteer.source,
+		addedAt: volunteer.createdAt,
+		// Both figures are computed across EVERY attended row, then the LIST is
+		// truncated. That ordering is the whole point: it keeps them consistent
+		// with the roster row's uncapped `Shifts` cell while keeping the response
+		// O(1) instead of O(tenure).
+		totalHours: sumAttendedHours(attended),
+		shiftCount: attended.length,
+		shifts: attended
+			.slice(0, SHIFT_HISTORY_WIRE_CAP)
+			// Explicit projection, never `...s`. A spread would forward whatever
+			// the repo's `select` happens to return, so widening that select later
+			// would put new fields on the wire silently — `userId` among them.
+			.map((s) => ({
+				shiftId: s.shiftId,
+				title: s.title,
+				startTime: s.startTime,
+				endTime: s.endTime,
+				hours: shiftDurationHours(s.startTime, s.endTime),
+			})),
+	};
 }

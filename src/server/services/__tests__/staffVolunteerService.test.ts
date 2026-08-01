@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
 	userCreate: vi.fn(),
 	userUpdate: vi.fn(),
 	findLiveOrgVolunteer: vi.fn(),
+	findOrgVolunteerById: vi.fn(),
+	listAttendedShiftsForUserInOrg: vi.fn(),
 	createOrgVolunteer: vi.fn(),
 	softDeleteOrgVolunteer: vi.fn(),
 	softDeleteOwnOrgVolunteerByOrg: vi.fn(),
@@ -53,6 +55,8 @@ vi.mock('@/server/repositories/auditRepo', () => ({
 
 vi.mock('@/server/repositories/orgVolunteerRepo', () => ({
 	findLiveOrgVolunteer: mocks.findLiveOrgVolunteer,
+	findOrgVolunteerById: mocks.findOrgVolunteerById,
+	listAttendedShiftsForUserInOrg: mocks.listAttendedShiftsForUserInOrg,
 	createOrgVolunteer: mocks.createOrgVolunteer,
 	softDeleteOrgVolunteer: mocks.softDeleteOrgVolunteer,
 	softDeleteOwnOrgVolunteerByOrg: mocks.softDeleteOwnOrgVolunteerByOrg,
@@ -68,10 +72,14 @@ vi.mock('@/server/repositories/orgVolunteerRepo', () => ({
 }));
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { INDISTINGUISHABLE_OUTCOMES } from '@/server/domain/org-volunteer';
+import {
+	INDISTINGUISHABLE_OUTCOMES,
+	SHIFT_HISTORY_WIRE_CAP,
+} from '@/server/domain/org-volunteer';
 import { p2002Error } from '@/test/prisma-error-fixtures';
 import {
 	addVolunteer,
+	getVolunteerDetail,
 	leaveOrgRoster,
 	removeVolunteer,
 	restoreVolunteer,
@@ -713,5 +721,173 @@ describe('leaveOrgRoster', () => {
 
 		const [, entry] = mocks.writeAuditLogTx.mock.calls[0];
 		expect(entry.metadata).not.toHaveProperty('impersonatedBy');
+	});
+});
+
+describe('getVolunteerDetail', () => {
+	const ROSTER_ROW = {
+		id: 'ov-1',
+		displayName: 'Maria Garcia',
+		phone: '555-0100',
+		source: 'STAFF_ADDED' as const,
+		createdAt: new Date('2026-03-01T00:00:00Z'),
+		addedByUserId: ACTOR,
+		userId: 'user-maria',
+		user: {
+			id: 'user-maria',
+			email: 'maria@example.com',
+			accountState: 'UNCLAIMED' as const,
+		},
+	};
+
+	beforeEach(() => {
+		mocks.findOrgVolunteerById.mockResolvedValue(ROSTER_ROW);
+		mocks.listAttendedShiftsForUserInOrg.mockResolvedValue([]);
+	});
+
+	it('SECURITY: a volunteerId from another org is NOT_FOUND', async () => {
+		// This throw IS the authorization outcome. `findOrgVolunteerById` carries
+		// orgId inside its WHERE, so a crafted id from another tenant resolves to
+		// null — which is the entire reason this procedure needs no
+		// requireOrgVolunteerRelationship. Nothing else in the suite exercises the
+		// refusal: the router test mocks this service away, the integration test
+		// covers the repo underneath it, and the e2e only walks the happy path.
+		mocks.findOrgVolunteerById.mockResolvedValue(null);
+
+		await expect(
+			getVolunteerDetail({ orgId: ORG, volunteerId: 'ov-from-other-org' }),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+		// And it refuses BEFORE reading any shift history, so a foreign id cannot
+		// be used to probe another org's data even for timing.
+		expect(mocks.listAttendedShiftsForUserInOrg).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: scopes the lookup by the CALLING org, not by the id alone', async () => {
+		await getVolunteerDetail({ orgId: ORG, volunteerId: 'ov-1' });
+
+		expect(mocks.findOrgVolunteerById).toHaveBeenCalledWith(ORG, 'ov-1');
+	});
+
+	it('SECURITY: never returns userId, including inside shift rows', async () => {
+		// User.id is shared across orgs by design in the shadow-user model, so
+		// putting it on the wire hands one org a stable global identifier for a
+		// person. The service comment says so; without this test a future edit
+		// spreading `...volunteer` into the return would pass everything else.
+		// A non-empty history on purpose: the shift rows are where a widened repo
+		// `select` would leak, and with an empty list the assertion below cannot
+		// reach the projection at all. The extra `userId` here stands in for that
+		// future widening.
+		mocks.listAttendedShiftsForUserInOrg.mockResolvedValue([
+			{
+				shiftId: 'sh-1',
+				title: 'Saturday morning',
+				startTime: new Date('2026-03-07T09:00:00Z'),
+				endTime: new Date('2026-03-07T12:00:00Z'),
+				userId: 'user-maria',
+			},
+		]);
+
+		const detail = await getVolunteerDetail({
+			orgId: ORG,
+			volunteerId: 'ov-1',
+		});
+
+		expect(detail).not.toHaveProperty('userId');
+		expect(Object.keys(detail.shifts[0]).sort()).toEqual([
+			'endTime',
+			'hours',
+			'shiftId',
+			'startTime',
+			'title',
+		]);
+		expect(JSON.stringify(detail)).not.toContain('user-maria');
+	});
+
+	it('caps what it SENDS but counts and sums everything', async () => {
+		// The invariant the wire cap has to preserve: `shiftCount` and
+		// `totalHours` must still match the roster row's uncapped Shifts cell.
+		mocks.listAttendedShiftsForUserInOrg.mockResolvedValue(
+			Array.from({ length: SHIFT_HISTORY_WIRE_CAP + 5 }, (_, i) => ({
+				shiftId: `sh-${i}`,
+				title: `Shift ${i}`,
+				startTime: new Date('2026-03-07T09:00:00Z'),
+				endTime: new Date('2026-03-07T10:00:00Z'),
+			})),
+		);
+
+		const detail = await getVolunteerDetail({
+			orgId: ORG,
+			volunteerId: 'ov-1',
+		});
+
+		expect(detail.shifts).toHaveLength(SHIFT_HISTORY_WIRE_CAP);
+		expect(detail.shiftCount).toBe(SHIFT_HISTORY_WIRE_CAP + 5);
+		expect(detail.totalHours).toBe(SHIFT_HISTORY_WIRE_CAP + 5);
+	});
+
+	it('reads history with the RESOLVED userId, not the roster row id', async () => {
+		// Passing input.volunteerId here would return an empty list rather than an
+		// error, so the only symptom would be a dialog quietly claiming this
+		// volunteer has never worked a shift.
+		await getVolunteerDetail({ orgId: ORG, volunteerId: 'ov-1' });
+
+		expect(mocks.listAttendedShiftsForUserInOrg).toHaveBeenCalledWith(
+			ORG,
+			'user-maria',
+		);
+	});
+
+	it('sums hours across every attended row and stamps each row with its own', async () => {
+		mocks.listAttendedShiftsForUserInOrg.mockResolvedValue([
+			{
+				shiftId: 'sh-1',
+				title: 'Saturday morning',
+				startTime: new Date('2026-03-07T09:00:00Z'),
+				endTime: new Date('2026-03-07T12:00:00Z'),
+			},
+			{
+				shiftId: 'sh-2',
+				title: 'Sunday intake',
+				startTime: new Date('2026-03-08T09:00:00Z'),
+				endTime: new Date('2026-03-08T11:30:00Z'),
+			},
+		]);
+
+		const detail = await getVolunteerDetail({
+			orgId: ORG,
+			volunteerId: 'ov-1',
+		});
+
+		expect(detail.totalHours).toBe(5.5);
+		expect(detail.shifts.map((s) => s.hours)).toEqual([3, 2.5]);
+	});
+
+	it('returns the org-owned facts the dialog renders', async () => {
+		const detail = await getVolunteerDetail({
+			orgId: ORG,
+			volunteerId: 'ov-1',
+		});
+
+		expect(detail).toMatchObject({
+			id: 'ov-1',
+			displayName: 'Maria Garcia',
+			email: 'maria@example.com',
+			phone: '555-0100',
+			accountState: 'UNCLAIMED',
+			source: 'STAFF_ADDED',
+			totalHours: 0,
+			shiftCount: 0,
+			shifts: [],
+		});
+	});
+
+	it('writes no audit row — this is a read', async () => {
+		// Every other export in this file mutates and audits. Pattern-matching
+		// them would put a row in the org's audit log every time a coordinator
+		// opened a dialog, which is noise that buries the real entries.
+		await getVolunteerDetail({ orgId: ORG, volunteerId: 'ov-1' });
+
+		expect(mocks.writeAuditLogTx).not.toHaveBeenCalled();
 	});
 });
