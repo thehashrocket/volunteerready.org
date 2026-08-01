@@ -48,6 +48,22 @@ jobs:
 
       - run: pnpm typecheck
 
+      # The docs site is not deployed, so this gates CORRECTNESS, not a release.
+      # It exists because nothing checked it before: a stray `{{` in any doc
+      # failed the build outright and nobody noticed for months.
+      #
+      # If this fails on a doc you just wrote, the likely cause is a `{{ … }}` or
+      # a bare `<tag>` in prose — Vue parses every .md here as an SFC, and it
+      # reports a POST-TRANSFORM line number that will NOT match your source.
+      #
+      # SCOPE, verified by experiment — do not widen this claim without re-testing:
+      # `vitepress build` validates links inside MARKDOWN only. A dead link in
+      # `themeConfig.nav`/`sidebar` builds green and exits 0. That is precisely how
+      # the nav rotted for ~5 months after 3109623 (2026-03-09) deleted the six
+      # `docs/guide/*` stubs it pointed at. Config links are covered by
+      # `scripts/docs-nav-links.test.ts` under `pnpm test:scripts` instead.
+      - run: pnpm docs:build
+
   test:
     name: Tests (unit, scripts, integration)
     runs-on: ubuntu-latest
