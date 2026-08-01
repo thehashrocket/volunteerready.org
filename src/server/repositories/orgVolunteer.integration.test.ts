@@ -31,6 +31,7 @@ import {
 	findOrgVolunteerBlock,
 	findOrgVolunteerRelationship,
 	hasLeavableOrgRelationship,
+	listAttendedShiftsForUserInOrg,
 	listMyOrgRelationships,
 	listOrgVolunteers,
 	restoreOrgVolunteer,
@@ -262,6 +263,139 @@ describe('orgVolunteerRepo — org scoping', () => {
 	it('returns an empty map for no user ids without querying', async () => {
 		const counts = await countAttendedShiftsByUser('any-org', []);
 		expect(counts.size).toBe(0);
+	});
+
+	it('SECURITY: a volunteer on two rosters shows each org only its own shift history', async () => {
+		// The count above leaks a NUMBER without the shift.orgId join; this leaks
+		// the rows themselves — titles and dates of work done for another
+		// organisation — so it is the same bug class one resolution worse. T27's
+		// detail dialog was specified against the cross-org
+		// `getAttendedShiftsForUser`, which is exactly what this guards against.
+		const [orgA, orgB, user] = await Promise.all([
+			makeOrg('hist-a'),
+			makeOrg('hist-b'),
+			makeUser('hist'),
+		]);
+
+		async function attendShift(
+			orgId: string,
+			suffix: string,
+			startIso: string,
+			endIso: string,
+		) {
+			const shift = await prisma.shift.create({
+				data: {
+					orgId,
+					title: `${PREFIX}${suffix}`,
+					startTime: new Date(startIso),
+					endTime: new Date(endIso),
+					capacity: 5,
+				},
+			});
+			await prisma.shiftSignup.create({
+				data: { shiftId: shift.id, userId: user.id, status: 'ATTENDED' },
+			});
+		}
+
+		await attendShift(
+			orgA.id,
+			'hist-a1',
+			'2026-03-01T10:00:00Z',
+			'2026-03-01T12:00:00Z',
+		);
+		await attendShift(
+			orgA.id,
+			'hist-a2',
+			'2026-03-05T10:00:00Z',
+			'2026-03-05T13:00:00Z',
+		);
+		await attendShift(
+			orgB.id,
+			'hist-b1',
+			'2026-03-03T10:00:00Z',
+			'2026-03-03T12:00:00Z',
+		);
+
+		const forA = await listAttendedShiftsForUserInOrg(orgA.id, user.id);
+		const forB = await listAttendedShiftsForUserInOrg(orgB.id, user.id);
+
+		expect(forA.map((s) => s.title)).toEqual([
+			// Newest first — the dialog reads as a history, not a backlog.
+			`${PREFIX}hist-a2`,
+			`${PREFIX}hist-a1`,
+		]);
+		expect(forB.map((s) => s.title)).toEqual([`${PREFIX}hist-b1`]);
+	});
+
+	it('SECURITY: shows one volunteer only their OWN shifts at this org', async () => {
+		// The cross-org test above varies the ORG but uses a single user, so it
+		// leaves the `userId` half of the WHERE unexercised: dropping it kept the
+		// whole suite green while every volunteer's dialog would have listed every
+		// other volunteer's shifts at that org. Same mutation-verification bar the
+		// leave path is held to.
+		const [org, mine, theirs] = await Promise.all([
+			makeOrg('hist-own'),
+			makeUser('hist-own-mine'),
+			makeUser('hist-own-theirs'),
+		]);
+
+		async function attend(user: { id: string }, suffix: string) {
+			const shift = await prisma.shift.create({
+				data: {
+					orgId: org.id,
+					title: `${PREFIX}${suffix}`,
+					startTime: new Date('2026-03-01T10:00:00Z'),
+					endTime: new Date('2026-03-01T12:00:00Z'),
+					capacity: 5,
+				},
+			});
+			await prisma.shiftSignup.create({
+				data: { shiftId: shift.id, userId: user.id, status: 'ATTENDED' },
+			});
+		}
+
+		await attend(mine, 'hist-own-mine');
+		await attend(theirs, 'hist-own-theirs');
+
+		const rows = await listAttendedShiftsForUserInOrg(org.id, mine.id);
+
+		expect(rows.map((s) => s.title)).toEqual([`${PREFIX}hist-own-mine`]);
+	});
+
+	it('lists only ATTENDED shifts, matching the count beside it', async () => {
+		// The dialog's hours are summed from these rows and sit under a roster
+		// cell showing countAttendedShiftsByUser. If this listing admitted a
+		// CONFIRMED signup the two would disagree on screen, which is the whole
+		// reason both go through one shared filter.
+		const [org, user] = await Promise.all([
+			makeOrg('hist-status'),
+			makeUser('hist-status'),
+		]);
+
+		async function signUp(suffix: string, status: SignupStatus) {
+			const shift = await prisma.shift.create({
+				data: {
+					orgId: org.id,
+					title: `${PREFIX}${suffix}`,
+					startTime: new Date('2026-03-01T10:00:00Z'),
+					endTime: new Date('2026-03-01T12:00:00Z'),
+					capacity: 5,
+				},
+			});
+			await prisma.shiftSignup.create({
+				data: { shiftId: shift.id, userId: user.id, status },
+			});
+		}
+
+		await signUp('hist-attended', 'ATTENDED');
+		await signUp('hist-confirmed', 'CONFIRMED');
+		await signUp('hist-noshow', 'NO_SHOW');
+
+		const history = await listAttendedShiftsForUserInOrg(org.id, user.id);
+		const counts = await countAttendedShiftsByUser(org.id, [user.id]);
+
+		expect(history.map((s) => s.title)).toEqual([`${PREFIX}hist-attended`]);
+		expect(counts.get(user.id)).toBe(history.length);
 	});
 
 	it('SECURITY: softDelete refuses a row belonging to another org', async () => {
