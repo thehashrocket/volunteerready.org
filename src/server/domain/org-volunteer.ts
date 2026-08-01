@@ -33,6 +33,25 @@ export const ROSTER_PAGE_SIZE = 25;
 export const ASSIGN_PICKER_LIMIT = 20;
 
 /**
+ * How many attended shifts the volunteer detail dialog SENDS to the client.
+ *
+ * A wire cap, not a query cap, and the distinction is load-bearing in both
+ * directions. The read stays uncapped because the hours total and the "N
+ * attended" figure are computed from every row and sit under a roster cell
+ * showing the uncapped `countAttendedShiftsByUser` — a `take` on the query
+ * would silently under-report both and contradict the row the coordinator just
+ * clicked. But shipping every row is O(tenure): a daily volunteer over five
+ * years is ~1800 rows (~420KB with superjson's per-Date metadata) transferred
+ * to paint fifty list items. So the service sums across all of them and sends
+ * this many, plus the count, and the dialog says "showing N of M".
+ *
+ * Lives in domain because BOTH layers need it — the service slices on it and
+ * the dialog's copy names it. It was briefly a client-only constant, which
+ * meant the server had no ceiling available to it even in principle.
+ */
+export const SHIFT_HISTORY_WIRE_CAP = 50;
+
+/**
  * Threshold at which a roster counts as "populated".
  *
  * Three things must agree on this number: the primary success metric (orgs
@@ -109,9 +128,9 @@ export const addVolunteerSchema = z.object({
  * Upper bound for an `OrgVolunteer.id` arriving from a client.
  *
  * The id is a cuid (25 chars today); 64 is slack for a future id format without
- * leaving the input an unbounded string. Shared so the bound is decided once —
- * the same id is currently validated three different ways across the codebase
- * (`max(64)` on the roster cursor, no cap at all on `volunteers.remove`).
+ * leaving the input an unbounded string. Shared so the bound is decided once.
+ * Every `volunteerId` input on `volunteersRouter` now uses it; the roster
+ * cursor carries its own `max(64)` because it is a different kind of value.
  */
 export const ORG_VOLUNTEER_ID_MAX = 64;
 
@@ -131,6 +150,33 @@ export const orgVolunteerIdSchema = z.string().min(1).max(ORG_VOLUNTEER_ID_MAX);
 export const ORG_VOLUNTEER_SOURCE_COPY: Record<OrgVolunteerSource, string> = {
 	STAFF_ADDED: 'Added by their staff',
 	APPLIED: 'Added when they approved your application',
+};
+
+/**
+ * The same fact, told to the ORG'S STAFF.
+ *
+ * A second Record rather than reusing the one above, because that copy is
+ * second-person **to the volunteer** — "they" is the org and "your" is the
+ * volunteer's. Rendered on a staff surface it inverts: a coordinator reading
+ * "Added when they approved your application" sees the volunteer approving the
+ * coordinator's application, which is backwards, and "Added by their staff"
+ * reads as some other organisation's staff.
+ *
+ * T27 shipped the volunteer Record into the staff detail dialog and was caught
+ * in review. The comment it shipped with drew the wrong lesson — that sharing
+ * the Record means "the two surfaces cannot tell different stories about one
+ * row". The correct lesson is narrower: **share the ENUM, never pronoun-bearing
+ * prose.** Exhaustiveness is what the Record buys; voice is per-audience.
+ *
+ * Still a `Record` for the original reason: a third `OrgVolunteerSource` must
+ * be a type error at every render site, in both voices.
+ */
+export const ORG_VOLUNTEER_SOURCE_COPY_STAFF: Record<
+	OrgVolunteerSource,
+	string
+> = {
+	STAFF_ADDED: 'Added by your team',
+	APPLIED: 'Added when you approved their application',
 };
 
 /**

@@ -66,6 +66,18 @@ export async function getConfirmedShiftsForUser(userId: string) {
 /**
  * Get all ATTENDED signups for a user, with shift start/end times and orgId.
  * Used by volunteerIdentityService to compute total volunteer hours and orgCount.
+ *
+ * SECURITY: cross-org ON PURPOSE, and therefore NOT usable by any staff-facing
+ * surface. A User row is shared between orgs by email, so these rows span every
+ * org that person has ever volunteered for. That is correct for the two callers
+ * it has — a volunteer's own lifetime hours (`volunteerIdentityService`) and
+ * platform-wide tenure badges (`tenureBadgeService`) — and a cross-tenant leak
+ * anywhere else.
+ *
+ * If you need one org's view, use `listAttendedShiftsForUserInOrg` or
+ * `countAttendedShiftsByUser` in `orgVolunteerRepo.ts`, which join through
+ * `shift.orgId`. T27's detail dialog was specified against THIS function and
+ * would have shown org A every shift a shared volunteer worked for org B.
  */
 export async function getAttendedShiftsForUser(userId: string) {
 	return prisma.shiftSignup.findMany({

@@ -663,9 +663,20 @@ and the mockup disagree, this section wins.
   a future `/app/volunteers/[id]`.
 - **Row click opens a volunteer detail dialog**, matching `ShiftDetailDialog` — a list row
   opens a dialog in this app, it does not push a route. Shows org `displayName`, email, phone,
-  date added, shift history with attendance, total hours. Reuses `getOrgVisibleProfile`
-  (hardened by T7) and `getAttendedShiftsForUser`. The row becomes clickable, so `Remove`
+  date added, shift history with attendance, total hours. ~~Reuses `getOrgVisibleProfile`
+  (hardened by T7) and `getAttendedShiftsForUser`.~~ The row becomes clickable, so `Remove`
   needs `e.stopPropagation()` — pattern at `OpportunitiesClient.tsx:255`.
+  - ⚠️ **The struck-through clause was wrong, and T27 shipped neither function.** Both are
+    **cross-org by design** and this dialog is a single-org staff surface.
+    `getAttendedShiftsForUser` has no org filter at all — it would have shown org A every
+    shift a shared volunteer worked for org B, which is the leak the eng re-review caught
+    (see the T27 checklist entry). `getOrgVisibleProfile.totalHours`/`orgCount` are
+    platform-wide aggregates powering the volunteer's own public profile; pairing one with
+    an org-scoped shift list would have put "3 shifts · 47 hours" in a single card.
+    Shipped instead: `listAttendedShiftsForUserInOrg(orgId, userId)` joined through
+    `shift.orgId`, and hours summed from exactly those rows. The identity panel
+    (credentials, reliability, lifetime hours) is out of scope — the dialog shows only
+    facts this org owns.
 - **Assign-to-shift lives inside `ShiftDetailDialog`**, not on the roster row. That dialog
   already shows `{signups}/{capacity}`, the check-in strip and the waitlist, which is the
   context the decision needs. A search-as-you-type picker over the org roster sits above the
@@ -1149,11 +1160,20 @@ produces confidently wrong work.
   - Verify: ✅ 3 unit tests — the toast carries an `Undo` action calling `volunteers.restore` with the same id, the toast outlives sonner's ~4s default, and the restore names the right person when two removals are undone out of order
   - **The removed-name store is a `Map` keyed by volunteer id, not one "last removed" slot.** By the time the undo fires, `volunteers.list` has been invalidated and the row is gone, so the name cannot be looked up again — it has to be captured at removal. Two quick removals leave two undo toasts on screen at once, and a single slot would make the older one confirm the newer one's name
   - **`onError` is not optional here.** An undo can legitimately fail: the volunteer may have used the exit on `/app/profile` in the meantime, which writes an `OrgVolunteerBlock` that `restoreVolunteer` refuses with `FORBIDDEN`. That refusal is the whole point of the block — surface it rather than let the UI imply the undo worked
-- [ ] **T27 (P2, human: ~4h / CC: ~25min)** — ui — Volunteer detail dialog on row click
+- [x] **T27 (P2, human: ~4h / CC: ~25min)** — ui — Volunteer detail dialog on row click ✅ **DONE**
   - Surfaced by: Design D4 — the roster would be the only list in the product that dead-ends
-  - Files: `src/app/(app)/app/volunteers/`, `src/server/repositories/shiftSignupRepo.ts`
+  - Files: `src/app/(app)/app/volunteers/{page.tsx,VolunteerDetailDialog.tsx,RemoveVolunteerButton.tsx}`, `src/server/repositories/orgVolunteerRepo.ts`, `src/server/services/staffVolunteerService.ts`, `src/server/trpc/routers/volunteers.ts`, `src/server/domain/shift.ts`, `src/lib/hooks/use-frozen-desktop-shell.ts`
   - **`SECURITY:` — eng re-review. Do not reuse `getAttendedShiftsForUser` as-is.** It is `where: { userId, status: 'ATTENDED' }` with **no org filter** (`shiftSignupRepo.ts:53-66`) — it selects `shift.orgId` and never filters on it. Rendering it in this dialog shows org A every shift the volunteer attended for org B. This is the identical leak class T33 wrote a mandatory `SECURITY:` test for, except the dialog displays the underlying rows rather than a count, so it leaks strictly more. Add an org-scoped variant (`getAttendedShiftsForUserInOrg(userId, orgId)`) rather than filtering in the component
   - Verify: assert `Remove` does not open the dialog (`stopPropagation`); `SECURITY:` test — a volunteer on two rosters shows each org only its own shift history
+  - **The org-scoped read went in `orgVolunteerRepo.ts`, NOT `shiftSignupRepo.ts` as the Files line above said**, and shares a private `attendedShiftFilter(orgId)` with `countAttendedShiftsByUser`. Two reasons: the sibling org-scoped read already lives there with the SECURITY note attached, and — the load-bearing one — the dialog IS the drill-down of the roster row's `Shifts` cell, so a hand-written second copy of the filter would let the count and the list disagree. The visible symptom would be a row reading 12 opening a dialog showing 9. `shiftSignupRepo.ts`'s cross-org function got a docstring naming both org-scoped alternatives and this exact trap
+  - **Hours are ORG-SCOPED and one decimal.** `sumAttendedHours`/`shiftDurationHours` in `domain/shift.ts`, rounding ONCE from the raw millisecond sum rather than adding up rounded rows (a test pins this: three 20-minute shifts are 1h, not 0.9h). One decimal matches `orgAnalyticsRepo`'s org-facing convention, not `volunteerIdentityService`'s whole hours — a 2.5h Saturday shown as "3h" is a visible lie on a list short enough to check by hand
+  - **The READ is uncapped, the WIRE is capped at `SHIFT_HISTORY_WIRE_CAP` (50), and the totals are computed before the slice.** Capping the query is the tempting mistake — the total and the `N attended` figure are summed from these rows and sit under a roster cell showing the uncapped `countAttendedShiftsByUser`, so a `take` would under-report both and contradict the row just clicked. But shipping every row is O(tenure): review measured ~1800 rows / ~420KB for a daily volunteer over five years, transferred to paint fifty list items. So the service sums across everything, sends 50 plus a `shiftCount`, and the dialog says "Showing the 50 most recent of N. The totals above include all of them." The first draft capped only the render, client-side, which left the server with no ceiling available to it even in principle; two specialists (performance + api-contract) flagged it independently. **Keep the two caps straight: capping the read breaks the totals, capping nothing breaks the payload.**
+  - **ONE dialog instance, page-owned, with NO `DialogTrigger`.** Both roster trees are always in the DOM (the switch is pure CSS), so a per-row dialog mounts twice per volunteer and Radix's trigger model — which requires trigger and content to be siblings under one `<Dialog>` — cannot express two trees of triggers. Consequences, both of which cost a round to get right: Radix restores focus to `<body>` on close, so `page.tsx` prevents that in **`onCloseAutoFocus`** (an `onOpenChange` handler runs BEFORE Radix's restore and gets overwritten by it); and the element to restore to is not always the one clicked, since the desktop `<tr>` is clickable and cannot hold focus — rows hand over their `[data-row-trigger]` button instead. A click on that button also bubbles to the row, so it `stopPropagation`s or the row's handler overwrites it with the `<tr>`
+  - **The dialog fetches its own data** rather than being seeded from the clicked row (only `displayName` is passed, to keep the title and the Remove label non-blank in flight). That is what makes an open dialog immune to the list underneath it — search, `Load more` and the invalidate after an unrelated removal can all drop that row, and none of it reaches in
+  - **It owns no mutation.** Remove calls the page's, so one Undo toast, one `removedNames` map, and identical behaviour from either surface — and closing mid-flight cannot orphan the callback, which is the P3 `AddVolunteerDialog` carries precisely because its mutation is declared inside the unmounting component
+  - **Copy is STAFF-voiced, from `ORG_VOLUNTEER_SOURCE_COPY_STAFF`.** The first draft rendered `ORG_VOLUNTEER_SOURCE_COPY`, whose docstring says it is "told to the volunteer themselves" — so the coordinator was shown "Added when they approved your application", inverting who approved whom. The comment shipped alongside it drew the wrong lesson ("the two surfaces cannot tell different stories"); the right one is **share the ENUM, never pronoun-bearing prose**. `roster-export.ts` has the same bug and predates T27 — filed as a P2.
+  - **`Remove` left the mobile card**, closing T28's tracked deviation. Once the row is a `<button>` a nested `<button>` is invalid markup, so this was not merely the tidier option. Desktop keeps its inline `Remove` per the spec, with `stopPropagation` so removing someone does not also open them on the way out
+  - Verify: ✅ 2 domain unit tests + 2 `SECURITY:` integration tests against real Postgres (**mutation-verified**: dropping `shift: { orgId }` from the shared filter turns both red) + 2 router tests incl. `getById` added to the flag-off `it.each` enumeration + 4 hook tests + 15 page tests. Plus e2e at BOTH shells: the 375px drawer with Remove, and a desktop Dialog asserting a real ATTENDED shift written by the assign flow resurfaces as `1 attended · 2.5 hours` — the integration test proves the join EXCLUDES another org's rows, this proves it INCLUDES this org's, which a too-tight `where` would fail silently
 - [x] **T28 (P2, human: ~5h / CC: ~30min)** — ui — Mobile: card list below `lg`, Drawer add form ✅ **DONE**
   - Surfaced by: Design D18 — five columns at 375px; the coordinator's Saturday happens on a phone
   - Files: `src/app/(app)/app/volunteers/page.tsx`, `AddVolunteerDialog.tsx`, both `.test.tsx`, `e2e/staff-created-volunteers.spec.ts`
@@ -1171,7 +1191,8 @@ produces confidently wrong work.
   - ⚠️ **PARTIALLY DONE.** Shipped with T11: `sr-only` search `<Label>`, `h-11` targets, badge icons `aria-hidden` (lucide auto-applies, pinned by `volunteer-status-badge.test.tsx:52`). Shipped with T28: a per-row `aria-label` naming the volunteer on **both** trees' `Remove` (every other named-target button in the app does this — `ShiftsClient.tsx:409,423,439` — and without it a rotor lists N identical "Remove" buttons); an `<output aria-live="polite" class="sr-only">` announcing removal and restore by name, following `org-profile-form.tsx:270` and the volunteer-side leave control at `profile/page.tsx:697-704`; `role="alert"` plus `aria-invalid`/`aria-describedby` on the add form's inline error, which is most often the benign "Already on your roster" — the case that makes a silent form look broken
   - **A discrete live message, not `aria-live` wrapped around the list.** The list also changes on search and on `Load more`; announcing the whole roster on every keystroke is worse than announcing nothing
   - **Shipped with T25:** focus return to the name input after each add, and the running count as `<output aria-live="polite">`. Both were blocked on the stay-open form and landed with it. `polite` rather than `assertive` because focus is deliberately sitting in the name field the coordinator is about to type the next name into — an assertive region would interrupt them
-  - **Still open, each blocked on a different unbuilt task — do not check these off against the T25 or T28 diffs:** the animated header count being `aria-hidden` during transition needs **T30**; `aria-label="View {name}"` on a mobile row needs **T27** to give the row something to open
+  - **Shipped with T27:** `aria-label="View {name}"` on the mobile row, which needed T27 to give the row something to open. T27 also added focus RETURN to the opening row, which the Accessibility list did not ask for because it assumed a `DialogTrigger` — with one dialog serving two trees of rows there is none, so Radix restores to `<body>` and the page has to do it by hand
+  - **Still open, blocked on T30 — do not check this off against the T25, T27 or T28 diffs:** the animated header count being `aria-hidden` during transition. T29 is otherwise complete
 - [ ] **T30 (P3, human: ~2h / CC: ~15min)** — ui — Motion: row enter/exit, animated count, `Load more` append
   - Surfaced by: Design D15 — litmus check 6 was the only NOT SPEC'D. Inherits the existing `globals.css:216` reduced-motion block
   - Files: `src/app/(app)/app/volunteers/`
@@ -1243,7 +1264,7 @@ capture; fidelity came from the written brief.
 | Lane | Steps | Depends on |
 |---|---|---|
 | **A** ✅ | ~~T1 → T2~~ **DONE** (both write `prisma/migrations/`, sequential within the lane) | — |
-| **B** | T3, T10, T11, T12, T25, T26, T27, T28, T29, T30, T31, T33 | Lane A + T22 |
+| **B** | T3, T10, T11, T12, T25, T26, ~~T27~~, T28, T29, T30, T31, T33 | Lane A + T22 |
 | **C** ✅ | ~~T4, T5, T6, T9~~ **DONE** — the gate on enabling the flag for a pilot org | Lane A |
 | **D** | T7 | Lane A |
 | **E** | T8, T23, T24 | Lane A + D + T22 |

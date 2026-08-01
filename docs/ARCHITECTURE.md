@@ -93,8 +93,8 @@ Key files:
 - `volunteer-screening.ts` — screening evaluation rules
 - `volunteer-matching.ts` — skill matching and scoring (0-100)
 - `volunteer-profile.ts` — profile completeness scoring
-- `org-volunteer.ts` — roster invariants: `normalizeEmail()`, display-name/phone/email Zod schemas, page-size and cap constants, add-volunteer outcome types, and `MyOrgRelationshipReason` + `MY_ORG_RELATIONSHIP_COPY` (why an org appears on the volunteer's own list — wider than `OrgVolunteerSource`, since that enum describes a roster row and the list is no longer roster-only)
-- `shift.ts` — shift capacity, signup validation, attendance
+- `org-volunteer.ts` — roster invariants: `normalizeEmail()`, display-name/phone/email Zod schemas, page-size and cap constants, add-volunteer outcome types, and `MyOrgRelationshipReason` + `MY_ORG_RELATIONSHIP_COPY` (why an org appears on the volunteer's own list — wider than `OrgVolunteerSource`, since that enum describes a roster row and the list is no longer roster-only). Source copy is split by AUDIENCE, not shared: `ORG_VOLUNTEER_SOURCE_COPY` is second-person to the volunteer, `ORG_VOLUNTEER_SOURCE_COPY_STAFF` (v0.38.3.0) is the same enum told to the org's staff. Share the enum, never pronoun-bearing prose — both stay `Record`s so a third `OrgVolunteerSource` is a type error in both voices
+- `shift.ts` — shift capacity, signup validation, attendance, hours math (`shiftDurationHours`, `sumAttendedHours`, `HOURS_DECIMAL_PLACES`)
 - `notification.ts` — notification types and domain functions
 - `background-check.ts` — FCRA state machine, PII sanitization
 - `billing.ts` — plan tier limits, trial validation (includes `maxShiftTemplates`)
@@ -131,7 +131,7 @@ Key services:
 - `volunteer-screening.ts` — screening evaluation, duplicate application prevention (P2002 handler), status notification emails (REVIEW/APPROVED/REJECTED)
 - `volunteerMatchingService.ts` — skill matching and recommendations
 - `volunteerProfileService.ts` — profile management
-- `staffVolunteerService.ts` — org volunteer roster: staff add/remove/restore, plus the volunteer's own `listMyOrgMemberships` / `leaveOrgRoster`. `addVolunteer` and `restoreVolunteer` refuse with `FORBIDDEN` while an `OrgVolunteerBlock` stands
+- `staffVolunteerService.ts` — org volunteer roster: staff add/remove/restore, the roster reads (`getRoster`, `getRosterCount`, `getVolunteerDetail`), plus the volunteer's own `listMyOrgMemberships` / `leaveOrgRoster`. `addVolunteer` and `restoreVolunteer` refuse with `FORBIDDEN` while an `OrgVolunteerBlock` stands. `getVolunteerDetail` (v0.38.3.0) needs no `requireOrgVolunteerRelationship`: it loads through `findOrgVolunteerById(orgId, id)`, whose `WHERE` carries the org, so the live roster row it returns IS the `ORG_VOLUNTEER` edge. It sums hours across every attended row and only then slices the list to `SHIFT_HISTORY_WIRE_CAP`, so the totals still agree with the uncapped count on the roster row
 - `appliedRosterService.ts` — materializes the roster row an approved application implies (`ensureAppliedRosterRow()`); returns false instead of creating one when the applicant has blocked the org
 - `orgVolunteerAccessService.ts` — `requireOrgVolunteerRelationship()`, the org↔volunteer authorization guard, plus `liftOrgVolunteerBlock()` — the only way a block is cleared, called from the three places a volunteer re-engages with an org of their own accord (application submit **only when `submittedByUserId` is set** — `screener.submit` is a `publicProcedure`, so an attacker-supplied address must not clear a block — plus claim and shift signup) (application submit, claim, shift signup)
 - `volunteerCredentialService.ts` — credential lifecycle

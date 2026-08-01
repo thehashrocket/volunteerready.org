@@ -264,6 +264,56 @@ export function summarizeAttendance(
 	};
 }
 
+// ---- Hours ----------------------------------------------------------------
+
+/**
+ * Decimal places for an hours figure shown to org staff.
+ *
+ * One, matching `orgAnalyticsRepo`'s convention for org-facing analytics rather
+ * than `volunteerIdentityService`'s whole hours. A coordinator reading ONE
+ * volunteer's history is looking at a small number of shifts, where rounding a
+ * 2.5h Saturday morning to "3h" is a visible lie; the platform-wide profile
+ * figure aggregates hundreds and rounds for legibility instead.
+ */
+export const HOURS_DECIMAL_PLACES = 1;
+
+const MS_PER_HOUR = 1000 * 60 * 60;
+
+function roundHours(hours: number): number {
+	const factor = 10 ** HOURS_DECIMAL_PLACES;
+	return Math.round(hours * factor) / factor;
+}
+
+/** One shift's duration in hours, rounded for display in a per-row cell. */
+export function shiftDurationHours(startTime: Date, endTime: Date): number {
+	return roundHours((endTime.getTime() - startTime.getTime()) / MS_PER_HOUR);
+}
+
+/**
+ * Total hours across a set of shifts.
+ *
+ * Rounds ONCE, from the raw millisecond sum — NOT by adding up the already
+ * rounded per-row figures `shiftDurationHours` produces. The two are therefore
+ * allowed to disagree by a tenth on a long list, which is the accepted cost of
+ * the total being right; summing rounded rows compounds the error instead.
+ * Same principle as `computeESGSummary`'s row-vs-summary rounding.
+ *
+ * Takes whatever rows the caller has already decided to count — there is no
+ * status filter here, because the callers that matter (`getVolunteerDetail`)
+ * have already filtered to ATTENDED in the query, and re-filtering here would
+ * let a caller's `where` and this function's predicate drift apart while both
+ * look correct.
+ */
+export function sumAttendedHours(
+	shifts: readonly { startTime: Date; endTime: Date }[],
+): number {
+	const totalMs = shifts.reduce(
+		(sum, s) => sum + (s.endTime.getTime() - s.startTime.getTime()),
+		0,
+	);
+	return roundHours(totalMs / MS_PER_HOUR);
+}
+
 // ---- Shift Templates ------------------------------------------------------
 
 export const DAY_OF_WEEK_LABELS = [

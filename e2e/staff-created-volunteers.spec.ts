@@ -417,6 +417,39 @@ test.describe('Staff-created volunteers (authenticated, dev server)', () => {
 		});
 		expect(signup?.status).toBe('ATTENDED');
 
+		// --- the same shift, in the volunteer's detail dialog (T27) --------------
+		// End-to-end proof of the org-scoped read: a real ATTENDED signup written
+		// by the step above, resurfacing through
+		// `listAttendedShiftsForUserInOrg`. The integration test proves the join
+		// excludes another org's rows; this proves it INCLUDES this org's, which
+		// a `where` that scoped too tightly would silently fail.
+		await page.goto('/app/volunteers');
+		await page.getByTestId('roster-table').waitFor();
+		await page
+			.getByTestId('roster-table')
+			// `exact`, because Remove's accessible name is "Remove {name} from
+			// your roster" — it CONTAINS the name, so a substring match resolves
+			// to both controls in the row.
+			.getByRole('button', { name: workerName, exact: true })
+			.click();
+
+		// By `data-slot`, not `getByRole('dialog')`: the cookie-consent banner is
+		// also a `role="dialog"`, so the role alone is ambiguous on any page that
+		// has not had consent dismissed.
+		//
+		// A centred Dialog at this width, not the bottom sheet the 375px test
+		// asserts — the two shells are the reason both viewports are covered.
+		const detail = page.locator('[data-slot="dialog-content"]');
+		await expect(detail).toBeVisible();
+		await expect(detail.getByText(shiftTitle)).toBeVisible();
+		// Hours summed from that one shift. Same figure the report shows below,
+		// from a completely different query — if these ever disagree, one of the
+		// two is scoped wrong.
+		await expect(
+			detail.getByText(`1 attended · ${SHIFT_HOURS} hours`),
+		).toBeVisible();
+		await page.keyboard.press('Escape');
+
 		// --- hours in the report ------------------------------------------------
 		await page.goto('/app/analytics');
 		await expect(
@@ -532,15 +565,61 @@ test.describe('Roster on a phone (T28, 375px)', () => {
 		});
 		expect(internal.scroll).toBeLessThanOrEqual(internal.client);
 
-		// Deliberate deviation from the approved spec, which parks Remove in the
-		// T27 detail dialog. T27 is unbuilt, so honouring that literally would
-		// leave a phone unable to remove anyone at all — a capability this page
-		// has today. Delete this assertion when T27 lands and moves the control.
+		// T28 shipped `Remove` on the card as a tracked deviation from the
+		// approved spec, because until T27 existed honouring the spec literally
+		// would have left a phone unable to remove anyone at all. T27 built the
+		// dialog, so the spec's placement now holds: the row is the tap target,
+		// and Remove lives one tap deeper.
 		await expect(
 			cards.getByRole('button', {
 				name: `Remove ${mobileName} from your roster`,
 			}),
-		).toBeVisible();
+		).toBeHidden();
+
+		// --- the detail dialog is a bottom sheet too -----------------------------
+		// The ONLY environment that proves it. The unit tests pin `useMediaQuery`
+		// to desktop, so every one of them exercises the Dialog branch; nothing
+		// but a real 375px viewport shows which shell a human gets, and vaul owns
+		// focus and animation only in this one.
+		await cards.getByRole('button', { name: `View ${mobileName}` }).click();
+
+		// By `data-slot`, not `getByRole('dialog')` — the cookie-consent banner is
+		// also a `role="dialog"`, so the role alone matches two things here.
+		const detail = page.locator('[data-slot="drawer-content"]');
+		await expect(detail).toBeVisible();
+		await expect(detail.getByText(mobileEmail)).toBeVisible();
+		// The STAFF-voiced Record. The volunteer-voiced one says "Added by their
+		// staff", which on this surface reads as some OTHER org's staff.
+		await expect(detail.getByText('Added by your team')).toBeVisible();
+
+		// No sideways scroll with the sheet OPEN. The assertion above runs before
+		// the drawer exists and is scoped to the card list, so nothing covered the
+		// drawer itself — and a grid item without `min-w-0` overflows on a long
+		// address exactly here, which is the failure T28 exists to prevent.
+		const drawerOverflow = await page.evaluate(() => {
+			const el = document.querySelector('[data-slot="drawer-content"]');
+			if (!el) return { found: false, scroll: -1, client: -1 };
+			return { found: true, scroll: el.scrollWidth, client: el.clientWidth };
+		});
+		expect(drawerOverflow.found).toBe(true);
+		expect(drawerOverflow.scroll).toBeLessThanOrEqual(drawerOverflow.client);
+		// Scoped to the drawer, NOT `documentElement.scrollWidth`, for the same
+		// reason the card-list assertion above is scoped: the app shell's top bar
+		// already overflows at 375px on every authenticated page (measured 591 —
+		// see the open P2 in docs/TODOS.md). A document-level assertion here fails
+		// on that pre-existing bug, says nothing about this dialog, and would end
+		// up padded with a tolerance the first time someone hit it. Tried it; it
+		// failed at exactly 591.
+
+		// The control that moved. Removing from here has to drive the page's one
+		// mutation, so the Undo toast still appears and the row still goes.
+		await detail
+			.getByRole('button', { name: `Remove ${mobileName} from your roster` })
+			.click();
+
+		await expect(detail).toBeHidden();
+		await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
+		await expect(cards.getByText(mobileName)).toBeHidden();
 	});
 });
 

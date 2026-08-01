@@ -4,6 +4,8 @@ import {
 	computeShiftCapacity,
 	type ShiftData,
 	type SignupRecord,
+	shiftDurationHours,
+	sumAttendedHours,
 	summarizeAttendance,
 	validateShiftTimes,
 	validateSignup,
@@ -362,5 +364,78 @@ describe('summarizeAttendance', () => {
 		];
 		const summary = summarizeAttendance(signups);
 		expect(summary.attendanceRate).toBe(0);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Hours
+// ---------------------------------------------------------------------------
+
+function hoursRow(startIso: string, endIso: string) {
+	return { startTime: new Date(startIso), endTime: new Date(endIso) };
+}
+
+describe('shiftDurationHours', () => {
+	it('returns whole hours for a whole-hour shift', () => {
+		expect(
+			shiftDurationHours(
+				new Date('2026-04-01T09:00:00Z'),
+				new Date('2026-04-01T12:00:00Z'),
+			),
+		).toBe(3);
+	});
+
+	it('keeps a half hour rather than rounding it away', () => {
+		// The reason this figure is one decimal and not whole hours: a 2.5h
+		// Saturday morning shown as "3h" is a visible lie on a list short enough
+		// for the coordinator to check by hand.
+		expect(
+			shiftDurationHours(
+				new Date('2026-04-01T09:00:00Z'),
+				new Date('2026-04-01T11:30:00Z'),
+			),
+		).toBe(2.5);
+	});
+
+	it('rounds to one decimal place', () => {
+		// 20 minutes = 0.333…h
+		expect(
+			shiftDurationHours(
+				new Date('2026-04-01T09:00:00Z'),
+				new Date('2026-04-01T09:20:00Z'),
+			),
+		).toBe(0.3);
+	});
+});
+
+describe('sumAttendedHours', () => {
+	it('returns 0 for no shifts', () => {
+		expect(sumAttendedHours([])).toBe(0);
+	});
+
+	it('sums durations', () => {
+		expect(
+			sumAttendedHours([
+				hoursRow('2026-04-01T09:00:00Z', '2026-04-01T12:00:00Z'),
+				hoursRow('2026-04-02T09:00:00Z', '2026-04-02T11:30:00Z'),
+			]),
+		).toBe(5.5);
+	});
+
+	it('rounds ONCE from the raw total, not by adding rounded rows', () => {
+		// Three 20-minute shifts are exactly 1h. Each rounds to 0.3 for display,
+		// so adding the displayed values gives 0.9 — the compounding error this
+		// function exists to avoid. If this ever returns 0.9, someone has
+		// reimplemented it as `rows.map(shiftDurationHours).reduce(...)`.
+		const twentyMinutes = [
+			hoursRow('2026-04-01T09:00:00Z', '2026-04-01T09:20:00Z'),
+			hoursRow('2026-04-02T09:00:00Z', '2026-04-02T09:20:00Z'),
+			hoursRow('2026-04-03T09:00:00Z', '2026-04-03T09:20:00Z'),
+		];
+
+		expect(
+			twentyMinutes.map((r) => shiftDurationHours(r.startTime, r.endTime)),
+		).toEqual([0.3, 0.3, 0.3]);
+		expect(sumAttendedHours(twentyMinutes)).toBe(1);
 	});
 });

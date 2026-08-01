@@ -5,6 +5,43 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the T27 detail-dialog ship (2026-07-31)
+
+### [P2] The roster CSV export ships VOLUNTEER-voiced copy to staff
+
+`roster-export.ts:75` writes `ORG_VOLUNTEER_SOURCE_COPY[row.source]` into the
+staff CSV. That Record's own docstring says it is "told to the volunteer
+themselves", and its strings are second-person to the volunteer — so a
+coordinator opening their own export reads `Added when they approved your
+application`, which inverts who approved whom, and `Added by their staff`,
+which reads as some other organisation.
+
+**Pre-existing, not introduced by T27** — but T27 made the same mistake on the
+detail dialog, which is what surfaced it. The fix is now one word: swap to
+`ORG_VOLUNTEER_SOURCE_COPY_STAFF` (added in this ship). Deliberately NOT done
+here because it changes the bytes of an existing export that has its own tests
+and a round-trip contract with the concierge importer, and that belongs in a
+diff about the export rather than one about a dialog.
+
+The general rule, now recorded in the Record's docstring: **share the ENUM,
+never pronoun-bearing prose.** Exhaustiveness is what a `Record` over the enum
+buys you; voice is per-audience and does not transfer. **Effort:** S.
+
+### [P3] The detail dialog renders email and phone as inert text
+
+Raised by the design specialist. The dialog's primary mobile shell is a bottom
+sheet on a phone, and the most likely next action after a coordinator opens a
+volunteer's record there is to call or message them — which currently means
+selecting and copying out of a `<dd>`. `mailto:`/`tel:` anchors with the page's
+link treatment and a 44px target would close it.
+
+Deferred rather than done: the specialist flagged it "verify visually", it adds
+two link affordances to a panel deliberately built as flat facts, and the
+approved mockup does not show them. Worth a look the next time this surface is
+touched. **Effort:** S.
+
+---
+
 ## Opened by the T25 repeat-entry ship (2026-07-31)
 
 ### Caught while building — recorded so it is not reintroduced
@@ -269,7 +306,7 @@ identifies it). Then tighten the e2e assertion to
 offender** (`ol` at width 375 with a 16px inset → 391), which no amount of
 app-shell work will fix; it needs a narrow-viewport width cap on `AppToaster`.
 
-### [P2] ~~Three T29 obligations are still open~~ → TWO remain (T25 closed the first two)
+### [P2] ~~Three T29 obligations are still open~~ → ONE remains (T25 closed two, T27 closed the third)
 
 Do not let a reviewer check these off against the T28 diff — the design doc's
 Accessibility list reads as one unit but its items have different owners.
@@ -278,12 +315,24 @@ Accessibility list reads as one unit but its items have different owners.
 and the `aria-live` running count. Both needed the stay-open repeat entry to
 exist before there was a count to announce or anywhere to return focus to.
 
-Still open: the animated header count being `aria-hidden` during transition
-needs **T30**, which adds the animation. `aria-label="View {name}"` on a mobile
-row needs **T27** to give the row something to open. **Effort:** each rides with
-its owning task.
+✅ **Closed by T27 (2026-07-31):** `aria-label="View {name}"` on the mobile row,
+which needed T27 to give the row something to open.
 
-### [P2] `Remove` on the mobile card is a deliberate deviation, and T27 must undo it
+**T27 also had to add an obligation the Accessibility list does not contain**:
+focus RETURN to the row that opened the dialog. The list omits it because it
+assumed a `DialogTrigger`, which Radix restores focus to for free. There cannot
+be one here — one dialog serves two always-mounted trees of rows — so Radix
+restores to `<body>` instead, on every row a keyboard user opens. Anything else
+that opens a shared dialog from a list will inherit exactly this, and the two
+non-obvious halves are in `page.tsx`: it must run in **`onCloseAutoFocus`** (an
+`onOpenChange` handler runs first and gets overwritten by Radix's own restore),
+and the node to focus is not always the one clicked, since a clickable `<tr>`
+cannot hold focus.
+
+Still open: the animated header count being `aria-hidden` during transition
+needs **T30**, which adds the animation. **Effort:** rides with T30.
+
+### [P2] ~~`Remove` on the mobile card is a deliberate deviation, and T27 must undo it~~ ✅ CLOSED by T27 (2026-07-31)
 
 The approved spec parks `Remove` in T27's detail dialog and makes the card row
 itself tappable. T27 is unbuilt, and shipping the card list without a `Remove`
@@ -294,7 +343,23 @@ target") holds only once the row is tappable, which it is not: the card is a
 plain `div` with exactly one control, pinned by a test asserting one button per
 row. **When T27 lands** it must make the row the tap target, move `Remove` into
 the dialog, and delete both the card's button and the e2e assertion that carries
-a note pointing here. **Effort:** rides with T27.
+a note pointing here.
+
+**Done, all four parts.** The card is a `<button aria-label="View {name}">`,
+`Remove` moved to the dialog footer, and both the unit assertion and the e2e one
+were inverted rather than deleted — they now assert the mobile `Remove` is
+ABSENT, so a reintroduction is caught rather than silently tolerated. **One
+thing the original note understated:** this was not only a mis-tap argument.
+Once the row is a `<button>`, a nested `<button>` is invalid interactive-content
+nesting, so decision "row is the tap target" and decision "Remove leaves the
+card" are the same decision, not two.
+
+The `keeps exactly one interactive control per card row` test survived the
+change **without its assertion changing** — the count was 1 before and after,
+because T27 deleted one button and added another. It now names the survivor
+(`View Maria Garcia`), so a reintroduced `Remove` (2), a lost trigger (0) and a
+straight swap all fail. A bare count is a weak assertion when the thing it
+counts is being replaced.
 
 ### [P3] A third hand-rolled Drawer/Dialog switch now exists, with no shared wrapper
 
@@ -322,7 +387,32 @@ has an external trigger and no footer slot, org-profile-form is trigger-less.
 **Revisit when a fourth appears, or opportunistically the next time either
 existing file is touched for an unrelated reason.** **Effort:** M.
 
-### [P3] The three breakpoints on this page are not all the same kind of thing
+**REVISITED at the fourth (T27, `VolunteerDetailDialog`, 2026-07-31) — the JSX
+wrapper is still rejected, and the fourth consumer STRENGTHENS the case rather
+than weakening it.** Its footer differs from `AddVolunteerDialog`'s more than
+that one differs from the other two: it has **no footer at all on desktop**
+(DialogContent's own dismiss `X` suffices, and a second control named "Close" is
+a rotor reading "Close, Close") and a two-button non-form footer on mobile. It
+also deliberately does NOT copy the `flex-col-reverse` override — that exists to
+lift a **submit** action, and applying it here would put "Remove from your
+roster" directly under the thumb. A wrapper covering both would need yet another
+escape hatch.
+
+**What WAS extracted is the shell-freeze logic**, as a hook:
+`useFrozenDesktopShell(open)` in `src/lib/hooks/use-frozen-desktop-shell.ts`,
+now used by both roster modals. That is the piece most likely to be miscopied —
+pure stateful effect-timing logic whose own comment admitted it was untestable —
+and extracting it made the distinction available: the *visual* consequence (which
+shell paints) remains unreachable in jsdom, but the *resolution rule* is a pure
+function of `open` and the live query, and now has four tests including the iPad
+-rotation case. `DESKTOP_QUERY` lives there too, so two modals can no longer
+silently disagree on the breakpoint STRING.
+
+Still duplicated across all four: the `min-h-0 overflow-y-auto` drawer body
+wrapper and its explanatory comment. **Revisit at a fifth**, and prefer
+extracting the body wrapper next rather than the whole modal.
+
+### [P3] The breakpoints on this page are not all the same kind of thing
 
 `page.tsx` switches table↔cards with Tailwind `lg:` classes; `AddVolunteerDialog`
 switches Dialog↔Drawer with `useMediaQuery('(min-width: 1024px)')`. They agree on
@@ -331,6 +421,14 @@ failure is a band of widths where the list is cards and the form is a centred
 dialog. A shared constant cannot fix it (one side is a Tailwind class name, the
 other a media-query string). **Effort:** S, if a lint rule or a comment pair is
 judged worth it.
+
+**Narrowed by T27 (2026-07-31), not closed.** The page now has a THIRD switch
+(`VolunteerDetailDialog`), but the two modal ones no longer state the query
+independently — both call `useFrozenDesktopShell`, which owns the exported
+`DESKTOP_QUERY` constant, and a hook test pins it as a string. So modal-vs-modal
+drift is now impossible. **The original gap is untouched:** the Tailwind `lg:`
+on the list and the media query in the hook are still two unrelated
+declarations, and the failure mode is unchanged.
 
 ### [P3] `AddVolunteerDialog.test.tsx` patches `window.getComputedStyle` globally
 

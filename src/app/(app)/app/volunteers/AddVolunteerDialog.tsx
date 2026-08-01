@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react';
 import type * as React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
@@ -26,30 +26,13 @@ import {
 } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useMediaQuery } from '@/lib/hooks/use-media-query';
+import { useFrozenDesktopShell } from '@/lib/hooks/use-frozen-desktop-shell';
 import { trpc } from '@/lib/trpc/client';
 import { DISPLAY_NAME_MAX } from '@/server/domain/org-volunteer';
 
 const TITLE = 'Add a volunteer';
 const DESCRIPTION =
 	"They don't need to sign up first. You can schedule them and track their hours right away.";
-
-/**
- * The roster page switches its LIST between a table and a card list with pure
- * CSS, deliberately — `useMediaQuery` initialises to `false` and only resolves
- * in an effect, so gating layout on it paints the mobile shape to every desktop
- * user and swaps after hydration.
- *
- * A modal is the one case where the hook IS safe: nothing renders until the
- * coordinator presses the trigger, by which point the effect has long run. Same
- * reasoning as `feedback-widget.tsx` and `org-profile-form.tsx`.
- *
- * `lg` rather than the `md` those two use, so this page has ONE breakpoint. A
- * 768-1023px band where the roster behind the modal is already a card list but
- * the form is still a centred dialog is a worse inconsistency than differing
- * from a sibling component.
- */
-const DESKTOP_QUERY = '(min-width: 1024px)';
 
 /**
  * 44px, the repo's tap-target convention. Applied unconditionally rather than
@@ -126,31 +109,11 @@ export function AddVolunteerDialog({
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }) {
-	const liveIsDesktop = useMediaQuery(DESKTOP_QUERY);
-
-	// The shell is FROZEN while the form is open. Dialog and Drawer are different
-	// root elements, so crossing `lg` swaps them — React unmounts one subtree and
-	// mounts the other, taking `AddVolunteerForm` and with it the running count
-	// and every half-typed field. Because `open` lives on the page, the
-	// replacement shell then opens IMMEDIATELY, blank: the batch is gone, the
-	// count is silently back to zero and the footer has reverted to `Cancel`.
-	//
-	// The trigger is an ordinary one — an iPad rotating portrait to landscape
-	// crosses 1024 (834 → 1194), as does snapping a desktop window — and
-	// `useMediaQuery` subscribes to `change`, so it fires every time. Before T25
-	// this cost one in-flight entry over about a second; a stay-open form makes
-	// it a whole batch.
-	//
-	// Freezing rather than hoisting the state: the shells genuinely are different
-	// components, and a form that changes shape underneath someone mid-sentence is
-	// wrong even if its state survived. Re-reading while closed keeps an idle tab
-	// correct. Not reachable in jsdom (no layout) or the e2e (fixed viewport), so
-	// it is held by this comment rather than a test.
-	const [shellIsDesktop, setShellIsDesktop] = useState(liveIsDesktop);
-	useEffect(() => {
-		if (!open) setShellIsDesktop(liveIsDesktop);
-	}, [open, liveIsDesktop]);
-	const isDesktop = open ? shellIsDesktop : liveIsDesktop;
+	// The shell is FROZEN while the form is open — see the hook for why. What
+	// this form has to lose is the largest of any modal in the app: a whole
+	// batch, since T25 keeps it open across adds. Before that it cost one
+	// in-flight entry over about a second.
+	const isDesktop = useFrozenDesktopShell(open);
 
 	const trigger = <AddVolunteerButton />;
 

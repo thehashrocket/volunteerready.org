@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
 	useListQuery: vi.fn(),
 	useCountQuery: vi.fn(),
+	useDetailQuery: vi.fn(),
 	useRemoveMutation: vi.fn(),
 	useRestoreMutation: vi.fn(),
 	useCurrentOrgQuery: vi.fn(),
@@ -35,6 +36,7 @@ vi.mock('@/lib/trpc/client', () => ({
 		volunteers: {
 			list: { useQuery: mocks.useListQuery },
 			count: { useQuery: mocks.useCountQuery },
+			getById: { useQuery: mocks.useDetailQuery },
 			remove: { useMutation: mocks.useRemoveMutation },
 			restore: { useMutation: mocks.useRestoreMutation },
 			add: {
@@ -134,7 +136,49 @@ beforeEach(() => {
 		},
 	);
 	mocks.useCurrentOrgQuery.mockReturnValue({ data: { id: 'org-1' } });
+	mocks.useDetailQuery.mockReturnValue(detailResult());
 });
+
+/**
+ * The detail dialog fetches its own data — the page hands it only an id and a
+ * name. These tests drive the query mock directly rather than through the page,
+ * which is the point: nothing the roster list does can reach into the dialog.
+ */
+function detailResult(over: Record<string, unknown> = {}) {
+	return {
+		data: {
+			id: VOLUNTEER.id,
+			displayName: VOLUNTEER.displayName,
+			email: VOLUNTEER.email,
+			phone: '555-0100',
+			accountState: VOLUNTEER.accountState,
+			source: VOLUNTEER.source,
+			addedAt: VOLUNTEER.addedAt,
+			totalHours: 7.5,
+			shiftCount: 1,
+			shifts: [
+				{
+					shiftId: 'sh-1',
+					title: 'Saturday morning',
+					startTime: new Date('2026-03-07T09:00:00Z'),
+					endTime: new Date('2026-03-07T12:00:00Z'),
+					hours: 3,
+				},
+			],
+		},
+		isLoading: false,
+		isError: false,
+		isFetching: false,
+		error: null,
+		refetch: vi.fn(),
+		...over,
+	};
+}
+
+/** The detail dialog, once open. Its content duplicates every row's text. */
+function dialog() {
+	return within(screen.getByRole('dialog'));
+}
 
 /** Renders one volunteer and returns the options object of the remove toast. */
 function removeAndReadToast() {
@@ -485,34 +529,43 @@ describe('VolunteersPage mobile card list (T28)', () => {
 		).not.toBeInTheDocument();
 	});
 
-	it('keeps exactly one interactive control per card row', () => {
-		// The approved spec moves Remove into the T27 detail dialog because a
-		// button inside a full-width TAPPABLE row is a nested interactive target.
-		// T27 does not exist, so the row is not tappable and the hazard does not
-		// arise — but the row must still never grow a second control, or the
-		// hazard arrives without anyone re-reading the spec.
+	it('keeps exactly one interactive control per card row, and it is the row', () => {
+		// The count alone is a weak assertion — it stayed at 1 across T27, which
+		// deleted one button and added another. Naming the survivor is what makes
+		// it catch either regression: a reintroduced Remove (2) and a lost
+		// trigger (0) both fail, and so does swapping which one is there.
 		render(<VolunteersPage />);
 
-		expect(cardList().getAllByRole('button')).toHaveLength(1);
+		const buttons = cardList().getAllByRole('button');
+		expect(buttons).toHaveLength(1);
+		expect(buttons[0]).toHaveAccessibleName('View Maria Garcia');
 	});
 
-	it('keeps Remove reachable on mobile while T27 is unbuilt', () => {
-		// Deliberate deviation, recorded in the design doc: shipping the card list
-		// without this would make a phone strictly less capable than it is today.
+	it('moves Remove off the card and into the dialog', () => {
+		// T28 shipped `Remove` on the card as a tracked deviation, because until
+		// T27 existed the spec's placement would have left a phone unable to
+		// remove anyone at all. T27 undoes it: the row is the tap target, and a
+		// nested <button> inside a <button> is invalid markup besides.
 		render(<VolunteersPage />);
 
 		expect(
-			cardList().getByRole('button', {
+			cardList().queryByRole('button', {
 				name: 'Remove Maria Garcia from your roster',
 			}),
+		).not.toBeInTheDocument();
+		expect(
+			cardList().getByRole('button', { name: 'View Maria Garcia' }),
 		).toBeInTheDocument();
 	});
 
-	it('wires each tree’s Remove to its OWN row', async () => {
-		// This ship extracted Remove into a shared component and rendered it in
-		// TWO trees from one map. That is exactly the refactor where a stale
-		// closure sends the wrong id, and no test clicked the button before now —
-		// every remove test drove onSuccess directly.
+	it('wires each tree’s control to its OWN row', async () => {
+		// Remove is a shared component rendered from one map, and the card's
+		// trigger is now a second such control. That is exactly the shape where a
+		// stale closure sends the wrong id.
+		//
+		// Every click targets the SECOND row on purpose: clicking the first would
+		// pass even if the handler closed over `volunteers[0]`, which is the bug
+		// this test exists to catch.
 		const second = { ...VOLUNTEER, id: 'ov-2', displayName: 'Ada Lovelace' };
 		mocks.useListQuery.mockReturnValue(
 			listResult({
@@ -531,17 +584,12 @@ describe('VolunteersPage mobile card list (T28)', () => {
 			volunteerId: 'ov-2',
 		});
 
-		// Both clicks target the SECOND row on purpose. Clicking the first would
-		// pass even if the handler closed over `volunteers[0]` instead of the
-		// row it belongs to — which is precisely the stale-closure bug this
-		// test exists to catch, and it survived an earlier version that clicked
-		// Maria here.
+		// The card tree no longer has a Remove; its one control opens the dialog,
+		// so the id it carries is asserted through the query the dialog issues.
 		await user.click(
-			cardList().getByRole('button', {
-				name: 'Remove Ada Lovelace from your roster',
-			}),
+			cardList().getByRole('button', { name: 'View Ada Lovelace' }),
 		);
-		expect(mocks.removeMutate).toHaveBeenLastCalledWith({
+		expect(mocks.useDetailQuery).toHaveBeenLastCalledWith({
 			volunteerId: 'ov-2',
 		});
 	});
@@ -611,14 +659,22 @@ describe('VolunteersPage accessibility (T29)', () => {
 		mocks.useCountQuery.mockReturnValue({ data: 1 });
 	});
 
-	it('names the target on every Remove button, in both trees', () => {
-		// Without this a rotor lists N identical "Remove" buttons with nothing to
-		// choose between them. The visible label stays "Remove" per the mockup.
+	it('names the volunteer on each tree’s row control', () => {
+		// Without this a rotor lists N identical "Remove" buttons — or, on the
+		// card tree, N buttons whose name is the row's three facts run together
+		// with no indication of what pressing one does.
 		render(<VolunteersPage />);
 
-		const name = 'Remove Maria Garcia from your roster';
-		expect(table().getByRole('button', { name })).toHaveTextContent('Remove');
-		expect(cardList().getByRole('button', { name })).toBeInTheDocument();
+		expect(
+			table().getByRole('button', {
+				name: 'Remove Maria Garcia from your roster',
+			}),
+			// The visible label stays "Remove" per the mockup; only the accessible
+			// name carries the target.
+		).toHaveTextContent('Remove');
+		expect(
+			cardList().getByRole('button', { name: 'View Maria Garcia' }),
+		).toBeInTheDocument();
 	});
 
 	it('announces the removal in a live region, not only in a toast', () => {
@@ -744,5 +800,412 @@ describe('VolunteersPage undo (T26 UI half)', () => {
 		expect(screen.getByRole('status')).toHaveTextContent(
 			'Maria Garcia is back on your roster.',
 		);
+	});
+});
+
+describe('VolunteersPage detail dialog (T27)', () => {
+	beforeEach(() => {
+		mocks.useListQuery.mockReturnValue(
+			listResult({ data: { volunteers: [VOLUNTEER], nextCursor: null } }),
+		);
+		mocks.useCountQuery.mockReturnValue({ data: 1 });
+	});
+
+	it('opens from the desktop name button', async () => {
+		// A real <button>, not just a click handler on the <tr>: the row handler
+		// is mouse-only, and this is the roster's keyboard path to the dialog.
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(mocks.useDetailQuery).toHaveBeenLastCalledWith({
+			volunteerId: 'ov-1',
+		});
+	});
+
+	it('opens from a click anywhere else in the desktop row', async () => {
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+
+		await user.click(table().getByText('maria@example.com'));
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+	});
+
+	it('opens from the mobile card', async () => {
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+
+		await user.click(
+			cardList().getByRole('button', { name: 'View Maria Garcia' }),
+		);
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+	});
+
+	it('does NOT open when Remove is clicked in the row', async () => {
+		// The row opens the dialog, so Remove has to stop the event propagating.
+		// Without it, removing someone opens their detail on the way out — over a
+		// row that is already gone.
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+
+		await user.click(
+			table().getByRole('button', {
+				name: 'Remove Maria Garcia from your roster',
+			}),
+		);
+
+		expect(mocks.removeMutate).toHaveBeenCalledWith({ volunteerId: 'ov-1' });
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+	});
+
+	it('shows the org-scoped shift history and hours', async () => {
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		expect(dialog().getByText('Saturday morning')).toBeInTheDocument();
+		// The header figure and the row figure come from the same rows, which is
+		// the whole reason the query is uncapped.
+		expect(dialog().getByText('1 attended · 7.5 hours')).toBeInTheDocument();
+		expect(dialog().getByText('3 hours')).toBeInTheDocument();
+		// The STAFF-voiced Record. The volunteer-voiced one ('Added by their
+		// staff' / 'Added when they approved your application') is second-person
+		// TO THE VOLUNTEER and reads inverted on this surface — it shipped here
+		// once and was caught in review.
+		expect(dialog().getByText('Added by your team')).toBeInTheDocument();
+		expect(
+			dialog().queryByText('Added by their staff'),
+		).not.toBeInTheDocument();
+	});
+
+	it('distinguishes an empty history from a failed load', async () => {
+		// Ordering matters more than either branch: without an error branch this
+		// falls through to "No shifts recorded here yet", which is a broken
+		// dialog that reads as a fact about the volunteer.
+		mocks.useDetailQuery.mockReturnValue(
+			detailResult({
+				data: undefined,
+				isError: true,
+				error: { message: 'boom', data: { code: 'INTERNAL_SERVER_ERROR' } },
+			}),
+		);
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		expect(
+			dialog().getByText(/Couldn.t load this volunteer/),
+		).toBeInTheDocument();
+		expect(dialog().queryByText(/No shifts recorded/)).not.toBeInTheDocument();
+	});
+
+	it('SECURITY: never renders an internal error message verbatim', async () => {
+		// A tRPC error can carry database text. safeErrorMessage allowlists the
+		// client-safe codes; INTERNAL_SERVER_ERROR is not one.
+		mocks.useDetailQuery.mockReturnValue(
+			detailResult({
+				data: undefined,
+				isError: true,
+				error: {
+					message: 'relation "OrgVolunteer" does not exist',
+					data: { code: 'INTERNAL_SERVER_ERROR' },
+				},
+			}),
+		);
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		expect(
+			screen.queryByText(/relation "OrgVolunteer"/),
+		).not.toBeInTheDocument();
+		expect(dialog().getByText('Please try again.')).toBeInTheDocument();
+	});
+
+	it('removes from the dialog through the page’s one mutation', async () => {
+		// Not its own useMutation: the Undo toast, the live announcement and the
+		// removedNames bookkeeping all hang off the page's onSuccess, and a
+		// second mutation would have to duplicate every one of them.
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		await user.click(
+			dialog().getByRole('button', {
+				name: 'Remove Maria Garcia from your roster',
+			}),
+		);
+
+		expect(mocks.removeMutate).toHaveBeenCalledWith({ volunteerId: 'ov-1' });
+
+		// The response lands AFTER the dialog would have closed on its own in a
+		// per-dialog-mutation design. Driving it here proves the callback is not
+		// orphaned: the toast and the announcement still fire.
+		act(() => mocks.onRemoveSuccess?.(undefined, { volunteerId: 'ov-1' }));
+		expect(mocks.toastSuccess).toHaveBeenCalledWith(
+			'Removed from your roster.',
+			expect.objectContaining({ duration: 10_000 }),
+		);
+		expect(screen.getByRole('status')).toHaveTextContent(
+			'Maria Garcia removed from your roster.',
+		);
+	});
+
+	it('closes when the OPEN volunteer is removed', async () => {
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+		act(() => mocks.onRemoveSuccess?.(undefined, { volunteerId: 'ov-1' }));
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+	});
+
+	it('stays open when a DIFFERENT volunteer is removed', async () => {
+		// Closing unconditionally would be a non-sequitur: a removal can land for
+		// a row other than the one on screen (a second tab, or a slow request
+		// whose dialog was closed and another opened).
+		const second = { ...VOLUNTEER, id: 'ov-2', displayName: 'Ada Lovelace' };
+		mocks.useListQuery.mockReturnValue(
+			listResult({
+				data: { volunteers: [VOLUNTEER, second], nextCursor: null },
+			}),
+		);
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		act(() => mocks.onRemoveSuccess?.(undefined, { volunteerId: 'ov-2' }));
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+	});
+
+	it('says "none yet" when the volunteer has no shifts here', async () => {
+		// The empty-history copy is otherwise only ever asserted ABSENT (in the
+		// error-ordering test), so nothing proved it renders at all — and it is
+		// what most staff-added volunteers will see on day one.
+		mocks.useDetailQuery.mockReturnValue(
+			detailResult({
+				data: {
+					...detailResult().data,
+					totalHours: 0,
+					shiftCount: 0,
+					shifts: [],
+				},
+			}),
+		);
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		expect(dialog().getByText('None yet')).toBeInTheDocument();
+		expect(
+			dialog().getByText(/No shifts recorded here yet/),
+		).toBeInTheDocument();
+	});
+
+	it('caps the rendered history at 50 and says so, without capping the total', async () => {
+		// The whole reason the QUERY is uncapped. If a future edit adds a `take`
+		// server-side, the total silently stops matching the roster row's Shifts
+		// count — so this asserts the two figures disagree with the RENDERED row
+		// count on purpose.
+		// The SERVER caps now, so the payload holds 50 while shiftCount says 51 —
+		// that gap is the thing under test. A fixture sending 51 rows would be
+		// testing a client-side slice that no longer exists.
+		const shifts = Array.from({ length: 50 }, (_, i) => ({
+			shiftId: `sh-${i}`,
+			title: `Shift ${i}`,
+			startTime: new Date('2026-03-07T09:00:00Z'),
+			endTime: new Date('2026-03-07T10:00:00Z'),
+			hours: 1,
+		}));
+		mocks.useDetailQuery.mockReturnValue(
+			detailResult({
+				data: {
+					...detailResult().data,
+					totalHours: 51,
+					shiftCount: 51,
+					shifts,
+				},
+			}),
+		);
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		// 50 rendered...
+		expect(dialog().getAllByRole('listitem')).toHaveLength(50);
+		// ...but the header counts all 51, and the notice says the totals do.
+		// If a future change caps the QUERY instead, this reads 50 and the
+		// dialog silently contradicts the roster row that opened it.
+		expect(dialog().getByText('51 attended · 51 hours')).toBeInTheDocument();
+		expect(
+			dialog().getByText(/Showing the 50 most recent of 51/),
+		).toBeInTheDocument();
+	});
+
+	it('renders an em dash for a volunteer with no phone or email on file', async () => {
+		mocks.useDetailQuery.mockReturnValue(
+			detailResult({
+				data: { ...detailResult().data, email: null, phone: null },
+			}),
+		);
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		expect(dialog().getAllByText('\u2014')).toHaveLength(2);
+	});
+
+	it('disables the dialog’s Remove while that volunteer’s removal is in flight', async () => {
+		mocks.useRemoveMutation.mockImplementation(
+			(opts: {
+				onSuccess: (d: unknown, v: { volunteerId: string }) => void;
+				onError: (e: unknown) => void;
+			}) => {
+				mocks.onRemoveSuccess = opts.onSuccess;
+				mocks.onRemoveError = opts.onError;
+				return {
+					mutate: mocks.removeMutate,
+					isPending: true,
+					variables: { volunteerId: 'ov-1' },
+				};
+			},
+		);
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		expect(
+			dialog().getByRole('button', {
+				name: 'Remove Maria Garcia from your roster',
+			}),
+		).toBeDisabled();
+	});
+
+	it('shows a skeleton while loading, not an empty history', async () => {
+		// Without the loading branch this falls through to `if (!data) return null`
+		// — a titled dialog with an empty body — and the suite stays green. The
+		// loading→error→content ordering is only half-pinned otherwise.
+		mocks.useDetailQuery.mockReturnValue(
+			detailResult({ data: undefined, isLoading: true }),
+		);
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		expect(
+			dialog().getByTestId('volunteer-detail-skeleton'),
+		).toBeInTheDocument();
+		expect(dialog().queryByText(/No shifts recorded/)).not.toBeInTheDocument();
+		expect(
+			dialog().queryByText(/Couldn.t load this volunteer/),
+		).not.toBeInTheDocument();
+	});
+
+	it('retries the detail query from the error state', async () => {
+		// The only recovery inside the dialog. Unwiring it leaves closing and
+		// reopening as the sole way out, and no assertion would notice.
+		const refetch = vi.fn();
+		mocks.useDetailQuery.mockReturnValue(
+			detailResult({
+				data: undefined,
+				isError: true,
+				error: { message: 'boom', data: { code: 'INTERNAL_SERVER_ERROR' } },
+				refetch,
+			}),
+		);
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		await user.click(dialog().getByRole('button', { name: 'Try again' }));
+
+		expect(refetch).toHaveBeenCalled();
+	});
+
+	it('leaves the dialog’s Remove enabled while a DIFFERENT volunteer is removed', async () => {
+		// The contrast the desktop table already has ('disables only the row being
+		// removed'). Without it, dropping the id comparison from `removePending`
+		// — so ANY in-flight removal greys out the open dialog — stays green.
+		const second = { ...VOLUNTEER, id: 'ov-2', displayName: 'Ada Lovelace' };
+		mocks.useListQuery.mockReturnValue(
+			listResult({
+				data: { volunteers: [VOLUNTEER, second], nextCursor: null },
+			}),
+		);
+		mocks.useRemoveMutation.mockImplementation(() => ({
+			mutate: mocks.removeMutate,
+			isPending: true,
+			variables: { volunteerId: 'ov-2' },
+		}));
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByRole('button', { name: 'Maria Garcia' }));
+
+		expect(
+			dialog().getByRole('button', {
+				name: 'Remove Maria Garcia from your roster',
+			}),
+		).toBeEnabled();
+	});
+
+	it('offers exactly one way to dismiss on desktop', () => {
+		// DialogContent renders its own X. A footer Close on top of it is a rotor
+		// reading "Close, Close" — so the footer Close exists only in the Drawer,
+		// where vaul provides no dismiss at all.
+		render(<VolunteersPage />);
+		act(() => {
+			table().getByRole('button', { name: 'Maria Garcia' }).click();
+		});
+
+		expect(dialog().getAllByRole('button', { name: 'Close' })).toHaveLength(1);
+	});
+
+	it('returns focus to the row that opened it', async () => {
+		// There is no DialogTrigger — one dialog serves two trees of rows — so
+		// Radix has no node to restore focus to and the page has to. Without
+		// this a keyboard user is dropped at the top of the document on every
+		// row they open.
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		const trigger = table().getByRole('button', { name: 'Maria Garcia' });
+		await user.click(trigger);
+
+		await user.click(dialog().getByRole('button', { name: 'Close' }));
+
+		expect(trigger).toHaveFocus();
+	});
+
+	it('returns focus to the row’s name button when the ROW was clicked', async () => {
+		// A <tr> cannot hold focus, so recording the clicked element verbatim
+		// sends focus to <body>. It also went wrong the other way: a click on the
+		// name button bubbles to the row, whose handler then ran second and
+		// overwrote the button with the <tr>. Both are why the row hands over its
+		// [data-row-trigger] instead of itself.
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		await user.click(table().getByText('maria@example.com'));
+
+		await user.click(dialog().getByRole('button', { name: 'Close' }));
+
+		expect(table().getByRole('button', { name: 'Maria Garcia' })).toHaveFocus();
+	});
+
+	it('returns focus to the mobile card that opened it', async () => {
+		const user = userEvent.setup();
+		render(<VolunteersPage />);
+		const card = cardList().getByRole('button', { name: 'View Maria Garcia' });
+		await user.click(card);
+
+		await user.click(dialog().getByRole('button', { name: 'Close' }));
+
+		expect(card).toHaveFocus();
 	});
 });

@@ -630,14 +630,43 @@ export function countOrgVolunteers(orgId: string) {
 }
 
 /**
+ * SECURITY: the ONE definition of "an attended shift, at this org".
+ *
+ * Scoped through `shift.orgId`, NOT off the user — `ShiftSignup` has no `orgId`
+ * column at all, so the join is the only way to express it. A User row is
+ * shared between orgs by email (that is the whole premise of the shadow-user
+ * model), so reading a volunteer's ShiftSignup rows without joining through
+ * Shift shows org A what that person did for org B. Same bug class as
+ * v0.29.2.0 / v0.29.3.0.
+ *
+ * Shared by the count below and the history listing beneath it because the two
+ * are the same fact at two resolutions: the roster row's `Shifts` cell is the
+ * count, and the detail dialog behind that cell is the list. Two hand-written
+ * copies of this filter would let them disagree, and the visible symptom is a
+ * row that says 12 opening a dialog that shows 9.
+ *
+ * Deliberately NOT exported. The unscoped cross-org read is a separate,
+ * legitimate function (`getAttendedShiftsForUser` in `shiftSignupRepo.ts`,
+ * which feeds a volunteer's own platform-wide profile); nothing outside this
+ * pair should be assembling its own org-scoped variant.
+ *
+ * Returns the COMPLETE `where`, and takes the user predicate as a parameter,
+ * rather than returning a fragment for callers to spread. A spread puts the
+ * tenancy key at the mercy of key order: `{ ...filter(orgId), shift: { … } }`
+ * compiles, typechecks, and silently drops the org join — which is the exact
+ * leak this helper exists to prevent. Both call sites happened to spread it
+ * last; that is a property of today's code, not of the helper.
+ */
+function attendedShiftWhere(
+	orgId: string,
+	user: { userId: string } | { userId: { in: string[] } },
+) {
+	return { ...user, status: 'ATTENDED' as const, shift: { orgId } };
+}
+
+/**
  * Attended-shift counts for the roster's `Shifts` column, one grouped query per
  * page rather than an N+1.
- *
- * SECURITY: the count is scoped through `shift.orgId`, NOT off the user. A User
- * row is shared between orgs by email — that is the whole premise of the
- * shadow-user model — so counting a volunteer's ShiftSignup rows without
- * joining through Shift would show org A how many shifts that person worked for
- * org B. Same bug class as v0.29.2.0 / v0.29.3.0.
  */
 export async function countAttendedShiftsByUser(
 	orgId: string,
@@ -647,15 +676,51 @@ export async function countAttendedShiftsByUser(
 
 	const rows = await prisma.shiftSignup.groupBy({
 		by: ['userId'],
-		where: {
-			userId: { in: userIds },
-			status: 'ATTENDED',
-			shift: { orgId },
-		},
+		where: attendedShiftWhere(orgId, { userId: { in: userIds } }),
 		_count: { _all: true },
 	});
 
 	return new Map(rows.map((r) => [r.userId, r._count._all]));
+}
+
+/**
+ * One volunteer's attended-shift history at ONE org, newest first — the
+ * drill-down behind the `Shifts` count above, sharing its filter so the two
+ * cannot report different sets.
+ *
+ * Uncapped on purpose, and that is load-bearing rather than an oversight: the
+ * total hours and the "N attended" figure are computed from these exact rows,
+ * so a `take` here would silently under-report both and contradict the count in
+ * the roster row the coordinator just clicked.
+ *
+ * The cap that DOES exist is on what crosses the wire — `getVolunteerDetail`
+ * sums across everything this returns and sends only `SHIFT_HISTORY_WIRE_CAP`
+ * of them. Reading ~1800 indexed rows inside the datacenter is cheap;
+ * serializing them to a browser to paint fifty is not. Keep the two caps
+ * straight: capping HERE breaks the totals, capping nowhere breaks the payload.
+ */
+export async function listAttendedShiftsForUserInOrg(
+	orgId: string,
+	userId: string,
+): Promise<
+	{ shiftId: string; title: string; startTime: Date; endTime: Date }[]
+> {
+	const rows = await prisma.shiftSignup.findMany({
+		where: attendedShiftWhere(orgId, { userId }),
+		select: {
+			shift: {
+				select: { id: true, title: true, startTime: true, endTime: true },
+			},
+		},
+		orderBy: { shift: { startTime: 'desc' } },
+	});
+
+	return rows.map((r) => ({
+		shiftId: r.shift.id,
+		title: r.shift.title,
+		startTime: r.shift.startTime,
+		endTime: r.shift.endTime,
+	}));
 }
 
 /**
