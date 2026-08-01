@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.2.0] - 2026-07-31
+
+### Changed
+- Adding volunteers is now built for a list. The form stays open after each person is added: the boxes clear, the cursor goes back to **Name**, a running count shows how many you have added, and the button becomes **Add another** next to **Done**. Typing in a sign-up sheet or a spreadsheet of twenty names no longer means reopening the form twenty times.
+- When you close the form, a note above your roster says how many volunteers were added. If a search filter is hiding the people you just added — which is easy to hit if you searched for someone, did not find them, and added them there and then — the note offers to clear the search so you can see them.
+
+### Fixed
+- **Done** can no longer be pressed while someone is still being saved. Previously, ending a batch quickly could drop the last person from your roster on screen even though they had been added, with nothing to indicate anything was wrong.
+- Rotating a tablet, or resizing a window, while the form is open no longer wipes what you have typed and resets the count to zero.
+- On a phone, a long form now scrolls inside the sheet instead of running off the bottom of it.
+- The running count no longer nudges the form as it appears. On a phone the name box used to jump 20 pixels at the exact moment your cursor landed in it and you started typing the next name.
+- Screen readers now say "Adding…" while a volunteer is being saved and read the running count as it changes, so the moment when both buttons are unavailable is explained rather than silent.
+
 ## [0.38.1.0] - 2026-07-30
 
 ### Changed
