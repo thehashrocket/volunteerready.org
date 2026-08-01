@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.4.0] - 2026-08-01
+
+### Added
+- **Applications, Opportunities, Shifts and Team now work on a phone.** Each of those pages was a wide table that you had to drag sideways to read; below a laptop width they are now lists of cards you can scan and tap with one thumb. The Volunteers page got this treatment last week — the other four have caught up, so every staff list in the product now works the same way on a small screen.
+- Each card keeps the actions that live only on that list, so nothing you could do at a desk becomes impossible on a phone: publish or close an opportunity, mark a shift complete, cancel or delete it, change a teammate's role or remove them. Tapping an application opens it; tapping a shift's title opens its details.
+- The shift details panel now names the opportunity a shift belongs to, which previously appeared only in the desktop table.
+
+### Fixed
+- **The top bar no longer runs off the side of the screen.** On every signed-in page it was pushing the account menu past the right edge — barely noticeable on a phone, but about 126px off on a tablet or a narrow window, where the wordmark and both switchers are all on screen at once. Organization and company names now shorten to fit instead of shoving everything along.
+- Page headings with a filter and a button beside them no longer push those controls flush against the edge of the screen; on a narrow window the button now wraps onto its own line. This was most visible on **Opportunities**.
+- **Acting on two rows at once no longer re-enables the first one.** Changing one teammate's role while another change was still saving made the first row look ready again, so it could be submitted twice and the two saves could land in either order — a teammate could end up with the role from the first click. Every row you are part-way through is now held until its own save finishes. This affected Opportunities, Team and the Volunteers roster; Shifts had no such protection at all and now does.
+
+### Changed
+- On a phone, each card shows what you need to scan for and drops the rest: an application leads with who sent it, its status and any screening flags; a shift leads with when it runs and how many places are filled; an opportunity leads with its title, status and where it is. The full detail is one tap away.
+
 ## [0.38.3.0] - 2026-07-31
 
 ### Added
