@@ -1,6 +1,7 @@
 'use client';
 
 import { BookUser, Download, Search } from 'lucide-react';
+import type * as React from 'react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {
@@ -27,6 +28,8 @@ import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { trpc } from '@/lib/trpc/client';
 import { ROSTER_POPULATED_THRESHOLD } from '@/server/domain/org-volunteer';
 import { AddVolunteerButton, AddVolunteerDialog } from './AddVolunteerDialog';
+import { RemoveVolunteerButton } from './RemoveVolunteerButton';
+import { VolunteerDetailDialog } from './VolunteerDetailDialog';
 
 const COLUMNS = ['Volunteer', 'Added', 'Shifts', 'Status', ''] as const;
 
@@ -38,6 +41,16 @@ const COLUMNS = ['Volunteer', 'Added', 'Shifts', 'Status', ''] as const;
  * supplying the surface, border and radius.
  */
 const CARD_LIST = 'gap-0 divide-y py-0';
+
+/**
+ * Marks the one focusable control per row that opens the detail dialog — the
+ * desktop name button, or the mobile card itself. `openDetail` uses it to find
+ * something focusable to return to, since the desktop `<tr>` it may have been
+ * called from cannot hold focus. An attribute rather than "the first button in
+ * the row", which would silently start meaning `Remove` if the columns were
+ * ever reordered.
+ */
+const ROW_TRIGGER_ATTR = 'data-row-trigger';
 
 /**
  * Table-shaped skeleton with the REAL column headers and width-matched cells,
@@ -130,50 +143,6 @@ function ConciergeLine() {
 	);
 }
 
-/**
- * Rendered once per volunteer in EACH tree, so it is a component rather than
- * two copies that drift — the accessible name in particular, which is the whole
- * point of it and the easiest half to update in one place and forget in the
- * other.
- */
-function RemoveVolunteerButton({
-	displayName,
-	disabled,
-	onRemove,
-	variant = 'outline',
-}: {
-	displayName: string;
-	disabled: boolean;
-	onRemove: () => void;
-	/**
-	 * `outline` on the desktop table, per the approved mockup ("a quiet outline
-	 * button, never red, no trash icon"). The card list passes `ghost`: the
-	 * mockup is desktop-only, and on a two-line card an outlined button is the
-	 * heaviest thing in the row, which makes the destructive action outrank the
-	 * person's name. Still the same 44px target and the same accessible name —
-	 * and still not an icon, because the no-trash-icon rule is about not
-	 * dressing removal up as something quicker than it is.
-	 */
-	variant?: 'outline' | 'ghost';
-}) {
-	return (
-		<Button
-			variant={variant}
-			size="sm"
-			// 44px, the repo's tap-target convention.
-			className="h-11"
-			// The visible label stays "Remove" per the approved mockup; the
-			// accessible name carries the target. Without it a rotor lists N
-			// identical "Remove" buttons with nothing to choose between them.
-			aria-label={`Remove ${displayName} from your roster`}
-			disabled={disabled}
-			onClick={onRemove}
-		>
-			Remove
-		</Button>
-	);
-}
-
 function LoadMore({
 	onClick,
 	isFetching,
@@ -228,6 +197,19 @@ export default function VolunteersPage() {
 	// would make the older one restore the newer one's name in its confirmation.
 	const removedNames = useRef(new Map<string, string>());
 
+	// The detail dialog is ONE instance, driven from here — see
+	// VolunteerDetailDialog for why it cannot be a per-row Radix trigger.
+	const [selectedVolunteerId, setSelectedVolunteerId] = useState<string | null>(
+		null,
+	);
+
+	// Because there is no DialogTrigger, Radix has no node to return focus to on
+	// close, and a keyboard user would be dropped back at the top of the
+	// document on every row they open. This is that node. Captured per open
+	// rather than looked up on close, since the row may be gone by then — which
+	// `isConnected` below is what handles.
+	const detailTrigger = useRef<HTMLElement | null>(null);
+
 	const roster = trpc.volunteers.list.useQuery(
 		{ cursor, search: search.trim() || null },
 		{
@@ -249,6 +231,13 @@ export default function VolunteersPage() {
 	const utils = trpc.useUtils();
 
 	const volunteers = roster.data?.volunteers ?? [];
+	// Only the NAME is read from the list, to keep the dialog's title and its
+	// Remove button labelled while the detail query is in flight. Everything the
+	// dialog presents as fact comes from its own query, so a refetch that drops
+	// this row cannot blank the open dialog — see VolunteerDetailDialog.
+	const selectedVolunteer = volunteers.find(
+		(v) => v.id === selectedVolunteerId,
+	);
 	const total = count.data ?? 0;
 	const isSearching = search.trim().length > 0;
 	const showConcierge = total < ROSTER_POPULATED_THRESHOLD;
@@ -280,6 +269,15 @@ export default function VolunteersPage() {
 				(v) => v.id === variables.volunteerId,
 			)?.displayName;
 			if (name) removedNames.current.set(variables.volunteerId, name);
+
+			// Close the detail dialog only if it is showing the volunteer who was
+			// just removed. Gating on the id rather than closing unconditionally:
+			// a removal can land for a DIFFERENT row than the one on screen (a
+			// second tab, or a slow request whose dialog was closed and another
+			// opened), and yanking the dialog then would be a non-sequitur.
+			setSelectedVolunteerId((current) =>
+				current === variables.volunteerId ? null : current,
+			);
 
 			setLiveMessage(
 				name
@@ -332,6 +330,47 @@ export default function VolunteersPage() {
 			setLiveMessage(message);
 		}
 		setAddOpen(next);
+	}
+
+	/**
+	 * Open the detail dialog, remembering what to hand focus back to.
+	 *
+	 * The element that was clicked is NOT always the right answer: on the desktop
+	 * tree the whole `<tr>` is clickable, and a `<tr>` cannot take focus. So a
+	 * row hands over its name button instead — the one focusable control that
+	 * means "open this volunteer". Recording the clicked node directly also went
+	 * wrong in a subtler way: a click on the name button bubbles to the row, so
+	 * the row's handler ran second and overwrote the button with the `<tr>`.
+	 */
+	function openDetail(volunteerId: string, e: React.MouseEvent) {
+		const clicked = e.currentTarget as HTMLElement;
+		detailTrigger.current = clicked.matches(`[${ROW_TRIGGER_ATTR}]`)
+			? clicked
+			: clicked.querySelector<HTMLElement>(`[${ROW_TRIGGER_ATTR}]`);
+		setSelectedVolunteerId(volunteerId);
+	}
+
+	function handleDetailOpenChange(next: boolean) {
+		if (next) return;
+		setSelectedVolunteerId(null);
+	}
+
+	/**
+	 * Hand focus back to the row that opened the dialog.
+	 *
+	 * This has to happen HERE and not in `handleDetailOpenChange`: Radix restores
+	 * focus itself as the focus scope unmounts, which runs after `onOpenChange`
+	 * and overwrites it — and with no `DialogTrigger` registered (there cannot be
+	 * one; two trees of rows share one dialog) it restores to `<body>`.
+	 * `preventDefault` is what stops that.
+	 */
+	function handleDetailCloseAutoFocus(e: Event) {
+		e.preventDefault();
+		// `isConnected` because the row may have left the DOM while the dialog was
+		// open — removed by its own footer button, or dropped by a refetch.
+		// Focusing a detached node sends focus to <body>, which is where doing
+		// nothing sends it too; there is simply nowhere better to go.
+		if (detailTrigger.current?.isConnected) detailTrigger.current.focus();
 	}
 
 	// Only the row actually being removed goes disabled. Gating every Remove on
@@ -518,14 +557,44 @@ export default function VolunteersPage() {
 									</TableHeader>
 									<TableBody>
 										{volunteers.map((v) => (
-											<TableRow key={v.id}>
+											// The whole row is clickable for the mouse, matching
+											// applications/page.tsx:177-181. It is deliberately NOT
+											// focusable: the name below is a real button covering the
+											// same target, and giving the row its own tab stop would
+											// announce the same destination twice in a row.
+											<TableRow
+												key={v.id}
+												className="cursor-pointer"
+												onClick={(e) => openDetail(v.id, e)}
+											>
 												<TableCell>
 													{/* Two lines, no avatar — no table in this app has
 												    avatars, and adding them here is net-new vocabulary
 												    for no informational gain. */}
-													<div className="font-medium">{v.displayName}</div>
+													{/* A real <button>, following ShiftsClient.tsx:358 —
+													    the keyboard path to the dialog. The other
+													    row-click table in this app (applications) has
+													    none, so its detail view is mouse-only; not
+													    repeated here. Its visible text is its accessible
+													    name, so no aria-label. */}
+													<button
+														type="button"
+														{...{ [ROW_TRIGGER_ATTR]: '' }}
+														className="text-left font-medium hover:underline"
+														onClick={(e) => {
+															// Without this the row's handler runs too and
+															// openDetail is called twice for one click.
+															e.stopPropagation();
+															openDetail(v.id, e);
+														}}
+													>
+														{v.displayName}
+													</button>
 													<div className="text-xs text-muted-foreground">
-														{v.email}
+														{/* `User.email` is nullable; the detail dialog renders
+														    an em dash for null, so the row must agree rather
+														    than showing a blank line. */}
+														{v.email ?? '—'}
 													</div>
 												</TableCell>
 												<TableCell className="tabular-nums text-sm text-muted-foreground">
@@ -541,9 +610,14 @@ export default function VolunteersPage() {
 													<RemoveVolunteerButton
 														displayName={v.displayName}
 														disabled={pendingRemovalId === v.id}
-														onRemove={() =>
-															removeVolunteer.mutate({ volunteerId: v.id })
-														}
+														onRemove={(e) => {
+															// The row opens the dialog, so a click that
+															// lands on Remove must not also do that —
+															// otherwise removing someone opens their
+															// detail on the way out.
+															e.stopPropagation();
+															removeVolunteer.mutate({ volunteerId: v.id });
+														}}
 													/>
 												</TableCell>
 											</TableRow>
@@ -559,30 +633,41 @@ export default function VolunteersPage() {
 					</div>
 
 					{/* `Added` and `Shifts` drop out below lg, per the approved
-					    responsive spec: reference data, not what the coordinator is
-					    scanning for on a phone.
+					    responsive spec: reference data, one tap away in the detail
+					    dialog rather than what the coordinator is scanning for on a
+					    phone.
 
-					    DEVIATION from that spec, deliberate: it puts `Remove` in the
-					    T27 detail dialog and leaves the row itself tappable. T27 is
-					    not built, so following it literally would mean a phone could
-					    no longer remove a volunteer at all — a capability this
-					    surface has today. The spec's stated reason for moving it is
-					    that "a Remove button inside a full-width tappable row is a
-					    nested interactive target", which holds only once the row is
-					    tappable. It is not: this row is a plain div with exactly one
-					    control in it. When T27 lands, the row becomes the tap target
-					    and Remove moves into the dialog as specified. */}
+					    The row is the tap target and carries no `Remove`, also per
+					    that spec — a button inside a full-width tappable row is a
+					    nested interactive target and a mis-tap generator, and once the
+					    row is a <button> a nested <button> is invalid markup besides.
+					    Remove lives in the dialog this row opens. T28 shipped the
+					    opposite as a tracked deviation, because until T27 existed
+					    following the spec literally would have left a phone unable to
+					    remove a volunteer at all. */}
 					<div className="lg:hidden" data-testid="roster-card-list">
 						<Card className={CARD_LIST}>
 							{volunteers.map((v) => (
 								// Two lines, matching the approved Responsive spec: identity and
-								// status on the first, address and action on the second. An earlier
+								// status on the first, address on the second. An earlier
 								// draft gave the badge its own line opposite Remove, which pushed the
 								// row to ~120px and made the destructive control the largest thing in
 								// it — roughly halving how many volunteers fit a phone screen, on a
 								// surface DESIGN.md calls data-dense.
-								<div key={v.id} className="flex flex-col gap-1 px-4 py-3">
-									<div className="flex items-start justify-between gap-2">
+								//
+								// `aria-label` because the row's own text is three separate
+								// facts; without it a rotor reads "Maria Garcia
+								// maria@example.com No account yet" as a button name and
+								// never says what pressing it does.
+								<button
+									type="button"
+									key={v.id}
+									{...{ [ROW_TRIGGER_ATTR]: '' }}
+									aria-label={`View ${v.displayName}`}
+									className="flex w-full flex-col gap-1 px-4 py-3 text-left"
+									onClick={(e) => openDetail(v.id, e)}
+								>
+									<div className="flex w-full items-start justify-between gap-2">
 										{/* min-w-0 so truncate engages inside the flex row — a long
 										    name otherwise widens the card past the viewport, which is
 										    the sideways scroll this layout exists to remove. */}
@@ -594,20 +679,10 @@ export default function VolunteersPage() {
 											className="shrink-0"
 										/>
 									</div>
-									<div className="flex items-center justify-between gap-2">
-										<div className="min-w-0 truncate text-xs text-muted-foreground">
-											{v.email}
-										</div>
-										<RemoveVolunteerButton
-											displayName={v.displayName}
-											disabled={pendingRemovalId === v.id}
-											variant="ghost"
-											onRemove={() =>
-												removeVolunteer.mutate({ volunteerId: v.id })
-											}
-										/>
+									<div className="min-w-0 max-w-full truncate text-xs text-muted-foreground">
+										{v.email ?? '—'}
 									</div>
-								</div>
+								</button>
 							))}
 
 							{nextCursor ? (
@@ -619,6 +694,22 @@ export default function VolunteersPage() {
 					</div>
 				</>
 			)}
+
+			{/* Outside both trees, and mounted once. Rendering it inside either
+			    would put a second copy in the DOM (both trees are always mounted;
+			    only CSS hides one) and split the running removal state between
+			    them. */}
+			<VolunteerDetailDialog
+				volunteerId={selectedVolunteerId}
+				displayName={selectedVolunteer?.displayName ?? null}
+				onOpenChange={handleDetailOpenChange}
+				onCloseAutoFocus={handleDetailCloseAutoFocus}
+				// The page's mutation, not the dialog's — so one Undo toast, one
+				// removedNames map, and identical behaviour whether Remove was
+				// pressed here or in a table row.
+				onRemove={(volunteerId) => removeVolunteer.mutate({ volunteerId })}
+				removePending={pendingRemovalId === selectedVolunteerId}
+			/>
 
 			{showConcierge && !roster.isLoading && !roster.isError ? (
 				<ConciergeLine />
