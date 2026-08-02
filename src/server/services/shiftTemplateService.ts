@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import {
 	generateShiftDates,
 	validateTemplateTime,
@@ -53,7 +54,9 @@ export async function createNewTemplate(
 
 	const timeCheck = validateTemplateTime(input);
 	if (!timeCheck.ok) {
-		throw new Error(timeCheck.reason);
+		// See shiftService: hand-authored validation copy needs an allowlisted
+		// code or it is redacted as an internal fault.
+		throw new TRPCError({ code: 'BAD_REQUEST', message: timeCheck.reason });
 	}
 
 	return prisma.$transaction(async (tx) => {
@@ -104,7 +107,10 @@ export async function updateExistingTemplate(
 			endMinute: input.endMinute,
 		});
 		if (!timeCheck.ok) {
-			throw new Error(timeCheck.reason);
+			throw new TRPCError({
+				code: 'BAD_REQUEST',
+				message: timeCheck.reason,
+			});
 		}
 	}
 

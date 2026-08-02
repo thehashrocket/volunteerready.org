@@ -89,6 +89,10 @@ import {
 } from '@/server/lib/adapters/background-check/checkr';
 import {
 	SterlingApiError,
+	SterlingAuthError,
+	SterlingRateLimitError,
+	SterlingTimeoutError,
+	SterlingValidationError,
 	SterlingWebhookError,
 	sterlingAdapter,
 } from '@/server/lib/adapters/background-check/sterling';
@@ -241,7 +245,13 @@ export async function getCheckrConnectionStatus(
  *   - adapter: the BackgroundCheckAdapter to call
  *   - accessToken: the per-org credential (OAuth token for Checkr, API key for Sterling)
  *   - provider: the enum value for DB records
- *   - apiErrorClass: the adapter's base API error class for catch routing
+ *   - apiErrorClasses: EVERY error class the adapter can throw from
+ *     `initiateCheck`, for catch routing. A list, not one class: Sterling's
+ *     auth/validation/rate-limit/timeout errors each extend `Error` directly
+ *     rather than `SterlingApiError`, so a single-class `instanceof` let an
+ *     expired credential, a 429 and a timeout fall through as plain Errors —
+ *     INTERNAL_SERVER_ERROR, redacted, opaque. Exactly the class of failure the
+ *     SERVICE_UNAVAILABLE mapping exists to make legible.
  */
 async function initiateProviderCheck(input: {
 	orgId: string;
@@ -252,7 +262,7 @@ async function initiateProviderCheck(input: {
 	adapter: import('@/server/lib/adapters/background-check/types').BackgroundCheckAdapter;
 	accessToken: string;
 	provider: 'CHECKR' | 'STERLING';
-	apiErrorClass: new (...args: never[]) => Error;
+	apiErrorClasses: ReadonlyArray<new (...args: never[]) => Error>;
 }): Promise<{ requestId: string }> {
 	const {
 		orgId,
@@ -263,7 +273,7 @@ async function initiateProviderCheck(input: {
 		adapter,
 		accessToken,
 		provider,
-		apiErrorClass,
+		apiErrorClasses,
 	} = input;
 
 	console.log(
@@ -308,7 +318,7 @@ async function initiateProviderCheck(input: {
 		const result = await adapter.initiateCheck(pii, packageName, accessToken);
 		reportId = result.reportId;
 	} catch (err) {
-		if (err instanceof apiErrorClass) {
+		if (apiErrorClasses.some((ErrorClass) => err instanceof ErrorClass)) {
 			const apiErr = err as { status?: number; message: string };
 			// NEVER log pii fields in error context
 			console.error(
@@ -317,8 +327,14 @@ async function initiateProviderCheck(input: {
 			if (apiErr.status === 422) {
 				throw new TRPCError({ code: 'BAD_REQUEST', message: apiErr.message });
 			}
+			// SERVICE_UNAVAILABLE, not INTERNAL_SERVER_ERROR: this copy is written
+			// for the coordinator and its whole value is the word "temporarily" —
+			// under an unallowlisted code `errorFormatter` replaces it with generic
+			// copy and a transient Checkr/Sterling outage reads as a permanent
+			// failure. Found by the T37 review: the sweep audited `throw new Error`
+			// and never audited TRPCErrors already carrying a non-allowlisted code.
 			throw new TRPCError({
-				code: 'INTERNAL_SERVER_ERROR',
+				code: 'SERVICE_UNAVAILABLE',
 				message:
 					'Background check service is temporarily unavailable. Please try again.',
 			});
@@ -385,7 +401,7 @@ export async function initiateBackgroundCheck(input: {
 		adapter: checkrAdapter,
 		accessToken,
 		provider: 'CHECKR',
-		apiErrorClass: CheckrApiError,
+		apiErrorClasses: [CheckrApiError],
 	});
 }
 
@@ -1122,7 +1138,13 @@ export async function initiateSterlingCheck(input: {
 		adapter: sterlingAdapter,
 		accessToken: apiKey,
 		provider: 'STERLING',
-		apiErrorClass: SterlingApiError,
+		apiErrorClasses: [
+			SterlingApiError,
+			SterlingAuthError,
+			SterlingValidationError,
+			SterlingRateLimitError,
+			SterlingTimeoutError,
+		],
 	});
 }
 

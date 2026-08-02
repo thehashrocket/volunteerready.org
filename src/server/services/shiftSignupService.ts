@@ -661,7 +661,10 @@ export async function markAttendance(
 		>`SELECT id, status FROM "ShiftSignup" WHERE "shiftId" = ${shiftId} AND "userId" = ${userId} FOR UPDATE`;
 
 		if (!existing) {
-			throw new Error('No signup found for this shift.');
+			throw new TRPCError({
+				code: 'NOT_FOUND',
+				message: 'No signup found for this shift.',
+			});
 		}
 
 		// Idempotent: already ATTENDED, skip audit log
@@ -675,7 +678,10 @@ export async function markAttendance(
 			existing.status !== 'CONFIRMED' &&
 			existing.status !== 'ATTENDED'
 		) {
-			throw new Error(`Cannot mark attendance: signup is ${existing.status}.`);
+			throw new TRPCError({
+				code: 'PRECONDITION_FAILED',
+				message: `Cannot mark attendance: signup is ${existing.status}.`,
+			});
 		}
 
 		const updated = await updateSignupStatus(tx, shiftId, userId, status);

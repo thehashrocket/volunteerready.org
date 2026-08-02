@@ -549,14 +549,23 @@ describe('generateESGReport', () => {
 		expect(report.totalEmployeesActive).toBe(0);
 	});
 
-	it('throws for non-existent company', async () => {
+	it('throws for non-existent company, with an allowlisted code', async () => {
+		// The CODE matters as much as the message: a plain Error becomes
+		// INTERNAL_SERVER_ERROR, which `errorFormatter` redacts, so the user
+		// would see "Something went wrong." instead of "Company not found."
+		// `toThrow` is a substring match and never noticed when this message
+		// changed from `Company not found: ${companyId}` — dropping the id, which
+		// is now user-visible — so it cannot see the code regression either.
 		await expect(
 			generateESGReport({
 				companyId: 'nonexistent-id',
 				actorId: 'actor-id',
 				dateRange: {},
 			}),
-		).rejects.toThrow('Company not found');
+		).rejects.toMatchObject({
+			code: 'NOT_FOUND',
+			message: 'Company not found.',
+		});
 	});
 
 	it('aggregates multiple employees across multiple shifts', async () => {

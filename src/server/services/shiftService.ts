@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import type { ShiftStatus } from '@/prisma/generated/client';
 import { validateShiftTimes } from '@/server/domain/shift';
 import { sendEmail } from '@/server/lib/email';
@@ -73,7 +74,10 @@ export async function createNewShift(input: CreateShiftInput, actorId: string) {
 
 	const timeCheck = validateShiftTimes(input.startTime, input.endTime);
 	if (!timeCheck.ok) {
-		throw new Error(timeCheck.reason);
+		// TRPCError, not a plain Error: `reason` is hand-authored copy the
+		// coordinator needs in order to fix the form. A plain Error becomes
+		// INTERNAL_SERVER_ERROR and is redacted before it reaches them.
+		throw new TRPCError({ code: 'BAD_REQUEST', message: timeCheck.reason });
 	}
 
 	return prisma.$transaction(async (tx) => {
@@ -122,7 +126,10 @@ export async function updateExistingShift(
 	if (input.startTime && input.endTime) {
 		const timeCheck = validateShiftTimes(input.startTime, input.endTime);
 		if (!timeCheck.ok) {
-			throw new Error(timeCheck.reason);
+			throw new TRPCError({
+				code: 'BAD_REQUEST',
+				message: timeCheck.reason,
+			});
 		}
 	}
 

@@ -175,6 +175,36 @@ describe('createNewTemplate', () => {
 
 		expect(mocks.createTemplate).not.toHaveBeenCalled();
 	});
+
+	it('carries BAD_REQUEST, so the coordinator reads WHY the time is invalid', async () => {
+		// `reason` is hand-authored copy the coordinator needs to fix the form. It
+		// was a plain Error, which tRPC maps to INTERNAL_SERVER_ERROR and
+		// `errorFormatter` redacts to "Something went wrong."
+		//
+		// Asserting the CODE, not the text: the message assertion above passes for
+		// a plain Error just as happily and cannot see that regression. The idiom
+		// is already used elsewhere in this file (`toMatchObject({ code })`).
+		mocks.validateTemplateTime.mockReturnValue({
+			ok: false,
+			reason: 'End time must be after start time',
+		});
+
+		await expect(
+			createNewTemplate(
+				{
+					orgId: ORG_ID,
+					title: 'Bad times',
+					dayOfWeek: 1,
+					startHour: 12,
+					startMinute: 0,
+					endHour: 9,
+					endMinute: 0,
+					capacity: 5,
+				},
+				ACTOR_ID,
+			),
+		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+	});
 });
 
 // ---------------------------------------------------------------------------
