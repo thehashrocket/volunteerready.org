@@ -555,16 +555,62 @@ Admin User
 
 # Error Handling Pattern
 
-Services should return structured errors.
+An error takes a second path back out of the system, and it is not the reverse of
+the request path. Two things happen to every failure that leaves a tRPC procedure,
+in this order (v0.39.0.0):
 
-Recommended pattern:
+```
+Service throws (TRPCError, or an unhandled Prisma/driver error)
+    -> onError  = reportTrpcError   (server/trpc/error-reporting.ts)
+         sees the RAW error, before any redaction
+         skips deliberate refusals and Zod input failures
+         console.error always; Sentry capture within a per-procedure+code budget
+    -> errorFormatter               (server/trpc/init.ts)
+         allowlisted code AND a message we authored -> message ships
+         anything else                              -> GENERIC_ERROR_MESSAGE
+         `data.stack` stripped on BOTH paths
+    -> HTTP response
+        -> safeErrorMessage() / QueryErrorCard      (components/app/query-error-card.tsx)
+             decides what is PAINTED
+```
 
-- validation errors
-- authorization errors
-- domain rule violations
-- persistence failures
+The allowlist itself — `CLIENT_SAFE_ERROR_CODES`, `isClientSafeErrorCode()` and
+`GENERIC_ERROR_MESSAGE` — lives once, in `src/server/domain/error-disclosure.ts`,
+and all three consumers read it from there.
 
-Routers should map service errors to appropriate tRPC error codes.
+Rules that follow from the ordering:
+
+- **The server decides disclosure; the component only decides display.** Before
+  the `errorFormatter` existed, a raw Prisma string had already crossed the
+  network and was sitting in the browser's network tab and React Query's cache no
+  matter what the component rendered. A client-side check alone is not a control.
+- **An allowlisted code is not sufficient on its own.** tRPC resolves
+  `message = opts.message ?? cause.message`, and it manufactures `BAD_REQUEST`
+  that way for every input-validation failure — so the formatter also requires
+  `error.cause` NOT to be an `Error` (i.e. the message is one we wrote). Never
+  build a `TRPCError` carrying both a `message:` and a `cause:`; the message is
+  silently degraded to the generic string.
+- **A message the user is meant to READ needs an allowlisted code.**
+  `throw new Error('Cannot remove yourself.')` maps to `INTERNAL_SERVER_ERROR` and
+  now renders as generic copy. Services throw `TRPCError` with `BAD_REQUEST`,
+  `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `PRECONDITION_FAILED`,
+  `TOO_MANY_REQUESTS` or `SERVICE_UNAVAILABLE`. Assert the **code** in tests — a
+  `rejects.toThrow('…')` message assertion passes identically for a plain `Error`.
+- **Disclosure-safe and "not our fault" are different questions.**
+  `SERVICE_UNAVAILABLE` is shown to the caller AND reported, because a provider
+  outage the user can read about is still an outage we need paged about. Zod input
+  failures are the inverse: shown, never reported, because the public procedures
+  are unauthenticated and `httpBatchLink` batches N of them per request.
+- **Route Handlers never reach the formatter.** Anything under `src/app/api/**`
+  builds its own `Response`, so it is audited by hand. A raw `await res.text()`
+  rendered into the UI is the same disclosure bug by another door.
+
+`errorFormatter` also runs for HTTP responses only — `createCaller` throws the raw
+`TRPCError` without consulting it, which is why router unit tests see the original
+message and the formatter carries its own tests.
+
+The repo-wide guard test `src/server/domain/error-disclosure.guard.test.ts` walks
+`src/app` and `src/components` and fails on a raw `error.message` render.
 
 ---
 

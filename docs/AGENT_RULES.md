@@ -202,6 +202,20 @@ Routers should not contain:
 - large Prisma queries
 - business rules
 
+Error disclosure rule: what an error message says to the caller is decided
+**server-side**, by the `errorFormatter` in `src/server/trpc/init.ts`, against the
+allowlist in `src/server/domain/error-disclosure.ts`. A message ships only when
+its code is allowlisted **and** we authored it — the formatter treats an
+`error.cause` that is an `Error` as laundered, because tRPC resolves
+`message = opts.message ?? cause.message` and manufactures `BAD_REQUEST` that way
+for every input-validation failure. Two consequences for anything you write here:
+never construct a `TRPCError` carrying both a `message:` and a `cause:` (the copy
+is silently degraded to the generic string, with no type error and no red test),
+and do not add a second allowlist anywhere — import the one in `domain/`. The
+`onError` hook in `src/app/api/trpc/[trpc]/route.ts` is part of the same control,
+not garnish: it runs before the formatter with the raw error, so redaction does
+not also make failures invisible to us.
+
 ---
 
 # 4. Business Logic Lives in Services
@@ -219,6 +233,23 @@ Services may:
 - call repositories
 - enforce business rules
 - write audit logs
+
+Refusal rule: a service refusal that a person is meant to READ must be a
+`TRPCError` with an allowlisted code — `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`,
+`NOT_FOUND`, `CONFLICT`, `PRECONDITION_FAILED`, `TOO_MANY_REQUESTS` or
+`SERVICE_UNAVAILABLE`. A plain `throw new Error('Cannot remove yourself.')`
+becomes `INTERNAL_SERVER_ERROR`, which is not allowlisted, so the caller reads
+"Something went wrong. Please try again." instead of the sentence you wrote.
+Eighteen refusals across `memberService`, `shiftService`, `shiftTemplateService`,
+`shiftSignupService` and `employerReportService` were in exactly that state and
+were recoded in v0.39.0.0. Test the **code**, not the text: a
+`rejects.toThrow('Cannot remove yourself.')` assertion passes identically for a
+plain `Error`, which is why no existing test caught this.
+
+Reporting is a separate question from disclosure. `SERVICE_UNAVAILABLE` is safe to
+show AND is a fault we need paged about; a Zod input failure is safe to show and
+must NOT be reported, because the public procedures are unauthenticated and
+`httpBatchLink` batches N of them per request.
 
 ---
 
@@ -267,6 +298,19 @@ Do not import Prisma inside:
 - React components
 - tRPC routers
 - UI utilities
+
+The same boundary applies to error text. Never render `error.message`,
+`err.message` or `await res.text()` into JSX — a tRPC error can carry internal
+detail, and a Route Handler's body is whatever the route, the framework or an edge
+proxy produced. Use `safeErrorMessage()`, `safeCaughtErrorMessage()` or
+`QueryErrorCard` from `src/components/app/query-error-card.tsx`;
+`src/server/domain/error-disclosure.guard.test.ts` walks `src/app` and
+`src/components` and fails on a raw render. Note `err instanceof Error ?
+err.message : fallback` does NOT count as careful — `TRPCClientError extends
+Error`, so that idiom returns the raw message. And a query needs an `isError`
+branch at all: without one the component falls through to its empty state and
+answers a failed load with a confident lie ("No shifts found", "UTC (default)").
+Order the branches loading → error → empty.
 
 ---
 

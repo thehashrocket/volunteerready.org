@@ -393,6 +393,15 @@ PLATFORM_ADMIN_IDS
 
 # Cron
 CRON_SECRET
+
+# Sentry (error reporting). Since v0.39.0.0 an unexpected server failure is
+# redacted before it reaches the browser, so this is the only place the real
+# error is legible. NEXT_PUBLIC_SENTRY_DSN is safe to expose by design; the
+# other three are needed at BUILD time in CI/Vercel, not at runtime.
+NEXT_PUBLIC_SENTRY_DSN
+SENTRY_AUTH_TOKEN
+SENTRY_ORG
+SENTRY_PROJECT
 ```
 
 See `.env.example` for safe defaults.

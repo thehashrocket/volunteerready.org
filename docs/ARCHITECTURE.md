@@ -122,6 +122,7 @@ Key files:
 - `org-health.ts` — `computeOrgHealth()` pure domain function — 0-100 org health score with four 25-pt metrics and next actionable tip
 - `user-feedback.ts` — feedback mood/status enums, validation (max 2000 chars), rate limit constants, Zod schemas, volunteer-friendly status labels
 - `reference-data.ts` — `SKILL_CATALOG` constant (13 families, 62 skills), `CATALOG_VERSION`, `PLATFORM_ORG_SLUG`; imported by both `referenceDataService` and `prisma/seed-helpers.ts`
+- `error-disclosure.ts` — the ONE allowlist of tRPC error codes whose message may cross the wire: `CLIENT_SAFE_ERROR_CODES`, `isClientSafeErrorCode()` (fails closed on a missing or unknown code) and `GENERIC_ERROR_MESSAGE`. Read by three consumers — the `errorFormatter` in `trpc/init.ts`, `safeErrorMessage()` in `components/app/query-error-card.tsx`, and `trpc/error-reporting.ts` — so the server-side and client-side halves cannot drift. It sits in `domain/` rather than beside the component for the same reason `escapeCsvField` was collapsed into `csv.ts`: a second hand-kept copy is where one of them stops being maintained
 
 ---
 
@@ -185,6 +186,28 @@ API layer.
 Contains routers and procedures that call services.
 
 Routers should stay thin.
+
+Two modules here are not routers, and both are security controls on the way OUT
+(v0.39.0.0 — see "Error Handling Pattern" in `docs/REQUEST_FLOW.md` for the full
+ordering):
+
+- `init.ts` — besides the context and the procedure builders, it holds the
+  `errorFormatter`. A message ships only when its code is on
+  `domain/error-disclosure.ts`'s allowlist **and** the message is one we authored
+  (`error.cause` is not an `Error`); everything else becomes
+  `GENERIC_ERROR_MESSAGE`. `data.stack` is stripped on both paths, and the
+  formatter is deliberately not exempted in development, because `pnpm e2e` boots
+  `pnpm dev` and a dev exemption would make it inert in the only automated
+  environment that drives real HTTP
+- `error-reporting.ts` — `reportTrpcError`, wired as the `onError` hook in
+  `src/app/api/trpc/[trpc]/route.ts`. It runs **before** the formatter, with the
+  raw error, so redaction does not also make failures invisible to us. Deliberate
+  refusals and Zod input failures are skipped; `console.error` always fires, and
+  the Sentry capture is bounded per procedure+code per minute by
+  `withinReportBudget`. That local throttle is why `sentry.server.config.ts` sets
+  no global `sampleRate` and no `dedupeIntegration()` — a uniform rate thins a
+  once-a-year security signal as readily as a flood, and Dedupe drops duplicates
+  that Sentry would otherwise group and count
 
 ---
 
