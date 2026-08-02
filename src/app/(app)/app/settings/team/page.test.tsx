@@ -5,6 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
 	pendingIds: new Set<string>(),
 	useListQuery: vi.fn(),
+	// Which member the session belongs to. `isOwner` and `isCurrentUser` are both
+	// derived from this address, so a fixed value pins the caller at one role and
+	// leaves the other branches unrenderable — which is how the OWNER-only ADMIN
+	// option went untested.
+	sessionEmail: { value: 'staff@example.org' },
 	// Keyed BY PROCEDURE, not one shared object. `isMemberPending` ORs two
 	// independent mutations, and a shared mock makes both clauses copies of one
 	// expression — either is deletable with every test still green, which is
@@ -76,7 +81,7 @@ vi.mock('@/lib/hooks/use-pending-ids', () => ({
 }));
 
 vi.mock('next-auth/react', () => ({
-	useSession: () => ({ data: { user: { email: 'staff@example.org' } } }),
+	useSession: () => ({ data: { user: { email: mocks.sessionEmail.value } } }),
 }));
 vi.mock('@tanstack/react-query', async () => {
 	const actual = await vi.importActual<typeof import('@tanstack/react-query')>(
@@ -91,6 +96,7 @@ import TeamPage from './page';
 beforeEach(() => {
 	vi.clearAllMocks();
 	mocks.pendingIds.clear();
+	mocks.sessionEmail.value = 'staff@example.org';
 	for (const m of Object.values(mocks.mutations)) {
 		m.isPending = false;
 		m.variables = undefined;
@@ -346,5 +352,57 @@ describe('TeamPage desktop tree (T36)', () => {
 				name: 'Remove Bo Helper from this organization',
 			}),
 		).toHaveClass('h-11');
+	});
+});
+
+// ---------------------------------------------------------------------------
+// The ADMIN tier is OWNER-granted only
+// ---------------------------------------------------------------------------
+
+/**
+ * These cover the one rule `MemberRowActions`' docstring names that had no test:
+ * `ADMIN` is offered only to an OWNER. It went uncovered because the mocked
+ * caller was always the ADMIN row, so the branch never rendered — and because
+ * Radix does not mount `SelectContent`'s items until the trigger is opened, so
+ * even the right caller sees nothing without a `fireEvent`.
+ *
+ * This is the AFFORDANCE half only. The control is `assertMayGrantRole()` in
+ * `memberService.ts`; see `memberService.audit.test.ts`, where the same rule is
+ * asserted against the server and mutation-verified in both directions. A test
+ * here alone would be exactly the mistake this pairing was written to fix — the
+ * client gate looked like enforcement for months while the mutation was open.
+ */
+describe('TeamPage: ADMIN is offered only to an OWNER', () => {
+	function openRoleSelect() {
+		fireEvent.click(
+			cardList().getByRole('combobox', { name: 'Role for Bo Helper' }),
+		);
+	}
+
+	it('offers ADMIN when the caller is the OWNER', () => {
+		mocks.sessionEmail.value = 'owner@example.org';
+		renderWithMembers();
+		openRoleSelect();
+
+		// Scoped to the listbox: "Admin" also appears as a role badge on the
+		// caller's own row, in both trees.
+		const options = within(screen.getByRole('listbox'));
+		expect(options.getByRole('option', { name: 'Admin' })).toBeInTheDocument();
+		expect(options.getByRole('option', { name: 'Staff' })).toBeInTheDocument();
+	});
+
+	it('withholds ADMIN when the caller is an ADMIN', () => {
+		// The default session — `mem-self`, role ADMIN.
+		renderWithMembers();
+		openRoleSelect();
+
+		const options = within(screen.getByRole('listbox'));
+		expect(options.queryByRole('option', { name: 'Admin' })).toBeNull();
+		// Contrast: the select still works, so the assertion above is about the
+		// ADMIN option specifically and not about an unopened dropdown.
+		expect(options.getByRole('option', { name: 'Staff' })).toBeInTheDocument();
+		expect(
+			options.getByRole('option', { name: 'Read-only' }),
+		).toBeInTheDocument();
 	});
 });

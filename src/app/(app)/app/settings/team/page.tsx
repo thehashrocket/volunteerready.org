@@ -90,6 +90,14 @@ function memberLabel(member: Member): string {
  * `ADMIN` is only offered by an OWNER. Two copies of that is one copy that
  * eventually disagrees, on a permissions surface.
  *
+ * All three of those are AFFORDANCES, not controls — every one has a server-side
+ * counterpart in `memberService.ts` (`assertMayGrantRole` for the ADMIN tier,
+ * plus the OWNER-target and self checks in both `updateOrgMemberRole` and
+ * `removeOrgMember`). `isOwner` in particular is derived from the session email,
+ * which is the REAL admin's under impersonation, so it is the wrong person's
+ * role on that path — harmless precisely because it decides nothing. Do not add
+ * a fourth rule here without adding it there first.
+ *
  * `compact` is the table; the card gets the repo's 44px targets, since a role
  * change and a removal are both one-tap-and-done on a phone.
  */
