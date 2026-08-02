@@ -4,8 +4,55 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks — use vi.hoisted so they're available in vi.mock factories
 // ---------------------------------------------------------------------------
 
-const { mockTransaction } = vi.hoisted(() => {
+/**
+ * The acting member's role is now read from the database (see
+ * `resolveActingRole`), so `organizationMember.findFirst` serves TWO different
+ * lookups: the ACTOR, keyed `{ organizationId, userId }`, and the TARGET, keyed
+ * `{ id, organizationId }`. A single `mockResolvedValue` would answer both with
+ * the same row, which is the shared-mock defect this suite's own TODO entry
+ * describes — it would silently make the actor whatever the target is and every
+ * role rule below would test itself.
+ *
+ * `actingRole` is per-test state so a suite can put the caller at OWNER or ADMIN
+ * without restating the whole mock.
+ */
+const {
+	mockTransaction,
+	findMember,
+	setActingRole,
+	setActingMemberMissing,
+	setTargetRole,
+} = vi.hoisted(() => {
 	const mockCreate = vi.fn().mockResolvedValue({ id: 'audit-1' });
+	const state = {
+		actingRole: 'OWNER' as string | null,
+		targetRole: 'STAFF' as string,
+	};
+	const setActingRole = (role: string) => {
+		state.actingRole = role;
+	};
+	const setActingMemberMissing = () => {
+		state.actingRole = null;
+	};
+	const setTargetRole = (role: string) => {
+		state.targetRole = role;
+	};
+
+	// ONE resolver, shared by the top-level client and the transaction client,
+	// because `inviteMember` resolves the actor through `prisma` while
+	// `updateOrgMemberRole` resolves it through `tx`. Two copies would let the
+	// two paths disagree about who the caller is.
+	const findMember = vi.fn(
+		async (args: { where: { userId?: string; id?: string } }) =>
+			args.where.id === undefined
+				? // ACTOR lookup — keyed { organizationId, userId }
+					state.actingRole === null
+					? null
+					: { role: state.actingRole }
+				: // TARGET lookup — keyed { id, organizationId }
+					{ userId: 'target-user', role: state.targetRole },
+	);
+
 	const mockTransaction = vi.fn(
 		async (fn: (tx: unknown) => Promise<unknown>) => {
 			const tx = {
@@ -13,10 +60,7 @@ const { mockTransaction } = vi.hoisted(() => {
 					create: vi.fn().mockResolvedValue({ id: 'inv-1' }),
 				},
 				organizationMember: {
-					findFirst: vi.fn().mockResolvedValue({
-						userId: 'target-user',
-						role: 'STAFF',
-					}),
+					findFirst: findMember,
 					update: vi.fn().mockResolvedValue({ id: 'mem-1', role: 'STAFF' }),
 					delete: vi.fn().mockResolvedValue({ id: 'mem-1' }),
 				},
@@ -25,7 +69,13 @@ const { mockTransaction } = vi.hoisted(() => {
 			return fn(tx);
 		},
 	);
-	return { mockTransaction };
+	return {
+		mockTransaction,
+		findMember,
+		setActingRole,
+		setActingMemberMissing,
+		setTargetRole,
+	};
 });
 
 vi.mock('@/server/repositories/prisma', () => ({
@@ -37,10 +87,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 			findFirst: vi.fn().mockResolvedValue(null),
 		},
 		organizationMember: {
-			findFirst: vi.fn().mockResolvedValue({
-				userId: 'target-user',
-				role: 'STAFF',
-			}),
+			findFirst: findMember,
 			delete: vi.fn(),
 			update: vi.fn(),
 		},
@@ -77,6 +124,7 @@ import {
 describe('memberService audit logging', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		setActingRole('OWNER');
 	});
 
 	it('T10: inviteMember writes MEMBER_INVITED audit log transactionally', async () => {
@@ -86,7 +134,6 @@ describe('memberService audit logging', () => {
 			'STAFF',
 			'http://localhost:3000',
 			'actor-1',
-			'OWNER',
 		);
 
 		expect(mockTransaction).toHaveBeenCalledOnce();
@@ -139,6 +186,7 @@ describe('memberService audit logging', () => {
 	});
 
 	it('inviteMember enforces ADMIN-cannot-invite-ADMIN business rule', async () => {
+		setActingRole('ADMIN');
 		await expect(
 			inviteMember(
 				'org-1',
@@ -146,8 +194,166 @@ describe('memberService audit logging', () => {
 				'ADMIN',
 				'http://localhost:3000',
 				'actor-1',
-				'ADMIN',
 			),
-		).rejects.toThrow('Admins can only invite Staff or Read-only members.');
+		).rejects.toThrow('Only the organization owner can invite an Admin.');
+	});
+});
+
+/**
+ * The ADMIN tier is OWNER-granted only, and it is granted through TWO doors —
+ * an invitation and a role change. `inviteMember` guarded its door from the
+ * start; `updateOrgMemberRole` never did, while the client rendered
+ * `{isOwner && <SelectItem value="ADMIN">}` on both, which is what made the gap
+ * look closed. These tests exist to keep both doors shut.
+ */
+describe('memberService: only an OWNER may grant the ADMIN tier', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		setActingRole('OWNER');
+		setTargetRole('STAFF');
+	});
+
+	it('SECURITY: an ADMIN cannot promote a member to ADMIN', async () => {
+		setActingRole('ADMIN');
+		await expect(
+			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'ADMIN'),
+		).rejects.toThrow('Only the organization owner can grant the Admin role.');
+		expect(writeAuditLogTx).not.toHaveBeenCalled();
+	});
+
+	it('SECURITY: the acting role is read from the DB, not taken on trust', async () => {
+		// The actor lookup is keyed on the ACTING user id, in the same org. If this
+		// ever regresses to a caller-supplied role the query disappears and this
+		// assertion goes red — which is the only thing standing between the rule
+		// and a parameter that fails open when omitted.
+		setActingRole('ADMIN');
+		await expect(
+			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'ADMIN'),
+		).rejects.toThrow();
+		expect(findMember).toHaveBeenCalledWith(
+			expect.objectContaining({
+				where: { organizationId: 'org-1', userId: 'actor-1' },
+			}),
+		);
+	});
+
+	it('an OWNER can promote a member to ADMIN', async () => {
+		await expect(
+			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'ADMIN'),
+		).resolves.toBeDefined();
+		expect(writeAuditLogTx).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				action: 'ROLE_CHANGED',
+				metadata: expect.objectContaining({ newRole: 'ADMIN' }),
+			}),
+		);
+	});
+
+	// Contrast case: without this, the refusal above could be an ADMIN being
+	// unable to change ANY role, and the test would pass just as green.
+	it.each([
+		'STAFF',
+		'READONLY',
+	] as const)('an ADMIN can still set a member to %s', async (role) => {
+		setActingRole('ADMIN');
+		await expect(
+			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', role),
+		).resolves.toBeDefined();
+	});
+
+	it('SECURITY: a non-member acting id is refused outright', async () => {
+		setActingMemberMissing();
+		await expect(
+			updateOrgMemberRole('org-1', 'stranger', 'mem-1', 'STAFF'),
+		).rejects.toThrow('You are not a member of this organization.');
+	});
+
+	it('SECURITY: an ADMIN cannot invite at the ADMIN tier either', async () => {
+		setActingRole('ADMIN');
+		await expect(
+			inviteMember(
+				'org-1',
+				'new@example.com',
+				'ADMIN',
+				'http://localhost:3000',
+				'actor-1',
+			),
+		).rejects.toThrow('Only the organization owner can invite an Admin.');
+	});
+
+	it('an OWNER can invite at the ADMIN tier', async () => {
+		await expect(
+			inviteMember(
+				'org-1',
+				'new@example.com',
+				'ADMIN',
+				'http://localhost:3000',
+				'actor-1',
+			),
+		).resolves.toEqual({ sent: true });
+	});
+});
+
+/**
+ * Branches the rule's own tests do not reach, found by the /ship coverage audit.
+ */
+describe('memberService: actor-resolution edge cases', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		setActingRole('OWNER');
+		setTargetRole('STAFF');
+	});
+
+	it('SECURITY: an empty acting id is refused without querying for it', async () => {
+		// `inviteMember`'s `actorId` is optional and the router coalesces a missing
+		// session id to ''. The short-circuit means '' never reaches Prisma as a
+		// `userId` filter — the refusal does not depend on how the database happens
+		// to treat an empty string.
+		await expect(
+			inviteMember('org-1', 'test@example.com', 'STAFF', 'http://x', null),
+		).rejects.toThrow('You are not a member of this organization.');
+		expect(findMember).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		'STAFF',
+		'READONLY',
+	] as const)('SECURITY: a %s caller is refused even for a non-ADMIN target', async (callerRole) => {
+		// Found by the /ship Codex adversarial pass. `assertMayGrantRole` returns
+		// early below the ADMIN tier, so without the floor in `resolveActingRole`
+		// the role we just paid a query for would gate ADMIN targets ONLY — and a
+		// caller demoted between context-build and service-call could still flip
+		// members between STAFF and READONLY. `adminProcedure` is checked once per
+		// request against a role resolved earlier; this reads the row as it stands.
+		setActingRole(callerRole);
+		await expect(
+			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'READONLY'),
+		).rejects.toThrow('You do not have permission to manage members.');
+		await expect(
+			inviteMember('org-1', 'x@example.com', 'STAFF', 'http://x', 'actor-1'),
+		).rejects.toThrow('You do not have permission to manage members.');
+	});
+
+	it('refuses an ADMIN re-submitting ADMIN for a member who already has it', async () => {
+		// The documented trade-off of checking the tier BEFORE the target lookup:
+		// this would otherwise have fallen through to the no-op branch and quietly
+		// succeeded. Pinning it means the ordering cannot be "simplified" back
+		// without a red test explaining what it costs.
+		setActingRole('ADMIN');
+		setTargetRole('ADMIN');
+		await expect(
+			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'ADMIN'),
+		).rejects.toThrow('Only the organization owner can grant the Admin role.');
+	});
+
+	it('an OWNER re-submitting the current role is still a no-op', async () => {
+		// Contrast: the no-op branch itself is intact, so the test above is about
+		// the tier rule and not about no-ops having been broken generally.
+		setTargetRole('STAFF');
+		await expect(
+			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'STAFF'),
+		).resolves.toBeDefined();
+		expect(writeAuditLogTx).not.toHaveBeenCalled();
 	});
 });
