@@ -2,6 +2,10 @@
 
 import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -214,9 +218,12 @@ export default function PlatformAuditPage() {
 					<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
 				</div>
 			) : query.isError ? (
-				<Card className="p-6 text-sm text-destructive">
-					Failed to load audit log. {query.error.message}
-				</Card>
+				<QueryErrorCard
+					title="Couldn't load the audit log"
+					message={safeErrorMessage(query.error)}
+					onRetry={() => query.refetch()}
+					isRetrying={query.isFetching}
+				/>
 			) : allRows.length === 0 ? (
 				<Card className="p-6 text-sm text-muted-foreground">
 					No audit entries match.

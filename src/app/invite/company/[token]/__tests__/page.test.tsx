@@ -122,6 +122,60 @@ describe('AcceptCompanyInvitePage', () => {
 		);
 	});
 
+	it('SECURITY: an unhandled throw is redacted before it reaches the URL', async () => {
+		// This message goes into the ADDRESS BAR, so it outlives the render — into
+		// history, and into the referrer of whatever the user clicks next.
+		// `err instanceof Error` used to be the whole guard here, and a Prisma
+		// error passes that check. The FORBIDDEN case above passed BEFORE T37 too,
+		// since TRPCError and Error agree there; only this branch distinguishes them.
+		mockGetServerSession.mockResolvedValueOnce({
+			user: { id: ADMIN_ID, email: ADMIN_EMAIL },
+		});
+		mockResolveEffectiveUserId.mockResolvedValueOnce(
+			notImpersonating(ADMIN_ID),
+		);
+		mockUserFindUnique.mockResolvedValueOnce({ email: ADMIN_EMAIL });
+		mockAcceptCompanyInvite.mockRejectedValueOnce(
+			new Error(
+				'Invalid `prisma.companyMember.create()` invocation: Unique constraint failed',
+			),
+		);
+
+		await expect(renderPage()).rejects.toThrow(
+			'NEXT_REDIRECT:/app/browse?error=',
+		);
+
+		const target = mockRedirect.mock.calls.at(-1)?.[0] as string;
+		expect(target).not.toContain('prisma');
+		expect(target).toContain(encodeURIComponent('Failed to accept invitation'));
+	});
+
+	it('SECURITY: a non-allowlisted TRPCError is redacted too', async () => {
+		// The code, not the class, is what decides. An INTERNAL_SERVER_ERROR is a
+		// TRPCError and must still be withheld.
+		mockGetServerSession.mockResolvedValueOnce({
+			user: { id: ADMIN_ID, email: ADMIN_EMAIL },
+		});
+		mockResolveEffectiveUserId.mockResolvedValueOnce(
+			notImpersonating(ADMIN_ID),
+		);
+		mockUserFindUnique.mockResolvedValueOnce({ email: ADMIN_EMAIL });
+		mockAcceptCompanyInvite.mockRejectedValueOnce(
+			new TRPCError({
+				code: 'INTERNAL_SERVER_ERROR',
+				message: 'relation "CompanyMember" does not exist',
+			}),
+		);
+
+		await expect(renderPage()).rejects.toThrow(
+			'NEXT_REDIRECT:/app/browse?error=',
+		);
+
+		const target = mockRedirect.mock.calls.at(-1)?.[0] as string;
+		expect(target).not.toContain('CompanyMember');
+		expect(target).toContain(encodeURIComponent('Failed to accept invitation'));
+	});
+
 	it('already-member graceful path: succeeds without throwing and redirects to /app/company', async () => {
 		mockGetServerSession.mockResolvedValueOnce({
 			user: { id: ADMIN_ID, email: ADMIN_EMAIL },

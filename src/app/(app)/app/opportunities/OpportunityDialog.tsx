@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import {
 	Command,
@@ -483,7 +484,7 @@ export function OpportunityDialog({
 			onOpenChange(false);
 		},
 		onError: (err) =>
-			toast.error(err.message ?? 'Failed to create opportunity.'),
+			toast.error(safeErrorMessage(err) ?? 'Failed to create opportunity.'),
 	});
 
 	const updateMutation = trpc.opportunities.update.useMutation({
@@ -493,7 +494,7 @@ export function OpportunityDialog({
 			onOpenChange(false);
 		},
 		onError: (err) =>
-			toast.error(err.message ?? 'Failed to update opportunity.'),
+			toast.error(safeErrorMessage(err) ?? 'Failed to update opportunity.'),
 	});
 
 	const isPending = createMutation.isPending || updateMutation.isPending;

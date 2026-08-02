@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -125,19 +126,26 @@ export function OrgProfileForm({
 			}
 		},
 		onError: (err) => {
+			// This branch list is a hand-rolled allowlist that happens to agree
+			// with the shared one — every code named here is client-safe. Resolve
+			// the text through `safeErrorMessage` anyway, so narrowing the real
+			// allowlist narrows this too instead of leaving one stale copy behind.
+			// The branches stay because they also decide where focus goes.
+			const message = safeErrorMessage(err) ?? "Couldn't save — try again";
+
 			if (err.data?.code === 'CONFLICT') {
 				// CONFLICT carries two meanings: slug taken AND concurrent-edit
 				// race ("reload and retry") — show the server's message, don't
 				// hardcode the slug-taken copy.
-				setSlugServerError(err.message);
-				setLiveMessage(err.message);
+				setSlugServerError(message);
+				setLiveMessage(message);
 				document.getElementById('org-slug')?.focus();
 			} else if (
 				err.data?.code === 'BAD_REQUEST' ||
 				err.data?.code === 'TOO_MANY_REQUESTS'
 			) {
-				setSlugServerError(err.message);
-				setLiveMessage(err.message);
+				setSlugServerError(message);
+				setLiveMessage(message);
 				document.getElementById('org-slug')?.focus();
 			} else {
 				setServerError("Couldn't save — try again");

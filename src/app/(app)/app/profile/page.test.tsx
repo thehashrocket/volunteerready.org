@@ -529,11 +529,12 @@ describe('OrgMemberships — mutation outcomes', () => {
 	});
 
 	it('SECURITY: an internal error shows generic copy, never the raw server text', async () => {
-		// There is no errorFormatter on this tRPC instance, so an unexpected throw
-		// inside the service's $transaction arrives carrying the raw Prisma message
-		// — constraint and column names — and this surface is shown to volunteers.
-		// safeErrorMessage allowlists client-safe codes and drops everything else.
-		// Delete the safeErrorMessage call and this test goes red.
+		// The server's errorFormatter redacts this before it is serialized, so a
+		// real browser would not receive the Prisma text at all. This test mocks
+		// the hook directly and therefore bypasses that half deliberately — which
+		// is the point: it pins the CLIENT guard on its own, so removing
+		// safeErrorMessage here still goes red even though the server would have
+		// covered for it. Both halves are tested where they live.
 		const user = userEvent.setup();
 		render(<ProfilePage />);
 		await user.click(

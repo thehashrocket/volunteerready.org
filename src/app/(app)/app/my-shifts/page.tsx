@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { GeoCheckin } from '@/components/app/geo-checkin';
 import { InstallPrompt } from '@/components/app/install-prompt';
 import { QrCheckinCode } from '@/components/app/qr-checkin-code';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +43,10 @@ export default function MyShiftsPage() {
 			toast.success('Signup cancelled');
 			qc.invalidateQueries();
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(
+				safeErrorMessage(err) ?? "We couldn't cancel that signup. Try again.",
+			),
 	});
 
 	return (

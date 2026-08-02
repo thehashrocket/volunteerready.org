@@ -2,6 +2,7 @@
 
 import { FileUp, Laptop, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { safeCaughtErrorMessage } from '@/components/app/query-error-card';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,7 +56,7 @@ export default function BulkImportPage() {
 			setResult(res);
 			utils.bulkImport.list.invalidate();
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Import failed');
+			setError(safeCaughtErrorMessage(err) ?? 'Import failed.');
 		} finally {
 			setUploading(false);
 			if (fileRef.current) fileRef.current.value = '';
@@ -104,7 +105,11 @@ export default function BulkImportPage() {
 							{uploading ? 'Importing…' : 'Start import'}
 						</Button>
 
-						{error && <p className="text-sm text-destructive">{error}</p>}
+						{error && (
+							<p role="alert" className="text-sm text-destructive">
+								{error}
+							</p>
+						)}
 
 						{result && (
 							<div className="rounded-lg border bg-muted/30 p-4 text-sm">

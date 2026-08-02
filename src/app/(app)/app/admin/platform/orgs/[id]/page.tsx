@@ -3,6 +3,7 @@
 import { ChevronLeft, Loader2, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { use, useState } from 'react';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -334,8 +335,9 @@ export default function PlatformOrgDetailPage({
 						rows={3}
 					/>
 					{suspendMutation.error && (
-						<p className="text-sm text-destructive">
-							{suspendMutation.error.message}
+						<p role="alert" className="text-sm text-destructive">
+							{safeErrorMessage(suspendMutation.error) ??
+								'Could not suspend that organization.'}
 						</p>
 					)}
 					<DialogFooter>
@@ -384,8 +386,9 @@ export default function PlatformOrgDetailPage({
 						rows={3}
 					/>
 					{unsuspendMutation.error && (
-						<p className="text-sm text-destructive">
-							{unsuspendMutation.error.message}
+						<p role="alert" className="text-sm text-destructive">
+							{safeErrorMessage(unsuspendMutation.error) ??
+								'Could not unsuspend that organization.'}
 						</p>
 					)}
 					<DialogFooter>
@@ -524,8 +527,9 @@ function OrgFlagsPanel({ orgId }: { orgId: string }) {
 						rows={3}
 					/>
 					{setMutation.error && (
-						<p className="text-sm text-destructive">
-							{setMutation.error.message}
+						<p role="alert" className="text-sm text-destructive">
+							{safeErrorMessage(setMutation.error) ??
+								'Could not update that flag.'}
 						</p>
 					)}
 					<DialogFooter>

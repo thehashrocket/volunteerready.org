@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -157,7 +158,7 @@ export default function MySkillsPage() {
 			setLocalIds(null);
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to save skills.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to save skills.');
 		},
 	});
 

@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc/client';
@@ -47,7 +48,7 @@ export default function InvitePage() {
 			router.push('/app');
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to accept invitation.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to accept invitation.');
 		},
 	});
 
@@ -126,7 +127,10 @@ export default function InvitePage() {
 						Invite sent to <strong>{inv.maskedEmail}</strong>.
 					</p>
 					{accept.isError && (
-						<p className="text-sm text-destructive">{accept.error.message}</p>
+						<p role="alert" className="text-sm text-destructive">
+							{safeErrorMessage(accept.error) ??
+								'Could not accept that invitation.'}
+						</p>
 					)}
 					<Button
 						onClick={() => accept.mutate({ token })}

@@ -2,6 +2,10 @@
 
 import { CheckCircle2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import {
+	safeCaughtErrorMessage,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -123,7 +127,8 @@ function StepScreener({ onNext }: { onNext: () => void }) {
 			utils.onboarding.status.invalidate();
 			onNext();
 		},
-		onError: (err) => setError(err.message),
+		onError: (err) =>
+			setError(safeErrorMessage(err) ?? 'Could not save that question.'),
 	});
 
 	if (step?.complete) {
@@ -153,7 +158,11 @@ function StepScreener({ onNext }: { onNext: () => void }) {
 						setError('');
 					}}
 				/>
-				{error && <p className="text-sm text-destructive">{error}</p>}
+				{error && (
+					<p role="alert" className="text-sm text-destructive">
+						{error}
+					</p>
+				)}
 			</div>
 			<p className="text-xs text-muted-foreground">
 				You can add more questions and configure types later from the Screener
@@ -200,7 +209,7 @@ function StepOpportunity({ onNext }: { onNext: () => void }) {
 			onNext();
 		} catch (err) {
 			setError(
-				err instanceof Error ? err.message : 'Failed to create opportunity',
+				safeCaughtErrorMessage(err) ?? 'Could not create that opportunity.',
 			);
 		} finally {
 			setIsPending(false);
@@ -244,7 +253,11 @@ function StepOpportunity({ onNext }: { onNext: () => void }) {
 					onChange={(e) => setDescription(e.target.value)}
 				/>
 			</div>
-			{error && <p className="text-sm text-destructive">{error}</p>}
+			{error && (
+				<p role="alert" className="text-sm text-destructive">
+					{error}
+				</p>
+			)}
 			<p className="text-xs text-muted-foreground">
 				This will be published immediately. You can edit details later from the
 				Opportunities page.
@@ -270,7 +283,8 @@ function StepInvite({ onNext }: { onNext: () => void }) {
 
 	const invite = trpc.members.invite.useMutation({
 		onSuccess: () => onNext(),
-		onError: (err) => setError(err.message),
+		onError: (err) =>
+			setError(safeErrorMessage(err) ?? 'Could not send that invite.'),
 	});
 
 	return (
@@ -287,7 +301,11 @@ function StepInvite({ onNext }: { onNext: () => void }) {
 						setError('');
 					}}
 				/>
-				{error && <p className="text-sm text-destructive">{error}</p>}
+				{error && (
+					<p role="alert" className="text-sm text-destructive">
+						{error}
+					</p>
+				)}
 			</div>
 			<Button
 				onClick={() => invite.mutate({ email, role: 'STAFF' })}

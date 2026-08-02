@@ -94,7 +94,11 @@ export function AssignVolunteerPicker({
 			reset();
 			onAssigned();
 		},
-		onError: (err) => toast.error(safeErrorMessage(err)),
+		// The fallback is not optional: `toast.error(undefined)` still opens a
+		// toast, just an empty one, so a withheld message failed SILENTLY here —
+		// worse than the leak it was guarding against.
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Could not assign that volunteer.'),
 	});
 
 	function reset() {
@@ -176,8 +180,12 @@ export function AssignVolunteerPicker({
 									Loading…
 								</div>
 							) : candidates.isError ? (
-								<div className="px-4 py-6 text-destructive text-sm">
-									{safeErrorMessage(candidates.error)}
+								<div
+									role="alert"
+									className="px-4 py-6 text-destructive text-sm"
+								>
+									{safeErrorMessage(candidates.error) ??
+										'Could not load your roster.'}
 								</div>
 							) : (
 								<>

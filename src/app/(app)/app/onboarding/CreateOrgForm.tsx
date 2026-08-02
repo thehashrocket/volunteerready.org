@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -42,7 +43,7 @@ export function CreateOrgForm() {
 			router.push('/app');
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to create organization.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to create organization.');
 		},
 	});
 

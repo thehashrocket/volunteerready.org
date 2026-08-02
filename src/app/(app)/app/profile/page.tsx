@@ -253,7 +253,7 @@ export default function ProfilePage() {
 			await qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to save profile.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to save profile.');
 		},
 	});
 
@@ -295,14 +295,12 @@ export default function ProfilePage() {
 					title="My Profile"
 					description="Manage your volunteer identity across organizations."
 				/>
-				<Card>
-					<CardContent className="space-y-4 py-8 text-center">
-						<p className="text-sm text-destructive">{query.error.message}</p>
-						<Button variant="outline" onClick={() => query.refetch()}>
-							Try again
-						</Button>
-					</CardContent>
-				</Card>
+				<QueryErrorCard
+					title="Couldn't load your profile"
+					message={safeErrorMessage(query.error)}
+					onRetry={() => query.refetch()}
+					isRetrying={query.isFetching}
+				/>
 			</div>
 		);
 	}
@@ -623,13 +621,15 @@ function OrgMemberships() {
 		},
 		onError: (err) => {
 			setConfirmingId(null);
-			// safeErrorMessage, never raw err.message: there is no errorFormatter on
-			// this tRPC instance, so an unexpected throw inside the service's
-			// $transaction reaches the browser carrying the raw Prisma text
-			// (constraint and column names). The allowlist keeps the hand-authored
-			// NOT_FOUND copy and swaps anything internal for the fallback — which
-			// `err.message ?? …` could never reach, since that field is always a
-			// non-empty string.
+			// safeErrorMessage, never raw err.message. The tRPC `errorFormatter`
+			// now redacts an unexpected throw inside the service's $transaction
+			// before it is serialized, so this is the SECOND half of that control
+			// rather than the only one — kept because the allowlist is what decides
+			// whether the text was written for this reader, and a component should
+			// not have to assume the server was configured to ask. It keeps the
+			// hand-authored NOT_FOUND copy and swaps anything internal for the
+			// fallback — which `err.message ?? …` could never reach, since that
+			// field is always a non-empty string.
 			toast.error(safeErrorMessage(err) ?? 'Could not leave that roster.');
 		},
 	});
@@ -859,7 +859,10 @@ function NotificationPreferences() {
 			utils.notifications.getPreferences.invalidate();
 			toast.success('Preferences saved.');
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(
+				safeErrorMessage(err) ?? "We couldn't save that preference. Try again.",
+			),
 	});
 
 	const updateDigest = trpc.notifications.updateDigestPreference.useMutation({
@@ -867,7 +870,10 @@ function NotificationPreferences() {
 			utils.notifications.getDigestPreference.invalidate();
 			toast.success('Preferences saved.');
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(
+				safeErrorMessage(err) ?? "We couldn't save that preference. Try again.",
+			),
 	});
 
 	if (prefsQuery.isLoading || digestQuery.isLoading) {
@@ -877,6 +883,25 @@ function NotificationPreferences() {
 					Loading preferences…
 				</CardContent>
 			</Card>
+		);
+	}
+
+	// A failed load left `prefMap` empty, so every toggle fell back to its
+	// DEFAULT — a volunteer who muted a notification was shown it switched back
+	// on, and flipping it would have written a preference they already had.
+	// Silent, and wrong in the direction that sends unwanted email.
+	if (prefsQuery.isError || digestQuery.isError) {
+		const failed = prefsQuery.isError ? prefsQuery : digestQuery;
+		return (
+			<QueryErrorCard
+				title="Couldn't load your notification preferences"
+				message={safeErrorMessage(failed.error)}
+				onRetry={() => {
+					prefsQuery.refetch();
+					digestQuery.refetch();
+				}}
+				isRetrying={prefsQuery.isFetching || digestQuery.isFetching}
+			/>
 		);
 	}
 
@@ -1023,7 +1048,7 @@ function CredentialWallet() {
 			});
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to generate share link.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to generate share link.');
 		},
 	});
 
@@ -1033,7 +1058,7 @@ function CredentialWallet() {
 			await tokensQuery.refetch();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to revoke link.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to revoke link.');
 		},
 	});
 
@@ -1044,6 +1069,21 @@ function CredentialWallet() {
 					Loading credentials…
 				</CardContent>
 			</Card>
+		);
+	}
+
+	// Error BEFORE empty, for the reason OrgMemberships says above: `data ?? []`
+	// makes a failed load indistinguishable from having none, and this one
+	// renders "No credentials yet" to a volunteer whose background check is
+	// verified and sitting in the database.
+	if (credQuery.isError) {
+		return (
+			<QueryErrorCard
+				title="Couldn't load your credentials"
+				message={safeErrorMessage(credQuery.error)}
+				onRetry={() => credQuery.refetch()}
+				isRetrying={credQuery.isFetching}
+			/>
 		);
 	}
 

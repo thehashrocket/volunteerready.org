@@ -247,8 +247,10 @@ function AddVolunteerForm({
 			// dismiss real errors.
 			//
 			// safeErrorMessage allowlists client-safe tRPC codes (CONFLICT included)
-			// and swallows internal ones, so an unexpected Prisma message can't be
-			// rendered verbatim to the user. Matches volunteers/page.tsx.
+			// and swallows internal ones. The server's errorFormatter redacts those
+			// before they are serialized, so this is the redundant second half —
+			// kept because the allowlist is what decides whether the text was
+			// written for this reader. Matches volunteers/page.tsx.
 			setFieldError(safeErrorMessage(error) ?? 'Could not add that volunteer.');
 		},
 	});

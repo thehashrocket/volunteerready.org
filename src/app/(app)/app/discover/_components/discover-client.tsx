@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -128,7 +129,7 @@ function InviteDialog({
 			onClose();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to send invitation.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to send invitation.');
 		},
 	});
 

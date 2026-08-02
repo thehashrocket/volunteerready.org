@@ -8,6 +8,7 @@ import type { Resolver } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -89,7 +90,8 @@ function CreateTemplateDialog() {
 			form.reset();
 			qc.invalidateQueries();
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Could not create that template.'),
 	});
 
 	const form = useForm<CreateTemplateValues>({
@@ -239,7 +241,8 @@ function GenerateShiftsDialog({ templateId }: { templateId: string }) {
 			setOpen(false);
 			qc.invalidateQueries();
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Could not generate shifts.'),
 	});
 
 	return (
@@ -311,7 +314,8 @@ export function ShiftTemplatesTab() {
 			toast.success('Template deleted');
 			qc.invalidateQueries();
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Could not delete that template.'),
 	});
 
 	return (

@@ -37,7 +37,8 @@ export default function CompanyDashboardPage() {
 			setInviteEmail('');
 			setInviteOpen(false);
 		},
-		onError: (err) => toast.error(err.message ?? 'Failed to send invite'),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Failed to send invite'),
 	});
 
 	const linkMutation = trpc.company.linkNonprofit.useMutation({
@@ -47,7 +48,8 @@ export default function CompanyDashboardPage() {
 			setLinkOpen(false);
 			linkedQ.refetch();
 		},
-		onError: (err) => toast.error(err.message ?? 'Failed to link nonprofit'),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Failed to link nonprofit'),
 	});
 
 	const unlinkMutation = trpc.company.unlinkNonprofit.useMutation({
@@ -55,7 +57,7 @@ export default function CompanyDashboardPage() {
 			toast.success('Nonprofit unlinked.');
 			linkedQ.refetch();
 		},
-		onError: (err) => toast.error(err.message ?? 'Failed to unlink'),
+		onError: (err) => toast.error(safeErrorMessage(err) ?? 'Failed to unlink'),
 	});
 
 	const company = currentQ.data;

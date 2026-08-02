@@ -2,6 +2,7 @@
 
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -54,14 +55,16 @@ export function SkillFamilyFormDialog({
 			utils.platformCatalog.getCatalog.invalidate();
 			onOpenChange(false);
 		},
-		onError: (err) => setError(err.message),
+		onError: (err) =>
+			setError(safeErrorMessage(err) ?? 'Could not save that skill family.'),
 	});
 	const updateMutation = trpc.platformCatalog.updateFamily.useMutation({
 		onSuccess: () => {
 			utils.platformCatalog.getCatalog.invalidate();
 			onOpenChange(false);
 		},
-		onError: (err) => setError(err.message),
+		onError: (err) =>
+			setError(safeErrorMessage(err) ?? 'Could not save that skill family.'),
 	});
 
 	const editing = Boolean(initial?.id);
@@ -150,7 +153,11 @@ export function SkillFamilyFormDialog({
 							/>
 						</div>
 					)}
-					{error && <p className="text-sm text-destructive">{error}</p>}
+					{error && (
+						<p role="alert" className="text-sm text-destructive">
+							{error}
+						</p>
+					)}
 				</div>
 				<DialogFooter>
 					<Button

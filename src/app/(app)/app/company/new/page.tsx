@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +21,7 @@ export default function NewCompanyPage() {
 			router.push('/app/company');
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to create company');
+			toast.error(safeErrorMessage(err) ?? 'Failed to create company');
 		},
 	});
 

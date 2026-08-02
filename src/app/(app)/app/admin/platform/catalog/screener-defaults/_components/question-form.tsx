@@ -2,6 +2,7 @@
 
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -100,7 +101,8 @@ export function DefaultQuestionFormDialog({
 				utils.platformCatalog.getDefaultQuestions.invalidate();
 				onOpenChange(false);
 			},
-			onError: (err) => setError(err.message),
+			onError: (err) =>
+				setError(safeErrorMessage(err) ?? 'Could not save that question.'),
 		},
 	);
 	const updateMutation = trpc.platformCatalog.updateDefaultQuestion.useMutation(
@@ -109,7 +111,8 @@ export function DefaultQuestionFormDialog({
 				utils.platformCatalog.getDefaultQuestions.invalidate();
 				onOpenChange(false);
 			},
-			onError: (err) => setError(err.message),
+			onError: (err) =>
+				setError(safeErrorMessage(err) ?? 'Could not save that question.'),
 		},
 	);
 
@@ -267,7 +270,11 @@ export function DefaultQuestionFormDialog({
 							/>
 						</div>
 					)}
-					{error && <p className="text-sm text-destructive">{error}</p>}
+					{error && (
+						<p role="alert" className="text-sm text-destructive">
+							{error}
+						</p>
+					)}
 				</div>
 				<DialogFooter>
 					<Button

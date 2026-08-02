@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2, MapPin, Users, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { SignupStatusBadge } from '@/components/shifts/shift-status-badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -61,7 +62,8 @@ export function ShiftDetailDialog({
 			toast.success('Attendance updated');
 			qc.invalidateQueries();
 		},
-		onError: (err) => toast.error(err.message),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Could not update attendance.'),
 	});
 
 	const { data: waitlist } = trpc.shifts.getWaitlist.useQuery(

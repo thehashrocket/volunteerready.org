@@ -4,6 +4,7 @@ import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import {
 	Card,
@@ -30,7 +31,7 @@ export default function ClaimClient({ token }: { token: string }) {
 			toast.success('Credential claimed successfully.');
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to claim credential.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to claim credential.');
 		},
 	});
 
@@ -55,14 +56,41 @@ export default function ClaimClient({ token }: { token: string }) {
 		return (
 			<div className="mx-auto max-w-md py-20">
 				<Card>
-					<CardContent className="space-y-4 py-12 text-center">
+					<CardContent className="space-y-4 py-12 text-center" role="alert">
 						<XCircle className="mx-auto h-10 w-10 text-destructive" />
+						{/* Not QueryErrorCard: an expired or already-claimed token is
+						    not a retryable failure, and the card leads with a retry
+						    button. The named reasons (NOT_FOUND / BAD_REQUEST) are
+						    allowlisted and still read verbatim; safeErrorMessage only
+						    changes what an unexpected throw shows — on a route a
+						    stranger can reach with a guessed token. */}
+						{/* The fallback fires ONLY when the message was withheld, i.e. on
+						    an internal error — never on the NOT_FOUND/BAD_REQUEST that
+						    actually mean "expired", which are allowlisted and read
+						    verbatim. So it must NOT claim the link is dead: that is a
+						    definite statement about the token, and the request may
+						    simply have hit a 500. */}
 						<p className="text-sm text-muted-foreground">
-							{infoQuery.error.message}
+							{safeErrorMessage(infoQuery.error) ??
+								"We couldn't check that link right now."}
 						</p>
-						<Button variant="outline" asChild>
-							<Link href="/">Go home</Link>
-						</Button>
+						{/* The withheld-message branch is the RETRYABLE one (an internal
+						    error, not an expired token), so this surface needs a retry
+						    control — the copy above previously told people to try again
+						    and offered them only an exit. The allowlisted reasons still
+						    read verbatim above and retrying those is harmless. */}
+						<div className="flex justify-center gap-3">
+							<Button
+								variant="outline"
+								onClick={() => infoQuery.refetch()}
+								disabled={infoQuery.isFetching}
+							>
+								Try again
+							</Button>
+							<Button variant="ghost" asChild>
+								<Link href="/">Go home</Link>
+							</Button>
+						</div>
 					</CardContent>
 				</Card>
 			</div>

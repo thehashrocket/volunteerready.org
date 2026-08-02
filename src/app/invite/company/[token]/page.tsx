@@ -1,8 +1,10 @@
 import crypto from 'node:crypto';
+import { TRPCError } from '@trpc/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth';
+import { isClientSafeErrorCode } from '@/server/domain/error-disclosure';
 import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
 import { resolveEffectiveUserId } from '@/server/lib/impersonation-context';
 import { acceptCompanyInvite } from '@/server/services/companyService';
@@ -38,8 +40,18 @@ export default async function AcceptCompanyInvitePage({
 		// the right thing by hand, and put a Prisma call in `app/**`.
 		await acceptCompanyInvite({ tokenHash, userId, impersonatedBy });
 	} catch (err) {
-		const message =
-			err instanceof Error ? err.message : 'Failed to accept invitation';
+		// This message goes into the ADDRESS BAR, so it outlives the render and
+		// lands in history and in the referrer of whatever the user clicks next —
+		// `err instanceof Error` was letting an unhandled Prisma throw straight
+		// into it. `acceptCompanyInvite` throws TRPCError, so the same allowlist
+		// the wire uses applies here; anything else is logged and generalised.
+		const code = err instanceof TRPCError ? err.code : undefined;
+		if (!isClientSafeErrorCode(code)) {
+			console.error('[invite/company] unexpected error', err);
+		}
+		const message = isClientSafeErrorCode(code)
+			? (err as TRPCError).message
+			: 'Failed to accept invitation';
 		redirect(`/app/browse?error=${encodeURIComponent(message)}`);
 	}
 

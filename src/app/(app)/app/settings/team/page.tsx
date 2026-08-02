@@ -445,12 +445,41 @@ export default function TeamPage() {
 				</CardContent>
 			</Card>
 
-			{/* Timezone settings */}
-			<TimezoneCard />
-
-			{/* Marketplace settings */}
-			<MarketplaceCard />
+			{/* Both cards below read `org.getCurrentOrg`, which React Query
+			    dedupes into ONE request — so one failure has to render ONE error,
+			    not the same card twice with two `role="alert"` regions announced
+			    back to back and two retries for the same refetch. */}
+			<OrgSettingsCards />
 		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Org settings cards — one shared query, one error state
+// ---------------------------------------------------------------------------
+
+function OrgSettingsCards() {
+	const orgQuery = trpc.org.getCurrentOrg.useQuery();
+
+	// Rendered ABOVE both cards rather than inside each: the failure is one
+	// failure. Without this, a coordinator saw the same message twice and a
+	// screen reader announced it twice.
+	if (orgQuery.isError) {
+		return (
+			<QueryErrorCard
+				title="Couldn't load your organization settings"
+				message={safeErrorMessage(orgQuery.error)}
+				onRetry={() => orgQuery.refetch()}
+				isRetrying={orgQuery.isFetching}
+			/>
+		);
+	}
+
+	return (
+		<>
+			<TimezoneCard />
+			<MarketplaceCard />
+		</>
 	);
 }
 
@@ -513,6 +542,11 @@ function MarketplaceCard() {
 			</Card>
 		);
 	}
+
+	// The error branch lives in `OrgSettingsCards` above, because this query is
+	// shared with TimezoneCard. What it prevents: `org?.marketplaceVisible` on an
+	// undefined org renders UNCHECKED, so a failed load told a coordinator their
+	// listing was off and invited a write they did not intend.
 
 	return (
 		<Card>
@@ -650,6 +684,11 @@ function TimezoneCard() {
 		? currentTz.replace(/_/g, ' ')
 		: 'UTC (default)';
 	const isDisabled = updateTz.isPending || orgQuery.isLoading;
+
+	// The error branch lives in `OrgSettingsCards` above (shared query). What it
+	// prevents: "UTC (default)" is what `?? null` renders on a FAILED load as
+	// well as a genuinely unset one, and shift times display in this zone — so
+	// the silent version told an org its schedule was in the wrong timezone.
 
 	return (
 		<Card>

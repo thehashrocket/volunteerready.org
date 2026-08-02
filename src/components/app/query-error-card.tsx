@@ -1,28 +1,43 @@
 'use client';
 
+import { TRPCClientError } from '@trpc/client';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	GENERIC_ERROR_MESSAGE,
+	isClientSafeErrorCode,
+} from '@/server/domain/error-disclosure';
 
-// tRPC error codes safe to show verbatim. Anything else (INTERNAL_SERVER_ERROR
-// and friends) may carry raw database/internal detail — show generic copy.
-const CLIENT_SAFE_ERROR_CODES = new Set([
-	'BAD_REQUEST',
-	'UNAUTHORIZED',
-	'FORBIDDEN',
-	'NOT_FOUND',
-	'CONFLICT',
-	'PRECONDITION_FAILED',
-	'TOO_MANY_REQUESTS',
-]);
-
+/**
+ * The client half of the disclosure control. The server's `errorFormatter`
+ * (`server/trpc/init.ts`) already redacted anything the allowlist rejects, so
+ * this is deliberately redundant — kept because the allowlist is what decides
+ * whether a message was WRITTEN for this reader, and a component should not
+ * have to trust that the formatter was configured to answer that question.
+ *
+ * The allowlist itself lives in `server/domain/error-disclosure.ts` so the two
+ * halves cannot drift.
+ */
 export function safeErrorMessage(
 	error: { message: string; data?: { code?: string } | null } | null,
 ): string | undefined {
-	if (!error?.data?.code) return undefined;
-	return CLIENT_SAFE_ERROR_CODES.has(error.data.code)
-		? error.message
-		: undefined;
+	return isClientSafeErrorCode(error?.data?.code) ? error?.message : undefined;
+}
+
+/**
+ * For `catch` blocks around `mutateAsync()`, where the caught value is typed
+ * `unknown` but at runtime is the same error `onError` would have received.
+ *
+ * Never resolve one with `err instanceof Error ? err.message : fallback`:
+ * `TRPCClientError` extends `Error`, so that check PASSES and hands back the
+ * raw message with the allowlist never consulted. A try/catch around a mutation
+ * is exactly as leaky as an unguarded `onError`, and reads as though it is
+ * being careful.
+ */
+export function safeCaughtErrorMessage(error: unknown): string | undefined {
+	if (!(error instanceof TRPCClientError)) return undefined;
+	return safeErrorMessage(error);
 }
 
 export function QueryErrorCard({
@@ -45,7 +60,7 @@ export function QueryErrorCard({
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4 text-sm text-muted-foreground">
-				<p>{message || 'Something went wrong. Please try again.'}</p>
+				<p>{message || GENERIC_ERROR_MESSAGE}</p>
 				<Button
 					variant="outline"
 					size="sm"

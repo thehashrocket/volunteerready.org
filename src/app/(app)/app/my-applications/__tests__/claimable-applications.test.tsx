@@ -411,9 +411,10 @@ describe('ClaimableApplications — claiming', () => {
 	});
 
 	it('SECURITY: does not render an internal error string verbatim', () => {
-		// An INTERNAL_SERVER_ERROR carries raw Prisma/database detail. This card
-		// is shown to volunteers, so it must fall back to generic copy — matching
-		// every other error surface in the app (safeErrorMessage allowlist).
+		// This mock bypasses the server's errorFormatter on purpose, so what it
+		// pins is the CLIENT half on its own: even handed an unredacted internal
+		// message, this card must fall back to generic copy. Both halves are
+		// tested where they live.
 		setup({
 			claim: {
 				isError: true,

@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -198,7 +199,7 @@ export function QuestionDialog({
 			onOpenChange(false);
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to create question.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to create question.');
 		},
 	});
 
@@ -210,7 +211,7 @@ export function QuestionDialog({
 			onOpenChange(false);
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to update question.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to update question.');
 		},
 	});
 
