@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.6.0] - 2026-08-01
+
+Closes a permissions hole in team management. If your organization has more than
+one administrator, this changes what they can do.
+
+### Fixed
+- **An administrator can no longer make someone else an administrator.** Only the organization owner can now grant the Admin role — by invitation or by changing an existing member's role. The Team settings page has only ever offered the Admin option to the owner, but that was the only thing stopping it: the server accepted the change from any administrator, so anyone able to send the request directly could spread administrator access without the owner's involvement. The server now decides, and the page's behaviour is unchanged for everyone.
+- **Losing your access now takes effect immediately when inviting someone or changing a role.** If an administrator is demoted while they still have the Team page open, both of those are refused on their next attempt. Permission used to be decided once, when the page's session was established, so a demoted administrator could still carry it out. Removing a member is not yet covered by this and is being fixed separately.
+
+### Changed
+- An administrator who re-submits the Admin role for someone who is already an administrator now gets a clear refusal rather than a silent success. Nothing was being changed in that case, but the refusal is deliberate: the rule is that an administrator never grants Admin, regardless of who they are pointing at.
+
 ## [0.38.5.0] - 2026-08-01
 
 Nothing in this release changes the product. It repairs the project's own

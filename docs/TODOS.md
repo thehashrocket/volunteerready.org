@@ -159,12 +159,14 @@ creates a second org and a company membership, so the widest header state
 finally renders in a test, at 375/800/1280.
 
 Still open:
-- **`settings/team`: `ADMIN` is only offered by an OWNER** (`page.tsx`) — the
-  stated reason `MemberRowActions` was extracted, and the one rule of the three
-  still uncovered. The mocked caller is an ADMIN so the branch never renders,
-  and Radix does not mount `SelectContent` items until opened, so it needs a
-  `fireEvent`-open test or an e2e. Confirm the server refuses it too. The role
-  change itself is also never fired from either tree.
+- ~~**`settings/team`: `ADMIN` is only offered by an OWNER**~~ ✅ **CLOSED
+  (2026-08-01).** The session email is now per-test state, so the caller can be
+  put at OWNER or ADMIN and both branches render; the `SelectContent` items are
+  reached with a `fireEvent` open, as this entry predicted they would have to be.
+  **And the "confirm the server refuses it too" clause was the important half** —
+  it did not. That was the P2 above, fixed in the same change. A test here alone
+  would have pinned the affordance and left the mutation open, which is precisely
+  how the gap survived. The role change is still never *fired* from either tree.
 - **`memberLabel`'s `name ?? email ?? 'this member'` fallback** — feeds an
   accessible name, never exercised with a null name.
 
@@ -230,7 +232,40 @@ Side effect worth knowing: this also cleared most `/for/nonprofits` marketing-im
 flakes, which were the same stampede. It did **not** clear all of them — see the
 open P2 above, which reproduces with a warm cache and is a different bug.
 
-### [P2] `updateOrgMemberRole` never checks the CALLER's role — an ADMIN can grant ADMIN
+### [P2] ~~`updateOrgMemberRole` never checks the CALLER's role — an ADMIN can grant ADMIN~~ ✅ FIXED (2026-08-01)
+
+Fixed strict, as written below, plus two things the entry did not anticipate.
+
+**The acting role is resolved from the DATABASE, not passed in.** The entry
+said "resolve the acting member's role inside the existing transaction", and
+that is what `resolveActingRole()` does — but the reason turned out to be
+sharper than tidiness. `inviteMember` already had this rule and took the actor's
+role as an **optional parameter**, which fails **open**: omit it and the check
+does not apply. It also read `ctx.role`, which `createTRPCContext` sets to
+`null` on the impersonation branch before re-resolving it. Both are the same
+lesson as the `email` parameters dropped in v0.34.0.0 — while the parameter
+exists, every callsite is one wrong argument from restoring the hole. So
+`inviteMember` lost the parameter too and now resolves the actor itself.
+
+**The rule is one function with two callsites** (`assertMayGrantRole`), because
+it is enforced at two doors — an invitation and a role change — and it had
+exactly one of them for months while the client's `{isOwner && …}` made both
+look covered.
+
+The check sits **before** the target lookup, so the rule is "an ADMIN may not
+submit `newRole: ADMIN`" independent of the target's current role. That costs
+one confusing refusal (an ADMIN re-selecting ADMIN on someone who already is
+one) and buys a rule that does not depend on another row's state.
+
+Verified: 8 service tests, **mutation-verified in both directions** — deleting
+the guard reddens exactly the two SECURITY tests, and widening it to refuse
+every role for a non-OWNER reddens the STAFF/READONLY contrast pair, so neither
+is vacuous. Plus 2 client tests covering the `SelectContent` branch listed as
+uncovered below; removing `{isOwner && …}` reddens one. The client docstring now
+says out loud that all three of its gates are affordances with server
+counterparts.
+
+#### Original write-up — SUPERSEDED, kept for the diagnosis
 
 Found by the security specialist during T36's ship review. `MemberRowActions`
 renders `{isOwner && <SelectItem value="ADMIN">}`, and its docstring now states
@@ -253,6 +288,59 @@ the client `isOwner &&` becomes an affordance rather than the control. The other
 two client gates (`OWNER` row, self) DO have server counterparts in both
 `removeOrgMember` and `updateOrgMemberRole`. **Effort:** S.
 
+### [P2] `removeOrgMember` is the one member mutation that never re-checks the caller
+
+Found by the Codex adversarial pass during the v0.38.6.0 ship. `updateOrgMemberRole`
+and `inviteMember` now both resolve the acting member's row from the database and
+re-assert the ADMIN floor (`resolveActingRole`). `removeOrgMember` does not — it
+loads the TARGET row, checks it is not the OWNER and not the caller, and deletes.
+Its only authorization is `adminProcedure`'s `ctx.role`, resolved once when the
+request context was built.
+
+Concretely: an admin demoted or removed in a concurrent request can still win the
+race and delete another member on the already-authorized request. The window is
+small and this is **pre-existing** — it is not a regression from that ship. What
+that ship DID create is the asymmetry: two of the three member mutations now read
+the row as it stands and one does not, which reads as an oversight rather than a
+decision.
+
+Fix: call `resolveActingRole(tx, orgId, actingUserId)` at the top of
+`removeOrgMember`'s existing transaction, exactly as `updateOrgMemberRole` does.
+It is one line and the helper already exists. **Effort:** S.
+
+### [P3] Concurrent role changes lose updates and can write a false audit history
+
+Also from the same Codex pass, also pre-existing. `updateOrgMemberRole` reads
+`target.role`, then updates by `id` with no lock and no optimistic predicate, then
+writes `previousRole` into the audit row from the value it read. Two concurrent
+changes to the same member can therefore both record the same `previousRole`, one
+operator's change can be silently overwritten, and the audit log ends up
+describing a transition sequence that never happened.
+
+Partly mitigated in the UI by `usePendingIds` (v0.38.4.0), which stops one
+coordinator double-submitting a row — but not two coordinators, and not two tabs
+in different sessions. Fix with an optimistic predicate: `updateMany` with
+`where: { id, role: previousRole }` and treat `count === 0` as a lost race, the
+same shape `softDeleteOwnOrgVolunteerByOrg` already uses. **Effort:** M.
+
+### [P3] `memberService`'s other refusals are plain `Error`s, so the user never reads them
+
+Noticed while fixing the P2 above. `updateOrgMemberRole` and `removeOrgMember`
+raise `new Error('Member not found.')`, `"Cannot change the owner's role."`,
+`'Cannot change your own role.'` and `'Cannot remove yourself.'` — plain
+`Error`s, which tRPC maps to `INTERNAL_SERVER_ERROR`, which `safeErrorMessage()`
+then correctly withholds. So `settings/team` shows "Something went wrong. Please
+try again." for four refusals that are entirely safe to state, and every one of
+them is a case where the user needs to know *which* rule they hit to do anything
+different. The two new `assertMayGrantRole` refusals are `TRPCError` +
+`FORBIDDEN`, which IS allowlisted, so they read correctly — which makes the
+inconsistency visible on the same surface for the first time.
+
+Same shape as the `acceptInvitation` `PRECONDITION_FAILED` note already in that
+file: a fact about the caller's own request reported as a server fault. Fix by
+converting the four to `TRPCError` with `FORBIDDEN`/`NOT_FOUND`, and check the
+component tests do not assert the generic string. **Effort:** S.
+
 ### [P3] `settings/team` decides "is this me?" from the session email, not the effective user
 
 `const currentUserEmail = session?.user?.email ?? ''` drives both `isCurrentUser`
@@ -267,6 +355,15 @@ Pre-existing and unchanged here; the server-side self-checks are the real
 control, so this is a wrong-affordance bug rather than a bypass. Fix by having
 `members.list` return an `isSelf` flag computed from `effectiveUserId(ctx)` and
 dropping the client-side email comparison. **Effort:** S.
+
+**Update (2026-08-01):** the third derived gate — `isOwner` deciding whether the
+`ADMIN` option renders — now has a server counterpart too
+(`assertMayGrantRole()`), so all three of this component's rules are affordances
+over enforced rules and `isOwner` naming the wrong person under impersonation
+is purely cosmetic. That does not close this entry: showing a real admin the
+wrong controls for the person they are impersonating is still wrong, and the
+`isSelf`-flag fix is unchanged. It does mean the blast radius is now bounded by
+construction rather than by the two checks that happened to exist.
 
 ### [P3] ~~The per-row pending idiom is now hand-written in five files~~ → EXTRACTED, and it was hiding a regression
 
@@ -285,11 +382,13 @@ the coordinator watched the second succeed. On shifts it was still an
 improvement (that page had no disabled state at all), but incomplete.
 
 Now `usePendingIds()` (`src/lib/hooks/use-pending-ids.ts`) — a `Set` fed from
-`onMutate`/`onSettled`, keyed by row rather than by mutation. All five staff
-lists use it, including the roster, which carried the original `variables`
-shape. Mutation-verified: collapsing the set to a single id reddens the
-concurrency test. CLAUDE.md's rule is corrected, since it prescribed the broken
-shape.
+`onMutate`/`onSettled`, keyed by row rather than by mutation. **Four** of the
+five staff lists use it — the roster (which carried the original `variables`
+shape), opportunities, shifts and team. `/app/applications` does **not**, and
+that is correct rather than an omission: its rows only navigate, so it has no
+row mutation to hold. Do not "make it consistent" by adding it there.
+Mutation-verified: collapsing the set to a single id reddens the concurrency
+test. CLAUDE.md's rule is corrected, since it prescribed the broken shape.
 
 **The lesson worth keeping: a DRY finding and a correctness finding can be the
 same finding.** Five hand-written copies of an expression is also five chances
@@ -467,9 +566,19 @@ shell reopened IMMEDIATELY, blank, with the footer reverted to `Cancel`. An iPad
 rotating portrait→landscape (834 → 1194) crosses it, as does snapping a desktop
 window. Before T25 this cost one in-flight entry over about a second; a
 stay-open form made it a whole batch. **The shell is now frozen while `open` is
-true** and re-read while closed. Not reachable in jsdom (no layout) or the e2e
-(fixed viewport), so it is held by a comment, not a test — do not "simplify"
-`shellIsDesktop` back to a bare `useMediaQuery` read.
+true** and re-read while closed.
+
+**Updated by T27 (2026-07-31) — the "held by a comment, not a test" caveat this
+entry shipped with is now only half true.** The freeze moved into
+`useFrozenDesktopShell(open, query?)` (`src/lib/hooks/use-frozen-desktop-shell.ts`)
+at the fourth Dialog/Drawer switch, and `shellIsDesktop` is now internal to that
+hook rather than a local in `AddVolunteerDialog`. Extracting it split the two
+properties: the *visual* consequence (which shell actually paints) is still
+unreachable in jsdom and still not covered by the fixed-viewport e2e, but the
+*resolution rule* is a pure function of `open` and the live query and has four
+tests, including the iPad-rotation case. Do not "simplify" the hook back to a
+bare `useMediaQuery` read, and do not call `useMediaQuery` directly in a new
+modal.
 
 **`DrawerContent` has no scroll container.** It is `max-h-[85vh] flex flex-col`
 and `drawer.tsx` declares no `overflow` utility anywhere, so past the cap the
@@ -624,7 +733,12 @@ are now written into `e2e/utils/layout.ts`'s docstring.
 
 Original write-up follows.
 
-### [P2] The app shell's top bar overflows ~22px at 375px, on EVERY authenticated page
+### Archived — the original write-up above is SUPERSEDED, not open
+
+Kept for the diagnosis, not the instructions. **Do not action anything below**;
+in particular the sonner paragraph at the end is wrong, and the fix it prescribes
+was written, measured and deleted. Deliberately carries no `[Pn]` tag so a
+priority grep does not return it twice.
 
 **Found by running T28's own e2e**, which asserted `documentElement.scrollWidth
 <= 375` and failed at 591. None of the overflow was the roster: the offending
@@ -656,9 +770,14 @@ the wordmark, or hide the wordmark text below `sm` (the `V` mark alone still
 identifies it). Then tighten the e2e assertion to
 `documentElement.scrollWidth <= 375` and delete the comment pointing here.
 **Effort:** S, but it is shared chrome — it wants a look at every staff page at
-375px, not just the roster. **Note the sonner toaster is a second, smaller
+375px, not just the roster. ~~**Note the sonner toaster is a second, smaller
 offender** (`ol` at width 375 with a 16px inset → 391), which no amount of
-app-shell work will fix; it needs a narrow-viewport width cap on `AppToaster`.
+app-shell work will fix; it needs a narrow-viewport width cap on `AppToaster`.~~
+**← WRONG, do not act on this.** The 391 figure describes the `position: fixed`,
+zero-height `<ol>`, which paints nothing and does not extend
+`documentElement.scrollWidth`. Sonner already clamps the toast `<li>` to the
+viewport: it measures 288px inside a 320px viewport with a width cap and 288px
+without one. See the corrected entry above and the note in `sonner.tsx`.
 
 ### [P2] ~~Three T29 obligations are still open~~ → ONE remains (T25 closed two, T27 closed the third)
 
@@ -1242,7 +1361,12 @@ and in `sendRosterAddedEmail` was rewritten to match — see the design doc §2.
 
 Original write-up follows.
 
-### [P1] Leaving a roster does not close the `SHIFT_SIGNUP` authorization edge
+### Archived — the original write-up above is SUPERSEDED, not open
+
+Kept for the attack chain, which is the part worth being able to re-read. **Do
+not action the fix options below** — neither was taken, and the entry above
+explains why option (a) does not hold. Deliberately carries no `[Pn]` tag so a
+priority grep does not return this as a live P1.
 
 Found by the security specialist during this ship's review. `leaveOrgRoster`
 soft-deletes the `OrgVolunteer` row, but `findOrgVolunteerRelationship`
