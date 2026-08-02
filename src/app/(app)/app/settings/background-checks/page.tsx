@@ -35,6 +35,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
 	Dialog,
 	DialogContent,
@@ -422,6 +423,12 @@ const bgCheckSchema = z.object({
 	dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
 	ssn: z.string().regex(/^\d{9}$/, 'Must be exactly 9 digits, no dashes'),
 	packageName: z.string().optional(),
+	// Client-side half of Guard 0 in backgroundCheckService.ts. The server
+	// refuses independently — this exists so the refusal lands as a field error
+	// next to the checkbox instead of a toast after a round trip.
+	consentAttested: z
+		.boolean()
+		.refine((v) => v, 'Confirm you have the volunteer’s signed authorization.'),
 });
 
 type BgCheckFormValues = z.infer<typeof bgCheckSchema>;
@@ -444,6 +451,7 @@ function InitiateBackgroundCheckDialog({
 			dob: '',
 			ssn: '',
 			packageName: '',
+			consentAttested: false,
 		},
 	});
 
@@ -474,6 +482,7 @@ function InitiateBackgroundCheckDialog({
 				ssn: values.ssn,
 			},
 			packageName: values.packageName || undefined,
+			consentAttested: values.consentAttested,
 		});
 	}
 
@@ -592,6 +601,39 @@ function InitiateBackgroundCheckDialog({
 						<p className="text-xs text-muted-foreground">
 							SSN is sent directly to our background check provider and is never
 							stored by VolunteerReady.
+						</p>
+					</div>
+
+					{/*
+					 * FCRA consent attestation — the client half of Guard 0.
+					 *
+					 * `ui/checkbox` is a native <input type="checkbox">, not the Radix
+					 * primitive, so plain `register` yields the boolean directly and no
+					 * controlled wiring is needed.
+					 */}
+					<div className="space-y-2 rounded-md border border-border bg-muted/40 p-3">
+						<div className="flex items-start gap-3">
+							<Checkbox
+								id="bg-consent"
+								className="mt-0.5"
+								{...form.register('consentAttested')}
+							/>
+							<Label
+								htmlFor="bg-consent"
+								className="text-sm font-normal leading-snug"
+							>
+								I have this volunteer&apos;s signed background check disclosure
+								and authorization on file.
+							</Label>
+						</div>
+						{form.formState.errors.consentAttested && (
+							<p className="text-xs text-destructive">
+								{form.formState.errors.consentAttested.message}
+							</p>
+						)}
+						<p className="text-xs text-muted-foreground">
+							Required by the FCRA before a check is run. We&apos;ll email the
+							volunteer to let them know the check has started.
 						</p>
 					</div>
 

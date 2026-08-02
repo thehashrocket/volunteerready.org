@@ -25,6 +25,8 @@ const mocks = vi.hoisted(() => ({
 	tryDecrypt: vi.fn(),
 	createBackgroundCheckRequestTx: vi.fn(),
 	writeAuditLogTx: vi.fn(),
+	sendInitiatedEmail: vi.fn(),
+	findEmailByUserId: vi.fn(),
 }));
 
 vi.mock('@/server/services/orgVolunteerAccessService', () => ({
@@ -87,6 +89,10 @@ vi.mock('@/server/repositories/sendFcraEmails', () => ({
 }));
 vi.mock('@/server/repositories/sendBackgroundCheckEmail', () => ({
 	sendBackgroundCheckConsiderEmail: vi.fn(),
+	sendBackgroundCheckInitiatedEmail: mocks.sendInitiatedEmail,
+}));
+vi.mock('@/server/repositories/userAccountStateRepo', () => ({
+	findEmailByUserId: mocks.findEmailByUserId,
 }));
 vi.mock('@/server/services/tenureBadgeService', () => ({
 	checkAndIssueTenureBadges: vi.fn(),
@@ -106,12 +112,19 @@ const input = {
 		dob: '1990-01-01',
 		ssn: '123456789',
 	},
+	// Without this Guard 0 refuses before any query and every test here passes
+	// vacuously — see the same note in backgroundCheckService.access.test.ts.
+	consentAttested: true,
 };
 
 beforeEach(() => {
 	vi.resetAllMocks();
 	// getOrgSterlingKey reads sterlingApiKey, not checkrAccessToken.
-	mocks.orgFindUnique.mockResolvedValue({ sterlingApiKey: 'enc' });
+	mocks.orgFindUnique.mockResolvedValue({
+		sterlingApiKey: 'enc',
+		name: 'Helping Hands',
+	});
+	mocks.findEmailByUserId.mockResolvedValue('jane@example.com');
 	mocks.tryDecrypt.mockReturnValue('sterling-key');
 	mocks.findActiveCheckForUserInOrg.mockResolvedValue(null);
 	mocks.findCredentialByUserOrgType.mockResolvedValue(null);

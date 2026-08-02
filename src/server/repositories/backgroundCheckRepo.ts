@@ -137,6 +137,17 @@ export interface CreateBackgroundCheckInput {
 	externalId: string;
 	packageName: string;
 	provider?: BackgroundCheckProvider;
+	/**
+	 * The user id of the coordinator who attested to holding this volunteer's
+	 * signed FCRA disclosure and authorization.
+	 *
+	 * REQUIRED, not optional, and that is the point. Every caller reaches this
+	 * through `initiateProviderCheck`, which refuses without an attestation — so
+	 * making it optional here would let a future second write path create a
+	 * request with no consent record and no type error. The column is nullable
+	 * only because rows predating v0.40.0.0 genuinely have no answer.
+	 */
+	consentAttestedBy: string;
 }
 
 /** Create a new BackgroundCheckRequest. Status defaults to PENDING, provider to CHECKR. */
@@ -151,6 +162,10 @@ export async function createBackgroundCheckRequestTx(
 			externalId: input.externalId,
 			provider: input.provider ?? 'CHECKR',
 			status: 'PENDING',
+			// Stamped here rather than passed in, so the recorded time is the one
+			// the row was written and cannot be back-dated by a caller.
+			consentAttestedAt: new Date(),
+			consentAttestedBy: input.consentAttestedBy,
 		},
 		select: { id: true, externalId: true },
 	});
