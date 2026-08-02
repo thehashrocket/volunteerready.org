@@ -5,6 +5,116 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the background-check consent ship (2026-08-02, v0.40.0.0)
+
+### Caught while building — recorded so it is not reintroduced
+
+**A unit test asserting "the service passed X to the repository" does not test
+that X is written.** `records the attesting actor on the request row` passed with
+BOTH attestation columns deleted from `createBackgroundCheckRequestTx`'s `data`
+block, because the repository is mocked at that layer and the service does still
+hand the value over. Found by mutation-testing, not by review. The test was
+renamed to the claim it actually supports (`passes the attesting actor to the
+repository`) and the persistence moved to
+`repositories/backgroundCheckConsent.integration.test.ts`, which goes red on that
+exact mutation. **The general rule: when the property you care about is a
+database write, the assertion has to reach the database.** Same shape as the
+`isError`-vs-`QueryErrorCard` lesson — the convenient grep answers the wrong
+question.
+
+**Guard 0's POSITION is load-bearing and needs its own test.** A test that only
+asserts the refusal happens passes whether the attestation check runs before or
+after the relationship guard and the paid provider call. `SECURITY: refuses
+before any query and before the paid provider call` asserts
+`requireOrgVolunteerRelationship` was never called; mutation-verified by moving
+the block below it.
+
+**Three fixtures went vacuous the moment Guard 0 landed.** The pre-existing
+access tests share one `input` object with no `consentAttested`, so every one of
+them started refusing at Guard 0 — including `SECURITY: never sends PII to the
+provider when the guard rejects`, which would then have been asserting that an
+*attestation* refusal skips the adapter rather than that the *relationship* guard
+does. Adding a required field to a shared fixture silently reroutes every test
+that uses it; check what the tests are still proving, not just that they are
+green.
+
+### [P1] Nothing binds the submitted PII to the `userId` being checked
+
+**Pre-existing, found by the Codex adversarial pass during the v0.40.0.0 ship.**
+Not introduced by that diff and deliberately not fixed in it — recorded here
+because it is the most serious thing in this flow.
+
+`backgroundChecks.initiate` takes a `userId` AND a free-text `pii` block
+(firstName / lastName / email / dob / ssn) from the same form, and **nothing
+checks that they describe the same person**. The service authorizes the
+`userId`, ships the *typed* SSN and DOB to Checkr/Sterling, binds the resulting
+`BackgroundCheckRequest` (and any credential) to the `userId`, and — as of
+v0.40.0.0 — sends the disclosure to the `userId`'s stored address.
+
+So a coordinator who mistypes one digit of an SSN sends a **stranger's** SSN and
+date of birth to a consumer reporting agency, and the report comes back attached
+to the volunteer they meant to check. The new disclosure email does not make
+this worse (it correctly reaches the person the org targeted) but it does not
+catch it either, and the attestation column will name someone as having sworn
+they hold a signed authorization for a report that is about a different human.
+
+**Fix shape:** validate the submitted `pii` against the `User` record before the
+provider call — at minimum `normalizeEmail(pii.email) === findEmailByUserId(userId)`,
+which is free and catches the copy-paste-the-wrong-row case. A name check is
+softer (legal vs preferred names) and should warn rather than refuse. The deeper
+version drops the free-text identity fields entirely and derives them from the
+roster row, leaving only SSN/DOB as input. **Effort:** M.
+
+### [P3] A failed notification loses the witness silently
+
+`notifyVolunteerOfCheck` is not awaited (it runs under `waitUntil`) — correct,
+because by that point the paid provider call has happened and the row is
+committed, so throwing would report a failure for a check that is genuinely
+underway. But a send failure means the subject is never told and nothing on the
+request row records that.
+
+**Narrowed during the ship's adversarial pass, and the correction is the useful
+part.** `sendEmail` **does not throw** on failure — it RETURNS `false`, both for
+a Resend error and for a bounce-suppressed address. So the `.catch` never fired
+on the likeliest failure, and the original test passed while that hole stood
+because it mocked a *rejection*, which is a different and rarer path.
+`sendBackgroundCheckInitiatedEmail` now returns the boolean and
+`notifyVolunteerOfCheck` logs `DISCLOSURE NOT SENT` via `console.error`. Two
+tests now cover the two paths separately, because one does not imply the other.
+
+What remains, and why this is still open: the loss is loud in logs but not
+queryable, and a bounce-suppressed address is skipped **by design** — the notice
+is not `isCritical`, unlike the FCRA adverse-action mail that deliberately
+bypasses both guards. Whether a consent disclosure should bypass bounce
+suppression the way a legally-required notice does is a genuine judgment call,
+deliberately left unresolved rather than silently decided.
+**Fix:** a `notifiedAt` column on `BackgroundCheckRequest` set on send success,
+which also makes "checks whose subject was never notified" a one-query report.
+**Effort:** S.
+
+### [P3] `initiateSterlingCheck` has no tRPC caller
+
+Pre-existing, noticed while threading `consentAttested` through both entry
+points. `initiateSterlingCheck` is exported and fully guarded but nothing in
+`routers/background-checks.ts` exposes it — the Sterling path is reachable only
+by the webhook, so a Sterling-connected org cannot actually start a check from
+the UI. Either wire it up or say out loud that Sterling is webhook-only.
+**Effort:** S to wire.
+
+### [P3] The `/terms` §6 notification promise is bound by a comment, not a type
+
+The disclosure rule in CLAUDE.md wants a new member of a definition to be a type
+error or a red test. There is no enum here — the "definition" is that
+`initiateProviderCheck` calls `sendBackgroundCheckInitiatedEmail`, and deleting
+that call turns one service test red. So the promise IS protected, but only
+because that test exists; nothing structurally connects the sentence on the page
+to the send. A comment on the bullet names the test. Better shapes exist (assert
+the page copy from a constant the service also reads) and none of them are worth
+much here. Recorded so the weakness is known rather than assumed away.
+**Effort:** S.
+
+---
+
 ## Opened by the docs-tree cleanup (2026-08-01, v0.38.5.0)
 
 ### Caught while building — recorded so it is not reintroduced
@@ -1687,7 +1797,47 @@ no roster row), the restore writes `OrgVolunteerBlock`/userId. Joining requires
 `e2e/staff-created-volunteers.spec.ts` covers add → assign → attend → hours but not
 the exit, and now not the refusal either. e2e is still not in CI. **Effort:** M.
 
-### [P2] The never-consented case is untouched — an org can background-check a stranger it rostered
+### [P2] ~~The never-consented case is untouched — an org can background-check a stranger it rostered~~ ✅ ADDRESSED BY DISCLOSURE (2026-08-02, v0.40.0.0)
+
+**Resolved as notify, not refuse.** The counter-argument below won: the
+coordinator must already hold the SSN and DOB to fill the form in, so an in-app
+consent edge adds nothing they do not already have, while blocking the concierge
+case outright — a spreadsheet of existing volunteers is entirely people who have
+never logged in. `ORG_VOLUNTEER` stays in the accepted set.
+
+What the counter-argument did NOT cover, and what actually shipped: the platform
+had **no witness**. The subject of a check was the only party never told it
+happened — the sole background-check email went to org STAFF on a CONSIDER
+result, and the volunteer heard from us only on the FCRA pre-adverse path, i.e.
+only if the report came back bad AND the coordinator chose to act on it. A clean
+check run on someone who never agreed to one was invisible to them forever. The
+subject is also the only party who *can* detect an unauthorized check, which is
+what makes disclosure the fix rather than a stricter edge.
+
+Shipped:
+- `sendBackgroundCheckInitiatedEmail` — the subject is emailed at initiation,
+  naming the org and the provider, with a dispute right and a contact path. Sent
+  from `initiateProviderCheck` so both providers are covered. **Recipient is
+  resolved from `userId` via `findEmailByUserId`, NEVER from `pii.email`** — the
+  PII block is staff-supplied free text, so sending to it would hand the
+  subject's only disclosure back to whoever is running the check. Mutation-tested.
+- Guard 0 — a required FCRA consent attestation, refused in the service (not as
+  `z.literal(true)`, which `errorFormatter` would redact) and persisted as
+  `consentAttestedAt`/`consentAttestedBy` on `BackgroundCheckRequest`. Verifies
+  nothing; converts /terms §4's assignment of the obligation into a per-check
+  record with a named actor.
+- `/terms` §6 discloses the notification.
+
+**Deliberately NOT shipped — the shadow-user refusal.** Refusing when the roster
+row is `STAFF_ADDED` and the user is `UNCLAIMED` was considered and rejected in
+the same decision: that population is exactly the concierge case, and `sendEmail`'s
+unclaimed guard is **opt-in**, so the notice reaches them by default anyway. What
+they still cannot do is *act* — see the `Unclaimed volunteers cannot reach the
+Leave control` P3 below, which this makes more consequential, not less. The email
+names a human contact path for precisely that reason. Revisit only with
+`VolunteerActivationInvite` (v1b), which would give them a real self-serve remedy.
+
+Original entry, kept for the reasoning:
 
 The block fixes *"I left and they still can."* It does nothing about *"they added
 me off a spreadsheet, I never knew, and they can order a background check on me."*
