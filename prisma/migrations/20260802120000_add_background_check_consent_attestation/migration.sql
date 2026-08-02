@@ -1,0 +1,50 @@
+-- Per-check record of the coordinator's FCRA consent attestation.
+--
+-- HAND-WRITTEN, like every migration in this repo. `prisma migrate dev` cannot
+-- run here at all: migration 20260320100000 uses CREATE INDEX CONCURRENTLY,
+-- which Postgres refuses inside the transaction Prisma wraps the shadow
+-- database in. Apply with `prisma migrate deploy`.
+--
+-- WHY THESE COLUMNS EXIST. `backgroundChecks.initiate` is gated by
+-- `requireOrgVolunteerRelationship`, which accepts `ORG_VOLUNTEER` — a roster
+-- row staff mint from an email address alone, one at a time via `addVolunteer`
+-- or sixty at a time via `pnpm import:roster`. So the platform could make a
+-- paid third-party call carrying someone's SSN and date of birth with no record
+-- anywhere that they had ever agreed to it. /terms §4 already assigns that
+-- obligation to the org and §6 is written to the volunteer as "By consenting to
+-- a background check: you authorize…" — presuming an event the product never
+-- captured.
+--
+-- These columns do NOT verify consent; nothing in software can see a signed
+-- paper form. They convert a silent assumption into a per-check record with a
+-- named actor and a timestamp. The other half of the fix is the notification
+-- the volunteer now receives at initiation — see sendBackgroundCheckEmail.ts.
+-- Requiring a consent-bearing relationship instead (tiering `ORG_VOLUNTEER` out
+-- of the accepted set for this action) was considered and rejected: the
+-- coordinator must already hold the SSN and DOB to fill the form in, so the
+-- edge adds no consent that is not already there, while blocking the concierge
+-- case outright — a spreadsheet of existing volunteers is entirely people who
+-- have never logged in.
+
+-- AlterTable
+--
+-- Both nullable, and deliberately NOT backfilled. Rows written before this
+-- migration carry no attestation because none was ever asked for. A backfill —
+-- even to `createdAt` — would manufacture evidence about a real person's
+-- consent, and the whole point of the column is to be trustworthy in a dispute.
+-- NULL here means "we do not know", which is the truth.
+ALTER TABLE "BackgroundCheckRequest" ADD COLUMN "consentAttestedAt" TIMESTAMP(3);
+ALTER TABLE "BackgroundCheckRequest" ADD COLUMN "consentAttestedBy" TEXT;
+
+-- No foreign key on "consentAttestedBy", deliberately.
+--
+-- `AuditLog.actorId` carries `ON DELETE SET NULL`, which is right for an audit
+-- trail keyed on a live actor and wrong here. This column is evidence: an
+-- attestation that empties itself when the coordinator who made it leaves the
+-- organization is worthless in exactly the dispute it exists for. A dangling id
+-- that no longer resolves to a User is still a better answer than NULL, because
+-- it is distinguishable from "never attested".
+--
+-- No index either. Nothing queries by attestor — these columns are read one row
+-- at a time alongside the request they belong to, and an unused index on a
+-- table that takes a write per paid check is cost with no reader.
