@@ -323,7 +323,15 @@ in different sessions. Fix with an optimistic predicate: `updateMany` with
 `where: { id, role: previousRole }` and treat `count === 0` as a lost race, the
 same shape `softDeleteOwnOrgVolunteerByOrg` already uses. **Effort:** M.
 
-### [P3] `memberService`'s other refusals are plain `Error`s, so the user never reads them
+### [P3] ~~`memberService`'s other refusals are plain `Error`s, so the user never reads them~~ ✅ FIXED (2026-08-01, with T37)
+
+Fixed considerably wider than described: the same defect existed in
+`shiftService`, `shiftTemplateService`, `shiftSignupService` and
+`employerReportService`, eighteen throws in total, and T37's `errorFormatter`
+turned it from "withheld by the client" into "redacted at the server for every
+caller." The estimate below (**S**, four sites in one file) was written from the
+one file the P2 happened to be open in. See T37's entry for the rule and the
+code-level regression test. Original write-up:
 
 Noticed while fixing the P2 above. `updateOrgMemberRole` and `removeOrgMember`
 raise `new Error('Member not found.')`, `"Cannot change the owner's role."`,
@@ -669,7 +677,58 @@ worth a look next time that page is touched.
 which survives is a detail of the merge. Visibility now sits on wrapper `div`s.
 A `lg:block` that "worked" here would have silently disabled Card's flex column.
 
-### [P2] T37 — the `safeErrorMessage` migration stops after four pages
+### [P2] ~~T37 — the `safeErrorMessage` migration stops after four pages~~ ✅ FIXED (2026-08-01)
+
+**Fixed by adding the thing this entry says does not exist.** The write-up below
+is preserved because its *method* note is still the rule, but its diagnosis was
+half wrong: it framed this as a client-side migration, and the real hole was
+that there was no `errorFormatter`, so every one of those messages had already
+crossed the network and was sitting in the browser's network tab and React
+Query's cache before any component chose what to render. `safeErrorMessage()`
+could never have been the control; it can only decide what is *painted*.
+
+What shipped:
+
+- **`src/server/domain/error-disclosure.ts`** — `CLIENT_SAFE_ERROR_CODES`,
+  `isClientSafeErrorCode()`, `GENERIC_ERROR_MESSAGE`. One definition, imported by
+  both halves, per the disclosure-derivation rule.
+- **`errorFormatter` in `server/trpc/init.ts`** — redacts the message for any
+  non-allowlisted code and drops `stack`. **Not** exempted in development: `pnpm
+  e2e` boots `pnpm dev`, so a dev exemption makes the control inert in the only
+  automated environment that drives real HTTP.
+- **`onError` in `app/api/trpc/[trpc]/route.ts`** — logs the raw error and
+  reports it to Sentry. This is not optional garnish: redaction removes the last
+  place an unexpected failure was legible, so landing it alone trades a
+  disclosure bug for a blind one.
+- The full client sweep (~75 sites), `safeCaughtErrorMessage()` for
+  `mutateAsync` try/catch, and `src/app/error.tsx` no longer printing
+  `error.message`.
+
+**The expensive discovery, and the reason this took longer than "mechanical but
+wide":** redaction is only correct if deliberate refusals carry an allowlisted
+code, and **eighteen user-facing refusals were plain `Error`s** — which tRPC maps
+to `INTERNAL_SERVER_ERROR`. Shift-time validation, every `memberService` refusal
+("Cannot remove the organization owner", "Cannot change your own role"), and
+`markAttendance`'s "Cannot mark attendance: signup is CANCELLED" would all have
+become "Something went wrong." The hazard was already documented at
+`memberService.ts:207` and tracked as the P3 below — and the throws two lines
+away from that comment were still plain. All eighteen are now `TRPCError`s;
+`checkinService.test.ts` asserts the **code**, because `rejects.toThrow('...')`
+passes for a plain `Error` just as happily and could never have caught it.
+
+**Rule for anything new:** a message a user is meant to READ needs an allowlisted
+code. `throw new Error('Cannot remove yourself.')` now renders as generic copy,
+silently, and no message-based test will tell you.
+
+This also closed four **missing `isError` branches** found while sweeping —
+`CredentialWallet` and `NotificationPreferences` on `/app/profile`,
+`MarketplaceCard` and `TimezoneCard` on `/app/settings/team`. None leaked
+anything; each rendered a *default* on failure, which is worse than blank
+because it states something false: "No credentials yet" to a volunteer whose
+background check is verified, every notification toggle switched back on, and
+"UTC (default)" for an org whose shift times are not in UTC.
+
+<details><summary>Original write-up (diagnosis partly superseded, method still current)</summary>
 
 T35 converted `applications`, `opportunities`, `settings/team` and `shifts`. The
 same leak stands everywhere else: counted after this ship, **13 files under
@@ -688,6 +747,119 @@ exact grep that let T35 nearly ship having done a quarter of the work, because
 three of its four pages already had an `isError` branch that printed the raw
 message. Tracked as **T37** in `docs/designs/staff-created-volunteers.md`.
 **Effort:** ~1d human / ~45min CC, mechanical but wide.
+
+</details>
+
+### [P2] Error-copy has four voices and three apostrophes across 21 surfaces
+
+Opened by T37's design review, which counted the `QueryErrorCard` titles now that
+they are all one component: **"Couldn't load X" (10), "We couldn't load X" (6),
+"Could not load X" (3), "Unable to load X" (1)** — four formulas for one failure
+class. T37 added five of those titles and unified none, which is how a shared
+component makes an inconsistency visible without fixing it.
+
+Underneath it, three encodings of one character: typographic `U+2019` in 5
+titles, ASCII `'` in 10, and the `&apos;` entity in `VolunteerDetailDialog.tsx`.
+`my-applications/page.tsx` uses both, eight lines apart. This is an editorial
+typography system (DESIGN.md), so the ASCII form is the wrong glyph, not a
+stylistic tie.
+
+And a third layer: the legacy `'Failed to X'` fallback survives in ~20 toasts
+(`background-checks` alone keeps nine) beside newly-written
+`'Could not VERB that NOUN.'` copy, so one page can answer three ways depending
+which control the user touches.
+
+The work is one sweep plus a guard: pick `Couldn't load NOUN` for staff and
+`We couldn't load NOUN` for volunteers, normalise on `U+2019`, retire
+`Failed to X`, and add a test asserting no user-facing string contains an ASCII
+apostrophe — otherwise it drifts back one PR at a time. **Effort:** M.
+
+### [P3] Four review findings deferred out of T37
+
+Each verified, none blocking, all recorded so the next person does not re-derive
+them.
+
+1. **`backgroundCheckService.ts:318` forwards a THIRD-PARTY message.**
+   `throw new TRPCError({ code: 'BAD_REQUEST', message: apiErr.message })` passes
+   Checkr's or Sterling's own string straight through — and because it is an
+   explicit `message`, T37's authored-vs-laundered rule counts it as ours and
+   ships it. Nothing constrains what a vendor writes there, on a request whose
+   payload carried SSN and date of birth. Pre-existing, but T37 made it the
+   documented contract rather than an accident. Map the provider's 422 to
+   first-party copy and log the original.
+2. **`employerReportService`'s NOT_FOUND is now invisible twice.** Recoding it
+   from a 500 means `reportTrpcError` returns early (no Sentry) AND
+   `e2e/esg-dashboard.spec.ts:257` — which collects `status() >= 500` — stops
+   seeing it. `generateESGReport` is only reachable through
+   `companyScopedProcedure`, which already resolved a `CompanyMember` for that
+   company, so a missing `Company` there is a referential-integrity fault, not a
+   user error. Either put it back to INTERNAL_SERVER_ERROR (now safe, since the
+   formatter redacts it) or capture explicitly at the throw site.
+3. **`/app/browse` never reads `searchParams.error`.** `invite/company/[token]`
+   encodes a refusal into a redirect URL that nothing renders — so the message
+   lands in history and in the next referrer and is then discarded, and a user
+   whose invite failed is dropped on an unrelated page with no explanation. T37
+   made the URL safe; it did not make it useful. Either render it or redirect to
+   a route that explains the failure server-side.
+4. **`safeCaughtErrorMessage`'s call sites are untested.** The helper is covered;
+   `scan/Scanner.tsx` (×2), `applications/import/page.tsx` and
+   `onboarding-wizard.tsx` are not. Scanner is the one that matters — it is the
+   paired half of `markAttendance`'s newly-coded refusals, and it is what a
+   coordinator standing at a door reads. Skipped because Scanner needs
+   `html5-qrcode`, a camera and four procedures mocked to assert one line.
+
+Also noted and NOT acted on: `QueryErrorCard`'s retry is `size="sm"` (h-8)
+against DESIGN.md's stated 44px minimum, now propagated to ~21 surfaces; and the
+client `QueryClient` takes React Query's default `retry: 3`, which triples the
+request volume behind every failure. Both pre-existing, both worth a decision.
+**Effort:** S each.
+
+### [P3] Malformed superjson input is still reported as a fault
+
+Found by the Codex structured review at the end of T37 (its only finding; the P1
+gate passed). `reportTrpcError` reports any allowlisted code whose `cause` is an
+`Error`, because that is how a raw throw inside a Zod `.transform()` wears a safe
+code — the blind-spot case the clause exists to close. A malformed superjson
+payload arrives in exactly the same shape, so an unauthenticated caller can still
+generate Sentry events against a `publicProcedure`.
+
+**Accepted, not overlooked.** The two are indistinguishable without matching on
+tRPC's internal message text, and narrowing the other way reopens the case where
+a real fault is invisible at BOTH ends. `withinReportBudget` bounds it at 5
+events per procedure+code per minute, so the volume is capped either way; the
+`ZodError` skip already removes the common case.
+
+If it ever matters: key on the deserialization error's shape at the
+`resolveResponse` boundary rather than on the message, or move the throttle
+window down for `publicProcedure` paths specifically. **Effort:** S.
+
+### [P3] Route Handlers bypass `errorFormatter`, and the guard test excludes them
+
+Opened by T37's own completion audit, which caught the guard test
+(`src/server/domain/error-disclosure.guard.test.ts`) excluding `src/app/api/**`
+on the grounds that Route Handlers are "a different surface with different rules
+(tracked separately)" — while nothing tracked them. This is that entry, written
+so the comment stops pointing at nothing.
+
+The exclusion itself is correct: `errorFormatter` is configured on the tRPC
+instance, so a Route Handler returning `NextResponse.json({ error })` never
+passes through it. Folding them into the same test would make one test about two
+different controls.
+
+**Nothing is leaking today** — audited by hand during the same pass:
+`api/esg-report/pdf/route.ts:62` and `csv/route.ts:62` narrow on
+`instanceof CompanyAccessDeniedError` (a deliberate refusal) and rethrow
+everything else; `api/case-study/consent/route.ts:104` is `console.error`-only;
+`api/platform-admin/impersonation/start/route.ts:60-84` applies its own
+`FORBIDDEN`/`NOT_FOUND`/`BAD_REQUEST` allowlist and falls through to a generic
+500. The last of those is a **third hand-rolled copy of the allowlist** and is
+deliberately NARROWER than the shared one, which is defensible per-endpoint —
+converging it onto `isClientSafeErrorCode` would WIDEN disclosure on an
+impersonation endpoint, so it was left alone rather than "made consistent".
+
+The work: extend the guard to `src/app/api/**` with its own rule (a Route
+Handler may return an error message only after an explicit code/type check), or
+give Route Handlers a shared helper the way tRPC has one. **Effort:** S.
 
 ### [P2] ~~The app shell's top bar overflows ~22px at 375px, on EVERY authenticated page~~ ✅ FIXED (2026-07-31, with T36)
 
