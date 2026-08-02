@@ -144,6 +144,12 @@ describe('acceptInvitation (org)', () => {
 			role: 'STAFF',
 		});
 
+		// The CODE as well as the text: `toThrow` passes identically for a plain
+		// `Error`, which tRPC maps to INTERNAL_SERVER_ERROR and `errorFormatter`
+		// redacts — so the invitee would be told nothing about the mismatch.
+		await expect(
+			acceptInvitation('raw-token', TARGET_ID),
+		).rejects.toMatchObject({ code: 'FORBIDDEN' });
 		await expect(acceptInvitation('raw-token', TARGET_ID)).rejects.toThrow(
 			/different email address/i,
 		);
@@ -216,7 +222,7 @@ describe('acceptCompanyInvite', () => {
 
 		await expect(
 			acceptCompanyInvite({ tokenHash: 'hash', userId: TARGET_ID }),
-		).rejects.toThrow(/different email address/i);
+		).rejects.toMatchObject({ code: 'FORBIDDEN' });
 		expect(mocks.companyMemberCreate).not.toHaveBeenCalled();
 	});
 

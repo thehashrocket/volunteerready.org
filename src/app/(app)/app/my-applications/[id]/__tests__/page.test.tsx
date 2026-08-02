@@ -182,10 +182,13 @@ describe('MyApplicationDetailPage — withdraw button + dialog', () => {
 		expect(mutate).toHaveBeenCalledWith({ id: 'app-1' });
 	});
 
-	it('shows mutation error message inside dialog', async () => {
+	it('shows an allowlisted refusal verbatim inside the dialog', async () => {
 		setupMocks({
 			isError: true,
-			error: { message: 'Something went wrong.' },
+			error: {
+				message: 'This application can no longer be withdrawn.',
+				data: { code: 'PRECONDITION_FAILED' },
+			},
 		});
 		render(<MyApplicationDetailPage />);
 
@@ -193,7 +196,32 @@ describe('MyApplicationDetailPage — withdraw button + dialog', () => {
 			screen.getByRole('button', { name: /withdraw application/i }),
 		);
 
-		expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+		expect(
+			screen.getByText('This application can no longer be withdrawn.'),
+		).toBeInTheDocument();
+	});
+
+	it('SECURITY: shows generic copy for an internal error, never the raw text', async () => {
+		// This surface is volunteer-facing. Delete the `safeErrorMessage` call in
+		// page.tsx and this goes red — the Prisma string renders instead.
+		setupMocks({
+			isError: true,
+			error: {
+				message:
+					'Invalid `prisma.volunteerApplication.update()` invocation: relation does not exist',
+				data: { code: 'INTERNAL_SERVER_ERROR' },
+			},
+		});
+		render(<MyApplicationDetailPage />);
+
+		await userEvent.click(
+			screen.getByRole('button', { name: /withdraw application/i }),
+		);
+
+		expect(screen.queryByText(/prisma\./i)).not.toBeInTheDocument();
+		expect(screen.getByRole('alert')).toHaveTextContent(
+			"We couldn't withdraw that application. Try again.",
+		);
 	});
 
 	it('disables both buttons while mutation is pending', async () => {

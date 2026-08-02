@@ -2,6 +2,7 @@
 // Employer Report Service — ESG report generation
 // ---------------------------------------------------------------------------
 
+import { TRPCError } from '@trpc/server';
 import type { ESGOrgRow, ESGReportSummary } from '@/server/domain/esg-report';
 import {
 	computeESGSummary,
@@ -43,7 +44,9 @@ export async function generateESGReport(
 
 	const company = await findCompanyById(companyId);
 	if (!company) {
-		throw new Error(`Company not found: ${companyId}`);
+		// The id is deliberately dropped from the message now that it is
+		// user-visible — it was only ever useful in a server log.
+		throw new TRPCError({ code: 'NOT_FOUND', message: 'Company not found.' });
 	}
 
 	// Parallel independent queries

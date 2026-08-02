@@ -10,6 +10,10 @@ import type {
 } from '@/prisma/generated/client';
 import { authOptions } from '@/server/auth';
 import { assertPlanAtLeast } from '@/server/domain/billing';
+import {
+	GENERIC_ERROR_MESSAGE,
+	isClientSafeErrorCode,
+} from '@/server/domain/error-disclosure';
 import type { EffectiveUser } from '@/server/domain/impersonation';
 import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
 import { roleRank } from '@/server/domain/permissions';
@@ -218,6 +222,59 @@ export const t = initTRPC
 	.context<Awaited<ReturnType<typeof createTRPCContext>>>()
 	.create({
 		transformer: superjson,
+		/**
+		 * SECURITY: redact any message the allowlist does not cover, before it is
+		 * serialized. `safeErrorMessage()` on the client is the second half of this
+		 * control, not the first — by the time it runs the string has already
+		 * crossed the network and is sitting in the browser's network tab and in
+		 * React Query's cache, whatever the component chooses to render. This is
+		 * the half that actually stops it.
+		 *
+		 * Deliberately NOT short-circuited in development. `pnpm e2e` boots
+		 * `pnpm dev`, so a dev exemption would make this inert in the only
+		 * automated environment that drives real HTTP — nothing could prove it
+		 * works, and a control nobody exercises is one nobody notices breaking.
+		 * The real message is not lost: the `onError` hook in
+		 * `app/api/trpc/[trpc]/route.ts` logs it server-side first.
+		 *
+		 * Note this runs for HTTP responses only. `createCaller` throws the raw
+		 * TRPCError without consulting the formatter, which is why no existing
+		 * router test changes — and why the formatter needs its own tests.
+		 */
+		errorFormatter({ shape, error }) {
+			// The code alone is NOT enough, and this is the subtle half.
+			// `getTRPCErrorFromUnknown` resolves `message = opts.message ?? cause.message`,
+			// so a TRPCError built from a `cause` with no explicit message carries
+			// the CAUSE's text — and tRPC manufactures exactly that for BAD_REQUEST
+			// on every input-validation failure, including a raw throw inside a Zod
+			// `.transform()`/`.refine()` and a superjson deserialization error.
+			// Allowlisting the code alone therefore shipped raw Prisma text under
+			// an allowlisted code. Verified by execution, and verified that no
+			// app-thrown TRPCError passes BOTH `message` and `cause`, so this
+			// costs no hand-authored copy:
+			//
+			//   authored  → cause is not an Error → ships
+			//   laundered → cause IS an Error     → redacted
+			const authored = !(error.cause instanceof Error);
+			const disclosable = isClientSafeErrorCode(shape.data.code) && authored;
+
+			// `stack` is stripped on BOTH paths. tRPC attaches it whenever
+			// NODE_ENV !== 'production', and an allowlisted FORBIDDEN carries the
+			// same absolute server paths and module layout as an internal one — so
+			// returning `shape` untouched on the allow path handed that back on
+			// every `pnpm dev` and every self-hosted non-production deploy. The
+			// message is what the allowlist is about; the stack is never disclosure
+			// anyone asked for.
+			//
+			// Omitted by rest-spread rather than assigned `undefined` — superjson
+			// serializes an explicit `undefined` as a null-valued key, which is a
+			// dead field on the wire rather than an absent one.
+			const { stack: _stack, ...data } = shape.data;
+
+			if (disclosable) return { ...shape, data };
+
+			return { ...shape, message: GENERIC_ERROR_MESSAGE, data };
+		},
 	});
 
 // Re-exported so the existing `import { roleRank } from '@/server/trpc/init'`

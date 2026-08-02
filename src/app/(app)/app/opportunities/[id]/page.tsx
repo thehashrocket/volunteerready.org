@@ -6,13 +6,16 @@ import {
 	ChevronRight,
 	Clock,
 	MapPin,
-	RefreshCw,
 	Users,
 	Wifi,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
 import { OpportunityStatusBadge } from '@/components/opportunities/OpportunityStatusBadge';
@@ -201,21 +204,12 @@ export default function OpportunityDashboardPage() {
 		return (
 			<div className="space-y-6">
 				{backButton}
-				<Card>
-					<CardContent className="pt-6">
-						<p className="mb-4 text-sm text-muted-foreground">
-							{oppQuery.error.message}
-						</p>
-						<Button
-							onClick={() => oppQuery.refetch()}
-							variant="outline"
-							size="sm"
-						>
-							<RefreshCw className="mr-2 h-4 w-4" />
-							Try again
-						</Button>
-					</CardContent>
-				</Card>
+				<QueryErrorCard
+					title="Couldn't load this opportunity"
+					message={safeErrorMessage(oppQuery.error)}
+					onRetry={() => oppQuery.refetch()}
+					isRetrying={oppQuery.isFetching}
+				/>
 			</div>
 		);
 	}

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
@@ -40,7 +41,7 @@ export function OrgSwitcher() {
 			await qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to switch organization');
+			toast.error(safeErrorMessage(err) ?? 'Failed to switch organization');
 		},
 	});
 

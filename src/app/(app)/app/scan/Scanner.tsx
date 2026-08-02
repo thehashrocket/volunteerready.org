@@ -12,6 +12,7 @@ import {
 	XCircle,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { safeCaughtErrorMessage } from '@/components/app/query-error-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -168,7 +169,7 @@ export default function Scanner() {
 					signupsQuery.refetch();
 				}
 			} catch (err) {
-				const message = err instanceof Error ? err.message : 'Check-in failed.';
+				const message = safeCaughtErrorMessage(err) ?? 'Check-in failed.';
 				setLastResult({ type: 'error', message });
 			} finally {
 				setTimeout(() => {
@@ -258,7 +259,7 @@ export default function Scanner() {
 				statsQuery.refetch();
 				signupsQuery.refetch();
 			} catch (err) {
-				const message = err instanceof Error ? err.message : 'Check-in failed.';
+				const message = safeCaughtErrorMessage(err) ?? 'Check-in failed.';
 				setLastResult({ type: 'error', message });
 			}
 		},

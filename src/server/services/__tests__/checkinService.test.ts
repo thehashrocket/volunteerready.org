@@ -54,6 +54,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
+import { isClientSafeErrorCode } from '@/server/domain/error-disclosure';
 import { getCheckinStats, markAttendance } from '../shiftSignupService';
 
 // ---------------------------------------------------------------------------
@@ -206,6 +207,37 @@ describe('markAttendance', () => {
 		await expect(
 			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, STAFF_AUTH, 'qr'),
 		).rejects.toThrow('Cannot mark attendance: signup is WAITLISTED');
+	});
+
+	/**
+	 * These two refusals are hand-authored copy a coordinator standing at a door
+	 * needs to READ — "this person cancelled" is the whole answer. They were
+	 * plain `Error`s, which tRPC maps to INTERNAL_SERVER_ERROR, and the
+	 * `errorFormatter` redacts every non-allowlisted code before it is
+	 * serialized. So the message survived only as long as nothing redacted it.
+	 *
+	 * Asserting the CODE, not just the text: `rejects.toThrow('...')` passes for
+	 * a plain Error just as happily, so the message assertions above cannot see
+	 * this class of regression at all.
+	 */
+	it('carries an allowlisted code, so the reason reaches the coordinator', async () => {
+		mocks.txQueryRaw.mockResolvedValue([
+			{ id: 'signup-1', status: 'CANCELLED' },
+		]);
+
+		await expect(
+			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, STAFF_AUTH, 'qr'),
+		).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
+		expect(isClientSafeErrorCode('PRECONDITION_FAILED')).toBe(true);
+	});
+
+	it('carries an allowlisted code when there is no signup at all', async () => {
+		mocks.txQueryRaw.mockResolvedValue([]);
+
+		await expect(
+			markAttendance(SHIFT_ID, USER_ID, 'ATTENDED', ACTOR_ID, STAFF_AUTH),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+		expect(isClientSafeErrorCode('NOT_FOUND')).toBe(true);
 	});
 
 	it('allows NO_SHOW for any signup status', async () => {

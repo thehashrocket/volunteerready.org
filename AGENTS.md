@@ -35,6 +35,23 @@ UI / page
 
 No Prisma in routers. No Prisma in components. No business logic in repositories.
 
+## Before you throw or render an error
+
+What an error says to the caller is decided on the **server**, by the
+`errorFormatter` in `src/server/trpc/init.ts`, against the one allowlist in
+`src/server/domain/error-disclosure.ts`. Two rules follow, and both fail silently:
+
+- A refusal someone is meant to READ must be a `TRPCError` with an allowlisted
+  code. `throw new Error('Cannot remove yourself.')` becomes
+  `INTERNAL_SERVER_ERROR` and the person reads the generic copy instead. Assert
+  the code in tests — a `toThrow('…')` assertion passes for a plain `Error` too.
+- Never render `error.message` (or `err.message`, or `await res.text()`) into
+  JSX. Use `safeErrorMessage()` / `safeCaughtErrorMessage()` / `QueryErrorCard`.
+  `src/server/domain/error-disclosure.guard.test.ts` fails on a raw render.
+
+`docs/AGENT_RULES.md` §3, §4 and §6 carry the reasoning; the full request/error
+ordering is in `docs/REQUEST_FLOW.md`.
+
 ## Stack at a glance
 
 - Next.js 16 App Router + React 19

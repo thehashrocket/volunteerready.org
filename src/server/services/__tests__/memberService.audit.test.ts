@@ -114,6 +114,7 @@ vi.mock('@/server/repositories/auditRepo', () => ({
 	writeAuditLogTx: vi.fn().mockResolvedValue({ id: 'audit-1' }),
 }));
 
+import { isClientSafeErrorCode } from '@/server/domain/error-disclosure';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import {
 	inviteMember,
@@ -355,5 +356,103 @@ describe('memberService: actor-resolution edge cases', () => {
 			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'STAFF'),
 		).resolves.toBeDefined();
 		expect(writeAuditLogTx).not.toHaveBeenCalled();
+	});
+});
+
+/**
+ * Every refusal below is hand-authored copy the user must READ to know what to
+ * do differently — "you can't remove the owner" is the whole answer. They were
+ * plain `Error`s until T37, and tRPC maps a plain Error to
+ * INTERNAL_SERVER_ERROR, which `errorFormatter` redacts to "Something went
+ * wrong. Please try again." before it is serialized.
+ *
+ * These assert the CODE, not the text, and that distinction is the entire point:
+ * `rejects.toThrow('Cannot remove yourself.')` passes for a plain Error just as
+ * happily, so a message-based test cannot see this regression at all. Note the
+ * nine `rejects.toThrow` assertions in the suite above target
+ * `assertMayGrantRole`/`resolveActingRole`, which were ALREADY TRPCErrors — they
+ * look like coverage of these refusals and are not.
+ */
+describe('memberService refusals carry an allowlisted code', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		setActingRole('OWNER');
+		setTargetRole('STAFF');
+	});
+
+	it('removeOrgMember: owner target -> FORBIDDEN', async () => {
+		setTargetRole('OWNER');
+		await expect(
+			removeOrgMember('org-1', 'actor-1', 'mem-1'),
+		).rejects.toMatchObject({ code: 'FORBIDDEN' });
+	});
+
+	it('removeOrgMember: removing yourself -> BAD_REQUEST', async () => {
+		// The target lookup resolves to userId 'target-user'.
+		await expect(
+			removeOrgMember('org-1', 'target-user', 'mem-1'),
+		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+	});
+
+	it('removeOrgMember: missing target -> NOT_FOUND', async () => {
+		findMember.mockImplementationOnce(async () => null);
+		await expect(
+			removeOrgMember('org-1', 'actor-1', 'gone'),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+	});
+
+	it('updateOrgMemberRole: promoting to OWNER -> BAD_REQUEST', async () => {
+		await expect(
+			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'OWNER'),
+		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+	});
+
+	it("updateOrgMemberRole: owner's role -> FORBIDDEN", async () => {
+		setTargetRole('OWNER');
+		await expect(
+			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'STAFF'),
+		).rejects.toMatchObject({ code: 'FORBIDDEN' });
+	});
+
+	it('updateOrgMemberRole: your own role -> BAD_REQUEST', async () => {
+		await expect(
+			updateOrgMemberRole('org-1', 'target-user', 'mem-1', 'STAFF'),
+		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+	});
+
+	it('inviteMember: unknown org -> NOT_FOUND', async () => {
+		const { prisma } = await import('@/server/repositories/prisma');
+		vi.mocked(prisma.organization.findUnique).mockResolvedValueOnce(
+			null as never,
+		);
+
+		await expect(
+			inviteMember('org-gone', 'a@example.org', 'STAFF', 'http://x', 'actor-1'),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+	});
+
+	it('inviteMember: already a member -> CONFLICT', async () => {
+		const { prisma } = await import('@/server/repositories/prisma');
+		vi.mocked(prisma.user.findFirst).mockResolvedValueOnce({
+			id: 'u-existing',
+		} as never);
+
+		await expect(
+			inviteMember(
+				'org-1',
+				'taken@example.org',
+				'STAFF',
+				'http://x',
+				'actor-1',
+			),
+		).rejects.toMatchObject({ code: 'CONFLICT' });
+	});
+
+	it('every refusal code above is in the shared allowlist', () => {
+		// The codes are only useful because the formatter lets them through. If
+		// the allowlist ever narrows, this is what says so.
+		for (const code of ['FORBIDDEN', 'BAD_REQUEST', 'NOT_FOUND', 'CONFLICT']) {
+			expect(isClientSafeErrorCode(code)).toBe(true);
+		}
 	});
 });

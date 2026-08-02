@@ -116,11 +116,13 @@ function DetailBody({ volunteerId }: { volunteerId: string }) {
 					<AlertTriangle className="h-4 w-4 text-destructive" />
 					Couldn&apos;t load this volunteer
 				</p>
-				{/* safeErrorMessage, never `error.message` — a tRPC error can carry
-				    internal detail including database text. QueryErrorCard would be
-				    the page-level shape, but it is a Card, and a bordered card inside
-				    an already-bordered dialog is visible double chrome. Same call
-				    AddVolunteerForm's inline error makes. */}
+				{/* safeErrorMessage, never `error.message`. The server's
+				    errorFormatter redacts an internal message before it is
+				    serialized, so this is the second half of that control rather
+				    than the only one. QueryErrorCard would be the page-level shape,
+				    but it is a Card, and a bordered card inside an already-bordered
+				    dialog is visible double chrome. Same call AddVolunteerForm's
+				    inline error makes. */}
 				<p className="text-muted-foreground">
 					{safeErrorMessage(detail.error) ?? 'Please try again.'}
 				</p>

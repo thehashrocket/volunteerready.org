@@ -144,9 +144,15 @@ describe('ImpersonationBanner', () => {
 
 	it('shows inline error and does not navigate when end-session fetch fails', async () => {
 		const { hrefSetter } = mockLocation();
+		// A response body the route did not author — a framework error page is the
+		// realistic shape here, and it used to be rendered verbatim to the admin.
 		const fetchMock = vi.fn().mockResolvedValue({
 			ok: false,
-			text: vi.fn().mockResolvedValue('Session already ended.'),
+			text: vi
+				.fn()
+				.mockResolvedValue(
+					'<html><body>Error: connect ECONNREFUSED 10.0.0.4:5432</body></html>',
+				),
 		});
 		vi.stubGlobal('fetch', fetchMock);
 
@@ -168,7 +174,13 @@ describe('ImpersonationBanner', () => {
 		});
 
 		expect(hrefSetter).not.toHaveBeenCalled();
-		expect(screen.getByText(/Session already ended/)).toBeInTheDocument();
+		// SECURITY: fixed copy, never the body. `res.text()` returns whatever the
+		// route, the framework or an edge proxy produced, and this surface is one
+		// the guard test cannot see (it skips `src/app` + `/api`).
+		expect(screen.queryByText(/ECONNREFUSED/)).not.toBeInTheDocument();
+		expect(
+			screen.getByText('Failed to end session. Try again.'),
+		).toBeInTheDocument();
 		// Button should be re-enabled so admin can retry
 		expect(button).not.toBeDisabled();
 	});

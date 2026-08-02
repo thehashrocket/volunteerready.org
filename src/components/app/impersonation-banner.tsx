@@ -53,8 +53,13 @@ export function ImpersonationBanner({
 				method: 'POST',
 			});
 			if (!res.ok) {
-				const body = await res.text().catch(() => 'Unknown error');
-				setEndError(body || 'Failed to end session. Try again.');
+				// Deliberately NOT the response body. `res.text()` returns whatever
+				// the route, the framework or an edge proxy produced — a Next.js
+				// error page, a stack, a gateway's HTML — and rendered it verbatim
+				// to the admin. The route itself has no contract to return
+				// user-safe text on this path, and the guard test cannot see
+				// `src/app/api/**`, so nothing would have flagged it.
+				setEndError('Failed to end session. Try again.');
 				setEnding(false);
 				return;
 			}

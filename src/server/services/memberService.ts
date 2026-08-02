@@ -138,7 +138,11 @@ export async function inviteMember(
 		where: { id: orgId },
 		select: { name: true },
 	});
-	if (!org) throw new Error('Organization not found.');
+	if (!org)
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Organization not found.',
+		});
 
 	// Don't invite someone who is already a member
 	const existingMember = await prisma.user.findFirst({
@@ -148,7 +152,10 @@ export async function inviteMember(
 		},
 	});
 	if (existingMember) {
-		throw new Error('This person is already a member of your organization.');
+		throw new TRPCError({
+			code: 'CONFLICT',
+			message: 'This person is already a member of your organization.',
+		});
 	}
 
 	const rawToken = generateToken();
@@ -200,7 +207,10 @@ export async function getInvitationDetails(rawToken: string) {
 export async function acceptInvitation(rawToken: string, userId: string) {
 	const invitation = await findValidInvitationByHash(hashToken(rawToken));
 	if (!invitation) {
-		throw new Error('This invitation is invalid or has expired.');
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'This invitation is invalid or has expired.',
+		});
 	}
 
 	const userEmail = await findEmailByUserId(userId);
@@ -218,7 +228,10 @@ export async function acceptInvitation(rawToken: string, userId: string) {
 	}
 
 	if (normalizeEmail(invitation.email) !== normalizeEmail(userEmail)) {
-		throw new Error('This invitation was sent to a different email address.');
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: 'This invitation was sent to a different email address.',
+		});
 	}
 
 	// Already a member — still mark the token used, return gracefully
@@ -268,12 +281,19 @@ export async function removeOrgMember(
 			where: { id: targetMemberId, organizationId: orgId },
 			select: { userId: true, role: true },
 		});
-		if (!target) throw new Error('Member not found.');
+		if (!target)
+			throw new TRPCError({ code: 'NOT_FOUND', message: 'Member not found.' });
 		if (target.role === 'OWNER') {
-			throw new Error('Cannot remove the organization owner.');
+			throw new TRPCError({
+				code: 'FORBIDDEN',
+				message: 'Cannot remove the organization owner.',
+			});
 		}
 		if (target.userId === actingUserId) {
-			throw new Error('Cannot remove yourself.');
+			throw new TRPCError({
+				code: 'BAD_REQUEST',
+				message: 'Cannot remove yourself.',
+			});
 		}
 
 		await tx.organizationMember.delete({ where: { id: targetMemberId } });
@@ -298,7 +318,10 @@ export async function updateOrgMemberRole(
 ) {
 	// Validate newRole before entering transaction
 	if (newRole === 'OWNER') {
-		throw new Error('Cannot promote to owner via this action.');
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: 'Cannot promote to owner via this action.',
+		});
 	}
 
 	const updated = await prisma.$transaction(async (tx) => {
@@ -323,12 +346,19 @@ export async function updateOrgMemberRole(
 			where: { id: targetMemberId, organizationId: orgId },
 			select: { userId: true, role: true },
 		});
-		if (!target) throw new Error('Member not found.');
+		if (!target)
+			throw new TRPCError({ code: 'NOT_FOUND', message: 'Member not found.' });
 		if (target.role === 'OWNER') {
-			throw new Error("Cannot change the owner's role.");
+			throw new TRPCError({
+				code: 'FORBIDDEN',
+				message: "Cannot change the owner's role.",
+			});
 		}
 		if (target.userId === actingUserId) {
-			throw new Error('Cannot change your own role.');
+			throw new TRPCError({
+				code: 'BAD_REQUEST',
+				message: 'Cannot change your own role.',
+			});
 		}
 
 		// No-op: skip if role is already the target value

@@ -3,6 +3,7 @@
 import { ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,7 @@ export function QuestionsClient() {
 			void questionsQ.refetch();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to update question.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to update question.');
 		},
 	});
 
@@ -60,7 +61,7 @@ export function QuestionsClient() {
 			void questionsQ.refetch();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to reorder question.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to reorder question.');
 		},
 	});
 
@@ -70,7 +71,7 @@ export function QuestionsClient() {
 			void questionsQ.refetch();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to delete question.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to delete question.');
 		},
 	});
 

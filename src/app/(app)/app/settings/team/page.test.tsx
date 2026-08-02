@@ -5,6 +5,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
 	pendingIds: new Set<string>(),
 	useListQuery: vi.fn(),
+	// `org.getCurrentOrg` feeds MarketplaceCard and TimezoneCard, which sit
+	// BELOW the members table and so only render once `members.list` succeeds.
+	useOrgQuery: vi.fn(),
 	// Which member the session belongs to. `isOwner` and `isCurrentUser` are both
 	// derived from this address, so a fixed value pins the caller at one role and
 	// leaves the other branches unrenderable — which is how the OWNER-only ADMIN
@@ -52,6 +55,8 @@ vi.mock('@/lib/trpc/client', () => {
 						{},
 						{
 							get: (_r, proc) => {
+								if (router === 'org' && proc === 'getCurrentOrg')
+									return { useQuery: mocks.useOrgQuery };
 								if (router !== 'members') return inert;
 								if (proc === 'list') return { useQuery: mocks.useListQuery };
 								if (proc === 'removeMember' || proc === 'updateRole')
@@ -97,6 +102,13 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	mocks.pendingIds.clear();
 	mocks.sessionEmail.value = 'staff@example.org';
+	mocks.useOrgQuery.mockReturnValue({
+		data: { marketplaceVisible: false, timezone: 'America/Los_Angeles' },
+		isLoading: false,
+		isError: false,
+		isFetching: false,
+		refetch: vi.fn(),
+	});
 	for (const m of Object.values(mocks.mutations)) {
 		m.isPending = false;
 		m.variables = undefined;
@@ -404,5 +416,72 @@ describe('TeamPage: ADMIN is offered only to an OWNER', () => {
 		expect(
 			options.getByRole('option', { name: 'Read-only' }),
 		).toBeInTheDocument();
+	});
+});
+
+/**
+ * MarketplaceCard and TimezoneCard read `org.getCurrentOrg` and, until T37, had
+ * no `isError` branch at all — so a failed load did not fail visibly. Both
+ * defaulted, and defaulting is what makes this worse than a blank card: the
+ * page stated a setting the org does not hold, and offered a control to
+ * "correct" it.
+ */
+describe('org-settings cards: a failed load must not read as a setting', () => {
+	function failOrgQuery(code = 'INTERNAL_SERVER_ERROR') {
+		mocks.useListQuery.mockReturnValue({
+			data: [],
+			isLoading: false,
+			isError: false,
+			isFetching: false,
+			refetch: vi.fn(),
+		});
+		mocks.useOrgQuery.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			isError: true,
+			isFetching: false,
+			error: {
+				message:
+					'Invalid `prisma.organization.findUnique()` invocation: relation does not exist',
+				data: { code },
+			},
+			refetch: vi.fn(),
+		});
+	}
+
+	it('renders ONE error, not one per card, for the shared query', () => {
+		// MarketplaceCard and TimezoneCard read the same `org.getCurrentOrg`,
+		// which React Query dedupes into one request. Two error branches meant
+		// the coordinator saw the same failure twice, with two `role="alert"`
+		// regions announced back to back and two retries for one refetch.
+		failOrgQuery();
+		render(<TeamPage />);
+
+		expect(
+			screen.getAllByText("Couldn't load your organization settings"),
+		).toHaveLength(1);
+		expect(screen.getAllByRole('button', { name: /try again/i })).toHaveLength(
+			1,
+		);
+	});
+
+	it('shows an error instead of a FALSE default from either card', () => {
+		// The two lies this branch replaces: an unchecked marketplace switch
+		// (implying "not listed") and "UTC (default)" (implying the org never
+		// set a timezone). Both are statements the failed query cannot support.
+		failOrgQuery();
+		render(<TeamPage />);
+
+		expect(
+			screen.queryByRole('switch', { name: /marketplace/i }),
+		).not.toBeInTheDocument();
+		expect(screen.queryByText('UTC (default)')).not.toBeInTheDocument();
+	});
+
+	it('SECURITY: neither card renders the raw server text', () => {
+		failOrgQuery();
+		render(<TeamPage />);
+
+		expect(screen.queryByText(/prisma\./i)).not.toBeInTheDocument();
 	});
 });

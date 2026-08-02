@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,7 +38,8 @@ export default function BillingPage() {
 		onSuccess: ({ checkoutUrl }) => {
 			if (checkoutUrl) router.push(checkoutUrl);
 		},
-		onError: (err) => toast.error(err.message ?? 'Failed to open checkout'),
+		onError: (err) =>
+			toast.error(safeErrorMessage(err) ?? 'Failed to open checkout'),
 	});
 
 	const portalMutation = trpc.billing.createPortalSession.useMutation({
@@ -45,7 +47,7 @@ export default function BillingPage() {
 			router.push(portalUrl);
 		},
 		onError: (err) =>
-			toast.error(err.message ?? 'Failed to open billing portal'),
+			toast.error(safeErrorMessage(err) ?? 'Failed to open billing portal'),
 	});
 
 	// Show success toast when returning from Stripe checkout

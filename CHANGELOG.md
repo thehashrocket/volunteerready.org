@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.39.0.0] - 2026-08-02
+
+Stops the platform showing you the inside of its own database when something
+goes wrong, and makes the failures you *are* meant to read clearer rather than
+vaguer.
+
+### Fixed
+- **Error messages no longer expose internal database detail.** When a request failed unexpectedly, the raw error — including database table and column names — was sent to your browser and, on around seventy screens, printed on the page. Those failures now read "Something went wrong. Please try again." The fix is on the server, so the detail no longer leaves it at all rather than merely going unprinted.
+- **Refusals you are meant to act on now say what they are.** Eighteen messages were being replaced by that generic text as a side effect of the change above — "Cannot remove yourself.", "Cannot change the owner's role.", "This person cancelled.", "End time must be after start time." and others across team management, shifts and reporting. All eighteen now reach you intact.
+- **A background-check provider outage reads as temporary again**, instead of as a permanent failure. It also now alerts us, which it did not before.
+- **Nine screens that failed silently now say so.** A failed load used to fall through to a normal-looking empty state: "No shifts found" when the schedule could not be read, "No credentials yet" to a volunteer whose background check was verified, an unchecked marketplace switch implying your organization was not listed, and "UTC (default)" for an organization whose shift times are not in UTC. Each now shows the failure and a Try again button.
+- **The application detail page keeps its heading when it fails to load**, and the credential-claim page offers a retry instead of only telling you the link is dead — which it could not actually know.
+- **Ending an impersonation session no longer prints the server's raw response** into the admin banner.
+
+### Changed
+- Failures a user is meant to read are now told apart from faults we need to investigate, and the two are handled separately: the first are shown, the second are recorded for us with the detail intact. Recording is capped per operation so an outage cannot drown out everything else, and rare one-off warnings are never sampled away.
+- Error wording on volunteer-facing pages matches the rest of those pages rather than the staff voice ("We couldn't save that preference. Try again.").
+- Several error messages that were announced to screen readers on some pages and not others are now announced consistently.
+
 ## [0.38.6.0] - 2026-08-01
 
 Closes a permissions hole in team management. If your organization has more than

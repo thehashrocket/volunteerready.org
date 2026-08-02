@@ -20,6 +20,10 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -177,7 +181,7 @@ function IssueCredentialDialog({
 			onIssued?.();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to issue credential.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to issue credential.');
 		},
 	});
 
@@ -325,7 +329,7 @@ function ReviewIssueDialog({
 			form.reset();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to issue credential.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to issue credential.');
 		},
 	});
 
@@ -453,7 +457,9 @@ function InitiateBackgroundCheckDialog({
 			form.reset();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to initiate background check.');
+			toast.error(
+				safeErrorMessage(err) ?? 'Failed to initiate background check.',
+			);
 		},
 	});
 
@@ -626,7 +632,7 @@ function CheckrConnectCard() {
 				await qc.invalidateQueries();
 			},
 			onError: (err) => {
-				toast.error(err.message ?? 'Failed to disconnect Checkr.');
+				toast.error(safeErrorMessage(err) ?? 'Failed to disconnect Checkr.');
 			},
 		},
 	);
@@ -727,7 +733,7 @@ function SterlingConnectCard() {
 			await qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to connect Sterling.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to connect Sterling.');
 		},
 	});
 
@@ -738,7 +744,7 @@ function SterlingConnectCard() {
 				await qc.invalidateQueries();
 			},
 			onError: (err) => {
-				toast.error(err.message ?? 'Failed to disconnect Sterling.');
+				toast.error(safeErrorMessage(err) ?? 'Failed to disconnect Sterling.');
 			},
 		});
 
@@ -864,7 +870,7 @@ function BackgroundCheckRequestsTable() {
 			await qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to cancel.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to cancel.');
 		},
 	});
 
@@ -876,7 +882,8 @@ function BackgroundCheckRequestsTable() {
 			},
 			onError: (err) => {
 				toast.error(
-					err.message ?? 'Failed to send pre-adverse notice. Please retry.',
+					safeErrorMessage(err) ??
+						'Failed to send pre-adverse notice. Please retry.',
 				);
 			},
 		});
@@ -888,7 +895,9 @@ function BackgroundCheckRequestsTable() {
 				await qc.invalidateQueries();
 			},
 			onError: (err) => {
-				toast.error(err.message ?? 'Failed to finalize adverse action.');
+				toast.error(
+					safeErrorMessage(err) ?? 'Failed to finalize adverse action.',
+				);
 			},
 		});
 
@@ -1093,7 +1102,7 @@ export default function CredentialsPage() {
 			await qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to revoke.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to revoke.');
 		},
 	});
 
@@ -1103,7 +1112,7 @@ export default function CredentialsPage() {
 			await qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to remove.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to remove.');
 		},
 	});
 
@@ -1135,14 +1144,12 @@ export default function CredentialsPage() {
 					title="Background checks"
 					description="Manage volunteer verifications."
 				/>
-				<Card>
-					<CardContent className="space-y-4 pt-6 text-sm text-muted-foreground">
-						<p className="text-destructive">{query.error.message}</p>
-						<Button variant="outline" size="sm" onClick={() => query.refetch()}>
-							Try again
-						</Button>
-					</CardContent>
-				</Card>
+				<QueryErrorCard
+					title="Couldn't load background checks"
+					message={safeErrorMessage(query.error)}
+					onRetry={() => query.refetch()}
+					isRetrying={query.isFetching}
+				/>
 			</div>
 		);
 	}

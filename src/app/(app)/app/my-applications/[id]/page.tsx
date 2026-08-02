@@ -4,6 +4,10 @@ import { AlertCircle, ChevronLeft, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
@@ -74,17 +78,17 @@ export default function MyApplicationDetailPage() {
 		return (
 			<div className="space-y-6">
 				<PageHeader title="Application detail" />
-				<Card>
-					<CardHeader>
-						<CardTitle>Unable to load application</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						<p>{query.error.message}</p>
-						<Button asChild variant="outline">
-							<Link href="/app/my-applications">Back to list</Link>
-						</Button>
-					</CardContent>
-				</Card>
+				<QueryErrorCard
+					title="Unable to load application"
+					message={safeErrorMessage(query.error)}
+					onRetry={() => query.refetch()}
+					isRetrying={query.isFetching}
+				/>
+				{/* Outside the card on purpose — QueryErrorCard has one action slot
+				    and it belongs to the retry. */}
+				<Button asChild variant="outline">
+					<Link href="/app/my-applications">Back to list</Link>
+				</Button>
 			</div>
 		);
 	}
@@ -203,8 +207,9 @@ export default function MyApplicationDetailPage() {
 						</DialogDescription>
 					</DialogHeader>
 					{withdrawMutation.isError && (
-						<p className="text-sm text-destructive">
-							{withdrawMutation.error.message}
+						<p role="alert" className="text-sm text-destructive">
+							{safeErrorMessage(withdrawMutation.error) ??
+								"We couldn't withdraw that application. Try again."}
 						</p>
 					)}
 					<DialogFooter>

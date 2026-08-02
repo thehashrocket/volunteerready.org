@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,7 @@ export default function StatusClient({ token }: { token: string | null }) {
 			toast.success('If we found a match, we emailed you a secure link.');
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Could not send link');
+			toast.error(safeErrorMessage(err) ?? 'Could not send link');
 		},
 	});
 
@@ -44,7 +45,15 @@ export default function StatusClient({ token }: { token: string | null }) {
 						<CardTitle>Link issue</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-3">
-						<p className="text-muted-foreground">{statusQ.error.message}</p>
+						{/* Not QueryErrorCard: a status link genuinely expires, so the
+					    answer is the request form below, not a retry button. */}
+						{/* Same rule as ClaimClient: the fallback is reached only for a
+						    withheld (internal) message, so it must not assert the link
+						    expired — the allowlisted codes say that themselves. */}
+						<p className="text-muted-foreground">
+							{safeErrorMessage(statusQ.error) ??
+								"We couldn't check that link. Please try again."}
+						</p>
 						<p className="text-muted-foreground">Request a new link below.</p>
 						<RequestForm />
 					</CardContent>

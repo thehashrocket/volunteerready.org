@@ -36,6 +36,14 @@ vi.mock('@/server/lib/adapters/background-check/sterling', () => ({
 	SterlingApiError: class SterlingApiError extends Error {},
 	SterlingSignatureError: class SterlingSignatureError extends Error {},
 	SterlingBadPayloadError: class SterlingBadPayloadError extends Error {},
+	// These four extend `Error` directly, NOT SterlingApiError, which is why
+	// `initiateProviderCheck` takes a LIST of classes — a single-class
+	// `instanceof` let an expired credential, a 429 and a timeout fall through
+	// as opaque INTERNAL_SERVER_ERRORs.
+	SterlingAuthError: class SterlingAuthError extends Error {},
+	SterlingValidationError: class SterlingValidationError extends Error {},
+	SterlingRateLimitError: class SterlingRateLimitError extends Error {},
+	SterlingTimeoutError: class SterlingTimeoutError extends Error {},
 }));
 
 vi.mock('@/server/lib/adapters/background-check/checkr', () => ({

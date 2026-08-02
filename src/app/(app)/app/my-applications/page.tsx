@@ -1,9 +1,12 @@
 'use client';
 
-import { AlertTriangle, FileText, RefreshCw, Search } from 'lucide-react';
+import { AlertTriangle, FileText, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { safeErrorMessage } from '@/components/app/query-error-card';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
@@ -175,8 +178,10 @@ function ClaimableApplications({
 				</ul>
 				{claim.isError ? (
 					<p role="alert" className="text-sm text-destructive">
-						{/* Allowlisted by code — an INTERNAL_SERVER_ERROR here would be a
-						    raw Prisma string, and this card is shown to volunteers. */}
+						{/* Allowlisted by code. The server's errorFormatter has already
+						    redacted an INTERNAL_SERVER_ERROR by the time this runs, so
+						    this is the deliberately-redundant client half — it decides
+						    whether the text was written for this reader. */}
 						{safeErrorMessage(claim.error) ??
 							"We couldn't add that application. Try again."}
 					</p>
@@ -221,18 +226,12 @@ export default function MyApplicationsPage() {
 					title="My applications"
 					description="Track the status of your volunteer applications."
 				/>
-				<Card>
-					<CardHeader>
-						<CardTitle>We couldn’t load your applications</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						<p>{query.error.message}</p>
-						<Button onClick={() => query.refetch()} variant="outline" size="sm">
-							<RefreshCw className="h-4 w-4" />
-							Try again
-						</Button>
-					</CardContent>
-				</Card>
+				<QueryErrorCard
+					title="We couldn’t load your applications"
+					message={safeErrorMessage(query.error)}
+					onRetry={() => query.refetch()}
+					isRetrying={query.isFetching}
+				/>
 			</div>
 		);
 	}

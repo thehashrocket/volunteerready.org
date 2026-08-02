@@ -9,13 +9,16 @@ import {
 	Clock,
 	ExternalLink,
 	MapPin,
-	RefreshCw,
 	ShieldCheck,
 	Wifi,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
+import {
+	QueryErrorCard,
+	safeErrorMessage,
+} from '@/components/app/query-error-card';
 import { ApplicationStatusBadge } from '@/components/my-applications/ApplicationStatusBadge';
 import { ScreeningStatusBadge } from '@/components/my-applications/ScreeningStatusBadge';
 import { PageHeader } from '@/components/page-header';
@@ -67,7 +70,7 @@ export default function ApplicationDetailPage() {
 			await qc.invalidateQueries();
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to update status.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to update status.');
 		},
 	});
 
@@ -103,18 +106,17 @@ export default function ApplicationDetailPage() {
 		return (
 			<div className="space-y-6">
 				{backButton}
-				<PageHeader
+				{/* PageHeader stays: `CardTitle` is a div, so without it this was the
+				    only state of the page with no heading element at all. What moved
+				    is the MESSAGE — it used to ride in `description`, which is typed
+				    `string` and so could hold no retry and no alert role. */}
+				<PageHeader title="Application" />
+				<QueryErrorCard
 					title="Could not load application"
-					description={query.error.message}
+					message={safeErrorMessage(query.error)}
+					onRetry={() => query.refetch()}
+					isRetrying={query.isFetching}
 				/>
-				<Card>
-					<CardContent className="space-y-4 pt-6 text-sm text-muted-foreground">
-						<Button onClick={() => query.refetch()} variant="outline" size="sm">
-							<RefreshCw className="h-4 w-4" />
-							Try again
-						</Button>
-					</CardContent>
-				</Card>
 			</div>
 		);
 	}
@@ -431,7 +433,7 @@ function CredentialRequestCard({ applicationId }: { applicationId: string }) {
 			toast.success('Credential sharing request sent to volunteer.');
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Failed to send request.');
+			toast.error(safeErrorMessage(err) ?? 'Failed to send request.');
 		},
 	});
 

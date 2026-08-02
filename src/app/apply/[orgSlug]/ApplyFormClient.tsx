@@ -16,6 +16,7 @@ import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { Eyebrow } from '@/components/eyebrow';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,14 +34,12 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { formatDateRange } from '@/lib/format-date';
 import { trpc } from '@/lib/trpc/client';
-
 import {
 	buildDefaultValues,
 	buildResponsesFromAnswers,
 	buildZodSchema,
 	type PublicQuestion,
 } from '@/server/domain/screener/publicForm';
-
 import { volunteerProfileSchema } from '@/server/domain/volunteer-screening';
 
 type LinkedOpportunity = {
@@ -151,7 +150,7 @@ export default function ApplyFormClient({
 			toast.success('Application submitted. Thank you!');
 		},
 		onError: (err) => {
-			toast.error(err.message ?? 'Submission failed');
+			toast.error(safeErrorMessage(err) ?? 'Submission failed');
 		},
 	});
 

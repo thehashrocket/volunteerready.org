@@ -4,6 +4,7 @@ import { ChevronLeft, Loader2, ShieldCheck, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { use, useState } from 'react';
+import { safeErrorMessage } from '@/components/app/query-error-card';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -98,11 +99,15 @@ export default function PlatformUserDetailPage({
 								.map((i: { message: string }) => i.message)
 								.join('; ')
 						: null;
+					// `payload.error` is safe because the ROUTE authors it behind its
+					// own code allowlist (see impersonation/start/route.ts).
 					message = issues ?? payload?.error ?? message;
-				} else {
-					const text = await res.text().catch(() => '');
-					if (text) message = text;
 				}
+				// No `else` reading res.text(), deliberately. A non-JSON response is
+				// by definition one the route did not author — a Next.js error page,
+				// a stack, an edge proxy's HTML — and rendering it verbatim is the
+				// same disclosure this ship exists to close, on a path the guard
+				// test cannot see because it skips `src/app/api/**`.
 				throw new Error(message);
 			}
 			window.location.href = '/app';
@@ -377,8 +382,9 @@ export default function PlatformUserDetailPage({
 						onChange={(e) => setAdminReason(e.target.value)}
 					/>
 					{setAdminMutation.error && (
-						<p className="text-sm text-destructive">
-							{setAdminMutation.error.message}
+						<p role="alert" className="text-sm text-destructive">
+							{safeErrorMessage(setAdminMutation.error) ??
+								'Could not update platform admin access.'}
 						</p>
 					)}
 					<DialogFooter>
@@ -426,8 +432,9 @@ export default function PlatformUserDetailPage({
 						onChange={(e) => setRevokeReason(e.target.value)}
 					/>
 					{revokeSessionsMutation.error && (
-						<p className="text-sm text-destructive">
-							{revokeSessionsMutation.error.message}
+						<p role="alert" className="text-sm text-destructive">
+							{safeErrorMessage(revokeSessionsMutation.error) ??
+								'Could not revoke those sessions.'}
 						</p>
 					)}
 					<DialogFooter>
