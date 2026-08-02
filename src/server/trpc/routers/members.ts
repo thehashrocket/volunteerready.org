@@ -35,13 +35,16 @@ export const membersRouter = createTRPCRouter({
 				process.env.NEXT_PUBLIC_APP_URL ??
 				process.env.NEXTAUTH_URL ??
 				'http://localhost:3000';
+			// No `ctx.role` argument: the service resolves the acting role from the
+			// database itself. The optional parameter it replaced failed open when
+			// omitted, and `ctx.role` is null on the impersonation branch of
+			// `createTRPCContext` before it is re-resolved.
 			return inviteMember(
 				ctx.orgId,
 				input.email,
 				input.role as Role,
 				baseUrl,
-				ctx.session?.user?.id,
-				ctx.role,
+				ctx.session?.user?.id ?? '',
 			);
 		}),
 
