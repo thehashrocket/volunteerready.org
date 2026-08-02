@@ -235,9 +235,12 @@ Services may:
 - write audit logs
 
 Refusal rule: a service refusal that a person is meant to READ must be a
-`TRPCError` with an allowlisted code — `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`,
-`NOT_FOUND`, `CONFLICT`, `PRECONDITION_FAILED`, `TOO_MANY_REQUESTS` or
-`SERVICE_UNAVAILABLE`. A plain `throw new Error('Cannot remove yourself.')`
+`TRPCError` with an allowlisted code — as of v0.39.0.0 those are `BAD_REQUEST`,
+`UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `PRECONDITION_FAILED`,
+`TOO_MANY_REQUESTS` and `SERVICE_UNAVAILABLE`, but read the set off
+`CLIENT_SAFE_ERROR_CODES` in `src/server/domain/error-disclosure.ts`, which is
+authoritative; this sentence is a copy and copies drift. A plain
+`throw new Error('Cannot remove yourself.')`
 becomes `INTERNAL_SERVER_ERROR`, which is not allowlisted, so the caller reads
 "Something went wrong. Please try again." instead of the sentence you wrote.
 Eighteen refusals across `memberService`, `shiftService`, `shiftTemplateService`,

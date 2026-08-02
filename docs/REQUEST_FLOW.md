@@ -592,10 +592,11 @@ Rules that follow from the ordering:
   silently degraded to the generic string.
 - **A message the user is meant to READ needs an allowlisted code.**
   `throw new Error('Cannot remove yourself.')` maps to `INTERNAL_SERVER_ERROR` and
-  now renders as generic copy. Services throw `TRPCError` with `BAD_REQUEST`,
-  `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `PRECONDITION_FAILED`,
-  `TOO_MANY_REQUESTS` or `SERVICE_UNAVAILABLE`. Assert the **code** in tests — a
-  `rejects.toThrow('…')` message assertion passes identically for a plain `Error`.
+  now renders as generic copy. Services throw a `TRPCError` carrying one of the
+  eight codes in `CLIENT_SAFE_ERROR_CODES` — read them off
+  `src/server/domain/error-disclosure.ts`, which is authoritative, rather than off
+  any list in a doc. Assert the **code** in tests: a `rejects.toThrow('…')`
+  message assertion passes identically for a plain `Error`.
 - **Disclosure-safe and "not our fault" are different questions.**
   `SERVICE_UNAVAILABLE` is shown to the caller AND reported, because a provider
   outage the user can read about is still an outage we need paged about. Zod input
@@ -608,6 +609,15 @@ Rules that follow from the ordering:
 `errorFormatter` also runs for HTTP responses only — `createCaller` throws the raw
 `TRPCError` without consulting it, which is why router unit tests see the original
 message and the formatter carries its own tests.
+
+On the display side there are two helpers, not one. `safeErrorMessage(error)` is
+for a query's `error` object; `safeCaughtErrorMessage(caught)` is for a `catch`
+around `mutateAsync()`, where the caught value is typed `unknown` and
+`err instanceof Error ? err.message : fallback` returns the raw message because
+`TRPCClientError extends Error`. Both return `undefined` rather than copy when the
+code is not allowlisted — `QueryErrorCard` is what substitutes
+`GENERIC_ERROR_MESSAGE`, so a caller rendering a bare `safeErrorMessage()` result
+outside that card must supply its own fallback.
 
 The repo-wide guard test `src/server/domain/error-disclosure.guard.test.ts` walks
 `src/app` and `src/components` and fails on a raw `error.message` render.
