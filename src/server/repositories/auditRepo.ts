@@ -1,5 +1,17 @@
 import { Prisma, type PrismaClient } from '@/prisma/generated/client';
+import type { CommittedConciergeAddRow } from '@/server/domain/roster-import';
 import { prisma } from './prisma';
+
+/**
+ * Ceiling on `findConciergeImportAuditRows`.
+ *
+ * A blast-radius bound, not a capacity limit — it caps one org's CUMULATIVE
+ * concierge-import history across every run it has ever had, which is a larger
+ * population than any single file, so it is deliberately not `ROSTER_IMPORT_CAP`
+ * (5,000). Newest-first, so a truncated scan drops the oldest adds — the ones
+ * least likely to be the interrupted run someone is recovering right now.
+ */
+export const CONCIERGE_IMPORT_SCAN_CAP = 20_000;
 
 export type AuditQueryFilters = {
 	actorId?: string | null;
@@ -146,4 +158,73 @@ export async function listDistinctEntityTypes(limit = 200) {
 		take: limit,
 	});
 	return rows.map((r) => r.entityType);
+}
+
+/**
+ * Every concierge-import add this org has committed.
+ *
+ * The recovery half of `pnpm import:roster --notify-only`. An interrupted run
+ * leaves roster rows committed and notices unsent, and re-running the importer
+ * cannot recover them — every committed row comes back as
+ * `SKIPPED_ALREADY_ON_ROSTER`, which carries no notify flag. The audit row is
+ * the only durable record of both WHO was added and WHICH branch `addVolunteer`
+ * took, and `metadata.outcome` is what decides whether mail was ever owed.
+ *
+ * Deliberately NOT filtered by address in SQL. None of `AuditLog`'s four indexes
+ * reach inside `metadata`, so an address predicate there is an unindexed JSONB
+ * scan that buys nothing; the per-address narrowing happens in
+ * `computeOwedNotices`, where it is free and unit-testable.
+ *
+ * COST: `[orgId, createdAt]` bounds the index scan to one org's WHOLE audit
+ * history, not its concierge history — `action`, `entityType` and `metadata.via`
+ * are all residual filters applied after the heap read, so the `take` is reached
+ * only if an org genuinely has that many concierge rows. Measured on a 2.3M-row
+ * AuditLog with 300k rows for the target org: ~33ms warm to return 60 matches.
+ * Fine for an operator-invoked CLI recovery, which is the ONLY caller. Do not
+ * surface this on a request path without adding a `createdAt` lower bound so the
+ * second half of the index actually does work.
+ *
+ * `metadata.via` uses Prisma's JSON `path` filter — the same idiom
+ * `queryAuditLog`'s `impersonatedOnly` uses, and specifically NOT a composed
+ * `Prisma.sql` fragment, which breaks under Turbopack dev.
+ */
+export async function findConciergeImportAuditRows(
+	orgId: string,
+	take = CONCIERGE_IMPORT_SCAN_CAP,
+): Promise<CommittedConciergeAddRow[]> {
+	const rows = await prisma.auditLog.findMany({
+		where: {
+			orgId,
+			action: 'VOLUNTEER_ADDED',
+			entityType: 'OrgVolunteer',
+			metadata: {
+				path: ['via'],
+				equals: 'CONCIERGE_IMPORT',
+			} as Prisma.JsonFilter,
+		},
+		select: { actorId: true, metadata: true, createdAt: true },
+		orderBy: { createdAt: 'desc' },
+		take,
+	});
+
+	const out: CommittedConciergeAddRow[] = [];
+	for (const row of rows) {
+		const metadata = row.metadata as {
+			email?: unknown;
+			outcome?: unknown;
+		} | null;
+		const email = metadata?.email;
+		// An address-less row cannot be matched to a CSV line and cannot be
+		// mailed. Dropped rather than surfaced as malformed: `computeOwedNotices`
+		// keys on the address, so there is nothing to key it to.
+		if (typeof email !== 'string' || email === '') continue;
+
+		out.push({
+			email,
+			outcome: typeof metadata?.outcome === 'string' ? metadata.outcome : null,
+			actorId: row.actorId,
+			createdAt: row.createdAt,
+		});
+	}
+	return out;
 }
