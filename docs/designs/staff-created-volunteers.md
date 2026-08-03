@@ -262,6 +262,15 @@ sendEmail(to, subject, html, opts)
    └─ otherwise ──→ send
 ```
 
+⚠️ **Update (v0.41.0.0) — the final `otherwise ──→ send` branch also returns `false` now.**
+Resend does not throw on a rejected send; its response is `{ data, error }`, so a 429, a bad
+key and a network failure all resolve normally, and `sendEmail` used to read only
+`result?.data?.id`, write a SENT `EmailEvent` and return `true`. The `result.error` check runs
+BEFORE that write, so a send that did not happen leaves no row claiming it did — which matters
+twice over, because the concierge importer's `--notify-only` recovery correlates against exactly
+those rows. The rule for every caller: **`sendEmail` never throws, so read its boolean.** A
+`try/catch` around it is dead on the dominant failure path.
+
 **The guard is opt-in by design.** An earlier draft blocked by default with an exemption list.
 Auditing every sender showed the exemption list was already missing six transactional senders
 people actually asked for: the `/apply/status` link the applicant typed their own address to
@@ -1097,6 +1106,7 @@ produces confidently wrong work.
   - **No third `OrgVolunteerSource`.** `ORG_VOLUNTEER_SOURCE_COPY`'s docstring anticipated one; deliberately not added. An imported row IS staff-added (the staff sent the spreadsheet), and splitting the enum would drop every concierge-onboarded org out of the success metric that counts `STAFF_ADDED`. Provenance goes on the audit row instead: `metadata.via = 'CONCIERGE_IMPORT'`
   - **Notifications are paced by the script, not fired by `addVolunteer`.** New `sendNotification: false` option; the importer sends them afterwards, sequentially and awaited, and reports failures. `addVolunteer`'s own send is fire-and-forget behind `.catch(console.error)` — right for one click, wrong for sixty rows, and the people owed this email are precisely those added from a spreadsheet they never saw
   - **A write run needs `--yes`; `--dry-run` needs nothing.** Unknown flags are rejected rather than ignored, so `--dryrun` cannot silently become a live import
+  - ⚠️ **Update (v0.41.0.0) — three of the claims above were true and still insufficient.** (1) `sendRosterAddedEmail` **discarded `sendEmail`'s boolean**, so "sends them afterwards, sequentially and awaited, and reports failures" was only half true: the `try/catch` was dead on the likeliest failure and a 60-row run printed `notifications sent: 60` with nothing delivered. `sendEmail` itself never looked at Resend's error channel either — Resend resolves with `{ data: null, error }` rather than throwing — so that check landed first, before the `EmailEvent` write, so a send that did not happen leaves no SENT row claiming it did. Same defect fixed in `sendBackgroundCheckEmail` one version earlier, on the same kind of email. (2) Rejecting unknown flags did **not** cover a DUPLICATED one: `--org a --org b` last-won silently, and one duplicated slug wrote shadow users into a stranger's tenant and emailed them. Against a non-local `DATABASE_URL`, any non-dry-run pass now also requires the org's RESOLVED slug typed back at an interactive prompt (`--notify-only` included, since it emails real people; only `--dry-run` is exempt) — `--yes` cannot catch the failure that matters, because a run aimed at the wrong org has a command line that looks exactly as intended. (3) A run killed mid-file could not be repaired at all: every committed row re-reports as `SKIPPED_ALREADY_ON_ROSTER`, which carries no notify flag. `--notify-only` re-reads the SAME file and correlates its addresses against `metadata.via = 'CONCIERGE_IMPORT'` audit rows, adding nobody. New files: `repositories/emailEventRepo.ts`, plus `findConciergeImportAuditRows` (`auditRepo.ts`), `findBlockedEmailsForOrg` (`orgVolunteerRepo.ts`), `computeOwedNotices`/`notifyOnlyExitCode` (`domain/roster-import.ts`), `classifyOwedNotices`/`sendOwedNotices` (`rosterImportService.ts`). `rosterAddedEmailSubject()` moved into `domain/org-volunteer.ts` beside `shouldNotifyByEmail` so the sender and the correlation cannot drift apart. See `docs/REQUEST_FLOW.md` for the full flow
 - [ ] **T18 (P3, human: ~30min / CC: ~5min)** — lib — `checkin-token` timing-safe compare
   - Surfaced by: Code Quality Q5 — plain `===` where both sibling modules use `timingSafeEqual`
   - Files: `src/server/lib/checkin-token.ts`, `checkin-token.test.ts`

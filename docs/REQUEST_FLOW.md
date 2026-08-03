@@ -463,27 +463,37 @@ Four properties worth preserving:
 No HTTP request at all — a CLI entry point that joins at the **service** layer.
 
 ```
-pnpm import:roster --org <slug-or-id> --file <path.csv> [--dry-run] [--yes] [--actor <email>] [--no-notify]
+pnpm import:roster --org <slug-or-id> --file <path.csv>
+                   [--dry-run] [--yes] [--actor <email>] [--no-notify] [--notify-only]
     -> scripts/import-roster.ts
         -> Reject unknown flags (so --dryrun cannot silently become a live import)
+        -> Reject a DUPLICATED flag (--org a --org b used to last-win silently)
+        -> Reject a VALUE on a switch (--dry-run=false used to disable the rehearsal)
         -> A write run requires --yes; --dry-run requires nothing
         -> findOrgByIdOrSlug(args.org)      -> no match      → exit 1
         -> Refuse a suspended org                             → exit 1
         -> If --actor: resolve the address, then require that
            user to be a member of THIS org                     → exit 1
+           (--actor with --notify-only is refused as contradictory)
+        -> If NOT --dry-run and DATABASE_URL is non-local: prompt for the org's
+           RESOLVED slug, typed back. Non-TTY refuses. --dry-run is the ONLY
+           exemption — a --notify-only run emails real people, so it asks too
+           (and words the refusal "send from", not "write to")
         -> parseRosterCsv(file)  (domain/roster-import.ts over domain/csv.ts, RFC 4180)
              -> an unbalanced quote refuses the WHOLE file, naming the line
         -> Echo the plan (database, org, file, actor, mode, notify, valid/invalid counts)
-        -> Print the invalid rows FIRST, in both modes
+        -> Print the invalid rows FIRST, in every mode
         -> branch:
-             --dry-run  -> previewRosterImport()   — reads only, writes nothing
-             write      -> importRoster()          — per-row transaction,
-                             addVolunteer(..., { sendNotification: false,
-                                                 via: 'CONCIERGE_IMPORT' }),
-                             streaming each row's outcome as it commits
+             --dry-run     -> previewRosterImport()   — reads only, writes nothing
+             --notify-only -> see the recovery flow below — adds nobody
+             write         -> importRoster()          — per-row transaction,
+                                addVolunteer(..., { sendNotification: false,
+                                                    via: 'CONCIERGE_IMPORT' }),
+                                streaming each row's outcome as it commits
         -> Summary
         -> If a write run AND notify is on (default; suppressed by --no-notify):
-             sendImportNotifications() — sequential, awaited, each failure named
+             sendImportNotifications() — sequential, awaited, one line printed per
+             send, each failure named. Reads sendEmail's BOOLEAN, not a rejection
         -> Re-running the same file reports every row "already on roster", exits 0
 ```
 
@@ -496,6 +506,53 @@ it does *not* delegate: `addVolunteer` fires its send as fire-and-forget behind 
 against a rate limiter — and the people owed that email are precisely those added from
 a spreadsheet they never saw, since it carries the only link to the page where they can
 revoke the org's access.
+
+## `--notify-only`: recovering the notices an interrupted run never sent
+
+A run killed at row 55 of 60 leaves 55 rows committed and zero notices sent, and
+re-running the importer cannot repair it — every committed row comes back
+`SKIPPED_ALREADY_ON_ROSTER`, which carries no notify flag. The audit log is what makes
+the repair possible at all.
+
+```
+pnpm import:roster --org <slug-or-id> --file <same-file.csv> --notify-only [--dry-run] [--yes]
+    -> parse the SAME file (bounds the work to this batch)
+    -> classifyOwedNotices()
+        -> findConciergeImportAuditRows(orgId)   (auditRepo — metadata.via = 'CONCIERGE_IMPORT')
+        -> findSentAddresses(addresses, subject) (emailEventRepo — ADVISORY)
+        -> findBlockedEmailsForOrg(orgId, ...)   (orgVolunteerRepo)
+        -> computeOwedNotices()                  (pure, domain/roster-import.ts)
+             newest audit row per address wins, then in order:
+               no audit row              -> NOT_COMMITTED        (not an error)
+               unrecognised outcome      -> MALFORMED_AUDIT_ROW  (exit 1)
+               outcome never owed mail   -> INELIGIBLE_OUTCOME
+               volunteer revoked access  -> REFUSED_BY_VOLUNTEER
+               EmailEvent shows a send   -> ALREADY_SENT         (reported, not silent)
+               otherwise                 -> OWED
+    -> --dry-run: list the recipients, send nothing
+    -> --yes:     sendOwedNotices() — same sendNoticesSequentially as the live run
+    -> notifyOnlyExitCode(): 1 on FAILED or MALFORMED_AUDIT_ROW, else 0
+```
+
+Four rules hold this together:
+
+1. **The CSV bounds the work; the audit log decides the answer.** Neither alone is
+   right. The audit log alone is unbounded and re-emails an org's whole concierge
+   history; the file alone cannot tell "on the roster because this import added them"
+   from "on the roster since last year", and would tell a five-year volunteer they were
+   just added.
+2. **Eligibility is `metadata.outcome` through `shouldNotifyByEmail`** — the same
+   predicate the live run uses. An unrecognised outcome gets its own status rather than
+   being folded into "never owed one", because "we cannot tell" is a different answer
+   from "no".
+3. **The `EmailEvent` dedupe is advisory and reported, never a silent skip.**
+   `sendEmail` logs SENT fire-and-forget and logs nothing when Resend rejects, so a
+   missing row does not prove nothing was sent, and `EmailEvent` carries no `orgId`.
+   Every failure mode errs toward "we think it was sent when it was not" — which is the
+   state this mode exists to repair.
+4. **Attribution comes from each audit row's own `actorId`**, resolved once per distinct
+   actor. A recovery says what the killed run would have said, which is why
+   `--notify-only --actor` is refused as contradictory rather than ignored.
 
 ---
 

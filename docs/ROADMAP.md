@@ -617,6 +617,12 @@ Delivered (v0.38.0.0) — the concierge motion becomes an actual mechanism:
   writes gated behind `--yes`, per-row transactions, idempotent re-runs. Writes through
   `addVolunteer()` rather than a parallel insert, so the `OrgVolunteerBlock` refusal,
   shadow-user minting and audit rows behave exactly as they do in the UI
+  - Hardened in v0.41.0.0: duplicate flags rejected (`--org a --org b` used to last-win
+    silently and could write shadow users into a stranger's tenant), any non-dry-run pass
+    against a non-local `DATABASE_URL` now requires the org's resolved slug typed back at
+    a prompt (`--notify-only` included — it emails real people),
+    and `--notify-only` re-reads the same file to send only the notices an interrupted
+    run never delivered — correlating against `CONCIERGE_IMPORT` audit rows, adding nobody
 - ✅ Roster CSV export at `GET /api/org/[orgId]/roster/csv` — FREE tier on purpose,
   streamed, 10k cap with an in-file truncation notice, rate limited. Unknown org, not
   a member, insufficient role, suspended org and flag-off all collapse to one
