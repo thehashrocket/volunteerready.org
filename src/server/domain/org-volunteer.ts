@@ -249,6 +249,25 @@ export function shouldNotifyByEmail(outcome: AddVolunteerOutcome): boolean {
 }
 
 /**
+ * The subject line of the roster-added notice, and therefore the exact string
+ * `EmailEvent.subject` stores for it.
+ *
+ * Lives in the domain, beside the rule for whether the notice is owed at all,
+ * because two very different layers need the SAME string: the sender
+ * (`sendRosterAddedEmail`) and the `--notify-only` recovery mode, which
+ * correlates against `EmailEvent` to avoid re-sending a notice that already went
+ * out. A second hand-typed copy would drift the moment the copy is reworded, and
+ * the symptom is a recovery run silently re-emailing everyone.
+ *
+ * Takes the RAW org name — escaping is an HTML concern for the body, and an
+ * escaped subject would both reach the inbox as literal `&amp;` and stop the
+ * correlation matching what was actually sent.
+ */
+export function rosterAddedEmailSubject(orgName: string): string {
+	return `${orgName} added you to their volunteer roster`;
+}
+
+/**
  * What the CLIENT is allowed to learn about an add.
  *
  * `AddVolunteerOutcome` must never cross the tRPC boundary. Rendering identical
