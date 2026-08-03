@@ -71,11 +71,15 @@ export async function findEmailByUserId(
 
 /**
  * The name and canonical email for a user id, read through a caller-supplied
- * transaction client.
+ * client.
  *
- * Exists for the roster convergence path (E1a), which needs a `displayName`
- * inside the approval/claim transaction. `VolunteerApplication` carries no name
- * field, so the roster label is sourced from the `User` row.
+ * TWO CALLERS, and the client parameter is what lets them share this. (1) The
+ * roster convergence path (E1a) needs a `displayName` inside the approval/claim
+ * transaction — `VolunteerApplication` carries no name field, so the roster
+ * label is sourced from the `User` row. (2) `initiateProviderCheck`'s identity
+ * guard passes the base `prisma` client: it needs both fields for the same user
+ * and is not inside a transaction, and a second near-identical repository
+ * function is where one of the two stops being maintained.
  *
  * Deliberately keyed on the user ID rather than the application's
  * `submittedByEmail`: the two are not guaranteed to agree (an application can be

@@ -1,7 +1,8 @@
 /**
  * Background check adapter interface and shared types.
  *
- * CandidatePii — fields collected from staff and forwarded to the provider.
+ * CandidatePii — the identity forwarded to the provider. Most fields are
+ * collected from staff; `email` is resolved server-side (see below).
  *
  *   ┌─────────────────────────────────────────────────────────────────┐
  *   │  PII LIFETIME                                                    │
@@ -14,6 +15,12 @@
 export interface CandidatePii {
 	firstName: string;
 	lastName: string;
+	/**
+	 * Resolved SERVER-SIDE from the volunteer's `User` row, not forwarded from
+	 * the initiate form. The form's email field is a confirmation field that
+	 * Guard 1.5 compares against this value and then discards — see
+	 * `initiateProviderCheck`. Do not thread the staff-typed address here.
+	 */
 	email: string;
 	/** Date of birth in YYYY-MM-DD format. Never stored in DB. */
 	dob: string;

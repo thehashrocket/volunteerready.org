@@ -49,7 +49,16 @@ export const backgroundChecksRouter = createTRPCRouter({
 				pii: z.object({
 					firstName: z.string().min(1).max(100),
 					lastName: z.string().min(1).max(100),
-					email: z.string().email(),
+					/**
+					 * `.trim()` before `.email()`, matching `volunteerEmailSchema`.
+					 * Without it a pasted address carrying a trailing space fails Zod
+					 * — which arrives as a tRPC-manufactured BAD_REQUEST that
+					 * `errorFormatter` redacts to generic copy, so the coordinator
+					 * is refused with no way to learn why. It also made the service's
+					 * whitespace tolerance unreachable from the API surface it
+					 * guards. Caught by the Codex adversarial pass.
+					 */
+					email: z.string().trim().email(),
 					dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
 					ssn: z.string().regex(/^\d{9}$/, 'Must be exactly 9 digits'),
 				}),

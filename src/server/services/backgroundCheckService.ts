@@ -3,6 +3,10 @@
  *
  * initiateBackgroundCheck data flow:
  *
+ *   guard: submitted email == the account's? (Guard 1.5)
+ *       │ no, or no address on file → throw TRPCError BAD_REQUEST
+ *       │ yes → the ACCOUNT's address is what goes to the provider below
+ *       ▼
  *   guard: active check exists? (PENDING or CONSIDER)
  *       │ yes → throw TRPCError BAD_REQUEST
  *       │ no
@@ -14,7 +18,8 @@
  *   get org's checkrAccessToken from DB (decrypted via tryDecrypt)
  *       │ null → throw TRPCError BAD_REQUEST: "Connect Checkr first"
  *       ▼
- *   checkrAdapter.initiateCheck(pii, packageName, accessToken) ← PII ends here (OUTSIDE tx)
+ *   checkrAdapter.initiateCheck({ ...pii, email: accountEmail }, packageName,
+ *                               accessToken) ← PII ends here (OUTSIDE tx)
  *       │ CheckrApiError(422) → re-throw as TRPCError BAD_REQUEST
  *       │ CheckrApiError(other) → re-throw as TRPCError INTERNAL_SERVER_ERROR
  *       ▼
@@ -80,8 +85,10 @@ import {
 	mapResultToStatus,
 	sanitizeWebhookPayload,
 	shouldAutoIssueCredential,
+	submittedNameMatchesAccount,
 	waitingPeriodDaysRemaining,
 } from '@/server/domain/background-check';
+import { normalizeEmail } from '@/server/domain/org-volunteer';
 import {
 	CheckrApiError,
 	CheckrBadPayloadError,
@@ -119,7 +126,10 @@ import {
 	sendAdverseActionEmail,
 	sendPreAdverseActionEmail,
 } from '@/server/repositories/sendFcraEmails';
-import { findEmailByUserId } from '@/server/repositories/userAccountStateRepo';
+import {
+	findEmailByUserId,
+	findUserIdentity,
+} from '@/server/repositories/userAccountStateRepo';
 import {
 	findCredentialByUserOrgType,
 	upsertCredential,
@@ -243,6 +253,7 @@ export async function getCheckrConnectionStatus(
  * Shared initiateCheck logic for any background check provider.
  *
  * Data flow:
+ *   guard: attested? → guard: org's volunteer? → guard: identity matches? →
  *   guard: active check? → guard: existing credential? → get credentials →
  *   adapter.initiateCheck(pii) → persist request + audit log
  *
@@ -338,6 +349,80 @@ async function initiateProviderCheck(input: {
 	// for this is a free-text "Volunteer User ID" field.
 	const relationship = await requireOrgVolunteerRelationship(orgId, userId);
 
+	// Guard 1.5: the identity in the PII block is the volunteer just authorized.
+	//
+	// THE POINT OF THIS GUARD. `userId` and `pii` are two independent free-text
+	// fields on the same form, and until this landed nothing checked that they
+	// described the same person. The service authorized the `userId`, shipped the
+	// TYPED SSN and date of birth to a consumer reporting agency, and bound the
+	// resulting report — and the attestation naming a coordinator as holding a
+	// signed authorization — to the `userId`. So picking the wrong row sent a
+	// STRANGER's SSN to Checkr and filed the result against the volunteer the
+	// coordinator meant to check, with nothing on either side to notice.
+	//
+	// The email is the only submitted field the platform can independently
+	// verify, so it carries the whole check: requiring the coordinator to restate
+	// the address forces the identity to be stated twice from the same source,
+	// and a row mistake makes the two disagree. SSN and DOB remain unverifiable
+	// by construction — a mistyped digit still gets through, which is why the
+	// name comparison below is also recorded.
+	//
+	// AFTER the relationship guard, deliberately: run first, this answers "does
+	// user X have address Y?" for any `userId` a caller cares to submit, and user
+	// ids are not secret (`/v/[userId]` is a public route). Behind Guard 1 the
+	// caller has already been proven entitled to this volunteer's record, which
+	// the roster and the detail dialog show them anyway, so it discloses nothing
+	// new. Still before the paid provider call — the PII must not leave.
+	const identity = await findUserIdentity(prisma, userId);
+
+	// Both sides normalized. `User.email` is canonicalized by the T1 database
+	// trigger, so this should be a no-op on the stored side — but a raw `===`
+	// against an uncanonical legacy row would refuse a legitimate check, and this
+	// guard failing CLOSED on a storage detail is the one way it becomes the
+	// thing coordinators route around. Plain equality on the normalized values,
+	// never Prisma's `mode: 'insensitive'` — see CLAUDE.md.
+	const accountEmail = identity?.email;
+	if (!accountEmail) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message:
+				'This volunteer has no email address on file, so their identity cannot be confirmed. Ask them to claim their account before running a check.',
+		});
+	}
+	// One canonical form, used BOTH as the thing compared and as the thing sent
+	// to the provider — so "the address we verified" and "the address the report
+	// is filed under" are the same expression rather than two that happen to
+	// agree. It also means a legacy row carrying stray whitespace cannot reach
+	// the provider and come back as an opaque 422.
+	const candidateEmail = normalizeEmail(accountEmail);
+	if (normalizeEmail(pii.email) !== candidateEmail) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message:
+				"The email you entered does not match the address on this volunteer's account. Check you have the right volunteer — the details you submit are sent to the background check provider as this person.",
+		});
+	}
+
+	// A SIGNAL, not a gate. Legal names and account names legitimately differ
+	// (preferred names, marriage, a roster imported from a spreadsheet holding
+	// "Bob"), so refusing here would block real checks on real people. It is
+	// stamped on the audit row instead, where it is evidence in exactly the
+	// dispute this path exists to make reconstructable — and it is the only
+	// remaining signal for the case the email cannot catch: the right volunteer
+	// named, with another row's name, DOB and SSN typed underneath.
+	const nameMismatch = !submittedNameMatchesAccount(
+		identity.name,
+		pii.firstName,
+		pii.lastName,
+	);
+	if (nameMismatch) {
+		// No names in the log line: this is an identity record, and the surface
+		// that needs the detail is the audit row, which is access-controlled.
+		console.warn(
+			`[bg-check] Submitted name does not match the account name orgId=${orgId} userId=${userId}`,
+		);
+	}
+
 	// Guard 2: no active check already in flight (PENDING or CONSIDER)
 	const activeCheck = await findActiveCheckForUserInOrg(userId, orgId);
 	if (activeCheck) {
@@ -364,7 +449,17 @@ async function initiateProviderCheck(input: {
 	// Call provider — OUTSIDE transaction (remote side effect, can't roll back)
 	let reportId: string;
 	try {
-		const result = await adapter.initiateCheck(pii, packageName, accessToken);
+		// The ACCOUNT address goes to the provider, not the typed one. Guard 1.5
+		// has just proved the two are the same address, so this changes nothing
+		// about which human is described — it means the field the coordinator
+		// controls is used only to CONFIRM the identity and never to steer where
+		// the provider's candidate correspondence lands. Same rule as the
+		// disclosure email resolving its own recipient from `userId`.
+		const result = await adapter.initiateCheck(
+			{ ...pii, email: candidateEmail },
+			packageName,
+			accessToken,
+		);
 		reportId = result.reportId;
 	} catch (err) {
 		if (apiErrorClasses.some((ErrorClass) => err instanceof ErrorClass)) {
@@ -414,11 +509,18 @@ async function initiateProviderCheck(input: {
 			// `impersonatedBy` is spread conditionally so a normal request writes no
 			// key at all — stamping null on every row makes `queryAuditLog`'s
 			// impersonatedOnly filter meaningless (see trpc/audit-actor.ts).
+			// `identityNameMismatch` is spread conditionally for the same reason as
+			// `impersonatedBy`: a key stamped on every row cannot be filtered on.
+			// Present means "the name typed on the form shared no token with the
+			// name on the account, and we ran the check anyway" — the one piece of
+			// identity doubt the platform can record about a report it cannot
+			// otherwise verify.
 			metadata: {
 				provider,
 				externalId: reportId,
 				relationship,
 				...(impersonatedBy ? { impersonatedBy } : {}),
+				...(nameMismatch ? { identityNameMismatch: true } : {}),
 			},
 		});
 		return req;
@@ -471,23 +573,40 @@ async function initiateProviderCheck(input: {
  * `ctx.session.user.email` not being the effective user's address: resolve the
  * address from the id (CLAUDE.md).
  *
- * Silently does nothing if the user has no address on file. A `User` row always
- * has one in practice — `addVolunteer` and the shadow-user branch both require
- * an email — but the column is nullable, and there is no recipient to fall back
- * to. Logged by the caller rather than thrown.
+ * It re-reads that address rather than accepting the one Guard 1.5 already
+ * resolved, and the duplicate query is deliberate. An address PARAMETER here is
+ * one wrong argument away from being fed `pii.email` again — the same reason
+ * the `email` parameters were deleted from `acceptInvitation` and friends in
+ * v0.34.0.0 rather than merely left unused. One extra indexed read on a path
+ * that has just made a paid HTTP call to a third party is not a cost worth
+ * trading a security invariant for.
+ *
+ * Silently does nothing if the user has no address on file. Guard 1.5 already
+ * refused that case before the provider was called, so from this path the branch
+ * survives only for the race where the row changes between the guard and the
+ * commit — keep it: the column is nullable and there is no recipient to fall
+ * back to. Logged by the caller rather than thrown.
  */
 async function notifyVolunteerOfCheck(input: {
 	orgId: string;
 	userId: string;
 	provider: 'CHECKR' | 'STERLING';
 }): Promise<void> {
-	const [to, org] = await Promise.all([
+	const [storedEmail, org] = await Promise.all([
 		findEmailByUserId(input.userId),
 		prisma.organization.findUnique({
 			where: { id: input.orgId },
 			select: { name: true },
 		}),
 	]);
+
+	// Canonicalized, exactly as Guard 1.5 canonicalizes the address it hands the
+	// provider. Without this the two legs disagree on a legacy padded row: the
+	// paid check goes out under the clean address while the volunteer's only
+	// disclosure is sent to `' Jane@Example.com'`, which also misses the
+	// bounce-suppression lookup in `sendEmail` (it keys on a bare lowercase) and
+	// may be rejected by Resend outright. Caught by the Codex adversarial pass.
+	const to = storedEmail ? normalizeEmail(storedEmail) : null;
 
 	if (!to || !org) {
 		console.error(

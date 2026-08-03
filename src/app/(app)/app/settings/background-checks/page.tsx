@@ -419,7 +419,10 @@ const bgCheckSchema = z.object({
 	userId: z.string().min(1, 'Volunteer User ID is required'),
 	firstName: z.string().min(1, 'Required').max(100),
 	lastName: z.string().min(1, 'Required').max(100),
-	email: z.string().email('Valid email required'),
+	// `.trim()` mirrors the router — a pasted address with a trailing space is a
+	// typo, not a validation failure, and refusing it here teaches the
+	// coordinator the field is fussy rather than that it is a cross-check.
+	email: z.string().trim().email('Valid email required'),
 	dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
 	ssn: z.string().regex(/^\d{9}$/, 'Must be exactly 9 digits, no dashes'),
 	packageName: z.string().optional(),
@@ -560,15 +563,30 @@ function InitiateBackgroundCheckDialog({
 						</div>
 					</div>
 
-					{/* Email */}
+					{/*
+					 * Email — a CONFIRMATION field, not a payload one.
+					 *
+					 * The server refuses unless this is the address on the volunteer's
+					 * account (Guard 1.5 in backgroundCheckService.ts), and sends the
+					 * account's own address to the provider regardless of what is typed
+					 * here. Its whole job is to make the coordinator state the identity a
+					 * second time, so naming the wrong volunteer above is caught before
+					 * a stranger's SSN reaches a consumer reporting agency. The helper
+					 * text says so, because a field whose rule is invisible reads as a
+					 * mysterious refusal.
+					 */}
 					<div className="space-y-2">
-						<Label htmlFor="bg-email">Email</Label>
+						<Label htmlFor="bg-email">Volunteer email</Label>
 						<Input id="bg-email" type="email" {...form.register('email')} />
 						{form.formState.errors.email && (
 							<p className="text-xs text-destructive">
 								{form.formState.errors.email.message}
 							</p>
 						)}
+						<p className="text-xs text-muted-foreground">
+							Must match the address on this volunteer&apos;s account — it
+							confirms the details below belong to the person named above.
+						</p>
 					</div>
 
 					{/* DOB */}

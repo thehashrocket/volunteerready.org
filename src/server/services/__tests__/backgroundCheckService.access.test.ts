@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
 	writeAuditLogTx: vi.fn(),
 	sendInitiatedEmail: vi.fn(),
 	findEmailByUserId: vi.fn(),
+	findUserIdentity: vi.fn(),
 }));
 
 vi.mock('@/server/services/orgVolunteerAccessService', () => ({
@@ -83,6 +84,7 @@ vi.mock('@/server/repositories/sendBackgroundCheckEmail', () => ({
 }));
 vi.mock('@/server/repositories/userAccountStateRepo', () => ({
 	findEmailByUserId: mocks.findEmailByUserId,
+	findUserIdentity: mocks.findUserIdentity,
 }));
 vi.mock('@/server/services/tenureBadgeService', () => ({
 	checkAndIssueTenureBadges: vi.fn(),
@@ -117,6 +119,13 @@ beforeEach(() => {
 		name: 'Helping Hands',
 	});
 	mocks.findEmailByUserId.mockResolvedValue('jane@example.com');
+	// Guard 1.5 refuses when the submitted email is not the account's, so
+	// without this every test below would refuse before reaching what it
+	// asserts. See backgroundCheckService.identity.test.ts for its own coverage.
+	mocks.findUserIdentity.mockResolvedValue({
+		name: 'Jane Doe',
+		email: 'jane@example.com',
+	});
 	mocks.tryDecrypt.mockReturnValue('token');
 	mocks.findActiveCheckForUserInOrg.mockResolvedValue(null);
 	mocks.findCredentialByUserOrgType.mockResolvedValue(null);
