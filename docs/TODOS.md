@@ -38,7 +38,12 @@ does. Adding a required field to a shared fixture silently reroutes every test
 that uses it; check what the tests are still proving, not just that they are
 green.
 
-### [P1] Nothing binds the submitted PII to the `userId` being checked
+### [P1] ~~Nothing binds the submitted PII to the `userId` being checked~~ ✅ FIXED (2026-08-02, T38)
+
+**Fixed by Guard 1.5 in `initiateProviderCheck`** — see the closing note at the
+end of this entry for what shipped, what it does NOT close, and the two things
+the build got wrong first. The original write-up is kept intact below because
+the reasoning about which fields are verifiable is still the reasoning.
 
 **Pre-existing, found by the Codex adversarial pass during the v0.40.0.0 ship.**
 Not introduced by that diff and deliberately not fixed in it — recorded here
@@ -64,6 +69,120 @@ which is free and catches the copy-paste-the-wrong-row case. A name check is
 softer (legal vs preferred names) and should warn rather than refuse. The deeper
 version drops the free-text identity fields entirely and derives them from the
 roster row, leaving only SSN/DOB as input. **Effort:** M.
+
+#### What shipped (T38)
+
+`Guard 1.5` sits in `initiateProviderCheck`, between the relationship guard and
+the capacity/credential guards, so both provider entry points inherit it:
+
+1. **The submitted email must be the account's**, compared with `normalizeEmail`
+   on BOTH sides and plain equality — never `mode: 'insensitive'`. Refusal is a
+   hand-written `BAD_REQUEST` so `errorFormatter` lets the coordinator read it.
+2. **The account's address, not the typed one, is what reaches the provider.**
+   The guard has just proved they are the same address, so this changes no
+   fact about the report — it means the coordinator-controlled field can only
+   ever CONFIRM the identity, never steer the provider's correspondence.
+3. **A name mismatch is recorded, not refused.** `submittedNameMatchesAccount()`
+   in `domain/background-check.ts` is a token-overlap test, so "Jane Q.
+   Smith-Jones" against "Jane Smith" does not flag; a disjoint name stamps
+   `identityNameMismatch: true` on the audit row (conditionally spread, so the
+   key stays filterable) and warns. Legal names and account names legitimately
+   differ, so refusing would block real checks on real people.
+4. **No email on file ⇒ refuse.** Nothing to verify against, and the disclosure
+   the subject is owed has nowhere to go either.
+
+**Two decisions that went the other way from the fix shape above.** (a) The
+"deeper version" — deleting the free-text email — was considered and **rejected**:
+it is strictly WEAKER here. Deriving the address means the coordinator never
+restates the identity, so the wrong-row case proceeds silently; keeping the
+field and requiring it to match is what turns a row mistake into a refusal. The
+elimination half is achieved instead by not FORWARDING the submitted value.
+(b) The guard runs **after** `requireOrgVolunteerRelationship`, not before: run
+first it answers "does user X have address Y?" for any `userId` a caller cares
+to submit, and user ids are not secret (`/v/[userId]` is public). Pinned by a
+test that asserts `findUserIdentity` was never called when the relationship
+guard rejects; mutation-verified by swapping the two.
+
+**What this does NOT close.** A mistyped SSN or DOB — the literal example in the
+opening paragraph — still reaches the provider. Those fields are unverifiable by
+construction: the platform holds no copy to compare against. The email binding
+catches the whole-row mistake and the name flag records the rest; a coordinator
+who names the right volunteer, types their right address, and fat-fingers one
+SSN digit is still unprotected, and no amount of server-side validation changes
+that. Say so out loud rather than describing this flow as verified.
+
+### [P2] Guard 1.5 proves nothing against a coordinator who controls the account
+
+**Raised by the Codex adversarial pass during the T38 ship, and it is the right
+framing of what shipped.** Staff mint a shadow `User` from an address they type
+themselves — `addVolunteer`, and sixty at a time via `pnpm import:roster` — so
+for an UNCLAIMED account the coordinator authored BOTH sides of the equality the
+guard checks. Guard 1.5 is therefore a **mistake detector** (it catches the wrong
+row) and not an integrity proof.
+
+This is not a regression and not a reason to withhold the guard: the whole-row
+mistake is the likely failure and the guard closes it. It is recorded because the
+temptation on the next pass will be to read a `BACKGROUND_CHECK_INITIATED` row as
+"identity was confirmed". It was not. The audit row deliberately stamps nothing
+positive — only `identityNameMismatch` on failure — precisely so no later reader
+can infer a confirmation that never happened.
+
+**Fix shape, if it is ever worth it:** require `accountState === 'ACTIVE'` (a
+claimed account, i.e. someone who proved control of that mailbox) before a check
+may be initiated. That is a real strengthening and it also blocks the concierge
+case outright — a spreadsheet of existing volunteers is entirely people who have
+never logged in — which is the same trade-off the v0.40.0.0 ship considered and
+rejected for `ORG_VOLUNTEER`. Do not take it without deciding that question
+again. A softer version stamps `accountState` onto the audit row so a dispute can
+see whether the subject had ever claimed the mailbox. **Effort:** S for the
+stamp, M for the gate plus the concierge answer.
+
+
+#### The name heuristic took FOUR adversarial rounds, and that is the lesson
+
+`submittedNameMatchesAccount()` is ~30 lines of pure function with no I/O, and
+every single round of adversarial review found a real defect in it — all four
+invisible to a test suite written in English by someone who reads Latin script:
+
+1. `[^a-z0-9]` as the separator class **deleted every non-Latin script**. A
+   Chinese, Korean, Greek, Cyrillic, Arabic or Hebrew name tokenized to the
+   empty set, which the caller reads as "nothing to compare", so the signal was
+   silently dead for those volunteers and live for everyone else.
+2. Widening to `\p{L}\p{N}` then **shattered the abugidas**: Devanagari and Thai
+   write vowels as `\p{M}`, so `शर्मा` broke into one-letter fragments that
+   corroborate almost anything.
+3. Requiring only ONE corresponding token cleared `Robert Smith` against a
+   stored `John Smith` — a shared surname is exactly what two different people
+   in one spreadsheet have.
+4. The two rules for a one-character token are **both wrong in opposite
+   directions**: refusing containment flags the majority of Chinese names
+   (surnames are one character), allowing it corroborates `A Doe` against
+   `Jane Doe` because `jane` contains `a`. The discriminator is script
+   casedness, not length — and a mutation proves the two constraints genuinely
+   conflict, so a length rule cannot satisfy both.
+
+**None of these were in the guard itself.** The email binding — the actual
+control — came through all four rounds unchanged. The heuristic is the part
+with no ground truth to test against, and it is the part that kept being wrong.
+
+**Deliberately not iterated further.** This is a warning flag on an audit row,
+not a gate; further calibration should come from real `identityNameMismatch`
+rates in production rather than from another round of invented examples. If the
+flag turns out noisy, the first thing to look at is Latin containment ("Ann"
+inside "Joanne"), which is the remaining known false-negative source.
+**Effort:** S to retune once there is data.
+
+**Caught while building.** (1) The existing consent test's `TYPED_EMAIL` was
+deliberately a DIFFERENT address from the account's, which the new guard now
+refuses — so the fixture had to change, and narrowing it to a different address
+would have made `SECURITY: notifies the address on the User record, never the
+typed one` unable to fail. It is now the same address in different casing and
+whitespace, which keeps the two strings distinguishable AND exercises
+`normalizeEmail`. Third time a shared background-check fixture has silently
+rerouted its own tests — check what they still prove, not that they are green.
+(2) The name comparison needed a suffix filter before it was worth anything:
+without one, "John Smith Jr" and "Robert Jones Jr" overlap on `jr` and the
+mismatch goes unrecorded. Found by writing the mutation test, not by review.
 
 ### [P3] A failed notification loses the witness silently
 

@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.40.1.0] - 2026-08-02
+
+Makes sure a background check is filed against the person whose details were
+entered. Until now nothing checked that the volunteer you picked and the details
+you typed described the same human.
+
+### Fixed
+- **A background check can no longer be filed against the wrong volunteer.** The initiate form asks for a volunteer and, separately, for a name, email, date of birth and Social Security number. Nothing checked that the two matched, so picking the wrong row sent one person's Social Security number and date of birth to the screening company while the report came back attached to someone else — and the authorization confirmation recorded a coordinator as having sworn they held a signed form for a report about a different person. The email you enter must now match the address on that volunteer's account, or the check is refused before anything is sent.
+- **The screening company is now sent the address on the volunteer's account**, not the one typed into the form. The email field confirms who the volunteer is; it no longer decides where the screening company writes to them.
+- **The notice telling a volunteer a check has started now goes to a cleaned-up version of their address**, matching what the screening company receives. An address stored with stray spacing could previously miss delivery entirely, which meant losing the only message that tells someone a check is happening.
+- **An address pasted with a trailing space is accepted** instead of being rejected with an unexplained error.
+
+### Changed
+- If the name you enter shares nothing with the name on the volunteer's account, the check still runs — legal names and account names differ for good reasons — but the discrepancy is recorded against it, so a later dispute can see it. Names written in any script are compared, not only names written in the Latin alphabet.
+- A check is refused if the volunteer has no email address on file, because there is then no way to confirm who the details belong to and nowhere to send them their notice.
+
 ## [0.40.0.0] - 2026-08-02
 
 Tells you when an organization runs a background check on you. Until now, the
