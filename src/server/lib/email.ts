@@ -89,6 +89,29 @@ export async function sendEmail(
 			html: buildEmailHtml(htmlContent),
 		});
 
+		// SECURITY: Resend does NOT throw on a rejected send. Its response type is
+		// `{ data, error: null } | { data: null, error: ErrorResponse }`, so a 429
+		// rate limit, a 401 bad key and a network failure all resolve normally —
+		// and this function used to read only `result?.data?.id`, write a SENT
+		// EmailEvent and return `true`. The whole point of returning a boolean is
+		// defeated if the DOMINANT failure still reports success.
+		//
+		// Two consequences, both live: a paced 60-row roster import printed
+		// "notifications sent: 60" with nothing delivered, and the phantom SENT
+		// rows are what `--notify-only` correlates against — so the recovery mode
+		// would have skipped precisely the people whose notices were lost.
+		//
+		// Checked BEFORE the EmailEvent write, so a send that did not happen
+		// leaves no record claiming it did.
+		if (result?.error) {
+			console.error('[sendEmail] Resend rejected the send:', {
+				to,
+				subject,
+				error: result.error,
+			});
+			return false;
+		}
+
 		// Log SENT event (best-effort)
 		const resendId = result?.data?.id ?? null;
 		prisma.emailEvent
