@@ -26,6 +26,7 @@ const mocks = vi.hoisted(() => ({
 	writeAuditLogTx: vi.fn(),
 	orgFindUnique: vi.fn(),
 	sendRosterAddedEmail: vi.fn(),
+	waitUntil: vi.fn(),
 }));
 
 const fakeTx = {
@@ -47,6 +48,16 @@ vi.mock('@/server/repositories/prisma', () => ({
 
 vi.mock('@/server/repositories/sendRosterAddedEmail', () => ({
 	sendRosterAddedEmail: mocks.sendRosterAddedEmail,
+}));
+
+// The pass-through is re-applied in `beforeEach`, NOT here: `vi.resetAllMocks()`
+// strips `mockImplementation`, so setting it at mock-definition time leaves a
+// bare no-op spy in every test. The notification still runs either way because
+// the promise is built eagerly as the call argument — but a future change to a
+// lazier shape (`waitUntil(() => notify(...))`) would silently stop executing it,
+// and the comment would be the thing that misled whoever debugged that.
+vi.mock('@vercel/functions', () => ({
+	waitUntil: mocks.waitUntil,
 }));
 
 vi.mock('@/server/repositories/auditRepo', () => ({
@@ -121,7 +132,14 @@ beforeEach(() => {
 	mocks.createOrgVolunteer.mockResolvedValue({ id: 'ov-1' });
 	mocks.userCreate.mockResolvedValue({ id: 'user-new' });
 	mocks.orgFindUnique.mockResolvedValue({ name: 'Helping Hands' });
-	mocks.sendRosterAddedEmail.mockResolvedValue(undefined);
+	// `true`, not `undefined`. `sendRosterAddedEmail` returns whether the send
+	// actually happened, and `notifyRosterAdd` logs NOTICE NOT SENT on a falsy
+	// result — so a mock resolving `undefined` fires that branch on every ACTIVE
+	// add, meaning the success path never executes in ANY test and the
+	// send-failed test below passes for the wrong reason.
+	mocks.sendRosterAddedEmail.mockResolvedValue(true);
+	// Re-applied after resetAllMocks — see the @vercel/functions mock above.
+	mocks.waitUntil.mockImplementation((p: Promise<unknown>) => p);
 });
 
 /** The notification is fired post-commit and not awaited; let it settle. */
@@ -381,7 +399,41 @@ describe('addVolunteer', () => {
 		expect(mocks.sendRosterAddedEmail).not.toHaveBeenCalled();
 	});
 
-	it('still returns success when the notification send fails', async () => {
+	it('hands the notice to waitUntil, not a bare floating promise', async () => {
+		// On Vercel the function can be frozen as soon as the tRPC response is
+		// written, so a floating `void` promise races the freeze — and the thing
+		// dropped is the only notice telling this person they are on a roster,
+		// carrying the only link to the page where they can leave it.
+		//
+		// Without this assertion, "simplifying" `waitUntil(p)` back to `void p` is
+		// invisible to the entire suite (the promise is built eagerly either way)
+		// and breaks in production only. Same test `backgroundCheckService` carries
+		// for the same reason.
+		mocks.userFindUnique.mockResolvedValue({
+			id: 'user-active',
+			name: 'Ada',
+			accountState: 'ACTIVE',
+		});
+
+		await addVolunteer(baseInput());
+		await flushNotifications();
+
+		expect(mocks.waitUntil).toHaveBeenCalledTimes(1);
+		expect(mocks.waitUntil.mock.calls[0][0]).toBeInstanceOf(Promise);
+	});
+
+	it('does not reach waitUntil for a branch that owes no notice', async () => {
+		// The contrast case. Without it the assertion above passes for a service
+		// that wraps every add, including the two branches that must send nothing.
+		mocks.userFindUnique.mockResolvedValue(null);
+
+		await addVolunteer(baseInput());
+		await flushNotifications();
+
+		expect(mocks.waitUntil).not.toHaveBeenCalled();
+	});
+
+	it('still returns success when the notification send THROWS', async () => {
 		// Resend being down must not roll back a roster row the coordinator can
 		// already see. The failure mode is "one email missing", not "row vanished".
 		mocks.userFindUnique.mockResolvedValue({
@@ -399,6 +451,51 @@ describe('addVolunteer', () => {
 
 		expect(result.volunteerId).toBe('ov-1');
 		expect(consoleError).toHaveBeenCalled();
+		consoleError.mockRestore();
+	});
+
+	it('logs NOTICE NOT SENT when the send RESOLVES FALSE', async () => {
+		// `sendEmail` returns `false` — it does not throw — for a Resend error and
+		// for a bounce-suppressed address, so the throw test above never exercised
+		// the likeliest failure. Both are needed; neither implies the other.
+		mocks.userFindUnique.mockResolvedValue({
+			id: 'user-active',
+			name: 'Ada',
+			accountState: 'ACTIVE',
+		});
+		mocks.sendRosterAddedEmail.mockResolvedValue(false);
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+
+		const result = await addVolunteer(baseInput());
+		await flushNotifications();
+
+		expect(result.volunteerId).toBe('ov-1');
+		expect(consoleError).toHaveBeenCalledWith(
+			expect.stringContaining('NOTICE NOT SENT'),
+		);
+		consoleError.mockRestore();
+	});
+
+	it('logs NOTHING on the success path', async () => {
+		// The contrast that makes the two failure assertions above mean something.
+		// A stale `mockResolvedValue(undefined)` in the shared setup used to fire
+		// the NOTICE NOT SENT branch on EVERY active add, so the success path never
+		// ran and the throw test passed with its rejection removed.
+		mocks.userFindUnique.mockResolvedValue({
+			id: 'user-active',
+			name: 'Ada',
+			accountState: 'ACTIVE',
+		});
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+
+		await addVolunteer(baseInput());
+		await flushNotifications();
+
+		expect(consoleError).not.toHaveBeenCalled();
 		consoleError.mockRestore();
 	});
 });

@@ -1,4 +1,5 @@
 import { BASE_URL } from '@/lib/constants';
+import { rosterAddedEmailSubject } from '@/server/domain/org-volunteer';
 import { sendEmail } from '@/server/lib/email';
 import { escapeHtml } from '@/server/lib/html';
 
@@ -31,13 +32,20 @@ import { escapeHtml } from '@/server/lib/html';
  * notice, and leading with the most alarming capability would misrepresent a
  * feature most orgs never touch. The full list lives on the confirm at
  * /app/profile, where someone who followed this link is actually deliberating.
+ *
+ * RETURNS whether the send happened, rather than discarding it. `sendEmail` does
+ * NOT throw on failure — it returns `false` for a Resend error and for a
+ * bounce-suppressed address. This function used to `await` it and drop the
+ * result, so every caller's `try/catch` was dead on the likeliest failure path
+ * and the importer reported "notifications sent: 60" when zero landed. Same fix
+ * `sendBackgroundCheckEmail` already carries for the same reason.
  */
 export async function sendRosterAddedEmail(input: {
 	to: string;
 	orgName: string;
 	/** Display name of the coordinator who added them, when known. */
 	addedByName?: string | null;
-}) {
+}): Promise<boolean> {
 	const orgName = escapeHtml(input.orgName);
 	const profileUrl = `${BASE_URL}/app/profile`;
 
@@ -47,9 +55,9 @@ export async function sendRosterAddedEmail(input: {
 		? `${escapeHtml(input.addedByName)} at <strong>${orgName}</strong>`
 		: `<strong>${orgName}</strong>`;
 
-	await sendEmail(
+	return sendEmail(
 		input.to,
-		`${input.orgName} added you to their volunteer roster`,
+		rosterAddedEmailSubject(input.orgName),
 		`
         <p>${attribution} added you to their volunteer roster on VolunteerReady.</p>
         <p>This means they can schedule you for shifts, see your volunteer

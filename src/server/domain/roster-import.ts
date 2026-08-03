@@ -16,8 +16,10 @@
 
 import { CsvFormatError, parseCsvRecords, unescapeCsvField } from './csv';
 import {
+	type AddVolunteerOutcome,
 	displayNameSchema,
 	normalizeEmail,
+	shouldNotifyByEmail,
 	volunteerEmailSchema,
 	volunteerPhoneSchema,
 } from './org-volunteer';
@@ -279,4 +281,140 @@ export function summarize(results: readonly RosterImportResult[]) {
  */
 export function exitCodeFor(summary: RosterImportSummary): number {
 	return summary.FAILED > 0 || summary.INVALID > 0 ? 1 : 0;
+}
+
+// ---------------------------------------------------------------------------
+// --notify-only recovery
+// ---------------------------------------------------------------------------
+
+/**
+ * A committed concierge-import add, as recorded on the audit row.
+ *
+ * The audit log is the ONLY durable record of who a given import actually
+ * added. Re-running the importer reports every committed row as
+ * `SKIPPED_ALREADY_ON_ROSTER`, which carries no `notify` flag, so a run killed
+ * partway leaves notices that the tool can otherwise never send.
+ */
+export type CommittedConciergeAddRow = {
+	/** Canonical address, from `metadata.email`. */
+	email: string;
+	/** `metadata.outcome` — an `AddVolunteerOutcome`, or anything if malformed. */
+	outcome: string | null;
+	/** Who the original run was attributed to, so a resend says the same thing. */
+	actorId: string | null;
+	createdAt: Date;
+};
+
+export type OwedNoticeStatus =
+	/** Committed, the outcome warranted mail, and nothing says it was sent. */
+	| 'OWED'
+	/** No concierge-import audit row for this address at this org. */
+	| 'NOT_COMMITTED'
+	/** Committed, but a shadow/unclaimed add never warranted mail. */
+	| 'INELIGIBLE_OUTCOME'
+	/** Committed and eligible, but an EmailEvent shows a prior send. Advisory. */
+	| 'ALREADY_SENT'
+	/** The volunteer has since left this org and revoked its access. */
+	| 'REFUSED_BY_VOLUNTEER'
+	/** The audit row's `outcome` is not a value we recognise. */
+	| 'MALFORMED_AUDIT_ROW';
+
+export type OwedNoticeResult = {
+	line: number;
+	email: string;
+	status: OwedNoticeStatus;
+	/** Carried onto the send so a resend is attributed as the original was. */
+	actorId: string | null;
+};
+
+const KNOWN_OUTCOMES: readonly string[] = [
+	'CREATED_SHADOW',
+	'LINKED_UNCLAIMED',
+	'LINKED_ACTIVE',
+] satisfies readonly AddVolunteerOutcome[];
+
+/**
+ * Decide, per CSV row, whether a roster-added notice is still owed.
+ *
+ * Pure: the caller fetches the audit rows and the already-sent set, this only
+ * decides what they MEAN. Keeping it DB-free is what makes every branch — most
+ * of which are hard to stage against real data — a unit test.
+ *
+ * The CSV bounds the work: `--notify-only` is scoped to the batch the operator
+ * names, never to an org's whole concierge history, so a recovery run cannot
+ * re-email people from an unrelated import six months ago.
+ *
+ * A `MALFORMED_AUDIT_ROW` is surfaced rather than folded into
+ * `INELIGIBLE_OUTCOME`. They differ in what the operator should do: one is "this
+ * person was never owed an email", the other is "we cannot tell", and reporting
+ * the second as the first answers a question we have not actually answered.
+ */
+export function computeOwedNotices(input: {
+	rows: readonly RosterImportRow[];
+	committedRows: readonly CommittedConciergeAddRow[];
+	alreadySent: ReadonlySet<string>;
+	/**
+	 * Addresses whose holder has revoked this org's access since the import.
+	 *
+	 * Checked BEFORE `alreadySent`, because a block is a fact about consent and a
+	 * SENT event is only advisory. Every other roster path refuses while a block
+	 * stands; a recovery that acts on a roster relationship must too, or it tells
+	 * the one person who explicitly revoked this org that they were just added to
+	 * its roster.
+	 */
+	blocked?: ReadonlySet<string>;
+}): OwedNoticeResult[] {
+	// Newest wins. An address removed and re-imported carries two rows, and the
+	// latest one describes the state the operator is recovering. Sorted HERE
+	// rather than trusting the repository's `orderBy`, so the rule survives a
+	// refactor of a query in another file.
+	const latest = new Map<string, CommittedConciergeAddRow>();
+	for (const row of input.committedRows) {
+		const held = latest.get(row.email);
+		if (!held || row.createdAt > held.createdAt) latest.set(row.email, row);
+	}
+
+	return input.rows.map((row) => {
+		const committed = latest.get(row.email);
+		const base = { line: row.line, email: row.email };
+
+		if (!committed) {
+			return { ...base, status: 'NOT_COMMITTED' as const, actorId: null };
+		}
+
+		const actorId = committed.actorId;
+		const outcome = committed.outcome;
+
+		if (outcome === null || !KNOWN_OUTCOMES.includes(outcome)) {
+			return { ...base, status: 'MALFORMED_AUDIT_ROW' as const, actorId };
+		}
+		if (!shouldNotifyByEmail(outcome as AddVolunteerOutcome)) {
+			return { ...base, status: 'INELIGIBLE_OUTCOME' as const, actorId };
+		}
+		if (input.blocked?.has(row.email)) {
+			return { ...base, status: 'REFUSED_BY_VOLUNTEER' as const, actorId };
+		}
+		if (input.alreadySent.has(row.email)) {
+			return { ...base, status: 'ALREADY_SENT' as const, actorId };
+		}
+		return { ...base, status: 'OWED' as const, actorId };
+	});
+}
+
+export type NotifyOnlySummary = Record<
+	OwedNoticeStatus | 'SENT' | 'FAILED',
+	number
+>;
+
+/**
+ * Exit code for a `--notify-only` run.
+ *
+ * Non-zero for a failed send and for `MALFORMED_AUDIT_ROW`, both of which leave
+ * a human with something to do. `NOT_COMMITTED` is deliberately NOT an error:
+ * the ordinary use is re-feeding the whole CSV after an interrupted run, where
+ * every row past the kill point is legitimately uncommitted — exiting 1 on the
+ * expected shape of the expected input would train the operator to ignore it.
+ */
+export function notifyOnlyExitCode(summary: NotifyOnlySummary): number {
+	return summary.FAILED > 0 || summary.MALFORMED_AUDIT_ROW > 0 ? 1 : 0;
 }

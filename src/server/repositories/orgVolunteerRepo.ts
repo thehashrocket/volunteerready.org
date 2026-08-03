@@ -909,3 +909,35 @@ async function probeOrgRelationship(
 
 	return null;
 }
+
+/**
+ * The subset of `emails` whose holder has revoked this org's access.
+ *
+ * Batched because its caller (`--notify-only`) classifies a whole CSV at once and
+ * a per-address `findOrgVolunteerBlock` would be one round trip per row. Joins
+ * through `User` so the caller can stay in address space — `OrgVolunteerBlock` is
+ * keyed by `userId`, and the recovery mode only ever holds addresses (they come
+ * off `AuditLog.metadata.email`).
+ *
+ * Addresses with no `User` row simply do not appear: nobody holds them, so
+ * nobody can have blocked anything.
+ */
+export async function findBlockedEmailsForOrg(
+	orgId: string,
+	emails: readonly string[],
+): Promise<Set<string>> {
+	if (emails.length === 0) return new Set();
+
+	const rows = await prisma.orgVolunteerBlock.findMany({
+		where: { orgId, user: { email: { in: [...emails] } } },
+		select: { user: { select: { email: true } } },
+	});
+
+	// `User.email` is nullable in the schema, but a row matched by the `in`
+	// filter above necessarily has one — the narrowing is for the type checker.
+	return new Set(
+		rows
+			.map((r) => r.user.email)
+			.filter((email): email is string => email !== null),
+	);
+}

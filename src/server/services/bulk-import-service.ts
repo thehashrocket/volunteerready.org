@@ -1,5 +1,10 @@
 import { waitUntil } from '@vercel/functions';
 import { ApplicationStatus } from '@/prisma/generated/client';
+import {
+	CsvFormatError,
+	type CsvRecord,
+	parseCsvRecords,
+} from '@/server/domain/csv';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { prisma } from '@/server/repositories/prisma';
 
@@ -8,6 +13,16 @@ import { prisma } from '@/server/repositories/prisma';
 // ---------------------------------------------------------------------------
 
 interface CsvRow {
+	/**
+	 * 1-indexed line in the source file.
+	 *
+	 * Carried through to `processImportJob` so a PROCESSING error reports the
+	 * same coordinate a PARSE error does. Before this, processing errors were
+	 * numbered by position in the surviving-rows array, so one `errorRows` column
+	 * held two incompatible schemes — and they could collide, reporting two
+	 * different problems as "row 3".
+	 */
+	line: number;
 	email: string;
 	opportunityId?: string;
 }
@@ -20,25 +35,52 @@ interface ParseResult {
 /**
  * Parse a CSV string into rows. Expected columns: email (required),
  * opportunityId (optional). First row is treated as a header.
+ *
+ * Uses the shared RFC 4180 parser in `domain/csv.ts` — the same one the roster
+ * importer reads through. This used to be `line.split(',')`, which shifts every
+ * later column left the moment a quoted field contains a comma; real
+ * spreadsheets contain `"Smith, Jane"`. The damage here was narrower than on the
+ * roster (an email cannot contain a comma, so only `opportunityId` read as
+ * garbage) but two CSV parsers is where one of them stops being maintained.
+ *
+ * Never throws for a malformed FILE. `parseCsvRecords` raises `CsvFormatError`
+ * for an unterminated quote, and that is caught and returned as an error row
+ * instead: the only caller is a tRPC mutation that records the outcome on a
+ * `BulkImportJob`, so a job saying "unterminated quote starting on line 12" is
+ * strictly better than an uncaught 500 that tells the coordinator nothing. The
+ * roster importer re-throws on the same input because it has a file-level
+ * handler and a terminal to print to; this one has a job record.
+ *
+ * Anything OTHER than a `CsvFormatError` is still re-thrown — there is no such
+ * case today, and swallowing an unknown fault into an error row would hide a
+ * real bug behind a coordinator-facing "bad CSV" message.
+ *
+ * `row` is the TRUE 1-indexed line in the file for a per-row error. It used to
+ * be an index into a blank-line-filtered array, so any blank line shifted every
+ * reported number — which an operator uses to find the row to fix. A FILE-level
+ * error reports row 1 and names the real line in its message, since it has no
+ * single row to attribute to.
  */
 export function parseCsv(csv: string): ParseResult {
-	const lines = csv
-		.split('\n')
-		.map((l) => l.trim())
-		.filter((l) => l.length > 0);
+	let records: CsvRecord[];
+	try {
+		records = parseCsvRecords(csv);
+	} catch (err) {
+		if (err instanceof CsvFormatError) {
+			return { rows: [], errors: [{ row: 1, error: err.message }] };
+		}
+		throw err;
+	}
 
-	if (lines.length < 2) {
+	const headerRecord = records[0];
+	if (!headerRecord) {
+		return { rows: [], errors: [{ row: 1, error: 'No header row found' }] };
+	}
+	if (records.length < 2) {
 		return { rows: [], errors: [{ row: 1, error: 'No data rows found' }] };
 	}
 
-	const headerLine = lines[0];
-	if (!headerLine) {
-		return { rows: [], errors: [{ row: 1, error: 'No header row found' }] };
-	}
-	const header = headerLine
-		.toLowerCase()
-		.split(',')
-		.map((h) => h.trim());
+	const header = headerRecord.fields.map((h) => h.trim().toLowerCase());
 	const emailIdx = header.indexOf('email');
 	if (emailIdx === -1) {
 		return {
@@ -51,21 +93,29 @@ export function parseCsv(csv: string): ParseResult {
 	const rows: CsvRow[] = [];
 	const errors: Array<{ row: number; error: string }> = [];
 
-	for (let i = 1; i < lines.length; i++) {
-		const line = lines[i];
-		if (!line) continue;
-		const cols = line.split(',').map((c) => c.trim());
-		const email = cols[emailIdx]?.toLowerCase() ?? '';
+	for (const { line, fields } of records.slice(1)) {
+		// `parseCsvRecords` drops a record only when its single field is exactly
+		// '', so a whitespace-only line survives where the old `.trim()`-then-
+		// filter dropped it — and would be reported as `Invalid email: ""`,
+		// inflating the parse-error count the upload page renders. Also catches
+		// the `,,,` padding rows spreadsheet exports append.
+		if (fields.every((f) => f.trim() === '')) continue;
 
-		if (!email?.includes('@')) {
-			errors.push({ row: i + 1, error: `Invalid email: "${email}"` });
+		// Trimmed and lowercased exactly as before — `parseCsvRecords` is a
+		// tokenizer and normalizes nothing, so dropping this would let leading
+		// whitespace and mixed case reach `submittedByEmail`, which is stored
+		// canonical.
+		const email = (fields[emailIdx] ?? '').trim().toLowerCase();
+
+		if (!email.includes('@')) {
+			errors.push({ row: line, error: `Invalid email: "${email}"` });
 			continue;
 		}
 
-		rows.push({
-			email,
-			opportunityId: oppIdx >= 0 ? cols[oppIdx] || undefined : undefined,
-		});
+		const opportunityId =
+			oppIdx >= 0 ? (fields[oppIdx] ?? '').trim() || undefined : undefined;
+
+		rows.push({ line, email, opportunityId });
 	}
 
 	return { rows, errors };
@@ -167,8 +217,13 @@ async function processImportJob(
 
 				createdRows++;
 			} catch (err) {
+				// The row's own file line, not its position in the surviving-rows
+				// array. Those diverge the moment any row fails to parse, so the
+				// persisted `errorRows` used to mix two numbering schemes — and they
+				// collide: a parse error on line 3 and a processing failure on line 4
+				// were both reported as "row 3".
 				errors.push({
-					row: processedRows + 1,
+					row: row.line,
 					error: err instanceof Error ? err.message : 'Unknown error',
 				});
 			}

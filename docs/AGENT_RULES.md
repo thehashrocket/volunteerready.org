@@ -285,10 +285,14 @@ escaper. A naive split is wrong for the files this product actually receives —
 volunteer spreadsheet contains `"Smith, Jane"`, and splitting on the comma shifts every
 later column left, so the email field arrives holding a first name. Two copies of a
 formula-injection guard is also where one of them stops being maintained, which is why
-`esg-report.ts` now re-exports `escapeCsvField` rather than keeping its own. There is
-still one violation on purpose-not-yet-fixed: `bulk-import-service.parseCsv` (the
-applications importer) has its own naive parser, tracked in `docs/TODOS.md` — converting
-it is the fix, not a precedent.
+`esg-report.ts` now re-exports `escapeCsvField` rather than keeping its own. As of
+v0.41.0.0 there are **no** violations left: `bulk-import-service.parseCsv` (the
+applications importer) was the last surface doing `line.split(',')` and now reads through
+`parseCsvRecords`. A second parser is a regression, not a shortcut. Note the two
+behaviours a caller inherits when it converts: `parseCsvRecords` THROWS `CsvFormatError`
+on an unterminated quote (a per-row `{ rows, errors }` contract has to catch it and turn
+it into a file-level error, or a whole spreadsheet fails as an unhandled 500), and it does
+not trim or lowercase — header normalization stays the caller's job.
 
 ---
 

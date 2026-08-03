@@ -5,6 +5,161 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the importer-hardening ship (2026-08-03, v0.41.0.0)
+
+### Caught while building — recorded so it is not reintroduced
+
+**`sendRosterAddedEmail` was discarding `sendEmail`'s boolean, so the importer
+reported notices it had not sent.** `sendEmail` returns `false` — it does not
+throw — for a Resend error and for a bounce-suppressed address, so
+`sendImportNotifications`' `try/catch` was dead on the likeliest failure and
+counted every silent failure as `sent++`. A 60-row import printed
+`notifications sent: 60` with nothing delivered. This is the **same defect
+`sendBackgroundCheckEmail` was fixed for in v0.40.0.0**, on the same kind of
+email: the only notice its recipient ever gets, carrying the only link to the
+surface where they can revoke the access. The rule was written down at the time
+and the roster path was not audited against it — **when a rule is recorded
+because one sender got it wrong, grep every other `sendEmail` caller then, not
+at the next incident.**
+
+Two tests are needed and one does not imply the other: `mockResolvedValue(false)`
+and a genuine rejection. The rejection test existed and passed the whole time the
+hole stood.
+
+**`addVolunteer`'s notice was a floating `void` promise.** Fixed to `waitUntil`
+in the same pass, `.catch` still inside. Same reasoning as
+`backgroundCheckService`: on Vercel the function can be frozen as soon as the
+tRPC response is written, and the thing being dropped is that notice.
+
+**`sendEmail` never looked at Resend's error channel, so reading its boolean
+proved nothing.** Found by the security specialist during `/ship`, one layer
+below where this ship was working. Resend does NOT throw on a rejected send —
+its response type is `{ data, error: null } | { data: null, error }` — and
+`sendEmail` read only `result?.data?.id`, wrote a SENT `EmailEvent`, and
+returned `true`. So a 429, the exact failure `DEFAULT_NOTIFY_DELAY_MS` exists to
+avoid, was recorded as a delivery. **The rule: reading a status flag is worthless
+if the code computing it cannot see the failure — check the transport's own
+error channel, not just its exceptions.** The phantom SENT rows made this worse
+than a bad count: `--notify-only` correlates against `EmailEvent`, so the
+recovery mode would have skipped precisely the people whose notices were lost.
+The check now runs BEFORE the `EmailEvent` write, so a send that did not happen
+leaves no record claiming it did. Pre-existing and platform-wide — every sender
+was affected, not just the roster.
+
+**A comment claiming two code paths are unified does not unify them.**
+`sendNoticesSequentially`'s docstring said both notify paths went through it;
+`sendOwedNotices` had its own copy of the loop. Caught by two specialists
+independently, and it had already propagated into `CLAUDE.md`. Fixed by making
+the claim TRUE — the loop takes a per-recipient `resolveContext` callback — not
+by softening the comment. **A shared-implementation claim should be checked by
+grepping the callers, not by reading the docstring.**
+
+**A summary line that is structurally always zero is worse than no line.**
+`--notify-only`'s write path converts every `OWED` row to `SENT` or `FAILED`
+before returning, so printing an `owed:` count put `owed: 0` directly above
+`sent: 1`. Caught in review, not by a test — the test asserted the tallies that
+were present and never that a misleading one was absent.
+
+### [P3] `isLocalDatabaseUrl` calls an SSH-tunnelled production database "local"
+
+Raised by the security specialist during the `/ship` review. `isLocalDatabaseUrl`
+decides from `new URL(url).hostname` alone, so
+`postgres://user@localhost:5433/prod_db` — the ordinary way an operator reaches a
+managed Postgres that is not publicly routable — skips the typed-slug
+confirmation entirely, leaving `--yes` as the only gate on the exact write the
+prompt was added to catch.
+
+Not fixed in that ship because the alternatives each have a real cost and the
+choice is a judgement call: always prompt and exempt only `--dry-run` (one line
+of typing on every genuinely local run, and it would fire constantly in
+development); require the default port 5432 as well (breaks a legitimate local
+container on a non-standard port); or require an explicit `IMPORT_ROSTER_LOCAL=1`
+opt-out (a new env var to document and remember). **Fix:** pick one, and prefer
+the fail-closed shape — a prompt costs seconds, a mis-aimed production write
+costs a stranger's tenant. **Effort:** S.
+
+### [P3] `--notify-only` exits 0 on a file whose every row is invalid
+
+`notifyOnlyExitCode` counts `FAILED` and `MALFORMED_AUDIT_ROW` only, while the
+ordinary import path's `exitCodeFor` also counts `INVALID`. The script does feed
+the invalid count into the summary, but `NotifyOnlySummary` does not declare the
+key, so it is silently dropped.
+
+Concretely: point `--notify-only --yes` at a spreadsheet whose phone column Excel
+reformatted, so every row fails validation. The run prints 60 INVALID lines,
+classifies nobody, sends nothing, and exits 0 — and a wrapper script reading only
+the exit code records the recovery as successful while all 60 volunteers remain
+untold. **Fix:** decide it explicitly rather than by omission — either add
+`INVALID` to `NotifyOnlySummary` and to the predicate (consistent with
+`MALFORMED_AUDIT_ROW`, which exits 1 on the stated "we cannot tell is not no"
+principle), or pin the current behaviour with a test and a comment saying why
+notify-only differs. **Effort:** S.
+
+### [P3] A truncated concierge-audit scan reports "never added" instead of "cannot tell"
+
+`findConciergeImportAuditRows` stops at `CONCIERGE_IMPORT_SCAN_CAP` (20,000) and
+returns no signal that it did. Past the cap `computeOwedNotices` sees no audit
+row for an address and returns `NOT_COMMITTED` — which the exit code deliberately
+treats as success — so a truncated scan tells the operator "not added by an
+import, nothing to send" about someone who WAS added and IS still owed a notice.
+
+That is the same "we cannot tell" versus "no" distinction the same file insists
+on for `MALFORMED_AUDIT_ROW`, applied inconsistently. Unreachable today at any
+plausible concierge scale (the cap is an org's cumulative import history), which
+is why it is a P3 rather than a P2. **Fix:** return `{ rows, truncated }` when
+`rows.length === take` and surface it as its own status or at minimum a warning
+plus a non-zero exit. The `take` parameter also has no production caller and is
+exercised only by the integration test. **Effort:** S.
+
+### [P3] `LOCAL_DB_HOSTS` is now duplicated four times
+
+`e2e/utils/db.ts`, `src/test/integration-setup.ts`,
+`scripts/seed-email-collision-fixture.ts` and now `scripts/import-roster.ts`
+each declare `new Set(['localhost', '127.0.0.1', '::1', '[::1]'])` and the same
+`new URL(url).hostname` membership test.
+
+The four differ in what they DO about a non-local database — two refuse with an
+env-var override, one refuses outright, the importer prompts for the org slug —
+but the set and the predicate are byte-identical, and by this repo's own
+`escapeCsvField` precedent (extracted at its SECOND consumer, "two copies is
+where one of them stops being maintained") four is well past the line.
+
+**Fix:** extract the predicate ALONE — `isLocalDatabaseUrl(url): boolean`,
+failing closed on a missing or unparseable URL — and migrate all four. Leave each
+site's enforcement policy where it is; that is the part that legitimately
+differs. Do it to all four at once: a shared module only the newest caller
+imports is genuinely worse than the status quo. Not folded into the importer diff
+because it reaches into the e2e and integration harnesses. **Effort:** S.
+
+### [P3] The `--notify-only` `EmailEvent` dedupe cannot be made reliable without a marker
+
+`findSentAddresses` matches `(to, eventType: 'SENT', subject)`, and that is the
+best available signal rather than a good one: `sendEmail` writes the SENT row
+fire-and-forget, writes nothing at all when Resend throws, and `EmailEvent`
+carries no `orgId` — so the subject (which embeds only the org NAME) is the whole
+scope, and two orgs sharing a display name collide. An org renamed between the
+original send and the recovery will not match its own earlier sends either.
+
+This is why the check is advisory and reported rather than a silent gate: every
+one of those failure modes errs toward "we think it was sent when it was not",
+which is exactly the state `--notify-only` exists to repair, so the safe
+direction is to re-send and say so. A `notifiedAt` column on `OrgVolunteer`
+would make it exact — the same column already tracked as a P3 for the
+background-check disclosure, and worth doing once for both. **Effort:** M.
+
+### [P3] `--notify-only` has no e2e and no test of `main()`
+
+The classification, the sends and the two repository reads are each covered
+(unit, mocked-service and real-Postgres respectively), and the flow was smoke
+-tested by hand end to end — import with `--no-notify` to stage the interrupted
+state, then `--notify-only --dry-run` to see the notice reported as owed. But
+`main()` is still invoked by no test, so the wiring between those pieces — the
+streamed-vs-printed row logic, the exit code, the confirmation prompt actually
+being reached — is held by hand-verification only. Same pre-existing gap the
+import path has. **Effort:** M.
+
+---
+
 ## Opened by the background-check consent ship (2026-08-02, v0.40.0.0)
 
 ### Caught while building — recorded so it is not reintroduced
@@ -1323,7 +1478,33 @@ third time. **Effort:** S.
 Shipped T17 (`pnpm import:roster`), T19 (`/api/org/[orgId]/roster/csv`) and T20
 (the `roster_populated` milestone across all three onboarding surfaces).
 
-### [P2] `bulk-import-service.parseCsv` still splits on commas
+### [P2] ~~`bulk-import-service.parseCsv` still splits on commas~~ ✅ FIXED (2026-08-03, v0.41.0.0)
+
+Migrated onto `parseCsvRecords`, keeping the `{ rows, errors }` return shape and reusing
+the record's `line` for error row numbers exactly as prescribed. **There is now exactly
+one CSV parser in this repo**, and `domain/csv.ts`'s own docstring says so.
+
+Three things the swap had to decide, none of them in the fix shape below:
+
+1. **It still NEVER THROWS.** `parseCsvRecords` raises `CsvFormatError` on an
+   unterminated quote and the roster importer re-throws it, but that importer has a
+   file-level handler and a terminal; this one's only caller is a tRPC mutation that
+   records the outcome on a `BulkImportJob`, and `createBulkImportJob` has no try/catch.
+   A job reading "unterminated quote starting on line 12" beats an uncaught 500.
+2. **Trimming and lowercasing had to be re-applied by hand.** `parseCsvRecords` is a
+   tokenizer and normalizes nothing; the old parser trimmed every cell and lowercased the
+   email. Dropping that would have let whitespace and mixed case reach
+   `submittedByEmail`, which is stored canonical.
+3. **Error row numbers changed meaning, correctly.** They were an index into a
+   blank-line-filtered array, so any blank line shifted every reported number — the
+   number an operator uses to find the row to fix. They are now true file lines.
+
+The module had **no tests at all**, so nothing would have gone red either way;
+`src/server/services/__tests__/bulk-import-parse.test.ts` was written first and pins both
+the preserved behaviour and the fixed behaviour (quoted commas, BOM, CRLF/lone-CR, true
+line numbers, the never-throws contract).
+
+### [P2] (original) `bulk-import-service.parseCsv` still splits on commas
 
 T17 added a real RFC 4180 parser at `src/server/domain/csv.ts` and uses it. The
 **applications** bulk importer (`bulk-import-service.ts:24`) still does
@@ -1468,7 +1649,30 @@ only four steps. The service comment claims step 5 "match[es] the checklist … 
 cannot congratulate an org it is still nudging", which is false for exactly the non-pilot
 population. **Fix:** filter both on the flag, or correct the comment. **Effort:** S.
 
-### [P2] The importer has no non-local-DATABASE_URL confirmation
+### [P2] ~~The importer has no non-local-DATABASE_URL confirmation~~ ✅ FIXED (2026-08-03, v0.41.0.0)
+
+**Both halves shipped.** `isLocalDatabaseUrl` + `requireProductionConfirmation` in
+`scripts/import-roster.ts`: a write against a non-local `DATABASE_URL` now prints the
+target and requires the org's **resolved** slug typed back on stdin. `--dry-run` is
+exempt (it writes nothing, and rehearsing against production is the intended first
+step). A non-TTY refuses outright, with **no env-var override** — `E2E_ALLOW_REMOTE_DB`
+and `INTEGRATION_ALLOW_REMOTE_DB` exist because CI genuinely needs to point at a shared
+database, and this script has no automated caller, so a bypass would only reinstate the
+gap. `isTTY` and `readAnswer` are parameters rather than reads of `process.stdin`, so
+both branches are unit-tested; `main()` is still never invoked by a test.
+
+`parseArgs` now refuses ANY flag given twice (`setFlag`), checked before the value is
+stored and for every flag rather than only the switches — a duplicated switch is the
+same class of "the command line does not say what it does" as a duplicated `--org`.
+
+Two things worth keeping: the confirmation asks for the **resolved** slug, because
+`--org` accepts an id too and asking someone to retype what they already typed confirms
+nothing; and it runs **after** org resolution but **before** the file is read, so a run
+aimed at the wrong database stops without touching anything.
+
+The original write-up follows.
+
+### [P2] (original) The importer has no non-local-DATABASE_URL confirmation
 
 `--yes` is the entire gate on a script whose header says it is normally pointed at
 production. The preamble prints the target database and org name and then writes on the next
@@ -1482,7 +1686,48 @@ stranger's tenant and emails them.
 stdin (the resolver already returns it for this purpose), and reject duplicate flags.
 **Effort:** S.
 
-### [P2] An interrupted import can never send its notifications
+### [P2] ~~An interrupted import can never send its notifications~~ ✅ FIXED (2026-08-03, v0.41.0.0)
+
+`pnpm import:roster --notify-only` — re-feed the SAME file, add nobody, send what an
+earlier run left owed. Broadly the shape this entry prescribed, with four decisions the
+build had to make that it did not:
+
+1. **The CSV bounds the work, the audit log decides the answer.** Matching the file's
+   addresses against `AuditLog` rows carrying `metadata.via = 'CONCIERGE_IMPORT'` — via
+   `findConciergeImportAuditRows` — rather than querying the audit log alone. The audit
+   log alone is unbounded and would re-email an org's whole concierge history; the file
+   alone cannot tell "on the roster because this import added them" from "on the roster
+   since last year", and would send *"X added you to their roster"* to someone who has
+   volunteered there for years.
+2. **Eligibility comes from `metadata.outcome` through `shouldNotifyByEmail`**, the same
+   predicate the live run uses, so a shadow/unclaimed add is `INELIGIBLE_OUTCOME` and
+   never mailed. An unrecognised outcome is its OWN status (`MALFORMED_AUDIT_ROW`), not
+   folded into ineligible: "never owed an email" and "we cannot tell" are different
+   answers, and reporting the second as the first answers a question nothing answered.
+3. **The `EmailEvent` dedupe is ADVISORY and reported, never a silent gate.** `sendEmail`
+   writes the SENT row fire-and-forget and writes nothing at all on the Resend-threw
+   branch, so a missing row does not prove nothing was sent — and both failure modes err
+   toward "we think it was sent when it was not", which is the state this mode exists to
+   repair. Also: `EmailEvent` carries no `orgId`, so two orgs with the same display name
+   collide on the subject.
+4. **Attribution comes from each audit row's own `actorId`**, resolved once per DISTINCT
+   actor. A recovery says what the killed run would have said; one context for the batch
+   would tell volunteers they were added by a coordinator who never added them.
+   `--notify-only --actor` is therefore refused as contradictory, not ignored.
+
+`--notify-only --dry-run` lists recipients without sending; without `--dry-run` it needs
+`--yes` and the production confirmation like any other send. The per-send line landed on
+**both** paths. Exit code is 1 for a failed send or an unreadable audit row, and
+deliberately **0** for `NOT_COMMITTED` — everything past an interruption's kill point is
+legitimately uncommitted, and failing on the expected shape of the expected input trains
+the operator to ignore the code.
+
+**Found while building, and it made this fix necessary rather than merely useful:**
+`sendRosterAddedEmail` was discarding `sendEmail`'s boolean. See the entry below.
+
+The original write-up follows.
+
+### [P2] (original) An interrupted import can never send its notifications
 
 `sendImportNotifications` runs only after `importRoster` returns the whole result set, so a
 run killed at row 55 of 60 leaves 55 rows committed and zero notices sent. Re-running is the

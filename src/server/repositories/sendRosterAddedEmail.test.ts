@@ -3,11 +3,17 @@ const mocks = vi.hoisted(() => ({ sendEmail: vi.fn() }));
 vi.mock('@/server/lib/email', () => ({ sendEmail: mocks.sendEmail }));
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { rosterAddedEmailSubject } from '@/server/domain/org-volunteer';
 import { sendRosterAddedEmail } from './sendRosterAddedEmail';
 
 /** The HTML body passed to sendEmail (3rd positional arg). */
 function bodyOf(call: unknown[]): string {
 	return call[2] as string;
+}
+
+/** The subject passed to sendEmail (2nd positional arg). */
+function subjectOf(call: unknown[]): string {
+	return call[1] as string;
 }
 
 beforeEach(() => {
@@ -124,5 +130,58 @@ describe('sendRosterAddedEmail', () => {
 
 		expect(mocks.sendEmail).toHaveBeenCalledTimes(1);
 		expect(mocks.sendEmail.mock.calls[0][3]).toBeUndefined();
+	});
+
+	it('sends the subject `rosterAddedEmailSubject` derives', async () => {
+		// The `--notify-only` recovery mode correlates against EmailEvent.subject
+		// to avoid re-sending a notice that already went out, and it builds the
+		// string with this helper. A second hand-typed copy here would drift the
+		// moment the copy is reworded, and the symptom is a recovery run silently
+		// re-emailing everyone.
+		await sendRosterAddedEmail({
+			to: 'ada@example.com',
+			orgName: 'Helping Hands',
+		});
+
+		expect(subjectOf(mocks.sendEmail.mock.calls[0])).toBe(
+			rosterAddedEmailSubject('Helping Hands'),
+		);
+	});
+
+	it('puts the RAW org name in the subject, escaping only the body', async () => {
+		// Escaping is an HTML concern. An escaped subject reaches the inbox as
+		// literal `&amp;`, and it would also stop the EmailEvent correlation
+		// above matching what `rosterAddedEmailSubject` rebuilds.
+		await sendRosterAddedEmail({
+			to: 'ada@example.com',
+			orgName: 'Cats & Dogs',
+		});
+
+		expect(subjectOf(mocks.sendEmail.mock.calls[0])).toBe(
+			'Cats & Dogs added you to their volunteer roster',
+		);
+	});
+
+	it('SECURITY: returns FALSE when the send did not happen', async () => {
+		// `sendEmail` returns `false` for a Resend error and for a
+		// bounce-suppressed address — it does NOT throw. This function used to
+		// `await` it and discard the result, so every caller's try/catch was dead
+		// on the likeliest failure and the importer counted a silent failure as a
+		// delivered notice.
+		mocks.sendEmail.mockResolvedValue(false);
+
+		await expect(
+			sendRosterAddedEmail({ to: 'ada@example.com', orgName: 'Helping Hands' }),
+		).resolves.toBe(false);
+	});
+
+	it('returns TRUE when the send happened', async () => {
+		// The contrast case. Without it the assertion above passes for a function
+		// that returns `false` unconditionally.
+		mocks.sendEmail.mockResolvedValue(true);
+
+		await expect(
+			sendRosterAddedEmail({ to: 'ada@example.com', orgName: 'Helping Hands' }),
+		).resolves.toBe(true);
 	});
 });

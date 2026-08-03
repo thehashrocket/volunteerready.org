@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { waitUntil } from '@vercel/functions';
 import type {
 	AccountState,
 	OrgVolunteerSource,
@@ -260,11 +261,19 @@ export async function addVolunteer(input: {
 	// AFTER commit, and deliberately not awaited. Resend being down must not roll
 	// back a roster row the coordinator can already see on their screen — the
 	// failure mode we want is "one email missing", not "the row vanished".
-	// `.catch(console.error)`, never a bare `void`: an unhandled rejection here
-	// would take the process down (learning: nextauth-events-createuser-void-rejection).
+	//
+	// `waitUntil`, NOT a bare `void`. On Vercel the function can be frozen as soon
+	// as the tRPC response is written, so a floating promise races the freeze —
+	// and the thing dropped is the only notice telling this person they were
+	// added, carrying the only link to the surface where they can revoke it.
+	// Same rule `backgroundCheckService`'s disclosure already follows.
+	//
+	// The `.catch` stays INSIDE: `waitUntil` keeps the instance alive but does not
+	// handle rejections, and an unhandled one here would take the process down
+	// (learning: nextauth-events-createuser-void-rejection).
 	if (result.notify && input.sendNotification !== false) {
-		void notifyRosterAdd(input.orgId, input.actorId, email).catch(
-			console.error,
+		waitUntil(
+			notifyRosterAdd(input.orgId, input.actorId, email).catch(console.error),
 		);
 	}
 
@@ -301,11 +310,17 @@ export async function resolveRosterNotificationContext(
 	return { orgName: org.name, addedByName: actor?.name ?? null };
 }
 
-/** Send one notice against an already-resolved context. */
+/**
+ * Send one notice against an already-resolved context.
+ *
+ * Returns whether it was actually sent — `sendEmail` returns `false` rather than
+ * throwing for a Resend error or a suppressed address, so a caller that only
+ * catches rejections learns nothing about the likeliest failure.
+ */
 export function sendRosterAddedNotice(
 	context: { orgName: string; addedByName: string | null },
 	to: string,
-) {
+): Promise<boolean> {
 	return sendRosterAddedEmail({
 		to,
 		orgName: context.orgName,
@@ -338,13 +353,27 @@ async function notifyRosterAdd(
 			: Promise.resolve(null),
 	]);
 
-	if (!org) return;
+	if (!org) {
+		console.error(
+			`[roster] NOTICE NOT SENT to ${to} for orgId=${orgId}: organisation not found`,
+		);
+		return;
+	}
 
-	await sendRosterAddedEmail({
+	// The boolean is read, not discarded. A lost notice leaves someone on a
+	// roster with no idea they are on it and no link to the page where they can
+	// leave it, so it is never only an absent log line.
+	const sent = await sendRosterAddedEmail({
 		to,
 		orgName: org.name,
 		addedByName: actor?.name ?? null,
 	});
+
+	if (!sent) {
+		console.error(
+			`[roster] NOTICE NOT SENT to ${to} for orgId=${orgId}: send failed or address suppressed`,
+		);
+	}
 }
 
 /**

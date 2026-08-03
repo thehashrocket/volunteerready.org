@@ -165,7 +165,12 @@ src/
 │   │   ├── tokens.ts             # Shared token generation + SHA-256 hashing
 │   │   ├── resend.ts             # Shared Resend email client (lazy singleton)
 │   │   ├── email-template.ts     # Branded email wrapper (VolunteerReady header/footer)
-│   │   ├── email.ts              # sendEmail() helper — single entry point for all outbound email
+│   │   ├── email.ts              # sendEmail() helper — the entry point for outbound email. One
+│   │   │                           deliberate bypass: sendFcraEmails.ts calls Resend directly
+│   │   │                           (legally mandated adverse-action notices).
+│   │   │                           RETURNS a boolean and never throws (Resend doesn't either —
+│   │   │                           it resolves with { data: null, error }), so read the result;
+│   │   │                           a try/catch alone is dead on the likeliest failure
 │   │   ├── html.ts               # escapeHtml() — shared XSS escape for server-rendered HTML (email + consent pages)
 │   │   ├── admin-alerts.ts       # sendNewUserAlert / sendNewOrgAlert / sendNewCompanyAlert / sendImpersonationStartAlert — fire-and-forget admin emails
 │   │   ├── admin-recipients.ts   # getAdminEmails() — resolves admin recipients from PLATFORM_ADMIN_ALERT_EMAIL env var or DB isPlatformAdmin flag; 5-min cache
@@ -465,6 +470,7 @@ pnpm format               # Biome format
 pnpm typecheck            # tsc --noEmit
 pnpm test                 # Vitest (run once)
 pnpm test:watch           # Vitest (watch mode)
+pnpm test:scripts         # Vitest for scripts/**/*.test.ts (separate config, excluded from pnpm test)
 pnpm e2e                  # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
                           #   Pauses ~30-60s first while e2e/global-setup.ts warms every public route
 pnpm screenshots          # Regenerate marketing screenshots in public/marketing/ (CAPTURE=1 Playwright project; needs pnpm seed:dev data; refuses non-local DATABASE_URL; filter with CAPTURE_ONLY=key1,key2)
@@ -475,6 +481,12 @@ pnpm seed:production        # Production seed only (platform org + skill catalog
 pnpm seed:dev               # Dev/staging seed (full demo data + test accounts)
 pnpm prisma studio          # Prisma Studio UI
 pnpm docs:dev               # VitePress dev server
+pnpm import:roster --org <slug-or-id> --file <path.csv> [--dry-run] [--yes] [--actor <email>] [--no-notify] [--notify-only]
+                          #   Concierge roster import. --dry-run first, every time; a write needs --yes.
+                          #   Against a non-local DATABASE_URL, ANY non-dry-run pass (including
+                          #   --notify-only) also needs the org's resolved slug typed back at a prompt.
+                          #   --notify-only re-reads the SAME file and sends only the notices an
+                          #   interrupted run never sent — it adds nobody
 ```
 
 ---
@@ -557,7 +569,7 @@ pnpm docs:dev               # VitePress dev server
 | `src/server/lib/adapters/background-check/sterling.ts` | Sterling adapter: API integration, HMAC-SHA256 webhook verification, 7 typed error classes |
 | `src/server/lib/crypto.ts` | AES-256-GCM encrypt/decrypt/tryDecrypt for secrets at rest |
 | `src/server/domain/esg-report.ts` | ESG report domain — `esgReportInputSchema` + `normalizeESGDateRange` (end-of-day `to` bounds, inverted-range rejection), `computeESGSummary`, CSV formatting. Re-exports `escapeCsvField` from `domain/csv.ts` for back-compat; the implementation moved there |
-| `src/server/domain/csv.ts` | The repo's ONE CSV parser and writer — `parseCsvRecords`, `escapeCsvField`, `toCsvLine`, `unescapeCsvField`, `CsvFormatError`. RFC 4180: quoted fields, embedded commas and newlines, `""` escapes, BOM, CRLF/LF/CR. Read this before writing any CSV code; a `split(',')` is wrong for the files this actually receives (`"Smith, Jane"` shifts every later column left). `unescapeCsvField` exists because our own export is an input to our own importer — it undoes the formula-injection prefix, without which a round trip corrupts every international phone number. Consumers: ESG export, roster export, roster import |
+| `src/server/domain/csv.ts` | The repo's ONE CSV parser and writer — `parseCsvRecords`, `escapeCsvField`, `toCsvLine`, `unescapeCsvField`, `CsvFormatError`. RFC 4180: quoted fields, embedded commas and newlines, `""` escapes, BOM, CRLF/LF/CR. Read this before writing any CSV code; a `split(',')` is wrong for the files this actually receives (`"Smith, Jane"` shifts every later column left). `unescapeCsvField` exists because our own export is an input to our own importer — it undoes the formula-injection prefix, without which a round trip corrupts every international phone number. Consumers: ESG export, roster export, roster import, and (v0.41.0.0) the applications bulk import — the last hand-rolled `split(',')` in the repo, now gone. Two things a converting caller inherits: `parseCsvRecords` THROWS `CsvFormatError` on an unterminated quote, and it neither trims nor lowercases |
 | `vitest.config.mts` | Test configuration (ESM, path aliases) |
 | `playwright.config.ts` | E2E configuration (boots `pnpm dev`; `PLAYWRIGHT_BASE_URL` override; `CAPTURE=1` swaps the `chromium` project for the marketing-screenshot `capture` project — mutually exclusive so a leaked env var can't rewrite `public/marketing/*.png` mid-e2e) |
 | `e2e/utils/db.ts` | Playwright auth harness — seeds a NextAuth database session for authenticated e2e specs; refuses non-local `DATABASE_URL` unless `E2E_ALLOW_REMOTE_DB=1` |

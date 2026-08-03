@@ -8,10 +8,10 @@
  * (T19) became its second consumer. `esg-report.ts` re-exports it so its own
  * tests and callers are unchanged.
  *
- * NOT yet used by `bulk-import-service.parseCsv` (the applications importer),
- * which still does `line.split(',')`. That is a shipped surface with its own
- * column contract, so converting it is tracked separately rather than folded in
- * here — see docs/TODOS.md.
+ * `bulk-import-service.parseCsv` (the applications importer) reads through
+ * `parseCsvRecords` as of v0.41.0.0 — it used to do `line.split(',')` and was
+ * the last surface that did. There is now exactly ONE CSV parser in this repo;
+ * a second one is a regression, not a shortcut.
  */
 
 /** The byte-order mark Excel writes at the head of a UTF-8 CSV. */
