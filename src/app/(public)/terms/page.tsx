@@ -185,6 +185,21 @@ export default function TermsPage() {
 						know which provider holds your report, ask the requesting
 						organization or contact us and we will tell you
 					</li>
+					{/*
+					 * This is a commitment the product keeps, not a description of an
+					 * intention. It is backed by `sendBackgroundCheckInitiatedEmail`,
+					 * called from `initiateProviderCheck` — deleting that call turns
+					 * "tells the volunteer a check has started" red in
+					 * services/__tests__/backgroundCheckService.consent.test.ts. If you
+					 * are editing this bullet, check that test still exists; a promise
+					 * here with nothing sending the mail is the disclosure failure
+					 * CLAUDE.md's derive-from-the-definition rule exists to prevent.
+					 */}
+					<li>
+						We email you when an organization starts a background check on you,
+						naming the organization and the provider. If you did not authorize
+						it, that email tells you who to contact
+					</li>
 				</ul>
 				<p>
 					VolunteerReady is not a consumer reporting agency and does not make

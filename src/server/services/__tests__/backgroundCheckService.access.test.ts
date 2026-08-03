@@ -23,6 +23,8 @@ const mocks = vi.hoisted(() => ({
 	tryDecrypt: vi.fn(),
 	createBackgroundCheckRequestTx: vi.fn(),
 	writeAuditLogTx: vi.fn(),
+	sendInitiatedEmail: vi.fn(),
+	findEmailByUserId: vi.fn(),
 }));
 
 vi.mock('@/server/services/orgVolunteerAccessService', () => ({
@@ -77,6 +79,10 @@ vi.mock('@/server/repositories/sendFcraEmails', () => ({
 }));
 vi.mock('@/server/repositories/sendBackgroundCheckEmail', () => ({
 	sendBackgroundCheckConsiderEmail: vi.fn(),
+	sendBackgroundCheckInitiatedEmail: mocks.sendInitiatedEmail,
+}));
+vi.mock('@/server/repositories/userAccountStateRepo', () => ({
+	findEmailByUserId: mocks.findEmailByUserId,
 }));
 vi.mock('@/server/services/tenureBadgeService', () => ({
 	checkAndIssueTenureBadges: vi.fn(),
@@ -96,11 +102,21 @@ const input = {
 		dob: '1990-01-01',
 		ssn: '123456789',
 	},
+	// Guard 0 refuses before any query, so without this every test below would
+	// pass vacuously — including "never sends PII", which would be asserting
+	// that an attestation refusal skips the adapter rather than that the
+	// RELATIONSHIP guard does. See backgroundCheckService.consent.test.ts for
+	// the attestation's own coverage.
+	consentAttested: true,
 };
 
 beforeEach(() => {
 	vi.resetAllMocks();
-	mocks.orgFindUnique.mockResolvedValue({ checkrAccessToken: 'enc' });
+	mocks.orgFindUnique.mockResolvedValue({
+		checkrAccessToken: 'enc',
+		name: 'Helping Hands',
+	});
+	mocks.findEmailByUserId.mockResolvedValue('jane@example.com');
 	mocks.tryDecrypt.mockReturnValue('token');
 	mocks.findActiveCheckForUserInOrg.mockResolvedValue(null);
 	mocks.findCredentialByUserOrgType.mockResolvedValue(null);

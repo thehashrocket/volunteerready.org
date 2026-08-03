@@ -86,7 +86,11 @@ beforeEach(() => {
 
 describe('backgroundChecks.initiate org scoping', () => {
 	it('SECURITY: initiates against ctx.orgId, not anything client-supplied', async () => {
-		await caller().initiate({ userId: 'user-target', pii: PII });
+		await caller().initiate({
+			userId: 'user-target',
+			pii: PII,
+			consentAttested: true,
+		});
 
 		expect(mocks.initiateBackgroundCheck).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -101,6 +105,7 @@ describe('backgroundChecks.initiate org scoping', () => {
 		await caller().initiate({
 			userId: 'user-target',
 			pii: PII,
+			consentAttested: true,
 			orgId: 'org-attacker',
 		} as never);
 
@@ -110,5 +115,18 @@ describe('backgroundChecks.initiate org scoping', () => {
 		expect(mocks.initiateBackgroundCheck).not.toHaveBeenCalledWith(
 			expect.objectContaining({ orgId: 'org-attacker' }),
 		);
+	});
+
+	it('rejects a call that omits the FCRA consent attestation', async () => {
+		// `consentAttested` is REQUIRED on the input, not defaulted. An optional
+		// flag would fail OPEN for any caller that forgot it — the same shape as
+		// the `actorRole` parameter dropped from `inviteMember` in v0.38.6.0,
+		// where the default WAS the hole. The service refuses again (Guard 0);
+		// this pins that the wire contract does not quietly supply `false`.
+		await expect(
+			caller().initiate({ userId: 'user-target', pii: PII } as never),
+		).rejects.toThrow();
+
+		expect(mocks.initiateBackgroundCheck).not.toHaveBeenCalled();
 	});
 });

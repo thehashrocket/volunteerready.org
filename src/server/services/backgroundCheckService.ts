@@ -69,6 +69,7 @@
  */
 
 import { TRPCError } from '@trpc/server';
+import { waitUntil } from '@vercel/functions';
 import type { Prisma } from '@/prisma/generated/client';
 import {
 	canFinalizeAdverseAction,
@@ -110,11 +111,15 @@ import {
 	updateBackgroundCheckRequestTx,
 } from '@/server/repositories/backgroundCheckRepo';
 import { prisma } from '@/server/repositories/prisma';
-import { sendBackgroundCheckConsiderEmail } from '@/server/repositories/sendBackgroundCheckEmail';
+import {
+	sendBackgroundCheckConsiderEmail,
+	sendBackgroundCheckInitiatedEmail,
+} from '@/server/repositories/sendBackgroundCheckEmail';
 import {
 	sendAdverseActionEmail,
 	sendPreAdverseActionEmail,
 } from '@/server/repositories/sendFcraEmails';
+import { findEmailByUserId } from '@/server/repositories/userAccountStateRepo';
 import {
 	findCredentialByUserOrgType,
 	upsertCredential,
@@ -263,6 +268,22 @@ async function initiateProviderCheck(input: {
 	accessToken: string;
 	provider: 'CHECKR' | 'STERLING';
 	apiErrorClasses: ReadonlyArray<new (...args: never[]) => Error>;
+	/** The coordinator's FCRA consent attestation. See Guard 0. */
+	consentAttested: boolean;
+	/**
+	 * The real admin behind an impersonated action, or null.
+	 *
+	 * Load-bearing for `consentAttestedBy`, not decoration. `createTRPCContext`
+	 * rewrites `session.user.id` to the impersonated TARGET, so `actorId` — and
+	 * with it the attestation column — names the staff member being impersonated,
+	 * not the admin who actually ticked the box. Without this, a platform admin
+	 * can manufacture evidence that falsely names a coordinator as having sworn
+	 * they hold someone's signed FCRA authorization, which defeats the entire
+	 * point of the column. Resolve it with `impersonatedBy(ctx)` from
+	 * trpc/audit-actor.ts — never `ctx.realUserId` raw, which is set on EVERY
+	 * logged-in request.
+	 */
+	impersonatedBy?: string | null;
 }): Promise<{ requestId: string }> {
 	const {
 		orgId,
@@ -274,11 +295,39 @@ async function initiateProviderCheck(input: {
 		accessToken,
 		provider,
 		apiErrorClasses,
+		consentAttested,
+		impersonatedBy,
 	} = input;
 
 	console.log(
 		`[bg-check] Initiating check orgId=${orgId} userId=${userId} provider=${provider}`,
 	);
+
+	// Guard 0: the caller has attested to holding a signed FCRA authorization.
+	//
+	// First, and before any query, because it is a fact about the caller's own
+	// submission rather than about the target — an unattested request should not
+	// cost a database round trip, and refusing here means it never touches the
+	// volunteer's row at all.
+	//
+	// This verifies NOTHING. The platform cannot see a paper form, and saying so
+	// plainly is the point: its value is that /terms §4 already assigns this
+	// obligation to the org, and until now nothing recorded that anyone had
+	// accepted it for a given check. `createBackgroundCheckRequestTx` stamps the
+	// attestation onto the row, so a dispute has a named actor and a timestamp.
+	//
+	// A hand-written message under an allowlisted code, deliberately: as
+	// `z.literal(true)` on the router this would arrive as a tRPC-manufactured
+	// BAD_REQUEST whose message comes from the Zod cause, which `errorFormatter`
+	// redacts to generic copy — the coordinator would be refused with no way to
+	// learn why. See domain/error-disclosure.ts.
+	if (!consentAttested) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message:
+				"Confirm you have the volunteer's signed background check authorization before running a check.",
+		});
+	}
 
 	// Guard 1: the volunteer is actually this org's to check.
 	//
@@ -350,6 +399,7 @@ async function initiateProviderCheck(input: {
 			externalId: reportId,
 			packageName,
 			provider,
+			consentAttestedBy: actorId,
 		});
 		await writeAuditLogTx(tx, {
 			orgId,
@@ -361,7 +411,15 @@ async function initiateProviderCheck(input: {
 			// incident review of a paid check run against the wrong person, the
 			// authorizing edge is the first thing you want and the hardest to
 			// reconstruct after the fact — a roster row can be soft-deleted.
-			metadata: { provider, externalId: reportId, relationship },
+			// `impersonatedBy` is spread conditionally so a normal request writes no
+			// key at all — stamping null on every row makes `queryAuditLog`'s
+			// impersonatedOnly filter meaningless (see trpc/audit-actor.ts).
+			metadata: {
+				provider,
+				externalId: reportId,
+				relationship,
+				...(impersonatedBy ? { impersonatedBy } : {}),
+			},
 		});
 		return req;
 	});
@@ -370,8 +428,111 @@ async function initiateProviderCheck(input: {
 		`[bg-check] Check initiated requestId=${request.id} externalId=${reportId}`,
 	);
 
+	// Tell the subject. Not awaited, AFTER the commit — but NOT a bare `void`.
+	//
+	// Not awaited, and not allowed to fail the mutation: by this point the paid
+	// provider call has already happened, the PII has already left, and the row
+	// is committed. Throwing here would report a failure for a check that is
+	// genuinely underway and invite the coordinator to run a second one.
+	//
+	// `waitUntil`, NOT a floating promise. On Vercel the function can be frozen
+	// as soon as the tRPC response is written, so a bare `void` promise is
+	// racing the freeze — and the thing being dropped is the ONLY disclosure the
+	// subject of a background check ever receives. `bulk-import-service.ts:98`
+	// already established this for exactly that reason. The `.catch` stays:
+	// `waitUntil` keeps the instance alive but does not handle a rejection, and
+	// an unhandled one here would be a process-level error for a notice we have
+	// deliberately decided is non-fatal.
+	//
+	// The residual trade-off is still real: a send FAILURE (as opposed to a
+	// dropped invocation) loses the witness quietly. `sendEmail` logs and
+	// records a SENT EmailEvent, so the absence of one is discoverable after the
+	// fact, and a `notifiedAt` column is tracked as a P3 in docs/TODOS.md.
+	waitUntil(
+		notifyVolunteerOfCheck({ orgId, userId, provider }).catch((err) => {
+			console.error(
+				`[bg-check] Failed to notify volunteer requestId=${request.id}:`,
+				err,
+			);
+		}),
+	);
+
 	return { requestId: request.id };
 }
+
+/**
+ * Resolve the subject's own address and tell them a check has started.
+ *
+ * SECURITY: the recipient is resolved from `userId`, NEVER from `pii.email`.
+ * The PII block is staff-supplied free text on the initiate form, so a
+ * coordinator — careless or otherwise — can type any address there, and sending
+ * the notice to it would deliver the one disclosure the subject is entitled to
+ * straight back to the party running the check. This is the same rule as
+ * `ctx.session.user.email` not being the effective user's address: resolve the
+ * address from the id (CLAUDE.md).
+ *
+ * Silently does nothing if the user has no address on file. A `User` row always
+ * has one in practice — `addVolunteer` and the shadow-user branch both require
+ * an email — but the column is nullable, and there is no recipient to fall back
+ * to. Logged by the caller rather than thrown.
+ */
+async function notifyVolunteerOfCheck(input: {
+	orgId: string;
+	userId: string;
+	provider: 'CHECKR' | 'STERLING';
+}): Promise<void> {
+	const [to, org] = await Promise.all([
+		findEmailByUserId(input.userId),
+		prisma.organization.findUnique({
+			where: { id: input.orgId },
+			select: { name: true },
+		}),
+	]);
+
+	if (!to || !org) {
+		console.error(
+			`[bg-check] DISCLOSURE NOT SENT for userId=${input.userId} orgId=${input.orgId}: ${
+				to ? 'org not found' : 'no email on file'
+			}`,
+		);
+		return;
+	}
+
+	// `sendEmail` returns FALSE rather than throwing — for a Resend error and for
+	// a bounce-suppressed address. The `.catch` at the callsite therefore never
+	// fires on the most likely failure, so without this check a lost disclosure
+	// looks exactly like a delivered one. `console.error`, not `warn`: this is
+	// the one notice the subject of a paid background check ever receives, and
+	// the absence of it is the thing an incident review is looking for.
+	const sent = await sendBackgroundCheckInitiatedEmail({
+		to,
+		orgName: org.name,
+		providerName: PROVIDER_DISPLAY_NAME[input.provider],
+	});
+
+	if (!sent) {
+		console.error(
+			`[bg-check] DISCLOSURE NOT SENT for userId=${input.userId} orgId=${input.orgId}: send failed or address suppressed`,
+		);
+	}
+}
+
+/**
+ * The consumer reporting agency's name as a volunteer should read it, not the
+ * enum the database holds.
+ *
+ * A `Record` over the union rather than a ternary, and that is the repo rule
+ * rather than a preference: `provider === 'CHECKR' ? 'Checkr' : 'Sterling'`
+ * silently labels ANY future provider "Sterling", and this string names the
+ * company that received someone's SSN in a legal disclosure. As a Record, a
+ * third member of `BackgroundCheckProvider` is a type error here instead —
+ * the same shape as `MY_ORG_RELATIONSHIP_COPY` and the `/privacy` provider
+ * table (see the derive-from-the-definition rule in CLAUDE.md).
+ */
+const PROVIDER_DISPLAY_NAME: Record<'CHECKR' | 'STERLING', string> = {
+	CHECKR: 'Checkr',
+	STERLING: 'Sterling',
+};
 
 // ---------------------------------------------------------------------------
 // initiateBackgroundCheck (Checkr — public API, called by tRPC)
@@ -383,6 +544,14 @@ export async function initiateBackgroundCheck(input: {
 	actorId: string;
 	pii: CandidatePii;
 	packageName?: string;
+	/**
+	 * REQUIRED, not defaulted. An optional flag here would fail OPEN at any
+	 * callsite that forgot it — the same shape as the `actorRole` parameter
+	 * dropped from `inviteMember` in v0.38.6.0, where the default was the hole.
+	 */
+	consentAttested: boolean;
+	/** See `initiateProviderCheck` — required for honest attestation evidence. */
+	impersonatedBy?: string | null;
 }): Promise<{ requestId: string }> {
 	const accessToken = await getOrgCheckrToken(input.orgId);
 	if (!accessToken) {
@@ -1122,6 +1291,10 @@ export async function initiateSterlingCheck(input: {
 	actorId: string;
 	pii: CandidatePii;
 	packageName?: string;
+	/** Required for the same reason as on `initiateBackgroundCheck`. */
+	consentAttested: boolean;
+	/** See `initiateProviderCheck` — required for honest attestation evidence. */
+	impersonatedBy?: string | null;
 }): Promise<{ requestId: string }> {
 	const apiKey = await getOrgSterlingKey(input.orgId);
 	if (!apiKey) {

@@ -15,6 +15,7 @@ import {
 	resolveFcra,
 	sendPreAdverseNotice,
 } from '@/server/services/backgroundCheckService';
+import { impersonatedBy } from '@/server/trpc/audit-actor';
 import {
 	adminProcedure,
 	createTRPCRouter,
@@ -53,6 +54,14 @@ export const backgroundChecksRouter = createTRPCRouter({
 					ssn: z.string().regex(/^\d{9}$/, 'Must be exactly 9 digits'),
 				}),
 				packageName: z.string().optional(),
+				/**
+				 * `z.boolean()`, NOT `z.literal(true)`. The refusal belongs in the
+				 * service so it can carry copy the coordinator actually reads —
+				 * a Zod failure arrives as a tRPC-manufactured BAD_REQUEST whose
+				 * message comes from the cause, which `errorFormatter` redacts.
+				 * See Guard 0 in backgroundCheckService.ts.
+				 */
+				consentAttested: z.boolean(),
 			}),
 		)
 		.mutation(({ ctx, input }) =>
@@ -62,6 +71,15 @@ export const backgroundChecksRouter = createTRPCRouter({
 				actorId: ctx.session?.user?.id ?? '',
 				pii: input.pii,
 				packageName: input.packageName,
+				consentAttested: input.consentAttested,
+				// `actorId` above is the EFFECTIVE user — `createTRPCContext`
+				// rewrites `session.user.id` to the impersonated target — and that
+				// id is what lands in `consentAttestedBy`. Without this, a platform
+				// admin impersonating a coordinator produces evidence naming that
+				// coordinator as having sworn they hold a signed FCRA
+				// authorization. `impersonatedBy()` does the realUserId-vs-effective
+				// comparison; never stamp `ctx.realUserId` raw.
+				impersonatedBy: impersonatedBy(ctx),
 			}),
 		),
 

@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.40.0.0] - 2026-08-02
+
+Tells you when an organization runs a background check on you. Until now, the
+one person a check was never disclosed to was its subject.
+
+### Added
+- **You are now emailed when an organization starts a background check on you.** The message names the organization and the screening company, says that your Social Security number and date of birth went to that company and are not stored here, and states your right to dispute the result. Previously the only background-check email went to the organization's staff, and you heard from us only if the report came back badly *and* the organization chose to act on it. A clean check on someone who had never agreed to one was invisible to them.
+- **The email tells you what to do if you did not agree to it.** It names the organization to reply to first, and gives you an address to write to us at. If you have an account, it also links to your profile, where removing an organization stops future checks. It is honest that this cannot stop a check already underway.
+- **Volunteers added from a spreadsheet get this email too.** They are the people least likely to know a check is happening, so the notice is deliberately not suppressed for accounts that have never been signed into.
+- **Coordinators now confirm they hold the volunteer's signed authorization** before a check can be run, and that confirmation is recorded against the check with who made it and when. The platform cannot see a paper form, so this does not verify anything; it puts a name and a date on an obligation that was previously assumed. Records from before this release are left blank rather than backfilled.
+
+### Changed
+- The terms of service now state that we email you when a check is started on you, so the promise is written down where you would look for it.
+- Running a background check is refused, with a clear reason, until the authorization confirmation is ticked.
+
+### Fixed
+- An administrator acting on a coordinator's behalf is now recorded as the person who confirmed the authorization, rather than the confirmation being attributed to the coordinator.
+
 ## [0.39.0.0] - 2026-08-02
 
 Stops the platform showing you the inside of its own database when something

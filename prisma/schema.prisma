@@ -826,6 +826,23 @@ model BackgroundCheckRequest {
   fcraStatus             FcraStatus              @default(NONE)
   preAdverseNoticeSentAt DateTime?
   adverseActionAt        DateTime?
+  /// The coordinator's attestation that they hold this volunteer's signed FCRA
+  /// disclosure and authorization. Verifies NOTHING — the platform cannot see a
+  /// paper form. Its value is turning the obligation /terms §4 already assigns
+  /// to the org ("Obtaining appropriate consent from volunteers before
+  /// initiating background checks") into a per-check record with a named actor,
+  /// which is what an incident review or a dispute needs.
+  ///
+  /// Nullable and deliberately NOT backfilled: rows written before v0.40.0.0
+  /// carry no attestation because none was ever asked for, and inventing one
+  /// would manufacture evidence about a real person's consent.
+  consentAttestedAt      DateTime?
+  /// A plain String, not a User relation. `AuditLog.actorId` is `onDelete:
+  /// SetNull`, which is right for an audit trail keyed on a live actor, and
+  /// wrong here: this is EVIDENCE, and an attestation that empties itself when
+  /// the coordinator who made it leaves the org is worthless in exactly the
+  /// dispute it exists for.
+  consentAttestedBy      String?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
 
