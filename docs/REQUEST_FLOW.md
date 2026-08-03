@@ -195,22 +195,38 @@ Staff UI (/app/settings/background-checks)
     -> tRPC Mutation (backgroundChecks.initiate)
         -> backgroundCheckService.initiateBackgroundCheck()
             -> initiateProviderCheck()  (shared Checkr/Sterling path)
-            -> requireOrgVolunteerRelationship(orgId, userId)  <-- FIRST
+            -> Guard 0: consentAttested?                       <-- before any query
+            -> Guard 1: requireOrgVolunteerRelationship()      <-- before any PII leaves
+            -> Guard 1.5: submitted email == the account's?    <-- after Guard 1, deliberately
+            -> Guard 2/3: no active check, no verified credential
             -> Validate org has Checkr connected
             -> Decrypt Checkr OAuth token
-            -> Call Checkr API (pass PII through, never store)
-            -> Create BackgroundCheckRequest (PENDING)
-            -> Write AuditLog (metadata.relationship = why it was allowed)
+            -> Call Checkr API ({ ...pii, email: accountEmail }, never stored)
+            -> Create BackgroundCheckRequest (PENDING, consentAttestedBy)
+            -> Write AuditLog (metadata.relationship = why it was allowed,
+                               metadata.identityNameMismatch if the names disagree)
+            -> waitUntil(notify the VOLUNTEER a check has started)
         -> Return request ID
     -> UI shows pending status
 ```
 
-The relationship guard lives in the shared `initiateProviderCheck()` path, so
-Sterling gets it too, and it runs before the paid third-party call that receives
-the candidate's SSN and date of birth. The only UI for this is a free-text
-"Volunteer User ID" field; a guard placed after the provider call, or in only one
-of the two callers, is not a guard. Throws `NOT_FOUND` for a user outside the
-org — see `src/server/services/orgVolunteerAccessService.ts`.
+**All four guards live in the shared `initiateProviderCheck()` path**, so Sterling
+gets them too, and all of them run before the paid third-party call that receives
+the candidate's SSN and date of birth. A guard placed after the provider call, or
+in only one of the two callers, is not a guard.
+
+`Guard 1` throws `NOT_FOUND` for a user outside the org — see
+`src/server/services/orgVolunteerAccessService.ts`.
+
+`Guard 1.5` exists because `userId` and the `pii` block are two independent
+fields on one form: without it, picking the wrong row sent a stranger's SSN to
+the provider and filed the report against the intended volunteer. The email is
+the only submitted field the platform can verify, so restating it is what turns a
+row mistake into a refusal, and the ACCOUNT's address — never the typed one — is
+what reaches the provider. It runs **after** Guard 1 so it cannot be used as an
+oracle for "does user X have address Y?" against arbitrary user ids, which are
+not secret. SSN and date of birth stay unverifiable; a disjoint name is recorded
+on the audit row rather than refused.
 
 ## Webhook callback (async)
 
