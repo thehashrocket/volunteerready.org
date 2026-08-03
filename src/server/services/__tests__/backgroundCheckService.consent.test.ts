@@ -31,6 +31,7 @@ const mocks = vi.hoisted(() => ({
 	writeAuditLogTx: vi.fn(),
 	sendInitiatedEmail: vi.fn(),
 	findEmailByUserId: vi.fn(),
+	findUserIdentity: vi.fn(),
 	waitUntil: vi.fn(),
 }));
 
@@ -94,6 +95,7 @@ vi.mock('@/server/repositories/sendBackgroundCheckEmail', () => ({
 }));
 vi.mock('@/server/repositories/userAccountStateRepo', () => ({
 	findEmailByUserId: mocks.findEmailByUserId,
+	findUserIdentity: mocks.findUserIdentity,
 }));
 vi.mock('@/server/services/tenureBadgeService', () => ({
 	checkAndIssueTenureBadges: vi.fn(),
@@ -110,11 +112,18 @@ import {
 } from '../backgroundCheckService';
 
 /**
- * The address the coordinator TYPED. Deliberately different from the one on the
- * User record — see the SECURITY test below.
+ * The address the coordinator TYPED, deliberately not byte-identical to the one
+ * on the User record — see the SECURITY test below.
+ *
+ * It used to be a wholly different address, which Guard 1.5 now refuses: the
+ * submitted email must be the account's. So the difference is narrowed to
+ * presentation (casing and surrounding whitespace), which is exactly what a
+ * human types and what `normalizeEmail` exists to absorb. That keeps
+ * `to: ACCOUNT_EMAIL` and `to: TYPED_EMAIL` distinguishable strings, so the
+ * "resolve the recipient from the id" assertion is still capable of failing.
  */
-const TYPED_EMAIL = 'coordinator-controlled@example.com';
-/** The address actually on the volunteer's User row. */
+const TYPED_EMAIL = '  Jane@Example.com ';
+/** The canonical address actually on the volunteer's User row. */
 const ACCOUNT_EMAIL = 'jane@example.com';
 
 const input = {
@@ -146,6 +155,10 @@ beforeEach(() => {
 	mocks.createBackgroundCheckRequestTx.mockResolvedValue({ id: 'req-1' });
 	mocks.requireOrgVolunteerRelationship.mockResolvedValue('ORG_VOLUNTEER');
 	mocks.findEmailByUserId.mockResolvedValue(ACCOUNT_EMAIL);
+	mocks.findUserIdentity.mockResolvedValue({
+		name: 'Jane Doe',
+		email: ACCOUNT_EMAIL,
+	});
 	mocks.sendInitiatedEmail.mockResolvedValue(undefined);
 });
 
@@ -280,6 +293,25 @@ describe('volunteer initiation notice', () => {
 		expect(mocks.sendInitiatedEmail).not.toHaveBeenCalledWith(
 			expect.objectContaining({ to: TYPED_EMAIL }),
 		);
+	});
+
+	it('canonicalizes the recipient the same way the provider address is', async () => {
+		// Guard 1.5 hands the provider a trimmed, lowercased address. If this leg
+		// sends the raw stored string, a legacy padded row means the paid check
+		// goes out under the clean address while the subject's ONLY disclosure is
+		// addressed to `' Jane@Example.com'` — which also misses `sendEmail`'s
+		// bounce-suppression lookup (it keys on a bare lowercase) and may be
+		// rejected by Resend outright. Caught by the Codex adversarial pass; the
+		// first version of this fix shipped with no test and a mutation proved it.
+		mocks.findEmailByUserId.mockResolvedValue('  Jane@Example.com ');
+
+		await initiateBackgroundCheck(input);
+
+		await vi.waitFor(() => {
+			expect(mocks.sendInitiatedEmail).toHaveBeenCalledWith(
+				expect.objectContaining({ to: ACCOUNT_EMAIL }),
+			);
+		});
 	});
 
 	it('names Sterling when Sterling ran the check', async () => {

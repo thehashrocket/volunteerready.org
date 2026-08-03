@@ -9,6 +9,7 @@ import {
 	mapResultToStatus,
 	sanitizeWebhookPayload,
 	shouldAutoIssueCredential,
+	submittedNameMatchesAccount,
 	waitingPeriodDaysRemaining,
 } from '../background-check';
 
@@ -297,5 +298,134 @@ describe('sanitizeWebhookPayload', () => {
 
 	it('returns empty object for array input', () => {
 		expect(sanitizeWebhookPayload([{ ssn: '123' }])).toEqual({});
+	});
+});
+
+describe('submittedNameMatchesAccount', () => {
+	it('accepts an exact match', () => {
+		expect(submittedNameMatchesAccount('Jane Doe', 'Jane', 'Doe')).toBe(true);
+	});
+
+	it('accepts a longer legal name over a shorter account name', () => {
+		// The realistic shape: the account says "Jane Smith", the FCRA form wants
+		// the full legal name. Equality would flag every one of these.
+		expect(
+			submittedNameMatchesAccount('Jane Smith', 'Jane Q.', 'Smith-Jones'),
+		).toBe(true);
+	});
+
+	it('accepts a match that differs only by diacritics or case', () => {
+		expect(submittedNameMatchesAccount('josé garcía', 'Jose', 'Garcia')).toBe(
+			true,
+		);
+	});
+
+	it('flags two different people who share one name', () => {
+		// The likeliest wrong-row case in a real spreadsheet: same surname,
+		// different human. A one-token rule cleared both of these, which made the
+		// signal blind to the exact mistake it exists to record. Found by the
+		// Codex adversarial pass.
+		expect(submittedNameMatchesAccount('John Smith', 'Robert', 'Smith')).toBe(
+			false,
+		);
+		expect(submittedNameMatchesAccount('Maria Garcia', 'Maria', 'Lopez')).toBe(
+			false,
+		);
+	});
+
+	it('does not flag a non-Latin name against itself', () => {
+		// The ASCII-only separator class deleted every character of these names,
+		// leaving an empty token set that read as "nothing to compare" — so the
+		// signal was silently dead for every volunteer whose name is not written
+		// in the Latin alphabet. Both directions are asserted: the same person
+		// must not flag, and a different person must.
+		expect(submittedNameMatchesAccount('山田太郎', '太郎', '山田')).toBe(true);
+		expect(
+			submittedNameMatchesAccount('Ольга Иванова', 'Ольга', 'Иванова'),
+		).toBe(true);
+	});
+
+	it('flags a different non-Latin name', () => {
+		expect(submittedNameMatchesAccount('山田太郎', '花子', '鈴木')).toBe(false);
+		expect(
+			submittedNameMatchesAccount('Ольга Иванова', 'Пётр', 'Сидоров'),
+		).toBe(false);
+	});
+
+	it('does not shatter names written with combining marks', () => {
+		// Devanagari and Thai write vowels as \p{M}. A \p{L}\p{N}-only class
+		// treated those marks as separators, so शर्मा broke into one-letter
+		// fragments that corroborate almost anything — the second name-matching
+		// bug, found by the Codex structured review after the first was fixed.
+		expect(submittedNameMatchesAccount('राहुल शर्मा', 'राहुल', 'शर्मा')).toBe(true);
+		expect(submittedNameMatchesAccount('राहुल शर्मा', 'अमित', 'शर्मा')).toBe(
+			false,
+		);
+	});
+
+	it('flags a wrong person against a separator-less account name', () => {
+		// A one-token account is ambiguous: a mononym can only ever corroborate
+		// once, but a separator-less FULL name contains both submitted tokens and
+		// so must corroborate twice. Reading it as the former let 山田太郎 accept
+		// 花子 山田 — shared family name, different person.
+		expect(submittedNameMatchesAccount('山田太郎', '花子', '山田')).toBe(false);
+		expect(submittedNameMatchesAccount('김민수', '민수', '이')).toBe(false);
+	});
+
+	it('does not let a bare Latin initial corroborate by containment', () => {
+		// 'a' is inside 'jane', so blanket containment for one-character tokens
+		// cleared a different person who shared only a surname. A letter of a
+		// CASED script is a word fragment; an ideograph is a whole morpheme —
+		// which is why the rule below keys on casedness rather than length.
+		expect(submittedNameMatchesAccount('Jane Doe', 'A', 'Doe')).toBe(false);
+		// The same initial still corroborates when it genuinely matches.
+		expect(submittedNameMatchesAccount('J Doe', 'J', 'Doe')).toBe(true);
+	});
+
+	it('accepts a single-character surname inside a separator-less name', () => {
+		// Chinese surnames are ONE character, so a 2-char floor on the submitted
+		// token flagged the majority of Chinese names as mismatches — a false
+		// positive on legitimate checks, which dilutes the signal precisely where
+		// it is hardest to audit. Latin initials fail the same way.
+		expect(submittedNameMatchesAccount('王小明', '小明', '王')).toBe(true);
+		expect(submittedNameMatchesAccount('J Doe', 'J', 'Doe')).toBe(true);
+	});
+
+	it('accepts a single-token account name that corresponds', () => {
+		// Only one side offers a second token, so one correspondence is all that
+		// can be required — otherwise every mononym account flags forever.
+		expect(submittedNameMatchesAccount('Smith', 'Robert', 'Smith')).toBe(true);
+	});
+
+	it('flags a wholly different person', () => {
+		// The failure this exists to record: the coordinator names one volunteer
+		// and types another row's identity underneath.
+		expect(submittedNameMatchesAccount('Jane Doe', 'Robert', 'Jones')).toBe(
+			false,
+		);
+	});
+
+	it('flags a different person who shares only a suffix', () => {
+		// Without NON_IDENTIFYING_NAME_TOKENS the shared "Jr" satisfies the
+		// overlap test and this returns true — a miss in the only direction that
+		// matters, since the whole function is a mismatch detector.
+		expect(
+			submittedNameMatchesAccount('John Smith Jr', 'Robert', 'Jones Jr'),
+		).toBe(false);
+	});
+
+	it('does not flag an account with no name', () => {
+		// Shadow users created from an email address alone have none, and that is
+		// an absence of evidence, not a discrepancy.
+		expect(submittedNameMatchesAccount(null, 'Jane', 'Doe')).toBe(true);
+		expect(submittedNameMatchesAccount('   ', 'Jane', 'Doe')).toBe(true);
+	});
+
+	it('does not flag when a name carries no comparable tokens', () => {
+		// Both sides of the guard, because they are separate branches: an account
+		// name that is punctuation only, and a submitted name that is nothing but
+		// a suffix. Neither states anything to disagree with.
+		expect(submittedNameMatchesAccount('—', 'Jane', 'Doe')).toBe(true);
+		expect(submittedNameMatchesAccount('Jane Doe', 'Jr', '.')).toBe(true);
 	});
 });
