@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.0.0] - 2026-08-03
+
+Makes the "send us your spreadsheet" onboarding safe to point at real data.
+Volunteers loaded from a spreadsheet get exactly one message telling them they
+are on an organisation's roster, and it carries the only link to the page where
+they can remove that access — so this release is mostly about making sure that
+message actually arrives, and that a load can never land on the wrong
+organisation.
+
+### Fixed
+- **Emails that were never delivered are no longer reported as sent.** When the mail provider rejected a message — most often for sending too fast — the platform recorded it as delivered anyway. A sixty-person roster load could report sixty notices sent with none of them arriving, and nobody would know. Rejections are now detected and reported, and a message that did not go out no longer leaves a record saying it did. This affects every email the platform sends, not only roster notices.
+- **A roster load can no longer be aimed at the wrong organisation by a repeated option.** Naming the organisation twice used to quietly use the second one, so a single slip could add people to a stranger's roster and email them. Any option given twice is now refused outright.
+- **Loading a roster into a live database now asks you to type the organisation's name back first.** The confirmation cannot be skipped from a script, and a rehearsal run never asks for it.
+- **A spreadsheet where someone's name contains a comma now imports correctly** in the volunteer-application importer. Previously every column after the name shifted across by one. Files exported from Excel, files with blank or whitespace-only rows, and files saved on older Macs all read correctly now too, and the line numbers reported for bad rows point at the real line in your file.
+
+### Added
+- **A way to send the notices an interrupted load never sent.** If a roster load is stopped partway, the people already added have no idea they were added. Re-running the load could not fix this — it correctly saw them as already on the roster and sent nothing. Feeding the same file with the new recovery option finds exactly the people that load added, and tells only them. Anyone who has since left that organisation is skipped, and reported, rather than being told they were just added.
+- **Progress is now shown while notices are going out.** A large load previously sat silent for a minute after the rows finished, which invited stopping it partway — the very thing that caused the problem above.
+
+### Changed
+- Volunteers who have left an organisation and revoked its access are refused by the roster recovery tool the same way they are refused everywhere else on the platform.
+
 ## [0.40.1.0] - 2026-08-02
 
 Makes sure a background check is filed against the person whose details were
