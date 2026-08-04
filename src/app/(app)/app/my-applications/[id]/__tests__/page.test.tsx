@@ -127,17 +127,16 @@ describe('MyApplicationDetailPage — withdraw button + dialog', () => {
 		).toBeInTheDocument();
 	});
 
-	it.each([
-		'APPROVED',
-		'REJECTED',
-		'WITHDRAWN',
-	])('hides Withdraw button for %s application', (status) => {
-		setupMocks({ application: makeApplication({ status }) });
-		render(<MyApplicationDetailPage />);
-		expect(
-			screen.queryByRole('button', { name: /withdraw application/i }),
-		).not.toBeInTheDocument();
-	});
+	it.each(['APPROVED', 'REJECTED', 'WITHDRAWN'])(
+		'hides Withdraw button for %s application',
+		(status) => {
+			setupMocks({ application: makeApplication({ status }) });
+			render(<MyApplicationDetailPage />);
+			expect(
+				screen.queryByRole('button', { name: /withdraw application/i }),
+			).not.toBeInTheDocument();
+		},
+	);
 
 	it('opens confirmation dialog on Withdraw button click', async () => {
 		setupMocks();

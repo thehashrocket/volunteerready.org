@@ -412,19 +412,19 @@ describe('assignVolunteerToShift', () => {
 
 	// -- Disclosure ----------------------------------------------------------
 
-	it.each([
-		['CANCELLED'],
-		['COMPLETED'],
-	])('tells staff a %s shift is %s rather than collapsing to NOT_FOUND', async (status) => {
-		mocks.requireOrgShift.mockResolvedValue(makeShift({ status }));
+	it.each([['CANCELLED'], ['COMPLETED']])(
+		'tells staff a %s shift is %s rather than collapsing to NOT_FOUND',
+		async (status) => {
+			mocks.requireOrgShift.mockResolvedValue(makeShift({ status }));
 
-		const err = (await assign().catch((e) => e)) as TRPCError;
-		// The volunteer-facing `mapSignupFailure` collapses these to NOT_FOUND
-		// because `shifts.signup` is open to strangers. Staff already own this
-		// shift, so the same answer would tell them their own shift is missing.
-		expect(err.code).toBe('CONFLICT');
-		expect(err.message).toContain(status.toLowerCase());
-	});
+			const err = (await assign().catch((e) => e)) as TRPCError;
+			// The volunteer-facing `mapSignupFailure` collapses these to NOT_FOUND
+			// because `shifts.signup` is open to strangers. Staff already own this
+			// shift, so the same answer would tell them their own shift is missing.
+			expect(err.code).toBe('CONFLICT');
+			expect(err.message).toContain(status.toLowerCase());
+		},
+	);
 
 	// -- Side effects --------------------------------------------------------
 

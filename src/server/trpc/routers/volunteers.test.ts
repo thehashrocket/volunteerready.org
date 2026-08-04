@@ -284,30 +284,26 @@ describe('volunteersRouter feature-flag gate', () => {
 	// non-enabled org could POST straight to tRPC and mint a global User row plus
 	// send outbound mail to a third party — entirely around the kill switch.
 	// A kill switch that does not cover the mutation surface is not a kill switch.
-	it.each([
-		'list',
-		'count',
-		'getById',
-		'add',
-		'remove',
-		'restore',
-	] as const)('SECURITY: %s is FORBIDDEN when the flag is off', async (procedure) => {
-		mocks.isFeatureEnabled.mockResolvedValue(false);
-		const c = caller({ realUserId: ACTOR_ID });
+	it.each(['list', 'count', 'getById', 'add', 'remove', 'restore'] as const)(
+		'SECURITY: %s is FORBIDDEN when the flag is off',
+		async (procedure) => {
+			mocks.isFeatureEnabled.mockResolvedValue(false);
+			const c = caller({ realUserId: ACTOR_ID });
 
-		const input =
-			procedure === 'add'
-				? { displayName: 'Ada', email: 'ada@example.com', phone: null }
-				: procedure === 'list'
-					? { cursor: null, search: null }
-					: { volunteerId: 'ov-1' };
+			const input =
+				procedure === 'add'
+					? { displayName: 'Ada', email: 'ada@example.com', phone: null }
+					: procedure === 'list'
+						? { cursor: null, search: null }
+						: { volunteerId: 'ov-1' };
 
-		// biome-ignore lint/suspicious/noExplicitAny: dynamic procedure dispatch
-		const call = (c as any)[procedure];
-		await expect(
-			procedure === 'count' ? call() : call(input),
-		).rejects.toMatchObject({ code: 'FORBIDDEN' });
-	});
+			// biome-ignore lint/suspicious/noExplicitAny: dynamic procedure dispatch
+			const call = (c as any)[procedure];
+			await expect(
+				procedure === 'count' ? call() : call(input),
+			).rejects.toMatchObject({ code: 'FORBIDDEN' });
+		},
+	);
 
 	it('SECURITY: no side effect runs when the flag is off', async () => {
 		mocks.isFeatureEnabled.mockResolvedValue(false);

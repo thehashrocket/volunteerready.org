@@ -53,17 +53,15 @@ describe('decideAdvisoryGate', () => {
 		expect(blocking).toHaveLength(1);
 	});
 
-	it.each([
-		'moderate',
-		'low',
-		'info',
-		'',
-	])('does not block %s severity', (severity) => {
-		const { blocking, ignored } = decideAdvisoryGate(report({ severity }));
+	it.each(['moderate', 'low', 'info', ''])(
+		'does not block %s severity',
+		(severity) => {
+			const { blocking, ignored } = decideAdvisoryGate(report({ severity }));
 
-		expect(blocking).toHaveLength(0);
-		expect(ignored).toBe(1);
-	});
+			expect(blocking).toHaveLength(0);
+			expect(ignored).toBe(1);
+		},
+	);
 
 	it('is case-insensitive about severity', () => {
 		// The registry returns lowercase today. Relying on that silently would

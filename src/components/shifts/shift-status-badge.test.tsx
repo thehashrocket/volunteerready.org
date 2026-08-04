@@ -38,14 +38,14 @@ describe('SignupStatusBadge', () => {
 		expect(screen.getByText(SIGNUP_STATUS_LABELS[status])).toBeInTheDocument();
 	});
 
-	it.each([
-		'WAITLISTED',
-		'NO_SHOW',
-	] as const)('never renders the raw enum %s', (status) => {
-		const { container } = render(<SignupStatusBadge status={status} />);
+	it.each(['WAITLISTED', 'NO_SHOW'] as const)(
+		'never renders the raw enum %s',
+		(status) => {
+			const { container } = render(<SignupStatusBadge status={status} />);
 
-		expect(container.textContent).not.toContain(status);
-	});
+			expect(container.textContent).not.toContain(status);
+		},
+	);
 });
 
 it('uses semantic tokens only, so dark mode comes free', () => {

@@ -7,30 +7,6 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ## Opened by the Dependabot security review (2026-08-03, 23 alerts)
 
-### [P3] The `@types/pg` override now holds the types below what `@prisma/adapter-pg` asks for
-
-`pnpm.overrides` pins `@types/pg` to exactly `8.11.11`. The reason is recorded,
-in commit `83a4dc5` (11 Mar 2026): *"to match `@prisma/adapter-pg` peer dep."*
-
-That reason has since been invalidated by our own change.
-`@prisma/adapter-pg@7.9.1` — which v0.41.5.0 upgraded to — declares
-`@types/pg: ^8.16.0` as an ordinary dependency, and `8.11.11` does not satisfy
-`^8.16.0`. So the override written to *match* the adapter now pins the types
-five minors **below** it. Runtime `pg` is `^8.20.0`; `@types/pg` has published
-to 8.20.3.
-
-**Nothing is broken:** `pnpm typecheck` is green, and `@types/pg` is types-only,
-so there is no runtime exposure at all. This is tidy-up, not a defect.
-
-The fix is to raise the pin to `^8.16.0`+ or delete the override and let the
-adapter's own range win, then confirm typecheck. Do one or the other rather
-than leaving a pin whose stated justification is no longer true.
-
-**`scripts/pnpm-overrides.test.ts` cannot catch this class** — it verifies that
-installed versions satisfy the override, not that the override satisfies its
-dependents. Worth adding if a second instance ever appears; one instance is not
-enough to design against. **Effort:** S.
-
 ### [P3] Decide whether to move to Babel 8 / Vite 8 wholesale
 
 **This entry is a correction.** It was opened in v0.41.5.0 as "two overrides do

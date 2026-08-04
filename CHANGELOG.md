@@ -2,6 +2,69 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.7.0] - 2026-08-04
+
+Brings thirty-nine dependencies up to date. These are the routine updates that
+had been silently piling up while the automated updater was misconfigured —
+fixed in the previous release — and none of them change what the site does.
+
+Everything here stays inside the version ranges the project already declared,
+so these are corrections and small improvements rather than new major versions.
+The eight dependencies that would require a major version jump are deliberately
+left alone; each one needs its own assessment and its own release.
+
+Two pins held exactly as intended, which is worth noting because it is the
+first time they were tested. The web framework stayed on its security release
+rather than drifting onto the newer feature release — the narrowed version rule
+from two releases ago did its job. And the database type definitions stayed put
+rather than moving by accident, because they are pinned deliberately.
+
+That second pin then got fixed properly. It was written to match what the
+database adapter asks for, and an upgrade in the previous release had moved the
+adapter past it, so the pin was holding those definitions five versions below
+what the adapter now requests. Nothing was broken — these are type definitions,
+which never affect what runs — but the recorded reason had quietly stopped
+being true. It now matches again.
+
+The code-quality tool moved up a minor version, and that turned out to be the
+most consequential change here — not for what it flagged, but for what it
+quietly stopped flagging.
+
+It reported two instructions in the code as unnecessary: notes telling it to
+ignore a particular warning about how screen-updating logic declares what it
+depends on. Taken at face value, the tool had simply got smarter and the notes
+could go. That reading was wrong. The new version requires a project to declare
+which frameworks it uses before it will run framework-specific checks, and this
+project never declared any — so an entire category of checks had switched
+itself off, and the "unnecessary" notes were the symptom rather than the point.
+Confirmed by deliberately writing a fault the check exists to catch and
+watching it pass.
+
+The frameworks are now declared, the checks are running again — verified the
+same way, by introducing a fault and confirming it is caught — and the two
+notes are back, because they were never stale.
+
+Two smaller things came out of the same upgrade. A redundant safety check was
+written more simply, verified as behaving identically first because one of the
+two sits on a permission check. And a genuine accessibility problem was fixed:
+the cookie notice's link read "Learn more", which tells someone using a screen
+reader nothing about where it goes. It now reads "Read our cookie policy".
+
+Verified with the full browser test suite as well as the usual checks, because
+this release moves the entire interface layer — the UI component library, the
+styling engine, the forms library and the rendering framework — and automated
+component tests run without a real browser and so cannot see layout or
+rendering breakage.
+
+### Changed
+- Thirty-nine dependencies updated within their existing version ranges, covering the interface components, forms, styling, data-fetching, error reporting, testing tools and the database driver.
+- The database type definitions now match what the database adapter asks for, restoring the reason the pin was created.
+- The cookie notice's link now describes where it leads instead of reading "Learn more".
+
+### Fixed
+- **A category of code checks had silently switched off** in the upgraded quality tool, which now requires a project to declare its frameworks first. Declared, and confirmed working by introducing a fault and watching it get caught.
+- A redundant safety check simplified after confirming identical behaviour.
+
 ## [0.41.6.0] - 2026-08-04
 
 The security backlog is now at zero, and this release is about making sure it

@@ -113,11 +113,15 @@ export function CookieConsentBanner() {
 					<p className="text-sm leading-relaxed text-muted-foreground">
 						We use cookies to keep you signed in and, with your permission, to
 						collect anonymous usage analytics.{' '}
+						{/* Anchor text must stand alone: a screen-reader user listing
+						    links hears only the link text, and "Learn more" says
+						    nothing about where it goes. Biome's noAmbiguousAnchorText
+						    flags exactly this. */}
 						<a
 							href="/privacy#cookies-tracking"
 							className="text-primary hover:underline"
 						>
-							Learn more
+							Read our cookie policy
 						</a>
 					</p>
 					<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">

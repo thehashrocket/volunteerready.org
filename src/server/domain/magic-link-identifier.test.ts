@@ -21,24 +21,26 @@ describe('normalizeMagicLinkIdentifier', () => {
 			['U+FE6B SMALL', 'victim@example.com﹫attacker.com'],
 		];
 
-		it.each(
-			mixedSeparatorAttacks,
-		)('rejects a mixed ASCII + %s separator address', (_label, attack) => {
-			expect(() => normalizeMagicLinkIdentifier(attack)).toThrow(
-				'Invalid email address format.',
-			);
-		});
+		it.each(mixedSeparatorAttacks)(
+			'rejects a mixed ASCII + %s separator address',
+			(_label, attack) => {
+				expect(() => normalizeMagicLinkIdentifier(attack)).toThrow(
+					'Invalid email address format.',
+				);
+			},
+		);
 
 		// This is what makes the cases above a real bypass rather than an
 		// ordinary malformed address, and it is the assertion that goes red if
 		// `.normalize('NFKC')` is ever moved back below the `@` count.
-		it.each(
-			mixedSeparatorAttacks,
-		)('%s attack carries exactly ONE ASCII @, so a validate-first normalizer would accept it', (_label, attack) => {
-			expect(attack.match(/@/g)).toHaveLength(1);
-			// ...and exactly TWO once canonicalized, which is why we reject it.
-			expect(attack.normalize('NFKC').match(/@/g)).toHaveLength(2);
-		});
+		it.each(mixedSeparatorAttacks)(
+			'%s attack carries exactly ONE ASCII @, so a validate-first normalizer would accept it',
+			(_label, attack) => {
+				expect(attack.match(/@/g)).toHaveLength(1);
+				// ...and exactly TWO once canonicalized, which is why we reject it.
+				expect(attack.normalize('NFKC').match(/@/g)).toHaveLength(2);
+			},
+		);
 
 		it('does not treat the victim address itself as the delivery target', () => {
 			// Belt and braces: whatever happens, the attack string must never

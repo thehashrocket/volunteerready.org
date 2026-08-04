@@ -80,23 +80,25 @@ describe('VitePress nav and sidebar links', () => {
 		expect(sidebarLinks.length).toBeGreaterThan(0);
 	});
 
-	it.each(navLinks)('nav "$label" → $link resolves to a docs page', ({
-		link,
-	}) => {
-		if (/^https?:\/\//.test(link)) return;
-		expect(
-			resolvesToPage(link),
-			`nav link ${link} has no corresponding file under docs/`,
-		).toBe(true);
-	});
+	it.each(navLinks)(
+		'nav "$label" → $link resolves to a docs page',
+		({ link }) => {
+			if (/^https?:\/\//.test(link)) return;
+			expect(
+				resolvesToPage(link),
+				`nav link ${link} has no corresponding file under docs/`,
+			).toBe(true);
+		},
+	);
 
-	it.each(sidebarLinks)('sidebar "$label" → $link resolves to a docs page', ({
-		link,
-	}) => {
-		if (/^https?:\/\//.test(link)) return;
-		expect(
-			resolvesToPage(link),
-			`sidebar link ${link} has no corresponding file under docs/`,
-		).toBe(true);
-	});
+	it.each(sidebarLinks)(
+		'sidebar "$label" → $link resolves to a docs page',
+		({ link }) => {
+			if (/^https?:\/\//.test(link)) return;
+			expect(
+				resolvesToPage(link),
+				`sidebar link ${link} has no corresponding file under docs/`,
+			).toBe(true);
+		},
+	);
 });

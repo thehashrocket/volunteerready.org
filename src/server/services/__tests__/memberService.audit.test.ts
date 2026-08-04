@@ -253,15 +253,15 @@ describe('memberService: only an OWNER may grant the ADMIN tier', () => {
 
 	// Contrast case: without this, the refusal above could be an ADMIN being
 	// unable to change ANY role, and the test would pass just as green.
-	it.each([
-		'STAFF',
-		'READONLY',
-	] as const)('an ADMIN can still set a member to %s', async (role) => {
-		setActingRole('ADMIN');
-		await expect(
-			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', role),
-		).resolves.toBeDefined();
-	});
+	it.each(['STAFF', 'READONLY'] as const)(
+		'an ADMIN can still set a member to %s',
+		async (role) => {
+			setActingRole('ADMIN');
+			await expect(
+				updateOrgMemberRole('org-1', 'actor-1', 'mem-1', role),
+			).resolves.toBeDefined();
+		},
+	);
 
 	it('SECURITY: a non-member acting id is refused outright', async () => {
 		setActingMemberMissing();
@@ -317,24 +317,24 @@ describe('memberService: actor-resolution edge cases', () => {
 		expect(findMember).not.toHaveBeenCalled();
 	});
 
-	it.each([
-		'STAFF',
-		'READONLY',
-	] as const)('SECURITY: a %s caller is refused even for a non-ADMIN target', async (callerRole) => {
-		// Found by the /ship Codex adversarial pass. `assertMayGrantRole` returns
-		// early below the ADMIN tier, so without the floor in `resolveActingRole`
-		// the role we just paid a query for would gate ADMIN targets ONLY — and a
-		// caller demoted between context-build and service-call could still flip
-		// members between STAFF and READONLY. `adminProcedure` is checked once per
-		// request against a role resolved earlier; this reads the row as it stands.
-		setActingRole(callerRole);
-		await expect(
-			updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'READONLY'),
-		).rejects.toThrow('You do not have permission to manage members.');
-		await expect(
-			inviteMember('org-1', 'x@example.com', 'STAFF', 'http://x', 'actor-1'),
-		).rejects.toThrow('You do not have permission to manage members.');
-	});
+	it.each(['STAFF', 'READONLY'] as const)(
+		'SECURITY: a %s caller is refused even for a non-ADMIN target',
+		async (callerRole) => {
+			// Found by the /ship Codex adversarial pass. `assertMayGrantRole` returns
+			// early below the ADMIN tier, so without the floor in `resolveActingRole`
+			// the role we just paid a query for would gate ADMIN targets ONLY — and a
+			// caller demoted between context-build and service-call could still flip
+			// members between STAFF and READONLY. `adminProcedure` is checked once per
+			// request against a role resolved earlier; this reads the row as it stands.
+			setActingRole(callerRole);
+			await expect(
+				updateOrgMemberRole('org-1', 'actor-1', 'mem-1', 'READONLY'),
+			).rejects.toThrow('You do not have permission to manage members.');
+			await expect(
+				inviteMember('org-1', 'x@example.com', 'STAFF', 'http://x', 'actor-1'),
+			).rejects.toThrow('You do not have permission to manage members.');
+		},
+	);
 
 	it('refuses an ADMIN re-submitting ADMIN for a member who already has it', async () => {
 		// The documented trade-off of checking the tier BEFORE the target lookup:

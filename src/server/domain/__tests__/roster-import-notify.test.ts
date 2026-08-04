@@ -56,20 +56,20 @@ describe('computeOwedNotices', () => {
 		).toEqual(['OWED']);
 	});
 
-	it.each([
-		'CREATED_SHADOW',
-		'LINKED_UNCLAIMED',
-	])('owes nothing for a committed %s add', (outcome) => {
-		// These two branches deliberately send no mail at all — nobody has asked
-		// to hear from us and the address may be a typo. A recovery mode that
-		// mailed them would send email the original run correctly withheld.
-		expect(
-			statusFor(
-				[row(2, 'ada@example.org')],
-				[committed('ada@example.org', outcome)],
-			),
-		).toEqual(['INELIGIBLE_OUTCOME']);
-	});
+	it.each(['CREATED_SHADOW', 'LINKED_UNCLAIMED'])(
+		'owes nothing for a committed %s add',
+		(outcome) => {
+			// These two branches deliberately send no mail at all — nobody has asked
+			// to hear from us and the address may be a typo. A recovery mode that
+			// mailed them would send email the original run correctly withheld.
+			expect(
+				statusFor(
+					[row(2, 'ada@example.org')],
+					[committed('ada@example.org', outcome)],
+				),
+			).toEqual(['INELIGIBLE_OUTCOME']);
+		},
+	);
 
 	it('reports a row no import ever added as NOT_COMMITTED', () => {
 		// The ordinary shape of re-feeding a file killed partway: everything past
@@ -101,17 +101,20 @@ describe('computeOwedNotices', () => {
 	it.each([
 		['an unrecognised outcome', 'LINKED_SOMETHING_NEW'],
 		['a missing outcome', null],
-	])('reports %s as MALFORMED_AUDIT_ROW, not as ineligible', (_label, outcome) => {
-		// Deliberately its own status. "This person was never owed an email" and
-		// "we cannot tell whether they were" are different answers, and reporting
-		// the second as the first answers a question nothing actually answered.
-		expect(
-			statusFor(
-				[row(2, 'ada@example.org')],
-				[committed('ada@example.org', outcome)],
-			),
-		).toEqual(['MALFORMED_AUDIT_ROW']);
-	});
+	])(
+		'reports %s as MALFORMED_AUDIT_ROW, not as ineligible',
+		(_label, outcome) => {
+			// Deliberately its own status. "This person was never owed an email" and
+			// "we cannot tell whether they were" are different answers, and reporting
+			// the second as the first answers a question nothing actually answered.
+			expect(
+				statusFor(
+					[row(2, 'ada@example.org')],
+					[committed('ada@example.org', outcome)],
+				),
+			).toEqual(['MALFORMED_AUDIT_ROW']);
+		},
+	);
 
 	it('carries the ORIGINAL run’s actor, so a resend is attributed as it was', () => {
 		// Not the actor of whoever is running the recovery today — that would tell
@@ -132,32 +135,35 @@ describe('computeOwedNotices', () => {
 	it.each([
 		['oldest first', ['old', 'new']],
 		['newest first', ['new', 'old']],
-	])('takes the NEWEST audit row when an address has two (%s)', (_label, order) => {
-		// An address removed and re-imported carries two rows. Asserted in BOTH
-		// input orders because sorting is done here rather than trusted from the
-		// repository's `orderBy` — a test that only passes one order would still
-		// be green if the sort were deleted.
-		const rows: Record<string, CommittedConciergeAddRow> = {
-			old: committed('ada@example.org', 'CREATED_SHADOW', {
-				createdAt: new Date('2026-01-01T00:00:00Z'),
-				actorId: 'u_old',
-			}),
-			new: committed('ada@example.org', 'LINKED_ACTIVE', {
-				createdAt: new Date('2026-06-01T00:00:00Z'),
-				actorId: 'u_new',
-			}),
-		};
+	])(
+		'takes the NEWEST audit row when an address has two (%s)',
+		(_label, order) => {
+			// An address removed and re-imported carries two rows. Asserted in BOTH
+			// input orders because sorting is done here rather than trusted from the
+			// repository's `orderBy` — a test that only passes one order would still
+			// be green if the sort were deleted.
+			const rows: Record<string, CommittedConciergeAddRow> = {
+				old: committed('ada@example.org', 'CREATED_SHADOW', {
+					createdAt: new Date('2026-01-01T00:00:00Z'),
+					actorId: 'u_old',
+				}),
+				new: committed('ada@example.org', 'LINKED_ACTIVE', {
+					createdAt: new Date('2026-06-01T00:00:00Z'),
+					actorId: 'u_new',
+				}),
+			};
 
-		const [result] = computeOwedNotices({
-			rows: [row(2, 'ada@example.org')],
-			// biome-ignore lint/style/noNonNullAssertion: keys are literals above
-			committedRows: order.map((k) => rows[k]!),
-			alreadySent: new Set(),
-		});
+			const [result] = computeOwedNotices({
+				rows: [row(2, 'ada@example.org')],
+				// biome-ignore lint/style/noNonNullAssertion: keys are literals above
+				committedRows: order.map((k) => rows[k]!),
+				alreadySent: new Set(),
+			});
 
-		expect(result?.status).toBe('OWED');
-		expect(result?.actorId).toBe('u_new');
-	});
+			expect(result?.status).toBe('OWED');
+			expect(result?.actorId).toBe('u_new');
+		},
+	);
 
 	it('preserves the file’s line numbers and order', () => {
 		// The operator fixes a spreadsheet by line number.

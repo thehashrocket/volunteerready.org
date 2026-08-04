@@ -27,30 +27,27 @@ Two entries do not fully bind — see [Partially bound](#partially-bound).
 
 ## The overrides
 
-### `@types/pg` — `8.11.11`
+### `@types/pg` — `^8.20.4`
 
-**Type compatibility, exact pin.** Recorded in commit `83a4dc5` (11 Mar 2026):
-*"Pinned `@types/pg` to `8.11.11` to match `@prisma/adapter-pg` peer dep."* It
-replaced a floating `^8.18.0`, and the same exact version is pinned in
-`devDependencies`, so one `pg` type surface is used everywhere. (`@types/pg`
-first entered in Jan 2026 as `^8.16.0`; the *pin* is the March change.)
+**Type compatibility.** The reason is recorded in commit `83a4dc5` (11 Mar
+2026): *"Pinned `@types/pg` to `8.11.11` to match `@prisma/adapter-pg` peer
+dep."* The same range is declared in `devDependencies`, so one `pg` type
+surface is used everywhere rather than two conflicting ones.
 
-⚠️ **The stated reason no longer holds, and the pin now points the wrong way.**
-`@prisma/adapter-pg@7.9.1` declares `@types/pg: ^8.16.0` as an ordinary
-dependency — and `8.11.11` does **not** satisfy `^8.16.0`. So an override
-written to *match* the adapter now holds the types five minors **below** what
-the adapter asks for. Separately, runtime `pg` is `^8.20.0` and `@types/pg` has
-published to 8.20.3.
+**It was `8.11.11` exactly until v0.41.7.0, and by then it pointed the wrong
+way.** `@prisma/adapter-pg@7.9.1` — which v0.41.5.0 upgraded to — declares
+`@types/pg: ^8.16.0` as an ordinary dependency, and `8.11.11` does not satisfy
+that. So an override written to *match* the adapter was holding the types five
+minors **below** what the adapter asked for. Nothing was broken (types never
+affect runtime, and typecheck was green either way), but the stated reason had
+quietly become false.
 
-`pnpm typecheck` passes, so nothing is broken today, and types never affect
-runtime. But this is the one override in the list whose recorded reason has
-been invalidated by a later change (the adapter moved to 7.9.1 in v0.41.5.0).
-Someone should raise it to `^8.16.0` or higher — or delete the override
-entirely and let the adapter's own range win — and confirm typecheck stays
-green.
+Raised to `^8.20.4`, which satisfies `^8.16.0` and tracks the runtime `pg`
+`^8.22.0`. Typecheck verified green.
 
-Note the guard test cannot catch this class: it checks that installed versions
-satisfy the *override*, not that the override satisfies its *dependents*.
+**The guard test cannot catch this class** — it checks that installed versions
+satisfy the *override*, not that the override satisfies its *dependents*. Worth
+building if a second instance appears; one is not enough to design against.
 
 **Not a security override.**
 
