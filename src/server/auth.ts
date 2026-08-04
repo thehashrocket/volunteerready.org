@@ -5,6 +5,7 @@ import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
 import { buildMagicLinkEmail } from '@/lib/email/auth';
 import type { CompanyMemberRole, Role } from '@/prisma/generated/client';
+import { normalizeMagicLinkIdentifier } from '@/server/domain/magic-link-identifier';
 import { sendNewUserAlert } from '@/server/lib/admin-alerts';
 import { sendEmail } from '@/server/lib/email';
 import { isEnabled } from '@/server/lib/env-flags';
@@ -93,8 +94,12 @@ export const authOptions: NextAuthOptions = {
 			// `User_email_key` — a hard sign-in failure instead of linking to the
 			// account the user already has.
 			//
-			// EmailProvider needs no equivalent: NextAuth's default
-			// `normalizeIdentifier` already lowercases magic-link addresses.
+			// EmailProvider needs its own equivalent, and it is NOT merely a
+			// lowercasing concern — see `normalizeMagicLinkIdentifier` below.
+			// (This comment previously said the default normalizer sufficed
+			// because it "already lowercases magic-link addresses". That was
+			// true and beside the point: the default validated BEFORE Unicode
+			// normalization, which is GHSA-7rqj-j65f-68wh.)
 			profile(profile) {
 				return {
 					id: profile.sub,
@@ -106,6 +111,16 @@ export const authOptions: NextAuthOptions = {
 		}),
 		EmailProvider({
 			from: getFromEmail(),
+			// SECURITY: supplying this is the workaround GHSA-7rqj-j65f-68wh
+			// prescribes for the critical homoglyph-`@` bypass in next-auth's
+			// DEFAULT normalizer. We are on the patched 4.24.15, so this is
+			// defence in depth rather than the fix — it mirrors upstream's
+			// semantics exactly (NFKC first, then the same validations), so the
+			// two cannot disagree about which addresses are valid, and it keeps
+			// holding if a later release regresses. Full attack diagram and the
+			// rationale for mirroring rather than tightening live in
+			// `domain/magic-link-identifier.ts`.
+			normalizeIdentifier: normalizeMagicLinkIdentifier,
 			sendVerificationRequest: async ({ identifier, url }) => {
 				const { subject, html } = buildMagicLinkEmail(url);
 				const sent = await sendEmail(identifier, subject, html);
