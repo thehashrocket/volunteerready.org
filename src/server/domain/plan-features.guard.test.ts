@@ -44,8 +44,17 @@ const ROOT = path.resolve(
  * reducible to the other: `planTierProcedure` gates an ORG-scoped tRPC
  * procedure, `minPlanTier` gates a COMPANY-scoped one (and the two ESG Route
  * Handlers, which are not procedures at all).
+ *
+ * Scanned WIDE (all of `app` and `server`) rather than the two directories that
+ * happen to hold every gate today. `requireCompanyAccess({ minPlanTier })` is
+ * callable from a Server Component, so a page could gate itself by plan under
+ * `app/(app)/**` and a narrow scan would never see it — the exact silent-miss
+ * this file exists to prevent. Widening costs nothing: the patterns require a
+ * QUOTED tier literal, so the type annotation in `trpc/init.ts` (`minPlanTier?:
+ * PlanTier`), its pass-through (`minPlanTier: opts?.minPlanTier`) and every
+ * docstring mention are all correctly ignored.
  */
-const SCAN_DIRS = ['server/trpc/routers', 'app/api'] as const;
+const SCAN_DIRS = ['app', 'server'] as const;
 
 const GATE_PATTERNS: RegExp[] = [
 	/planTierProcedure\(\s*['"](FREE|STARTER|PRO)['"]\s*\)/g,
@@ -60,32 +69,68 @@ const GATE_PATTERNS: RegExp[] = [
  * same feature collapse to one entry — `shift-templates.ts` has four
  * (`create`/`update`/`remove`/`generate`) and they are one product capability.
  */
-const GATED_SURFACES: Record<string, { tier: PlanTier; feature: string }> = {
+type GatedSurface = {
+	tier: PlanTier;
+	/**
+	 * WHICH LADDER the gate reads. This is the distinction the first version of
+	 * this file missed, and an independent review caught: `planTierProcedure`
+	 * resolves `getOrgPlanTier` → `Organization.planTier`, while
+	 * `companyScopedProcedure({ minPlanTier })` resolves `getCompanyPlanTier` →
+	 * `CompanyAccount.planTier`. Different table, different customer, different
+	 * price list. Treating them as one ladder put "ESG reporting" on the
+	 * nonprofit pricing table and sold three surfaces an upgrade that would not
+	 * have delivered it.
+	 */
+	scope: 'ORG' | 'COMPANY';
+	/** The `PLAN_FEATURES` row that sells it. COMPANY-scope gates have none. */
+	feature?: string;
+};
+
+const GATED_SURFACES: Record<string, GatedSurface> = {
 	'server/trpc/routers/background-checks.ts': {
 		tier: 'PRO',
+		scope: 'ORG',
 		feature: 'FCRA-compliant background checks',
 	},
 	'server/trpc/routers/shift-templates.ts': {
 		tier: 'STARTER',
+		scope: 'ORG',
 		feature: 'Reusable shift templates',
 	},
 	'server/trpc/routers/analytics.ts': {
 		tier: 'PRO',
+		scope: 'ORG',
 		feature: 'Advanced analytics dashboard',
 	},
-	'server/trpc/routers/esg-report.ts': {
-		tier: 'PRO',
-		feature: 'ESG reporting dashboard & export',
-	},
-	'app/api/esg-report/csv/route.ts': {
-		tier: 'PRO',
-		feature: 'ESG reporting dashboard & export',
-	},
-	'app/api/esg-report/pdf/route.ts': {
-		tier: 'PRO',
-		feature: 'ESG reporting dashboard & export',
-	},
+	// Company ladder — sold via the corporate band on /pricing, never the tier table.
+	'server/trpc/routers/esg-report.ts': { tier: 'PRO', scope: 'COMPANY' },
+	'app/api/esg-report/csv/route.ts': { tier: 'PRO', scope: 'COMPANY' },
+	'app/api/esg-report/pdf/route.ts': { tier: 'PRO', scope: 'COMPANY' },
 };
+
+/**
+ * A gate written in PROSE is not a gate.
+ *
+ * Same helper as `error-disclosure.guard.test.ts`, and it earns its place here
+ * immediately: `domain/billing.ts` documents its own fields with
+ * "Enforced by `companyScopedProcedure({ minPlanTier: 'PRO' })`", which the
+ * pattern matched, reporting the domain module itself as an undeclared gate.
+ * Any router docstring showing an example would do the same.
+ *
+ * LINE comments are stripped FIRST, and that order is load-bearing — the lesson
+ * the error-disclosure guard had to learn the hard way. A `//` comment
+ * mentioning a glob like `app/api/` + `**` contains `/*`, so running the block
+ * pass first swallows every following line of real code and produces a silent
+ * false ZERO. Block comments are replaced by their own newlines so reported
+ * line numbers still point at real code.
+ */
+function stripComments(source: string): string {
+	const keepLines = (m: string) => '\n'.repeat((m.match(/\n/g) ?? []).length);
+	return source
+		.replace(/^\s*\/\/.*$/gm, '')
+		.replace(/\{\/\*[\s\S]*?\*\/\}/g, keepLines)
+		.replace(/\/\*[\s\S]*?\*\//g, keepLines);
+}
 
 function walk(dir: string): string[] {
 	const abs = path.join(ROOT, dir);
@@ -117,7 +162,7 @@ function findGates(): Map<string, Set<string>> {
 	const found = new Map<string, Set<string>>();
 	for (const dir of SCAN_DIRS) {
 		for (const file of walk(dir)) {
-			const source = readFileSync(path.join(ROOT, file), 'utf8');
+			const source = stripComments(readFileSync(path.join(ROOT, file), 'utf8'));
 			for (const pattern of GATE_PATTERNS) {
 				for (const match of source.matchAll(pattern)) {
 					const key = file.split(path.sep).join('/');
@@ -172,8 +217,11 @@ describe('plan gates match what the pricing page sells', () => {
 		).toEqual([]);
 	});
 
-	it('every declared gate is sold at the tier it is enforced at', () => {
-		for (const [file, { tier, feature }] of Object.entries(GATED_SURFACES)) {
+	it('every ORG-ladder gate is sold at the tier it is enforced at', () => {
+		for (const [file, { tier, scope, feature }] of Object.entries(
+			GATED_SURFACES,
+		)) {
+			if (scope !== 'ORG') continue;
 			const row = PLAN_FEATURES.find((f) => f.label === feature);
 			expect(
 				row,
@@ -187,6 +235,30 @@ describe('plan gates match what the pricing page sells', () => {
 		}
 	});
 
+	/**
+	 * The inverse, and the one that would have caught the ESG mistake: a gate
+	 * that reads `CompanyAccount.planTier` must NOT appear on the org tier table,
+	 * because upgrading an Organization to Pro does not touch a CompanyAccount
+	 * row. Selling it there is an upgrade the customer cannot receive.
+	 */
+	it('never sells a COMPANY-ladder gate on the org tier table', () => {
+		const orgLabels = new Set(PLAN_FEATURES.map((f) => f.label.toLowerCase()));
+		for (const [file, { scope, feature }] of Object.entries(GATED_SURFACES)) {
+			if (scope !== 'COMPANY') continue;
+			expect(
+				feature,
+				`${file} is COMPANY-scoped, so it must not name a PLAN_FEATURES row`,
+			).toBeUndefined();
+		}
+		// Belt and braces: the org table must not mention ESG under any wording.
+		expect(
+			[...orgLabels].filter((l) => l.includes('esg')),
+			'ESG reporting is gated on CompanyAccount.planTier. An org upgrading to ' +
+				'Pro does not get it, so it cannot be a row on the org tier table — ' +
+				'sell it through the corporate band on /pricing instead.',
+		).toEqual([]);
+	});
+
 	it('the gate declared for a file matches the tier found in it', () => {
 		const gates = findGates();
 		for (const [file, { tier }] of Object.entries(GATED_SURFACES)) {
@@ -196,7 +268,9 @@ describe('plan gates match what the pricing page sells', () => {
 
 	it('every paid PLAN_FEATURES row has a gate behind it', () => {
 		const soldTiers = new Set(
-			Object.values(GATED_SURFACES).map((g) => g.feature),
+			Object.values(GATED_SURFACES)
+				.filter((g) => g.scope === 'ORG')
+				.map((g) => g.feature),
 		);
 		const unenforced = PLAN_FEATURES.filter(
 			(f) => f.requiredTier !== 'FREE' && !soldTiers.has(f.label),

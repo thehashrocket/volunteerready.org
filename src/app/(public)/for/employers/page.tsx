@@ -37,7 +37,7 @@ const features = [
 	{
 		icon: BarChart3,
 		heading: 'ESG reporting dashboard',
-		body: 'Employees active, shifts completed, hours served, and verified credentials — totalled across your workforce and broken out by nonprofit partner, for any date range. Export to CSV or PDF for board decks, sustainability filings, and stakeholder updates.',
+		body: 'Employees active, shifts completed and hours served for any date range you pick, totalled across your workforce and broken out by nonprofit partner — plus a current count of verified credentials, which is point-in-time rather than date-ranged. Export to CSV or PDF for board decks, sustainability filings, and stakeholder updates.',
 	},
 	{
 		icon: Users,
@@ -83,7 +83,7 @@ const employerFaqs = [
 	{
 		question: 'How does ESG reporting work?',
 		answer:
-			'Pick a date range and VolunteerReady totals your workforce activity into a dashboard: employees active, shifts completed, hours served, and verified credentials, broken out by nonprofit partner. Export the same figures to CSV or PDF for board decks, sustainability filings, and stakeholder updates.',
+			'Pick a date range and VolunteerReady totals your workforce activity into a dashboard: employees active, shifts completed and hours served, broken out by nonprofit partner. Verified credentials are shown as a current count rather than filtered to the range, because a credential is point-in-time. Export the same figures to CSV or PDF.',
 	},
 	{
 		question: 'Can employees use their existing VolunteerReady accounts?',
@@ -93,7 +93,7 @@ const employerFaqs = [
 	{
 		question: 'What data can I export?',
 		answer:
-			'The ESG summary, as CSV or PDF: one row per nonprofit partner showing employees active, shifts completed, total hours, and verified credentials, plus company-wide totals for the period you choose. It is an aggregate roll-up for reporting, not a per-employee record dump. Available on Pro, along with the dashboard it is generated from.',
+			'The ESG summary, as CSV or PDF: one row per nonprofit partner showing employees active, shifts completed, total hours and verified credentials, plus company-wide totals. Shifts, hours and active employees honour the period you choose; the credential count is point-in-time. It is an aggregate roll-up for reporting, not a per-employee record dump. Available on the Pro company plan, along with the dashboard it is generated from.',
 	},
 	{
 		question: 'How do nonprofit partnerships work?',

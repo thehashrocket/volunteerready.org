@@ -104,7 +104,7 @@ const screeningFaqs = [
 	{
 		question: 'What does this cost?',
 		answer:
-			'Running background checks through VolunteerReady requires the Pro plan ($149/month), which also includes ESG reporting and the advanced analytics dashboard. There is no platform fee per check — you pay Checkr or Sterling their per-check cost directly. Setup is free either way: our founder configures your screening questions and connects your provider on a call, before you pay anything.',
+			'Running background checks through VolunteerReady requires the Pro plan ($149/month), which also includes the advanced analytics dashboard. There is no platform fee per check — you pay Checkr or Sterling their per-check cost directly. Setup is free either way: our founder configures your screening questions and connects your provider on a call, before you pay anything.',
 	},
 ];
 

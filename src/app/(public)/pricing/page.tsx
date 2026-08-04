@@ -60,7 +60,7 @@ const TIER_META: Record<PlanTier, TierMeta> = {
 		label: 'Pro',
 		price: '$149',
 		unit: '/month',
-		description: 'Background checks, ESG reporting, and advanced analytics.',
+		description: 'Background checks and the advanced analytics dashboard.',
 	},
 };
 
@@ -73,7 +73,7 @@ const TIER_META: Record<PlanTier, TierMeta> = {
  * entirely. Do not reintroduce a literal row here; add it to `PLAN_FEATURES`,
  * where the guard test checks it against the real gate.
  */
-const pricingFaqs = [
+export const pricingFaqs = [
 	{
 		question: 'Is there really a free tier?',
 		answer:
@@ -97,12 +97,12 @@ const pricingFaqs = [
 	{
 		question: 'Can I get my data out?',
 		answer:
-			'Always, on every plan including Free. Your volunteer roster exports to CSV whenever you want it — name, email, phone, status, how they joined, and shifts attended. We never hold your data hostage as an upgrade lever. Corporate ESG reports are the one export that needs Pro, because the aggregate dashboard they come from is itself a Pro feature.',
+			'Always, on every plan including Free. Your volunteer roster exports to CSV whenever you want it — name, email, phone, status, how they joined, and shifts attended. We never hold your data hostage as an upgrade lever. The one export that sits behind a paid plan is the corporate ESG report, which belongs to a company sponsor account rather than a nonprofit organization — see corporate pricing below.',
 	},
 	{
 		question: 'Are there limits on volunteers, opportunities, or team members?',
 		answer:
-			'No. Plans differ by capability, not by headcount — you will never be charged more or cut off because your volunteer list grew during the holidays. What Starter and Pro add is features: reusable shift templates, background checks, ESG reporting, and advanced analytics.',
+			'No. Plans differ by capability, not by headcount — you will never be charged more or cut off because your volunteer list grew during the holidays. What Starter and Pro add is features: reusable shift templates, background checks, and the advanced analytics dashboard.',
 	},
 ];
 
@@ -325,9 +325,12 @@ export default function PricingPage() {
 							<em className="italic text-primary">scales with you.</em>
 						</h2>
 						<p className="mb-6 leading-relaxed text-muted-foreground">
-							Running a CSR program with hundreds of employees? Need custom
-							integrations, SSO, or dedicated support? We'll build a package
-							that fits.
+							Company sponsor accounts are priced separately from the nonprofit
+							plans above, and they are where ESG reporting lives — aggregate
+							dashboards and CSV/PDF exports of your employees&rsquo;
+							volunteering, broken out by nonprofit partner. Running a program
+							with hundreds of employees? Need custom integrations, SSO, or
+							dedicated support? We&rsquo;ll build a package that fits.
 						</p>
 						<Button asChild size="lg" className="rounded-full px-8">
 							<TrackedLink

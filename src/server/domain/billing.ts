@@ -16,6 +16,16 @@ import type { PlanTier } from '@/prisma/generated/client';
  * caps onto orgs who signed up without them, the claims were dropped and the
  * fields with them.
  *
+ * `canESGReports` went the same way, one round later and for a subtler reason:
+ * **there are TWO plan ladders and this type is only the org one.**
+ * `planTierProcedure` reads `Organization.planTier` (`getOrgPlanTier`), while
+ * ESG reporting is gated by `companyScopedProcedure({ minPlanTier: 'PRO' })`
+ * against `CompanyAccount.planTier` — a different row on a different table for
+ * a different customer. So a nonprofit upgrading its ORG to Pro never gained
+ * ESG reporting, and `canESGReports: true` on the PRO org tier was display-only
+ * fiction that three marketing surfaces then repeated. Company-ladder features
+ * are sold through the corporate band on `/pricing`, not this list.
+ *
  * The rule that keeps this honest: **a field belongs here only if a service or
  * procedure refuses on it.** Anything the pricing page wants to say about a
  * tier goes through `PLAN_FEATURES` below, which is pinned to the real gates by
@@ -25,8 +35,6 @@ import type { PlanTier } from '@/prisma/generated/client';
 export type PlanLimits = {
 	/** Enforced by `shiftTemplates.create` (`routers/shift-templates.ts`). */
 	maxShiftTemplates: number | null;
-	/** Enforced by `companyScopedProcedure({ minPlanTier: 'PRO' })` + the ESG routes. */
-	canESGReports: boolean;
 	/** Enforced by `backgroundChecks.initiate` (`planTierProcedure('PRO')`). */
 	canBackgroundChecks: boolean;
 };
@@ -34,17 +42,14 @@ export type PlanLimits = {
 const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
 	FREE: {
 		maxShiftTemplates: 0,
-		canESGReports: false,
 		canBackgroundChecks: false,
 	},
 	STARTER: {
 		maxShiftTemplates: 10,
-		canESGReports: false,
 		canBackgroundChecks: false,
 	},
 	PRO: {
 		maxShiftTemplates: null, // unlimited
-		canESGReports: true,
 		canBackgroundChecks: true,
 	},
 };
@@ -136,8 +141,13 @@ export const PLAN_FEATURES: readonly PlanFeature[] = [
 		},
 	},
 	{ label: 'FCRA-compliant background checks', requiredTier: 'PRO' },
-	{ label: 'ESG reporting dashboard & export', requiredTier: 'PRO' },
 	{ label: 'Advanced analytics dashboard', requiredTier: 'PRO' },
+	/**
+	 * Deliberately absent: ESG reporting. It is gated on `CompanyAccount.planTier`,
+	 * not `Organization.planTier` — see the `PlanLimits` docstring. Listing it
+	 * here sold nonprofits an upgrade that would not have given it to them.
+	 * `plan-features.guard.test.ts` enforces the split by scope.
+	 */
 ] as const;
 
 /** Does `tier` include `feature`? */
@@ -157,6 +167,40 @@ export function getPlanFeatures(
 		included: isFeatureIncluded(f, tier),
 		detail: isFeatureIncluded(f, tier) ? f.detail?.(tier) : undefined,
 	}));
+}
+
+/**
+ * What moving from `from` to `to` actually buys you.
+ *
+ * Not the same as "features introduced at `to`", which is the shape the in-app
+ * upgrade card shipped with and got wrong: a STARTER org looking at the PRO
+ * card was shown only PRO-tier rows, so the one upgrade it could already
+ * measure — shift templates going from `Up to 10` to `Unlimited` — silently
+ * vanished from the pitch. A tier boundary is not the only place value changes;
+ * a per-tier `detail` can improve without the row crossing a boundary.
+ *
+ * So a feature counts as gained when it becomes included, OR when it was
+ * already included and its detail changes.
+ */
+export function getPlanUpgrade(
+	from: PlanTier,
+	to: PlanTier,
+): { label: string; detail?: string; wasDetail?: string }[] {
+	const before = new Map(getPlanFeatures(from).map((f) => [f.label, f]));
+	return getPlanFeatures(to)
+		.filter((f) => {
+			if (!f.included) return false;
+			const prior = before.get(f.label);
+			if (!prior?.included) return true;
+			return prior.detail !== f.detail;
+		})
+		.map((f) => ({
+			label: f.label,
+			detail: f.detail,
+			wasDetail: before.get(f.label)?.included
+				? before.get(f.label)?.detail
+				: undefined,
+		}));
 }
 
 // ---------------------------------------------------------------------------

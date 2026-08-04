@@ -218,7 +218,7 @@ const faqs = [
 	{
 		question: 'How do corporate ESG reports work?',
 		answer:
-			'Pro plan companies see a dashboard of employee volunteering for any date range — employees active, shifts completed, hours served, and verified credentials, broken out by nonprofit partner. Export the same figures to CSV or PDF for sustainability filings.',
+			'Companies on the Pro company plan see a dashboard of employee volunteering — employees active, shifts completed and hours served for a date range you pick, broken out by nonprofit partner, plus a point-in-time count of verified credentials. Export the same figures to CSV or PDF for sustainability filings.',
 	},
 ];
 

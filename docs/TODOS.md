@@ -52,22 +52,29 @@ feature card and pain-point list should go back to leading with it.
 
 ### [P3] `pnpm typecheck` does not cover test files
 
-`billing.test.ts` asserted `limits.maxOpportunities` after the field was
-removed from `PlanLimits`, and `pnpm typecheck` stayed green — the failure only
-surfaced when vitest ran. So a type error inside a `*.test.ts` is invisible to
-the typecheck gate, and CI catches it only because it also runs the suites. Not
-harmful today, but it means "typecheck passes" says less than it appears to.
+`tsconfig.json:33-37` excludes `**/*.test.ts`, `**/*.test.tsx` and `**/*.spec.ts`.
+So `billing.test.ts` could assert `limits.maxOpportunities` after the field was
+removed from `PlanLimits` and `pnpm typecheck` stayed green; only vitest caught
+it. Verified by experiment: appending `const x: number = "nope"` to a test file
+leaves `pnpm typecheck` at exit 0.
 
-### [P3] `pnpm lint` fails on `origin/main`
+Harmless while CI also runs the suites, which it does — but it means "typecheck
+passes" covers less than the name suggests, and a type-only regression in test
+helpers (no assertion to fail) could slip through entirely.
 
-Four Biome diagnostics predate this work and sit in files it did not touch:
+### [P3] Five non-failing Biome diagnostics sit on `main`
+
 `digest-unsubscribe-token.test.ts:47` (useTemplate),
-`opportunityDigestService.ts:42` (unused `e`), and
-`marketplace.ts:73,81` (two non-null assertions). Verified present at
-`origin/main`. CI gates on `pnpm lint` (`biome check .`, the whole repo) while
-the pre-commit hook runs `pnpm check` (`src docs prisma/schema.prisma`), which
-treats them as warnings and passes — which is how they survived. All four have
-fixes Biome classes as unsafe, so they need a human call, not `--write`.
+`opportunityDigestService.ts:42` (unused `e`), and `marketplace.ts:73,81` (two
+non-null assertions), plus two infos. All are warnings, so `pnpm lint` exits 0
+and CI is green — **this is cleanup, not a broken build.** Each has a fix Biome
+classes as unsafe, so they want a human call rather than `--write`.
+
+Worth knowing while you are here: `pnpm lint` is `biome check .` (whole repo)
+and the pre-commit hook runs `pnpm check` (`src docs prisma/schema.prisma`) with
+`--write`, so the hook silently auto-formats your diff before it is committed.
+A formatting error you introduce will disappear without being reported, which is
+briefly confusing if you saw `pnpm lint` fail and then saw it pass.
 
 ---
 
