@@ -67,7 +67,7 @@ describe('proxy', () => {
 		// route at risk instead of a support ticket about applications
 		// disappearing. Fixing it properly means matching on a segment
 		// boundary (`/app` or `/app/`), which is a behaviour change and is
-		// deliberately not bundled into a security-patch PR.
+		// deliberately not bundled into a security-patch PR. Tracked as #188.
 		// ---------------------------------------------------------------------
 		it.each([
 			['http://localhost/apply/helping-hands', 'the public apply flow'],

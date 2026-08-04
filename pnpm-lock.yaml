@@ -110,7 +110,7 @@ importers:
         specifier: ^0.563.0
         version: 0.563.0(react@19.2.5)
       next:
-        specifier: 16.2.12
+        specifier: ~16.2.12
         version: 16.2.12(@babel/core@8.0.1)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       next-auth:
         specifier: ^4.24.15

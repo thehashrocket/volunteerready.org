@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
@@ -206,5 +207,93 @@ describe('Resend webhook handler', () => {
 
 		expect(res.status).toBe(500);
 		consoleError.mockRestore();
+	});
+
+	// -------------------------------------------------------------------------
+	// Raw-body integrity, verified against a REAL signature.
+	//
+	// Added alongside the Next.js 16.2.12 bump, three of whose advisories
+	// concern request-body handling — GHSA-4633-3j49-mh5q specifically about
+	// bodies carrying invalid UTF-8. Every test above this block sets no
+	// RESEND_WEBHOOK_SECRET, so verification is skipped and none of them can see
+	// a body corruption at all.
+	//
+	// This route is the one place the HMAC is computed in-process rather than
+	// inside a mocked service, so the assertion can be end-to-end: sign real
+	// bytes, post those bytes, and require the route to accept them. That makes
+	// it strictly stronger than the equivalent Checkr/Sterling tests, which can
+	// only prove the handoff.
+	// -------------------------------------------------------------------------
+	describe('raw body integrity (real HMAC)', () => {
+		const SECRET = 'whsec_test_secret';
+
+		function sign(raw: Buffer): string {
+			return crypto.createHmac('sha256', SECRET).update(raw).digest('hex');
+		}
+
+		function postRaw(raw: Buffer, signature: string): Request {
+			return new Request('http://localhost/api/resend/webhook', {
+				method: 'POST',
+				body: raw,
+				headers: { 'svix-signature': signature },
+			});
+		}
+
+		beforeEach(() => {
+			process.env.RESEND_WEBHOOK_SECRET = SECRET;
+		});
+
+		it('accepts a correctly signed body', async () => {
+			const raw = Buffer.from(
+				JSON.stringify({
+					type: 'email.delivered',
+					data: { email_id: 'msg-sig', to: ['a@b.com'], subject: 'S' },
+				}),
+			);
+
+			const res = await POST(postRaw(raw, sign(raw)));
+
+			expect(res.status).toBe(200);
+		});
+
+		it('rejects a body whose bytes changed after signing', async () => {
+			// The control for the test above: proves acceptance is actually
+			// signature-dependent and not just "200 because nothing threw".
+			const raw = Buffer.from(JSON.stringify({ type: 'email.delivered' }));
+			const tampered = Buffer.from(JSON.stringify({ type: 'email.bounced' }));
+
+			const res = await POST(postRaw(tampered, sign(raw)));
+
+			expect(res.status).toBe(400);
+			expect(await res.json()).toEqual({ error: 'Invalid signature' });
+		});
+
+		it('verifies a body containing invalid UTF-8 without corrupting it', async () => {
+			// The load-bearing case. 0xFF/0xFE are not legal UTF-8; a route that
+			// reads .text() and re-encodes turns them into U+FFFD, so the HMAC no
+			// longer matches the bytes Resend signed and EVERY legitimate delivery
+			// is rejected as forged. Signed over the true bytes, so this passes
+			// only if the route never round-trips the body through a string.
+			const raw = Buffer.concat([
+				Buffer.from('{"type":"email.delivered","data":{"subject":"'),
+				Buffer.from([0xff, 0xfe]),
+				Buffer.from('","email_id":"msg-utf8","to":["a@b.com"]}}'),
+			]);
+
+			const res = await POST(postRaw(raw, sign(raw)));
+
+			// 200 proves signature verification saw the original bytes. (The JSON
+			// parse that follows tolerates the invalid sequence via lossy decode —
+			// that is downstream of the signature and not what is under test.)
+			expect(res.status).toBe(200);
+		});
+
+		it('rejects when the signature header is absent', async () => {
+			const raw = Buffer.from(JSON.stringify({ type: 'email.delivered' }));
+
+			const res = await POST(postRaw(raw, ''));
+
+			expect(res.status).toBe(400);
+		});
 	});
 });

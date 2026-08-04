@@ -62,7 +62,7 @@ perform by hand rather than remembered, or not, per release.
 - A pull request checklist covering the steps the automatic checks cannot perform: the production build, sign-in by emailed link, sign-in with Google onto an existing account, the webhook signatures, and the images on the location pages.
 
 ### Changed
-- The framework version is now pinned exactly rather than left open-ended. Left open, the routine update command would have taken a newer feature release instead of the security fix.
+- The framework version now accepts corrective releases but not feature releases. Left as it was, the routine update command would have taken a newer feature release instead of the security fix — it said so on screen while installing. Narrowing it this way keeps future corrective releases arriving automatically, which pinning to a single version would have stopped.
 
 ## [0.41.3.0] - 2026-08-04
 
