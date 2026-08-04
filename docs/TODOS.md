@@ -5,6 +5,72 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the marketing claims audit (2026-08-03)
+
+Every public page was read against the code that backs it. Thirteen mismatches
+were found and the copy for all of them is now corrected; these four are the
+parts that need a decision or new code rather than accurate words.
+
+### [P2] The matcher ignores two inputs its own domain already scores
+
+`scoreOpportunity` (`domain/volunteer-matching.ts`) accepts optional
+`credentialTypes` and `availability` and awards `CONTEXT_BONUS` (+5) for each as
+a tiebreaker. **No caller passes either.** All four call sites —
+`app/browse/page.tsx:41`, `opportunities/[orgSlug]/page.tsx:66`,
+`volunteerMatchingService.ts:96` and `:143` — pass `{ skillIds }` alone, so
+`computeAvailabilityBonus` hits its `if (!availability || !shiftSchedule) return 0`
+guard on every request in production. The scoring code is written and unit
+tested; only the arguments are missing.
+
+`VolunteerProfile` already stores `availability` (schema:531) and
+`VolunteerCredential` rows are queryable per user, so this is plumbing, not new
+modelling. Worth doing — it is the cheapest available improvement to match
+quality, and it would make the pre-audit marketing copy true rather than the
+copy having to retreat to "skills".
+
+**Location is different.** Nothing scores it anywhere, and `VolunteerProfile`
+holds only `city`/`state` free text with no geocoding, so distance matching is
+real work. Do not lump it in with the two above.
+
+### [P2] Nothing warns anyone that a credential is about to expire
+
+`/screening` promised "get notified before they lapse" for months and no such
+notification exists for any audience. The only expiry notifier in the codebase
+is `notifyExpiringShareTokens()` (`expire-credentials/route.ts:12`), which is
+about credential *share links* — a different object with a different lifetime.
+
+What exists today: `volunteerDashboardService.ts:85` surfaces credentials
+expiring within 30 days on the **volunteer's own** dashboard, in-app only. The
+org — which is who cares, because a lapsed background check is their compliance
+exposure — gets nothing. There is already a daily cron
+(`api/cron/expire-credentials`) that would be the natural home, and
+`sendEmail`'s boolean must be read per the v0.40/v0.41 rule if a notice is
+added.
+
+Copy now describes only what the product does. If this ships, `/screening`'s
+feature card and pain-point list should go back to leading with it.
+
+### [P3] `pnpm typecheck` does not cover test files
+
+`billing.test.ts` asserted `limits.maxOpportunities` after the field was
+removed from `PlanLimits`, and `pnpm typecheck` stayed green — the failure only
+surfaced when vitest ran. So a type error inside a `*.test.ts` is invisible to
+the typecheck gate, and CI catches it only because it also runs the suites. Not
+harmful today, but it means "typecheck passes" says less than it appears to.
+
+### [P3] `pnpm lint` fails on `origin/main`
+
+Four Biome diagnostics predate this work and sit in files it did not touch:
+`digest-unsubscribe-token.test.ts:47` (useTemplate),
+`opportunityDigestService.ts:42` (unused `e`), and
+`marketplace.ts:73,81` (two non-null assertions). Verified present at
+`origin/main`. CI gates on `pnpm lint` (`biome check .`, the whole repo) while
+the pre-commit hook runs `pnpm check` (`src docs prisma/schema.prisma`), which
+treats them as warnings and passes — which is how they survived. All four have
+fixes Biome classes as unsafe, so they need a human call, not `--write`.
+
+---
+
 ## Opened by the importer-hardening ship (2026-08-03, v0.41.0.0)
 
 ### Caught while building — recorded so it is not reintroduced
