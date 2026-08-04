@@ -39,7 +39,7 @@ export async function sendOpportunityDigestEmails(opts?: {
 	// Validate unsubscribe secret early — fail fast rather than per-user log spam
 	try {
 		generateUnsubscribeTokenFromEnv('__check__');
-	} catch (e) {
+	} catch {
 		throw new Error(
 			'[opportunity-digest] DIGEST_UNSUBSCRIBE_SECRET not configured — aborting',
 		);

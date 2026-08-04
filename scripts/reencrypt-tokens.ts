@@ -16,11 +16,13 @@
  * Usage: pnpm reencrypt-tokens
  */
 import { config } from 'dotenv';
+
 config({ path: '.env.local' });
+
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '../src/prisma/generated/client';
-import { reEncrypt, tryDecrypt } from '../src/server/lib/crypto';
+import { reEncrypt } from '../src/server/lib/crypto';
 
 const datasourceUrl = process.env.DATABASE_URL;
 if (!datasourceUrl) {

@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { prisma } from './prisma-client';
 
 async function main() {
@@ -33,7 +33,7 @@ async function main() {
 		},
 	});
 
-	console.log('SESSION_TOKEN=' + token);
+	console.log(`SESSION_TOKEN=${token}`);
 }
 
 main().then(() => prisma.$disconnect());

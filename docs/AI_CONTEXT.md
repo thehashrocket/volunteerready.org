@@ -465,7 +465,7 @@ pnpm install              # Install dependencies
 pnpm dev                  # Dev server (port 3005)
 pnpm build                # Production build
 pnpm start                # Production server
-pnpm lint                 # Biome lint
+pnpm lint                 # Biome lint — fails on warnings, not just errors (CI gates on this)
 pnpm format               # Biome format
 pnpm typecheck            # tsc --noEmit
 pnpm test                 # Vitest (run once)
@@ -474,7 +474,8 @@ pnpm test:scripts         # Vitest for scripts/**/*.test.ts (separate config, ex
 pnpm e2e                  # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
                           #   Pauses ~30-60s first while e2e/global-setup.ts warms every public route
 pnpm screenshots          # Regenerate marketing screenshots in public/marketing/ (CAPTURE=1 Playwright project; needs pnpm seed:dev data; refuses non-local DATABASE_URL; filter with CAPTURE_ONLY=key1,key2)
-pnpm check                # Biome check on src/docs/prisma (applies safe fixes)
+pnpm check                # Same scope as pnpm lint, plus --write (applies safe fixes). Run by the pre-commit
+                          #   hook, which refuses the commit if it had to fix an already-staged file.
 pnpm prisma migrate deploy  # Apply migrations
 pnpm prisma db seed         # Seed data (production or dev based on NODE_ENV)
 pnpm seed:production        # Production seed only (platform org + skill catalog)

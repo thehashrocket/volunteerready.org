@@ -344,7 +344,7 @@ Health endpoint: http://localhost:3005/health
 ```bash
 pnpm build          # Production build
 pnpm start          # Production server
-pnpm lint           # Biome lint
+pnpm lint           # Biome lint — fails on warnings, not just errors (CI gates on this)
 pnpm format         # Biome format
 pnpm test           # Vitest (run once)
 pnpm e2e            # Playwright e2e (boots the dev server; authenticated specs only run against localhost targets)
@@ -354,7 +354,9 @@ pnpm e2e            # Playwright e2e (boots the dev server; authenticated specs 
                     #   that into intermittent 500s. Skipped when PLAYWRIGHT_BASE_URL is set.
 pnpm screenshots    # Regenerate marketing screenshots in public/marketing/ (needs pnpm seed:dev data; refuses non-local DATABASE_URL; filter with CAPTURE_ONLY=key1,key2)
 pnpm typecheck      # tsc --noEmit
-pnpm check          # Biome check on src/docs/prisma (applies safe fixes)
+pnpm check          # Same scope as pnpm lint, plus --write (applies safe fixes). Run by the pre-commit hook,
+                    #   which refuses the commit if it had to fix an already-staged file — git commits the
+                    #   index, not the working tree, so the fix would not otherwise reach your commit.
 ```
 
 ---
