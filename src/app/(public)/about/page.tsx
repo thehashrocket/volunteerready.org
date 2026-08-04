@@ -54,7 +54,7 @@ const platformCapabilities = [
 	{
 		label: 'Skill-based matching engine',
 		detail:
-			'Volunteers are matched to opportunities based on verified skills, certifications, and availability.',
+			'Opportunities are ranked against the skills on a volunteer profile, for volunteers browsing and coordinators triaging alike.',
 	},
 	{
 		label: 'FCRA-compliant background checks',
@@ -78,36 +78,42 @@ const platformCapabilities = [
 	},
 ];
 
+/**
+ * Keep this current. It sat at v0.17.8 until the v0.41 claims audit — two dozen
+ * releases of drift, including the whole volunteer-consent story that /security
+ * and /for/volunteers already sell. A stale changelog on a page whose argument
+ * is "we ship" undercuts the argument.
+ */
 const recentlyShipped = [
 	{
-		label: 'SEO foundation',
-		version: 'v0.17.8',
-		detail: 'Sitemap, OG images, JSON-LD structured data',
+		label: 'Interrupted-import recovery',
+		version: 'v0.41.0',
+		detail: 'Roster notices an aborted import never sent can now be replayed',
 	},
 	{
-		label: 'Duplicate prevention',
-		version: 'v0.17.8',
-		detail: 'Smart deduplication of volunteer applications',
+		label: 'Background check disclosure',
+		version: 'v0.40.0',
+		detail: 'Volunteers are told when a check is started on them, and by whom',
 	},
 	{
-		label: 'Auth hardening',
-		version: 'v0.17.3',
-		detail: 'RBAC foundation and platform admin controls',
+		label: 'Error redaction',
+		version: 'v0.39.0',
+		detail: 'Internal failure detail never leaves the server',
 	},
 	{
-		label: 'Content Flywheel',
-		version: 'v0.17.1',
-		detail: 'Automated case study generation from org data',
+		label: 'Concierge roster import',
+		version: 'v0.38.0',
+		detail: 'Send us your spreadsheet — plus free CSV export back out',
 	},
 	{
-		label: 'Volunteer dashboard',
-		version: 'v0.16.2',
-		detail: 'Personalized dashboard with upcoming shifts and impact stats',
+		label: 'Leave an organization',
+		version: 'v0.37.0',
+		detail: 'Volunteers revoke an org’s access themselves, and it sticks',
 	},
 	{
-		label: 'Sterling integration',
-		version: 'v0.15.0',
-		detail: 'Second background check provider',
+		label: 'Volunteer roster',
+		version: 'v0.36.0',
+		detail: 'Track volunteers who never filled in an application',
 	},
 ];
 
