@@ -15,7 +15,7 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc/client';
-import { getPlanLimits, isWithinTrial } from '@/server/domain/billing';
+import { getPlanUpgrade, isWithinTrial } from '@/server/domain/billing';
 
 const TIER_LABELS: Record<string, string> = {
 	FREE: 'Free',
@@ -24,8 +24,10 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 const TIER_DESCRIPTIONS: Record<string, string> = {
-	STARTER: 'Up to 25 opportunities, volunteer matching, 10 team members.',
-	PRO: 'Unlimited everything + ESG reports.',
+	STARTER: 'Adds reusable shift templates for recurring programs.',
+	// NOT ESG reporting: that is gated on CompanyAccount.planTier, and this
+	// page upgrades Organization.planTier. See the PlanLimits docstring.
+	PRO: 'Background checks and the advanced analytics dashboard.',
 };
 
 export default function BillingPage() {
@@ -107,7 +109,12 @@ export default function BillingPage() {
 				<div className="space-y-4">
 					<h2 className="text-lg font-semibold">Upgrade your plan</h2>
 					{UPGRADE_TIERS.map((tier) => {
-						const limits = getPlanLimits(tier);
+						// Same source as the public pricing page, so the two cannot drift.
+						// Computed against the org's CURRENT tier, not "rows introduced at
+						// this tier" — that shortcut dropped shift templates going from
+						// `Up to 10` to `Unlimited` off the STARTER→PRO pitch, because the
+						// row does not cross a boundary there, only its detail improves.
+						const added = getPlanUpgrade(currentTier, tier);
 						return (
 							<Card key={tier}>
 								<CardHeader>
@@ -115,16 +122,15 @@ export default function BillingPage() {
 									<CardDescription>{TIER_DESCRIPTIONS[tier]}</CardDescription>
 								</CardHeader>
 								<CardContent className="text-sm text-muted-foreground">
-									<div>
-										Opportunities:{' '}
-										{limits.maxOpportunities === null
-											? 'Unlimited'
-											: `Up to ${limits.maxOpportunities}`}
-									</div>
-									<div>
-										Volunteer matching: {limits.canMatching ? '✓' : '—'}
-									</div>
-									<div>ESG reports: {limits.canESGReports ? '✓' : '—'}</div>
+									{added.map((f) => (
+										<div key={f.label}>
+											{f.label}
+											{f.detail ? ` · ${f.detail}` : ''}
+											{/* An already-included row that only got better reads as a
+											    repeat of what they have unless the delta is shown. */}
+											{f.wasDetail ? ` (was ${f.wasDetail})` : ''}
+										</div>
+									))}
 								</CardContent>
 								<CardFooter>
 									<Button

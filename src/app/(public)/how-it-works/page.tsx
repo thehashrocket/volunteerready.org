@@ -51,13 +51,13 @@ const volunteerSteps = [
 		number: '01',
 		label: 'Create your profile',
 		detail:
-			'Sign up and add your skills, interests, and availability. Our matching engine uses your profile to find the best opportunities.',
+			'Sign up and add your skills, interests, and availability. Your skills are what our matching engine scores opportunities against.',
 	},
 	{
 		number: '02',
 		label: 'Get matched or browse',
 		detail:
-			'We surface opportunities tailored to your skills. You can also browse all listings and filter by cause, location, and schedule.',
+			'We rank opportunities by how well they fit your skills. You can also browse every listing, search by keyword, and filter for remote or in-person.',
 	},
 	{
 		number: '03',
@@ -208,17 +208,17 @@ const faqs = [
 	{
 		question: 'What credentials can be tracked?',
 		answer:
-			'Background Check Cleared, Training Complete, ID Verified, Reference Check Complete, and Orientation Complete. Each tracks the date issued and can be revoked if circumstances change.',
+			'Organizations issue five: Background Check Cleared, Training Complete, ID Verified, Reference Check Complete, and Orientation Complete. Each tracks the date issued and can be revoked if circumstances change. The platform also issues tenure badges automatically at one, three, and five years of service.',
 	},
 	{
 		question: 'How does the matching engine work?',
 		answer:
-			'On Starter and Pro plans, our matching engine evaluates volunteer skills, certifications, location, and availability against opportunity requirements. It surfaces the best-fit candidates automatically.',
+			'It compares the skills on a volunteer profile against the skills an opportunity requires, then ranks opportunities by how completely they match. Coordinators see the same score against each applicant. Matching is included on every plan, Free included — it is not a paid upgrade.',
 	},
 	{
 		question: 'How do corporate ESG reports work?',
 		answer:
-			'Pro plan companies see aggregate dashboards of employee volunteering — hours, participation rates, and impact by nonprofit partner. Export CSV reports for sustainability filings.',
+			'Companies on the Pro company plan see a dashboard of employee volunteering — employees active, shifts completed and hours served for a date range you pick, broken out by nonprofit partner, plus a point-in-time count of verified credentials. Export the same figures to CSV or PDF for sustainability filings.',
 	},
 ];
 

@@ -48,7 +48,7 @@ const securityPractices = [
 	{
 		icon: KeyRound,
 		heading: 'Role-based access control',
-		body: 'Team members get the minimum permissions they need. Admins, coordinators, and viewers see different things. Every role change and permission grant is logged.',
+		body: 'Four roles — owner, admin, staff, and read-only — each inheriting only what the one below it has. Promoting someone to admin is reserved to owners, enforced in the service rather than by hiding the button. Every role change and permission grant is logged.',
 	},
 	{
 		icon: FileCheck,
@@ -63,7 +63,7 @@ const securityPractices = [
 	{
 		icon: Database,
 		heading: 'Data portability',
-		body: "Organizations can export their data anytime via CSV. Volunteers own their portable credentials. We don't hold your data hostage — if you leave the platform, your data leaves with you.",
+		body: 'Your volunteer roster exports to CSV on every plan, Free included — an org that cannot get its data back out has not really chosen to stay, so we refuse to make the exit a paid feature. The roster itself is rolling out organization by organization; wherever it is switched on, the export comes with it at no cost. Volunteers own their portable credentials outright. If you leave the platform, your data leaves with you.',
 	},
 ];
 
@@ -86,7 +86,7 @@ const complianceItems = [
 	{
 		label: 'Secure authentication',
 		detail:
-			'Authentication powered by NextAuth with Prisma adapter. Session management follows OWASP best practices. No password storage — OAuth providers handle credential security.',
+			'Authentication powered by NextAuth with the Prisma adapter, via emailed magic links or Google sign-in. Session management follows OWASP best practices. We store no passwords at all — there is nothing to leak, reuse, or phish.',
 	},
 ];
 
