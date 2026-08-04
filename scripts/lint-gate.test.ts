@@ -28,7 +28,7 @@ import { describe, expect, it } from 'vitest';
  * SCOPE is a SECOND, independent property, asserted below because the gate's
  * severity says nothing about its reach. `biome check .` is bounded by
  * `biome.json`'s `files.includes`, which omitted `scripts/**` from launch until
- * v0.41.1.0 — so the concierge importer, the admin-grant script and the token
+ * v0.41.2.0 — so the concierge importer, the admin-grant script and the token
  * re-encryption script were never linted at all. Verified by planting
  * `1 + "x"` in `scripts/import-roster.ts` and watching `pnpm lint` exit 0 while
  * reporting success. A rule that fires on nothing and a rule that fires loudly
@@ -58,12 +58,18 @@ describe('Biome lint gate', () => {
 		expect(scripts.lint).toContain('--error-on-warnings');
 	});
 
-	it('`lint` still passes `.`, the widest path the config allows', () => {
-		// `check` scopes to `src docs prisma/schema.prisma`; CI deliberately gates
-		// on `biome check .`. Narrowing this to match `check` would drop the root
-		// config files (biome.json, package.json, next.config.ts) out of CI's
-		// scope — package.json formatting has already reddened CI once (#183).
+	it('`lint` passes `.`, so files.includes is the only thing bounding it', () => {
 		expect(scripts.lint).toMatch(/biome check\s+\./);
+	});
+
+	it('`check` covers the same paths as `lint`, so local matches CI', () => {
+		// These diverged: `check` used an explicit path list that omitted the root
+		// config files, so package.json formatting was invisible to the hook and
+		// caught only by CI — twice (#183, and again when the version-bump tool
+		// rewrote package.json with spaces during this very release). Both now
+		// pass `.` and differ only in --write, so anything CI rejects the hook
+		// rejects first.
+		expect(scripts.check).toMatch(/biome check\s+\./);
 	});
 
 	it('`check` fails the pre-commit hook on warnings', () => {

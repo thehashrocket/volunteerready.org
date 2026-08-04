@@ -50,7 +50,7 @@ describe('scripts/prisma-client', () => {
 		// Arrow functions can't be constructors — must use function keyword for
 		// `new`. `useArrowFunction` is one of Biome's SAFE fixes, but safe there
 		// means "preserves semantics for a callee", and these are `new`-ed by
-		// prisma-client.ts. When scripts/ came under the linter in v0.41.1.0,
+		// prisma-client.ts. When scripts/ came under the linter in v0.41.2.0,
 		// `--write` rewrote all six and the suite went red with
 		// "() => poolInstance is not a constructor". Suppress, don't rewrite.
 		// biome-ignore lint/complexity/useArrowFunction: must be `new`-able

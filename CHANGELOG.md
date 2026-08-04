@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.2.0] - 2026-08-03
+
+The lint step now actually fails when something is wrong with the code.
+
+It did not before. `biome check` exits 0 on warning and info diagnostics and
+fails only on errors, so `pnpm lint` had been printing "Found 3 warnings" and
+passing for months. Four real problems sat on the main branch that whole time,
+behind a green check mark. `--error-on-warnings` is what turns the step into a
+gate, and it is now on for both the CI run and the pre-commit hook.
+
+The lint step also now reads the `scripts/` directory, which it never had. That
+is where the maintenance tooling lives: the concierge roster importer that
+creates volunteer records inside an organization and emails those people, the
+script that grants platform administrator access, and the one that rewrites
+stored encrypted tokens. None of it had ever been checked. Bringing it in
+surfaced nineteen problems; all but three were mechanical.
+
+The four original problems are fixed. Two were unsafe non-null assertions in the
+marketplace routes, and Biome's own suggested repair for those was wrong — it
+would have broken the type checker — so they use the pattern the rest of the
+codebase already uses. The other two were harmless leftovers.
+
+The pre-commit hook no longer tells you your commit passed when it did not.
+Biome repairs files in your working directory, but Git commits from the staging
+area, so a repaired file could be fixed on disk and still committed broken,
+with the hook reporting success. The hook now notices this and stops, telling
+you which files to review and re-stage. It will not re-stage them for you: a
+partly-staged file would have unreviewed edits swept into the commit.
+
+A test covers all of it, so removing the gate, narrowing what it reads, or
+letting the Biome config drift out of sync now fails the build instead of
+quietly disabling the check.
+
 ## [0.41.1.0] - 2026-08-03
 
 Every public page now describes what the product actually does. An audit read

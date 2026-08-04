@@ -11,7 +11,7 @@
 # a safe-fixable defect is repaired and passes; an unsafe one exits 1.
 #
 # BUT --write repairs the WORKING TREE, and git commits the INDEX. Before
-# v0.41.1.0 this hook printed "All checks passed" and exited 0 while committing
+# v0.41.2.0 this hook printed "All checks passed" and exited 0 while committing
 # the UNFIXED content, leaving Biome's repair sitting unstaged — verified by
 # staging `export const __probe   =    1;` and watching the commit keep it. The
 # local gate said green and CI went red, which is the worst ordering.

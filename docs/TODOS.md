@@ -62,7 +62,7 @@ Harmless while CI also runs the suites, which it does — but it means "typechec
 passes" covers less than the name suggests, and a type-only regression in test
 helpers (no assertion to fail) could slip through entirely.
 
-### [P3] Five non-failing Biome diagnostics sit on `main`
+### [P3] ~~Five non-failing Biome diagnostics sit on `main`~~ ✅ FIXED (2026-08-04, v0.41.2.0)
 
 `digest-unsubscribe-token.test.ts:47` (useTemplate),
 `opportunityDigestService.ts:42` (unused `e`), and `marketplace.ts:73,81` (two
@@ -70,11 +70,28 @@ non-null assertions), plus two infos. All are warnings, so `pnpm lint` exits 0
 and CI is green — **this is cleanup, not a broken build.** Each has a fix Biome
 classes as unsafe, so they want a human call rather than `--write`.
 
-Worth knowing while you are here: `pnpm lint` is `biome check .` (whole repo)
-and the pre-commit hook runs `pnpm check` (`src docs prisma/schema.prisma`) with
-`--write`, so the hook silently auto-formats your diff before it is committed.
-A formatting error you introduce will disappear without being reported, which is
-briefly confusing if you saw `pnpm lint` fail and then saw it pass.
+**Fixed, and the framing above turned out to understate it three times over.**
+
+1. **"Cleanup, not a broken build" was right about the diagnostics and wrong
+   about the cause.** They survived because nothing failed on them —
+   `biome check` exits 0 on warn/info. `--error-on-warnings` now gates both
+   `lint` and `check`, pinned by `scripts/lint-gate.test.ts`.
+2. **`biome check .` is not "whole repo."** `files.includes` omitted
+   `scripts/**` entirely, so `import-roster.ts`, `admin-grant.ts` and
+   `reencrypt-tokens.ts` were never linted — verified by planting `1 + "x"` in
+   the importer and watching `pnpm lint` exit 0 *reporting success*. Now
+   included; it surfaced 19 diagnostics, 3 needing a human call.
+3. **"The hook silently auto-formats your diff before it is committed" is not
+   what happens, and the truth is worse.** `--write` repairs the WORKING TREE;
+   git commits the INDEX. So the fix did NOT reach the commit — the hook
+   printed "All checks passed" while committing the unfixed content, with the
+   repair left unstaged. The hook now snapshots staged files and refuses when
+   Biome moves one, rather than re-staging (a partially-staged file would have
+   unreviewed hunks swept in).
+
+Also fixed while here: `lint` and `check` took different paths, so
+`package.json` formatting was invisible locally and caught only by CI — twice.
+Both now pass `.`.
 
 ---
 
