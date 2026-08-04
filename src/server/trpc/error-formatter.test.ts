@@ -128,24 +128,25 @@ describe('tRPC errorFormatter', () => {
 		expect(CLIENT_SAFE_ERROR_CODES.size).toBe(8);
 	});
 
-	it.each([
-		...CLIENT_SAFE_ERROR_CODES,
-	])('passes an allowlisted %s message through verbatim', async (code) => {
-		// The contrast case. Without it the SECURITY assertions above would
-		// pass just as happily against a formatter that redacted EVERYTHING,
-		// which would silently destroy every hand-authored refusal in the app
-		// — "Already on your roster", the slug-taken copy, every FORBIDDEN.
-		const result = await callOverHttp(
-			new TRPCError({ code, message: 'Already on your roster.' }),
-		);
+	it.each([...CLIENT_SAFE_ERROR_CODES])(
+		'passes an allowlisted %s message through verbatim',
+		async (code) => {
+			// The contrast case. Without it the SECURITY assertions above would
+			// pass just as happily against a formatter that redacted EVERYTHING,
+			// which would silently destroy every hand-authored refusal in the app
+			// — "Already on your roster", the slug-taken copy, every FORBIDDEN.
+			const result = await callOverHttp(
+				new TRPCError({ code, message: 'Already on your roster.' }),
+			);
 
-		expect(result.message).toBe('Already on your roster.');
-		expect(result.data?.code).toBe(code);
-		// The stack is stripped on the ALLOW path too. An allowlisted FORBIDDEN
-		// carries the same absolute server paths and module layout as an internal
-		// error — the allowlist is a decision about the MESSAGE, and returning
-		// `shape` untouched here handed the stack back on every `pnpm dev` run
-		// and every self-hosted non-production deploy.
-		expect(result.data?.stack).toBeUndefined();
-	});
+			expect(result.message).toBe('Already on your roster.');
+			expect(result.data?.code).toBe(code);
+			// The stack is stripped on the ALLOW path too. An allowlisted FORBIDDEN
+			// carries the same absolute server paths and module layout as an internal
+			// error — the allowlist is a decision about the MESSAGE, and returning
+			// `shape` untouched here handed the stack back on every `pnpm dev` run
+			// and every self-hosted non-production deploy.
+			expect(result.data?.stack).toBeUndefined();
+		},
+	);
 });

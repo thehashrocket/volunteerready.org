@@ -610,7 +610,11 @@ export async function leaveWaitlist(shiftId: string, userId: string) {
 	// SECURITY: own-row check before the shift lookup, for the same reason as
 	// `cancelSignup` above.
 	const existing = await getSignupByShiftAndUser(shiftId, userId);
-	if (!existing || existing.status !== 'WAITLISTED') {
+	// `?.` still rejects the no-row case: undefined !== 'WAITLISTED'. Verified
+	// equivalent to the previous `!existing || existing.status !== …` across
+	// null/undefined/absent-field before the rewrite — the SECURITY property
+	// above is unchanged.
+	if (existing?.status !== 'WAITLISTED') {
 		throw new TRPCError({
 			code: 'NOT_FOUND',
 			message: 'You are not on the waitlist for this shift.',

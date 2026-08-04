@@ -122,7 +122,7 @@ export default function Scanner() {
 
 			try {
 				const parsed = parseQrData(decodedText);
-				if (!parsed || parsed.version !== 1) {
+				if (parsed?.version !== 1) {
 					setLastResult({
 						type: 'error',
 						message: 'Not a valid check-in code.',

@@ -82,20 +82,21 @@ describe('reportTrpcError', () => {
 		expect(DELIBERATE_REFUSALS.length).toBeGreaterThan(0);
 	});
 
-	it.each(
-		DELIBERATE_REFUSALS,
-	)('stays silent for an allowlisted %s refusal', (code) => {
-		// Delete the early return and Sentry fills with ordinary refusals —
-		// every "not your org", every "already on the roster" — until the
-		// real faults are unfindable. That failure mode is silent too.
-		reportTrpcError({
-			error: new TRPCError({ code, message: 'Not your organisation.' }),
-			path: 'volunteers.list',
-			type: 'query',
-		});
+	it.each(DELIBERATE_REFUSALS)(
+		'stays silent for an allowlisted %s refusal',
+		(code) => {
+			// Delete the early return and Sentry fills with ordinary refusals —
+			// every "not your org", every "already on the roster" — until the
+			// real faults are unfindable. That failure mode is silent too.
+			reportTrpcError({
+				error: new TRPCError({ code, message: 'Not your organisation.' }),
+				path: 'volunteers.list',
+				type: 'query',
+			});
 
-		expect(captureException).not.toHaveBeenCalled();
-	});
+			expect(captureException).not.toHaveBeenCalled();
+		},
+	);
 
 	it('SECURITY: ignores Zod input validation, which is unauthenticated-reachable', () => {
 		// `screener.submit`, `leads.create` and the marketplace/feedback routers

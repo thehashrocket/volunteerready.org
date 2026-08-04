@@ -110,11 +110,14 @@ describe('screener.submit — submittedByEmail canonicalization', () => {
 		'ALLCAPS@EXAMPLE.COM',
 		'already@lower.com',
 		'Mixed.Case+tag@Example.Co.UK',
-	])('forwards %s exactly as normalizeEmail() would compute it', async (raw) => {
-		await caller().submit(submitInput(raw));
+	])(
+		'forwards %s exactly as normalizeEmail() would compute it',
+		async (raw) => {
+			await caller().submit(submitInput(raw));
 
-		expect(mocks.submitVolunteerApplication.mock.calls[0][1]).toMatchObject({
-			submittedByEmail: normalizeEmail(raw),
-		});
-	});
+			expect(mocks.submitVolunteerApplication.mock.calls[0][1]).toMatchObject({
+				submittedByEmail: normalizeEmail(raw),
+			});
+		},
+	);
 });

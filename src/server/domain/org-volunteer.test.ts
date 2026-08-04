@@ -34,21 +34,23 @@ describe('volunteerEmailSchema — homoglyph characterization', () => {
 		['U+017F LATIN SMALL LETTER LONG S', 'ſtevejobs@example.com'],
 	];
 
-	it.each(
-		homoglyphs,
-	)('zod rejects %s before it can reach normalizeEmail', (_label, address) => {
-		expect(volunteerEmailSchema.safeParse(address).success).toBe(false);
-	});
+	it.each(homoglyphs)(
+		'zod rejects %s before it can reach normalizeEmail',
+		(_label, address) => {
+			expect(volunteerEmailSchema.safeParse(address).success).toBe(false);
+		},
+	);
 
-	it.each(
-		homoglyphs,
-	)('%s WOULD collide or drift if it got through — this is what the rejection buys', (_label, address) => {
-		// normalizeEmail is case-folding only, so the canonicalized form
-		// differs from what it would produce. That gap is the latent defect.
-		const viaNormalizeEmail = normalizeEmail(address);
-		const viaNfkc = address.normalize('NFKC').trim().toLowerCase();
-		expect(viaNormalizeEmail).not.toBe(viaNfkc);
-	});
+	it.each(homoglyphs)(
+		'%s WOULD collide or drift if it got through — this is what the rejection buys',
+		(_label, address) => {
+			// normalizeEmail is case-folding only, so the canonicalized form
+			// differs from what it would produce. That gap is the latent defect.
+			const viaNormalizeEmail = normalizeEmail(address);
+			const viaNfkc = address.normalize('NFKC').trim().toLowerCase();
+			expect(viaNormalizeEmail).not.toBe(viaNfkc);
+		},
+	);
 
 	describe('CONTRAST: ordinary addresses are accepted and canonicalized', () => {
 		it('accepts a plain address', () => {

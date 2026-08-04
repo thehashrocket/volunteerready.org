@@ -146,12 +146,13 @@ describe('pnpm.overrides', () => {
 		expect(Object.keys(overrides).length).toBeGreaterThan(0);
 	});
 
-	it.each(
-		Object.keys(overrides),
-	)('%s is still present in the dependency tree', (name) => {
-		// A dead override reads as active policy while constraining nothing.
-		expect(installedVersions(name)).not.toHaveLength(0);
-	});
+	it.each(Object.keys(overrides))(
+		'%s is still present in the dependency tree',
+		(name) => {
+			// A dead override reads as active policy while constraining nothing.
+			expect(installedVersions(name)).not.toHaveLength(0);
+		},
+	);
 
 	// -------------------------------------------------------------------------
 	// Every override must have a recorded rationale.
@@ -267,22 +268,23 @@ describe('pnpm.overrides', () => {
 		vite: ['8.1.0'],
 	};
 
-	it.each(
-		Object.entries(overrides),
-	)('%s resolves to a version satisfying its own range (%s)', (name, range) => {
-		// Proves the override actually binds, so the range a reviewer reads is
-		// the range in force — the property that would have made the
-		// `@hono/node-server` cap visible for what it was.
-		const tolerated = PARTIALLY_BOUND[name] ?? [];
-		const escaping = installedVersions(name).filter(
-			(v) => !satisfies(v, range),
-		);
+	it.each(Object.entries(overrides))(
+		'%s resolves to a version satisfying its own range (%s)',
+		(name, range) => {
+			// Proves the override actually binds, so the range a reviewer reads is
+			// the range in force — the property that would have made the
+			// `@hono/node-server` cap visible for what it was.
+			const tolerated = PARTIALLY_BOUND[name] ?? [];
+			const escaping = installedVersions(name).filter(
+				(v) => !satisfies(v, range),
+			);
 
-		expect(
-			escaping.sort(),
-			`${name} override "${range}" does not cover: ${escaping.join(', ')}`,
-		).toEqual([...tolerated].sort());
-	});
+			expect(
+				escaping.sort(),
+				`${name} override "${range}" does not cover: ${escaping.join(', ')}`,
+			).toEqual([...tolerated].sort());
+		},
+	);
 
 	it('every PARTIALLY_BOUND entry is still overridden and still escaping', () => {
 		// Keeps the budget honest in both directions: an entry whose override was
@@ -325,18 +327,19 @@ describe('pnpm.overrides', () => {
 		'brace-expansion': { minimum: '5.0.9', alerts: '#115, #116' },
 	};
 
-	it.each(
-		Object.entries(SECURITY_FLOORS),
-	)('%s stays at or above its advisory floor', (name, { minimum, alerts }) => {
-		expect(overrides, `${name} override was removed`).toHaveProperty(name);
+	it.each(Object.entries(SECURITY_FLOORS))(
+		'%s stays at or above its advisory floor',
+		(name, { minimum, alerts }) => {
+			expect(overrides, `${name} override was removed`).toHaveProperty(name);
 
-		for (const version of installedVersions(name)) {
-			expect(
-				satisfies(version, minimum) || compareVersions(version, minimum) >= 0,
-				`${name}@${version} is below the fix for ${alerts} (needs >= ${minimum})`,
-			).toBe(true);
-		}
-	});
+			for (const version of installedVersions(name)) {
+				expect(
+					satisfies(version, minimum) || compareVersions(version, minimum) >= 0,
+					`${name}@${version} is below the fix for ${alerts} (needs >= ${minimum})`,
+				).toBe(true);
+			}
+		},
+	);
 
 	it('no longer overrides the packages Prisma 7.9.1 removed', () => {
 		// Explicit regression pin for the two deleted in v0.41.5.0. Re-adding
