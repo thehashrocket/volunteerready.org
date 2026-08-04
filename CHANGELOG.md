@@ -2,6 +2,68 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.4.0] - 2026-08-04
+
+Takes the security patch for the web framework the platform is built on,
+closing nine flaws at once. Four are rated high. None of them are known to have
+been used against this platform, and none required any action from you.
+
+The most serious let a request reach an internal address it should never have
+been able to name — the kind of flaw that turns a public form into a way of
+knocking on doors inside the network. Two others let one visitor be served a
+response body prepared for a different visitor. One let the list of the
+platform's internal function endpoints be read without signing in. One let a
+single request tie up the image service indefinitely. One let the sign-in gate
+in front of every logged-in page be stepped around.
+
+Alongside the patch, three parts of the platform that this class of flaw lands
+on directly now have tests, because none of them had any.
+
+The first is that gate itself — the check that sends a signed-out visitor to
+the login page instead of into the application. Writing its tests turned up
+something worth saying plainly: the gate identifies protected pages by the
+letters their address starts with, and the public volunteer application form
+starts with the same four letters. It is not affected today, and the reason it
+is not is a second, stricter rule that keeps the gate away from it entirely.
+But the two rules disagree, and the disagreement is the sort that surfaces years
+later as applications quietly vanishing. It is now pinned by a test that names
+the exact page at risk, so anyone who changes the stricter rule is told
+immediately rather than finding out from a volunteer who could not apply.
+
+The second is the two background-check webhooks. These carry results back from
+the screening providers, and each one is signed — the platform recalculates the
+signature over the exact bytes that arrived and refuses anything that does not
+match. Three of the nine flaws concern how request bodies are handled, so the
+tests now check that the bytes handed to the signature check are the bytes that
+were sent, unchanged, including sequences that are not valid text and that a
+careless rewrite would silently replace. Two of the four webhooks already had
+tests; these were the two that did not, and they are the two carrying personal
+information.
+
+The third is the image settings. One of the nine flaws is in image handling,
+and a separate open alert against the image library was set aside on the
+grounds that the platform serves only its own images and so never hands that
+library anything an outsider supplied. That was true, but it was true by
+configuration, and configuration changes quietly. Adding a single outside image
+source would have undone the reasoning without touching any code a reviewer
+would connect to it. A test now holds that setting in place and, if it is ever
+changed, says exactly which alert needs revisiting.
+
+Finally, pull requests now carry a verification checklist. Some things cannot
+be checked automatically here — the production build and the browser tests are
+not part of the automatic checks — so each one is now written down as a step to
+perform by hand rather than remembered, or not, per release.
+
+### Fixed
+- **Nine security flaws in the underlying web framework are closed** (Next.js 16.2.6 → 16.2.12). Two allowed requests to be aimed at addresses inside the network, two allowed a response prepared for one visitor to be served to another, one exposed the platform's internal endpoint list without sign-in, two allowed a single request to exhaust the server, one allowed the image service to be tied up with a crafted image, and one allowed the signed-in-only gate to be bypassed.
+
+### Added
+- The signed-out redirect gate, both background-check webhooks, and the image settings now have tests. Each covers a behaviour one of the nine flaws lands on, and each was checked by deliberately breaking the code to confirm the test notices.
+- A pull request checklist covering the steps the automatic checks cannot perform: the production build, sign-in by emailed link, sign-in with Google onto an existing account, the webhook signatures, and the images on the location pages.
+
+### Changed
+- The framework version now accepts corrective releases but not feature releases. Left as it was, the routine update command would have taken a newer feature release instead of the security fix — it said so on screen while installing. Narrowing it this way keeps future corrective releases arriving automatically, which pinning to a single version would have stopped.
+
 ## [0.41.3.0] - 2026-08-04
 
 Closes a critical flaw in the sign-in link. Anyone who knew your email address
