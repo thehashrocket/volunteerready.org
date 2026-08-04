@@ -4,6 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { PlanTier } from '@/prisma/generated/client';
 import { PLAN_FEATURES } from './billing';
+import {
+	FEATURE_FLAG_REGISTRY,
+	STAFF_CREATED_VOLUNTEERS_FLAG,
+} from './feature-flags';
 
 /**
  * The pricing page must describe the gates that actually exist.
@@ -263,6 +267,47 @@ describe('plan gates match what the pricing page sells', () => {
 		const gates = findGates();
 		for (const [file, { tier }] of Object.entries(GATED_SURFACES)) {
 			expect(gates.get(file), `no gate found in ${file}`).toContain(tier);
+		}
+	});
+
+	/**
+	 * A plan row answers "which tier buys this". It cannot answer "and is it
+	 * switched on yet", and conflating the two is how the roster CSV export came
+	 * to be advertised as free on every plan while `staff_created_volunteers`
+	 * defaulted OFF and the route 404'd for everyone outside the pilot. Free on
+	 * every plan was true; reachable was not.
+	 *
+	 * This binds the caveat to the flag's ACTUAL default, so it works in both
+	 * directions: remove the note while the flag is still off and this reddens;
+	 * ship the flag without removing the note and it reddens too, instead of
+	 * leaving a stale "rolling out" on the pricing page forever.
+	 */
+	it('qualifies the roster export exactly while its flag is still off', () => {
+		const flag = FEATURE_FLAG_REGISTRY.find(
+			(f) => f.key === STAFF_CREATED_VOLUNTEERS_FLAG,
+		);
+		expect(flag, 'the roster flag vanished from the registry').toBeDefined();
+
+		const row = PLAN_FEATURES.find((f) => f.label.includes('roster CSV'));
+		expect(
+			row,
+			'the roster export row vanished from the pricing table',
+		).toBeDefined();
+
+		if (flag?.defaultEnabled) {
+			expect(
+				row?.note,
+				`${STAFF_CREATED_VOLUNTEERS_FLAG} now defaults ON, so the roster is ` +
+					`generally available. Drop the "rolling out" note from PLAN_FEATURES ` +
+					`and from the /pricing FAQ + /security copy that echoes it.`,
+			).toBeUndefined();
+		} else {
+			expect(
+				row?.note,
+				`${STAFF_CREATED_VOLUNTEERS_FLAG} defaults OFF, so the roster CSV route ` +
+					`404s for orgs outside the pilot. The pricing table must say so — ` +
+					`"free on every plan" is true about the PLAN and still unreachable.`,
+			).toBeTruthy();
 		}
 	});
 

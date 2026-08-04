@@ -63,7 +63,7 @@ const securityPractices = [
 	{
 		icon: Database,
 		heading: 'Data portability',
-		body: 'Your volunteer roster exports to CSV on every plan, Free included — an org that cannot get its data back out has not really chosen to stay, so we refuse to make the exit a paid feature. Volunteers own their portable credentials outright. If you leave the platform, your data leaves with you.',
+		body: 'Your volunteer roster exports to CSV on every plan, Free included — an org that cannot get its data back out has not really chosen to stay, so we refuse to make the exit a paid feature. The roster itself is rolling out organization by organization; wherever it is switched on, the export comes with it at no cost. Volunteers own their portable credentials outright. If you leave the platform, your data leaves with you.',
 	},
 ];
 

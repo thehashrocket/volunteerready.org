@@ -105,6 +105,15 @@ export function assertPlanAtLeast(current: PlanTier, required: PlanTier): void {
  *    That check is what would have caught the two missing rows.
  * 2. **`detail` is per-tier prose, not a second source of truth.** It reads
  *    `getPlanLimits(tier)` rather than restating a number.
+ * 3. **`note` covers availability that is not about the PLAN at all.** A plan
+ *    row answers "which tier buys this"; it cannot express "and it is still
+ *    behind a rollout flag". The roster export needed exactly that: it is free
+ *    on every plan by design AND gated by `staff_created_volunteers`, which
+ *    `defaultEnabled: false`, so the route 404s for any org outside the pilot.
+ *    Selling it unqualified promised most orgs a capability they could not
+ *    reach. `plan-features.guard.test.ts` ties the note to the flag's real
+ *    default, so the qualifier disappears when the flag ships rather than
+ *    lingering as the next stale claim.
  */
 export type PlanFeature = {
 	label: string;
@@ -112,6 +121,11 @@ export type PlanFeature = {
 	requiredTier: PlanTier;
 	/** Optional per-tier qualifier, derived from `PLAN_LIMITS`. */
 	detail?: (tier: PlanTier) => string | undefined;
+	/**
+	 * Availability caveat that is NOT about the plan (rollout flag, beta).
+	 * Rendered as a footnote on every surface that lists this feature.
+	 */
+	note?: string;
 };
 
 export const PLAN_FEATURES: readonly PlanFeature[] = [
@@ -127,8 +141,17 @@ export const PLAN_FEATURES: readonly PlanFeature[] = [
 	/**
 	 * FREE deliberately — see the header of `domain/roster-export.ts`. An org
 	 * that cannot get its roster back out has not chosen to stay.
+	 *
+	 * The `note` is the rollout half: the volunteer roster is still behind
+	 * `staff_created_volunteers` (default off), so the export route 404s for orgs
+	 * outside the pilot. Drop the note when that flag defaults on — the guard
+	 * test will tell you, in both directions.
 	 */
-	{ label: 'Volunteer roster CSV export', requiredTier: 'FREE' },
+	{
+		label: 'Volunteer roster CSV export',
+		requiredTier: 'FREE',
+		note: 'Volunteer roster is rolling out; enabled per organization.',
+	},
 	{ label: 'Audit logging', requiredTier: 'FREE' },
 	{ label: 'Role-based access control', requiredTier: 'FREE' },
 	{
@@ -161,11 +184,14 @@ export function isFeatureIncluded(
 /** Every marketed feature, resolved for one tier. Used by both pricing surfaces. */
 export function getPlanFeatures(
 	tier: PlanTier,
-): { label: string; included: boolean; detail?: string }[] {
+): { label: string; included: boolean; detail?: string; note?: string }[] {
 	return PLAN_FEATURES.map((f) => ({
 		label: f.label,
 		included: isFeatureIncluded(f, tier),
 		detail: isFeatureIncluded(f, tier) ? f.detail?.(tier) : undefined,
+		// The caveat travels with the row: a surface cannot list the feature and
+		// silently drop the reason it might not work yet.
+		note: isFeatureIncluded(f, tier) ? f.note : undefined,
 	}));
 }
 
