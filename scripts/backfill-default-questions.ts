@@ -8,6 +8,7 @@
  * Usage: pnpm backfill:default-questions
  */
 import { config } from 'dotenv';
+
 config({ path: '.env.local' });
 
 import { backfillDefaultQuestions, prisma } from '../prisma/seed-helpers';

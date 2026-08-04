@@ -44,6 +44,15 @@ jobs:
 
       # `lint`, not `check` — the latter is Biome in --write mode and would
       # "pass" by rewriting the files it was asked to inspect.
+      #
+      # `lint` carries `--error-on-warnings`, and that flag is the whole gate.
+      # Plain `biome check` exits 0 on warn/info diagnostics, so this step
+      # printed "Found 3 warnings" and passed for months while four real
+      # diagnostics sat on main — including a `!` non-null assertion whose
+      # only automated fix (`?.`) would have broken `pnpm typecheck` below.
+      # Drop the flag and lint stops failing on anything short of a syntax
+      # error. Biome's version is pinned by the lockfile above, so a minor
+      # bump cannot silently add a rule that reddens an unrelated PR.
       - run: pnpm lint
 
       - run: pnpm typecheck

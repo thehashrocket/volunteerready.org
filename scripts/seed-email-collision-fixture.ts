@@ -93,7 +93,9 @@ async function seed() {
 			},
 		});
 	}
-	console.log(`Created ${GROUPS.length * 2} fixture users in ${GROUPS.length} collision groups.`);
+	console.log(
+		`Created ${GROUPS.length * 2} fixture users in ${GROUPS.length} collision groups.`,
+	);
 	console.log('Now run: pnpm tsx scripts/check-email-collisions.ts');
 }
 

@@ -47,13 +47,21 @@ describe('scripts/prisma-client', () => {
 		process.env.DATABASE_URL = 'postgresql://user:pass@localhost/testdb';
 		const poolInstance = {};
 		const adapterInstance = {};
-		// Arrow functions can't be constructors — must use function keyword for `new`
+		// Arrow functions can't be constructors — must use function keyword for
+		// `new`. `useArrowFunction` is one of Biome's SAFE fixes, but safe there
+		// means "preserves semantics for a callee", and these are `new`-ed by
+		// prisma-client.ts. When scripts/ came under the linter in v0.41.1.0,
+		// `--write` rewrote all six and the suite went red with
+		// "() => poolInstance is not a constructor". Suppress, don't rewrite.
+		// biome-ignore lint/complexity/useArrowFunction: must be `new`-able
 		mockPool.mockImplementation(function () {
 			return poolInstance;
 		});
+		// biome-ignore lint/complexity/useArrowFunction: must be `new`-able
 		mockPrismaPg.mockImplementation(function () {
 			return adapterInstance;
 		});
+		// biome-ignore lint/complexity/useArrowFunction: must be `new`-able
 		mockPrismaClient.mockImplementation(function () {
 			return {};
 		});
@@ -72,12 +80,15 @@ describe('scripts/prisma-client', () => {
 	it('exports a prisma instance when DATABASE_URL is set', async () => {
 		process.env.DATABASE_URL = 'postgresql://user:pass@localhost/testdb';
 		const clientInstance = { query: vi.fn() };
+		// biome-ignore lint/complexity/useArrowFunction: must be `new`-able
 		mockPool.mockImplementation(function () {
 			return {};
 		});
+		// biome-ignore lint/complexity/useArrowFunction: must be `new`-able
 		mockPrismaPg.mockImplementation(function () {
 			return {};
 		});
+		// biome-ignore lint/complexity/useArrowFunction: must be `new`-able
 		mockPrismaClient.mockImplementation(function () {
 			return clientInstance;
 		});
