@@ -76,7 +76,7 @@ const features = [
 	{
 		icon: Timer,
 		heading: 'Credential tracking and expiry',
-		body: 'Background check results become portable credentials. Set expiration dates. Get notified before they lapse. Volunteers carry them between orgs.',
+		body: 'Background check results become portable credentials with an expiry date you set. Your credential list shows what is current and what has lapsed, and volunteers see anything expiring within 30 days on their own dashboard. They carry the credential between orgs.',
 	},
 ];
 
@@ -101,6 +101,11 @@ const screeningFaqs = [
 		answer:
 			'Yes. Background check results become portable credentials that volunteers carry across every organization on the platform, with configurable expiration dates.',
 	},
+	{
+		question: 'What does this cost?',
+		answer:
+			'Running background checks through VolunteerReady requires the Pro plan ($149/month), which also includes the advanced analytics dashboard. There is no platform fee per check — you pay Checkr or Sterling their per-check cost directly. Setup is free either way: our founder configures your screening questions and connects your provider on a call, before you pay anything.',
+	},
 ];
 
 const painPoints = [
@@ -108,7 +113,7 @@ const painPoints = [
 	'Tracking check statuses in a spreadsheet',
 	'Missing FCRA compliance steps and creating legal exposure',
 	'Re-running checks when volunteers move between programs',
-	'No visibility into which credentials are about to expire',
+	'No single place showing which credentials have already lapsed',
 ];
 
 export default function ScreeningPage() {

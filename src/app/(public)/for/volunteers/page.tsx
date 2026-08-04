@@ -35,7 +35,7 @@ const benefits = [
 	{
 		icon: Search,
 		heading: 'Matched to your skills, not random listings',
-		body: 'Our matching engine connects you with opportunities based on your verified skills, location, and availability — not guesswork or keyword search.',
+		body: 'Tell us what you can do and our matching engine ranks every opportunity by how well it fits — scored against the skills each role actually asks for, not guesswork.',
 	},
 	{
 		icon: ClipboardList,
@@ -64,13 +64,13 @@ const steps = [
 		number: '01',
 		label: 'Create your profile',
 		detail:
-			'Add your skills, interests, and availability so our matching engine can find the best opportunities for you.',
+			'Add your skills, interests, and availability. Your skills are what the matching engine scores opportunities against.',
 	},
 	{
 		number: '02',
 		label: 'Get matched or browse',
 		detail:
-			'We surface opportunities that fit your profile. You can also browse all listings and filter by cause, location, and schedule.',
+			'We rank opportunities by how well they fit your skills. You can also browse every listing, search by keyword, and filter for remote or in-person.',
 	},
 	{
 		number: '03',
@@ -95,7 +95,7 @@ const volunteerFaqs = [
 	{
 		question: 'How does matching work?',
 		answer:
-			'Our matching engine evaluates your verified skills, certifications, location, and availability against opportunity requirements. It surfaces the best-fit opportunities for you automatically.',
+			'The skills on your profile are compared against the skills each opportunity requires, and we rank what you see by how completely they match. Add a skill and the ranking changes immediately. Matching is free on every plan.',
 	},
 	{
 		question: 'What are portable credentials?',
