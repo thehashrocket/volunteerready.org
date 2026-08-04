@@ -5,6 +5,70 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the Dependabot security review (2026-08-03, 23 alerts)
+
+Deferred from the alert-remediation plan. Both were considered and explicitly
+scoped out of the security PRs so an urgent account-takeover fix would not wait
+on unrelated work.
+
+### [P2] `normalizeEmail` is validate-then-normalize, protected only by zod's ASCII regex
+
+`normalizeEmail()` (`src/server/domain/org-volunteer.ts:87`) is
+`email.trim().toLowerCase()` with no Unicode normalization — structurally the
+same defect as the next-auth CRITICAL advisory (email normalizer validates
+before Unicode normalization, allowing a homoglyph `@` bypass). It is used as an
+**authorization** comparison in three places: `memberService.ts:230` (org
+invitation acceptance), `companyService.ts:327` (company invite acceptance), and
+`backgroundCheckService.ts:398` (Guard 1.5, binding submitted PII to the
+volunteer being checked).
+
+It is not exploitable today, and that was verified by execution rather than
+assumed: zod v4's `.email()` rejects fullwidth `＠` (U+FF20), small `﹫`
+(U+FE6B), and fullwidth-`a` domains, so every app path guarded by
+`volunteerEmailSchema` is safe. But that protection is a property of **zod's
+implementation**, not a decision this codebase made. A future zod release
+relaxing toward RFC 6531 international addresses would make three authorization
+predicates collide on homoglyphs, with no failing test and no code change here.
+
+**The fix is not a one-liner, which is why it was deferred.** Adding
+`.normalize('NFKC')` to `normalizeEmail` needs a matching migration: the
+Postgres index is `lower(btrim(email))` with no NFKC pass, and next-auth's
+adapter writes `User.email` rows **without** going through this function — so a
+JS-normalized lookup would miss un-normalized rows. Needs the index change and a
+backfill in the same ship.
+
+**Interim guard (shipped with the security PR):**
+`src/server/domain/org-volunteer.test.ts` pins that zod rejects four homoglyph
+forms (U+FF20, U+FE6B, U+FF41 in the domain, U+017F), so a zod bump that
+relaxes this goes red instead of silent. Do not delete it when this TODO lands —
+it covers the `volunteerEmailSchema` paths, which
+`EmailProvider.normalizeIdentifier` does not touch. **Effort:** M.
+
+### [P2] `pnpm e2e` is not in CI, and three coverage gaps depend on it
+
+`.github/workflows/ci.yml` runs lint, typecheck, `docs:build`, unit, scripts and
+integration. It does **not** run e2e, and it does not run `next build` either —
+the only production-build signal is the Vercel preview deploy, which is not a
+gate.
+
+Three findings in the Dependabot review resolved to "e2e covers it, but CI does
+not run e2e": `/_next/image` rendering (the scrolled `naturalWidth` assertions in
+`e2e/public-pages.spec.ts`), the Turbopack dev loop (the `Prisma.sql`
+`instanceof` bug class only reproduces under `next dev`), and the signed-out
+`/app` redirect. Each one currently falls to a manual checklist on the PR, which
+means every future framework bump repeats the same manual pass.
+
+**The hard part is already done.** `e2e/global-setup.ts` solved the sequential
+route warmup that fixes the Turbopack manifest-race 500s, so the remaining work
+is CI plumbing: Playwright browsers, a Postgres service container, and
+`seed:dev`. It is the slowest job in the pipeline, which is why it warrants its
+own ship rather than riding along with a security fix.
+
+**Blocks:** retiring the manual verification checklists on runtime dependency
+PRs. **Effort:** M.
+
+---
+
 ## Opened by the marketing claims audit (2026-08-03)
 
 Every public page was read against the code that backs it. Thirteen mismatches
