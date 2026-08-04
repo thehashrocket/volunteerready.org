@@ -37,7 +37,7 @@ const features = [
 	{
 		icon: BarChart3,
 		heading: 'ESG reporting dashboard',
-		body: 'Aggregate volunteer hours, participation rates, and impact metrics across your entire workforce. Export CSV reports for board decks, sustainability filings, and stakeholder updates.',
+		body: 'Employees active, shifts completed and hours served for any date range you pick, totalled across your workforce and broken out by nonprofit partner — plus a current count of verified credentials, which is point-in-time rather than date-ranged. Export to CSV or PDF for board decks, sustainability filings, and stakeholder updates.',
 	},
 	{
 		icon: Users,
@@ -56,8 +56,8 @@ const features = [
 	},
 	{
 		icon: FileSpreadsheet,
-		heading: 'CSV exports and data portability',
-		body: 'Export raw data anytime — volunteer hours, credentials issued, shifts completed. Your data is yours. No lock-in, no premium export fees.',
+		heading: 'CSV and PDF exports',
+		body: 'Download your ESG summary as CSV or PDF whenever a filing deadline lands — one row per nonprofit partner, with employees active, shifts completed, hours, and verified credentials. Part of the Pro plan, alongside the dashboard it comes from.',
 	},
 ];
 
@@ -83,7 +83,7 @@ const employerFaqs = [
 	{
 		question: 'How does ESG reporting work?',
 		answer:
-			'VolunteerReady aggregates volunteer hours, participation rates, and impact metrics across your workforce into a dashboard. Export CSV reports anytime for board decks, sustainability filings, and stakeholder updates.',
+			'Pick a date range and VolunteerReady totals your workforce activity into a dashboard: employees active, shifts completed and hours served, broken out by nonprofit partner. Verified credentials are shown as a current count rather than filtered to the range, because a credential is point-in-time. Export the same figures to CSV or PDF.',
 	},
 	{
 		question: 'Can employees use their existing VolunteerReady accounts?',
@@ -93,7 +93,7 @@ const employerFaqs = [
 	{
 		question: 'What data can I export?',
 		answer:
-			'Everything — volunteer hours, credentials issued, shifts completed, participation rates, and impact by nonprofit partner. CSV exports are available on Pro plans.',
+			'The ESG summary, as CSV or PDF: one row per nonprofit partner showing employees active, shifts completed, total hours and verified credentials, plus company-wide totals. Shifts, hours and active employees honour the period you choose; the credential count is point-in-time. It is an aggregate roll-up for reporting, not a per-employee record dump. Available on the Pro company plan, along with the dashboard it is generated from.',
 	},
 	{
 		question: 'How do nonprofit partnerships work?',

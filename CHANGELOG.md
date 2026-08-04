@@ -2,6 +2,71 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.1.0] - 2026-08-03
+
+Every public page now describes what the product actually does. An audit read
+all twelve marketing pages against the code behind them and found thirteen
+places where the words had drifted from the software — most of them selling
+less than we ship, several selling something you could not receive at all.
+
+The pricing page changes the most. Plans now differ by capability, never by
+headcount: the "up to 3 opportunities" and "up to 3 team members" caps are gone,
+because nothing in the product ever enforced them. Your volunteer roster exports
+to CSV on every plan including Free, which the page previously said was a Pro
+feature — the exact opposite of a deliberate promise that you should always be
+able to get your data back out. Two things you were already paying for but never
+saw advertised, reusable shift templates and the advanced analytics dashboard,
+are now on the table.
+
+### Fixed
+
+- Pricing no longer advertises limits on volunteers, opportunities or team
+  members. There are none, and there never were.
+- The volunteer roster CSV export is correctly shown as free on every plan,
+  and says plainly that the roster is still rolling out organisation by
+  organisation, so nobody hunts for a button their account has not been given.
+- ESG reporting is no longer sold as part of a nonprofit's Pro plan. It belongs
+  to a company sponsor account, which is priced separately — four surfaces
+  offered nonprofits an upgrade that would not have delivered it.
+- The matching engine is described accurately: it ranks opportunities against
+  the skills on a volunteer's profile. Four pages claimed it also weighed
+  certifications, location and availability, and one sold it as a paid upgrade
+  when it has always been free.
+- Marketplace browsing says what it offers — keyword search plus a remote or
+  in-person filter — instead of promising filters by cause, location and
+  schedule that do not exist.
+- `/screening` no longer promises a notification before a credential lapses.
+  Nothing sends one. It now describes what you actually get: expiry dates on
+  your credential list, and a 30-day warning on the volunteer's own dashboard.
+- `/screening` states that background checks require the Pro plan. The page is
+  entirely about background checks and never mentioned a tier.
+- Corporate ESG figures are described precisely: shifts, hours and active
+  employees honour the date range you pick, while the credential count is
+  point-in-time. Four copy blocks implied all four were date-filtered.
+- The credential list includes the tenure badges awarded at one, three and five
+  years, which were missing.
+- `/security` describes the real sign-in methods (emailed magic links and
+  Google) and the real roles (owner, admin, staff, read-only).
+- The in-app upgrade card shows everything an upgrade buys, including limits
+  that improve without crossing a tier — a Starter organisation could not
+  previously see that Pro lifts the shift-template cap.
+
+### Changed
+
+- `/about`'s recently-shipped list covers the last two dozen releases instead of
+  stopping at v0.17.8, including volunteer-initiated access revocation, the
+  concierge roster import and background-check disclosure.
+- `/for/nonprofits` describes the Free plan the same way the pricing page does.
+
+### Added
+
+- Guards so this class of drift fails a test rather than a reader: the pricing
+  table is generated from the same definition the plan gates use, a new plan
+  gate must be declared before it can ship, a paid row with nothing enforcing it
+  is rejected, and a company-scoped feature can no longer appear on the
+  nonprofit tier table. The roster's "rolling out" caveat is tied to the feature
+  flag's real default, so it disappears by itself when the rollout completes.
+
 ## [0.41.0.0] - 2026-08-03
 
 Makes the "send us your spreadsheet" onboarding safe to point at real data.

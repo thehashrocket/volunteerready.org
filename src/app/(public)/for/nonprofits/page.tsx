@@ -101,7 +101,7 @@ const nonprofitFaqs = [
 	{
 		question: 'Is there a free plan for small nonprofits?',
 		answer:
-			'Yes. The Free plan includes unlimited volunteers, custom screening questions, and basic credential tracking. Background checks and advanced features are available on paid plans.',
+			'Yes, and it is not a crippled trial. Free covers the whole day-to-day workflow: unlimited volunteers, opportunities and team members, custom screening questions, shift scheduling and attendance, skill-based matching, portable credentials, and CSV export of your roster. Paid plans add reusable shift templates, background checks, and advanced analytics — capability, never headcount. (Corporate ESG reporting is a separate company account, for employers sponsoring employee volunteering.)',
 	},
 	{
 		question: 'How does shift scheduling work?',
