@@ -7,39 +7,53 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ## Opened by the Dependabot security review (2026-08-03, 23 alerts)
 
-### [P2] Two `pnpm.overrides` entries do not actually bind, and nobody recorded why any of them exist
+### [P3] The `@types/pg` override now holds the types below what `@prisma/adapter-pg` asks for
 
-`scripts/pnpm-overrides.test.ts` (added v0.41.5.0) found that the `@babel/core`
-(`^7.29.6`) and `vite` (`^7.3.5`) overrides do **not** fully constrain their
-packages: `@babel/core@8.0.1` and `vite@8.1.0` are physically installed under
-`node_modules/.pnpm/` with real contents alongside the 7.x versions. Both arrive
-as peer-dependency resolutions rather than ordinary dependency edges
-(`next@16.2.12(@babel/core@8.0.1)`, `@storybook/react-vite@…(vite@8.1.0…)`);
-`@storybook/react-vite` accepts `^5 || ^6 || ^7 || ^8` and pnpm took 8.
+`pnpm.overrides` pins `@types/pg` to exactly `8.11.11`. The reason is recorded,
+in commit `83a4dc5` (11 Mar 2026): *"to match `@prisma/adapter-pg` peer dep."*
 
-Neither package has an open advisory, so this is a **correctness** problem, not
-a security one: two entries read as policy while constraining less than they
-appear to. They are budgeted in that test's `PARTIALLY_BOUND` map, so a *new*
-escape under either package still fails.
+That reason has since been invalidated by our own change.
+`@prisma/adapter-pg@7.9.1` — which v0.41.5.0 upgraded to — declares
+`@types/pg: ^8.16.0` as an ordinary dependency, and `8.11.11` does not satisfy
+`^8.16.0`. So the override written to *match* the adapter now pins the types
+five minors **below** it. Runtime `pg` is `^8.20.0`; `@types/pg` has published
+to 8.20.3.
 
-**Do not "fix" this by widening the ranges to `^8`.** That makes the file agree
-with reality while abandoning whatever the original pin defended against — and
-nobody wrote that down, which is the actual defect. An override with no recorded
-rationale cannot be safely changed OR safely deleted.
+**Nothing is broken:** `pnpm typecheck` is green, and `@types/pg` is types-only,
+so there is no runtime exposure at all. This is tidy-up, not a defect.
 
-**So this item has two halves**, and the second is the one that generalises:
-re-derive those two ranges, and write the `docs/dependency-overrides.md` that
-records why each of the ten surviving overrides exists. That doc does not exist
-yet and is opened here.
+The fix is to raise the pin to `^8.16.0`+ or delete the override and let the
+adapter's own range win, then confirm typecheck. Do one or the other rather
+than leaving a pin whose stated justification is no longer true.
 
-The cost of not having it is no longer hypothetical. `@hono/node-server`
-was overridden `^1.19.13` and its advisory's first patched version was **2.0.5**
-— a `^1` range can never reach it, so an override written to keep a package safe
-was the reason it could not be patched. It survived every review because nothing
-about reading `"^1.19.13"` reveals it. It is gone now (the package left the tree
-in v0.41.5.0), but the class remains for the ten overrides that are left.
+**`scripts/pnpm-overrides.test.ts` cannot catch this class** — it verifies that
+installed versions satisfy the override, not that the override satisfies its
+dependents. Worth adding if a second instance ever appears; one instance is not
+enough to design against. **Effort:** S.
 
-**Effort:** S for the doc, M if the two ranges are genuinely re-derived.
+### [P3] Decide whether to move to Babel 8 / Vite 8 wholesale
+
+**This entry is a correction.** It was opened in v0.41.5.0 as "two overrides do
+not bind, and nobody recorded why any of them exist". The second half is now
+done — `docs/dependency-overrides.md` (v0.41.6.0) records a rationale for every
+override and `scripts/pnpm-overrides.test.ts` fails if one is missing. The first
+half was **misdiagnosed**.
+
+`@babel/core` (`^7.29.6`) and `vite` (`^7.3.5`) do not constrain the
+peer-resolved `@babel/core@8.0.1` and `vite@8.1.0` that are also installed. That
+is real, but it was a **deliberate choice**, not an oversight: PR #124 pinned
+each package inside its current major specifically to avoid dragging the build
+onto Babel 8 / Vite 8 for no security benefit, and verified at the time that the
+lingering 8.x peer copies are themselves *above* the patched threshold. The tree
+is safe. Both are budgeted in `PARTIALLY_BOUND`, so a *new* escape still fails.
+
+So the only open question is a preference, not a defect: is moving to Babel 8 /
+Vite 8 across the board now worth doing on its own merits? Until someone wants
+that, there is nothing to fix.
+
+**Do not** "resolve" this by widening the ranges to `^8` — that abandons the
+within-major policy while changing nothing about safety. **Effort:** S to
+decide, M to actually migrate.
 
 
 Deferred from the alert-remediation plan. Both were considered and explicitly

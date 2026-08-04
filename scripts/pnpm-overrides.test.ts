@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -36,17 +36,23 @@ import { describe, expect, it } from 'vitest';
  * the established home for guarding root config the tooling cannot check
  * itself.
  *
- * This file checks that the overrides are COHERENT, not that they are
- * justified. The missing half — a written rationale per override, without which
- * none of them can be safely changed or safely deleted — is the P2 in
- * `docs/TODOS.md` under the Dependabot security review heading.
+ * 3. UNJUSTIFIED OVERRIDES. Coherence is not enough: an override can bind
+ *    perfectly and still be unchangeable, because nobody recorded what it was
+ *    defending against. `docs/dependency-overrides.md` carries that rationale
+ *    and the block below requires a section per override, so the doc cannot
+ *    drift out of sync with `package.json` in either direction.
  */
 
 const repoRoot = path.resolve(__dirname, '..');
 
 const pkg = JSON.parse(
 	readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
-) as { pnpm?: { overrides?: Record<string, string> } };
+) as {
+	pnpm?: {
+		overrides?: Record<string, string>;
+		auditConfig?: { ignoreGhsas?: string[] };
+	};
+};
 
 const overrides = pkg.pnpm?.overrides ?? {};
 
@@ -147,6 +153,88 @@ describe('pnpm.overrides', () => {
 		expect(installedVersions(name)).not.toHaveLength(0);
 	});
 
+	// -------------------------------------------------------------------------
+	// Every override must have a recorded rationale.
+	//
+	// This is the half the coherence checks cannot supply. An override with no
+	// written reason can be neither safely changed nor safely deleted: you
+	// cannot tell a load-bearing workaround from a fossil. `@hono/node-server`
+	// is the worked example — pinned `^1.19.13` against one advisory while a
+	// second one fixed only in 2.0.5, so the pin was the reason it could not be
+	// patched, and nothing in `package.json` could have told you.
+	//
+	// Matching is on the `### \`name\`` heading rather than a mere mention, so
+	// naming a package in passing elsewhere in the doc does not satisfy it.
+	// -------------------------------------------------------------------------
+	describe('docs/dependency-overrides.md', () => {
+		const docPath = path.join(repoRoot, 'docs', 'dependency-overrides.md');
+
+		it('exists', () => {
+			expect(existsSync(docPath)).toBe(true);
+		});
+
+		const doc = existsSync(docPath) ? readFileSync(docPath, 'utf8') : '';
+
+		/** Package names carrying their own `### \`name\`` section. */
+		const documented = new Set(
+			[...doc.matchAll(/^###\s+`([^`]+)`/gm)].map((m) => m[1]),
+		);
+
+		it.each(Object.keys(overrides))('documents %s', (name) => {
+			expect(
+				documented.has(name),
+				`No "### \`${name}\`" section in docs/dependency-overrides.md. ` +
+					'An override without a recorded reason cannot be safely changed or deleted.',
+			).toBe(true);
+		});
+
+		it('documents nothing that is no longer overridden', () => {
+			// The reverse direction: a section left behind after its override was
+			// deleted describes policy that is not in force. GHSA sections are a
+			// different population, checked against ignoreGhsas below.
+			const stale = [...documented].filter(
+				(name) => !name.startsWith('GHSA-') && !(name in overrides),
+			);
+			expect(
+				stale,
+				`Documented but not overridden: ${stale.join(', ')}`,
+			).toEqual([]);
+		});
+
+		// Same rule for ignored advisories. `pnpm.auditConfig.ignoreGhsas` is the
+		// list the CI gate deliberately does not fail on, so each entry is a
+		// standing decision not to act on a real advisory — the one place a
+		// written reason matters most.
+		const ignored: string[] = pkg.pnpm?.auditConfig?.ignoreGhsas ?? [];
+
+		it.each(ignored)('documents ignored advisory %s', (ghsa) => {
+			expect(
+				documented.has(ghsa),
+				`No "### \`${ghsa}\`" section in docs/dependency-overrides.md. ` +
+					'An ignored advisory without a recorded reason is an undocumented ' +
+					'decision not to fix a real vulnerability.',
+			).toBe(true);
+		});
+
+		it('documents no advisory that is no longer ignored', () => {
+			const ghsaSections = [...documented].filter((n) => n.startsWith('GHSA-'));
+			const stale = ghsaSections.filter((g) => !ignored.includes(g));
+			expect(stale, `Documented but not ignored: ${stale.join(', ')}`).toEqual(
+				[],
+			);
+		});
+
+		it('finds sections at all (the heading regex still matches)', () => {
+			// Self-check. If the heading format changes, `documented` silently
+			// empties and every per-package assertion above would fail — but a
+			// future refactor that made it match EVERYTHING would pass them all
+			// vacuously, so pin the count against the override list.
+			expect(documented.size).toBe(
+				Object.keys(overrides).length + ignored.length,
+			);
+		});
+	});
+
 	/**
 	 * Overrides that are KNOWN not to fully bind, with the extra versions each
 	 * one currently lets through.
@@ -156,8 +244,7 @@ describe('pnpm.overrides', () => {
 	 * the per-file counts in `error-disclosure.guard.test.ts`, and for the same
 	 * reason — a blanket exemption would hide the next instance.
 	 *
-	 * Both entries are PRE-EXISTING and were surfaced by writing this test, not
-	 * caused by v0.41.5.0. Verified physically present under
+	 * Both are PRE-EXISTING. Verified physically present under
 	 * `node_modules/.pnpm/` with real contents, so this is not a stale lockfile
 	 * record — the override genuinely does not cover them. Both arrive as peer
 	 * dependency resolutions (`next@16.2.12(@babel/core@8.0.1)`,
@@ -165,12 +252,15 @@ describe('pnpm.overrides', () => {
 	 * dependency edges; `@storybook/react-vite` accepts `^5 || ^6 || ^7 || ^8`
 	 * and pnpm took 8.
 	 *
-	 * Neither package has an open advisory, so this is a correctness problem
-	 * rather than a security one: two overrides read as constraining something
-	 * they do not fully constrain. Tracked as a P2 TODO. Do NOT "fix" this by
-	 * widening the ranges to `^8` — that would make the file agree with reality
-	 * while abandoning whatever the original pin was defending against, which
-	 * nobody ever recorded.
+	 * THIS WAS A DELIBERATE CHOICE, not an oversight — a correction to how it
+	 * was first written up here. PR #124 pinned each package inside its current
+	 * major precisely to avoid dragging the build onto Babel 8 / Vite 8 for no
+	 * security benefit, and verified at the time that the lingering 8.x peer
+	 * copies are themselves ABOVE the patched threshold. The tree is safe; the
+	 * override text just describes less than the whole picture.
+	 *
+	 * Do NOT "fix" this by widening the ranges to `^8` — that abandons the
+	 * within-major policy. See docs/dependency-overrides.md § Partially bound.
 	 */
 	const PARTIALLY_BOUND: Record<string, string[]> = {
 		'@babel/core': ['8.0.1'],

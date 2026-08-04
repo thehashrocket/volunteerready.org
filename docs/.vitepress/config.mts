@@ -64,6 +64,12 @@ export default defineConfig({
           { text: "TODOs", link: "/TODOS" },
         ],
       },
+      {
+        text: "Maintenance",
+        items: [
+          { text: "Dependency Overrides", link: "/dependency-overrides" },
+        ],
+      },
     ],
   },
 });
