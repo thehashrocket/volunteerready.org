@@ -23,19 +23,29 @@ import config from '../docs/.vitepress/config.mts';
  * neither substitutes for the other.
  */
 
-const DOCS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'docs');
+const DOCS_ROOT = path.resolve(
+	path.dirname(fileURLToPath(import.meta.url)),
+	'..',
+	'docs',
+);
 
 /** Mirrors VitePress's clean-URL resolution: `/FOO` → `docs/FOO.md` or `docs/FOO/index.md`. */
 function resolvesToPage(link: string): boolean {
 	const clean = link.replace(/[#?].*$/, '').replace(/\/$/, '');
 	const rel = clean === '' ? 'index' : clean.replace(/^\//, '');
-	return existsSync(path.join(DOCS_ROOT, `${rel}.md`)) || existsSync(path.join(DOCS_ROOT, rel, 'index.md'));
+	return (
+		existsSync(path.join(DOCS_ROOT, `${rel}.md`)) ||
+		existsSync(path.join(DOCS_ROOT, rel, 'index.md'))
+	);
 }
 
 type NavLike = { text?: string; link?: string; items?: NavLike[] };
 
 /** Flattens nav/sidebar into `{label, link}` pairs. Sidebar may be an array or a path-keyed record. */
-function collectLinks(node: unknown, out: { label: string; link: string }[] = []) {
+function collectLinks(
+	node: unknown,
+	out: { label: string; link: string }[] = [],
+) {
 	if (Array.isArray(node)) {
 		for (const child of node) collectLinks(child, out);
 		return out;
@@ -47,13 +57,17 @@ function collectLinks(node: unknown, out: { label: string; link: string }[] = []
 			for (const value of Object.values(node)) collectLinks(value, out);
 			return out;
 		}
-		if (typeof entry.link === 'string') out.push({ label: entry.text ?? entry.link, link: entry.link });
+		if (typeof entry.link === 'string')
+			out.push({ label: entry.text ?? entry.link, link: entry.link });
 		if (entry.items) collectLinks(entry.items, out);
 	}
 	return out;
 }
 
-const themeConfig = (config.themeConfig ?? {}) as { nav?: unknown; sidebar?: unknown };
+const themeConfig = (config.themeConfig ?? {}) as {
+	nav?: unknown;
+	sidebar?: unknown;
+};
 const navLinks = collectLinks(themeConfig.nav);
 const sidebarLinks = collectLinks(themeConfig.sidebar);
 
@@ -66,13 +80,23 @@ describe('VitePress nav and sidebar links', () => {
 		expect(sidebarLinks.length).toBeGreaterThan(0);
 	});
 
-	it.each(navLinks)('nav "$label" → $link resolves to a docs page', ({ link }) => {
+	it.each(navLinks)('nav "$label" → $link resolves to a docs page', ({
+		link,
+	}) => {
 		if (/^https?:\/\//.test(link)) return;
-		expect(resolvesToPage(link), `nav link ${link} has no corresponding file under docs/`).toBe(true);
+		expect(
+			resolvesToPage(link),
+			`nav link ${link} has no corresponding file under docs/`,
+		).toBe(true);
 	});
 
-	it.each(sidebarLinks)('sidebar "$label" → $link resolves to a docs page', ({ link }) => {
+	it.each(sidebarLinks)('sidebar "$label" → $link resolves to a docs page', ({
+		link,
+	}) => {
 		if (/^https?:\/\//.test(link)) return;
-		expect(resolvesToPage(link), `sidebar link ${link} has no corresponding file under docs/`).toBe(true);
+		expect(
+			resolvesToPage(link),
+			`sidebar link ${link} has no corresponding file under docs/`,
+		).toBe(true);
 	});
 });

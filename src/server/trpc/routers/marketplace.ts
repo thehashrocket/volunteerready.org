@@ -12,6 +12,7 @@ import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
+	requireUserId,
 } from '@/server/trpc/init';
 import {
 	rateLimitByIp,
@@ -70,7 +71,7 @@ export const marketplaceRouter = createTRPCRouter({
 	getMyInterests: protectedProcedure
 		.use(interestLimiter)
 		.query(async ({ ctx }) => {
-			return getMyInterests(ctx.session!.user.id);
+			return getMyInterests(requireUserId(ctx.session));
 		}),
 
 	/** Toggle interest on a marketplace opportunity. */
@@ -78,6 +79,6 @@ export const marketplaceRouter = createTRPCRouter({
 		.use(interestLimiter)
 		.input(z.object({ opportunityId: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
-			return toggleInterest(ctx.session!.user.id, input.opportunityId);
+			return toggleInterest(requireUserId(ctx.session), input.opportunityId);
 		}),
 });

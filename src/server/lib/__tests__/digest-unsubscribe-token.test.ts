@@ -44,7 +44,7 @@ describe('validateUnsubscribeToken', () => {
 
 	it('returns false for a tampered token', () => {
 		const token = generateUnsubscribeToken(TEST_SECRET, TEST_USER_ID);
-		const tampered = token.slice(0, -2) + 'ff';
+		const tampered = `${token.slice(0, -2)}ff`;
 		expect(validateUnsubscribeToken(TEST_SECRET, TEST_USER_ID, tampered)).toBe(
 			false,
 		);

@@ -265,7 +265,9 @@ export function formatResultLine(
 	dryRun: boolean,
 ): string {
 	const verb =
-		dryRun && result.outcome === 'ADDED' ? 'would add' : OUTCOME_LABEL[result.outcome];
+		dryRun && result.outcome === 'ADDED'
+			? 'would add'
+			: OUTCOME_LABEL[result.outcome];
 	const suffix = result.message ? ` — ${result.message}` : '';
 	return `  line ${String(result.line).padStart(4)}  ${result.email.padEnd(34)} ${verb}${suffix}`;
 }
@@ -456,7 +458,9 @@ export async function requireProductionConfirmation(input: {
 	notifyOnly?: boolean;
 }): Promise<void> {
 	const verb = input.notifyOnly ? 'send from' : 'write to';
-	const undone = input.notifyOnly ? 'Nothing was sent.' : 'Nothing was written.';
+	const undone = input.notifyOnly
+		? 'Nothing was sent.'
+		: 'Nothing was written.';
 
 	if (!input.isTTY) {
 		// No fallback and no env-var override. `E2E_ALLOW_REMOTE_DB` exists
@@ -508,7 +512,7 @@ async function main() {
 		notifyOnlyExitCode,
 	} = await import('@/server/domain/roster-import');
 	const { findOrgByIdOrSlug, userIsMemberOfOrg } = await import(
-		'@/server/repositories/orgRepo',
+		'@/server/repositories/orgRepo'
 	);
 	const { findUserIdByEmail } = await import(
 		'@/server/repositories/userAccountStateRepo'
@@ -644,7 +648,9 @@ async function main() {
 					});
 
 			if (orgName === null) {
-				console.error(`\n  ${org.name} could not be resolved. Nothing was sent.`);
+				console.error(
+					`\n  ${org.name} could not be resolved. Nothing was sent.`,
+				);
 				process.exitCode = 1;
 				return;
 			}

@@ -1,9 +1,39 @@
 #!/bin/sh
-# Pre-commit hook: runs typecheck + lint + tests before every commit.
+# Pre-commit hook: runs `pnpm check` (Biome) before every commit. It does NOT
+# run typecheck or tests — CI owns those; this is the fast local gate.
 # To enable: git config core.hooksPath .githooks
 # Or run: pnpm prepare
+#
+# `pnpm check` carries --write and --error-on-warnings, which pair deliberately:
+# --write silently applies every SAFE fix, so this hook only ever stops you for
+# the diagnostics needing a human call — exactly the class that accumulated on
+# main for months because plain `biome check` exits 0 on warnings. Verified:
+# a safe-fixable defect is repaired and passes; an unsafe one exits 1.
+#
+# BUT --write repairs the WORKING TREE, and git commits the INDEX. Before
+# v0.41.2.0 this hook printed "All checks passed" and exited 0 while committing
+# the UNFIXED content, leaving Biome's repair sitting unstaged — verified by
+# staging `export const __probe   =    1;` and watching the commit keep it. The
+# local gate said green and CI went red, which is the worst ordering.
+#
+# So: snapshot the staged files, and refuse if Biome moved any of them. We do
+# NOT re-stage automatically. A file can be partially staged (some hunks in the
+# index, others not), and a blind `git add` would sweep the unstaged hunks into
+# a commit the author never reviewed. Refusing costs one interruption; the
+# alternative silently commits work nobody looked at.
 
 echo "🔍 Running pre-commit checks..."
+
+# Hash the working-tree content of every staged file, so we can tell whether
+# `--write` rewrote one. Renames/copies included (ACMR); deletions can't move.
+snapshot_staged() {
+  git diff --cached --name-only --diff-filter=ACMR -z 2>/dev/null |
+    while IFS= read -r -d '' f; do
+      [ -f "$f" ] && printf '%s %s\n' "$(git hash-object -- "$f")" "$f"
+    done
+}
+
+BEFORE=$(snapshot_staged)
 
 pnpm check
 STATUS=$?
@@ -11,6 +41,27 @@ STATUS=$?
 if [ $STATUS -ne 0 ]; then
   echo ""
   echo "❌ Pre-commit check failed. Fix the errors above before committing."
+  echo "   To skip this hook (use sparingly): git commit --no-verify"
+  exit 1
+fi
+
+AFTER=$(snapshot_staged)
+
+if [ "$BEFORE" != "$AFTER" ]; then
+  echo ""
+  echo "❌ Biome auto-fixed files that were already staged:"
+  # Report only the paths whose content hash actually changed.
+  printf '%s\n' "$BEFORE" | while IFS=' ' read -r hash file; do
+    [ -n "$file" ] || continue
+    now=$(printf '%s\n' "$AFTER" | while IFS=' ' read -r h f; do
+      [ "$f" = "$file" ] && printf '%s' "$h"
+    done)
+    [ -n "$now" ] && [ "$now" != "$hash" ] && echo "     $file"
+  done
+  echo ""
+  echo "   Your commit would have contained the UNFIXED version — git commits"
+  echo "   the index, not the working tree. Review the changes and re-stage:"
+  echo "     git add <files above> && git commit"
   echo "   To skip this hook (use sparingly): git commit --no-verify"
   exit 1
 fi

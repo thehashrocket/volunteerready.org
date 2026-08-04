@@ -21,12 +21,12 @@ import {
 import {
 	ArgError,
 	describeDatabase,
-	formatResultLine,
-	formatSummary,
 	describeMode,
 	describeNotify,
 	formatNotifyOnlyLine,
 	formatNotifyOnlySummary,
+	formatResultLine,
+	formatSummary,
 	isLocalDatabaseUrl,
 	parseArgs,
 	requireProductionConfirmation,
@@ -165,7 +165,20 @@ describe('parseArgs', () => {
 
 	it.each([
 		['--file', ['--org', 'o', '--file', 'a.csv', '--file', 'b.csv', '--yes']],
-		['--actor', ['--org', 'o', '--file', 'f', '--actor', 'a@x', '--actor', 'b@x', '--yes']],
+		[
+			'--actor',
+			[
+				'--org',
+				'o',
+				'--file',
+				'f',
+				'--actor',
+				'a@x',
+				'--actor',
+				'b@x',
+				'--yes',
+			],
+		],
 		['--yes', ['--org', 'o', '--file', 'f', '--yes', '--yes']],
 		['--dry-run', ['--org', 'o', '--file', 'f', '--dry-run', '--dry-run']],
 	])('SAFETY: refuses a repeated %s', (_label, argv) => {
@@ -245,7 +258,14 @@ describe('parseArgs', () => {
 		// `--key=value` and `--key value` are parsed by different branches, so a
 		// check on only one of them would let this through.
 		expect(() =>
-			parseArgs(['--org=good-org', '--org', 'squatter', '--file', 'f', '--yes']),
+			parseArgs([
+				'--org=good-org',
+				'--org',
+				'squatter',
+				'--file',
+				'f',
+				'--yes',
+			]),
 		).toThrow(/--org was given more than once/);
 	});
 });
@@ -281,7 +301,10 @@ describe('isLocalDatabaseUrl', () => {
 });
 
 describe('requireProductionConfirmation', () => {
-	const base = { orgSlug: 'riverside', databaseLabel: 'db.prod.example.com/app' };
+	const base = {
+		orgSlug: 'riverside',
+		databaseLabel: 'db.prod.example.com/app',
+	};
 
 	it('resolves when the typed slug matches', async () => {
 		await expect(
@@ -409,7 +432,9 @@ describe('parseRosterCsv', () => {
 	});
 
 	it('treats a missing phone as null rather than an empty string', () => {
-		const { rows } = parseRosterCsv('name,email,phone\nJane,jane@example.org,\n');
+		const { rows } = parseRosterCsv(
+			'name,email,phone\nJane,jane@example.org,\n',
+		);
 		expect(rows[0]?.phone).toBeNull();
 	});
 
@@ -462,9 +487,7 @@ describe('parseRosterCsv', () => {
 				(_, i) => `P ${i},p${i}@example.org`,
 			),
 		];
-		expect(() => parseRosterCsv(rows.join('\n'))).toThrow(
-			/refuses more than/,
-		);
+		expect(() => parseRosterCsv(rows.join('\n'))).toThrow(/refuses more than/);
 	});
 
 	it('names the accepted spellings when a column is missing', () => {
@@ -626,14 +649,21 @@ describe('summarizeNotifyOnly / notifyOnly formatters', () => {
 		expect(line).toMatch(/INVALID — Enter a valid email address\./);
 		expect(line).not.toMatch(/not added by an import/);
 		expect(summarizeNotifyOnly([{ status: 'INVALID' }]).INVALID).toBe(1);
-		expect(formatNotifyOnlySummary(summarizeNotifyOnly([{ status: 'INVALID' }]), true)).toMatch(
-			/invalid rows:\s+1/,
-		);
+		expect(
+			formatNotifyOnlySummary(
+				summarizeNotifyOnly([{ status: 'INVALID' }]),
+				true,
+			),
+		).toMatch(/invalid rows:\s+1/);
 	});
 
 	it('names the line, the address and what happened', () => {
 		expect(
-			formatNotifyOnlyLine({ line: 12, email: 'ada@example.org', status: 'SENT' }),
+			formatNotifyOnlyLine({
+				line: 12,
+				email: 'ada@example.org',
+				status: 'SENT',
+			}),
 		).toMatch(/line\s+12\s+ada@example\.org\s+sent/);
 	});
 
@@ -660,7 +690,10 @@ describe('summarizeNotifyOnly / notifyOnly formatters', () => {
 	});
 
 	it('reports "would send" and hides the send tallies in a dry run', () => {
-		const summary = summarizeNotifyOnly([{ status: 'OWED' }, { status: 'OWED' }]);
+		const summary = summarizeNotifyOnly([
+			{ status: 'OWED' },
+			{ status: 'OWED' },
+		]);
 		const text = formatNotifyOnlySummary(summary, true);
 
 		expect(text).toMatch(/would send:\s+2/);
@@ -672,7 +705,10 @@ describe('summarizeNotifyOnly / notifyOnly formatters', () => {
 	});
 
 	it('reports the send tallies on a real run', () => {
-		const summary = summarizeNotifyOnly([{ status: 'SENT' }, { status: 'FAILED' }]);
+		const summary = summarizeNotifyOnly([
+			{ status: 'SENT' },
+			{ status: 'FAILED' },
+		]);
 		const text = formatNotifyOnlySummary(summary, false);
 
 		expect(text).toMatch(/^\s+sent:\s+1/m);
@@ -719,12 +755,12 @@ describe('describeMode / describeNotify', () => {
 	});
 
 	it('never promises mail on any dry run', () => {
-		expect(describeNotify({ dryRun: true, notify: true, notifyOnly: false })).toBe(
-			'no',
-		);
-		expect(describeNotify({ dryRun: true, notify: true, notifyOnly: true })).toBe(
-			'no',
-		);
+		expect(
+			describeNotify({ dryRun: true, notify: true, notifyOnly: false }),
+		).toBe('no');
+		expect(
+			describeNotify({ dryRun: true, notify: true, notifyOnly: true }),
+		).toBe('no');
 	});
 
 	it('says a notify-only run is nothing but notices', () => {

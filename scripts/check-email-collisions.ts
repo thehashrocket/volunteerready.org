@@ -80,12 +80,16 @@ async function main() {
 		else groups.set(key, [u]);
 	}
 
-	const collisions = [...groups.entries()].filter(([, rows]) => rows.length > 1);
+	const collisions = [...groups.entries()].filter(
+		([, rows]) => rows.length > 1,
+	);
 
 	console.log(`Scanned ${users.length} users with a non-null email.`);
 
 	if (collisions.length === 0) {
-		console.log('\n✓ No case-only email collisions. T1 backfill is safe to run.');
+		console.log(
+			'\n✓ No case-only email collisions. T1 backfill is safe to run.',
+		);
 		return;
 	}
 

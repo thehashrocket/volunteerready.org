@@ -8,7 +8,9 @@
  * Usage: pnpm backfill:activity
  */
 import { config } from 'dotenv';
+
 config({ path: '.env.local' });
+
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '../src/prisma/generated/client';
@@ -65,10 +67,9 @@ async function main() {
 			});
 
 			// Pick the most recent date, falling back to member creation
-			const dates = [
-				latestSignup?.createdAt,
-				latestApp?.submittedAt,
-			].filter(Boolean) as Date[];
+			const dates = [latestSignup?.createdAt, latestApp?.submittedAt].filter(
+				Boolean,
+			) as Date[];
 
 			const lastActivity =
 				dates.length > 0
