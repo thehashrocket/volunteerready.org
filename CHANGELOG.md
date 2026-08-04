@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.2.0] - 2026-08-04
+
+Closes a critical flaw in the sign-in link. Anyone who knew your email address
+could have had your sign-in link delivered to their own mailbox instead of
+yours, and used it to sign in as you. Nothing was required of you for this to
+work. The flaw was in the authentication library the platform uses, and it is
+closed twice over: by taking the vendor's patch, and by adding our own check
+that does not depend on it.
+
+### Fixed
+- **Sign-in links can no longer be redirected to someone else's mailbox.** An address can be written using a character that looks like an ordinary `@` but is not — until a mail service rewrites it, at which point the address quietly becomes two addresses and the link goes to the wrong one. Addresses are now converted to their plain form *before* being checked, so these are refused rather than delivered. Ordinary addresses are unaffected, including plus-addressing and international ones.
+
+### Changed
+- The platform now supplies its own copy of this check instead of relying on the authentication library's. It behaves identically to the fixed library version, so the two agree on every address, and the protection stays in place even if a future library release loses it.
+
 ## [0.41.1.0] - 2026-08-03
 
 Every public page now describes what the product actually does. An audit read
