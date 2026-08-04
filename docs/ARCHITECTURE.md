@@ -569,7 +569,8 @@ pnpm e2e                  # Playwright e2e (boots the dev server; authenticated 
                           #   serves an uncompiled route while rewriting the .next
                           #   manifest, and N workers hitting ~20 at once turns that into
                           #   intermittent 500s. Skipped when PLAYWRIGHT_BASE_URL is set.)
-pnpm check                # Biome check on src/docs/prisma (applies safe fixes)
+pnpm check                # Same scope as pnpm lint, plus --write (applies safe fixes). Run by the pre-commit
+                          #   hook, which refuses the commit if it had to fix an already-staged file.
 pnpm prisma migrate deploy
 pnpm prisma db seed
 ```
