@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.5.0] - 2026-08-04
+
+Clears the last ten security alerts, and does it mostly by removing code rather
+than patching it.
+
+Three of the ten were in a small web-server library and its server adapter,
+pulled in by the database tooling. Upgrading that tooling replaces the library
+with a different one entirely, so those packages leave the project altogether
+and the two version rules that had been written to hold them in place are now
+pointless and were deleted. An alert you no longer have any code for is better
+than an alert you have patched.
+
+One of those two rules had been doing harm. It was written to hold the server
+adapter at a safe version within its current major release, and the fix for its
+alert only ever arrived in the *next* major release — so the rule was, in
+effect, holding the package permanently on the vulnerable side. Nothing about
+reading it suggested that. It is gone now, along with the problem.
+
+The remaining seven are in supporting libraries — a URL parser, a stylesheet
+processor, a filename-pattern expander — reached through the build tooling
+rather than through anything the site serves. Each is now held at or above its
+fixed version. The URL parser needed a new rule of its own because it arrives by
+two independent routes, and upgrading the database tooling only removed one of
+them.
+
+The database tooling upgrade was the part that needed care, and the reason is
+worth recording. The database layer looked like it was split between a
+build-time tool and a separate runtime library, which would have made this a
+build-only change. It is not. Nothing in this codebase uses that runtime library
+directly; the code that talks to the database is *generated* by the build-time
+tool and carries its own copy of everything it needs. So upgrading what looked
+like a build tool also moves the database code that runs in production.
+
+Left half-done, that produces a quiet mismatch: the generated code states
+outright which version of its support library it requires, and upgrading only
+the tool leaves a different one installed. Every test still passed in that
+state, which is precisely why it was worth catching — passing tests would have
+been the only evidence, and they would have been wrong. The whole set moves
+together instead.
+
+Because production database code did move, the upgrade was checked by running
+the development server and exercising the hand-written database queries through
+it — the ones that only misbehave under the development bundler, never in tests
+and never in a production build. All three variants of the search query returned
+correct results, including the one that filters by location type and the one
+that does not.
+
+### Fixed
+- **Ten security alerts closed.** Three by removing the affected packages from the project entirely, seven by holding supporting libraries at their fixed versions.
+- **A version rule that was preventing a fix from ever arriving** has been removed. It capped a package inside a major release whose successor contained the only available fix.
+
+### Changed
+- The database tooling moved up one minor release, as a set rather than piecemeal, so the generated database code and the support library it names now agree.
+- Two version rules that no longer refer to anything in the project were deleted, and a new one was added for a library that arrives by two separate routes.
+
 ## [0.41.4.0] - 2026-08-04
 
 Takes the security patch for the web framework the platform is built on,
