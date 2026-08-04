@@ -7,6 +7,41 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ## Opened by the Dependabot security review (2026-08-03, 23 alerts)
 
+### [P2] Two `pnpm.overrides` entries do not actually bind, and nobody recorded why any of them exist
+
+`scripts/pnpm-overrides.test.ts` (added v0.41.5.0) found that the `@babel/core`
+(`^7.29.6`) and `vite` (`^7.3.5`) overrides do **not** fully constrain their
+packages: `@babel/core@8.0.1` and `vite@8.1.0` are physically installed under
+`node_modules/.pnpm/` with real contents alongside the 7.x versions. Both arrive
+as peer-dependency resolutions rather than ordinary dependency edges
+(`next@16.2.12(@babel/core@8.0.1)`, `@storybook/react-vite@…(vite@8.1.0…)`);
+`@storybook/react-vite` accepts `^5 || ^6 || ^7 || ^8` and pnpm took 8.
+
+Neither package has an open advisory, so this is a **correctness** problem, not
+a security one: two entries read as policy while constraining less than they
+appear to. They are budgeted in that test's `PARTIALLY_BOUND` map, so a *new*
+escape under either package still fails.
+
+**Do not "fix" this by widening the ranges to `^8`.** That makes the file agree
+with reality while abandoning whatever the original pin defended against — and
+nobody wrote that down, which is the actual defect. An override with no recorded
+rationale cannot be safely changed OR safely deleted.
+
+**So this item has two halves**, and the second is the one that generalises:
+re-derive those two ranges, and write the `docs/dependency-overrides.md` that
+records why each of the ten surviving overrides exists. That doc does not exist
+yet and is opened here.
+
+The cost of not having it is no longer hypothetical. `@hono/node-server`
+was overridden `^1.19.13` and its advisory's first patched version was **2.0.5**
+— a `^1` range can never reach it, so an override written to keep a package safe
+was the reason it could not be patched. It survived every review because nothing
+about reading `"^1.19.13"` reveals it. It is gone now (the package left the tree
+in v0.41.5.0), but the class remains for the ten overrides that are left.
+
+**Effort:** S for the doc, M if the two ranges are genuinely re-derived.
+
+
 Deferred from the alert-remediation plan. Both were considered and explicitly
 scoped out of the security PRs so an urgent account-takeover fix would not wait
 on unrelated work.
