@@ -2,6 +2,67 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.6.0] - 2026-08-04
+
+The security backlog is now at zero, and this release is about making sure it
+does not build up again. Nothing here changes what the site does.
+
+Three weeks ago there were twenty-three outstanding security warnings against
+the project's dependencies. The previous three releases cleared them. The last
+one is closed here: an image-processing library whose flaw is unreachable,
+because reaching it would require the site to process images from somewhere
+other than its own files, which it does not do. That reasoning is recorded
+against the warning itself and is held in place by a test, so if the settings it
+depends on ever change, the warning comes back rather than staying quietly
+dismissed.
+
+**The automated dependency updater was never running.** It was configured for a
+package manager name that does not exist in the settings it was written in — the
+correct value covers all three common package managers, and the file needed that
+one instead. The failure was invisible: security warnings arrive through a
+different channel that needs no configuration at all, so update notices kept
+appearing and everything looked healthy, while forty-eight packages quietly fell
+behind inside their own permitted version ranges with nothing raising it. The
+configuration is fixed, and it now groups updates so a large batch arrives as a
+few reviewable changes rather than twenty-three conflicting ones — which is what
+caused the backlog to be ignored in the first place. Major version jumps are
+deliberately left to arrive one at a time, because each needs its own
+assessment.
+
+**A build check now refuses work that carries a known, fixable, serious
+vulnerability.** It only stops the build when a fix actually exists and the
+severity is high — there is no point failing a build over something nobody can
+act on yet. Everything else passes, but never silently: if the check cannot run
+at all, it says so prominently rather than reporting success. That distinction
+is the whole point. A check that cannot run and a check that passed otherwise
+look identical, and the second one is a false reassurance.
+
+**Version pins now have to say why they exist.** The project holds eleven
+dependencies at specific versions, and until now none of them recorded the
+reason. That is not bookkeeping. One of those pins had been holding a package at
+a version whose only available fix lived in the next major release — so a rule
+written to keep something safe was the exact reason it could not be repaired,
+and nothing about reading the rule revealed that. Every pin is now documented
+with what it defends against, and a test fails if a pin is added without an
+explanation, or if an explanation outlives the pin it describes.
+
+One earlier note is corrected: two pins were described last release as
+constraining less than they appear to, with the reason unrecorded. The reason
+was recorded, in the change that introduced them — they hold those packages
+inside their current major on purpose, to avoid moving the whole build onto new
+major versions for no safety gain, and the copies that escape were checked at
+the time and are themselves above the safe threshold. Nothing is wrong; the
+earlier note overstated it.
+
+### Fixed
+- **The dependency updater now runs.** It had been configured with an invalid package-manager name, which silently disabled routine version updates while leaving security notices unaffected — so the breakage was hidden behind traffic that kept arriving through a different route.
+- **The last outstanding security warning is closed**, dismissed as unreachable with the reasoning recorded and held in place by an existing test.
+
+### Added
+- A build check that refuses a known, fixable, high-severity vulnerability, and that announces loudly when it is unable to run instead of reporting success.
+- Documentation of why every pinned dependency version exists, enforced by a test in both directions — a pin without a reason fails, and a reason without a pin fails.
+- Update grouping, so a large batch of dependency updates arrives as a few reviewable changes instead of dozens of conflicting ones.
+
 ## [0.41.5.0] - 2026-08-04
 
 Clears the last ten security alerts, and does it mostly by removing code rather

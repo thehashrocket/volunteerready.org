@@ -20,6 +20,46 @@ env:
   NEXTAUTH_URL: "http://localhost:3005"
 
 jobs:
+  # Fails only on a HIGH/CRITICAL Dependabot alert that HAS a published fix.
+  # Everything else — an API error, a missing permission, an advisory with no
+  # patch yet — passes with a loud `::warning` annotation saying the gate did
+  # not run. See scripts/check-advisories.ts for why it is shaped that way.
+  #
+  # Its own job, not a step inside `static`, for two reasons: it needs a
+  # permission the other jobs do not, and a lint failure and an unpatched
+  # critical are different problems that should be readable separately on the
+  # PR's check list.
+  advisories:
+    name: Security advisories
+    runs-on: ubuntu-latest
+    permissions:
+      # Dependabot alerts are not readable with the default token scope. Without
+      # this the API returns 403 — which is a fail-open path, so the gate would
+      # degrade to a warning rather than break the build, but it would also
+      # never once do its job.
+      security-events: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      # `--ignore-scripts` skips the `prisma generate` postinstall: this job
+      # only needs `tsx` to run one standalone script, and generating the client
+      # costs ~20s and a Prisma engine download for nothing.
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - run: pnpm tsx scripts/check-advisories.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # Static checks need no database, so they fail fast and in parallel with the
   # slower suite below rather than gating it.
   static:

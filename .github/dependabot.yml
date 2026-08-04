@@ -1,11 +1,70 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
+# Dependabot configuration.
+#
+# THE ECOSYSTEM WAS WRONG AND THAT IS WHY THIS FILE APPEARED TO DO NOTHING.
+# It read `package-ecosystem: "pnpm"`. There is no such value — GitHub's
+# ecosystem for npm, Yarn AND pnpm is `npm`, and the lockfile is what tells
+# Dependabot which package manager is actually in use. So version updates
+# never ran.
+#
+# That failure is invisible from the outside, because SECURITY updates do not
+# depend on this file at all: they come from the advisory database and are
+# grouped automatically under an `npm_and_yarn` group. Every Dependabot PR this
+# repo has ever received carries that group name in its title — all of them
+# were security updates. Meanwhile 48 packages drifted out of date inside their
+# own declared ranges with nothing opening a PR, which is the symptom that gave
+# the mistake away.
+#
+# Corollary worth remembering: "Dependabot is opening PRs" does NOT prove this
+# file is valid.
 version: 2
+
 updates:
-  - package-ecosystem: "pnpm" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "npm" # covers npm, Yarn and pnpm — NOT "pnpm"
+    directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+
+    # The backlog this lane exists to prevent reached 23 alerts across 9
+    # packages. Ungrouped, that arrives as up to 23 PRs, each one a lockfile
+    # conflict with the other 22, so the rational response is to ignore all of
+    # them — which is what happened.
+    open-pull-requests-limit: 10
+
+    groups:
+      # ONE PR for all security updates, whatever the semver distance.
+      #
+      # Security updates are deliberately NOT split by update-type. A fix that
+      # only exists across a major boundary is exactly the case that must not
+      # be filtered out of view: `@hono/node-server` sat capped at `^1.19.13`
+      # while its advisory's only fix shipped in 2.0.5, and nothing surfaced
+      # the contradiction. See docs/dependency-overrides.md.
+      security-updates:
+        applies-to: security-updates
+        patterns: ["*"]
+
+      # Routine version updates, split production/development so a runtime bump
+      # is never buried in a batch of tooling churn. Minor and patch only.
+      production-minor-patch:
+        applies-to: version-updates
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+
+      development-minor-patch:
+        applies-to: version-updates
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+
+    # MAJORS ARE DELIBERATELY UNGROUPED — they are not ignored.
+    #
+    # A group only collects the update-types it lists, so majors fall through
+    # and each gets its own PR. That is the intent: this repo has eight pending
+    # cross-major bumps (resend 4→6, stripe 20→22, typescript 5→7, jsdom 25→30,
+    # @types/node 20→26, lucide-react 0.x→1, @vercel/analytics 1→2,
+    # jest-dom 6→7) and each needs its own migration assessment. Grouping them
+    # would produce one unreviewable PR; ignoring them would hide all eight.
+
+  # NOTE: `github-actions` is deliberately NOT configured here. The workflows
+  # pin actions by major tag (actions/checkout@v5), which already floats within
+  # the major, so Dependabot would only ever offer the next major. Adding it is
+  # reasonable, but it is a separate decision from fixing this file.
