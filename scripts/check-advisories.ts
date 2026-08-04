@@ -1,105 +1,120 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
 /**
  * CI advisory gate.
  *
- * Fails the build when a HIGH or CRITICAL Dependabot alert is open **and a
- * patched version exists**. Nothing else fails it.
+ * Fails the build when a HIGH or CRITICAL advisory is open against an installed
+ * package **and a patched version exists**. Nothing else fails it.
  *
- * The shape is deliberate, and the two halves pull in opposite directions:
+ * WHY `pnpm audit` AND NOT THE DEPENDABOT ALERTS API. The first version of this
+ * script read `GET /repos/{owner}/{repo}/dependabot/alerts` with the Actions
+ * `GITHUB_TOKEN` and a `security-events: read` permission. That does not work,
+ * and it was not obvious from the config — verified by running it in CI, where
+ * it produced:
  *
- * FAIL CLOSED on a fixable high/critical. This is the only state where the
- * build should stop, because it is the only one where somebody can act
- * immediately. A 23-alert backlog accumulated here precisely because nothing
- * ever said no.
+ *     Advisory gate DID NOT RUN: GitHub API returned 403 Forbidden.
  *
- * FAIL OPEN on everything else — an API error, a missing token, an advisory
- * with no patch available. A gate that blocks every PR because GitHub returned
- * 502, or because a maintainer has not shipped a fix yet, gets switched off
- * within a week, and a switched-off gate protects nothing.
+ * The token is minted for the Actions GitHub App, and that App has no Dependabot
+ * alerts permission to grant, so no `permissions:` block can fix it; it needs a
+ * PAT. A gate that requires a hand-provisioned secret is a gate that is one
+ * expired token away from silently never running again — which is the exact
+ * failure this file exists to prevent. `pnpm audit` reads the same GitHub
+ * Advisory Database through the registry, needs no credential at all, and
+ * therefore also works on fork PRs where secrets are unavailable.
  *
- * BUT FAILING OPEN IS ANNOUNCED, NEVER SILENT. This is the part that is easy
- * to get wrong: a gate that cannot run and a gate that passed produce the same
- * green check, and the whole value of the control is that those two states are
- * distinguishable. Every fail-open path emits a GitHub `::warning` annotation
- * that surfaces on the run summary and says which state it is in.
+ * The trade-off is deliberate: `pnpm audit` cannot see alerts dismissed in
+ * GitHub's UI. Dismissals move into `pnpm.auditConfig.ignoreGhsas` in
+ * package.json instead — which is better for this purpose, because an in-repo
+ * ignore is version-controlled, diffed, and argued about in review, whereas a
+ * UI dismissal is invisible to everyone who was not looking at the alerts tab.
+ * `scripts/pnpm-overrides.test.ts` requires a written reason for each one.
  *
- * Requires a token with `security_events: read`. `GITHUB_TOKEN` can be granted
- * it via a `permissions:` block, but a token WITHOUT it gets 403 — which is a
- * fail-open path, so the gate degrades into a visible warning rather than a
- * broken build. That is the intended behaviour on a fork PR, where secrets are
- * not available at all.
+ * FAIL CLOSED on a fixable high/critical — the only state where somebody can
+ * act immediately. A 23-alert backlog accumulated here because nothing said no.
+ *
+ * FAIL OPEN on everything else: audit could not run, output unparseable, or an
+ * advisory with no published patch. A gate that blocks every PR because the
+ * registry returned 502, or because an upstream maintainer has not shipped a
+ * fix, gets switched off within a week — and a switched-off gate protects
+ * nothing.
+ *
+ * BUT FAILING OPEN IS ANNOUNCED, NEVER SILENT. A gate that could not run and a
+ * gate that passed produce the same green check, and the whole value of the
+ * control is that those two are distinguishable. Every fail-open path emits a
+ * GitHub `::warning` annotation. That property is what caught the 403 above.
  */
 
-const OWNER_REPO = process.env.GITHUB_REPOSITORY ?? '';
-const TOKEN = process.env.GITHUB_TOKEN ?? '';
+const execFileAsync = promisify(execFile);
 
 /** The severities worth stopping a build for. */
 export const BLOCKING_SEVERITIES = ['high', 'critical'] as const;
 
-export type Alert = {
-	number: number;
-	state: string;
-	security_advisory?: { severity?: string; summary?: string };
-	security_vulnerability?: {
-		first_patched_version?: { identifier?: string } | null;
-	} | null;
-	dependency?: { package?: { name?: string } };
+/** npm's sentinel in `patched_versions` for "no fix exists yet". */
+export const NO_PATCH = '<0.0.0';
+
+export type Advisory = {
+	severity?: string;
+	module_name?: string;
+	patched_versions?: string;
+	github_advisory_id?: string;
+	title?: string;
+};
+
+export type AuditReport = { advisories?: Record<string, Advisory> };
+
+export type BlockingAdvisory = {
+	id: string;
+	severity: string;
+	packageName: string;
+	patchedVersions: string;
+	title: string;
 };
 
 export type Decision = {
-	blocking: BlockingAlert[];
+	blocking: BlockingAdvisory[];
 	unpatched: string[];
 	ignored: number;
 };
 
-export type BlockingAlert = {
-	number: number;
-	severity: string;
-	packageName: string;
-	patchedVersion: string;
-	summary: string;
-};
-
 /**
- * Pure decision step, separated from the fetch so it can be tested without a
- * network. Takes the FULL alert list and does its own `state === 'open'`
- * filter rather than trusting the caller's query string — the API's `state`
- * parameter has been wrong before in other tools, and a gate that silently
- * evaluates dismissed alerts is worse than no gate.
+ * Pure decision step, separated from the subprocess so it can be tested without
+ * running an audit.
  */
-export function decideAdvisoryGate(alerts: Alert[]): Decision {
-	const open = alerts.filter((a) => a.state === 'open');
-	const blocking: BlockingAlert[] = [];
+export function decideAdvisoryGate(report: AuditReport): Decision {
+	const advisories = Object.entries(report.advisories ?? {});
+	const blocking: BlockingAdvisory[] = [];
 	const unpatched: string[] = [];
 
-	for (const alert of open) {
-		const severity = (alert.security_advisory?.severity ?? '').toLowerCase();
+	for (const [id, advisory] of advisories) {
+		const severity = (advisory.severity ?? '').toLowerCase();
 		if (!BLOCKING_SEVERITIES.includes(severity as 'high' | 'critical')) {
 			continue;
 		}
 
-		const packageName = alert.dependency?.package?.name ?? 'unknown';
-		const patchedVersion =
-			alert.security_vulnerability?.first_patched_version?.identifier ?? '';
+		const packageName = advisory.module_name ?? 'unknown';
+		const patchedVersions = advisory.patched_versions ?? '';
+		const label = advisory.github_advisory_id ?? id;
 
-		// No patch published — nothing the build could ask anyone to do.
-		if (!patchedVersion) {
-			unpatched.push(`#${alert.number} ${packageName} (${severity})`);
+		// No published fix — nothing the build could ask anyone to do.
+		if (!patchedVersions || patchedVersions === NO_PATCH) {
+			unpatched.push(`${label} ${packageName} (${severity})`);
 			continue;
 		}
 
 		blocking.push({
-			number: alert.number,
+			id: label,
 			severity,
 			packageName,
-			patchedVersion,
-			summary: alert.security_advisory?.summary ?? '',
+			patchedVersions,
+			title: advisory.title ?? '',
 		});
 	}
 
 	return {
 		blocking,
 		unpatched,
-		ignored: open.length - blocking.length - unpatched.length,
+		ignored: advisories.length - blocking.length - unpatched.length,
 	};
 }
 
@@ -123,37 +138,41 @@ function failOpen(reason: string): never {
 }
 
 async function main(): Promise<void> {
-	if (!OWNER_REPO) failOpen('GITHUB_REPOSITORY is not set');
-	if (!TOKEN) failOpen('no token available (expected on fork PRs)');
-
-	let alerts: Alert[];
+	let stdout: string;
 	try {
-		const res = await fetch(
-			`https://api.github.com/repos/${OWNER_REPO}/dependabot/alerts?state=open&per_page=100`,
-			{
-				headers: {
-					Authorization: `Bearer ${TOKEN}`,
-					Accept: 'application/vnd.github+json',
-					'X-GitHub-Api-Version': '2022-11-28',
-				},
-			},
-		);
-
-		if (!res.ok) {
-			// 403 is the common one: the token lacks `security_events: read`, or
-			// Dependabot alerts are disabled for the repo.
-			failOpen(`GitHub API returned ${res.status} ${res.statusText}`);
-		}
-
-		const body: unknown = await res.json();
-		if (!Array.isArray(body))
-			failOpen('GitHub API returned an unexpected shape');
-		alerts = body as Alert[];
+		// `pnpm audit` exits NON-ZERO when it finds anything, so a thrown error
+		// here is expected and its stdout is still the report. Only a genuinely
+		// missing/failed run leaves us with nothing to parse.
+		const result = await execFileAsync('pnpm', ['audit', '--json'], {
+			maxBuffer: 32 * 1024 * 1024,
+		});
+		stdout = result.stdout;
 	} catch (err) {
-		failOpen(`could not reach the GitHub API (${(err as Error).message})`);
+		const maybe = err as { stdout?: string; message?: string };
+		if (!maybe.stdout?.trim()) {
+			failOpen(
+				`\`pnpm audit\` produced no output (${maybe.message ?? 'unknown'})`,
+			);
+		}
+		stdout = maybe.stdout;
 	}
 
-	const { blocking, unpatched, ignored } = decideAdvisoryGate(alerts);
+	let report: AuditReport;
+	try {
+		report = JSON.parse(stdout) as AuditReport;
+	} catch {
+		failOpen('`pnpm audit --json` returned output that is not JSON');
+	}
+
+	if (
+		typeof report !== 'object' ||
+		report === null ||
+		!('advisories' in report)
+	) {
+		failOpen('`pnpm audit --json` returned an unexpected shape');
+	}
+
+	const { blocking, unpatched, ignored } = decideAdvisoryGate(report);
 
 	for (const name of unpatched) {
 		annotate(
@@ -165,24 +184,25 @@ async function main(): Promise<void> {
 	if (blocking.length === 0) {
 		annotate(
 			'notice',
-			`Advisory gate passed: no fixable high/critical alerts (${unpatched.length} unpatched, ${ignored} below threshold).`,
+			`Advisory gate passed: no fixable high/critical advisories (${unpatched.length} unpatched, ${ignored} below threshold).`,
 		);
 		return;
 	}
 
 	const lines = blocking.map(
 		(b) =>
-			`  #${b.number} [${b.severity}] ${b.packageName} → fixed in ${b.patchedVersion}${
-				b.summary ? ` — ${b.summary}` : ''
+			`  ${b.id} [${b.severity}] ${b.packageName} → fixed in ${b.patchedVersions}${
+				b.title ? ` — ${b.title}` : ''
 			}`,
 	);
 	annotate(
 		'error',
-		`Advisory gate FAILED: ${blocking.length} fixable high/critical alert(s).\n${lines.join('\n')}`,
+		`Advisory gate FAILED: ${blocking.length} fixable high/critical advisory(ies).\n${lines.join('\n')}`,
 	);
 	console.error(
-		'\nEach of these has a published fix. Upgrade the package, or dismiss the\n' +
-			'alert with a recorded reason if it is genuinely not reachable.\n',
+		'\nEach of these has a published fix. Upgrade the package, or — if it is\n' +
+			'genuinely not reachable — add its GHSA to pnpm.auditConfig.ignoreGhsas\n' +
+			'in package.json AND record why in docs/dependency-overrides.md.\n',
 	);
 	process.exit(1);
 }

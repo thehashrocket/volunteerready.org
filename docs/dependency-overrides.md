@@ -155,6 +155,39 @@ a **new** escape under either package still fails the build.
 deliberate within-major policy above. The open question is only whether moving
 to Babel 8 / Vite 8 wholesale is now desirable on its own merits.
 
+## Ignored advisories
+
+`pnpm.auditConfig.ignoreGhsas` in `package.json` is the list of advisories the
+CI gate (`scripts/check-advisories.ts`) deliberately does not fail on. Every
+entry needs a `### \`GHSA-…\`` section here; the guard test enforces it in both
+directions.
+
+An ignore lives in the repo rather than as a GitHub-UI dismissal because CI
+reads this file, and because a version-controlled ignore is diffed and argued
+about in review. (The GitHub alert may be dismissed too — that keeps the
+security tab quiet — but the repo entry is the one with teeth.)
+
+### `GHSA-f88m-g3jw-g9cj`
+
+**sharp — inherited libvips vulnerabilities** (CVE-2026-33327, CVE-2026-33328,
+CVE-2026-35590, CVE-2026-35591). High. Fixed in sharp 0.35.0; we are below that
+via `next`.
+
+**Not reachable.** sharp is invoked only by the Next.js Image Optimization API,
+and that API only processes bytes we did not author when `images.remotePatterns`
+or `images.domains` grants a remote origin. `next.config.ts` declares no
+`images` block at all, so every image served is a local file under `public/`
+and sharp never receives attacker-supplied input. All four CVEs require
+processing a hostile image.
+
+**Held in place by a test**, not by this paragraph:
+`scripts/next-config-images.test.ts` fails if an `images` block,
+`remotePatterns`, `domains`, `dangerouslyAllowSVG` or `unoptimized` is ever
+added — and its failure message names this GHSA as the thing to reconsider.
+
+**Revisit when:** that test changes, or `next` ships a sharp ≥ 0.35.0 (at which
+point delete this entry rather than carrying a dead ignore).
+
 ## Adding an override
 
 1. Add it to `pnpm.overrides` in `package.json`.

@@ -37,6 +37,20 @@ at all, it says so prominently rather than reporting success. That distinction
 is the whole point. A check that cannot run and a check that passed otherwise
 look identical, and the second one is a false reassurance.
 
+That property immediately earned itself. The check was first built to read the
+warnings from the code-hosting provider's own interface, which turned out to be
+unreadable from inside an automated build without a hand-created access key. It
+announced that plainly on its first real run instead of going quietly green,
+which is how we found out within minutes rather than the first time it should
+have caught something. It now reads the same underlying database through the
+package manager, needs no key at all, and therefore also works on contributions
+from outside the project.
+
+A consequence worth stating: decisions to accept a known warning now live in
+the project's own files rather than in the hosting provider's interface. They
+are visible in the diff, argued about in review, and — like the version pins —
+required to carry a written reason.
+
 **Version pins now have to say why they exist.** The project holds eleven
 dependencies at specific versions, and until now none of them recorded the
 reason. That is not bookkeeping. One of those pins had been holding a package at

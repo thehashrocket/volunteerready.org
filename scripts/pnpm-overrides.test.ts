@@ -47,7 +47,12 @@ const repoRoot = path.resolve(__dirname, '..');
 
 const pkg = JSON.parse(
 	readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
-) as { pnpm?: { overrides?: Record<string, string> } };
+) as {
+	pnpm?: {
+		overrides?: Record<string, string>;
+		auditConfig?: { ignoreGhsas?: string[] };
+	};
+};
 
 const overrides = pkg.pnpm?.overrides ?? {};
 
@@ -185,12 +190,38 @@ describe('pnpm.overrides', () => {
 
 		it('documents nothing that is no longer overridden', () => {
 			// The reverse direction: a section left behind after its override was
-			// deleted describes policy that is not in force.
-			const stale = [...documented].filter((name) => !(name in overrides));
+			// deleted describes policy that is not in force. GHSA sections are a
+			// different population, checked against ignoreGhsas below.
+			const stale = [...documented].filter(
+				(name) => !name.startsWith('GHSA-') && !(name in overrides),
+			);
 			expect(
 				stale,
 				`Documented but not overridden: ${stale.join(', ')}`,
 			).toEqual([]);
+		});
+
+		// Same rule for ignored advisories. `pnpm.auditConfig.ignoreGhsas` is the
+		// list the CI gate deliberately does not fail on, so each entry is a
+		// standing decision not to act on a real advisory — the one place a
+		// written reason matters most.
+		const ignored: string[] = pkg.pnpm?.auditConfig?.ignoreGhsas ?? [];
+
+		it.each(ignored)('documents ignored advisory %s', (ghsa) => {
+			expect(
+				documented.has(ghsa),
+				`No "### \`${ghsa}\`" section in docs/dependency-overrides.md. ` +
+					'An ignored advisory without a recorded reason is an undocumented ' +
+					'decision not to fix a real vulnerability.',
+			).toBe(true);
+		});
+
+		it('documents no advisory that is no longer ignored', () => {
+			const ghsaSections = [...documented].filter((n) => n.startsWith('GHSA-'));
+			const stale = ghsaSections.filter((g) => !ignored.includes(g));
+			expect(stale, `Documented but not ignored: ${stale.join(', ')}`).toEqual(
+				[],
+			);
 		});
 
 		it('finds sections at all (the heading regex still matches)', () => {
@@ -198,7 +229,9 @@ describe('pnpm.overrides', () => {
 			// empties and every per-package assertion above would fail — but a
 			// future refactor that made it match EVERYTHING would pass them all
 			// vacuously, so pin the count against the override list.
-			expect(documented.size).toBe(Object.keys(overrides).length);
+			expect(documented.size).toBe(
+				Object.keys(overrides).length + ignored.length,
+			);
 		});
 	});
 
