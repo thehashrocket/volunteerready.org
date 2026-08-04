@@ -16,7 +16,11 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { PlanTier } from '@/prisma/generated/client';
-import { getPlanLimits } from '@/server/domain/billing';
+import {
+	getPlanFeatures,
+	isFeatureIncluded,
+	PLAN_FEATURES,
+} from '@/server/domain/billing';
 
 export const metadata: Metadata = {
 	title: 'Pricing — VolunteerReady',
@@ -44,123 +48,36 @@ const TIER_META: Record<PlanTier, TierMeta> = {
 		label: 'Free',
 		price: '$0',
 		unit: '/month',
-		description: 'Get started managing volunteers.',
+		description: 'Everything you need to run volunteers day to day.',
 	},
 	STARTER: {
 		label: 'Starter',
 		price: '$49',
 		unit: '/month',
-		description: 'For growing nonprofits with more volunteers.',
+		description: 'Adds reusable shift templates for recurring programs.',
 	},
 	PRO: {
 		label: 'Pro',
 		price: '$149',
 		unit: '/month',
-		description: 'Unlimited scale + background checks + ESG.',
+		description: 'Background checks, ESG reporting, and advanced analytics.',
 	},
 };
 
-type TierFeature = {
-	label: string;
-	included: boolean;
-	detail?: string;
-};
-
-function buildTierFeatures(tier: PlanTier): TierFeature[] {
-	const limits = getPlanLimits(tier);
-	return [
-		{
-			label: 'Opportunities',
-			included: true,
-			detail:
-				limits.maxOpportunities === null
-					? 'Unlimited'
-					: `Up to ${limits.maxOpportunities}`,
-		},
-		{
-			label: 'Team members',
-			included: true,
-			detail:
-				limits.maxMembers === null ? 'Unlimited' : `Up to ${limits.maxMembers}`,
-		},
-		{ label: 'Custom screening forms', included: true },
-		{ label: 'Shift scheduling & attendance', included: true },
-		{ label: 'Portable volunteer credentials', included: true },
-		{ label: 'Volunteer matching engine', included: limits.canMatching },
-		{
-			label: 'FCRA-compliant background checks',
-			included: limits.canBackgroundChecks,
-		},
-		{ label: 'ESG reporting dashboard', included: limits.canESGReports },
-	];
-}
-
-type FeatureRow = {
-	label: string;
-	free: string | boolean;
-	starter: string | boolean;
-	pro: string | boolean;
-};
-
-const featureComparison: FeatureRow[] = [
-	{
-		label: 'Opportunities',
-		free: 'Up to 3',
-		starter: 'Up to 25',
-		pro: 'Unlimited',
-	},
-	{
-		label: 'Team members',
-		free: 'Up to 3',
-		starter: 'Up to 10',
-		pro: 'Unlimited',
-	},
-	{ label: 'Custom screening forms', free: true, starter: true, pro: true },
-	{
-		label: 'Shift scheduling & attendance',
-		free: true,
-		starter: true,
-		pro: true,
-	},
-	{
-		label: 'Portable volunteer credentials',
-		free: true,
-		starter: true,
-		pro: true,
-	},
-	{
-		label: 'Volunteer matching engine',
-		free: false,
-		starter: true,
-		pro: true,
-	},
-	{
-		label: 'FCRA-compliant background checks',
-		free: false,
-		starter: false,
-		pro: true,
-	},
-	{
-		label: 'ESG reporting dashboard',
-		free: false,
-		starter: false,
-		pro: true,
-	},
-	{ label: 'CSV data exports', free: false, starter: false, pro: true },
-	{ label: 'Audit logging', free: true, starter: true, pro: true },
-	{
-		label: 'Role-based access control',
-		free: true,
-		starter: true,
-		pro: true,
-	},
-];
-
+/**
+ * Both the tier cards and the comparison table below read `PLAN_FEATURES`
+ * (`server/domain/billing.ts`). They used to be two independent lists — the
+ * cards derived, the table hand-typed — and they disagreed in production: the
+ * table sold CSV export as Pro-only while the roster export ships free on every
+ * tier by design, and it omitted shift templates and the analytics dashboard
+ * entirely. Do not reintroduce a literal row here; add it to `PLAN_FEATURES`,
+ * where the guard test checks it against the real gate.
+ */
 const pricingFaqs = [
 	{
 		question: 'Is there really a free tier?',
 		answer:
-			'Yes. The Free plan includes up to 3 opportunities, 3 team members, custom screening forms, shift scheduling, and portable credentials — no credit card required.',
+			'Yes. The Free plan covers the whole day-to-day workflow — custom screening forms, shift scheduling and attendance, skill-based matching, portable credentials, and roster CSV export. No credit card, no volunteer cap, no seat cap.',
 	},
 	{
 		question: 'Can I change plans later?',
@@ -178,9 +95,14 @@ const pricingFaqs = [
 			'Background checks are included in the Pro plan at no additional platform fee. You pay only the provider cost (Checkr or Sterling) per check.',
 	},
 	{
-		question: 'What happens if I exceed my plan limits?',
+		question: 'Can I get my data out?',
 		answer:
-			"We'll notify you when you're approaching a limit and suggest an upgrade. We never cut off access to your existing data.",
+			'Always, on every plan including Free. Your volunteer roster exports to CSV whenever you want it — name, email, phone, status, how they joined, and shifts attended. We never hold your data hostage as an upgrade lever. Corporate ESG reports are the one export that needs Pro, because the aggregate dashboard they come from is itself a Pro feature.',
+	},
+	{
+		question: 'Are there limits on volunteers, opportunities, or team members?',
+		answer:
+			'No. Plans differ by capability, not by headcount — you will never be charged more or cut off because your volunteer list grew during the holidays. What Starter and Pro add is features: reusable shift templates, background checks, ESG reporting, and advanced analytics.',
 	},
 ];
 
@@ -233,7 +155,7 @@ export default function PricingPage() {
 				<div className="grid gap-6 sm:grid-cols-3">
 					{tiers.map((tier) => {
 						const meta = TIER_META[tier];
-						const features = buildTierFeatures(tier);
+						const features = getPlanFeatures(tier);
 						const isPro = tier === 'PRO';
 						return (
 							<Card
@@ -359,26 +281,30 @@ export default function PricingPage() {
 								</tr>
 							</thead>
 							<tbody>
-								{featureComparison.map((row) => (
-									<tr key={row.label} className="border-b border-border/30">
+								{PLAN_FEATURES.map((feature) => (
+									<tr key={feature.label} className="border-b border-border/30">
 										<td className="py-3 pr-4 text-sm text-foreground">
-											{row.label}
+											{feature.label}
 										</td>
-										<td className="px-4 py-3 text-center">
-											<div className="flex justify-center">
-												<ComparisonCell value={row.free} />
-											</div>
-										</td>
-										<td className="px-4 py-3 text-center">
-											<div className="flex justify-center">
-												<ComparisonCell value={row.starter} />
-											</div>
-										</td>
-										<td className="py-3 pl-4 text-center">
-											<div className="flex justify-center">
-												<ComparisonCell value={row.pro} />
-											</div>
-										</td>
+										{tiers.map((tier) => (
+											<td
+												key={tier}
+												className={cn(
+													'py-3 text-center',
+													tier === 'PRO' ? 'pl-4' : 'px-4',
+												)}
+											>
+												<div className="flex justify-center">
+													<ComparisonCell
+														value={
+															isFeatureIncluded(feature, tier)
+																? (feature.detail?.(tier) ?? true)
+																: false
+														}
+													/>
+												</div>
+											</td>
+										))}
 									</tr>
 								))}
 							</tbody>

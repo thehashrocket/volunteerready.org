@@ -15,7 +15,7 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc/client';
-import { getPlanLimits, isWithinTrial } from '@/server/domain/billing';
+import { isWithinTrial, PLAN_FEATURES } from '@/server/domain/billing';
 
 const TIER_LABELS: Record<string, string> = {
 	FREE: 'Free',
@@ -24,8 +24,8 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 const TIER_DESCRIPTIONS: Record<string, string> = {
-	STARTER: 'Up to 25 opportunities, volunteer matching, 10 team members.',
-	PRO: 'Unlimited everything + ESG reports.',
+	STARTER: 'Adds reusable shift templates for recurring programs.',
+	PRO: 'Background checks, ESG reporting, and advanced analytics.',
 };
 
 export default function BillingPage() {
@@ -107,7 +107,12 @@ export default function BillingPage() {
 				<div className="space-y-4">
 					<h2 className="text-lg font-semibold">Upgrade your plan</h2>
 					{UPGRADE_TIERS.map((tier) => {
-						const limits = getPlanLimits(tier);
+						// Same source as the public pricing page, so the two cannot drift.
+						// Only what this tier ADDS is worth listing here — the reader is
+						// already on a lower plan and has everything below it.
+						const added = PLAN_FEATURES.filter(
+							(f) => f.requiredTier === tier,
+						).map((f) => ({ label: f.label, detail: f.detail?.(tier) }));
 						return (
 							<Card key={tier}>
 								<CardHeader>
@@ -115,16 +120,12 @@ export default function BillingPage() {
 									<CardDescription>{TIER_DESCRIPTIONS[tier]}</CardDescription>
 								</CardHeader>
 								<CardContent className="text-sm text-muted-foreground">
-									<div>
-										Opportunities:{' '}
-										{limits.maxOpportunities === null
-											? 'Unlimited'
-											: `Up to ${limits.maxOpportunities}`}
-									</div>
-									<div>
-										Volunteer matching: {limits.canMatching ? '✓' : '—'}
-									</div>
-									<div>ESG reports: {limits.canESGReports ? '✓' : '—'}</div>
+									{added.map((f) => (
+										<div key={f.label}>
+											{f.label}
+											{f.detail ? ` · ${f.detail}` : ''}
+										</div>
+									))}
 								</CardContent>
 								<CardFooter>
 									<Button
