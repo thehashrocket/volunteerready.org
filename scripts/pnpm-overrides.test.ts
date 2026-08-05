@@ -48,6 +48,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const pkg = JSON.parse(
 	readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
 ) as {
+	dependencies?: Record<string, string>;
 	pnpm?: {
 		overrides?: Record<string, string>;
 		auditConfig?: { ignoreGhsas?: string[] };
@@ -65,12 +66,18 @@ const lockfile = readFileSync(path.join(repoRoot, 'pnpm-lock.yaml'), 'utf8');
  * may carry a peer-resolution suffix in parentheses, which is stripped. Parsing
  * by hand because neither `yaml` nor `semver` is a top-level dependency and
  * neither is worth adding for one guard test.
+ *
+ * `source` defaults to the real lockfile; the self-check passes a SYNTHETIC one.
+ * That parameter is the only thing making the self-check an independent oracle:
+ * against the real lockfile every positive assertion is satisfiable by a
+ * degenerate implementation that hardcodes the answer and never parses anything,
+ * because the hardcoded answer is by construction a version the lockfile holds.
  */
-function installedVersions(name: string): string[] {
+function installedVersions(name: string, source: string = lockfile): string[] {
 	const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 	const re = new RegExp(`^ {2}'?${escaped}@([^'():\\s]+)`, 'gm');
 	const found = new Set<string>();
-	for (const m of lockfile.matchAll(re)) found.add(m[1]);
+	for (const m of source.matchAll(re)) found.add(m[1]);
 	return [...found];
 }
 
@@ -399,7 +406,44 @@ describe('pnpm.overrides', () => {
 
 	describe('installedVersions() self-check', () => {
 		it('finds a package known to be in the lockfile', () => {
-			expect(installedVersions('next')).toContain('16.2.12');
+			// Derived from `package.json`, not a literal: a hardcoded version here
+			// turns every routine `next` bump into an unrelated red test, which is
+			// how it read before the 16.2 -> 16.3 upgrade.
+			const range = pkg.dependencies?.next;
+			expect(range).toBeTruthy();
+			const matching = installedVersions('next').filter((v) =>
+				satisfies(v, range as string),
+			);
+			expect(matching).not.toHaveLength(0);
+		});
+
+		it('parses versions out of the lockfile TEXT, not from anywhere else', () => {
+			// The assertion above is not an independent oracle on its own: both
+			// sides of it come from real project files, so an implementation that
+			// hardcoded `['16.3.0']` for `next` and never opened the lockfile would
+			// satisfy it — the hardcoded answer is, by construction, a version the
+			// lockfile holds. Verified: that exact mutant leaves the check GREEN.
+			// A synthetic lockfile is the only oracle the real files cannot supply.
+			const fixture = [
+				'packages:',
+				'',
+				'  next@99.88.77:',
+				'    resolution: {integrity: sha512-fake}',
+				'',
+				"  '@scope/pkg@1.2.3':",
+				'    resolution: {integrity: sha512-fake}',
+				'',
+				'  next@99.88.78(react@19.2.8):',
+				'    resolution: {integrity: sha512-fake}',
+				'',
+			].join('\n');
+
+			expect(installedVersions('next', fixture).sort()).toEqual([
+				'99.88.77',
+				'99.88.78',
+			]);
+			expect(installedVersions('@scope/pkg', fixture)).toEqual(['1.2.3']);
+			expect(installedVersions('absent-package', fixture)).toEqual([]);
 		});
 
 		it('does not match a package that only appears as a name prefix', () => {

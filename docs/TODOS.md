@@ -2593,6 +2593,18 @@ unchallenged" — has now happened once, and the class is wider than
 Turbopack-dev-only bugs: anything that breaks `next build` while leaving `tsc`
 happy is invisible to every check currently in CI.
 
+**Independently re-raised as the top finding on v0.41.9.0** (the Next 16.3
+bump), by an adversarial cross-model review that had not been shown this entry:
+a framework upgrade is precisely the change whose failure mode is build-only, so
+the one branch class that most needs the gate is the one shipping without it.
+That ship covered itself by running `pnpm next build` **by hand** and pasting
+the result — which is the workaround this entry exists to retire, and it does
+not survive a dependabot PR, where no human runs anything. Note the interim
+mitigation is cheaper than the full job: `pnpm next build` alone (not
+`pnpm build`, which seeds) against the existing `postgres:16-alpine` service
+container would have caught both the TS 7 break and any 16.3 build regression,
+without solving the seed/env question that has blocked this entry twice.
+
 ### The design doc's prescribed E1a shape does not work — corrected in code
 `docs/designs/staff-created-volunteers.md` §5 and this file both specified
 `findFirst({ orgId, userId, deletedAt: null })` then `create` with a **P2002
@@ -4679,7 +4691,21 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   growth). Start: `src/app/(app)/app/settings/page.tsx`, approved mockups at
   `~/.gstack/projects/thehashrocket-volunteerready.org/designs/settings-hub-20260712/`.
   **Effort:** M | **Priority:** P3 | **Depends on:** settings hub shipping (issue #127).
-- **[P1] Local `pnpm build` fails prerender with React useContext null** (#136) —
+- **[P1] ~~Local `pnpm build` fails prerender with React useContext null~~ (#136)
+  ✅ FIXED UPSTREAM by Next.js 16.3 (2026-08-05, v0.41.9.0)** — verified
+  empirically on the 16.2.12 → 16.3.0 bump, not by reading the issue: a COLD
+  build (`rm -rf .next && pnpm next build`) completes and prerenders 92/92
+  static pages, with a clean exit. The diagnostic tell this entry names — the
+  `unique "key" prop` / `<html>` warning that appeared *on every build* — is
+  **absent** from the cold-build output, as is any `useContext` null or
+  `/_global-error` crash. Recheck by cold-building; if the warning returns, the
+  batching bug is back and this should be reopened rather than re-diagnosed.
+  **The consequence worth carrying forward: `/ship`'s build gate no longer runs
+  blind**, so a local `pnpm next build` is now real evidence about the deploy —
+  which is what made the manual build check on v0.41.9.0 meaningful, and raises
+  the value of the still-open "CI has no `pnpm build` step" P2 above.
+  Original diagnosis retained below for the record.
+
   BLOCKED ON UPSTREAM, filed as [vercel/next.js#95741](https://github.com/vercel/next.js/issues/95741)
   (2026-07-13, /investigate). Root cause confirmed: an upstream Next.js 16.x
   Turbopack bug prerendering the internal `/_global-error` page (matches
