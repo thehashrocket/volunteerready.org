@@ -8,8 +8,16 @@ Takes the eight remaining dependency updates — the ones the previous release
 deliberately left alone because each crosses a major version and needed its own
 assessment. Nothing here changes what the site does.
 
-Four of them needed no code changes at all: the icon set, the analytics client,
-the email client, and a testing helper. The other four each turned up something.
+Five of them needed no code changes at all: the icon set, the analytics client,
+the email client, a testing helper, and the Node.js type definitions. The other
+three each turned up something.
+
+One caveat is worth recording about that fifth one. The Node.js type
+definitions jumped six versions to the newest available, while the project
+itself runs on an older version of Node. Type definitions describe what the
+language offers; they do not change what actually runs. So they now describe a
+few newer capabilities that would not exist if something tried to use them —
+nothing here does, but it is the kind of gap that is quiet until it is not.
 
 **The payment library's pinned API date had to move forward.** The project
 names the exact version of the payment provider's interface it speaks, so that

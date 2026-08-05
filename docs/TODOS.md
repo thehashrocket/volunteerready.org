@@ -2579,6 +2579,20 @@ reaches Vercel unchallenged. Not added here because `pnpm build` runs
 `pnpm next build` against the service container plus whatever env the build reads,
 and adding an unverified job would land CI red on its first run. **Effort:** S.
 
+**This stopped being hypothetical in v0.41.8.0.** The TypeScript 7 bump
+(dependabot #193) went **green on all three CI jobs** — lint+typecheck, tests,
+and security advisories — and still failed the Vercel deploy with *"TypeScript
+7.0.2 does not provide the compiler API required by Next.js"*. TS 7 is the
+native Go port and ships no `lib/typescript.js`, so Next cannot load the
+compiler API it type-checks builds with. CI could not see it because
+`pnpm typecheck` is `tsc --noEmit`, which invokes the compiler as a *program*
+and passes on TS 7 either way. Only `next build` exercises the API path.
+
+So the failure this entry predicts — "a build break reaches Vercel
+unchallenged" — has now happened once, and the class is wider than
+Turbopack-dev-only bugs: anything that breaks `next build` while leaving `tsc`
+happy is invisible to every check currently in CI.
+
 ### The design doc's prescribed E1a shape does not work — corrected in code
 `docs/designs/staff-created-volunteers.md` §5 and this file both specified
 `findFirst({ orgId, userId, deletedAt: null })` then `create` with a **P2002
