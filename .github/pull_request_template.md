@@ -12,11 +12,10 @@
 
 **Delete the sections below that do not apply.** Everything here exists because
 CI cannot check it. `.github/workflows/ci.yml` runs lint, typecheck,
-`docs:build`, unit, scripts and integration — it does **not** run `next build`
-and it does **not** run `pnpm e2e`. So the production build signal is the Vercel
-preview deploy (which is not a gate), and every e2e-covered behaviour falls to a
-human until that TODO lands. Tick what you actually did; strike through with a
-reason what you skipped.
+`docs:build`, unit, scripts, integration, and the deploy path (production seed
++ `next build`) — it does **not** run `pnpm e2e`. So every e2e-covered
+behaviour falls to a human until that TODO lands. Tick what you actually did;
+strike through with a reason what you skipped.
 
 <!-- ------------------------------------------------------------------ -->
 <!-- Applies to: any PR touching a RUNTIME dependency (next, next-auth,  -->
@@ -25,9 +24,10 @@ reason what you skipped.
 
 ### Runtime dependency bump
 
-- [ ] **Vercel preview build is green.** This is the only `next build` signal
-      anywhere in the pipeline. A type error or bundler failure that unit tests
-      cannot see shows up here and nowhere else.
+- [ ] **Vercel preview build is green.** CI now runs `next build` too, so this
+      is no longer the only build signal — but it is the only one that runs the
+      *production* branch of `scripts/vercel-build.sh` (the email-collision
+      pre-check and `prisma migrate deploy`), against real data.
 - [ ] **Lockfile diff is scoped.** `git diff pnpm-lock.yaml` moves only the
       intended package, its platform binaries, and peer re-resolution keys — no
       collateral version bumps. (`pnpm update <pkg>` takes the highest version
