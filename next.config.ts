@@ -6,11 +6,16 @@ const nextConfig: NextConfig = {
 	// TypeScript 7 is the native (Go) port and ships no `lib/typescript.js`, so
 	// Next cannot load the JS compiler API it normally type-checks the build
 	// with: it fails the build outright with "TypeScript 7.0.2 does not provide
-	// the compiler API required by Next.js". This flag is the alternative Next
-	// itself names in that message — it spawns the `tsc` CLI as a child process
-	// instead. The other option is staying on TypeScript 6.
+	// the compiler API required by Next.js". This flag spawns the `tsc` CLI as a
+	// child process instead. The other option is staying on TypeScript 6.
 	//
-	// Note this failure is INVISIBLE to CI: `pnpm typecheck` shells out to `tsc`
+	// As of Next 16.3 the CLI checker is the DEFAULT, so this is now redundant —
+	// kept explicit because the value we need is not the one we'd get by
+	// accident: setting it to `false` (or a future default flipping back) makes
+	// `next build` exit outright while we are on TS 7. Do not delete it without
+	// also moving off TypeScript 7.
+	//
+	// Note that failure is INVISIBLE to CI: `pnpm typecheck` shells out to `tsc`
 	// and passes on TS 7 regardless. Only `next build` (i.e. Vercel) sees it,
 	// which is exactly how the dependabot PR came up green and still broke the
 	// deploy. Build-time checking is unchanged in strictness, and got faster
