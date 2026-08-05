@@ -2,6 +2,83 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.9.0] - 2026-08-05
+
+Moves the underlying web framework from Next.js 16.2 to 16.3. Nothing here
+changes what the site does or looks like; it is a minor release with no
+breaking changes, and everything it improves is either automatic or something
+we chose not to opt into yet.
+
+**The upgrade quietly fixed a bug we had given up on.** Since mid-July, building
+the site for production on a developer's own machine crashed partway through,
+for reasons traced to a defect inside the framework itself and reported upstream.
+Nothing could be done from this end, so the workaround was to stop checking:
+builds were verified only after deploying. That check is available again — a
+build from a cleared cache now completes and renders all 92 pages, and the
+distinctive warning that always accompanied the crash is gone. The practical
+effect is that a broken build can once more be caught before it reaches the
+site, rather than after.
+
+What the site gets for free, measured here: builds got roughly twice as fast on
+a repeat run, because compiled output is now reused between builds instead of
+being thrown away — a local production build went from 28 seconds to 12.
+
+Two further improvements are claimed by the framework's own benchmarks and were
+not measured on this project: pages render faster under load (they cite 22%
+more requests, from replacing an internal plumbing layer with the platform's
+native one), and the development server uses far less memory over a long
+session. Both are plausible and neither cost us anything, but nobody here has
+put a number on them, so do not repeat them as our figures.
+
+**One test had to be rewritten, and it was pinning the wrong thing.** A guard
+that verifies our dependency-lockfile reader actually reads the lockfile did so
+by asserting it finds Next.js version 16.2.12 — a literal. That is a correct
+check exactly once. Every routine framework bump after it turns an unrelated,
+already-passing guard red, which teaches whoever is doing the upgrade to edit
+failing tests until they pass. It now reads the version range the project
+declares and asserts the lockfile carries something satisfying it, so it still
+fails if the reader is broken but no longer fails merely because we upgraded.
+
+A second review pass then found that neither the old spelling nor the new one
+actually proved the thing the test claims to prove. Both could be satisfied by
+a reader that simply returned the right answer from memory without ever opening
+the lockfile — because the answer it would have to invent is, unavoidably, one
+the real file already contains. Checking the answer back against the real file
+does not help, for the same reason. The test now also feeds the reader a small
+hand-written fake lockfile whose contents nobody could guess, which is the only
+version of this check that can tell a real reader from a convincing one.
+
+**Two generated files that are tracked in the repository now change on their
+own, and both belong in the commit.** The framework now writes its generated
+route types to a different place depending on which command ran — building puts
+them in one directory, running the development server puts them in another — so
+the small tracked file that points at them flips back and forth as you work.
+Both spellings are correct; neither is worth "fixing" into the other. Separately,
+the development server now writes a block into `AGENTS.md` telling AI coding
+agents to read the documentation bundled with the installed version rather than
+whatever they memorised — which is directly useful here, since this project has
+been bitten before by agents assuming an older framework's conventions. Both
+are noted in `CLAUDE.md`, because the natural instinct on seeing an unexplained
+diff is to revert it, and reverting this one just recreates it on the next run.
+
+**A configuration flag became redundant and was deliberately kept anyway.** The
+previous release added a setting that makes build-time type checking shell out
+to the TypeScript command-line tool, which is the only way it works with the
+version of TypeScript this project uses. 16.3 makes that the default. The
+setting is now stating what would happen regardless — but the value we need is
+not one we would get by accident, and the failure if it ever flips back is the
+build refusing to run at all. It stays, with the comment corrected rather than
+the flag deleted.
+
+Checked by: a full production build, all 3,063 automated tests (2,638 unit, 218
+integration against a real database, 207 script), formatting, type checking,
+and a development server booted against all 23 public pages. The guard tests
+above were additionally checked by deliberately breaking the code they cover,
+four different ways, to confirm each one fails when it should rather than
+passing for the wrong reason. The browser-driven end-to-end suite was
+not run — it needs a database this workspace shares with another, and seeding
+it would have disrupted work in progress there.
+
 ## [0.41.8.0] - 2026-08-05
 
 Takes the eight remaining dependency updates — the ones the previous release
