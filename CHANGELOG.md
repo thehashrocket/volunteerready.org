@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.8.0] - 2026-08-05
+
+Takes the eight remaining dependency updates — the ones the previous release
+deliberately left alone because each crosses a major version and needed its own
+assessment. Nothing here changes what the site does.
+
+Four of them needed no code changes at all: the icon set, the analytics client,
+the email client, and a testing helper. The other four each turned up something.
+
+**The payment library's pinned API date had to move forward.** The project
+names the exact version of the payment provider's interface it speaks, so that
+the provider cannot change behaviour underneath it without someone choosing to
+accept the change. The new library only speaks the newer date, so that pin
+moved. The five places the project actually calls the payment provider —
+creating a customer, starting a checkout, opening the billing portal, verifying
+a webhook signature, and replaying past events — were each checked against the
+list of changes between the two dates, and none of them are affected.
+
+**A browser-simulation upgrade broke twenty-eight tests, and the fix was to
+delete code rather than add it.** The tests covering the add-a-volunteer form
+carried a workaround for a gap in the simulated browser: it reported a styling
+value as blank where a real browser reports "none", and a library the form uses
+crashed on the blank. The workaround wrapped the browser's styling object in a
+copy — and the new version rejects copies, because it now verifies that such
+objects are genuinely its own before answering questions about them. That check
+runs during every lookup of an element by its accessible name, which is how
+those tests find anything, so all of them failed at once.
+
+The new version also reports "none" correctly, so the workaround was not
+repaired — it was removed, along with the problem it existed for. The note left
+behind records what to do if a future version regresses, because the original
+failure was the kind that fails the run while every individual test still
+reports as passing.
+
+**That same upgrade left a security override constraining nothing.** The
+project pins a handful of indirectly-included packages to patched versions. One
+of those packages was only ever present because the old browser simulation
+required it; the new one does not, so the pin now reads as active policy while
+having no effect. A guard test added two releases ago caught this immediately,
+which is exactly what it was written for. The pin and its recorded rationale
+were removed together, as that file's own instructions prescribe.
+
+**The compiler upgrade broke the deploy in a way the test pipeline could not
+see, and that is the part worth remembering.** The new compiler is a rewrite in
+a different language and no longer offers the programmatic interface the web
+framework uses to check types during a production build, so the build fails
+outright. The framework's error message names two ways out; this takes the one
+it suggests, which runs the compiler as a separate program instead. Type
+checking is unchanged in strictness and got roughly twenty times faster.
+
+The reason to flag it: the project's own type check passes on the new compiler,
+because it invokes the compiler the same way — as a program. So all three test
+jobs reported success on the proposed update while the deploy failed. A green
+pipeline was not evidence the change was safe, and only building the way
+production builds revealed it.
+
 ## [0.41.7.0] - 2026-08-04
 
 Brings thirty-nine dependencies up to date. These are the routine updates that
