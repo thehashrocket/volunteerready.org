@@ -172,3 +172,100 @@ jobs:
       # `mode: 'insensitive'` (an ILIKE wildcard hole on an authorization check)
       # would ship green without this step.
       - run: pnpm test:integration
+
+  # Runs the deploy path. `pnpm lint` + `pnpm typecheck` do NOT cover it, and the
+  # gap is not theoretical: the TypeScript 7 bump (dependabot #193, v0.41.8.0)
+  # went green on all three jobs above and still broke the Vercel deploy with
+  # "TypeScript 7.0.2 does not provide the compiler API required by Next.js".
+  # `pnpm typecheck` is `tsc --noEmit`, which invokes the compiler as a PROGRAM
+  # and passes on TS 7 either way; only `next build` loads the compiler API.
+  # The class is wider than that one break — anything that fails `next build`
+  # while leaving `tsc` happy (a bad `next.config.ts`, a Server Component that
+  # throws during prerender, a route that fails page-data collection) was
+  # invisible to CI until this job existed.
+  #
+  # `scripts/vercel-build.sh` has THREE stages — a production-only preflight,
+  # `pnpm seed`, then `next build` — and this job gates the last two. The seed
+  # is here because a broken `prisma/seed-production.ts` breaks EVERY deploy
+  # while leaving every other check green; that was raised by an adversarial
+  # cross-model review, which correctly called a compile-only gate incomplete.
+  # The preflight (`check:email-collisions`) is deliberately NOT here: it reads
+  # a database that is empty and ephemeral in CI, so it can only ever pass.
+  #
+  # Its own job rather than a step on `test`: it needs no migrations-plus-suite
+  # ordering, it runs in parallel instead of behind three test suites, and a
+  # build break stays readable on the PR check list next to a test failure.
+  build:
+    name: Build (deploy path)
+    runs-on: ubuntu-latest
+
+    # The build reads the database. `/sitemap.xml` queries organizations during
+    # static export, so with no reachable DB it aborts on P1001 — verified by
+    # running this build against a closed port.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: volunteeermatch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d volunteeermatch"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/volunteeermatch"
+      DATABASE_URL_UNPOOLED: "postgresql://postgres:postgres@localhost:5432/volunteeermatch"
+      # Set HERE and not at workflow level, deliberately. `getFromEmail()`
+      # (src/server/lib/resend.ts) throws at import when it is missing, and
+      # `src/server/auth.ts` calls it at module scope — so page-data collection
+      # for /api/auth/[...nextauth] fails the build without it. It is scoped to
+      # this job so it cannot change the behaviour of any test that observes the
+      # variable being absent. Not a real sender: nothing here talks to Resend.
+      RESEND_FROM_EMAIL: "ci@example.com"
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      # Full install: `postinstall` runs `prisma generate`, and the build cannot
+      # resolve `@/prisma/generated/client` without it.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        run: pnpm prisma migrate deploy
+
+      # `prisma/seed.ts` dispatches on NODE_ENV, and the two branches are
+      # different code: `seedProduction()` (platform org, skill catalog, default
+      # screener backfill) is what Vercel runs, `seedDev()` is full demo data.
+      # A bare `pnpm seed` here would gate the branch that never deploys, which
+      # is the trap in this step — it looks complete and tests nothing that
+      # ships. ~11s against a fresh migrated database.
+      #
+      # NODE_ENV is set on THIS STEP, never at job level: at job level it also
+      # reaches `pnpm install`, which then skips devDependencies and takes the
+      # build down with it.
+      - name: Seed (the production path, as Vercel runs it)
+        run: pnpm seed
+        env:
+          NODE_ENV: production
+
+      # `pnpm next build`, NOT `pnpm build`. The latter re-runs the seed and
+      # branches on VERCEL_ENV to do production-only work (migrate deploy, the
+      # email-collision pre-check) that a CI database cannot meaningfully
+      # exercise. The two stages worth gating are run explicitly instead, so
+      # each one fails on its own line.
+      - run: pnpm next build
