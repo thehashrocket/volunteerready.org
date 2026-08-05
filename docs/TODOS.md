@@ -71,10 +71,14 @@ it covers the `volunteerEmailSchema` paths, which
 
 ### [P2] `pnpm e2e` is not in CI, and three coverage gaps depend on it
 
-`.github/workflows/ci.yml` runs lint, typecheck, `docs:build`, unit, scripts and
-integration. It does **not** run e2e, and it does not run `next build` either —
-the only production-build signal is the Vercel preview deploy, which is not a
-gate.
+`.github/workflows/ci.yml` runs lint, typecheck, `docs:build`, unit, scripts,
+integration, and — as of v0.41.10.0 — the deploy path (production seed +
+`next build`). It does **not** run e2e.
+
+The second half of this entry's original complaint is now closed: `next build`
+used to be ungated, leaving the Vercel preview deploy as the only production-build
+signal and not a blocking one. That is fixed. **The e2e half is not**, and the
+three gaps below stand unchanged.
 
 Three findings in the Dependabot review resolved to "e2e covers it, but CI does
 not run e2e": `/_next/image` rendering (the scrolled `naturalWidth` assertions in
@@ -2571,7 +2575,51 @@ the imported function; and the P2002 test fixture is shared from
 `src/test/prisma-error-fixtures.ts` rather than existing as two divergent copies
 of an empirically-discovered shape.
 
-### [P2] CI has no `pnpm build` step
+### [P2] ~~CI has no `pnpm build` step~~ ✅ FIXED (2026-08-05)
+
+Fixed with a `build` job in `.github/workflows/ci.yml` that runs the deploy path
+— `prisma migrate deploy`, then the production seed, then `pnpm next build` —
+against its own `postgres:16-alpine` service container. The seed/env question
+that blocked this entry twice was really four questions, and all four were
+answered by running the job's exact conditions locally with every `.env*` file
+moved aside rather than by reasoning about them:
+
+1. **The build DOES need a reachable, migrated database.** `/sitemap.xml`
+   queries organizations during static export, so against a closed port the
+   build aborts on Prisma `P1001` at 69/92 pages. It does not need the rows to
+   be non-empty, so for the *compile* alone, migrations would suffice.
+2. **It needs exactly one env var the workflow did not set: `RESEND_FROM_EMAIL`.**
+   `getFromEmail()` throws at import when it is missing and `server/auth.ts`
+   calls it at module scope, so page-data collection for
+   `/api/auth/[...nextauth]` fails the build — with none of the other 40-odd
+   `process.env` reads in the tree mattering. It is set at JOB level, not
+   workflow level, so it cannot alter a test that observes the variable absent.
+3. **The seed is gated for its own sake, not because the build needs data.** An
+   adversarial cross-model review called the first, compile-only version of this
+   job incomplete and it was right: `scripts/vercel-build.sh` has three stages,
+   and a broken `prisma/seed-production.ts` breaks EVERY deploy while leaving
+   every other check green — the same failure shape as the compile gap, one
+   stage upstream. ~11s against a fresh migrated database.
+4. **That seed step must carry `NODE_ENV: production`, on the STEP.**
+   `prisma/seed.ts` dispatches on `NODE_ENV`, so a bare `pnpm seed` runs
+   `seedDev()` and gates a branch that never deploys — complete-looking and
+   worthless. At JOB level the same variable reaches
+   `pnpm install --frozen-lockfile`, which then skips devDependencies and takes
+   `next` out of `node_modules`.
+
+The two stages are explicit steps rather than one `pnpm build`, so each fails on
+its own line and `vercel-build.sh`'s `VERCEL_ENV` branching stays out of CI. The
+third stage, `check:email-collisions`, is deliberately NOT gated: it reads a
+database that is empty and ephemeral here, so it can only ever pass.
+
+All of it is pinned by `scripts/ci-build-gate.test.ts` (13 mutations, each
+verified red), including that the job carries no `if:` and no
+`continue-on-error: true` — both of which leave every asserted string in place
+while removing the gate.
+
+The original entry follows, because its reasoning is what the fix was verified
+against.
+
 Raised in review and worth acting on: this repo has a documented history of
 Turbopack-dev-only bugs, and nothing in CI compiles the app, so a build break
 reaches Vercel unchallenged. Not added here because `pnpm build` runs
