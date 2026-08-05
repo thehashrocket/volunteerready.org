@@ -2,6 +2,77 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.10.0] - 2026-08-05
+
+**A green set of checks now means the site can actually be deployed. Until this
+release it did not.** The automated checks that run on every change tested the
+code in every way except the one that matters most at the end: actually
+assembling the site the way the hosting platform does. So a change could pass
+every check, get merged, and then fail at deployment, where the only person who
+finds out is whoever notices the site did not update.
+
+That is not a hypothetical risk being pre-empted. It happened two releases ago.
+A routine automated dependency update moved the project to a new version of its
+type checker, passed all three sets of checks, was merged, and broke the
+deploy. The reason it slipped through is worth stating plainly: the existing
+type-checking step and the assembly step use the same tool in two different
+ways, and only the second way was broken. Nothing in the checks exercised the
+second way. The response at the time was for a person to run the assembly by
+hand before merging, which works right up until the change is made by an
+automated dependency robot, where no person runs anything.
+
+**The checks now run the deployment sequence itself** — set up a throwaway
+database, load the small amount of reference data every deployment loads, then
+assemble the site — on every proposed change and every merge. It runs alongside
+the existing checks rather than after them, so it does not make anything slower
+to find out about.
+
+**It started as assembly only, and an independent review was right that this
+was half a fix.** The deployment does three things, and the first version of
+this gated the last one. The middle step loads reference data, and if that step
+were ever broken it would break every deployment, silently, with every other
+check still green — the same failure this release exists to close, one step
+earlier. It is now covered too, which cost about eleven seconds. The first step
+is deliberately left out: it is a safety check against real customer data, and
+against the empty throwaway database used here it can only ever pass, so gating
+it would buy a reassuring green tick and nothing else.
+
+Four things about the sequence were settled by running it under the real
+conditions rather than by reading the code, and each one is a way this could
+have shipped looking finished while testing nothing:
+
+- It needs a working database, because assembling the sitemap looks up
+  organisations. Without one the assembly dies about three-quarters of the way
+  through.
+- It needs exactly one setting that was not previously configured, without
+  which the sign-in machinery refuses to load at all. None of the other forty
+  or so settings in the project turned out to matter.
+- The reference-data step has two modes and picks between them automatically.
+  Run it the obvious way and it loads demonstration data instead of the real
+  thing, testing a path that is never deployed. It looks complete and proves
+  nothing.
+- Fixing that in the obvious place breaks the assembly outright, because the
+  same switch also tells the installer to skip development tools, removing the
+  assembly tool itself.
+
+**The rules above are themselves protected, because none of them fail loudly.**
+Deleting the new step, pointing it at the wrong command, taking away its
+database, reordering it, or marking it "allowed to fail" would each leave every
+other check green — which is exactly the shape of problem this release is
+about. A test now pins each one. It was checked by deliberately breaking it
+thirteen different ways and confirming each break was caught; two of those
+attempts found real holes in the test itself, including one where deleting the
+step under test made the entire test file quietly vanish from the run rather
+than fail.
+
+Still not covered, and worth knowing: the browser-level tests continue to run
+only on demand, not automatically.
+
+Checked by: a full production build under the exact conditions the automated
+checks use, all 3,075 automated tests (2,638 unit, 218 integration against a
+real database, 219 script), formatting, type checking, documentation build, and
+an independent second-opinion review from a different AI model.
+
 ## [0.41.9.0] - 2026-08-05
 
 Moves the underlying web framework from Next.js 16.2 to 16.3. Nothing here

@@ -467,7 +467,9 @@ pnpm build                # Production build
 pnpm start                # Production server
 pnpm lint                 # Biome lint — fails on warnings, not just errors (CI gates on this)
 pnpm format               # Biome format
-pnpm typecheck            # tsc --noEmit
+pnpm typecheck            # tsc --noEmit — NOT a substitute for a build. It invokes the compiler as
+                          #   a program, so it passes on TypeScript 7 whether or not `next build` can
+                          #   load the compiler API. CI gates both; that gap broke a deploy once.
 pnpm test                 # Vitest (run once)
 pnpm test:watch           # Vitest (watch mode)
 pnpm test:scripts         # Vitest for scripts/**/*.test.ts (separate config, excluded from pnpm test)
