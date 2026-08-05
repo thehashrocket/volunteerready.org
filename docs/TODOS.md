@@ -1638,17 +1638,33 @@ drift is now impossible. **The original gap is untouched:** the Tailwind `lg:`
 on the list and the media query in the hook are still two unrelated
 declarations, and the failure mode is unchanged.
 
-### [P3] `AddVolunteerDialog.test.tsx` patches `window.getComputedStyle` globally
+### [P3] ~~`AddVolunteerDialog.test.tsx` patches `window.getComputedStyle` globally~~ ✅ FIXED (2026-08-05, v0.41.8.0)
 
-vaul reads `style.transform || style.webkitTransform || style.mozTransform` and
-calls `.match()` on the result; jsdom computes `transform` as `''` and defines
-neither alias, so the chain yields `undefined` and every pointer release inside
-the drawer throws. It throws **asynchronously**, so the run fails while every
-test still reports green — which is how it was found. The shim shadows the one
-property and is file-local, matching the pointer-capture polyfills'
-already-per-file precedent (`org-profile-form.test.tsx:47-50`). If a third file
-renders a Drawer, move both into `src/test-setup.ts` rather than copying them a
-third time. **Effort:** S.
+The shim is **gone**, and not by being moved — jsdom 30 made it unnecessary.
+
+Original problem: vaul reads
+`style.transform || style.webkitTransform || style.mozTransform` and calls
+`.match()` on the result; jsdom 25 computed `transform` as `''` and defined
+neither alias, so the chain yielded `undefined` and every pointer release inside
+the drawer threw. It threw **asynchronously**, so the run failed while every
+test still reported green — which is how it was found.
+
+jsdom 30 computes the spec-correct initial value `'none'`, so the chain is
+satisfied natively. Verified by experiment (`getComputedStyle(el).transform`
+returns `'none'` under jsdom 30) and by mutation — deleting the shim leaves all
+28 tests green with no unhandled error.
+
+The shim could not have been kept anyway: it wrapped the real declaration in
+`Object.create(style, …)`, and jsdom 30 brand-checks every
+`CSSStyleDeclaration` method against its wrapper registry, so an object merely
+*inheriting* from a real declaration makes `getPropertyValue` throw.
+`dom-accessibility-api` calls that for every accessible-name computation — i.e.
+every `getByRole` — so all 28 tests died on it until the shim was removed.
+
+**The pointer-capture polyfills remain**, and the original guidance still applies
+to them: they are file-local, matching `org-profile-form.test.tsx:47-50`; if a
+third file renders a Drawer, move them into `src/test-setup.ts` rather than
+copying them a third time.
 
 ---
 
