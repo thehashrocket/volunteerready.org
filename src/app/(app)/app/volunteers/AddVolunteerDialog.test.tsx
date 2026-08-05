@@ -60,23 +60,25 @@ Element.prototype.setPointerCapture = vi.fn();
 Element.prototype.releasePointerCapture = vi.fn();
 Element.prototype.hasPointerCapture = vi.fn().mockReturnValue(false);
 
-// vaul reads `style.transform || style.webkitTransform || style.mozTransform`
-// and calls `.match()` on the result. jsdom computes `transform` as the empty
-// string and defines neither prefixed alias, so that chain yields `undefined`
-// and every pointer release inside the drawer throws — asynchronously, so it
-// surfaces as an unhandled error that fails the run while every test still
-// reports green. Shadow the one property rather than replacing the whole
-// declaration, so nothing else about computed style changes.
-const realGetComputedStyle = window.getComputedStyle;
-window.getComputedStyle = ((
-	element: Element,
-	pseudoElement?: string | null,
-) => {
-	const style = realGetComputedStyle.call(window, element, pseudoElement);
-	return Object.create(style, {
-		transform: { value: style.transform || 'none' },
-	}) as CSSStyleDeclaration;
-}) as typeof window.getComputedStyle;
+// There used to be a `window.getComputedStyle` shim here. vaul reads
+// `style.transform || style.webkitTransform || style.mozTransform` and calls
+// `.match()` on the result; jsdom 25 computed `transform` as the EMPTY STRING
+// and defined neither prefixed alias, so that chain yielded `undefined` and
+// every pointer release inside the drawer threw — asynchronously, so it failed
+// the run while every test still reported green.
+//
+// jsdom 30 computes the spec-correct initial value `'none'`, so the chain is
+// satisfied natively and the shim is gone. It could not simply be kept, either:
+// it wrapped the real declaration in `Object.create(style, …)`, and jsdom 30
+// brand-checks every CSSStyleDeclaration method against its wrapper registry,
+// so an object merely *inheriting* from a real declaration made
+// `getPropertyValue` throw "called on an object that is not a valid instance".
+// `dom-accessibility-api` calls that for every accessible-name computation —
+// i.e. every `getByRole` — so all 28 tests in this file died on it.
+//
+// If a future jsdom regresses `transform` to `''`, the drawer tests below start
+// throwing again. Restore the shim as a `Proxy` that binds methods back to the
+// real declaration, never as a derived object, or the brand check refuses it.
 
 /**
  * `open` is owned by the roster page, so the component is controlled. This is

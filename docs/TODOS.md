@@ -1638,17 +1638,33 @@ drift is now impossible. **The original gap is untouched:** the Tailwind `lg:`
 on the list and the media query in the hook are still two unrelated
 declarations, and the failure mode is unchanged.
 
-### [P3] `AddVolunteerDialog.test.tsx` patches `window.getComputedStyle` globally
+### [P3] ~~`AddVolunteerDialog.test.tsx` patches `window.getComputedStyle` globally~~ ✅ FIXED (2026-08-05, v0.41.8.0)
 
-vaul reads `style.transform || style.webkitTransform || style.mozTransform` and
-calls `.match()` on the result; jsdom computes `transform` as `''` and defines
-neither alias, so the chain yields `undefined` and every pointer release inside
-the drawer throws. It throws **asynchronously**, so the run fails while every
-test still reports green — which is how it was found. The shim shadows the one
-property and is file-local, matching the pointer-capture polyfills'
-already-per-file precedent (`org-profile-form.test.tsx:47-50`). If a third file
-renders a Drawer, move both into `src/test-setup.ts` rather than copying them a
-third time. **Effort:** S.
+The shim is **gone**, and not by being moved — jsdom 30 made it unnecessary.
+
+Original problem: vaul reads
+`style.transform || style.webkitTransform || style.mozTransform` and calls
+`.match()` on the result; jsdom 25 computed `transform` as `''` and defined
+neither alias, so the chain yielded `undefined` and every pointer release inside
+the drawer threw. It threw **asynchronously**, so the run failed while every
+test still reported green — which is how it was found.
+
+jsdom 30 computes the spec-correct initial value `'none'`, so the chain is
+satisfied natively. Verified by experiment (`getComputedStyle(el).transform`
+returns `'none'` under jsdom 30) and by mutation — deleting the shim leaves all
+28 tests green with no unhandled error.
+
+The shim could not have been kept anyway: it wrapped the real declaration in
+`Object.create(style, …)`, and jsdom 30 brand-checks every
+`CSSStyleDeclaration` method against its wrapper registry, so an object merely
+*inheriting* from a real declaration makes `getPropertyValue` throw.
+`dom-accessibility-api` calls that for every accessible-name computation — i.e.
+every `getByRole` — so all 28 tests died on it until the shim was removed.
+
+**The pointer-capture polyfills remain**, and the original guidance still applies
+to them: they are file-local, matching `org-profile-form.test.tsx:47-50`; if a
+third file renders a Drawer, move them into `src/test-setup.ts` rather than
+copying them a third time.
 
 ---
 
@@ -2562,6 +2578,20 @@ reaches Vercel unchallenged. Not added here because `pnpm build` runs
 `scripts/vercel-build.sh`, which also seeds — a CI build job wants
 `pnpm next build` against the service container plus whatever env the build reads,
 and adding an unverified job would land CI red on its first run. **Effort:** S.
+
+**This stopped being hypothetical in v0.41.8.0.** The TypeScript 7 bump
+(dependabot #193) went **green on all three CI jobs** — lint+typecheck, tests,
+and security advisories — and still failed the Vercel deploy with *"TypeScript
+7.0.2 does not provide the compiler API required by Next.js"*. TS 7 is the
+native Go port and ships no `lib/typescript.js`, so Next cannot load the
+compiler API it type-checks builds with. CI could not see it because
+`pnpm typecheck` is `tsc --noEmit`, which invokes the compiler as a *program*
+and passes on TS 7 either way. Only `next build` exercises the API path.
+
+So the failure this entry predicts — "a build break reaches Vercel
+unchallenged" — has now happened once, and the class is wider than
+Turbopack-dev-only bugs: anything that breaks `next build` while leaving `tsc`
+happy is invisible to every check currently in CI.
 
 ### The design doc's prescribed E1a shape does not work — corrected in code
 `docs/designs/staff-created-volunteers.md` §5 and this file both specified

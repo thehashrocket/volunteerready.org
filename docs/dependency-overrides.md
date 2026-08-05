@@ -51,11 +51,6 @@ building if a second instance appears; one is not enough to design against.
 
 **Not a security override.**
 
-### `form-data` — `^4.0.6`
-
-Alert #90 (**high**). Closed in [#124](https://github.com/thehashrocket/volunteerready.org/pull/124).
-Transitive, via build/test tooling.
-
 ### `fast-uri` — `^3.1.5`
 
 Alerts #97, #98, #118 (**high**). Closed in [#189](https://github.com/thehashrocket/volunteerready.org/pull/189).
