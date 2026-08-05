@@ -353,7 +353,9 @@ pnpm e2e            # Playwright e2e (boots the dev server; authenticated specs 
                     #   rewrites the .next manifest, and N workers hitting ~20 at once turns
                     #   that into intermittent 500s. Skipped when PLAYWRIGHT_BASE_URL is set.
 pnpm screenshots    # Regenerate marketing screenshots in public/marketing/ (needs pnpm seed:dev data; refuses non-local DATABASE_URL; filter with CAPTURE_ONLY=key1,key2)
-pnpm typecheck      # tsc --noEmit
+pnpm typecheck      # tsc --noEmit — NOT a substitute for a build. It invokes the compiler as a
+                    #   program, so it passes on TypeScript 7 whether or not `next build` can load
+                    #   the compiler API. CI gates both; that gap broke a deploy on a green run.
 pnpm check          # Same scope as pnpm lint, plus --write (applies safe fixes). Run by the pre-commit hook,
                     #   which refuses the commit if it had to fix an already-staged file — git commits the
                     #   index, not the working tree, so the fix would not otherwise reach your commit.
