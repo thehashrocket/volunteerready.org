@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.10.1] - 2026-08-06
+
+**This release changes nothing about how the site behaves.** It records what a
+planning review found, so the findings stop living in one person's head. Read
+the next paragraph anyway, because one of them is a bug that is live right now
+and is *not* fixed by this release.
+
+**Every first-time visitor to the site is being told to reload the page they
+just opened.** There is a small notice built into the site whose job is to say
+"a newer version is available" — and it has been getting the question backwards
+since it shipped, eight releases ago. It stays silent when a new version
+actually goes out, because of a technical detail that means the browser never
+notices anything changed. And it speaks up on a brand-new visitor's very first
+page load, because the moment the site finishes setting itself up in their
+browser looks, to this notice, exactly like an update. So a first impression of
+the marketing site includes a box asking the visitor to reload.
+
+That this went unnoticed for eight releases has a specific cause worth
+recording: the tooling that captures marketing screenshots had been hiding the
+notice on every run, under a comment describing it as a development artifact.
+It was not a development artifact. A fresh browser is exactly the first-visit
+case, so the screenshot pipeline had been quietly papering over the live bug
+every time it ran.
+
+**The fix is planned and specified, and is deliberately not in this release.**
+It is a real piece of work — it turned out to need a different mechanism, a
+different place on the screen, and a decision about which releases are even
+worth interrupting someone over. Shipping the plan as if it were the fix would
+have been the wrong kind of tidy.
+
+**Eight other pieces of deferred work are now written down**, each with enough
+context for someone to pick it up cold months from now. The ones with the
+clearest consequences: the short, plain-language summary of what changed in
+each release, which is the whole reason a reload prompt is worth having; a
+detail of how the site stores files on a phone, where a cache is never cleaned
+up and grows for as long as someone keeps using the app; the fact that the
+browser-based tests still run only when a person remembers to run them; and two
+places where two notices are positioned to land in the same spot on screen, so
+one covers the other.
+
+Nothing above is a behaviour change. The version moves because every release
+does.
+
 ## [0.41.10.0] - 2026-08-05
 
 **A green set of checks now means the site can actually be deployed. Until this
