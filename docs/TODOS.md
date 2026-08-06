@@ -5,6 +5,178 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the version-update-prompt eng review (2026-08-06)
+
+Deferred while fixing `SwUpdateBanner`, which had been mounted in the root
+layout since v0.28.0.0 and was broken in both directions: it could never fire
+on a deploy (`public/sw.js` is byte-identical every build, so the browser never
+sees a new worker and `controllerchange` never fires), and it fired on every
+*first* visit instead (`sw.js:12` `skipWaiting()` + `sw.js:26` `clients.claim()`
+take the page from uncontrolled to controlled, which fires the same event). The
+marketing screenshot pipeline had been CSS-hiding it since v0.28.0.0
+(`e2e/capture.spec.ts:152`) under a comment calling it a "dev-session artifact",
+which is a misdiagnosis of the production false positive.
+
+### [P2] The user-friendly changelog the prompt was supposed to carry
+
+The prompt says "New version available" and gives no reason to act on it. The
+original ask was for a short, coordinator-readable list of what changed, and
+that half was explicitly deferred so a live production bug would not wait on it.
+
+**This is an authoring problem, not a rendering one, and that is why it was
+split off.** `CHANGELOG.md` is 133 releases and 2,144 lines, and while the voice
+is already narrative rather than terse, it is written for a technically-literate
+reader — "the type checker", "a routine automated dependency update", "the
+assembly step". A coordinator four releases behind would be handed roughly sixty
+lines of that. There is no short per-release summary anywhere to render, so this
+needs a new field authored at ship time, every release, forever. Parse it out of
+the existing prose and it will be wrong; the summary has to be written
+deliberately.
+
+Start with: a structured `summary:` line per release that `/ship` prompts for,
+keyed by the version identifier this branch introduces (a user on 0.41.8.0
+seeing 0.41.10.0 needs the summaries for .9 and .10, so the store must be
+queryable by range, not just "latest"). Decide separately whether volunteers see
+it at all — most releases will not concern them. **Depends on:** this branch.
+**Effort:** M for the plumbing, ongoing for the authoring.
+
+### [P2] `public/sw.js` never rotates its cache and `activate` has run once, ever
+
+`sw.js:3` is `const SW_VERSION = '1.0.0'`, a literal nothing in the build
+rewrites, so `STATIC_CACHE` is permanently `vr-static-v1.0.0`. The `activate`
+handler at `sw.js:22-30` — the only thing that deletes old caches — therefore
+ran exactly once on each user's device and will never run again. The cache
+accumulates every page HTML and every hashed asset that user has ever fetched,
+indefinitely, with no eviction.
+
+`next.config.ts:31-37` already serves `/sw.js` as `no-cache, no-store,
+must-revalidate`, so the browser does re-fetch and byte-compare it on schedule —
+the file simply never differs. A build-stamped comment is enough to make it
+differ, which is what makes the rest of the lifecycle reachable again.
+
+**Do this on its own branch, with a canary.** It is the highest-blast-radius
+change in this codebase: a bad service worker installs onto devices you cannot
+reach. The version-prompt work deliberately leaves `sw.js` untouched for exactly
+this reason — decision 1 of that review chose a version endpoint over the
+service worker so a sticky worker bug could not sink the feature. Reconsider
+`skipWaiting()` and `clients.claim()` at the same time; with a rotating cache
+they mean the new worker wipes the caches out from under the page the user is
+currently looking at. **Effort:** M. **Depends on:** None.
+
+### [P3] Vercel Skew Protection is almost certainly off
+
+`next.config.ts` sets no `deploymentId` and this project predates the change
+that made Skew Protection default-on (new projects only). Skew protection is
+complementary to the update prompt rather than a substitute: the prompt says
+"you can update", skew protection means "and nothing breaks if you don't" —
+it keeps an old client working against the new backend instead of letting a
+route the deploy changed fail underneath them.
+
+Check the Vercel project settings before writing any code; this may be a
+dashboard toggle with no repo change at all. If a custom `deploymentId` is
+needed, confirm vercel/next.js#94734 does not apply first — on prebuilt deploys
+`experimental.runtimeServerDeploymentId` has been reported to override a custom
+id. Requires a Pro plan tier. **Effort:** S. **Depends on:** None.
+
+### [P2] e2e still is not in CI, and it forced a test to be written twice
+
+`.github/workflows/ci.yml` runs lint+typecheck, the three Vitest suites, and the
+deploy-path build job, but not Playwright — it needs browsers, a booted dev
+server and `seed:dev`. The consequence showed up concretely in this review: the
+critical regression test (a fresh browser context must show no update prompt)
+reproduces most honestly as an e2e, so it had to be written a second time in
+jsdom purely to get it running on PRs.
+
+Every existing spec is affected, not just this one — the roster specs, the
+mobile-table specs, `public-pages.spec.ts`. All of them run only when someone
+remembers to type `pnpm e2e`.
+
+The `build` job added in v0.41.10.0 is the template: it already stands up a
+`postgres:16-alpine` service container and runs migrate + seed, and
+`scripts/ci-build-gate.test.ts` pins its shape. Budget for the deliberate
+30-60s sequential route warmup in `e2e/global-setup.ts` — that is not slack to
+optimise away, it exists to stop a compile stampede producing manifest-race
+500s. **Effort:** L. **Depends on:** None.
+
+### [P3] A tab left visible for hours is never checked for updates
+
+The update check fires on `visibilitychange` → visible (plus on mount), with a
+five-minute floor. A coordinator who leaves `/app/shifts` open and visible on a
+second monitor never switches away, so never triggers a check, so never learns
+a release shipped.
+
+Considered during the review and deferred as marginal: the fix is a slow
+interval alongside the visibility listener, which adds a timer lifecycle to
+clean up and which browsers throttle unpredictably anyway. Revisit if this turns
+out to be the common shape rather than the edge — a dashboard on a second
+monitor is a plausible way this product actually gets used. **Effort:** S.
+**Depends on:** the version-prompt branch landing.
+
+### [P3] Two full-width bottom banners occupy the identical box
+
+`src/components/cookie-consent-banner.tsx:108` and
+`src/components/ios-install-prompt.tsx:51` are both
+`fixed inset-x-0 bottom-0 z-50`. On a first visit in iOS Safari both conditions
+hold at once — no stored consent, and Safari + not standalone + not dismissed —
+so they render into the same box and one covers the other. Whichever loses is
+unreachable, and the install prompt is the one whose whole purpose is the
+platform being harmed.
+
+`cookie-consent-banner.tsx:66-83` already publishes `--cookie-banner-height` for
+precisely this, and `feedback-widget.tsx:274` consumes it;
+`ios-install-prompt.tsx` simply does not. The fix needs an ordering decision
+(consent first, then the install nudge?) rather than only a CSS change.
+
+**Found by reading the class strings, not on a device — confirm the overlap in
+real iOS Safari before fixing.** **Effort:** S. **Depends on:** None.
+
+### [P2] Stock sonner defaults miss three DESIGN.md floors, across every toast
+
+`AppToaster` (`src/components/sonner.tsx:21`) renders sonner unstyled-by-default,
+and the shipped stylesheet is stricter than the design system allows. Verified
+in `node_modules/sonner/dist/styles.css` at 2.0.7:
+
+- the only two font sizes in the entire sheet are `13px` (toast body) and
+  `12px` (action button) — DESIGN.md sets a **16px body floor**, "never smaller"
+- `[data-button] { height: 24px }` — DESIGN.md sets a **44×44px touch-target
+  minimum**, described there as "enforced in the staff card lists and asserted
+  in the mobile e2e specs". 24px is 55% of it
+- `--normal-bg: #000` in dark mode — DESIGN.md's dark surface is `#1A1918`, and
+  pure black is not in the palette
+
+That applies to all ~33 `toast()` call sites, and to every toast carrying an
+action button, where the tap target is the whole point. The version-prompt work
+only escaped it by leaving the toaster entirely (see the design review's
+reversal of decision 7), so nothing about that branch fixes this.
+
+`sonner.tsx`'s existing docstring records that this file gets measured rather
+than guessed at — the same discipline applies here. Restyling a shared
+component changes every toast in the app at once, so it wants its own visual QA
+pass rather than riding along with a feature. **Effort:** M. **Depends on:**
+None.
+
+### [P3] Two elements are both `sticky top-0`, so they overlap while impersonating
+
+`src/components/app/impersonation-banner.tsx:78` is `sticky top-0 z-[9999]` and
+`src/components/app/app-shell.tsx:51` is `sticky top-0 z-40`. Both pin to the
+viewport top, so while a platform admin is impersonating, scrolling slides the
+app header underneath the impersonation banner instead of stacking below it,
+putting the org switcher and account menu partly under a yellow bar.
+
+The fix is either giving the header a `top` offset equal to the banner's height
+or making the banner non-sticky, and choosing between them needs a look at real
+scroll behaviour rather than a reading of the classes.
+
+Relevant now because the design review added a third band to that stack (the
+update strip, which sits inside `AppShell` below the header specifically so the
+impersonation warning is never demoted below a software-update notice).
+
+**Found by reading the class strings, not in a browser — confirm before
+fixing**, same caveat as the `cookie-consent-banner` / `ios-install-prompt`
+overlap above. **Effort:** S. **Depends on:** None.
+
+---
+
 ## Opened by the Dependabot security review (2026-08-03, 23 alerts)
 
 ### [P3] Decide whether to move to Babel 8 / Vite 8 wholesale
