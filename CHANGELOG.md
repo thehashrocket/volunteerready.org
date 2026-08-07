@@ -35,6 +35,12 @@ the browser did, so the failure can be read rather than reproduced.
 
 ### Fixed
 
+- **The gate found a real bug on its first run.** While impersonating a user,
+  the countdown in the yellow banner was rendered on the server and again in the
+  browser, a second apart, so the two disagreed. React responded by throwing away
+  the page and rebuilding it — and any click during that moment did nothing. The
+  countdown now starts in the browser, where it belongs, so nothing disagrees and
+  nothing is thrown away.
 - Recorded that a local production build reads the **production** database:
   `.env.production.local` outranks `.env.local` for `next build` / `next start`,
   and no guard objects. Verified by running the loader; documented in

@@ -5,6 +5,81 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the e2e-in-CI ship (2026-08-07, v0.41.17.0)
+
+The gate found two bugs on its first two runs. One is fixed below; the rest are
+recorded here.
+
+### Caught while building — recorded so it is not reintroduced
+
+**The impersonation banner failed hydration, and the damage was dropped clicks.**
+`impersonation-banner.tsx` seeded `useState` from `Date.now()`. It is a
+`'use client'` component SERVER-RENDERED from `app/(app)/app/layout.tsx`, so
+that initializer ran in both passes; any drift between them changed the rendered
+text (`29m 58s` vs `29m 57s`), React reported *"server rendered text didn't
+match"* and recovered by **discarding the whole tree** — leaving every control in
+the app shell dead until it re-rendered. The prop was annotated
+`expiresAt: string; // ISO string — hydration-safe`, which was true of the PROP
+and false of the value derived from it. Fixed by initialising to `null` and
+filling it in from the effect. Two regression tests use `renderToStaticMarkup`
+(NOT `render`, which flushes the effect that is *allowed* to read the clock) and
+assert the server pass is byte-identical across two clock values, and that no
+`\d+m \d{2}s` reaches it at all. Mutation-verified.
+
+**Why nothing caught it for months:** the drift is normally sub-second, so SSR
+and hydration round to the same string and the strings match by luck. It needs a
+slow response to reproduce — which is exactly what a CI runner compiling routes
+on demand provides, and what no local run does.
+
+### [P2] `staff-created-volunteers.spec.ts:367` drops its first click on a cold runner
+
+Reported `flaky` on both CI runs so far — it fails the first attempt and passes
+on retry, so it has never failed the job, and `retries: 2` means it never will
+until it degrades further. Recorded now because a flake nobody diagnosed is how
+a suite stops being trusted.
+
+**It is NOT the hydration mismatch above** (that one is fixed, and the two CI
+hydration errors were both adjacent to the impersonation spec, minutes away from
+this one). It is hydration LATENCY: `page.goto('/app/volunteers')` is followed
+immediately by a click on `Add volunteer`, and Playwright's actionability checks
+are DOM-level — visible, stable, enabled, receives events. **None of them know
+whether React has attached `onClick`.** A server-rendered button is clickable
+long before it does anything. The click is not queued or replayed; it is simply
+lost, which is why the symptom is a 60-second wait for a dialog that never opens
+rather than a slow one.
+
+**Measured, so the next person does not re-derive it.** Against a cold dev
+server: an authenticated first request costs ~0.5-1.8s to compile
+(`/app/shifts` 664ms → 137ms warm; `/app/volunteers` 1836ms → 146ms). So the
+60s timeout is not slow compilation — the click really is gone.
+
+**The obvious fix does not work.** Extending `e2e/global-setup.ts` to warm
+authenticated routes was tried and REFUTED by measurement: unauthenticated
+requests to `/app/*` return a middleware 307 in 18-45ms without compiling
+anything. Warming them would need `global-setup` to mint a session and clean it
+up, and even then it warms the SERVER route — whether it also builds the client
+chunks that gate hydration is unverified. Do not assume it does.
+
+Candidate fixes, none implemented: wait on a signal that only exists after
+hydration before the first interaction; or wrap the open in Playwright's
+`toPass()` so a lost first click is retried. The second is self-healing but can
+mask a real regression, so prefer the first if a reliable signal exists.
+**Effort:** S-M. **Depends on:** None.
+
+### [P3] The impersonation countdown is an `aria-live` region that changes every second
+
+`impersonation-banner.tsx:78` is `role="status" aria-live="polite"` on a
+container whose text updates once per second. A screen reader announces the
+countdown continuously, which buries the part that matters (who is being
+impersonated, and the End session control). Pre-existing; noticed while fixing
+the hydration bug above and deliberately not bundled with it.
+
+The fix is to move the live region off the countdown — announce the identity
+once, and let the timer be plain text (or `aria-hidden` with a coarser
+`aria-live` update near expiry). **Effort:** S. **Depends on:** None.
+
+---
+
 ## Opened by the version-update-prompt eng review (2026-08-06)
 
 Deferred while fixing `SwUpdateBanner`, which had been mounted in the root
