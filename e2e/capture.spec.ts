@@ -145,11 +145,19 @@ test.describe('marketing screenshot capture', () => {
 				await settled.evaluate((el) =>
 					el.scrollIntoView({ block: 'center', behavior: 'instant' }),
 				);
-				// Hide dev-session artifacts that aren't product UI: the Next.js
-				// dev-tools indicator and the service-worker update toast.
+				// Hide the Next.js dev-tools indicator, which is a dev-session
+				// artifact rather than product UI.
+				//
+				// This used to hide `[data-sw-update-banner]` too, described as
+				// the same kind of artifact. It was not: a fresh Playwright
+				// context is the FIRST-VISIT path, and `SwUpdateBanner` fired
+				// `controllerchange` on every first visit, so this line had been
+				// papering over a live production false positive for eight
+				// releases. The component is deleted; do not re-add a selector
+				// here to make a prompt "go away" without first checking whether
+				// it is telling the truth.
 				await page.addStyleTag({
-					content:
-						'nextjs-portal{display:none!important}[data-sw-update-banner]{display:none!important}',
+					content: 'nextjs-portal{display:none!important}',
 				});
 				await page.waitForTimeout(400);
 

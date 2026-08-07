@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.12.0] - 2026-08-06
+
+**First-time visitors are no longer told to reload the page they just opened.**
+
+Since March, a small box had been appearing in the corner for people arriving
+at the site for the first time, saying "New version available" and offering a
+Reload button. There was no new version. The notice was reacting to the moment
+the site finishes setting itself up in a new browser, which it could not tell
+apart from an update — so the people most likely to see it were the ones who
+had never been here before, and the first thing the site said to them was that
+something needed reloading.
+
+The same notice could never do the job it was built for. It watched for a
+signal that, because of how the site is packaged, does not change between
+releases — so on an actual new version it stayed silent. Wrong in both
+directions, for eight releases.
+
+**It has been removed rather than repaired.** The replacement is designed and
+partly built, and it works a different way: it asks the server what version is
+live rather than watching the browser's cache. Until that lands, the honest
+state is no notice at all, which is strictly better than a notice that speaks
+only when it has nothing to say.
+
+Two safeguards ship with the removal so this cannot come back quietly. One
+checks the code itself and runs on every change. The other drives a real
+browser through a genuinely first-time visit and fails if any reload prompt
+appears — and it was confirmed by putting the old notice back and watching the
+check fail, so it is known to catch the original problem rather than merely
+assumed to.
+
+One thing this does not fix: a related note about how the site stores files on
+a phone, where a cache is never cleaned up. That is recorded separately and is
+deliberately untouched here, because changes of that kind install themselves on
+people's devices and are much harder to take back.
+
 ## [0.41.11.1] - 2026-08-06
 
 **This release changes nothing about how the site behaves.** It corrects a note
