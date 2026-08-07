@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.15.0] - 2026-08-07
+
+**Nothing changes for anyone using the site.** This finishes the update-notice
+work by writing down what it does, checking one thing it was assuming, and
+recording the parts that can only be verified after a release goes out.
+
+The update notice is meant to belong to the signed-in app and never to the
+public site. That was true, but only the *visible* half was being checked —
+that no notice appears on a marketing page. The stronger half is that no
+**request** is made: the check that asks "what version is live" is deliberately
+uncacheable, so a stray one on every marketing page view would be real work
+done for a notice that could never appear, and nothing on the page would look
+wrong. That is now checked directly, and the check was confirmed by
+deliberately breaking it.
+
+**Three things about this feature cannot be tested before release**, and
+pretending otherwise would be the more dangerous outcome. They are now written
+down as a short post-release checklist: that the version endpoint really is
+uncached in production, that it reports a genuine build identity rather than
+quietly falling back to the release number, and that pressing Reload actually
+lands on the new version. The last one is impossible to reproduce locally
+because a development server only ever runs one version of the site at a time.
+
+**The notice's design is now part of the design system** rather than living
+only in the code that happens to use it, including the two ways it is easy to
+get wrong — both of which were hit while building it, and neither of which
+would be visible in a mockup.
+
 ## [0.41.14.0] - 2026-08-07
 
 **The update notice works.** A coordinator who leaves the app open now finds

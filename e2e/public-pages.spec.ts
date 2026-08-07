@@ -351,3 +351,40 @@ test.describe('first visit shows no update prompt', () => {
 		await expect(page.getByText(RELOAD_PROMPT_TEXT)).toHaveCount(0);
 	});
 });
+
+/**
+ * The update check belongs to the signed-in app and must not reach the public
+ * marketing site at all.
+ *
+ * Two separate properties, and the weaker one is the one a reader assumes:
+ * that no prompt is VISIBLE. The stronger — and the reason this exists — is
+ * that no REQUEST is made. `/api/version` is `force-dynamic` and `no-store`,
+ * so every call is an uncachable function invocation; a hook mounted one layout
+ * too high would put one on every marketing page view, for a prompt that is
+ * gated off and could never render. Nothing about that failure is visible on
+ * the page, which is exactly why it is asserted here rather than eyeballed.
+ */
+test.describe('public pages do not run the update check', () => {
+	const SAMPLE = ['/', '/pricing', '/for/nonprofits'] as const;
+
+	for (const path of SAMPLE) {
+		test(`${path} issues zero /api/version requests`, async ({ page }) => {
+			const calls: string[] = [];
+			page.on('request', (request) => {
+				if (request.url().includes('/api/version')) calls.push(request.url());
+			});
+
+			await page.goto(path, { waitUntil: 'domcontentloaded' });
+			// The hook checks on mount, so the request would already be in flight
+			// by load; the settle window covers the visibility/focus listeners too.
+			await page.waitForLoadState('networkidle');
+			await page.waitForTimeout(500);
+
+			// Proves the page actually rendered, so "zero requests" is not "no
+			// page" — the same reason the first-visit regression asserts an h1.
+			await expect(page.locator('h1').first()).toBeVisible();
+			expect(calls, `${path} called /api/version`).toEqual([]);
+			await expect(page.getByTestId('app-update-prompt')).toHaveCount(0);
+		});
+	}
+});
