@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.14.0] - 2026-08-07
+
+**The update notice works.** A coordinator who leaves the app open now finds
+out when a newer version has been deployed, and can reload into it when they
+choose to.
+
+It is a slim band below the top bar: one line of text, a Reload button, and a
+"Not now" button. It scrolls away with the page rather than following you down
+it, and dismissing it is safe — an "Update available" item stays in the account
+menu for as long as the update is pending, so "not now" means "stop
+interrupting me", not "forget this happened".
+
+**Most releases will still show nothing, on purpose.** This project ships
+several times a day and most of those are internal. Only a release marked as
+worth interrupting someone over raises the band; the rest quietly update the
+account menu. That decision is made per release, and a check added a few
+releases ago makes sure it gets made rather than assumed.
+
+**It stays out of the way.** It never appears to volunteers, who have no use
+for a version number. It never appears on the QR check-in screen used at live
+events. It will not pop up over an open dialog — and, just as deliberately, it
+will not vanish from underneath one either: once shown it stays put, because a
+band that disappears when you open a form makes the page jump under your hands.
+
+**Nothing about it interrupts your work.** It never reloads on its own, the
+reload button says plainly that unsaved work will be lost, and if the version
+check cannot reach the server it stays silent rather than showing an error
+about a thing nobody asked for.
+
+One bug was caught by looking at it rather than by testing it: on a narrow
+phone the sentence was being squeezed into a column a few words wide while the
+buttons kept the full row — and every automated width check passed, because
+nothing was technically overflowing the screen. The buttons now move to their
+own line, and the text's readable width is checked directly from now on.
+
 ## [0.41.13.0] - 2026-08-06
 
 **Nothing visible changes.** This is the plumbing for the update notice, built
