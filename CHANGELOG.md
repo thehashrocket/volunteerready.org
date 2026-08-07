@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.11.1] - 2026-08-06
+
+**This release changes nothing about how the site behaves.** It corrects a note
+version 0.41.10.1 got wrong, and replaces it with the real problem that the
+wrong note was hiding.
+
+That release wrote down a list of deferred work. One item said a
+protection offered by the hosting platform was switched off and should be
+turned on. **It is switched on, and it always has been.** The note reasoned
+that the project was too old to have received it automatically; the project is
+in fact five months newer than the cutoff. Nobody had checked, and the note
+said so — but it said so underneath a confident headline, which is the half a
+future reader would have believed.
+
+**Checking properly turned up something more useful.** The protection exists to
+keep a browser tab that has been open a while working correctly after a new
+version of the site goes out, instead of failing in confusing ways. It does
+that for the parts of the page the framework fetches on its own. It does *not*
+do it for the requests the app writes itself — which, in this app, is every
+request the app makes to its own data layer. So the exact problem the old note
+credited this feature with solving is still there, across the whole data layer,
+and the incorrect headline was the reason nobody was looking at it.
+
+The corrected note explains the two ways to close it, and flags that one of
+them would break the reload-prompt work described in the previous release —
+so whoever picks it up does not solve one problem by undoing another.
+
+Everything in the corrected note was verified against the running production
+site and the platform's own records rather than inferred from the code, and it
+says so, because the entry it replaces is a reminder of what inference costs.
 ## [0.41.11.0] - 2026-08-06
 
 **Nothing changes for anyone using the site.** This adds one piece of
