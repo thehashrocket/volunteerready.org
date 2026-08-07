@@ -1,8 +1,9 @@
 'use client';
 
 import { Copy, Share2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useDismissible } from '@/lib/hooks/use-dismissible';
 
 const DISMISSED_KEY = 'vr_referral_prompt_dismissed';
 
@@ -15,14 +16,13 @@ export function ReferralPrompt({
 	orgSlug,
 	backgroundCheckCompleteCount,
 }: ReferralPromptProps) {
-	const [dismissed, setDismissed] = useState(true);
+	// Was an unguarded `localStorage.getItem` inside a bare useEffect, which
+	// throws SecurityError outright when storage is blocked by policy — an
+	// error boundary rather than a missing prompt.
+	const { isDismissed, dismiss } = useDismissible(DISMISSED_KEY);
 	const [copied, setCopied] = useState(false);
 
-	useEffect(() => {
-		setDismissed(localStorage.getItem(DISMISSED_KEY) === 'true');
-	}, []);
-
-	if (dismissed) return null;
+	if (isDismissed) return null;
 	if (backgroundCheckCompleteCount === 0) return null;
 	if (!orgSlug) return null;
 
@@ -32,11 +32,6 @@ export function ReferralPrompt({
 		navigator.clipboard.writeText(referralUrl);
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
-	}
-
-	function handleDismiss() {
-		localStorage.setItem(DISMISSED_KEY, 'true');
-		setDismissed(true);
 	}
 
 	return (
@@ -59,7 +54,7 @@ export function ReferralPrompt({
 						<Button
 							variant="ghost"
 							size="sm"
-							onClick={handleDismiss}
+							onClick={dismiss}
 							className="text-muted-foreground"
 						>
 							Dismiss
