@@ -113,7 +113,12 @@ describe('release severity is decided per release, not carried over', () => {
  * placement is a naming convention and nothing more. This is the enforcement
  * that makes the claim true.
  */
-const CLIENT_DIRECTORIES = ['src/components', 'src/app'];
+// `src/lib` is included because that is where the client HOOKS live —
+// `use-app-update-check.ts` is a `'use client'` module and is exactly the kind
+// of file that would reach for `RELEASE_SEVERITY`. Without it this guard had a
+// hole in the one directory the feature's client code occupies, and a guard
+// that cannot see the likeliest offender is not a guard.
+const CLIENT_DIRECTORIES = ['src/components', 'src/app', 'src/lib'];
 const RELEASE_IMPORT = /from\s+['"][^'"]*server\/domain\/release['"]/;
 
 function importsReleaseModule(source: string): boolean {
