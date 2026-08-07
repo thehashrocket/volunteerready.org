@@ -3,6 +3,7 @@
 import { Download, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useDismissible } from '@/lib/hooks/use-dismissible';
 
 interface BeforeInstallPromptEvent extends Event {
 	prompt(): Promise<void>;
@@ -15,7 +16,16 @@ export function InstallPrompt() {
 	const [deferredPrompt, setDeferredPrompt] =
 		useState<BeforeInstallPromptEvent | null>(null);
 	const [isIos, setIsIos] = useState(false);
-	const [isDismissed, setIsDismissed] = useState(true);
+	// The dismissal was an unguarded localStorage read; it is now guarded and
+	// cross-tab. See `useDismissible`.
+	const { isDismissed, dismiss } = useDismissible(DISMISSED_KEY);
+	// SEPARATE from the dismissal on purpose. `isDismissed` used to carry three
+	// unrelated meanings at once — "the user said no", "the app is already
+	// installed" and "the install was accepted" — so an accepted install wrote
+	// nothing to storage yet looked identical to a refusal, and the standalone
+	// check could not be reasoned about without knowing which meaning was live.
+	// This flag means only "there is nothing to offer".
+	const [isUnavailable, setIsUnavailable] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
 
 	useEffect(() => {
@@ -24,13 +34,9 @@ export function InstallPrompt() {
 		setIsMobile(mobile);
 		if (!mobile) return;
 
-		// Check if already dismissed
-		if (localStorage.getItem(DISMISSED_KEY)) return;
-		setIsDismissed(false);
-
-		// Check if already installed (standalone mode)
+		// Already installed — nothing to offer, regardless of any dismissal.
 		if (window.matchMedia('(display-mode: standalone)').matches) {
-			setIsDismissed(true);
+			setIsUnavailable(true);
 			return;
 		}
 
@@ -53,17 +59,13 @@ export function InstallPrompt() {
 		await deferredPrompt.prompt();
 		const { outcome } = await deferredPrompt.userChoice;
 		if (outcome === 'accepted') {
-			setIsDismissed(true);
+			// Installed, not refused — so this must NOT write the dismissal key.
+			setIsUnavailable(true);
 		}
 		setDeferredPrompt(null);
 	}, [deferredPrompt]);
 
-	const handleDismiss = useCallback(() => {
-		localStorage.setItem(DISMISSED_KEY, '1');
-		setIsDismissed(true);
-	}, []);
-
-	if (isDismissed || !isMobile) return null;
+	if (isDismissed || isUnavailable || !isMobile) return null;
 
 	// Show only if we have the Android prompt event OR are on iOS
 	if (!deferredPrompt && !isIos) return null;
@@ -93,7 +95,7 @@ export function InstallPrompt() {
 				</div>
 				<button
 					type="button"
-					onClick={handleDismiss}
+					onClick={dismiss}
 					className="shrink-0 rounded p-1 text-muted-foreground hover:bg-accent/30"
 					aria-label="Dismiss install prompt"
 				>

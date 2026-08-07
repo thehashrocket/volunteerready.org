@@ -1,8 +1,18 @@
 import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from 'next';
+import { version as packageVersion } from './package.json';
 
 const nextConfig: NextConfig = {
 	allowedDevOrigins: ['client-frontend.ngrok.io'],
+	// Exposes the release string to the client for the account-menu version
+	// item. `package.json` is the single source (kept in step with `VERSION` by
+	// `/ship`), so there is no second place to forget to bump.
+	//
+	// This is DISPLAY only. The staleness comparison runs on
+	// `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`, which Vercel exposes with no wiring
+	// — see `src/lib/app-version.ts`. Pinned by `scripts/next-config-version.test.ts`,
+	// because losing this line prints an empty version rather than failing.
+	env: { NEXT_PUBLIC_APP_VERSION: packageVersion },
 	// TypeScript 7 is the native (Go) port and ships no `lib/typescript.js`, so
 	// Next cannot load the JS compiler API it normally type-checks the build
 	// with: it fails the build outright with "TypeScript 7.0.2 does not provide

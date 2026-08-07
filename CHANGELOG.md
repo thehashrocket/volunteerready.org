@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.13.0] - 2026-08-06
+
+**Nothing visible changes.** This is the plumbing for the update notice, built
+so the visible part can be assembled next.
+
+Three pieces. The site can now be asked what version it is currently serving,
+by a request designed to be cheap and impossible to cache — a cached answer
+would report last week's version forever, which is precisely how the notice
+this replaces stayed broken for eight releases without anyone noticing. The
+"don't show me this again" behaviour used by several small prompts is now one
+shared piece rather than four hand-written copies that had drifted apart. And
+there is a way to tell whether a dialog is currently open, so the notice can
+avoid appearing over someone mid-task.
+
+**Two bugs were found and fixed while doing it, both in existing code.**
+
+The first would have been introduced by this change if it had gone unnoticed:
+two of those four prompt copies remembered a dismissal using different stored
+values, so consolidating them naively would have made the "install this app"
+prompt reappear for everyone who had already dismissed it — a problem that
+lives in real people's browsers and that no test starting from a clean slate
+would ever have caught.
+
+The second was already there: the install prompt used a single flag to mean
+three different things at once — "the person said no", "the app is already
+installed", and "the install succeeded". Those are now separate, so accepting
+an install no longer looks identical to refusing one.
+
+One planned field was deliberately left out: a release timestamp in the version
+response. Nothing displays it, there is no reliable source for it, and a value
+nobody maintains is exactly the kind that quietly goes wrong. It can be added
+later without breaking anything, which is why leaving it out costs nothing.
+
 ## [0.41.12.0] - 2026-08-06
 
 **First-time visitors are no longer told to reload the page they just opened.**
