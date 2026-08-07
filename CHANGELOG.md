@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.16.0] - 2026-08-07
+
+**When VolunteerReady updates, the notice now tells you what changed.**
+
+Until now it said only that a new version was available. That is a bad trade to
+offer someone: reload and lose whatever you had half-typed, in exchange for
+nothing you can weigh. The notice now leads with a plain sentence describing
+what is different, and the "reload when you're ready, anything unsaved will be
+lost" warning stays exactly where it was.
+
+If more than one update went out while you were away, you see the most recent
+one and a count of the rest rather than a wall of text. The count includes
+updates from further back than the notice can show, so it never tells you there
+was one other change when there were nine.
+
+**Most releases still say nothing at all, and that is the point.** A lot of what
+ships here is behind-the-scenes work with nothing you would ever notice, and a
+notice that appears three times a day stops being read inside a month — at which
+point it is worse than useless, because the attention is gone on the day
+something really does matter. A release only interrupts you when someone decided
+it was worth your attention. What is new is that making that decision now also
+means writing down the reason: a release can no longer claim to be worth
+interrupting you over while leaving the "why" blank.
+
+Two cases where you will see the notice with no summary, both deliberate. If a
+release is rolled back, there is no "what's new" to describe — you are moving
+backwards. And if the exact same release is redeployed, the running code changed
+but the release did not, so there is genuinely nothing to report.
+
+Nothing here changes for volunteers; this notice has always been for staff
+accounts only.
+
 ## [0.41.15.0] - 2026-08-07
 
 **Nothing changes for anyone using the site.** This finishes the update-notice

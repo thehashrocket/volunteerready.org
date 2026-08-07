@@ -17,28 +17,35 @@ marketing screenshot pipeline had been CSS-hiding it since v0.28.0.0
 (`e2e/capture.spec.ts:152`) under a comment calling it a "dev-session artifact",
 which is a misdiagnosis of the production false positive.
 
-### [P2] The user-friendly changelog the prompt was supposed to carry
+### [P2] ~~The user-friendly changelog the prompt was supposed to carry~~ ✅ BUILT (2026-08-07) — the plumbing; the authoring is forever
 
-The prompt says "New version available" and gives no reason to act on it. The
-original ask was for a short, coordinator-readable list of what changed, and
-that half was explicitly deferred so a live production bug would not wait on it.
+`src/server/domain/release-notes.ts` holds an authored `{ version, summary }`
+array; `/api/version` takes the caller's own release as `?since=` and returns
+the notes in range, newest first, capped at 5 with the remainder REPORTED as
+`olderCount`; the strip leads with the summary instead of "VolunteerReady has
+been updated". `scripts/release-notes-gate.test.ts` fails when
+`RELEASE_SEVERITY` is `notice` with no entry keyed to `VERSION` — the one
+checkable failure, since a test cannot judge whether a summary is any good.
+Mutation-verified 9/9. `CLAUDE.md` carries the five authoring rules.
 
-**This is an authoring problem, not a rendering one, and that is why it was
-split off.** `CHANGELOG.md` is 133 releases and 2,144 lines, and while the voice
-is already narrative rather than terse, it is written for a technically-literate
-reader — "the type checker", "a routine automated dependency update", "the
-assembly step". A coordinator four releases behind would be handed roughly sixty
-lines of that. There is no short per-release summary anywhere to render, so this
-needs a new field authored at ship time, every release, forever. Parse it out of
-the existing prose and it will be wrong; the summary has to be written
-deliberately.
+**The range is the load-bearing part, and it is easy to get wrong as "latest
+note".** Severity and notes answer different questions: a `silent` release may
+still carry a note, and it surfaces later when a `notice` finally interrupts
+someone — so a coordinator four releases behind gets all four.
 
-Start with: a structured `summary:` line per release that `/ship` prompts for,
-keyed by the version identifier this branch introduces (a user on 0.41.8.0
-seeing 0.41.10.0 needs the summaries for .9 and .10, so the store must be
-queryable by range, not just "latest"). Decide separately whether volunteers see
-it at all — most releases will not concern them. **Depends on:** this branch.
-**Effort:** M for the plumbing, ongoing for the authoring.
+**What was deliberately NOT built, and why.** The original ask said "list".
+DESIGN.md's ambient notice strip is one line with no title (its own design
+review wrote that rule the release before), so additional notes are **counted**
+— "Plus 3 more updates." — not listed. Rendering a list there is the squashed
+card that rule exists to prevent. The wire carries the full ranged array, so a
+surface with room for a list can render one without touching the server. Open
+question left for whoever builds it: whether volunteers see notes at all — the
+strip is `isStaff`-gated today and nothing here changed that.
+
+**Residual, and it is not small: the authoring never ends.** The gate guarantees
+the question is asked on a `notice` release, never that anyone writes a good
+sentence. `RELEASE_NOTES` is seeded with two real entries (0.41.14.0, 0.41.12.0)
+and nothing has rendered in production yet.
 
 ### [P2] `public/sw.js` never rotates its cache and `activate` has run once, ever
 
@@ -117,6 +124,16 @@ The `build` job added in v0.41.10.0 is the template: it already stands up a
 30-60s sequential route warmup in `e2e/global-setup.ts` — that is not slack to
 optimise away, it exists to stop a compile stampede producing manifest-race
 500s. **Effort:** L. **Depends on:** None.
+
+**It caught nothing again on 2026-08-07, and this time the miss was concrete.**
+Adding `?since=` to the version check silently broke
+`e2e/app-update-prompt.spec.ts`: its Playwright mock was `'**/api/version'`,
+which does not match a URL carrying a query string, so the interception stopped
+firing, the real endpoint answered, the build ids matched and the strip never
+rendered. Both tests in the file failed. Every other check — lint, typecheck,
+2,771 unit tests, `docs:build` — was green throughout, and the breakage was
+found only because someone ran `pnpm e2e` by hand. That is the failure mode this
+entry describes, now with a date on it.
 
 ### [P3] A tab left visible for hours is never checked for updates
 

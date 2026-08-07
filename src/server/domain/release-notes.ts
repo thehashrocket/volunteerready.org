@@ -97,6 +97,11 @@ export const RELEASE_NOTES_WIRE_CAP = 5;
  */
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
 	{
+		version: '0.41.16.0',
+		summary:
+			'The update notice now tells you what changed, so you can decide whether to reload.',
+	},
+	{
 		version: '0.41.14.0',
 		summary:
 			'You now get a notice when VolunteerReady has been updated, so you know when to reload.',
