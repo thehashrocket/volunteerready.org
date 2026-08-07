@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BUILD_ID } from '@/lib/app-version';
+import { APP_VERSION, BUILD_ID } from '@/lib/app-version';
 import {
 	CHECK_FLOOR_MS,
 	FAILURE_BREADCRUMB_THRESHOLD,
@@ -9,6 +9,7 @@ import {
 	RELOADED_FOR_KEY,
 	shouldCheckForUpdate,
 	useAppUpdateCheck,
+	versionCheckUrl,
 } from './use-app-update-check';
 
 /**
@@ -46,6 +47,22 @@ describe('shouldCheckForUpdate', () => {
 
 	it('uses a five-minute floor in production', () => {
 		expect(CHECK_FLOOR_MS).toBe(5 * 60 * 1000);
+	});
+});
+
+describe('versionCheckUrl', () => {
+	it('carries the client release as `since`', () => {
+		expect(versionCheckUrl('0.41.15.0')).toBe('/api/version?since=0.41.15.0');
+	});
+
+	it('omits the parameter entirely when the version is unset', () => {
+		// NOT `?since=`. An empty value claims the client knows its release when
+		// it does not, and the server would have to guess what that means.
+		expect(versionCheckUrl('')).toBe('/api/version');
+	});
+
+	it('encodes a value that would otherwise break the query string', () => {
+		expect(versionCheckUrl('a b&c=d')).toBe('/api/version?since=a%20b%26c%3Dd');
 	});
 });
 
@@ -151,7 +168,121 @@ describe('useAppUpdateCheck', () => {
 				deployedBuildId: '',
 				deployedVersion: '',
 				severity: 'silent',
+				notes: [],
+				olderNoteCount: 0,
 			});
+		});
+	});
+
+	describe('release notes', () => {
+		it('fetches the url the pure builder produces, still with no-store', async () => {
+			// Pins BOTH arguments: the query string is appended to the first, and
+			// a rewrite that builds the URL correctly while dropping the second
+			// would make the response cacheable — the failure that disables this
+			// whole feature while looking healthy.
+			vi.stubGlobal('fetch', respondWith({ buildId: 'other' }));
+			renderHook(() => useAppUpdateCheck());
+			await waitFor(() => expect(fetch).toHaveBeenCalled());
+
+			expect(fetch).toHaveBeenCalledWith(versionCheckUrl(APP_VERSION), {
+				cache: 'no-store',
+			});
+		});
+
+		it('exposes the notes the server returned, newest first', async () => {
+			vi.stubGlobal(
+				'fetch',
+				respondWith({
+					buildId: 'other',
+					severity: 'notice',
+					notes: [
+						{ version: '0.42.0.0', summary: 'Newest.' },
+						{ version: '0.41.0.0', summary: 'Older.' },
+					],
+					olderCount: 3,
+				}),
+			);
+			const { result } = renderHook(() => useAppUpdateCheck());
+			await waitFor(() => expect(result.current.isUpdateAvailable).toBe(true));
+
+			expect(result.current.notes.map((n) => n.summary)).toEqual([
+				'Newest.',
+				'Older.',
+			]);
+			expect(result.current.olderNoteCount).toBe(3);
+		});
+
+		it('defaults to no notes when the field is absent', async () => {
+			// The common release. Must not throw and must not read as an error.
+			vi.stubGlobal('fetch', respondWith({ buildId: 'other' }));
+			const { result } = renderHook(() => useAppUpdateCheck());
+			await waitFor(() => expect(result.current.isUpdateAvailable).toBe(true));
+			expect(result.current.notes).toEqual([]);
+			expect(result.current.olderNoteCount).toBe(0);
+		});
+
+		it.each([
+			['a non-array', 'nope'],
+			['null', null],
+		])('ignores %s notes field', async (_label, notes) => {
+			vi.stubGlobal('fetch', respondWith({ buildId: 'other', notes }));
+			const { result } = renderHook(() => useAppUpdateCheck());
+			await waitFor(() => expect(result.current.isUpdateAvailable).toBe(true));
+			expect(result.current.notes).toEqual([]);
+		});
+
+		it('drops entries with no usable summary rather than rendering a blank', async () => {
+			// A blank summary would paint an empty sentence exactly where the
+			// reason to reload belongs — which reads as "nothing changed", worse
+			// than the generic copy.
+			vi.stubGlobal(
+				'fetch',
+				respondWith({
+					buildId: 'other',
+					notes: [
+						{ version: '0.42.0.0', summary: '   ' },
+						{ version: '0.41.9.0' },
+						{ version: '0.41.8.0', summary: 42 },
+						null,
+						'garbage',
+						{ version: '0.41.7.0', summary: 'Real.' },
+					],
+				}),
+			);
+			const { result } = renderHook(() => useAppUpdateCheck());
+			await waitFor(() => expect(result.current.isUpdateAvailable).toBe(true));
+			expect(result.current.notes).toEqual([
+				{ version: '0.41.7.0', summary: 'Real.' },
+			]);
+		});
+
+		it.each([
+			['a negative', -5],
+			['NaN', Number.NaN],
+			['Infinity', Number.POSITIVE_INFINITY],
+			['a string', '4'],
+		])(
+			'clamps %s olderCount to zero instead of rendering it',
+			async (_label, olderCount) => {
+				// Renders as "Plus NaN more updates." otherwise. The strip's whole
+				// job this release is to be the sentence a coordinator trusts.
+				vi.stubGlobal('fetch', respondWith({ buildId: 'other', olderCount }));
+				const { result } = renderHook(() => useAppUpdateCheck());
+				await waitFor(() =>
+					expect(result.current.isUpdateAvailable).toBe(true),
+				);
+				expect(result.current.olderNoteCount).toBe(0);
+			},
+		);
+
+		it('truncates a fractional olderCount rather than rendering a decimal', async () => {
+			vi.stubGlobal(
+				'fetch',
+				respondWith({ buildId: 'other', olderCount: 3.7 }),
+			);
+			const { result } = renderHook(() => useAppUpdateCheck());
+			await waitFor(() => expect(result.current.isUpdateAvailable).toBe(true));
+			expect(result.current.olderNoteCount).toBe(3);
 		});
 	});
 

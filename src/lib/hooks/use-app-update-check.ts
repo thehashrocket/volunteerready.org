@@ -1,7 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BUILD_ID } from '@/lib/app-version';
+import { APP_VERSION, BUILD_ID } from '@/lib/app-version';
+// TYPE ONLY, and the gate enforces that. Importing the RELEASE_NOTES array
+// here would render this client's own build's notes — the ones for the release
+// it is already running — instead of the deployed build's. Same provenance
+// trap as `RELEASE_SEVERITY`. Types are erased and carry no data.
+import type { ReleaseNote } from '@/server/domain/release-notes';
 
 /**
  * Polls `/api/version` and reports whether the deployed build differs from the
@@ -69,6 +74,17 @@ export type AppUpdateState = {
 	deployedVersion: string;
 	/** Whether the deployed build asked to interrupt (decision 22). */
 	severity: 'silent' | 'notice';
+	/**
+	 * What changed since THIS client's release, newest first, as authored in
+	 * `server/domain/release-notes.ts` and resolved server-side.
+	 *
+	 * Empty is the normal case, not an error: most releases carry no note, and
+	 * a rollback has nothing to announce. The strip falls back to its generic
+	 * sentence rather than hiding.
+	 */
+	notes: ReleaseNote[];
+	/** Further notes the server's wire cap dropped. Reported, never hidden. */
+	olderNoteCount: number;
 };
 
 /**
@@ -90,6 +106,26 @@ export function shouldCheckForUpdate(
 	if (visibilityState !== 'visible') return false;
 	if (lastCheckedAt === null) return true;
 	return now - lastCheckedAt >= floorMs;
+}
+
+/**
+ * The endpoint to ask, carrying this client's own release as `since` so the
+ * server can answer "what changed since YOUR build" rather than only naming
+ * the newest one.
+ *
+ * Pure and exported for the same reason as `shouldCheckForUpdate`: the
+ * interesting branch is the empty-version fallback, and under vitest
+ * `APP_VERSION` genuinely IS empty — so asserting it through the hook would
+ * only ever exercise one side and would look like coverage.
+ *
+ * Omitting the parameter is the honest signal. A client built without
+ * `NEXT_PUBLIC_APP_VERSION` cannot say where it started, and `?since=` with an
+ * empty value would claim it could.
+ */
+export function versionCheckUrl(appVersion: string): string {
+	return appVersion
+		? `/api/version?since=${encodeURIComponent(appVersion)}`
+		: '/api/version';
 }
 
 /**
@@ -120,10 +156,30 @@ type VersionPayload = {
 	buildId?: unknown;
 	version?: unknown;
 	severity?: unknown;
+	notes?: unknown;
+	olderCount?: unknown;
 };
 
+/**
+ * Keeps only entries that are actually renderable.
+ *
+ * The payload crosses a network boundary, so it is validated rather than cast:
+ * a note missing its `summary` would otherwise render as an empty sentence
+ * where the reason to reload should be — worse than the generic copy, because
+ * it looks like the release genuinely changed nothing.
+ */
+function parseNotes(value: unknown): ReleaseNote[] {
+	if (!Array.isArray(value)) return [];
+	return value.flatMap((entry) => {
+		if (typeof entry !== 'object' || entry === null) return [];
+		const { version, summary } = entry as Record<string, unknown>;
+		if (typeof summary !== 'string' || summary.trim() === '') return [];
+		return [{ version: typeof version === 'string' ? version : '', summary }];
+	});
+}
+
 function parse(payload: VersionPayload): AppUpdateState | null {
-	const { buildId, version, severity } = payload;
+	const { buildId, version, severity, notes, olderCount } = payload;
 	// An empty build id means the server cannot identify its own build. It
 	// never equals ours, so treating it as data would prompt everyone forever.
 	if (typeof buildId !== 'string' || buildId === '') return null;
@@ -132,6 +188,11 @@ function parse(payload: VersionPayload): AppUpdateState | null {
 		isUpdateAvailable: buildId !== BUILD_ID,
 		deployedVersion: typeof version === 'string' ? version : '',
 		severity: severity === 'notice' ? 'notice' : 'silent',
+		notes: parseNotes(notes),
+		olderNoteCount:
+			typeof olderCount === 'number' && Number.isFinite(olderCount)
+				? Math.max(0, Math.trunc(olderCount))
+				: 0,
 	};
 }
 
@@ -140,6 +201,8 @@ const IDLE: AppUpdateState = {
 	deployedBuildId: '',
 	deployedVersion: '',
 	severity: 'silent',
+	notes: [],
+	olderNoteCount: 0,
 };
 
 export function useAppUpdateCheck(): AppUpdateState {
@@ -151,7 +214,9 @@ export function useAppUpdateCheck(): AppUpdateState {
 	const check = useCallback(async () => {
 		lastCheckedAt.current = Date.now();
 		try {
-			const response = await fetch('/api/version', { cache: 'no-store' });
+			const response = await fetch(versionCheckUrl(APP_VERSION), {
+				cache: 'no-store',
+			});
 			if (!response.ok) throw new Error(`status ${response.status}`);
 			// An edge proxy or a framework error page returns HTML; `.json()`
 			// throws here rather than yielding something that reads as a version.

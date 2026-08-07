@@ -72,6 +72,9 @@ const IMPORT_LINE = /^\s*import\s[\s\S]*?from\s+['"]([^'"]+)['"]/gm;
 const ALLOWED_IMPORTS = new Set([
 	'@/lib/app-version',
 	'@/server/domain/release',
+	// Pure functions over a literal array. No I/O, no further imports — it
+	// stays inside the "leaf constant module" rule this list exists to enforce.
+	'@/server/domain/release-notes',
 ]);
 
 describe('/api/version source', () => {

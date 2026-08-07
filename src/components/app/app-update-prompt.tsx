@@ -50,8 +50,37 @@ export function AppUpdatePrompt({
 	isModalOpen,
 	isAllowedHere,
 }: AppUpdatePromptProps) {
-	const { isUpdateAvailable, deployedVersion, deployedBuildId, severity } =
-		update;
+	const {
+		isUpdateAvailable,
+		deployedVersion,
+		deployedBuildId,
+		severity,
+		notes,
+		olderNoteCount,
+	} = update;
+
+	/**
+	 * The reason to act, which is the entire point of this strip.
+	 *
+	 * "VolunteerReady has been updated" tells a coordinator nothing they can
+	 * weigh — it was the standing complaint against this prompt, and it stays
+	 * only as the fallback for a release nobody wrote a note for (most of them)
+	 * and for a rollback, which has no "what's new" by definition.
+	 */
+	const [firstNote] = notes;
+	const headline = firstNote?.summary ?? 'VolunteerReady has been updated.';
+
+	/**
+	 * Everything beyond the one summary shown, counted rather than listed.
+	 *
+	 * DESIGN.md's ambient notice strip is ONE line with no title — a stacked
+	 * list turns a 48px band into the squashed card that rule exists to
+	 * prevent. Counting keeps the promise honest without breaking the pattern:
+	 * `olderNoteCount` is what the server's wire cap dropped, so a coordinator
+	 * ten releases behind is never told there was one change.
+	 */
+	const extraNoteCount =
+		notes.length > 0 ? notes.length - 1 + olderNoteCount : 0;
 
 	// Scoped to the deployed version, so "Not now" means "stop interrupting me
 	// about THIS release" and the prompt re-arms on the next one.
@@ -84,7 +113,14 @@ export function AppUpdatePrompt({
 	 */
 	const liveRegion = (
 		<output aria-live="polite" className="sr-only">
-			{hasLatched ? 'A new version of VolunteerReady is available.' : ''}
+			{hasLatched
+				? // The summary is announced too. A screen-reader user otherwise
+					// gets the interruption without the reason for it, which is the
+					// exact gap this release closes for everyone else.
+					firstNote
+					? `A new version of VolunteerReady is available. ${headline}`
+					: 'A new version of VolunteerReady is available.'
+				: ''}
 		</output>
 	);
 
@@ -118,8 +154,15 @@ export function AppUpdatePrompt({
 				    is necessary and not sufficient. A real minimum width is what
 				    makes the buttons wrap to their own row instead. */}
 				<p className="min-w-56 flex-1 text-base text-foreground">
-					VolunteerReady has been updated. Reload when you're ready — anything
-					unsaved will be lost.
+					{headline}
+					{extraNoteCount > 0 ? (
+						<span className="text-muted-foreground">
+							{' '}
+							Plus {extraNoteCount} more{' '}
+							{extraNoteCount === 1 ? 'update' : 'updates'}.
+						</span>
+					) : null}{' '}
+					Reload when you're ready — anything unsaved will be lost.
 				</p>
 				<div className="flex shrink-0 items-center gap-2">
 					{/* "Not now" rather than "Dismiss": accurate, since the notice
