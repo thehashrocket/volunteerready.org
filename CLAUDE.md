@@ -88,6 +88,22 @@ e.g., “Add API client” or “Fix build script”. Pull requests should inclu
 - Screenshots for UI changes
 - Testing notes (commands run and results)
 
+**Bumping `VERSION` also means deciding `RELEASE_SEVERITY`, in the same commit.**
+`src/server/domain/release.ts` holds two constants: whether this release is
+worth interrupting a coordinator over (`silent` | `notice`) and the version that
+answer was decided FOR. `scripts/release-severity-gate.test.ts` fails when the
+stamp does not equal `VERSION`, so the bump and the decision cannot drift.
+Propose the value from the commit type — `feat:` → `notice`,
+`chore:`/`ci:`/`docs:` → `silent` — and confirm or override it; **`silent` is
+the usual and correct answer**, the point is that it is answered rather than
+defaulted. Two things this is NOT: it is not a check that the severity is
+*right* (no test can judge that — see the file's own docstring), and it is not
+derivable from the version number, because `/ship` bumps a segment on nearly
+every PR while "does a coordinator care" is a fact about the content. Note the
+ordering trap: `/ship` runs tests *before* bumping `VERSION`, so a forgotten
+stamp goes green locally and red in CI on the PR — fix it there, don't
+"simplify" the guard to a prefix match to make it quiet.
+
 ## Configuration & Secrets
 
 Store environment-specific values in `.env` files and keep secrets out of Git.
