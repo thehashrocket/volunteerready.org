@@ -1,10 +1,19 @@
 'use client';
 
-import { ChevronDown, LogOut, Menu, MessageSquare, X } from 'lucide-react';
+import {
+	ChevronDown,
+	LogOut,
+	Menu,
+	MessageSquare,
+	RefreshCw,
+	X,
+} from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { type ReactNode, useEffect, useState } from 'react';
 import { AppSidebar } from '@/components/app/app-sidebar';
+import { AppUpdatePrompt } from '@/components/app/app-update-prompt';
 import { NotificationBell } from '@/components/app/notification-bell';
 import { CompanySwitcher } from '@/components/company/CompanySwitcher';
 import { OrgSwitcher } from '@/components/org/OrgSwitcher';
@@ -18,6 +27,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAppUpdateCheck } from '@/lib/hooks/use-app-update-check';
+import { useModalOpen } from '@/lib/hooks/use-modal-open';
 
 interface AppShellProps {
 	children: ReactNode;
@@ -41,6 +52,46 @@ export function AppShell({
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [mounted, setMounted] = useState(false);
 	useEffect(() => setMounted(true), []);
+
+	/**
+	 * Called ONCE here, with the result passed to both consumers as props.
+	 *
+	 * Two hook instances would mean two `visibilitychange` listeners, two
+	 * five-minute floors drifting apart, two failure counters with independent
+	 * report thresholds and two `/api/version` fetches per focus — silently
+	 * doubling the floor the whole design rests on. A context was rejected as
+	 * premature: both consumers are children of this component.
+	 */
+	const update = useAppUpdateCheck();
+	const isModalOpen = useModalOpen();
+	const pathname = usePathname();
+
+	/**
+	 * Staff only, using props this component already receives.
+	 *
+	 * A volunteer opening the app on a phone to check Saturday's start time has
+	 * no idea what a version is and is gone in twenty seconds — same
+	 * interruption cost, near-zero value. `hasOrg` is an `OrganizationMember`
+	 * row, which is exactly "is org staff", and it is already derived from the
+	 * TARGET user under impersonation, so this gate inherits that for free.
+	 *
+	 * This gates the account-menu item as well as the strip. Those two started
+	 * out disagreeing — the strip staff-gated, the menu item ungated — which,
+	 * because `severity` defaults to `silent`, meant version information was
+	 * shown to exactly the population it was designed to exclude and to nobody
+	 * else. Keep them on one condition.
+	 */
+	const isStaff = hasOrg || hasCompany;
+
+	/**
+	 * `/app/scan` is the QR check-in scanner, used by volunteers on phones at a
+	 * live event. `public/sw.js` already singles that route out as never-stale
+	 * for the same reason. Detection keeps running; only the render is
+	 * suppressed, so the strip appears on the next route.
+	 */
+	const isAllowedHere = isStaff && !pathname?.startsWith('/app/scan');
+
+	const showUpdateAffordance = isStaff && update.isUpdateAvailable;
 
 	return (
 		<div
@@ -133,6 +184,32 @@ export function AppShell({
 										{session?.user?.email ?? 'No email'}
 									</DropdownMenuItem>
 									<DropdownMenuSeparator />
+									{/* Permanent while an update is pending, so dismissing the
+									    strip means "stop interrupting me" rather than "forget
+									    this happened" — dismiss at 9am, hit a bug at 4pm, and
+									    without this no surface anywhere says a newer build
+									    exists. It is also the ONLY surface a `silent` release
+									    renders, which is most of them. */}
+									{showUpdateAffordance && (
+										<>
+											<DropdownMenuItem
+												onClick={() => window.location.reload()}
+											>
+												<RefreshCw className="mr-2 h-4 w-4" />
+												<span className="flex-1">Update available</span>
+												{/* Mono because a four-part version is an ID, and
+												    muted because it is reference material for a
+												    support conversation, not something to read
+												    mid-task. */}
+												{update.deployedVersion && (
+													<span className="ml-2 font-mono text-xs text-muted-foreground">
+														{update.deployedVersion}
+													</span>
+												)}
+											</DropdownMenuItem>
+											<DropdownMenuSeparator />
+										</>
+									)}
 									<DropdownMenuItem asChild>
 										<Link href="/app/my-feedback">
 											<MessageSquare className="mr-2 h-4 w-4" />
@@ -157,6 +234,21 @@ export function AppShell({
 					</div>
 				</div>
 			</header>
+
+			{/* Order: ImpersonationBanner -> sticky header -> update strip -> main.
+			    The impersonation banner is a live security-state warning and must
+			    never sit below a software-update notice; its `bg-warning/15` is
+			    deliberately distinct from this strip's `bg-accent/10` so two
+			    stacked bands do not read as one confused alert block.
+
+			    In flow rather than sticky: a band that follows you down the page
+			    is closer to a modal than a notice, and scrolling past it loses
+			    nothing because the account menu keeps the affordance. */}
+			<AppUpdatePrompt
+				update={update}
+				isModalOpen={isModalOpen}
+				isAllowedHere={isAllowedHere}
+			/>
 
 			<div className="flex">
 				{/* Desktop sidebar */}
