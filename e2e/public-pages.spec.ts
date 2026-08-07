@@ -299,3 +299,55 @@ test.describe('how-it-works / screening annotations', () => {
 		});
 	}
 });
+
+/**
+ * REGRESSION for the v0.28.0.0 update-banner false positive.
+ *
+ * `SwUpdateBanner` listened for `controllerchange`, which fires on the
+ * uncontrolled -> controlled transition — i.e. on a FIRST VISIT, not on a
+ * deploy. So every first-time visitor to the marketing site was told "New
+ * version available. Reload." about the page they had just opened. It survived
+ * eight releases because a fresh Playwright context is exactly that path, and
+ * `capture.spec.ts` was CSS-hiding the banner on every screenshot run.
+ *
+ * Playwright gives each test a fresh context, so this IS the real reproduction
+ * — which is why decision 18 let this one keep its claim while relabelling the
+ * mocked update-detection e2e.
+ *
+ * HONEST STATUS: with the component deleted this currently cannot fail, and
+ * that is the point of writing it now rather than later — it is the guard the
+ * replacement prompt (T5/T6) gets built against, in the spirit of decision 37.
+ * The CI-runnable half lives in `src/components/sw-update-banner.guard.test.ts`,
+ * because e2e is not in CI here. Do not delete this as redundant with that one:
+ * the guard checks the source tree, this checks what a browser actually paints.
+ */
+test.describe('first visit shows no update prompt', () => {
+	const RELOAD_PROMPT_TEXT = /new version available|reload to update/i;
+
+	test('a fresh context on / is uncontrolled and prompts nothing', async ({
+		page,
+	}) => {
+		await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+		// Proves this test is exercising the FIRST-VISIT path rather than
+		// passing because the context happened to already be controlled. This
+		// is the reproduction condition; without it the assertion below is
+		// true for an uninteresting reason.
+		const wasUncontrolled = await page.evaluate(
+			() =>
+				!('serviceWorker' in navigator) ||
+				navigator.serviceWorker.controller === null,
+		);
+		expect(wasUncontrolled, 'fresh context must start uncontrolled').toBe(true);
+
+		// Proves the page actually rendered, so "no prompt" is not "no page".
+		await expect(page.locator('h1').first()).toBeVisible();
+
+		// Let SwRegister install and claim — the exact window in which the old
+		// banner fired. A bare assertion without this wait would pass before
+		// the bug had a chance to happen.
+		await page.waitForTimeout(1500);
+
+		await expect(page.getByText(RELOAD_PROMPT_TEXT)).toHaveCount(0);
+	});
+});

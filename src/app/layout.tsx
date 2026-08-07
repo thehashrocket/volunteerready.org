@@ -5,7 +5,6 @@ import { CookieConsentBanner } from '@/components/cookie-consent-banner';
 import { IosInstallPrompt } from '@/components/ios-install-prompt';
 import { AppToaster } from '@/components/sonner';
 import { SwRegister } from '@/components/sw-register';
-import { SwUpdateBanner } from '@/components/sw-update-banner';
 import { ThemeProvider } from '@/components/theme-provider';
 import { BASE_URL } from '@/lib/constants';
 import './globals.css';
@@ -96,7 +95,6 @@ export default function RootLayout({
 					/>
 					<IosInstallPrompt />
 					<SwRegister />
-					<SwUpdateBanner />
 					<AppToaster />
 					<ConsentedAnalytics />
 					<CookieConsentBanner />
