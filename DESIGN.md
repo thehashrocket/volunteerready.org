@@ -120,6 +120,16 @@
       then the actions. No title — a bold title stacked over a body sentence inside a 48px
       band reads as a squashed card, which is what both outside voices proposed and why
       this rule is written down.
+    - **The copy leads with the REASON, not the event.** "VolunteerReady has been updated"
+      names something the user cannot weigh; the strip renders the release's authored
+      summary (`src/server/domain/release-notes.ts`) instead, and falls back to the generic
+      sentence only when a release has no note or the user rolled backwards. The
+      unsaved-work warning stays either way — it is the only thing between the primary
+      action and someone's half-typed form.
+    - **Additional items are COUNTED, never listed** ("Plus 3 more updates."). A list is
+      the stacked block the one-line rule above forbids, and it is the shape this band
+      degrades into first. The count includes what the server's wire cap dropped, so a
+      coordinator ten releases behind is never told there was one other change.
     - **Actions:** `h-11` buttons, secondary (`ghost`) before primary. The dismissive
       action is named for what it does (`Not now`, not `Dismiss`) and must not read as
       weaker than the primary — the same weighting rule as `Not mine` / `Add to my account`

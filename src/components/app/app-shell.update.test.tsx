@@ -22,6 +22,8 @@ const updateState = vi.hoisted(() => ({
 		deployedBuildId: 'build-b',
 		deployedVersion: '0.42.0.0',
 		severity: 'notice',
+		notes: [],
+		olderNoteCount: 0,
 	} as AppUpdateState,
 }));
 
@@ -71,6 +73,8 @@ beforeEach(() => {
 		deployedBuildId: 'build-b',
 		deployedVersion: '0.42.0.0',
 		severity: 'notice',
+		notes: [],
+		olderNoteCount: 0,
 	};
 });
 
