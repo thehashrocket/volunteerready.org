@@ -82,6 +82,32 @@ offline-critical path is unaffected — `qr-checkin-code.tsx` caches its check-i
 token in `localStorage` with a 10-minute expiry and never depended on the
 worker. **Effort:** S. **Depends on:** None.
 
+### [P2] `/apply/status` reads `searchParams.token` synchronously, which Next 16 refuses
+
+`src/app/apply/status/page.tsx:13-15` types `searchParams` as a plain object and
+reads `searchParams.token` directly. In Next 16 `searchParams` is a Promise, so
+every request logs:
+
+```
+Error: Route "/apply/status" used `searchParams.token`. `searchParams` is a
+Promise and must be unwrapped with `await` or `React.use()` before accessing
+its properties.
+```
+
+Pre-existing, and it went unnoticed because **nothing in the e2e suite visited
+that route** until `e2e/service-worker.spec.ts` began using it as the fixture
+for a URL carrying a one-time token. It surfaced on the first CI run of that
+spec, twice.
+
+The page still renders today (the tests that visit it pass), which is why this
+is a P2 and not a P1 — but sync `searchParams` access is on Next's removal path,
+so this becomes a hard failure on a future upgrade rather than a logged error.
+Fix is to make the component `async` and `await params`, matching
+`credentials/claim/[token]/page.tsx`, which already does it correctly.
+
+Deliberately NOT fixed in v0.41.18.0: it is unrelated production code on a
+branch that had already expanded twice. **Effort:** S. **Depends on:** None.
+
 ### [P3] Cache rotation is deferred until every tab closes
 
 With `skipWaiting()` removed, a new build's worker installs and waits. For a
@@ -124,36 +150,46 @@ and hydration round to the same string and the strings match by luck. It needs a
 slow response to reproduce — which is exactly what a CI runner compiling routes
 on demand provides, and what no local run does.
 
-### [P2] ~~`staff-created-volunteers.spec.ts:367` fails on a CI runner~~ ✅ ROOT-CAUSED, UN-QUARANTINED (2026-08-07, v0.41.18.0)
+### [P2] `staff-created-volunteers.spec.ts:367` fails on a CI runner — STILL QUARANTINED (2026-08-07)
 
-**It was the service worker**, and the evidence was already written into this
-entry as "the one unexplained clue" below — the failing trace's request to
-`/app/my-shifts` during a staff coordinator's session. That was not the sidebar
-rendering volunteer nav. It was `sw.js`'s install handler, which pre-cached
-`['/app', '/app/my-shifts']`; `SwRegister` is mounted in the ROOT layout with no
-environment guard, so it ran on every page of every e2e run.
+**Current state:** `test.fixme(!!process.env.CI, …)` at the top of the test. It
+still runs locally, where it passes, and is reported as skipped in every CI run
+so the quarantine cannot quietly become permanent. **Delete those two lines to
+un-quarantine** — and note that this has now been attempted once and reverted,
+so the bar is a CI run that proves it, not a theory that explains it.
 
-Measured on a real dev server before the fix: a spec that visits only
-`/app/volunteers` also caused `GET /app` (782ms) and `GET /app/my-shifts`
-(1407ms) to compile, and the worker then called `clients.claim()` and took over
-serving assets to a page that was still hydrating. On a cold runner those costs
-land on the same first navigation as the click.
+**Hypothesis 4 — the service worker — is REFUTED, by CI, not by argument
+(2026-08-07, during v0.41.18.0).** `sw.js` pre-cached `['/app',
+'/app/my-shifts']` at install from a component mounted in the ROOT layout with
+no environment guard, so it ran on every page of every e2e run. Measured on a
+cold dev server: a spec visiting only `/app/volunteers` also caused `GET /app`
+(782ms) and `GET /app/my-shifts` (1407ms) to compile. That explained "the one
+unexplained clue" below exactly, and it was a real defect — fixed in the same
+release. The test was un-quarantined on the strength of it and **failed all
+three attempts on the next CI run, identically** (`locator.fill` timing out on
+`getByRole('dialog').getByLabel('Name')` — the dialog never opened). The
+pre-caching was never this test's cause.
 
-Hypothesis 2 below — "a pre-hydration click" — was recorded as *weakened to the
-point of dead* because the trace showed React loaded and no hydration error.
-That was the right observation and the wrong conclusion: React being loaded says
-nothing about whether the chunk carrying this button's handler had arrived
-through a worker that had just claimed the page. **The refutation was of the
-mechanism, not of the symptom.** Kept below unedited, because the reasoning is
-the useful part.
+**What that run did NOT refute, and is the live lead:** `sw.js` still calls
+`clients.claim()`, so a worker still takes over a page that may still be
+hydrating, and it still intercepts every `/_next/static/**` request cache-first.
+That is directly testable — unregister the service worker at the top of this
+spec and see whether CI goes green. Nobody has tried it.
 
-The `test.fixme` is gone and the test runs in CI again. The per-test CI timeout
-raised to 60s in `4266ecd` was left in place — it was the wrong diagnosis, as
-that commit's own follow-up admitted, but it is defensible on its own merits.
+This also updates hypothesis 2 below ("a pre-hydration click", recorded as
+*weakened to the point of dead*). It should not have been called dead: React
+being loaded says nothing about whether the chunk carrying that button's handler
+has arrived. The refutation was of one MECHANISM, not of the symptom.
 
-**Everything below this line is the diagnosis as it stood before the cause was
-found.** It is preserved rather than rewritten so the three dead hypotheses stay
-dead.
+**Three wrong diagnoses so far** — a cold-compile timeout raise (`4266ecd`), the
+hydration-mismatch conflation, and now the service worker. Each was plausible,
+each was argued from evidence, and each was wrong. Treat that as the strongest
+signal in this entry: **stop theorising and get CI-side instrumentation.** The
+60s per-test timeout from `4266ecd` is left in place; it is defensible on its own
+merits and is not the fix.
+
+**Everything below this line predates all of the above.** It is preserved rather
+than rewritten so the dead hypotheses stay dead.
 
 It degraded across three runs — `flaky` (passed on retry), `flaky`, then failed
 all three attempts — which is why it moved from "watch it" to quarantine rather

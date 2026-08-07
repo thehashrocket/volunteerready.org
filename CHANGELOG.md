@@ -26,10 +26,11 @@ site used to, and the installed app appeared to but was showing whatever the
 last person on that device had loaded. Proper offline support needs a real
 offline page, which is a separate piece of work.
 
-Also fixed: a browser test that had been switched off for one release because it
-failed only on the build server. The cause was the same service worker quietly
-loading two extra pages in the background and taking over mid-load. It is back
-on.
+The service worker was also loading two extra pages in the background on every
+visit — pages nobody had asked for. That is gone, which makes a first visit
+slightly cheaper. We thought it explained a browser test that has been switched
+off since the previous release; it did not, and that test stays off while we
+keep looking.
 
 ## [0.41.17.0] - 2026-08-07
 
