@@ -1,5 +1,6 @@
 import { APP_VERSION, BUILD_ID } from '@/lib/app-version';
 import { RELEASE_SEVERITY } from '@/server/domain/release';
+import { notesForRange } from '@/server/domain/release-notes';
 
 /**
  * What build is live right now.
@@ -34,7 +35,15 @@ import { RELEASE_SEVERITY } from '@/server/domain/release';
 // rebuilt with new parts — so it is asserted, not just intended.
 export const dynamic = 'force-dynamic';
 
-export function GET() {
+export function GET(request: Request) {
+	// The caller's own release, so the answer is "what changed since YOUR build"
+	// rather than "the newest note". A coordinator four releases behind needs
+	// all four, and the range is the only way to express that. Unusable or
+	// absent values are handled inside `notesForRange`, which is why nothing is
+	// validated here — one place decides what an unknown `since` means.
+	const since = new URL(request.url).searchParams.get('since');
+	const { notes, olderCount } = notesForRange(since, APP_VERSION);
+
 	return Response.json(
 		{
 			// The comparison value. Opaque; clients must treat it as a token.
@@ -45,6 +54,13 @@ export function GET() {
 			// 'notice' renders the strip. Defaults to 'silent' and is promoted
 			// deliberately at ship time (decisions 22, 34, 51).
 			severity: RELEASE_SEVERITY,
+			// What changed since `since`, newest first. Empty is normal and
+			// renders the generic sentence: most releases carry no note, and a
+			// rollback has nothing to announce by definition.
+			notes,
+			// Reported, never silently dropped, so a truncated list cannot read
+			// as a complete one.
+			olderCount,
 		},
 		{ headers: { 'Cache-Control': 'no-store' } },
 	);
