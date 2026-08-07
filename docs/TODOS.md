@@ -31,12 +31,17 @@ and hydration round to the same string and the strings match by luck. It needs a
 slow response to reproduce — which is exactly what a CI runner compiling routes
 on demand provides, and what no local run does.
 
-### [P2] `staff-created-volunteers.spec.ts:367` drops its first click on a cold runner
+### [P2] `staff-created-volunteers.spec.ts:367` fails on a CI runner — QUARANTINED IN CI (2026-08-07)
 
-Reported `flaky` on both CI runs so far — it fails the first attempt and passes
-on retry, so it has never failed the job, and `retries: 2` means it never will
-until it degrades further. Recorded now because a flake nobody diagnosed is how
-a suite stops being trusted.
+**Current state:** `test.fixme(!!process.env.CI, …)` at the top of the test. It
+still runs locally, where it passes, and is reported as skipped in every CI run
+so the quarantine cannot quietly become permanent. **Delete those two lines to
+un-quarantine.** If it starts passing in CI by itself, find out what changed
+before dropping the marker.
+
+It degraded across three runs — `flaky` (passed on retry), `flaky`, then failed
+all three attempts — which is why it moved from "watch it" to quarantine rather
+than being left to rot as an accepted flake.
 
 **It is NOT the hydration mismatch above** (that one is fixed, and the two CI
 hydration errors were both adjacent to the impersonation spec, minutes away from
@@ -53,18 +58,34 @@ server: an authenticated first request costs ~0.5-1.8s to compile
 (`/app/shifts` 664ms → 137ms warm; `/app/volunteers` 1836ms → 146ms). So the
 60s timeout is not slow compilation — the click really is gone.
 
-**The obvious fix does not work.** Extending `e2e/global-setup.ts` to warm
-authenticated routes was tried and REFUTED by measurement: unauthenticated
-requests to `/app/*` return a middleware 307 in 18-45ms without compiling
-anything. Warming them would need `global-setup` to mint a session and clean it
-up, and even then it warms the SERVER route — whether it also builds the client
-chunks that gate hydration is unverified. Do not assume it does.
+**Three hypotheses are already dead — do not re-run them.**
 
-Candidate fixes, none implemented: wait on a signal that only exists after
-hydration before the first interaction; or wrap the open in Playwright's
-`toPass()` so a lost first click is retried. The second is self-healing but can
-mask a real regression, so prefer the first if a reliable signal exists.
-**Effort:** S-M. **Depends on:** None.
+1. **Cold-compile latency.** Refuted by measurement. Against a cold dev server an
+   authenticated first request costs ~0.5-1.8s (`/app/shifts` 664ms → 137ms warm;
+   `/app/volunteers` 1836ms → 146ms). A 60s timeout is not slow compilation. The
+   retries also fail, against an already-warm route.
+2. **A pre-hydration click.** Weakened to the point of dead: the downloaded trace
+   shows React loaded, no JS errors and **no hydration error** on the failing run.
+3. **`workers: 1` / shared-database interference.** Refuted. The full suite passes
+   locally 69/69 under the exact CI settings (`CI=1 pnpm e2e`), and so does this
+   file alone with `workers: 1`.
+
+**Extending `global-setup.ts` to warm authenticated routes also does not work**,
+and that was measured too: unauthenticated requests to `/app/*` return a
+middleware 307 in 18-45ms without compiling anything. Warming them would need
+`global-setup` to mint a session and clean it up — and even then it warms the
+SERVER route, while whether it builds the client chunks is unverified.
+
+**The one unexplained clue**, for whoever picks this up: the trace shows a
+request to `/app/my-shifts` — a VOLUNTEER route — during a staff coordinator's
+session on `/app/volunteers`. That points at the sidebar rendering volunteer nav
+while the page's 7-query tRPC batch was still in flight, which would mean the
+page had not settled into its staff shape when the click landed. Not chased.
+
+**There is no local reproduction**, which is the real blocker: the runner takes
+6-7 minutes for a suite that takes 1.0 minute here. Closing this probably needs
+CI-side instrumentation rather than local debugging. **Effort:** M. **Depends
+on:** None.
 
 ### [P3] The impersonation countdown is an `aria-live` region that changes every second
 

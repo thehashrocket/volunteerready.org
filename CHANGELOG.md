@@ -23,7 +23,10 @@ the browser did, so the failure can be read rather than reproduced.
 ### Added
 
 - E2E job in CI: Postgres, migrations, seeded demo data, a real Chromium, and
-  the full Playwright suite on every PR and every push to `main`. Blocking.
+  the Playwright suite on every PR and every push to `main`. Blocking. One test
+  of 69 is quarantined in CI (it fails only on a slow runner and cannot be
+  reproduced locally); it still runs locally and is reported as skipped in every
+  CI run rather than disappearing quietly.
 - Playwright report and traces uploaded when the suite fails.
 - `scripts/e2e-ci-gate.test.ts` — guards the job's own shape, since a CI gate
   that has been quietly disabled looks exactly like one that is passing.
