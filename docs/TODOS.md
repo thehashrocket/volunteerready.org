@@ -63,20 +63,40 @@ service worker so a sticky worker bug could not sink the feature. Reconsider
 they mean the new worker wipes the caches out from under the page the user is
 currently looking at. **Effort:** M. **Depends on:** None.
 
-### [P3] Vercel Skew Protection is almost certainly off
+### [P2] Skew Protection is ON, but it does not cover the tRPC surface
 
-`next.config.ts` sets no `deploymentId` and this project predates the change
-that made Skew Protection default-on (new projects only). Skew protection is
-complementary to the update prompt rather than a substitute: the prompt says
-"you can update", skew protection means "and nothing breaks if you don't" —
-it keeps an old client working against the new backend instead of letting a
-route the deploy changed fail underneath them.
+**Corrects the entry shipped in v0.41.10.1**, which said Skew Protection was
+"almost certainly off" and needed enabling. It is on, and it always has been.
+Four independent confirmations: the team is on the Pro plan, the project's
+`skewProtectionMaxAge` is `43200` (12h), every asset URL in production HTML
+carries `?dpl=dpl_…`, and the project was created **2026-03-09** — sixteen
+months *after* the 2024-11-19 cutoff that made Skew Protection default-on for
+new projects, not before it as that entry claimed. `next.config.ts` needs no
+`deploymentId`: Vercel injects it when it runs the build, and Next 16.3 stamps
+it onto `<html data-dpl-id>`. Nothing here needs enabling, so
+vercel/next.js#94734 does not apply either.
 
-Check the Vercel project settings before writing any code; this may be a
-dashboard toggle with no repo change at all. If a custom `deploymentId` is
-needed, confirm vercel/next.js#94734 does not apply first — on prebuilt deploys
-`experimental.runtimeServerDeploymentId` has been reported to override a custom
-id. Requires a Pro plan tier. **Effort:** S. **Depends on:** None.
+**What is actually open is narrower and was hidden by the wrong headline.**
+Vercel's docs are explicit that the framework pins only *framework-managed*
+requests — static assets, client-side navigations, Server Actions, prefetches —
+and that it "doesn't automatically pin custom `fetch()` calls you make from
+client components." tRPC's `httpBatchLink` is a custom `fetch()`. So every
+tRPC call from a stale client already reaches the newest deployment, and the
+version-skew class the old entry credited Skew Protection with removing — "an
+old client calls a route the new deploy changed" — is still live across the
+whole API surface. That is the opposite of what the entry said, and it is the
+part worth fixing.
+
+Two ways to close it, neither started: send `x-deployment-id` from the tRPC
+client (`process.env.VERCEL_SKEW_PROTECTION_ENABLED === '1'` gates it, per
+Vercel's own snippet), or set the `__vdpl` cookie in Routing Middleware to pin
+the whole session. The second also pins document navigations, which would stop
+`location.reload()` landing on the new build — so it conflicts directly with
+the update-prompt feature and should not be chosen without reading that plan
+first.
+
+**Verified 2026-08-06** by API, production response inspection and the Vercel
+docs — not by reading class strings. **Effort:** M. **Depends on:** None.
 
 ### [P2] e2e still is not in CI, and it forced a test to be written twice
 
