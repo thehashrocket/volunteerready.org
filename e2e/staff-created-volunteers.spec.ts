@@ -369,31 +369,24 @@ test.describe('Staff-created volunteers (authenticated, dev server)', () => {
 		page,
 		baseURL,
 	}) => {
-		// QUARANTINED IN CI ONLY, 2026-08-07. Tracked as a P2 in `docs/TODOS.md`
-		// ("staff-created-volunteers.spec.ts:367 drops its first click on a cold
-		// runner"), which carries the full diagnosis and the three hypotheses
-		// already refuted.
+		// UN-QUARANTINED 2026-08-07 (v0.41.18.0). This test was `test.fixme`'d in
+		// CI one release earlier: the click on `Add volunteer` landed and the
+		// dialog never opened, on a runner only, with no local reproduction.
 		//
-		// It fails on a GitHub runner and cannot be reproduced here: the whole
-		// suite passes locally 69/69 under the exact CI settings (`CI=1 pnpm e2e`
-		// — `workers: 1`, `retries: 2`), and so does this file alone. The runner
-		// takes 6-7 minutes for a suite that takes 1.0 minute locally, so it is a
-		// slow-machine effect with no local reproduction to debug against.
+		// The cause was the SERVICE WORKER, and the clue was recorded in the P2
+		// without being recognised — the failing trace showed a request to
+		// `/app/my-shifts`, a volunteer route, during a staff coordinator's
+		// session. That request was `sw.js`'s install handler: it pre-cached
+		// `['/app', '/app/my-shifts']`, and `SwRegister` is mounted in the ROOT
+		// layout with no environment guard, so it ran on every page of every e2e
+		// run. On a cold runner that meant this test's first navigation also paid
+		// for a full render of two routes it never asked for (measured locally at
+		// 782ms and 1407ms), after which the worker called `clients.claim()` and
+		// took over serving assets to a page that was still hydrating.
 		//
-		// `fixme`, deliberately, NOT `skip` and NOT deletion:
-		//   - it still RUNS locally, where it passes, so the coverage is not lost
-		//     and a regression in the behaviour it asserts still surfaces
-		//   - it is REPORTED as skipped in every CI run, so the quarantine
-		//     announces itself instead of quietly becoming permanent
-		//
-		// Un-quarantine by deleting these two lines once the P2 is fixed. If it
-		// starts passing in CI on its own, that is information — do not just drop
-		// the marker; find out what changed first.
-		test.fixme(
-			!!process.env.CI,
-			'P2 in docs/TODOS.md — fails on a slow CI runner, not reproducible locally',
-		);
-
+		// `public/sw.js` no longer pre-caches anything and never touches `/app`.
+		// If this goes red again, re-read `e2e/service-worker.spec.ts` before
+		// reaching for the timeout — that was tried here and it failed at 60s too.
 		if (!baseURL) throw new Error('baseURL missing from Playwright config');
 		const prisma = getPrisma();
 
