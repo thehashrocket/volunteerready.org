@@ -369,16 +369,23 @@ test.describe('Staff-created volunteers (authenticated, dev server)', () => {
 		page,
 		baseURL,
 	}) => {
-		// QUARANTINED IN CI ONLY, 2026-08-07. Tracked as a P2 in `docs/TODOS.md`
-		// ("staff-created-volunteers.spec.ts:367 drops its first click on a cold
-		// runner"), which carries the full diagnosis and the three hypotheses
-		// already refuted.
+		// STILL QUARANTINED IN CI. Tracked as a P2 in `docs/TODOS.md`, which
+		// carries the full diagnosis and now FOUR refuted hypotheses.
 		//
-		// It fails on a GitHub runner and cannot be reproduced here: the whole
-		// suite passes locally 69/69 under the exact CI settings (`CI=1 pnpm e2e`
-		// — `workers: 1`, `retries: 2`), and so does this file alone. The runner
-		// takes 6-7 minutes for a suite that takes 1.0 minute locally, so it is a
-		// slow-machine effect with no local reproduction to debug against.
+		// It was briefly un-quarantined in v0.41.18.0 on the theory that the
+		// service worker caused it — `sw.js` pre-cached `['/app',
+		// '/app/my-shifts']` at install from a component mounted in the root
+		// layout with no environment guard, so on a cold runner this test's first
+		// navigation also paid for two route compiles it never asked for. That
+		// explained the one unexplained clue in the P2 (a `/app/my-shifts`
+		// request during a staff session) and it was a real defect, fixed in the
+		// same release. **It was not this test's cause.** With the pre-caching
+		// gone the test failed all three attempts on CI, identically.
+		//
+		// What that run did NOT refute: `sw.js` still calls `clients.claim()`, so
+		// the worker still takes over a page that may still be hydrating. That is
+		// the live hypothesis for whoever picks this up, and it is testable —
+		// unregister the worker at the top of this spec and see.
 		//
 		// `fixme`, deliberately, NOT `skip` and NOT deletion:
 		//   - it still RUNS locally, where it passes, so the coverage is not lost
@@ -386,9 +393,9 @@ test.describe('Staff-created volunteers (authenticated, dev server)', () => {
 		//   - it is REPORTED as skipped in every CI run, so the quarantine
 		//     announces itself instead of quietly becoming permanent
 		//
-		// Un-quarantine by deleting these two lines once the P2 is fixed. If it
-		// starts passing in CI on its own, that is information — do not just drop
-		// the marker; find out what changed first.
+		// Un-quarantine by deleting these two lines once the P2 is fixed — and
+		// note that this has now been attempted once and reverted, so the bar is
+		// a CI run that proves it, not a theory that explains it.
 		test.fixme(
 			!!process.env.CI,
 			'P2 in docs/TODOS.md — fails on a slow CI runner, not reproducible locally',

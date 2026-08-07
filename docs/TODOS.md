@@ -5,6 +5,125 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the service-worker ship (2026-08-07, v0.41.18.0)
+
+Two of the three bugs fixed there were not the one the branch was opened for.
+Both are recorded here rather than only in `sw.js`'s docstring, because the
+shape generalises past service workers.
+
+### Caught while building — recorded so it is not reintroduced
+
+**A device-wide cache keyed by URL cannot hold anything that belongs to a user
+— and "holds" includes the KEY.** `sw.js` pre-cached `['/app', '/app/my-shifts']`
+at install and cached every page response it saw, into ONE cache per device
+shared by every user who signs in on it — a front-desk tablet at a nonprofit is
+a realistic install target. Three consequences, all verified in a browser rather
+than reasoned about:
+
+- an **anonymous** visitor stored the LOGIN page under the `/app` key, because
+  `/app` 307s to `/login?callbackUrl=%2Fapp` and the install-time fetch follows
+  the redirect. The network-first fallback would then serve a sign-in screen to
+  someone who was signed in.
+- a **signed-in** coordinator stored their own rendered dashboard HTML, which
+  the next person to use that device could be served from that same fallback.
+- four routes carry a ONE-TIME CREDENTIAL IN THE URL while serving entirely
+  generic HTML — `/apply/status?token=`, `/invite/<token>`,
+  `/invite/company/<token>`, `/credentials/claim/<token>` — so caching them
+  wrote the secret itself into a store the next person can read from devtools.
+
+**The lesson is the SHAPE of the fix, not the fix.** The first pass used a
+DENYLIST of paths not to cache. It missed four routes across two review passes
+— one found by the author, three by a cross-model pass — because a denylist
+fails OPEN: every new route is cached by default. Worse, the author's own search
+for the class (`grep searchParams`) could only ever find query-string tokens,
+never the three that carry the token as a PATH SEGMENT, and `/invite/[token]`
+lives under the `(app)` ROUTE GROUP, so its URL is `/invite/…` and the `/app`
+prefix never matched it.
+
+So the rule is inverted: `STATIC_PREFIXES` is now an ALLOWLIST of four
+content-addressed build-output prefixes, and HTML is not cached at all. Adding a
+route to this app can no longer put anything in the cache. `e2e/service-worker.spec.ts`
+pins both halves — that the cache holds only allowlisted entries, AND that the
+declared allowlist still equals the four expected prefixes, so widening it is a
+visible edit rather than a silent config change.
+
+**A `'use client'` component in the ROOT layout runs in every environment,
+including e2e.** `SwRegister` had no environment guard, which is how a
+production-only PWA concern became the cause of a CI-only test failure three
+releases later. Gating it on production was considered and REJECTED: it would
+make `e2e/public-pages.spec.ts`'s first-visit regression vacuous — that test
+reproduces the v0.28.0.0 banner bug through the uncontrolled → controlled
+transition, which never happens if nothing ever registers. The worker was fixed
+instead of being hidden from the tests.
+
+### [P2] No page is available offline any more, including the PWA's `start_url`
+
+The worker now caches only build output, so **no HTML is cached at all**. An
+installed PWA opened with no connection gets the browser's offline error, and so
+does the public marketing site. Two things this is and is not:
+
+- it is **not** a regression in anything that WORKED. `manifest.webmanifest`
+  sets `start_url: "/app"`, and what the old worker served there offline was
+  another user's dashboard HTML or a stale login screen. The marketing site did
+  open offline; nothing in the product ever claimed it would.
+- it **is** a real capability removal, chosen deliberately (see the entry above)
+  because keeping it meant maintaining a denylist that had already failed twice.
+
+The fix is a static `/offline` fallback page returned for failed document
+navigations: it holds no user data, so it is safe in a shared cache, and it
+restores a sensible offline experience for both the PWA and the public site
+without reintroducing the bug class. Not built here — it is new UI on a branch
+whose whole point was to reduce this file's blast radius.
+
+Raised as a P2 by the cross-model review, which is a rating this repo should
+respect: an installed PWA that dead-ends offline is the failure a volunteer
+hits in a church basement with no signal. Note the one genuinely
+offline-critical path is unaffected — `qr-checkin-code.tsx` caches its check-in
+token in `localStorage` with a 10-minute expiry and never depended on the
+worker. **Effort:** S. **Depends on:** None.
+
+### [P2] `/apply/status` reads `searchParams.token` synchronously, which Next 16 refuses
+
+`src/app/apply/status/page.tsx:13-15` types `searchParams` as a plain object and
+reads `searchParams.token` directly. In Next 16 `searchParams` is a Promise, so
+every request logs:
+
+```
+Error: Route "/apply/status" used `searchParams.token`. `searchParams` is a
+Promise and must be unwrapped with `await` or `React.use()` before accessing
+its properties.
+```
+
+Pre-existing, and it went unnoticed because **nothing in the e2e suite visited
+that route** until `e2e/service-worker.spec.ts` began using it as the fixture
+for a URL carrying a one-time token. It surfaced on the first CI run of that
+spec, twice.
+
+The page still renders today (the tests that visit it pass), which is why this
+is a P2 and not a P1 — but sync `searchParams` access is on Next's removal path,
+so this becomes a hard failure on a future upgrade rather than a logged error.
+Fix is to make the component `async` and `await params`, matching
+`credentials/claim/[token]/page.tsx`, which already does it correctly.
+
+Deliberately NOT fixed in v0.41.18.0: it is unrelated production code on a
+branch that had already expanded twice. **Effort:** S. **Depends on:** None.
+
+### [P3] Cache rotation is deferred until every tab closes
+
+With `skipWaiting()` removed, a new build's worker installs and waits. For a
+user who never closes the tab — the PWA case especially — the previous build's
+cache survives indefinitely. This is strictly better than the frozen `1.0.0`
+name it replaces (rotation now happens at all) and the trade is deliberate, but
+it means "the cache rotates per deploy" is not literally true and should not be
+written down as though it were.
+
+If this ever needs to be immediate, the safe form is prompting the user and
+calling `skipWaiting()` from a message handler on their click — never
+unconditionally at install, which is the version that deletes caches out from
+under a live page. **Effort:** S. **Depends on:** None.
+
+---
+
 ## Opened by the e2e-in-CI ship (2026-08-07, v0.41.17.0)
 
 The gate found two bugs on its first two runs. One is fixed below; the rest are
@@ -31,13 +150,46 @@ and hydration round to the same string and the strings match by luck. It needs a
 slow response to reproduce — which is exactly what a CI runner compiling routes
 on demand provides, and what no local run does.
 
-### [P2] `staff-created-volunteers.spec.ts:367` fails on a CI runner — QUARANTINED IN CI (2026-08-07)
+### [P2] `staff-created-volunteers.spec.ts:367` fails on a CI runner — STILL QUARANTINED (2026-08-07)
 
 **Current state:** `test.fixme(!!process.env.CI, …)` at the top of the test. It
 still runs locally, where it passes, and is reported as skipped in every CI run
 so the quarantine cannot quietly become permanent. **Delete those two lines to
-un-quarantine.** If it starts passing in CI by itself, find out what changed
-before dropping the marker.
+un-quarantine** — and note that this has now been attempted once and reverted,
+so the bar is a CI run that proves it, not a theory that explains it.
+
+**Hypothesis 4 — the service worker — is REFUTED, by CI, not by argument
+(2026-08-07, during v0.41.18.0).** `sw.js` pre-cached `['/app',
+'/app/my-shifts']` at install from a component mounted in the ROOT layout with
+no environment guard, so it ran on every page of every e2e run. Measured on a
+cold dev server: a spec visiting only `/app/volunteers` also caused `GET /app`
+(782ms) and `GET /app/my-shifts` (1407ms) to compile. That explained "the one
+unexplained clue" below exactly, and it was a real defect — fixed in the same
+release. The test was un-quarantined on the strength of it and **failed all
+three attempts on the next CI run, identically** (`locator.fill` timing out on
+`getByRole('dialog').getByLabel('Name')` — the dialog never opened). The
+pre-caching was never this test's cause.
+
+**What that run did NOT refute, and is the live lead:** `sw.js` still calls
+`clients.claim()`, so a worker still takes over a page that may still be
+hydrating, and it still intercepts every `/_next/static/**` request cache-first.
+That is directly testable — unregister the service worker at the top of this
+spec and see whether CI goes green. Nobody has tried it.
+
+This also updates hypothesis 2 below ("a pre-hydration click", recorded as
+*weakened to the point of dead*). It should not have been called dead: React
+being loaded says nothing about whether the chunk carrying that button's handler
+has arrived. The refutation was of one MECHANISM, not of the symptom.
+
+**Three wrong diagnoses so far** — a cold-compile timeout raise (`4266ecd`), the
+hydration-mismatch conflation, and now the service worker. Each was plausible,
+each was argued from evidence, and each was wrong. Treat that as the strongest
+signal in this entry: **stop theorising and get CI-side instrumentation.** The
+60s per-test timeout from `4266ecd` is left in place; it is defensible on its own
+merits and is not the fix.
+
+**Everything below this line predates all of the above.** It is preserved rather
+than rewritten so the dead hypotheses stay dead.
 
 It degraded across three runs — `flaky` (passed on retry), `flaky`, then failed
 all three attempts — which is why it moved from "watch it" to quarantine rather
@@ -204,28 +356,29 @@ Next does not auto-load is a one-line mitigation but leaves the next person to
 recreate it — `vercel env pull --environment=production` writes exactly that
 filename. **Effort:** S–M. **Depends on:** None.
 
-### [P2] `public/sw.js` never rotates its cache and `activate` has run once, ever
+### [P2] ~~`public/sw.js` never rotates its cache and `activate` has run once, ever~~ ✅ FIXED (2026-08-07, v0.41.18.0)
 
-`sw.js:3` is `const SW_VERSION = '1.0.0'`, a literal nothing in the build
-rewrites, so `STATIC_CACHE` is permanently `vr-static-v1.0.0`. The `activate`
-handler at `sw.js:22-30` — the only thing that deletes old caches — therefore
-ran exactly once on each user's device and will never run again. The cache
-accumulates every page HTML and every hashed asset that user has ever fetched,
-indefinitely, with no eviction.
+The cache name now comes from a `?v=` on the worker's own script URL, which
+`sw-register.tsx` sets from `BUILD_ID`. A changed script URL is enough for the
+browser to install a new worker — the byte-for-byte shortcut in the Update
+algorithm applies only when the URL is unchanged — so this needed no build step
+and no generated file.
 
-`next.config.ts:31-37` already serves `/sw.js` as `no-cache, no-store,
-must-revalidate`, so the browser does re-fetch and byte-compare it on schedule —
-the file simply never differs. A build-stamped comment is enough to make it
-differ, which is what makes the rest of the lifecycle reachable again.
+**Two other bugs were found in the same file while fixing it**, and both were
+worse than the one being fixed. See the ship notes at the top of this file.
 
-**Do this on its own branch, with a canary.** It is the highest-blast-radius
-change in this codebase: a bad service worker installs onto devices you cannot
-reach. The version-prompt work deliberately leaves `sw.js` untouched for exactly
-this reason — decision 1 of that review chose a version endpoint over the
-service worker so a sticky worker bug could not sink the feature. Reconsider
-`skipWaiting()` and `clients.claim()` at the same time; with a rotating cache
-they mean the new worker wipes the caches out from under the page the user is
-currently looking at. **Effort:** M. **Depends on:** None.
+`skipWaiting()` was removed and `clients.claim()` kept, which is the answer to
+the question this entry raised: a new build's worker now waits until every tab
+using the old one is closed, so rotation can never delete a cache out from under
+a live page, while a first-time visitor is still controlled immediately (there
+is no old worker to wait for). The cost is that **rotation is deferred, not
+immediate** — a user who never closes the tab keeps the old cache. That is the
+intended trade, and it is survivable only because the cache now holds nothing
+but content-addressed build output.
+
+Behaviour is asserted in a real browser by `e2e/service-worker.spec.ts`
+(mutation-verified 5/5), not by reading the source: all three bugs were written
+on purpose, so a guard test over `sw.js` would have passed on every one.
 
 ### [P2] Skew Protection is ON, but it does not cover the tRPC surface
 

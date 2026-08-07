@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.18.0] - 2026-08-07
+
+**The offline cache now stores only the app's own static files, and it clears
+itself when a new version ships.**
+
+If you use VolunteerReady on a shared device — a front desk tablet, a laptop
+several coordinators sign into — this is the one that matters. The offline cache
+used to keep a copy of pages it had loaded, including pages belonging to whoever
+was signed in at the time, and including the address of a one-time email link if
+someone had opened one. Those copies stayed on the device. It now keeps nothing
+but images, fonts and code files, which are the same for everybody and identify
+nobody.
+
+The same cache had never once cleaned itself up. It was stamped with a version
+number that no release ever changed, so the step that clears out old files ran
+once when you first visited and never again — on some devices that has been
+accumulating since launch. Each release now stamps it properly, and a new
+version clears the old files once you have closed the tabs still using them.
+
+One thing this takes away: pages no longer open with no connection. The public
+site used to, and the installed app appeared to but was showing whatever the
+last person on that device had loaded. Proper offline support needs a real
+offline page, which is a separate piece of work.
+
+The service worker was also loading two extra pages in the background on every
+visit — pages nobody had asked for. That is gone, which makes a first visit
+slightly cheaper. We thought it explained a browser test that has been switched
+off since the previous release; it did not, and that test stays off while we
+keep looking.
+
 ## [0.41.17.0] - 2026-08-07
 
 **The browser tests now run on every pull request.**
