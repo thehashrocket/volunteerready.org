@@ -68,6 +68,7 @@ export default defineConfig({
         text: "Maintenance",
         items: [
           { text: "Dependency Overrides", link: "/dependency-overrides" },
+          { text: "Post-deploy Checks", link: "/post-deploy-checks" },
         ],
       },
     ],

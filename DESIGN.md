@@ -106,6 +106,50 @@
   - **Active nav item:** `bg-primary/10 text-primary border-l-2 border-primary`
     (`app-sidebar.tsx:106`). This is the only place green appears in the chrome.
   - **Below `lg`:** the sidebar becomes an overlay drawer, same 224px width, `bg-background`.
+  - **Ambient notice strip** (`src/components/app/app-update-prompt.tsx`) — a full-width
+    band between the top bar and `<main>`, for app-level state that is worth telling a
+    coordinator about but is not worth blocking them over. Currently one instance: the
+    version-update notice.
+    - **Surface:** `bg-accent/10` (warm gold, soft), `border-b border-border/60`,
+      `px-4 py-3`, **no radius, no shadow** — it is a band, not a card. `referral-prompt.tsx`
+      already uses this tint for an ambient non-urgent notice, so this is existing
+      vocabulary rather than a new one. `bg-primary/5` is **not** available: green is
+      reserved for active nav state and CTAs, so a green band competes with the sidebar's
+      active item.
+    - **Contents:** a `h-5 w-5 text-primary` lucide icon, **one line** of 16px body copy,
+      then the actions. No title — a bold title stacked over a body sentence inside a 48px
+      band reads as a squashed card, which is what both outside voices proposed and why
+      this rule is written down.
+    - **Actions:** `h-11` buttons, secondary (`ghost`) before primary. The dismissive
+      action is named for what it does (`Not now`, not `Dismiss`) and must not read as
+      weaker than the primary — the same weighting rule as `Not mine` / `Add to my account`
+      on the claim surface.
+    - **In flow, never `fixed` or sticky.** It scrolls away. A band that follows you down
+      the page is closer to a modal than a notice, and a sticky one costs 48px on every
+      screen on top of the 56px top bar. This is only safe when the notice has a **second,
+      permanent home** — for the update notice that is the account-menu item, so scrolling
+      past the band is not losing it. **A strip with no second home must not use this
+      pattern.**
+    - **The copy needs a real `min-width`, not `min-w-0`.** With `min-w-0` the paragraph's
+      min-content contribution is zero, so `flex-wrap` never fires: `shrink-0` actions keep
+      their row and the sentence is squeezed into a ~120px column that wraps over eight
+      lines at 375px. **Every horizontal-overflow assertion passes throughout**, because
+      nothing leaves the viewport. Use `min-w-56 flex-1` and assert the copy's rendered
+      width separately — per the breakpoints note above, a document-level check is
+      necessary and not sufficient.
+    - **Order is fixed:** `ImpersonationBanner` → top bar → notice strip → `<main>`. The
+      impersonation banner is a live security-state warning and must never sit below a
+      software-update notice; its `bg-warning/15` is deliberately distinct from this
+      strip's `bg-accent/10` so two stacked bands do not read as one confused alert block.
+    - **It latches.** Suppression (e.g. while a modal is open) gates the transition *into*
+      visible, never the render. Unmounting an already-visible strip makes every row behind
+      the overlay jump 48px and back on close — worse than the interruption the suppression
+      prevents.
+    - **The live region mounts EMPTY and keeps its line.** A region inserted into the DOM
+      in the same commit as its first text is unreliably announced, so the first notice —
+      the one that proves the surface works — is the one most likely to be silent. `hidden`
+      or `empty:hidden` reintroduces the bug, since `display: none` removes it from the
+      accessibility tree.
 - **Border radius:** Hierarchical scale
   - sm: 4px (small elements, code blocks)
   - md: 8px (buttons, inputs, cards)
@@ -207,4 +251,5 @@ The staff dashboard and volunteer-facing pages are different visual contexts:
 | 2026-07-26 | Corrected the staff-shell description to match the shipped app | This document said the staff dashboard had a **forest green sidebar** and a 220px sidebar. Neither was true: `app-shell.tsx:128` renders `border-r border-border/60` with no fill, at `w-56` (224px), and the 56px sticky top bar was undocumented entirely. CLAUDE.md instructs every agent to read DESIGN.md before a visual decision, so this drove a whole round of `/plan-design-review` mockups to generate a solid green sidebar — confidently wrong work produced by a stale sentence. Corrected during that review (T34). **A design system that misdescribes the shipped product is worse than none.** |
 | 2026-08-01 | Absorbed `docs/DESIGN.md` and deleted it | A second, older fork of this file had sat in `docs/` since 2026-03-16, describing a different aesthetic direction (Organic/Natural), a different info color and a different max width, and omitting the app shell entirely. Nothing linked to it — not the VitePress nav, not `CLAUDE.md` — but it was not merely redundant: **nine rule sets existed only there, and the shipped code follows them.** Touch targets (41 `h-11` call sites, asserted in the mobile e2e), the transform/opacity motion rule (cited by CHANGELOG when `transition-all` was replaced), `prefers-reduced-motion` (`globals.css:216`), the focus-visible contract, the inner-radius rule, font-loading (`font-display: swap` + preconnect), the public-page layout rules, `color-scheme: dark`, and the 700ms animation ceiling. **The first pass merged only five of the nine and the adversarial review caught the other four** — which is the honest lesson here: "I checked what was unique to the stale file" is a claim that needs a diff, not a memory. Values were rewritten to match the shipped app rather than imported verbatim, and where the app is NOT uniform the rule says so out loud: `transition-all` has ~19 deviations, `ring-[3px]` is outnumbered 18-to-6 by the older `ring-2 … ring-offset-2`, and `pointer-events-none` vs `cursor-not-allowed` is a real split across 8 form primitives. Per the T34 row above: this file describes what ships, or it misleads — and an aspiration stated as a description is the specific way it misleads. |
 | 2026-08-01 | The design system is deliberately NOT a page on the docs site | VitePress builds from `docs/`, and this file lives at the repo root because `CLAUDE.md` sends every agent to `DESIGN.md` there. Deleting `docs/DESIGN.md` therefore removed the design system from the site entirely; a `/DESIGN` bookmark now 404s. Accepted rather than fixed: the site is not deployed anywhere (`vercel-build.sh` never invokes vitepress, no workflow builds it, `dist` is gitignored), and the alternative — a second copy under `docs/` — is the exact duplication this ship exists to end. `docs/index.md` names the file and its path instead of linking it. If the docs site is ever published, revisit with a symlink or a VitePress `rewrites` entry, never a copy. |
+| 2026-08-07 | Named the **ambient notice strip** as an app-shell pattern | The version-update notice (v0.41.14.0) introduced a surface this document could not describe: a full-width band between the top bar and `<main>`, for app-level state worth mentioning but not worth blocking on. Recorded here because the two ways to get it wrong are both invisible in a mockup. **One:** the toaster looks like the obvious home and is not — verified against the installed `sonner` stylesheet, below 600px it becomes `position: fixed; width: 100%` at a 16px inset and covers the whole 56px top bar *including the mobile nav toggle*, which below `lg` is the only route to the sidebar. **Two:** `min-w-0` on the copy makes `flex-wrap` inert, so the sentence collapses into a ~120px column at 375px while every overflow assertion stays green — found by screenshotting, not by testing, and the reason this entry says to assert rendered width separately. The pattern also carries a precondition rather than just a recipe: it scrolls away, so it may only be used by a notice that has a second permanent home. |
 | 2026-08-01 | Staff data tables become card lists below `lg`; the top bar's shrink contract is documented | T36 (v0.38.4.0) finished what T28 started: all five staff lists now have a table shape and a card shape, switched by CSS at `lg`. Recorded here because it changes what a staff surface *is* — a mockup that shows only a table is now half a design. The same entry documents the top-bar fix it depended on: the shell overflowed the viewport on every authenticated page (~126px at 800px), so any "does this page fit" judgement made before v0.38.4.0 was measured against broken chrome. Per the T34 row above, this file describes the shipped app or it misleads. |
