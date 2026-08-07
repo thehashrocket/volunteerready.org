@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.17.0] - 2026-08-07
+
+**The browser tests now run on every pull request.**
+
+Nothing about the product changes here. What changes is how much has to be true
+before a change reaches you: the tests that drive a real browser — the roster on
+a phone, the staff tables at every screen width, the public pages, the update
+notice — used to run only when someone remembered to run them by hand. They now
+run automatically on every proposed change, and a failure blocks it.
+
+That gap had a cost, and the release right before this one paid it. A change to
+the update notice quietly broke both of its own browser tests, and every other
+check stayed green; it was caught by a person running the suite manually. The
+same change would now stop at the gate.
+
+When a browser test does fail, the run keeps the report and a recording of what
+the browser did, so the failure can be read rather than reproduced.
+
+### Added
+
+- E2E job in CI: Postgres, migrations, seeded demo data, a real Chromium, and
+  the Playwright suite on every PR and every push to `main`. Blocking. One test
+  of 69 is quarantined in CI (it fails only on a slow runner and cannot be
+  reproduced locally); it still runs locally and is reported as skipped in every
+  CI run rather than disappearing quietly.
+- Playwright report and traces uploaded when the suite fails.
+- `scripts/e2e-ci-gate.test.ts` — guards the job's own shape, since a CI gate
+  that has been quietly disabled looks exactly like one that is passing.
+
+### Changed
+
+- Playwright emits both GitHub annotations and an HTML report under CI, and
+  allows a cold runner longer to boot the dev server before calling it dead.
+
+### Fixed
+
+- **The gate found a real bug on its first run.** While impersonating a user,
+  the countdown in the yellow banner was rendered on the server and again in the
+  browser, a second apart, so the two disagreed. React responded by throwing away
+  the page and rebuilding it — and any click during that moment did nothing. The
+  countdown now starts in the browser, where it belongs, so nothing disagrees and
+  nothing is thrown away.
+- Recorded that a local production build reads the **production** database:
+  `.env.production.local` outranks `.env.local` for `next build` / `next start`,
+  and no guard objects. Verified by running the loader; documented in
+  `docs/TODOS.md` with the two corrections the first report got wrong.
+
 ## [0.41.16.0] - 2026-08-07
 
 **When VolunteerReady updates, the notice now tells you what changed.**

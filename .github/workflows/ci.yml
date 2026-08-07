@@ -269,3 +269,141 @@ jobs:
       # exercise. The two stages worth gating are run explicitly instead, so
       # each one fails on its own line.
       - run: pnpm next build
+
+  # Playwright. The only job that drives a real browser against a real server,
+  # and until it existed every spec in `e2e/` ran only when someone remembered
+  # to type `pnpm e2e`.
+  #
+  # The gap was not theoretical, and the last miss has a date. On 2026-08-07
+  # (v0.41.16.0) adding `?since=` to the version check silently broke both tests
+  # in `e2e/app-update-prompt.spec.ts`: the Playwright mock was
+  # `'**/api/version'`, and a glob without a trailing wildcard does not match a
+  # URL carrying a query string, so the interception stopped firing, the real
+  # endpoint answered, the build ids matched and the strip never rendered. Lint,
+  # typecheck, 2,785 unit tests and `docs:build` were green throughout. It was
+  # found by a hand-run, on the release that shipped the feature.
+  #
+  # What only this job can see, none of which the three above can:
+  #   - route interception, real navigation and real cookies
+  #   - the CSS breakpoint switches on all five staff tables (jsdom has no
+  #     layout, so which of the two always-mounted trees a human sees is
+  #     unreachable in a unit test by construction)
+  #   - document-level horizontal overflow
+  #   - Turbopack-dev-only bugs, e.g. the `Prisma.sql` fragment/`instanceof`
+  #     break that reproduces under `next dev` and nowhere else
+  #
+  # Its own job, in parallel with the others, so a browser failure stays
+  # readable on the PR check list next to a lint or a build break.
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    # Locally the suite is ~37s at full parallelism, but `playwright.config.ts`
+    # pins `workers: 1` under CI and retries twice, and a cold Turbopack compile
+    # of every route costs minutes before the first assertion. Generous on
+    # purpose: the failure this must not have is a timeout that reads as a test
+    # failure.
+    #
+    # 45 rather than 30 because the worst case adds up faster than it looks, and
+    # an adversarial pass did the arithmetic: `webServer` alone may wait 5
+    # minutes for the boot, and `global-setup` then probes 24 routes serially
+    # with a 60s ceiling EACH. In the degraded-but-not-dead case — `/` boots,
+    # some later route stalls — warmup can eat the whole budget before a single
+    # assertion runs, and the job dies as a timeout that says nothing about why.
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: volunteeermatch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d volunteeermatch"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+
+    env:
+      # localhost, so `e2e/utils/db.ts`'s local-host guard passes without
+      # E2E_ALLOW_REMOTE_DB. That helper also calls `dotenv.config({ path:
+      # '.env.local' })`, which does not exist here — harmless, because dotenv
+      # never overwrites a variable already in `process.env`, so this wins.
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/volunteeermatch"
+      DATABASE_URL_UNPOOLED: "postgresql://postgres:postgres@localhost:5432/volunteeermatch"
+      # Same reason as the build job: `getFromEmail()` throws at import and
+      # `server/auth.ts` calls it at module scope, so the dev server cannot
+      # compile `/api/auth/[...nextauth]` without it. Job-scoped, never at
+      # workflow level, so it cannot change the meaning of a test that observes
+      # the variable being absent. Nothing here talks to Resend.
+      RESEND_FROM_EMAIL: "ci@example.com"
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        run: pnpm prisma migrate deploy
+
+      # `seed:dev`, NOT `pnpm seed` and NOT the production branch. This is the
+      # mirror image of the trap documented on the build job: there the risk was
+      # gating `seedDev()`, a branch that never deploys; here the DEV data is
+      # exactly what is needed and saying so is the point. The authenticated
+      # specs look up `orgadmin@volunteermatch.local` by hand and throw "seed
+      # data missing — run pnpm seed:dev" without it, so `seed:production`
+      # (platform org + skill catalog only) would fail every one of them.
+      #
+      # A bare `pnpm seed` resolves to the same thing today only because
+      # `prisma/seed.ts` dispatches on an unset NODE_ENV — an implicit default
+      # one env var away from silently seeding the wrong branch.
+      - name: Seed (the dev branch — the specs need the demo accounts)
+        run: pnpm seed:dev
+
+      # Chromium only: `playwright.config.ts` registers exactly one project, and
+      # `--with-deps` pulls the system libraries the runner does not ship.
+      # Deliberately uncached for now — a stale browser cache is a confusing
+      # failure mode in the one job whose whole value is being trustworthy.
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Boots its own `pnpm dev` via `playwright.config.ts`'s `webServer`
+      # (`reuseExistingServer` is false under CI), then `e2e/global-setup.ts`
+      # compiles every public route SEQUENTIALLY before the workers start. That
+      # warmup is 30-60s of apparent dead time and is not slack to optimise
+      # away: parallel first-touches make Next read a `.next` manifest another
+      # compile is midway through writing, and the truncated read surfaces as a
+      # 500 on a route unrelated to the spec that reported it.
+      - run: pnpm e2e
+
+      # A red e2e with no artifact is a bisect. `trace: 'on-first-retry'` means
+      # the retry of a genuine failure always leaves one behind.
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          # `warn`, not `ignore`. This step only runs on a red suite, so a
+          # MISSING report is itself the diagnosis — it means the run died
+          # before Playwright wrote anything (a failed seed, a browser that
+          # would not launch, a dev server that never booted). `ignore`
+          # suppresses that to silence and leaves a green upload step under a
+          # red job saying nothing; `warn` says which kind of failure it was
+          # without failing an already-failing job a second time.
+          if-no-files-found: warn
