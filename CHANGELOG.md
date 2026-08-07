@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.11.0] - 2026-08-06
+
+**Nothing changes for anyone using the site.** This adds one piece of
+groundwork for a feature that is not built yet, and it changes the release
+routine slightly.
+
+The planned feature is a small notice telling a signed-in coordinator that a
+newer version of the site is available, so they are not working in a tab that
+has quietly fallen a week behind. The open question was never how to show that
+notice — it was **when**. This project ships around three times a day, and most
+of those releases are dependency updates and internal plumbing that no
+coordinator would care about. Interrupting someone three times a day teaches
+them to dismiss the notice without reading it, and then it is worthless on the
+one day it matters.
+
+So each release now carries an answer to a single question: is this one worth
+interrupting someone over? The answer is stored next to the release it
+describes, and an automated check refuses to let it go stale — if the version
+number moves and the answer does not, the checks fail until someone decides.
+**The usual answer will be no**, and that is fine; the point is that it gets
+answered rather than assumed.
+
+**What this deliberately does not do is pretend a test can make that
+judgement.** The plan originally called for a check that would catch a release
+that *should* have been announced. No such check can exist — whether a release
+matters to a coordinator is a fact about what changed, not about the version
+number, and a test claiming otherwise would look like a safeguard while
+verifying nothing. That claim has been withdrawn and replaced with the narrower
+one a machine can actually make. The check was then deliberately broken ten
+different ways to confirm it fails when it should, including the two ways this
+project has previously been caught out: a check that quietly stops running, and
+a check that scans nothing and reports success.
+
 ## [0.41.10.1] - 2026-08-06
 
 **This release changes nothing about how the site behaves.** It records what a
