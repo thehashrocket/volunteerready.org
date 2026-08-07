@@ -47,6 +47,67 @@ the question is asked on a `notice` release, never that anyone writes a good
 sentence. `RELEASE_NOTES` is seeded with two real entries (0.41.14.0, 0.41.12.0)
 and nothing has rendered in production yet.
 
+### [P2] A local `next build` / `next start` reads the PRODUCTION database, and nothing objects
+
+Found on 2026-08-07 while rehearsing the update prompt against two sequential
+production builds on one port. It presents as a puzzle rather than an error: the
+app renders, but a locally-inserted session does not resolve and staff routes
+bounce to `/app/welcome` — because the session was written to local Postgres and
+the app is reading Neon.
+
+**Every other database path in this repo refuses a non-local `DATABASE_URL`** —
+`e2e/utils/db.ts`, `src/test/integration-setup.ts`,
+`pnpm fixture:email-collisions`, and `pnpm import:roster`'s typed-slug
+confirmation. None of them sit in the `next build` / `next start` path. This is
+the one route to production data with nothing in the way.
+
+**Verified by execution, not by reading the docs.** Driving `@next/env`'s
+`loadEnvConfig(cwd, /* dev */ false)` — the exact call `next build` and
+`next start` make — against a temp directory holding four fabricated env files
+resolves `.env.production.local`, and removing only that file falls through to
+`.env.local`:
+
+```
+all four        -> from-env-production-local
+without .local  -> from-env-local
+```
+
+So `.env.production.local` is precisely the responsible file. `.env.production`
+carries the same Neon URL but ranks *below* `.env.local`, so it is not a hazard
+on its own.
+
+**Two corrections to how this was first reported, both worth having:**
+
+1. **A shell `DATABASE_URL` DOES win.** The original report said exporting the
+   variable failed to override the env file. Not reproduced: `process.env` is
+   rank 1 and the same probe confirms a shell sentinel survives
+   `loadEnvConfig`. Whatever went wrong that day was not env precedence, so do
+   not build a fix around the belief that the shell cannot override.
+2. **`pnpm seed` is NOT affected, so a local `pnpm build` does not write demo
+   data to production.** `prisma/seed-helpers.ts` runs its own dotenv chain
+   keyed on `NODE_ENV ?? 'development'`, so a bare `pnpm seed` loads
+   `.env.development.local` → `.env.local` and never opens
+   `.env.production.local`. That is a real divergence from Next's loader and it
+   happens to be the safe direction here — but it means the two halves of
+   `scripts/vercel-build.sh` can talk to *different databases* on one local
+   invocation, which is its own trap and is the thing to be careful of if
+   anyone "unifies" the loaders.
+
+**So the actual blast radius:** `next build` performs reads (`/sitemap.xml`
+queries organizations during static export). `next start` runs the whole app
+against production, so any dogfooding click — approve an application, remove a
+volunteer, initiate a background check — is a live production write made by
+someone who believes they are in a sandbox.
+
+**Fix options, none started.** A guard in `next.config.ts` that throws when a
+production-phase build resolves a non-local `DATABASE_URL` without an explicit
+opt-out (mirroring `INTEGRATION_ALLOW_REMOTE_DB`) is the shape that matches the
+rest of the repo; `instrumentation.ts` is the other candidate but runs too late
+to stop the build's own queries. Renaming `.env.production.local` to something
+Next does not auto-load is a one-line mitigation but leaves the next person to
+recreate it — `vercel env pull --environment=production` writes exactly that
+filename. **Effort:** S–M. **Depends on:** None.
+
 ### [P2] `public/sw.js` never rotates its cache and `activate` has run once, ever
 
 `sw.js:3` is `const SW_VERSION = '1.0.0'`, a literal nothing in the build
@@ -105,35 +166,52 @@ first.
 **Verified 2026-08-06** by API, production response inspection and the Vercel
 docs — not by reading class strings. **Effort:** M. **Depends on:** None.
 
-### [P2] e2e still is not in CI, and it forced a test to be written twice
+### [P2] ~~e2e still is not in CI, and it forced a test to be written twice~~ ✅ FIXED (2026-08-07)
 
-`.github/workflows/ci.yml` runs lint+typecheck, the three Vitest suites, and the
-deploy-path build job, but not Playwright — it needs browsers, a booted dev
-server and `seed:dev`. The consequence showed up concretely in this review: the
-critical regression test (a fresh browser context must show no update prompt)
-reproduces most honestly as an e2e, so it had to be written a second time in
-jsdom purely to get it running on PRs.
+`.github/workflows/ci.yml` has an `e2e` job: postgres service → `migrate deploy`
+→ `pnpm seed:dev` → `playwright install --with-deps chromium` → `pnpm e2e`,
+blocking, 30-minute timeout, with the HTML report and traces uploaded on
+failure. `scripts/e2e-ci-gate.test.ts` pins its shape, mutation-verified 21/21.
+Baseline before wiring it up: **69 tests green in 37.2s** locally.
 
-Every existing spec is affected, not just this one — the roster specs, the
-mobile-table specs, `public-pages.spec.ts`. All of them run only when someone
-remembers to type `pnpm e2e`.
+**The original problem.** Every spec — the roster specs, the mobile-table specs,
+`public-pages.spec.ts` — ran only when someone remembered to type `pnpm e2e`,
+and the critical regression test (a fresh browser context must show no update
+prompt) had to be written a SECOND time in jsdom purely to get it running on
+PRs. The last miss has a date: on 2026-08-07 adding `?since=` to the version
+check silently broke both tests in `e2e/app-update-prompt.spec.ts` — the mock
+glob `'**/api/version'` does not match a URL carrying a query string, so
+interception stopped firing, the real endpoint answered, the build ids matched
+and the strip never rendered. Lint, typecheck, 2,785 unit tests and `docs:build`
+were green throughout; a hand-run found it, on the release that shipped the
+feature.
 
-The `build` job added in v0.41.10.0 is the template: it already stands up a
-`postgres:16-alpine` service container and runs migrate + seed, and
-`scripts/ci-build-gate.test.ts` pins its shape. Budget for the deliberate
-30-60s sequential route warmup in `e2e/global-setup.ts` — that is not slack to
-optimise away, it exists to stop a compile stampede producing manifest-race
-500s. **Effort:** L. **Depends on:** None.
+**Four things worth knowing before touching this job.** (1) **`seed:dev`, never
+a bare `pnpm seed`** — this is the mirror image of the build job's trap. There
+the risk was gating `seedDev()`, a branch that never deploys; here the dev data
+is exactly what is wanted, and the authenticated specs look up
+`orgadmin@volunteermatch.local` by hand and throw "seed data missing" without
+it. A bare `pnpm seed` resolves to the same thing today only via an unset
+`NODE_ENV`, i.e. one job-level variable away from seeding the wrong branch.
+(2) **The 30-60s sequential warmup in `e2e/global-setup.ts` is not slack** — it
+stops a compile stampede whose symptom is a manifest-race 500 reported against a
+route unrelated to the spec that failed, which is the shape that gets a suite
+declared flaky and ignored. (3) **`playwright.config.ts` now emits TWO reporters
+under CI** — `github` for inline annotations, `html` for the uploaded artifact;
+`open: 'never'` because the default would hang a headless runner. (4) **The
+guard strips comments from BOTH files it reads.** Mutation-testing caught the
+config assertions being satisfiable by prose: `playwright.config.ts` documents
+its reporter choice by quoting `open: 'never'` one line above the code, so
+rewriting the comment alone passed while the setting was free to change.
 
-**It caught nothing again on 2026-08-07, and this time the miss was concrete.**
-Adding `?since=` to the version check silently broke
-`e2e/app-update-prompt.spec.ts`: its Playwright mock was `'**/api/version'`,
-which does not match a URL carrying a query string, so the interception stopped
-firing, the real endpoint answered, the build ids matched and the strip never
-rendered. Both tests in the file failed. Every other check — lint, typecheck,
-2,771 unit tests, `docs:build` — was green throughout, and the breakage was
-found only because someone ran `pnpm e2e` by hand. That is the failure mode this
-entry describes, now with a date on it.
+**Residual, deliberately not done.** The Playwright browser download (~40s) is
+uncached — a stale browser cache is a confusing failure mode in the one job
+whose whole value is being trustworthy, and it can be added later against a
+measured cost. `workers: 1` under CI is inherited from the existing config and
+was not revisited; `retries: 2` means a genuinely flaky spec still goes green,
+so a suite that starts retrying is a signal to read, not to raise the retry
+count. And nothing here makes the *capture* project run in CI — marketing
+screenshots are still regenerated by hand.
 
 ### [P3] A tab left visible for hours is never checked for updates
 
@@ -278,32 +356,26 @@ relaxes this goes red instead of silent. Do not delete it when this TODO lands �
 it covers the `volunteerEmailSchema` paths, which
 `EmailProvider.normalizeIdentifier` does not touch. **Effort:** M.
 
-### [P2] `pnpm e2e` is not in CI, and three coverage gaps depend on it
+### [P2] ~~`pnpm e2e` is not in CI, and three coverage gaps depend on it~~ ✅ FIXED (2026-08-07)
 
-`.github/workflows/ci.yml` runs lint, typecheck, `docs:build`, unit, scripts,
-integration, and — as of v0.41.10.0 — the deploy path (production seed +
-`next build`). It does **not** run e2e.
+The same gap as the version-update-prompt entry above, reached from the other
+direction — **one fix closed both**. See that entry for the job's shape and the
+four rules for touching it; this one records what it unblocks.
 
-The second half of this entry's original complaint is now closed: `next build`
-used to be ungated, leaving the Vercel preview deploy as the only production-build
-signal and not a blocking one. That is fixed. **The e2e half is not**, and the
-three gaps below stand unchanged.
+Both halves of the original complaint are now closed. `next build` was ungated
+until v0.41.10.0, leaving the Vercel preview deploy as the only production-build
+signal and not a blocking one; the e2e half closed today.
 
-Three findings in the Dependabot review resolved to "e2e covers it, but CI does
-not run e2e": `/_next/image` rendering (the scrolled `naturalWidth` assertions in
-`e2e/public-pages.spec.ts`), the Turbopack dev loop (the `Prisma.sql`
-`instanceof` bug class only reproduces under `next dev`), and the signed-out
-`/app` redirect. Each one currently falls to a manual checklist on the PR, which
-means every future framework bump repeats the same manual pass.
+Three findings in the Dependabot review had resolved to "e2e covers it, but CI
+does not run e2e", and all three now run on every PR: `/_next/image` rendering
+(the scrolled `naturalWidth` assertions in `e2e/public-pages.spec.ts`), the
+Turbopack dev loop (the `Prisma.sql` `instanceof` bug class, which only
+reproduces under `next dev`), and the signed-out `/app` redirect.
 
-**The hard part is already done.** `e2e/global-setup.ts` solved the sequential
-route warmup that fixes the Turbopack manifest-race 500s, so the remaining work
-is CI plumbing: Playwright browsers, a Postgres service container, and
-`seed:dev`. It is the slowest job in the pipeline, which is why it warrants its
-own ship rather than riding along with a security fix.
-
-**Blocks:** retiring the manual verification checklists on runtime dependency
-PRs. **Effort:** M.
+**Unblocked:** the manual verification checklist on runtime dependency PRs can
+retire — those three items are now machine-checked. **What does NOT retire:** a
+framework bump can still break something no spec covers, so the checklist should
+be trimmed to what e2e genuinely asserts rather than deleted wholesale.
 
 ---
 
