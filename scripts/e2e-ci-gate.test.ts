@@ -253,6 +253,34 @@ function stripTsComments(source: string): string {
 	return source.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
 }
 
+/** The `timeout:` at ONE leading tab — a top-level `defineConfig` key. */
+function topLevelTimeout(config: string): RegExpMatchArray | null {
+	return config.match(
+		/^\ttimeout:\s*process\.env\.CI\s*\?\s*([\d_]+)\s*:\s*([\d_]+)/m,
+	);
+}
+
+/** The `timeout:` inside the `webServer` block, whatever its indentation. */
+function webServerTimeout(config: string): RegExpMatchArray | null {
+	const start = config.indexOf('webServer:');
+	if (start === -1) return null;
+	return config
+		.slice(start)
+		.match(/timeout:\s*process\.env\.CI\s*\?\s*([\d_]+)\s*:\s*([\d_]+)/);
+}
+
+/**
+ * Both timeouts exist for one reason — a cold CI runner compiles routes that a
+ * developer's machine has cached — so both are pinned the same way: the CI side
+ * must be strictly roomier, and the NUMBER is free to move.
+ */
+function expectCiRoomierThanLocal(match: RegExpMatchArray | null): void {
+	expect(match).not.toBeNull();
+	const ci = Number((match?.[1] ?? '0').replaceAll('_', ''));
+	const local = Number((match?.[2] ?? '0').replaceAll('_', ''));
+	expect(ci).toBeGreaterThan(local);
+}
+
 describe('Playwright CI configuration', () => {
 	const config = stripTsComments(readRepoText('playwright.config.ts'));
 
@@ -359,6 +387,23 @@ describe('Playwright CI configuration', () => {
 		expect(config).toMatch(/reuseExistingServer:\s*!process\.env\.CI/);
 	});
 
+	it('gives each TEST more room under CI than locally', () => {
+		// Distinct from the webServer ceiling below, and empirically the tighter
+		// of the two: `globalSetup` warms public routes only, so an authenticated
+		// spec pays for its route's first Turbopack compile inside its own test
+		// timeout. The suite's first CI run reported `1 flaky` for exactly that.
+		//
+		// Property, not number: collapsing the ternary is the regression.
+		//
+		// Anchored to ONE leading tab, i.e. a top-level `defineConfig` key. There
+		// are two `timeout:` keys in this file and an unanchored match silently
+		// reads whichever comes first — so when this assertion was added, the
+		// collapse mutation passed by matching `webServer.timeout` instead, and
+		// the webServer assertion below started reading THIS one. Both were
+		// vacuous at once. Same scoping lesson `jobBlock` encodes for the YAML.
+		expectCiRoomierThanLocal(topLevelTimeout(config));
+	});
+
 	it('gives the dev server MORE boot room under CI than locally', () => {
 		// `webServer.url` is polled until it answers, and answering `/` means
 		// Turbopack has compiled it. A CI runner has no `.next` cache, so the
@@ -369,13 +414,11 @@ describe('Playwright CI configuration', () => {
 		// The PROPERTY is pinned, not the number: 300_000 is a tuning value and
 		// should be free to move, but collapsing the ternary back to a single
 		// flat timeout is the regression worth catching.
-		const match = config.match(
-			/timeout:\s*process\.env\.CI\s*\?\s*([\d_]+)\s*:\s*([\d_]+)/,
-		);
-		expect(match).not.toBeNull();
-		const ci = Number((match?.[1] ?? '0').replaceAll('_', ''));
-		const local = Number((match?.[2] ?? '0').replaceAll('_', ''));
-		expect(ci).toBeGreaterThan(local);
+		//
+		// Sliced from `webServer:` onward. Unanchored, this matched the
+		// TOP-LEVEL timeout the moment a second one was added — see the
+		// per-test assertion above for the pair of vacuous tests that produced.
+		expectCiRoomierThanLocal(webServerTimeout(config));
 	});
 
 	it('keeps the sequential route warmup wired as globalSetup', () => {

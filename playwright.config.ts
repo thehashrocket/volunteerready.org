@@ -15,6 +15,24 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 1 : undefined,
+	// Per-test ceiling, doubled for CI — and this one was measured, not guessed.
+	// The first CI run of this suite reported `1 flaky`: staff-created-volunteers
+	// timed out at the default 30s waiting for the add-volunteer dialog, then
+	// passed on retry.
+	//
+	// The cause is structural, not a slow assertion. `globalSetup` warms PUBLIC
+	// routes only — authenticated ones need a seeded session it does not have —
+	// so `/app/volunteers` gets its FIRST Turbopack compile inside a test that
+	// is already on the clock. Every authenticated spec pays that once, and on a
+	// cold runner it is the tightest budget in the run: far tighter than
+	// `webServer.timeout` or the job's own `timeout-minutes`.
+	//
+	// Raising it rather than warming authenticated routes is deliberate: a real
+	// hang still fails, just 30s later, whereas a green suite that silently
+	// retried is the thing that erodes trust in the gate. `retries: 2` above
+	// means a flake is REPORTED but not fatal — so without this the signal
+	// decays into "e2e is a bit flaky", which is how suites get ignored.
+	timeout: process.env.CI ? 60_000 : 30_000,
 	// Two reporters under CI, not one. `github` writes the inline PR annotations
 	// that make a failure readable without leaving the diff; `html` writes
 	// `playwright-report/`, which the workflow uploads on failure — and since
