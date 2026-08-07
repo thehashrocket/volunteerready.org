@@ -9,6 +9,12 @@ import { prisma } from '../repositories/prisma';
  *
  * The digest aggregates undelivered Notification records (emailSentAt IS NULL)
  * per user-org pair, batches them into one email, then marks them as delivered.
+ *
+ * `emailSentAt` has TWO writers: this cron, and `notificationService.notify()`
+ * after it sends its own immediate email. So `emailSentAt: null` means "no
+ * email by any path", not "this cron has not run yet". Narrowing or re-widening
+ * the predicate below must be checked against notify(), or a notification that
+ * was already mailed directly gets mailed again from here.
  * Uses UserDigestPreference.lastDigestSentAt for idempotency.
  *
  * Cursor-based pagination: resumes from last successful CronJobRun's nextCursor.

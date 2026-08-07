@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { trpc } from '@/lib/trpc/client';
+import { CREDENTIAL_EXPIRY_WARNING_DAYS } from '@/server/domain/credential-expiry';
 
 // ---------------------------------------------------------------------------
 // KPI Rail
@@ -251,7 +252,8 @@ export function VolunteerDashboard() {
 							<Skeleton className="h-16 rounded-lg" />
 						) : !data?.expiringCredentials.length ? (
 							<p className="py-4 text-center text-sm text-muted-foreground">
-								No credentials expiring in the next 30 days.
+								No credentials expiring in the next{' '}
+								{CREDENTIAL_EXPIRY_WARNING_DAYS} days.
 							</p>
 						) : (
 							<div className="space-y-3">

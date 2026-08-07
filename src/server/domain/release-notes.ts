@@ -97,6 +97,11 @@ export const RELEASE_NOTES_WIRE_CAP = 5;
  */
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
 	{
+		version: '0.42.0.0',
+		summary:
+			'You now get an email and an alert 30 days before a volunteer credential expires.',
+	},
+	{
 		version: '0.41.16.0',
 		summary:
 			'The update notice now tells you what changed, so you can decide whether to reload.',

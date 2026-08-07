@@ -107,6 +107,27 @@ export async function findOrgWithOwnerEmail(orgId: string) {
 	});
 }
 
+/**
+ * The OWNER/ADMIN members of an org — the recipient set for a staff-wide notice.
+ *
+ * This query is re-derived inline in four other places today
+ * (`shiftService`, `volunteerApplicationService`, `volunteer-screening`,
+ * `caseStudyService`), three of them as raw Prisma inside a service. This is
+ * the repo-layer home for it; new callers belong here rather than adding a
+ * fifth copy. Migrating the existing four is tracked in `docs/TODOS.md`.
+ *
+ * SECURITY: STAFF and READONLY are excluded deliberately. A lapsing credential
+ * is a compliance exposure, and the people who need to hear about one are the
+ * people who can issue and revoke. Pinned by
+ * `credentialExpiryNotice.integration.test.ts`.
+ */
+export async function findOrgStaffRecipients(orgId: string) {
+	return prisma.organizationMember.findMany({
+		where: { organizationId: orgId, role: { in: ['OWNER', 'ADMIN'] } },
+		select: { userId: true, user: { select: { email: true } } },
+	});
+}
+
 export async function updateOrgPlanTx(
 	tx: TxClient,
 	orgId: string,

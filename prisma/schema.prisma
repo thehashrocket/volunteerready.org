@@ -567,7 +567,9 @@ model VolunteerCredential {
   // Phase 6C — provenance: tracks origin when credential was shared from another org
   sharedFromOrgId        String?
   sharedFromCredentialId String?
-  // Phase 6C — forward-prep for expiry notification cron (Phase 7)
+  // When staff were warned this credential is approaching expiry. Written once
+  // and never cleared, by notifyStaffOfExpiringCredentials — it IS the
+  // idempotency gate, so a stamped row leaves that cron's query permanently.
   notifiedAt             DateTime?
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
@@ -583,6 +585,16 @@ model VolunteerCredential {
   @@index([orgId])
   // Phase 7 — index for volunteer discovery (filter by verified credentials)
   @@index([userId, status])
+  // Serves BOTH credential-expiry cron queries, neither of which any other
+  // index reaches: findExpiredCredentials (status + expiresAt < now) and the
+  // expiry-notice scan (status + expiresAt in window). The three indexes above
+  // are all keyed on userId first, so a table-wide scan by status could not use
+  // them. Equality column first, range column second.
+  //
+  // A PARTIAL companion, VolunteerCredential_notice_due_idx, exists in the
+  // migration only — Prisma has no syntax for a partial index, so it cannot be
+  // declared here. Do not "tidy up" the extra index you see in the database.
+  @@index([status, expiresAt])
 }
 
 enum CredentialType {

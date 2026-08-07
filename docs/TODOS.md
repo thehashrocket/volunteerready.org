@@ -5,6 +5,164 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the credential-expiry-notice ship (2026-08-07, v0.42.0.0)
+
+The feature was scaffolded twice before and wired up neither time: the
+`VolunteerCredential.notifiedAt` column carries the comment *"Phase 6C —
+forward-prep for expiry notification cron (Phase 7)"* and was read by nothing,
+and `NotificationType.CREDENTIAL_EXPIRY` existed in the enum, in
+`notificationTypeSchema`, in `NOTIFICATION_TYPE_LABELS` and in
+`digest-service`'s own label map with zero call sites creating one.
+
+### Caught while building — recorded so it is not reintroduced
+
+**A preference toggle for a notification that never fires is worse than no
+toggle.** `/app/profile` renders one row per `NOTIFICATION_TYPE_LABELS` entry,
+filtering out only `FIRST_APPLICATION` — so every org member has been looking
+at a "Credential Expiry" row with In-app and Email switches since the enum
+landed. Turning it on did nothing and turning it off protected them from
+nothing. **A UI derived from an enum advertises every member of that enum**,
+which is the same property that makes the derived-disclosure rule work and the
+same property that makes dead scaffolding user-visible. Check the surfaces
+before adding an enum member, not just before adding a feature.
+
+**`notify()`'s email branch had never executed in production.** Verified by
+grep: all four callers are `void tryNotify(...)` and **none** passes `emailTo`,
+so `notificationService.ts:58-63` was dead. It also discarded `sendEmail`'s
+boolean — the defect class fixed twice before, sitting unexercised in shared
+code waiting for its first real caller. Two lessons: dead code does not stay
+dead, and **"this bug has never bitten" is a statement about callers, not about
+the code**. `notify()` now returns `{ inAppSent, emailSent }`, with `emailSent`
+three-valued so "attempted and failed" stays distinct from "never owed one" —
+the same distinction `--notify-only`'s `MALFORMED_AUDIT_ROW` exists to keep.
+
+**An immediate send and a digest sweep will duplicate each other unless
+somebody stamps the row.** `sendDigestEmails` claims every `Notification` with
+`emailSentAt: null`, and `digest-service.ts:266` already carried a
+`CREDENTIAL_EXPIRY` label. So the first caller to pass `emailTo` would have
+mailed the recipient once directly and again from the next hourly digest.
+`notify()` now stamps `emailSentAt` after its own successful send — and
+deliberately **not** after a failed one, which turns the digest into a free
+fallback delivery path.
+
+### [P3] The four inline OWNER/ADMIN queries are now five shapes minus one
+
+`findOrgStaffRecipients()` (`orgRepo.ts`) is the repo-layer home for "the
+OWNER/ADMIN members of an org". Four older copies remain, three of them raw
+Prisma inside a service, which is the layering violation the repo's own rules
+name: `shiftService.ts:279` (flat `organizationMember.findMany`),
+`volunteerApplicationService.ts:110` and `volunteer-screening.ts:256` (nested
+`organization.findUnique`), `caseStudyService.ts:202` (nested, `take: 1`).
+`orgRepo.findOrgWithOwnerEmail` is a fifth, deliberately narrower shape (OWNER
+only) and is not part of this.
+
+Migrating them is mechanical and low-risk — the query shapes were compared and
+are equivalent modulo the selected fields — but it touches four unrelated call
+sites for no behaviour change, so it was left out of a ship whose diff was
+already wide. **Effort:** S. **Depends on:** None.
+
+### [P3] `share-token-expiry-service.ts` still stamps `notifiedAt` on a failed send
+
+`share-token-expiry-service.ts:61-80` awaits `sendEmail`, discards the boolean,
+and stamps `notifiedAt` unconditionally. Because that stamp removes the row
+from its own query's `notifiedAt: null` filter permanently, a Resend rejection,
+a 429 or a bounce-suppressed address loses the notice **forever**, silently.
+
+This is the same defect fixed in `sendBackgroundCheckEmail` (v0.40.0.0) and
+`sendRosterAddedEmail` (v0.41.0.0), and the rule CLAUDE.md records from those
+two — *when a rule gets recorded because one sender got it wrong, grep every
+other `sendEmail` caller then* — did not fire here, because this caller stamps
+a timestamp rather than reporting a count, so it does not look like the earlier
+two. **The grep that would have found it is for callers that DISCARD the
+boolean, not for callers that report a total.**
+
+The fix is one `if (sent)`, mirroring `reengagement-service.ts:152-159`. It is
+carved out of v0.42.0.0 only to keep that diff's blast radius on the new
+feature; it is a live bug, not a stylistic gap. **Effort:** S. **Depends on:**
+None.
+
+### Caught by the pre-landing review — the first version did not work
+
+**It warned about each credential exactly ONCE IN ITS LIFETIME, which for an
+annually-renewed background check means once ever.** `VolunteerCredential` is
+unique on `(userId, orgId, type)`, so re-issuing a check UPDATES the existing
+row with a new `expiresAt` — and `upsertCredential`'s `update: data` never
+touched `notifiedAt`. Under the original `notifiedAt: null` filter that row was
+excluded from the scan permanently. Found independently by the testing and
+security specialists; confirmed by reading `upsertCredential`. The fix is
+`credentialNoticeCycleStart()`: a stamp older than one window describes an
+expiry date the row no longer has. No column comparison, so no raw SQL, so no
+Turbopack `Prisma.sql` hazard.
+
+**The "no pacing is safe, a 429 just retries tomorrow" reasoning was false, and
+false in the direction that loses mail.** The retry depended on the batch going
+unstamped, but the threshold was `inAppSent || emailSent === true` and
+`inAppSent` is true by default — so a rate-limited batch stamped anyway and the
+email was gone. Two lessons worth keeping: **a self-healing story is only as
+good as the predicate that triggers it**, and a docstring asserting one is
+where to look first. Sends are now paced at `NOTICE_SEND_DELAY_MS` and
+`shouldStampNotifiedAt` gates on "nobody FAILED" rather than "somebody got
+something".
+
+**`Promise.all` in a cron that writes irreversible state is a data-loss bug.**
+It is fail-fast, so one sibling throwing abandoned the notifier mid-loop after
+it had sent real email and written permanent stamps, and `withCronAuth`'s catch
+recorded a FAILURE with no `resultSummary` at all. `Promise.allSettled` plus
+carrying the partial summary into the thrown error.
+
+**A row-keyed cap truncates a message that claims to be complete.** The email
+enumerates a bundle and says "These volunteer credentials expire within the
+next 30 days". A 500-credential cap cut whichever org straddled it. The cap is
+on ORGS now, so a bundle is served whole or waits.
+
+**An entity that can never satisfy its own exit condition will starve a
+priority queue.** An org with no OWNER/ADMIN could never be stamped, so it
+re-entered nightly and sorted FIRST (most urgent), progressively eating the
+cap. Excluded at the query instead.
+
+### [P3] The notice still fires once per expiry CYCLE
+
+`notifiedAt` holds one timestamp, so within a single 30-day window a credential
+is warned about once — 30 days out, and nothing after. A coordinator who misses
+that email gets no second chance before it lapses. Renewals now re-warn (see
+above), which was the severe half; a second warning at, say, 7 days would need
+either another column or a cycle-relative comparison.
+
+Deliberately not built: two emails about the same credential is its own
+annoyance, and the 30-day window already carries a month of runway. **Effort:**
+S. **Depends on:** None.
+
+### [P3] The review-page link cannot name its own org
+
+`/app/settings/background-checks` renders `ctx.orgId` — the session's ACTIVE
+org — not the org the notice is about, so a coordinator who is ADMIN at two
+orgs and warned about the second clicks through to the first and sees none of
+the named volunteers. The email now says which org to select, which is a
+mitigation, not a fix.
+
+The real fix is an org-scoped destination (an `?org=` param the page honours,
+or an org-scoped route). That is a routing change well beyond this feature and
+would want to serve every org-scoped notification, not just this one.
+**Effort:** M. **Depends on:** None.
+
+### [P3] A degraded notifier run cannot trip the cron failure alert
+
+`notifyStaffOfExpiringCredentials` swallows per-org and per-recipient failures
+by design, so a run where every send failed still returns normally and records
+`CronJobRun.status = 'SUCCESS'`. The `>= 3 consecutive FAILURE` alert on
+`/app/admin/health` cannot fire on it.
+
+`resultSummary` is built to be readable instead — `credentialsScanned`
+separates "nothing was due" from "everything failed", and
+`credentialsUnresolved` / `orgsWithNoRecipients` / `noticeEmailsFailed` say
+which subsystem to look at. But that requires somebody to look, and
+`/app/admin/health` truncates the summary cell to 200px with no title
+attribute, so the newest fields are always clipped. Two small fixes (a `title`
+on that cell; alerting on a non-zero failure counter). **Effort:** M.
+**Depends on:** cron failure alerting.
+
+---
+
 ## Opened by the service-worker ship (2026-08-07, v0.41.18.0)
 
 Two of the three bugs fixed there were not the one the branch was opened for.
@@ -655,23 +813,38 @@ copy having to retreat to "skills".
 holds only `city`/`state` free text with no geocoding, so distance matching is
 real work. Do not lump it in with the two above.
 
-### [P2] Nothing warns anyone that a credential is about to expire
+### [P2] ~~Nothing warns anyone that a credential is about to expire~~ ✅ FIXED (2026-08-07, v0.42.0.0)
 
-`/screening` promised "get notified before they lapse" for months and no such
-notification exists for any audience. The only expiry notifier in the codebase
-is `notifyExpiringShareTokens()` (`expire-credentials/route.ts:12`), which is
-about credential *share links* — a different object with a different lifetime.
+`notifyStaffOfExpiringCredentials()` runs as the fourth branch of the existing
+`expire-credentials` cron and sends every OWNER/ADMIN one summary — in-app row
+plus email — 30 days out, gated on their own `CREDENTIAL_EXPIRY` preference.
+`sendEmail`'s boolean IS read, and it gates the `notifiedAt` stamp; `/screening`
+leads with the capability again. See "Opened by the credential-expiry-notice
+ship" at the top of this file for what the work turned up, including a live
+instance of the same boolean-discard bug still sitting in
+`share-token-expiry-service.ts`.
 
-What exists today: `volunteerDashboardService.ts:85` surfaces credentials
-expiring within 30 days on the **volunteer's own** dashboard, in-app only. The
-org — which is who cares, because a lapsed background check is their compliance
-exposure — gets nothing. There is already a daily cron
-(`api/cron/expire-credentials`) that would be the natural home, and
-`sendEmail`'s boolean must be read per the v0.40/v0.41 rule if a notice is
-added.
+Two things this deliberately did NOT do, both recorded as P3s in that section:
+the notice fires once per credential and never again, and a run in which every
+send failed still records a SUCCESS `CronJobRun`.
 
-Copy now describes only what the product does. If this ships, `/screening`'s
-feature card and pain-point list should go back to leading with it.
+Original entry, kept for the reasoning:
+
+> `/screening` promised "get notified before they lapse" for months and no such
+> notification exists for any audience. The only expiry notifier in the codebase
+> is `notifyExpiringShareTokens()` (`expire-credentials/route.ts:12`), which is
+> about credential *share links* — a different object with a different lifetime.
+>
+> What exists today: `volunteerDashboardService.ts:85` surfaces credentials
+> expiring within 30 days on the **volunteer's own** dashboard, in-app only. The
+> org — which is who cares, because a lapsed background check is their compliance
+> exposure — gets nothing. There is already a daily cron
+> (`api/cron/expire-credentials`) that would be the natural home, and
+> `sendEmail`'s boolean must be read per the v0.40/v0.41 rule if a notice is
+> added.
+>
+> Copy now describes only what the product does. If this ships, `/screening`'s
+> feature card and pain-point list should go back to leading with it.
 
 ### [P3] `pnpm typecheck` does not cover test files
 
