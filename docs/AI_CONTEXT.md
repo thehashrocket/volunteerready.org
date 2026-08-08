@@ -102,7 +102,9 @@ src/
 │   ├── api/
 │   │   ├── og/[type]/[slug]/     # Dynamic OG images for pages + org routes (Fraunces + Geist fonts)
 │   │   ├── share-card/[userId]/  # OG social share image (@vercel/og) — forest green/sand palette
-│   │   ├── cron/expire-credentials/ # Daily Vercel Cron — expires stale credentials + share tokens
+│   │   ├── cron/expire-credentials/ # Daily Vercel Cron — expires stale credentials + share tokens,
+│   │   │                            #   and warns org OWNER/ADMINs 30 days before expiry (4 branches,
+│   │   │                            #   Promise.allSettled, one shared `now`, maxDuration 300)
 │   │   ├── cron/email-digests/    # Hourly Vercel Cron — timezone-aware digest emails (cursor-paginated)
 │   │   ├── cron/shift-reminders/  # Hourly Vercel Cron — timezone-aware shift reminder emails
 │   │   ├── cron/volunteer-reengagement/ # Daily Vercel Cron — 30/60/90-day re-engagement emails
@@ -444,13 +446,17 @@ The shift scheduling system lives in `src/server/domain/shift.ts`.
 
 The notification system lives in `src/server/domain/notification.ts`.
 
-**Notification:** User-scoped, org-scoped notification with type, title, body, optional href, and soft delete. Types: APPLICATION_UPDATE, SHIFT_REMINDER, CREDENTIAL_UPDATE, SYSTEM. Unread count polled every 30 seconds.
+**Notification:** User-scoped, org-scoped notification with type, title, body, optional href, and soft delete. Types (`NotificationType`, 12 values): SHIFT_REMINDER, SHIFT_CANCELLED, SHIFT_UPDATED, SHIFT_COMPLETED, APPLICATION_STATUS, CREDENTIAL_EXPIRY, TEAM_ANNOUNCEMENT, WAITLIST_PROMOTED, NEW_OPPORTUNITY, BADGE_EARNED, FIRST_APPLICATION, REENGAGEMENT. Unread count polled every 30 seconds.
 
 **Preferences:** Per-user, per-org, per-type delivery channel toggles (inApp, email). The `notify()` function checks preferences before creating the notification.
 
 **Cleanup:** Daily cron job purges dismissed notifications older than 90 days alongside credential expiry.
 
-**Service orchestration:** `src/server/services/notificationService.ts` — `notify()` (checks preferences), `tryNotify()` (fire-and-forget wrapper for use in other services)
+**Service orchestration:** `src/server/services/notificationService.ts` — `notify()` (checks preferences), `tryNotify()` (never throws). Most callers still fire-and-forget with `void tryNotify(...)`; the credential-expiry notifier awaits it, because it gates an idempotency stamp on what actually arrived.
+
+**Both return `NotifyResult`, not `void`** (v0.42.0.0). `sendEmail` reports failure by *returning false* and never throwing, so a caller gating an idempotency stamp on "did this notice arrive" cannot learn the answer from an exception. `emailSent` is deliberately three-valued: `false` means we tried and it did not go (Resend rejection, 429, bounce-suppressed address); `null` means we never tried, because the preference disallowed it or the caller supplied no email content. A retry loop that collapses those two either spins forever or gives up on the wrong thing.
+
+**`Notification.emailSentAt` has TWO writers:** the digest cron, and `notify()` itself after a successful direct send. So `emailSentAt: null` means "no email by any path", not "the digest has not run yet" — narrowing or re-widening the digest's predicate must be checked against `notify()`, or a notification already mailed directly gets mailed a second time. A *failed* send leaves the row unstamped on purpose, and that is not a fallback delivery path: callers must not treat a failed send as delivered on the strength of it.
 
 **tRPC router:** `src/server/trpc/routers/notifications.ts` — `list` (cursor-based, protectedProcedure), `unreadCount`, `markRead`, `markAllRead`
 
@@ -482,6 +488,10 @@ pnpm prisma migrate deploy  # Apply migrations
 pnpm prisma db seed         # Seed data (production or dev based on NODE_ENV)
 pnpm seed:production        # Production seed only (platform org + skill catalog)
 pnpm seed:dev               # Dev/staging seed (full demo data + test accounts)
+pnpm credentials:reset-notice # Undo credential-expiry notice stamps so a batch can be warned again.
+                          #   --org <slug-or-id> [--since <ISO>] | --audit-run <auditLogId>
+                          #   Dry run unless --yes. --dry-run and --yes are refused together.
+                          #   Non-local DATABASE_URL: a write also prompts for the resolved slug.
 pnpm prisma studio          # Prisma Studio UI
 pnpm docs:dev               # VitePress dev server
 pnpm import:roster --org <slug-or-id> --file <path.csv> [--dry-run] [--yes] [--actor <email>] [--no-notify] [--notify-only]
@@ -549,7 +559,9 @@ pnpm import:roster --org <slug-or-id> --file <path.csv> [--dry-run] [--yes] [--a
 | `src/server/repositories/volunteer-applications.ts` | `listClaimableApplicationsByEmail()` / `claimApplicationForUser()` — the email match lives in the Prisma `where`, so a foreign application id matches zero rows |
 | `src/server/repositories/userAccountStateRepo.ts` | `AccountState` transitions + `findEmailByUserId()` — resolve an address from the id you are acting on, since `ctx.session.user.email` is the real admin's under impersonation |
 | `src/server/services/volunteerDiscoveryService.ts` | Volunteer search + invite-to-apply — rate-limited, TOCTOU-safe transaction, audit logged |
-| `src/server/services/notificationService.ts` | Notification delivery — checks preferences, creates notifications, fire-and-forget wrapper |
+| `src/server/services/notificationService.ts` | Notification delivery — checks preferences, creates notifications, stamps `emailSentAt` on a successful direct send so the digest cannot repeat it. `notify()`/`tryNotify()` return `NotifyResult` (`inAppSent`, three-valued `emailSent`), not `void` |
+| `src/server/services/credential-expiry-notice-service.ts` | Daily cron branch — warns org OWNER/ADMINs 30 days before a volunteer credential expires; one summary per org per recipient, in-app + email via `notify()`, capped by org (`CREDENTIAL_EXPIRY_NOTICE_ORG_CAP`), paced at `NOTICE_SEND_DELAY_MS`, stamps `notifiedAt` + audit row in one transaction only when nobody failed |
+| `src/server/domain/credential-expiry.ts` | Pure domain: `CREDENTIAL_EXPIRY_WARNING_DAYS` (30 — the single source for the dashboard, the notice and `/screening`), `credentialExpiryWindowEnd()`, `credentialNoticeCycleStart()` (per-cycle idempotency, so a renewed credential is warned about again), `groupCredentialsByOrg()`, `shouldStampNotifiedAt()`, notice copy |
 | `src/server/services/shiftTemplateService.ts` | Shift template CRUD + bulk shift generation with plan-tier enforcement |
 | `src/server/services/orgMarketplaceService.ts` | Org marketplace settings — `updateMarketplaceSettings()` (visibility, description, location, causeAreaTags); extracted from org router to enforce service-layer boundary |
 | `src/server/services/orgAnalyticsService.ts` | Org analytics dashboard — orchestrates 4 parallel queries; days=null skips retention and uses epoch fromDate |

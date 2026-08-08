@@ -23,6 +23,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	prisma: mockPrisma,
 }));
 
+import { CREDENTIAL_EXPIRY_WARNING_DAYS } from '@/server/domain/credential-expiry';
 import { getVolunteerDashboard } from './volunteerDashboardService';
 
 // ---------------------------------------------------------------------------
@@ -189,6 +190,48 @@ describe('getVolunteerDashboard', () => {
 		const result = await getVolunteerDashboard(USER_ID);
 
 		expect(result.recommendedOpportunities).toEqual([]);
+	});
+
+	// -----------------------------------------------------------------------
+	// The shared expiry window
+	// -----------------------------------------------------------------------
+
+	describe('expiring-credential window', () => {
+		// This query and the staff notifier's must name the same number of days,
+		// and so must the copy on this page and on /screening. That is the entire
+		// reason CREDENTIAL_EXPIRY_WARNING_DAYS exists — before it, the literal
+		// `30` here was unbound from everything else. Nothing asserted the window
+		// at all: the existing "returns expiring credentials when present" test
+		// mocks the result, so the `where` it was selected by is invisible and the
+		// constant could be narrowed to 14 with the whole suite still green while
+		// /screening kept promising 30.
+
+		it('queries exactly the shared warning window ahead of now', async () => {
+			const before = Date.now();
+			await getVolunteerDashboard(USER_ID);
+			const after = Date.now();
+
+			const [args] = mockPrisma.volunteerCredential.findMany.mock.calls[0];
+			const { gte, lte } = args.where.expiresAt;
+
+			expect(lte.getTime() - gte.getTime()).toBe(
+				CREDENTIAL_EXPIRY_WARNING_DAYS * 24 * 60 * 60 * 1000,
+			);
+			expect(gte.getTime()).toBeGreaterThanOrEqual(before);
+			expect(gte.getTime()).toBeLessThanOrEqual(after);
+		});
+
+		it('bounds the window below at now, so a lapsed credential is not "expiring soon"', async () => {
+			// The lower bound is what keeps this disjoint from the already-expired
+			// set the cron sweeps. Dropping `gte` would surface years of dead
+			// credentials on a volunteer's dashboard as upcoming expiries.
+			await getVolunteerDashboard(USER_ID);
+
+			const [args] = mockPrisma.volunteerCredential.findMany.mock.calls[0];
+			expect(args.where.expiresAt.gte).toBeInstanceOf(Date);
+			expect(args.where.status).toBe('VERIFIED');
+			expect(args.where.userId).toBe(USER_ID);
+		});
 	});
 
 	// -----------------------------------------------------------------------

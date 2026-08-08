@@ -41,7 +41,7 @@ export const RELEASE_SEVERITY_VALUES = ['silent', 'notice'] as const;
  * (`feat:` -> `notice`; `chore:`/`ci:`/`docs:` -> `silent`) and you confirm or
  * override it.
  */
-export const RELEASE_SEVERITY: ReleaseSeverity = 'silent';
+export const RELEASE_SEVERITY: ReleaseSeverity = 'notice';
 
 /**
  * The version `RELEASE_SEVERITY` above was decided FOR, and the whole reason
@@ -60,4 +60,4 @@ export const RELEASE_SEVERITY: ReleaseSeverity = 'silent';
  *
  * MUST be updated in the same commit that bumps `VERSION`.
  */
-export const RELEASE_SEVERITY_DECIDED_FOR = '0.41.18.0';
+export const RELEASE_SEVERITY_DECIDED_FOR = '0.42.0.0';

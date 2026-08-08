@@ -27,7 +27,14 @@ export async function purgeOldDismissedNotifications(): Promise<{
 	return { notificationsPurged: count };
 }
 
-export async function expireStaleCredentialsAndTokens(): Promise<{
+/**
+ * Takes `now` so the cron can hand the same instant to this and to the expiry
+ * notifier — this one selects `expiresAt < now`, that one `expiresAt > now`,
+ * and the two sets are only genuinely disjoint against a single clock read.
+ */
+export async function expireStaleCredentialsAndTokens(
+	now: Date = new Date(),
+): Promise<{
 	credentialsExpired: number;
 	tokensExpired: number;
 }> {
@@ -35,7 +42,7 @@ export async function expireStaleCredentialsAndTokens(): Promise<{
 	let tokensExpired = 0;
 
 	// --- Expire stale credentials ---
-	const expiredCredentials = await findExpiredCredentials();
+	const expiredCredentials = await findExpiredCredentials(now);
 
 	for (const cred of expiredCredentials) {
 		try {

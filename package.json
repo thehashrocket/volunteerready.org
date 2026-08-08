@@ -1,6 +1,6 @@
 {
 	"name": "volunteeermatch-app",
-	"version": "0.41.18.0",
+	"version": "0.42.0.0",
 	"private": true,
 	"scripts": {
 		"dev": "cross-env PORT=3005 next dev --turbo",
@@ -20,6 +20,7 @@
 		"import:roster": "tsx scripts/import-roster.ts",
 		"fixture:email-collisions": "tsx scripts/seed-email-collision-fixture.ts",
 		"reencrypt-tokens": "tsx scripts/reencrypt-tokens.ts",
+		"credentials:reset-notice": "tsx scripts/reset-credential-expiry-notice.ts",
 		"admin:grant": "tsx scripts/admin-grant.ts",
 		"admin:revoke": "tsx scripts/admin-grant.ts --revoke",
 		"seed:platform-admins": "tsx prisma/scripts/seed-platform-admins.ts",

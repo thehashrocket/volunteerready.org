@@ -349,6 +349,8 @@ Constraint: unique per (userId, orgId, type).
 
 Credentials may have provenance fields (`sharedFromOrgId`, `sharedFromCredentialId`) indicating they were claimed via a share token from another organization.
 
+`notifiedAt` records when the notifier last **closed this credential's warning cycle** — which is not quite the same as "a warning was delivered". An org whose OWNER/ADMINs have all switched both channels off is stamped too, because an opt-out is a respected preference rather than a lost notice, and treating it as a failure would make that org retry nightly forever and hold a slot under the org cap. Only a genuine send *failure* (a Resend rejection, a 429, a bounce-suppressed address) leaves the batch unstamped for tomorrow. It is the expiry notifier's idempotency gate, and it is read **per expiry cycle, not per row** — via `credentialNoticeCycleStart()`, because a stamp older than one warning window necessarily describes an expiry date the row no longer has. That matters because the `(userId, orgId, type)` uniqueness above means a renewed credential reuses its row, and `upsertCredential` never clears the stamp: read as a bare `notifiedAt: null` filter, an annually-renewed background check would be warned about once and then never again for the rest of that volunteer's tenure. `pnpm credentials:reset-notice` clears stamps when a run was recorded but delivered nothing.
+
 ---
 
 ## CredentialShareToken
@@ -426,11 +428,13 @@ Templates are plan-gated (STARTER+). The `maxShiftTemplates` plan limit controls
 
 User-scoped, org-scoped notification record.
 
-Type: APPLICATION_UPDATE | SHIFT_REMINDER | CREDENTIAL_UPDATE | SYSTEM | BADGE_EARNED | FIRST_APPLICATION | REENGAGEMENT
+Type (the full `NotificationType` enum, 12 values): SHIFT_REMINDER | SHIFT_CANCELLED | SHIFT_UPDATED | SHIFT_COMPLETED | APPLICATION_STATUS | CREDENTIAL_EXPIRY | TEAM_ANNOUNCEMENT | WAITLIST_PROMOTED | NEW_OPPORTUNITY | BADGE_EARNED | FIRST_APPLICATION | REENGAGEMENT
 
 Key fields: title, body, href (optional deep link), readAt (null = unread), deletedAt (soft delete).
 
 Notifications support mark-read, mark-all-read, and soft delete. Dismissed notifications older than 90 days are purged by the daily cron job.
+
+`emailSentAt` has **two writers**: the digest cron, and `notificationService.notify()` after it sends its own immediate email. So `emailSentAt: null` means "not emailed by any path", not "the digest has not swept it yet" — without the second writer, a notification already mailed directly would be mailed again by the digest.
 
 ---
 

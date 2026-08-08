@@ -20,6 +20,7 @@ import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
+import { CREDENTIAL_EXPIRY_WARNING_DAYS } from '@/server/domain/credential-expiry';
 
 export const metadata: Metadata = {
 	title: 'Background Checks for Nonprofits — $29/mo | VolunteerReady',
@@ -76,7 +77,7 @@ const features = [
 	{
 		icon: Timer,
 		heading: 'Credential tracking and expiry',
-		body: 'Background check results become portable credentials with an expiry date you set. Your credential list shows what is current and what has lapsed, and volunteers see anything expiring within 30 days on their own dashboard. They carry the credential between orgs.',
+		body: `Background check results become portable credentials with an expiry date you set. Your credential list shows what is current and what has lapsed, and ${CREDENTIAL_EXPIRY_WARNING_DAYS} days before anything lapses your team gets an email and an in-app alert — volunteers see the same warning on their own dashboard. They carry the credential between orgs.`,
 	},
 ];
 
@@ -113,7 +114,7 @@ const painPoints = [
 	'Tracking check statuses in a spreadsheet',
 	'Missing FCRA compliance steps and creating legal exposure',
 	'Re-running checks when volunteers move between programs',
-	'No single place showing which credentials have already lapsed',
+	'Finding out a credential lapsed only when someone shows up for a shift',
 ];
 
 export default function ScreeningPage() {

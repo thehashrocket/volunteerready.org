@@ -1,3 +1,4 @@
+import { credentialExpiryWindowEnd } from '@/server/domain/credential-expiry';
 import { prisma } from '@/server/repositories/prisma';
 
 /**
@@ -23,7 +24,11 @@ import { prisma } from '@/server/repositories/prisma';
  */
 export async function getVolunteerDashboard(userId: string) {
 	const now = new Date();
-	const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+	// Shared with the staff-facing notifier and with the copy naming this
+	// window here and on /screening. The helper — rather than the constant plus
+	// local arithmetic — because the two queries used to compute the same 30
+	// days differently and diverged across DST.
+	const warningWindowEnd = credentialExpiryWindowEnd(now);
 
 	const [
 		upcomingShifts,
@@ -82,12 +87,13 @@ export async function getVolunteerDashboard(userId: string) {
 			},
 		}),
 
-		// Credentials expiring within 30 days
+		// Credentials inside the shared expiry warning window
+		// (CREDENTIAL_EXPIRY_WARNING_DAYS — see credentialExpiryWindowEnd).
 		prisma.volunteerCredential.findMany({
 			where: {
 				userId,
 				status: 'VERIFIED',
-				expiresAt: { lte: thirtyDaysFromNow, gte: now },
+				expiresAt: { lte: warningWindowEnd, gte: now },
 			},
 			orderBy: { expiresAt: 'asc' },
 			take: 5,
