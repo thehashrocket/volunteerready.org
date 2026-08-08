@@ -567,9 +567,12 @@ model VolunteerCredential {
   // Phase 6C — provenance: tracks origin when credential was shared from another org
   sharedFromOrgId        String?
   sharedFromCredentialId String?
-  // When staff were warned this credential is approaching expiry. Written once
-  // and never cleared, by notifyStaffOfExpiringCredentials — it IS the
-  // idempotency gate, so a stamped row leaves that cron's query permanently.
+  // When staff were last warned this credential is approaching expiry, written
+  // by notifyStaffOfExpiringCredentials. It is the idempotency gate, but read
+  // through credentialNoticeCycleStart() rather than as a bare null check: a
+  // stamp older than one warning window describes an expiry date the row no
+  // longer has, so a RENEWED credential is warned about again. Clearable by
+  // `pnpm credentials:reset-notice` when a run delivered nothing.
   notifiedAt             DateTime?
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt

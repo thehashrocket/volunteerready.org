@@ -45,19 +45,43 @@ const KNOWN_FLAGS = new Set(['org', 'since', 'audit-run', 'yes', 'dry-run']);
 
 function parseFlags(argv: readonly string[]): Flags {
 	const flags: Flags = new Map();
-	for (const arg of argv) {
-		if (!arg.startsWith('--')) {
-			throw new Error(`Unexpected positional argument: ${arg}`);
-		}
-		const [rawName, ...rest] = arg.slice(2).split('=');
-		const name = rawName ?? '';
+
+	const set = (name: string, value: string | true) => {
 		if (!KNOWN_FLAGS.has(name)) {
 			throw new Error(`Unknown flag: --${name}`);
 		}
 		if (flags.has(name)) {
 			throw new Error(`Flag --${name} given more than once`);
 		}
-		flags.set(name, rest.length > 0 ? rest.join('=') : true);
+		flags.set(name, value);
+	};
+
+	for (let i = 0; i < argv.length; i++) {
+		const arg = argv[i] as string;
+		if (!arg.startsWith('--')) {
+			throw new Error(`Unexpected positional argument: ${arg}`);
+		}
+
+		// BOTH `--key=value` and `--key value`, because both get typed — and
+		// because this script's own usage text prints the space form. It
+		// accepted only `--key=value` at first, so every invocation copied from
+		// the help output died with "Unexpected positional argument". Nothing
+		// caught it because the script had no tests; the coverage audit found it
+		// on the first run. `import-roster.ts` had already learned this.
+		const eq = arg.indexOf('=');
+		if (eq !== -1) {
+			set(arg.slice(2, eq), arg.slice(eq + 1));
+			continue;
+		}
+
+		const name = arg.slice(2);
+		const next = argv[i + 1];
+		if (next !== undefined && !next.startsWith('--')) {
+			set(name, next);
+			i++;
+		} else {
+			set(name, true);
+		}
 	}
 	return flags;
 }
@@ -78,10 +102,26 @@ function readValue(flags: Flags, name: string): string | null {
 	const value = flags.get(name);
 	if (value === undefined) return null;
 	if (value === true) throw new Error(`--${name} requires a value`);
+	// `--org=` parses to '' and would then read as "not supplied", which slips
+	// past the --org/--audit-run mutual-exclusion check below.
+	if (value === '') throw new Error(`--${name} requires a value`);
 	return value;
 }
 
 async function confirmSlug(expected: string): Promise<boolean> {
+	// An empty expectation would be satisfied by pressing Enter, which turns the
+	// one rail `--yes` cannot substitute for into no rail at all.
+	//
+	// UNREACHABLE as the callers stand — both resolve a real org first, and the
+	// `--audit-run` path refuses a row with no `orgId` before it gets here. It
+	// is kept as a second line rather than deleted because the failure it
+	// prevents is a silent production write, and a future caller that resolves
+	// the slug differently would not obviously know to re-derive this. Mutation
+	// testing confirms nothing covers it; that is expected, not an oversight.
+	if (!expected) {
+		console.error('Refusing: no org slug to confirm against.');
+		return false;
+	}
 	if (!process.stdin.isTTY) {
 		console.error(
 			'Refusing a non-dry-run against a remote database without an interactive confirmation.',
@@ -105,7 +145,20 @@ async function main() {
 	const auditRunId = readValue(flags, 'audit-run');
 	const since = readValue(flags, 'since');
 	const yes = readSwitch(flags, 'yes');
-	readSwitch(flags, 'dry-run'); // accepted for symmetry; dry run is the default
+	const dryRun = readSwitch(flags, 'dry-run');
+
+	// SAFETY: refuse rather than let one win. `--dry-run` was parsed and then
+	// DISCARDED, so `--org acme --dry-run --yes` cleared notifiedAt — a live
+	// write, causing real re-sends to real staff, from a command line that
+	// visibly read `--dry-run`. Verified by execution during review. This is the
+	// same defect CLAUDE.md records against the roster importer, and
+	// `import-roster.ts` already refuses the combination; this script's own
+	// docstring claimed to match its rails and did not.
+	if (dryRun && yes) {
+		console.error('--dry-run and --yes are mutually exclusive.');
+		process.exit(1);
+		return;
+	}
 
 	if (!orgRef && !auditRunId) {
 		console.error('Usage: pnpm credentials:reset-notice --org <slug-or-id>');
@@ -138,7 +191,16 @@ async function main() {
 		credentialIds = Array.isArray(meta?.credentialIds)
 			? (meta.credentialIds as string[])
 			: [];
-		orgId = row.orgId ?? '';
+		if (!row.orgId) {
+			// Without an org the blast radius is unknowable, and the remote
+			// confirmation has nothing to check the typed slug against.
+			console.error(
+				`Audit row ${auditRunId} has no orgId; cannot scope this reset.`,
+			);
+			process.exit(1);
+			return;
+		}
+		orgId = row.orgId;
 		const org = await prisma.organization.findUnique({
 			where: { id: orgId },
 			select: { slug: true },

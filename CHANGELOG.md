@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.42.0.0] - 2026-08-07
+
+**Your team now gets an email and an in-app alert 30 days before a volunteer's
+credential expires.**
+
+Until now a lapsing background check was something you found out about by
+noticing. The volunteer saw a warning on their own dashboard; the organisation
+that carries the compliance exposure saw nothing at all. Every OWNER and ADMIN
+now gets one summary per organisation — the volunteers affected, what each
+credential is, and how many days are left — 30 days out. Each person can turn
+either the email or the in-app notice off from their notification settings, and
+that switch now does something; it has been on the settings page for months
+attached to a notice that never fired.
+
+The 30 days is one number in one place now. It was previously written out
+separately in the volunteer's dashboard, in the code behind it, and on the
+`/screening` page, with nothing keeping them in step.
+
+### Added
+
+- Nightly warning to organisation OWNERs and ADMINs, 30 days before a volunteer
+  credential expires. One summary per organisation, delivered as both an email
+  and an in-app notification, each honouring that person's own preference.
+- `pnpm credentials:reset-notice` — clears the record of a warning so a batch
+  can be sent again, for the case where a night's notices went out to nobody.
+  Dry run by default; a live run against a non-local database also asks for the
+  organisation's slug to be typed back.
+
+### Changed
+
+- `/screening` leads with expiry warnings again, and the "no single place
+  showing what has lapsed" pain point is now "finding out only when someone
+  shows up for a shift".
+- A credential that gets renewed is warned about again on its new expiry date,
+  rather than once in its lifetime.
+- Organisations are notified whole: an organisation is either told about all of
+  its expiring credentials or waits until the next night, never sent a partial
+  list that reads as complete.
+- Suspended organisations are skipped.
+
+### Fixed
+
+- Notification emails sent directly are no longer repeated by the daily digest.
+
 ## [0.41.18.0] - 2026-08-07
 
 **The offline cache now stores only the app's own static files, and it clears

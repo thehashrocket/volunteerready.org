@@ -334,6 +334,23 @@ describe('findOrgsNeedingExpiryNotice', () => {
 		expect(capped).toHaveLength(2);
 		expect(capped.every((r) => r.orgId === urgent.id)).toBe(true);
 	});
+
+	it('returns nothing for an empty org list, rather than every due row', async () => {
+		// Phase 1 returning no orgs is the ordinary "nothing due tonight" answer,
+		// and phase 2 must agree. Note what this does and does not pin: deleting
+		// the `orgIds.length === 0` early return alone keeps this green, because
+		// Postgres answers an empty IN correctly — that guard is a saved round
+		// trip, not a correctness gate. What this catches is the rewrite that
+		// drops the `orgId` filter itself when the list is empty, which would
+		// hand a run every due credential on the platform. There ARE due rows
+		// here (asserted first), so it cannot pass vacuously.
+		const org = await makeOrg('empty');
+		const user = await makeUser('empty');
+		await makeCredential(org.id, user.id);
+
+		expect(await findOrgsNeedingExpiryNotice(NOW, 100_000)).not.toHaveLength(0);
+		expect(await findExpiryNoticeCredentialsForOrgs(NOW, [])).toEqual([]);
+	});
 });
 
 describe('markCredentialsNotifiedTx', () => {

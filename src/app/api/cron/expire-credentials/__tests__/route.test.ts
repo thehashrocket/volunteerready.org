@@ -38,7 +38,7 @@ vi.mock('@/server/services/credential-expiry-notice-service', () => ({
 import * as staffNoticeService from '@/server/services/credential-expiry-notice-service';
 import * as expiryService from '@/server/services/credential-expiry-service';
 import * as shareTokenService from '@/server/services/share-token-expiry-service';
-import { GET } from '../route';
+import { GET, maxDuration } from '../route';
 
 function makeRequest(authHeader?: string) {
 	const headers = new Headers();
@@ -113,6 +113,25 @@ describe('GET /api/cron/expire-credentials', () => {
 			noticeEmailsFailed: 0,
 			orgCapReached: false,
 		});
+
+		// ONE clock for both credential services. The expirer takes
+		// `expiresAt < now` and the notifier `expiresAt > now`, so they are only
+		// disjoint against a single read — with two reads a credential expiring
+		// in the gap is expired AND warned about in the same run, and the notice
+		// says it expires in 0 days. Dropping either argument leaves the body
+		// assertion above untouched, so it is pinned here.
+		const expiryNow = vi.mocked(expiryService.expireStaleCredentialsAndTokens)
+			.mock.calls[0]?.[0];
+		const noticeNow = vi.mocked(
+			staffNoticeService.notifyStaffOfExpiringCredentials,
+		).mock.calls[0]?.[0];
+		expect(expiryNow).toBeInstanceOf(Date);
+		expect(noticeNow).toBe(expiryNow);
+
+		// The pacing budget in CREDENTIAL_EXPIRY_NOTICE_ORG_CAP is computed
+		// against this number; inheriting the platform default changes it
+		// silently underneath that arithmetic.
+		expect(maxDuration).toBe(300);
 	});
 
 	it('returns 500 when only the staff notifier throws', async () => {

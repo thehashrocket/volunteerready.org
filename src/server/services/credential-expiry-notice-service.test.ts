@@ -272,6 +272,52 @@ describe('notifyStaffOfExpiringCredentials', () => {
 		);
 	});
 
+	it('leaves an org unstamped if it loses its last OWNER/ADMIN mid-run', async () => {
+		// The query requires at least one OWNER/ADMIN, so this branch is only
+		// reachable when the last one leaves between phase 1 and the recipient
+		// lookup. It was previously asserted only through the ROUTE test, off a
+		// mocked service — so nothing pinned the counter, the warn, or the
+		// left-unstamped outcome in the service that actually decides them.
+		mockDue([makeDueCredential()]);
+		mockRecipients([]);
+		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+		const result = await run();
+
+		expect(tryNotify).not.toHaveBeenCalled();
+		expect(markCredentialsNotifiedTx).not.toHaveBeenCalled();
+		expect(result.orgsWithNoRecipients).toBe(1);
+		expect(result.credentialsUnresolved).toBe(1);
+		expect(result.credentialsNotified).toBe(0);
+		expect(warnSpy).toHaveBeenCalledWith(
+			expect.stringContaining('lost its last OWNER/ADMIN'),
+		);
+		warnSpy.mockRestore();
+	});
+
+	it('keeps the emails an org already sent when it then throws', async () => {
+		// The delta is built by the caller's catch, which cannot see anything the
+		// throw skipped past. Without the shared tally, mail that genuinely went
+		// out vanishes from resultSummary — on exactly the runs a human is
+		// investigating.
+		mockDue([makeDueCredential({ id: 'a' }), makeDueCredential({ id: 'b' })]);
+		mockRecipients([
+			makeRecipient({ userId: 'u1' }),
+			makeRecipient({ userId: 'u2' }),
+		]);
+		vi.mocked(tryNotify)
+			.mockResolvedValueOnce({ inAppSent: true, emailSent: true })
+			.mockRejectedValueOnce(new Error('boom'));
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const result = await run();
+
+		expect(result.noticeEmailsSent).toBe(1);
+		expect(result.credentialsUnresolved).toBe(2);
+		expect(result.credentialsNotified).toBe(0);
+		errorSpy.mockRestore();
+	});
+
 	it('isolates a failing org so later orgs still get their notice', async () => {
 		mockDue([
 			makeDueCredential({ id: 'a', orgId: 'org-1' }),

@@ -121,13 +121,16 @@ export async function notifyStaffOfExpiringCredentials(
 
 	for (const bundle of groupCredentialsByOrg(facts)) {
 		summary.orgsProcessed++;
+		const tally = { emailsSent: 0, emailsFailed: 0 };
 		let delta: OrgNoticeDelta;
 		try {
-			delta = await notifyOneOrg(bundle, now, pace);
+			delta = await notifyOneOrg(bundle, now, pace, tally);
 		} catch (err) {
 			// Per-org isolation: one org's failure must not cost every later org
-			// its notice. Unstamped, so the batch is retried tomorrow.
-			delta = { ...EMPTY_DELTA, unresolved: bundle.items.length };
+			// its notice. Unstamped, so the batch is retried tomorrow — but the
+			// tally carries whatever mail already went out, which the delta
+			// cannot because the throw skipped its return.
+			delta = { ...EMPTY_DELTA, unresolved: bundle.items.length, ...tally };
 			console.error(
 				`[cron] Failed to notify org ${bundle.orgId} of ${bundle.items.length} expiring credential(s)`,
 				err,
@@ -146,14 +149,21 @@ export async function notifyStaffOfExpiringCredentials(
 /**
  * Notify one org's staff and, if nobody's notice failed, stamp its batch.
  *
- * Returns a delta rather than mutating a shared summary. The invariant the
- * health dashboard depends on — `notified + unresolved === scanned` — is then a
+ * Returns a delta rather than mutating the shared summary, so the invariant the
+ * health dashboard depends on — `notified + unresolved === scanned` — is a
  * single fold in the caller instead of an audit of every early return in here.
+ * The one exception is `tally`, which is shared deliberately; see its parameter
+ * comment.
  */
 async function notifyOneOrg(
 	bundle: OrgExpiringCredentials,
 	now: Date,
 	pace: { sends: number },
+	// Written as sends happen rather than returned, so a throw part-way through
+	// the recipient loop does not erase email that genuinely went out. The
+	// caller's catch builds its delta from this; without it `resultSummary`
+	// under-reports delivery on exactly the runs a human is investigating.
+	tally: { emailsSent: number; emailsFailed: number },
 ): Promise<OrgNoticeDelta> {
 	const recipients = await findOrgStaffRecipients(bundle.orgId);
 
@@ -177,8 +187,6 @@ async function notifyOneOrg(
 	const html = buildNoticeHtml(bundle, now);
 
 	const outcomes: RecipientNoticeOutcome[] = [];
-	let emailsSent = 0;
-	let emailsFailed = 0;
 
 	for (const recipient of recipients) {
 		// Paced BEFORE the send and only for recipients who get mail, so an
@@ -188,28 +196,39 @@ async function notifyOneOrg(
 			pace.sends++;
 		}
 
-		const result = await tryNotify({
-			userId: recipient.userId,
-			orgId: bundle.orgId,
-			type: 'CREDENTIAL_EXPIRY',
-			title: credentialExpiryNoticeTitle(bundle.items.length),
-			body: credentialExpiryNoticeBody(bundle.items.length, bundle.orgName),
-			href: CREDENTIAL_REVIEW_HREF,
-			// A recipient with no address still gets the in-app half rather than
-			// being skipped outright — unlike the re-engagement cron, which is
-			// email-only by definition.
-			...(recipient.user.email
-				? {
-						emailTo: recipient.user.email,
-						emailSubject: subject,
-						emailHtml: html,
-					}
-				: {}),
-		});
+		// tryNotify swallows its own errors, but a throw from anywhere else in
+		// this iteration would otherwise leave the recipient counted as neither
+		// sent nor failed — so a run where every send blew up reports
+		// `sent: 0, failed: 0`, which is what "nothing was due" looks like. The
+		// whole point of the split is telling those apart.
+		let result: Awaited<ReturnType<typeof tryNotify>>;
+		try {
+			result = await tryNotify({
+				userId: recipient.userId,
+				orgId: bundle.orgId,
+				type: 'CREDENTIAL_EXPIRY',
+				title: credentialExpiryNoticeTitle(bundle.items.length),
+				body: credentialExpiryNoticeBody(bundle.items.length, bundle.orgName),
+				href: CREDENTIAL_REVIEW_HREF,
+				// A recipient with no address still gets the in-app half rather than
+				// being skipped outright — unlike the re-engagement cron, which is
+				// email-only by definition.
+				...(recipient.user.email
+					? {
+							emailTo: recipient.user.email,
+							emailSubject: subject,
+							emailHtml: html,
+						}
+					: {}),
+			});
+		} catch (err) {
+			if (recipient.user.email) tally.emailsFailed++;
+			throw err;
+		}
 
-		if (result.emailSent === true) emailsSent++;
+		if (result.emailSent === true) tally.emailsSent++;
 		if (result.emailSent === false) {
-			emailsFailed++;
+			tally.emailsFailed++;
 			console.error(
 				`[cron] Credential expiry notice not delivered to ${recipient.userId} at org ${bundle.orgId}`,
 			);
@@ -222,12 +241,7 @@ async function notifyOneOrg(
 		console.error(
 			`[cron] Delivery failed for org ${bundle.orgId} — ${bundle.items.length} credential(s) left unstamped for retry`,
 		);
-		return {
-			...EMPTY_DELTA,
-			unresolved: bundle.items.length,
-			emailsSent,
-			emailsFailed,
-		};
+		return { ...EMPTY_DELTA, unresolved: bundle.items.length, ...tally };
 	}
 
 	const credentialIds = bundle.items.map((item) => item.credentialId);
@@ -250,8 +264,8 @@ async function notifyOneOrg(
 				credentialIds,
 				stamped: result.count,
 				recipients: recipients.length,
-				emailsSent,
-				emailsFailed,
+				emailsSent: tally.emailsSent,
+				emailsFailed: tally.emailsFailed,
 			},
 		});
 		return result;
@@ -263,8 +277,7 @@ async function notifyOneOrg(
 	return {
 		notified: count,
 		unresolved: bundle.items.length - count,
-		emailsSent,
-		emailsFailed,
+		...tally,
 		hadNoRecipients: false,
 	};
 }
