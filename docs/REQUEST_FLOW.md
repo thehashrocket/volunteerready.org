@@ -380,21 +380,66 @@ Volunteer UI (/apply/[orgSlug])
 # Credential & Token Expiry Cron Flow
 
 ```
-Vercel Cron (daily, 03:00 UTC)
+Vercel Cron (daily, 03:00 UTC) — maxDuration 300
     -> GET /api/cron/expire-credentials
         -> Verify Authorization: Bearer CRON_SECRET
-        -> credentialExpiryService.expireStaleCredentialsAndTokens()
-            -> Find VERIFIED credentials with expiresAt in the past (limit 500)
+        -> const now = new Date()          # ONE clock for the whole run
+        -> Promise.allSettled([
+             expireStaleCredentialsAndTokens(now),
+             purgeOldDismissedNotifications(),
+             notifyExpiringShareTokens(),
+             notifyStaffOfExpiringCredentials(now),
+           ])
+
+        [1] expireStaleCredentialsAndTokens(now)
+            -> Find VERIFIED credentials with expiresAt < now (limit 500)
             -> For each: $transaction(update status → EXPIRED + audit log)
-            -> Find ACTIVE share tokens with expiresAt in the past (limit 500)
+            -> Find ACTIVE share tokens with expiresAt < now (limit 500)
             -> For each: $transaction(update status → EXPIRED + audit log)
             -> Per-record try/catch: P2025 (concurrent modification) → skip
-        -> Return { ok: true, credentialsExpired, tokensExpired }
+
+        [4] notifyStaffOfExpiringCredentials(now)
+            -> Find VERIFIED credentials with expiresAt in (now, now + 30d]
+               whose notifiedAt is null or older than credentialNoticeCycleStart(now),
+               excluding suspended orgs and orgs with no OWNER/ADMIN
+            -> Group by org, take the first CREDENTIAL_EXPIRY_NOTICE_ORG_CAP orgs
+            -> Per org, per OWNER/ADMIN recipient:
+                 notify({ type: CREDENTIAL_EXPIRY, ... }) → NotifyResult
+                 (paced NOTICE_SEND_DELAY_MS apart)
+            -> shouldStampNotifiedAt(outcomes)?          # true only if nobody FAILED
+                 $transaction(set notifiedAt = now + audit log)
+
+        -> Merge each fulfilled branch's counters into the body
+        -> No failures  → return { ok: true, ...counters }
+        -> Any failure  → throw, carrying the partial summary in the message
 ```
 
 Audit log entries use `actorId: null` (system action, no human actor).
 Limit of 500 per query prevents unbounded processing; remaining records
 picked up on the next run.
+
+Three properties of this route are load-bearing, and each was a bug first:
+
+- **`allSettled`, never `all`.** `Promise.all` is fail-fast, so one sibling
+  throwing abandoned the notifier mid-loop *after* it had sent real email and
+  written irreversible `notifiedAt` stamps, and nothing recorded what had
+  already been consumed. The route still throws when a branch fails (the run is
+  a failure), but only after the successful branches' counters are in hand.
+  Note **where** those counters end up: `withCronAuth` writes `resultSummary`
+  only on the success path, and on failure records `error` alone — so the
+  partial summary is carried in the thrown error's *message*, and a FAILURE
+  `CronJobRun` row has an empty `resultSummary` by construction. Read the
+  `error` string.
+- **One `now`, passed in.** The expirer takes `expiresAt < now` and the notifier
+  `expiresAt > now`; that only makes them disjoint if it is the *same* now. They
+  read the clock separately before, so a credential expiring in the gap could be
+  expired and warned about in the same run.
+- **`maxDuration = 300` is explicit, not inherited**, because one branch paces
+  its sends and so has a wall-clock budget it must fit inside. A platform
+  default that changes underneath the pacing maths is a silent truncation.
+
+The stamp is the only record a warning was issued and there is no admin surface
+for it, so `pnpm credentials:reset-notice` is the undo — see CLAUDE.md.
 
 ---
 
