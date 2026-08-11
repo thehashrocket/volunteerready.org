@@ -327,9 +327,16 @@ e2e/                    # Playwright end-to-end tests
 
 ## Install dependencies
 
+This project runs on the Node version in `.nvmrc` (24.x). With nvm:
+
 ```bash
+nvm use          # reads .nvmrc
 pnpm install
 ```
+
+`pnpm install` only *warns* on a mismatch rather than refusing, so it is worth
+checking: `package.json` declares `engines.node` so Vercel builds on the same
+major, and some dependencies need a recent 24 (`jsdom` wants `>= 24.15`).
 
 ## Start development server
 
