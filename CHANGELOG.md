@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.42.1.0] - 2026-08-10
+
+**Maintenance. Nothing changes for anyone using the site.**
+
+The Node version the site runs on is now declared in the repository instead of
+being whatever the hosting platform happened to default to that day. Those two
+agreed by coincidence, not by declaration, and the day the default moved the
+site would have started running on a Node release nothing here had ever been
+tested against — with every check still green.
+
+Every dependency that had a compatible update took it, seventeen in all, and one
+of the nine pinned dependency overrides was retired. The other eight stay: they
+look inert, because the tree resolves to a patched version with or without them,
+but that is only because a version range picks the newest match. They are what
+turns that coincidence into a guarantee, and `docs/dependency-overrides.md` now
+carries the one-minute check that tells the two apart — along with the finding
+that two of them cannot be retired at all until VitePress 2 ships.
+
+### Added
+
+- A check that the Node version agrees across the three places that declare it,
+  and clears the highest version any installed package actually requires. The
+  first version of it compared only major versions, which would have stayed
+  green while a component-test dependency ran on a Node release it refuses.
+
+### Changed
+
+- Seventeen dependencies updated to their latest compatible releases.
+- `docs/dependency-overrides.md` records how to test whether an override still
+  does anything, why the ones that look redundant are not, and which four lack
+  the assertion that pins them above their advisory's fix.
+
+### Removed
+
+- The `@types/pg` dependency override. It was never a security floor, and the
+  reason it was written for had expired.
+
 ## [0.42.0.0] - 2026-08-07
 
 **Your team now gets an email and an in-app alert 30 days before a volunteer's

@@ -725,6 +725,43 @@ that, there is nothing to fix.
 within-major policy while changing nothing about safety. **Effort:** S to
 decide, M to actually migrate.
 
+### [P3] Four overrides have no `SECURITY_FLOORS` entry
+
+(Opened v0.42.1.0, from the override audit.) `SECURITY_FLOORS` in
+`scripts/pnpm-overrides.test.ts` pins an override at or above its advisory's
+first patched version, which is the one property the other assertions cannot
+see: lowering `fast-uri` from `^3.1.5` to `^3.0.1` leaves 3.1.5 installed and
+satisfying its own range, so every other check stays green while the guarantee
+is gone.
+
+Three overrides carry that entry — `fast-uri`, `postcss`, `brace-expansion`.
+**Four do not: `@babel/core`, `@opentelemetry/core`, `ws`, `uuid`.** They
+predate the rule in the doc's "Adding an override" section. They are still
+guarded in the two ways every override is (the tree must contain the package,
+and the doc must carry a `### \`name\`` section, both directions enforced), so
+this is a missing belt, not a missing brace.
+
+Doing it needs each advisory's first patched version looked up rather than
+guessed — a wrong floor is worse than none, because it reads as verified. The
+alert numbers are in `docs/dependency-overrides.md`; `ws` and
+`@opentelemetry/core` have no alert number recorded at all and would need the
+advisory found first. **Effort:** S | **Priority:** P3 | **Depends on:** —
+
+### [P3] Two overrides are pinned by VitePress and cannot be retired yet
+
+(Opened v0.42.1.0, from the override audit.) `vite` (`^7.3.5`) and `esbuild`
+(`^0.28.1`) are the only two overrides that change the resolved tree, and both
+exist for one reason: `vitepress@1.6.4` depends on `vite: ^5.4.14`, which drags
+`esbuild@0.21.5`. Remove them and `pnpm audit` goes from 0 to 4 advisories, one
+of them high (`GHSA-fx2h-pf6j-xcff`, `server.fs.deny` bypass).
+
+`vitepress@1.6.4` **is** the latest stable — 2.0 exists only as
+`2.0.0-alpha.19` on the `next` tag — so there is nothing to do now. This entry
+exists so the day VitePress 2 goes stable, someone knows these two overrides
+became removable rather than carrying them for another year. Re-check with the
+one-minute test in `docs/dependency-overrides.md`.
+**Effort:** S to re-check | **Priority:** P3 | **Depends on:** VitePress 2 stable
+
 
 Deferred from the alert-remediation plan. Both were considered and explicitly
 scoped out of the security PRs so an urgent account-takeover fix would not wait
@@ -5496,11 +5533,26 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   `checkin-token.ts` with `import 'server-only'` and move token generation
   behind a server action/tRPC call instead of importing it directly into a
   client component's module graph. **Effort:** S | **Priority:** P3 | **Depends on:** —
-- **[P3] No `engines.node` pin in package.json** — (found during #136
-  investigation, 2026-07-13.) Local shell drifted to Node v22.23.1 despite
-  `.nvmrc` pinning `24.11`, with nothing catching the mismatch. Add an
-  `engines.node` field (and consider a `preinstall` check) so a version
-  drift like this fails loudly instead of silently. **Effort:** S | **Priority:** P3 | **Depends on:** —
+- **[P3] ~~No `engines.node` pin in package.json~~ — DONE (v0.42.1.0)** — (found
+  during #136 investigation, 2026-07-13.) Local shell drifted to Node v22.23.1
+  despite `.nvmrc` pinning `24.11`, with nothing catching the mismatch.
+  `engines.node` is now `24.x`, and `scripts/node-version-gate.test.ts` asserts
+  it agrees with `.nvmrc`'s major and that all five CI jobs resolve Node through
+  `node-version-file`. **The `preinstall` check was considered and not done**:
+  `pnpm` already prints `WARN Unsupported engine` on a mismatch (verified by
+  execution — there is no `.npmrc`, so `engine-strict` is false and install
+  still exits 0), and a hard `preinstall` failure would block a contributor
+  before they reach any project code. The guard catches the drift that actually
+  costs something — the repo disagreeing with itself — while the platform
+  enforces the version where it binds, on Vercel.
+
+  **What this does NOT cover, and it is the half that bites:** `engines.node`
+  and the guard both reason about the MAJOR. Packages declare floors *inside*
+  it — `jsdom@30.0.1` wants `^24.15.0`, `@babel/core@8.0.1` wants `>=24.11.0` —
+  so the test also scans `pnpm-lock.yaml` for the highest floor naming
+  `.nvmrc`'s own major and fails if `.nvmrc` is below it. A package requiring
+  `>=26` with no 24-compatible clause is still invisible to it; `pnpm install`'s
+  engine warning is the only thing that surfaces that.
 - **[P3] OrgSlugHistory permanent namespace lock needs an admin release tool** —
   (from /ship adversarial review of issue #127, 2026-07-13.) Slug history rows
   persist forever and now block BOTH new-org creation (`slugExistsInHistory`)
