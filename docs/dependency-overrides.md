@@ -25,31 +25,42 @@ tree entirely in v0.41.5.0.
 "Binds" means every installed copy of the package satisfies the override range.
 Two entries do not fully bind — see [Partially bound](#partially-bound).
 
+## How to tell whether an override still does anything
+
+Not by reading it. The check is empirical and takes about a minute:
+
+```sh
+cp package.json /tmp/pkg.bak.json && cp pnpm-lock.yaml /tmp/lock.bak.yaml
+node -e "const p=require('./package.json');delete p.pnpm.overrides;require('fs').writeFileSync('package.json',JSON.stringify(p,null,'\t')+'\n')"
+rm -f pnpm-lock.yaml && pnpm install --lockfile-only --ignore-scripts && pnpm audit
+cp /tmp/pkg.bak.json package.json && cp /tmp/lock.bak.yaml pnpm-lock.yaml
+```
+
+**Deleting the lockfile is the load-bearing step.** `pnpm install --lockfile-only`
+keeps any already-locked version that still satisfies the declared ranges, so
+removing an override and relocking in place mostly reports "no change" —
+stickiness, not evidence. Only a resolution from nothing shows what the tree
+would naturally pick.
+
+Run against v0.42.0.0 this produced a clean split: **`vite` and `esbuild` change
+the tree and closing them is what keeps `pnpm audit` at zero; nothing else moved
+at all.** That does *not* make the rest deletable — see
+[Floors that currently look redundant](#floors-that-currently-look-redundant).
+`@types/pg` was the one entry the run retired, because it was the one entry that
+was not a floor.
+
+**What neither this check nor the guard test can see: whether an override
+satisfies its DEPENDENTS.** Both answer "does every installed copy satisfy the
+override?", which is the opposite direction from "does the override satisfy what
+the packages asking for it declared?". `@types/pg` is the worked example — it sat
+at `8.11.11` to *match* `@prisma/adapter-pg`, long after the adapter had moved to
+declaring `@types/pg: ^8.16.0`, so the override was holding the types five minors
+**below** what its own stated reason demanded. Nothing was broken and typecheck
+was green either way; the reason had simply become false, and only reading the
+dependent's `package.json` showed it. Worth automating if a second instance
+appears; one is not enough to design against.
+
 ## The overrides
-
-### `@types/pg` — `^8.20.4`
-
-**Type compatibility.** The reason is recorded in commit `83a4dc5` (11 Mar
-2026): *"Pinned `@types/pg` to `8.11.11` to match `@prisma/adapter-pg` peer
-dep."* The same range is declared in `devDependencies`, so one `pg` type
-surface is used everywhere rather than two conflicting ones.
-
-**It was `8.11.11` exactly until v0.41.7.0, and by then it pointed the wrong
-way.** `@prisma/adapter-pg@7.9.1` — which v0.41.5.0 upgraded to — declares
-`@types/pg: ^8.16.0` as an ordinary dependency, and `8.11.11` does not satisfy
-that. So an override written to *match* the adapter was holding the types five
-minors **below** what the adapter asked for. Nothing was broken (types never
-affect runtime, and typecheck was green either way), but the stated reason had
-quietly become false.
-
-Raised to `^8.20.4`, which satisfies `^8.16.0` and tracks the runtime `pg`
-`^8.22.0`. Typecheck verified green.
-
-**The guard test cannot catch this class** — it checks that installed versions
-satisfy the *override*, not that the override satisfies its *dependents*. Worth
-building if a second instance appears; one is not enough to design against.
-
-**Not a security override.**
 
 ### `fast-uri` — `^3.1.5`
 
@@ -84,6 +95,16 @@ Pinned within the current major on purpose; an open range floated to Vite 8.
 Reached through `vitepress` and `@storybook/react-vite`, i.e. docs and
 build tooling, never the application bundle.
 
+**`vitepress` is the binding constraint, and it cannot currently be upgraded
+past it.** `vitepress@1.6.4` depends on `vite: ^5.4.14`, so with this override
+removed the docs toolchain resolves **vite 5.4.21** and drags **esbuild 0.21.5**
+down with it — this override is what forces vitepress onto vite 7 instead. And
+1.6.4 **is** the latest stable: vitepress 2 exists only as `2.0.0-alpha.19` on
+the `next` tag. So this entry and `esbuild` below are effectively **permanent
+until vitepress 2 ships**, rather than workarounds awaiting a routine bump.
+Re-check both the day vitepress 2 goes stable; there is nothing to do before
+then.
+
 ### `esbuild` — `^0.28.1`
 
 Alerts #4, #75. Closed in [#124](https://github.com/thehashrocket/volunteerready.org/pull/124).
@@ -91,6 +112,10 @@ Alerts #4, #75. Closed in [#124](https://github.com/thehashrocket/volunteerready
 Note this is the repo's only **0.x** override, so `^0.28.1` means
 `>=0.28.1 <0.29.0` — npm bounds a 0.x caret by *minor*, not major. The guard
 test encodes that; treating it as "any 0.x" was a real bug in an early draft.
+
+**Arrives underneath `vite`, so it is the same constraint as the entry above**
+— `vite@5.4.21` depends on `esbuild@0.21.5`, which is below the `>=0.25.0` fix
+for GHSA-67mh-4wv8-2f99. Retiring it depends on vitepress 2, not on esbuild.
 
 ### `@opentelemetry/core` — `^2.8.0`
 
@@ -123,6 +148,64 @@ proposed for dismissal as not-affected — next-auth's only call site
 requires an explicit `buf` on `v3`/`v5`/`v6` — but the 8→11 bump turned out to
 be safe (the `v4()` named export is unchanged from v8 through v11), so it was
 fixed rather than dismissed.
+
+## Floors that currently look redundant
+
+Run the [check above](#how-to-tell-whether-an-override-still-does-anything) and
+every override except `vite` and `esbuild` reports "no change" — the tree
+resolves identically with it deleted. **That is not a list of things to delete.**
+
+They resolve to patched versions only because a caret takes the newest match,
+and the ranges underneath them reach a long way down: `ajv` asks for `fast-uri:
+^3.0.1` against a 3.1.5 fix, `@babel/core` is requested as low as `^7.9.0`, and
+`postcss` as low as `^8.3.11`. Nothing in the tree *requires* a patched version;
+today's resolution is a coincidence of what happens to be newest, and the next
+lockfile churn is free to land elsewhere. The override is what converts that
+coincidence into a guarantee.
+
+This is the same shape as `@hono/node-server`, in the mirror. There, a range
+that *looked* protective was the reason a package could not be patched. Here,
+overrides that *look* inert are the only thing holding a floor. **Neither can be
+judged by reading the version string** — which is why removal needs the advisory
+history in this file, not just a clean diff.
+
+The cost of keeping one is a line of JSON. **Dropping one is never silent** —
+mutation-verified: deleting ANY entry from `pnpm.overrides` turns
+`scripts/pnpm-overrides.test.ts` red, because the doc-sync check finds a
+`### \`name\`` section describing policy that is no longer in force, and the
+section-count self-check disagrees with the override count. The three carrying a
+`SECURITY_FLOORS` entry (`fast-uri`, `postcss`, `brace-expansion`) fail a third
+assertion on top.
+
+So the guard makes removal a **deliberate, multi-file act** — override, doc
+section, and the floor entry where one exists — rather than a one-line diff that
+slips through review. What it cannot do is judge whether the removal is
+*justified*; three coordinated deletions are exactly as green as one. That
+judgement is what the written reason in each section is for, and it is why an
+override is retired when its **reason** expires (the package leaves the tree, or
+its dependents' declared ranges rise above the fix), never because a resolve
+came back unchanged.
+
+**Four overrides carry no `SECURITY_FLOORS` entry** — `@babel/core`,
+`@opentelemetry/core`, `ws`, `uuid` — because they predate the rule in
+[Adding an override](#adding-an-override). They are still guarded in the two
+ways above; what they lack is the assertion that pins the *advisory's* first
+patched version, so a later range change could drop below the fix while staying
+green. Adding them needs each advisory's patched version looked up rather than
+guessed; tracked rather than done here.
+
+`@types/pg` was retired under exactly that rule — not because the tree came back
+unchanged, but because it was never a security floor and its stated reason had
+expired: `@prisma/adapter-pg@7.9.1` declares `@types/pg: ^8.16.0` as an ordinary
+dependency, which the `devDependencies` range already satisfies, so the override
+had nothing left to reconcile.
+
+To be precise about what that did and did not change: **two constraints remain**
+— our `devDependencies` `^8.21.0` and the adapter's own `^8.16.0` — and they
+agree, so pnpm resolves a single installed copy either way (verified on a
+from-scratch resolve). What went away is the *third* constraint, which restated
+the other two from a position that could not see them, and had already drifted
+once because of it.
 
 ## Partially bound
 
