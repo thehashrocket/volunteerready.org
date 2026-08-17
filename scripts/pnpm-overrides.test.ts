@@ -81,6 +81,59 @@ function installedVersions(name: string, source: string = lockfile): string[] {
 	return [...found];
 }
 
+/**
+ * Package names whose lockfile snapshot declares `name` as a dependency —
+ * i.e. WHO the override is acting on, which `installedVersions` cannot say.
+ *
+ * Needed because every other assertion in this file answers "is the installed
+ * version acceptable", and none answers "is it still the same package asking".
+ * For an override that sits INSIDE a range its dependents already permit, that
+ * gap is harmless: a new consumer inherits a version it would have accepted
+ * anyway. `deepmerge-ts` is the one entry that does NOT — it forces a major
+ * past `@prisma/config`'s exact `7.1.5` pin — so if Prisma stops pulling it and
+ * something unrelated starts, the override silently forces an unasked-for major
+ * on a package nobody evaluated, and every other test here stays green.
+ *
+ * Snapshot headers sit at indent 2 (`  '@scope/name@1.2.3':` or `  name@1.2.3:`),
+ * the block kind at indent 4 (`    dependencies:`), and the edges themselves at
+ * indent 6 (`      dep: 1.2.3`). So the owner of a dependency line is the nearest
+ * preceding indent-2 header.
+ *
+ * **The indent-4 block kind is load-bearing, not decoration.** `peerDependencies:`
+ * entries sit at the SAME indent 6 as real dependency edges, so matching on indent
+ * alone counts a package that merely DECLARES a peer as though it consumed one —
+ * which would fail this guard against a lockfile where nothing actually changed.
+ * Only `dependencies` and `optionalDependencies` are real edges.
+ *
+ * `source` defaults to the real lockfile; the self-check passes a SYNTHETIC one,
+ * for the same reason spelled out on `installedVersions` — against the real
+ * lockfile a hardcoded answer would pass.
+ */
+function dependentsOf(name: string, source: string = lockfile): string[] {
+	const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	const depLine = new RegExp(`^ {6}'?${escaped}'?:`);
+	const header = /^ {2}'?([^'\s:]+?)@[^'\s:]*'?:/;
+	const edgeBlock = /^ {4}(dependencies|optionalDependencies):/;
+	const anyBlock = /^ {4}\S/;
+	const found = new Set<string>();
+	let owner: string | null = null;
+	let inEdgeBlock = false;
+	for (const line of source.split('\n')) {
+		const h = header.exec(line);
+		if (h) {
+			owner = h[1];
+			inEdgeBlock = false;
+			continue;
+		}
+		if (anyBlock.test(line)) {
+			inEdgeBlock = edgeBlock.test(line);
+			continue;
+		}
+		if (owner && inEdgeBlock && depLine.test(line)) found.add(owner);
+	}
+	return [...found];
+}
+
 /** -1 / 0 / 1, comparing dotted numeric versions left to right. */
 function compareVersions(a: string, b: string): number {
 	const pa = parseVersion(a);
@@ -332,6 +385,12 @@ describe('pnpm.overrides', () => {
 		'fast-uri': { minimum: '3.1.5', alerts: '#97, #98, #118' },
 		postcss: { minimum: '8.5.23', alerts: '#113, #117' },
 		'brace-expansion': { minimum: '5.0.9', alerts: '#115, #116' },
+		// The only floor that crosses a MAJOR its dependent did not ask for:
+		// `@prisma/config` pins `deepmerge-ts: "7.1.5"` exactly, and the fix for
+		// GHSA-ggr8-5vv4-36mx landed in 8.0.0 with no 7.x backport (7.1.6 exists
+		// and is still vulnerable). So a range change back into 7.x reads as
+		// "matching what Prisma declared" while silently reopening the advisory.
+		'deepmerge-ts': { minimum: '8.0.0', alerts: '#120' },
 	};
 
 	it.each(Object.entries(SECURITY_FLOORS))(
@@ -345,6 +404,48 @@ describe('pnpm.overrides', () => {
 					`${name}@${version} is below the fix for ${alerts} (needs >= ${minimum})`,
 				).toBe(true);
 			}
+		},
+	);
+
+	/**
+	 * Overrides that force a version their dependent did NOT ask for, pinned to
+	 * the dependent they were evaluated against.
+	 *
+	 * Every other assertion in this file asks "is the installed version
+	 * acceptable?". None asks "is it still the same package asking?" — and for
+	 * an override that widens within a permitted range, nobody needs to: a new
+	 * consumer inherits something it would have accepted anyway.
+	 *
+	 * `deepmerge-ts` is the exception. `@prisma/config` pins it to exactly
+	 * `7.1.5`, so `^8.0.1` is a major forced past a hard pin, justified ONLY by
+	 * having read @prisma/config's single call site (c12's `merger`) and
+	 * confirmed v8's breaking changes miss it. That justification is about ONE
+	 * consumer. If Prisma stops pulling `deepmerge-ts` (prisma@8.0.0-rc.3 drops
+	 * `@prisma/config` entirely) and something unrelated starts, this override
+	 * keeps forcing an unasked-for major onto a package nobody evaluated — and
+	 * `installedVersions`-based checks stay green throughout, because the
+	 * package is still present and still above the floor.
+	 *
+	 * So: assert the CONSUMER, not just the version. A change here is not a
+	 * failure to paper over — it means the reason written in
+	 * docs/dependency-overrides.md no longer describes reality, and the entry
+	 * needs re-justifying against its new dependent or deleting.
+	 */
+	const PINNED_DEPENDENTS: Record<string, string[]> = {
+		'deepmerge-ts': ['@prisma/config'],
+	};
+
+	it.each(Object.entries(PINNED_DEPENDENTS))(
+		'%s is still consumed only by the dependent it was evaluated against',
+		(name, expected) => {
+			expect(overrides, `${name} override was removed`).toHaveProperty(name);
+			expect(
+				dependentsOf(name).sort(),
+				`${name} is now pulled by a different dependent. This override forces ` +
+					'a version its dependent never asked for, and that was justified ' +
+					'against the OLD consumer only. Re-read docs/dependency-overrides.md ' +
+					'and either re-justify against the new dependent or delete the entry.',
+			).toEqual([...expected].sort());
 		},
 	);
 
@@ -454,6 +555,85 @@ describe('pnpm.overrides', () => {
 
 		it('returns nothing for a package that is not installed', () => {
 			expect(installedVersions('hono')).toHaveLength(0);
+		});
+	});
+
+	describe('dependentsOf() self-check', () => {
+		// Same reasoning as installedVersions' self-check: against the real
+		// lockfile, `['@prisma/config']` is satisfiable by a function that returns
+		// a hardcoded array and never parses anything. The synthetic source is
+		// what makes this an independent oracle.
+		const fixture = [
+			'snapshots:',
+			'',
+			"  '@scope/owner@1.0.0':",
+			'    dependencies:',
+			'      target-pkg: 8.0.1',
+			'      other-dep: 1.2.3',
+			'',
+			'  plain-owner@2.0.0:',
+			'    dependencies:',
+			'      target-pkg: 8.0.1',
+			'',
+			'  unrelated@3.0.0(react@19.2.8):',
+			'    dependencies:',
+			'      other-dep: 1.2.3',
+			'',
+			'  peer-only@4.0.0:',
+			'    resolution: {integrity: sha512-fake}',
+			'    peerDependencies:',
+			'      target-pkg: ^8.0.0',
+			'',
+			'  target-pkg@8.0.1: {}',
+			'',
+		].join('\n');
+
+		it('names every owner whose snapshot declares the dependency', () => {
+			expect(dependentsOf('target-pkg', fixture).sort()).toEqual([
+				'@scope/owner',
+				'plain-owner',
+			]);
+		});
+
+		it('does not credit an owner that merely sits nearby', () => {
+			expect(dependentsOf('other-dep', fixture).sort()).toEqual([
+				'@scope/owner',
+				'unrelated',
+			]);
+		});
+
+		it('returns nothing for a dependency nobody declares', () => {
+			expect(dependentsOf('absent-package', fixture)).toEqual([]);
+		});
+
+		it('does not count a package that only DECLARES it as a peer', () => {
+			// peerDependencies entries sit at the same indent 6 as real edges, so
+			// without the indent-4 block-kind check `peer-only` reads as a consumer.
+			// That would fail the real assertion against a lockfile in which nothing
+			// about the override's actual dependent had changed at all.
+			expect(dependentsOf('target-pkg', fixture)).not.toContain('peer-only');
+		});
+
+		it('does not treat a top-level snapshot entry as its own dependent', () => {
+			// `  target-pkg@8.0.1: {}` is a package DEFINITION at indent 2, not a
+			// dependency edge at indent 6. Matching it would make every package
+			// its own consumer and the real assertion vacuous.
+			expect(dependentsOf('target-pkg', fixture)).not.toContain('target-pkg');
+		});
+
+		it('does not match a package that only appears as a name prefix', () => {
+			// `      deepmerge-ts-extra: 1.0.0` must not satisfy a probe for
+			// `deepmerge-ts`, or the consumer assertion could be fooled by a
+			// similarly-named package.
+			const prefixFixture = [
+				'snapshots:',
+				'',
+				'  someone@1.0.0:',
+				'    dependencies:',
+				'      target-pkg-extra: 1.0.0',
+				'',
+			].join('\n');
+			expect(dependentsOf('target-pkg', prefixFixture)).toEqual([]);
 		});
 	});
 });
