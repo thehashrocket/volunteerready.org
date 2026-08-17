@@ -149,6 +149,87 @@ requires an explicit `buf` on `v3`/`v5`/`v6` — but the 8→11 bump turned out 
 be safe (the `v4()` named export is unchanged from v8 through v11), so it was
 fixed rather than dismissed.
 
+### `deepmerge-ts` — `^8.0.1`
+
+Alert #120 (**high**, CVSS 4.0 = 8.2) — GHSA-ggr8-5vv4-36mx / CVE-2026-40345,
+stack exhaustion (`RangeError`) when `deepmerge()` is handed two objects that
+self-reference through the same key path. First patched in **8.0.0**; 7.1.6
+exists but is *not* a backport, so the fix is only reachable across a major.
+
+**This is the one override that violates its dependent's declared range**, and
+that is the whole reason it needs reading before it is changed.
+`@prisma/config@7.9.1` declares `"deepmerge-ts": "7.1.5"` — an exact pin, not a
+range — so nothing in the tree can resolve the fix on its own and there is no
+Prisma release to wait for (7.9.1 is latest; `@prisma/config@latest` still
+carries the same pin). An override is the only mechanism available, and it is
+forcing a major past what the parent asked for. Every other entry in this file
+sits inside a range its dependents already permit.
+
+**Two different reachability questions, and they have opposite answers. Do not
+collapse them into one — the first draft of this section did, and it read as
+"this code never runs here", which is false.**
+
+1. **Can an attacker reach the vulnerability? No.** `@prisma/config` imports
+   `deepmerge` in exactly one place — as c12's `merger` when loading
+   `prisma.config.ts` (`dist/index.js`, `loadConfigTsOrJs`) — and the only object
+   graph it ever merges is our own config file. Nothing attacker-controlled
+   reaches it, which is why this is a floor rather than an incident. The
+   deployed app does not load it at all: it runs in the **Prisma CLI**, not in
+   `@prisma/client`. Dependabot reports scope `runtime` only because `prisma` is
+   an *optional peer* of the `@prisma/client` production dependency.
+2. **Can this OVERRIDE break us? Yes, badly, and on the most important path we
+   have.** The Prisma CLI runs on every install (`postinstall` → `prisma
+   generate`) and on every deploy (`scripts/vercel-build.sh` → `prisma migrate
+   deploy`), and each of those loads `prisma.config.ts` through this package. So
+   the blast radius of getting the override wrong is not "a stale advisory" — it
+   is **every install and every deploy failing**. That asymmetry is the whole
+   reason this entry is verified by execution below rather than by reading a
+   changelog, and the reason the guard test pins the *consumer* and not just the
+   version.
+
+**The `^` is deliberate, and CI is what catches a bad 8.x.** Like every other
+entry here it is a caret, not an exact pin: pinning `8.0.1` would freeze us off
+future patches to the security fix itself. The cost is that a lockfile refresh
+can float to a later 8.x that nothing here has evaluated. That is caught at the
+PR, not in production — `pnpm prisma migrate deploy` runs in three CI jobs
+(`.github/workflows/ci.yml` test, build and e2e) and `prisma generate` runs in
+every full install, so a release that breaks `@prisma/config` fails the build
+before it can be merged.
+
+**The major bump was verified, not assumed.** v8's four breaking changes are:
+Maps now deep-merge (config objects contain none), `DeepMergeMetaMetaData` →
+`DeepMergeMergeInfo` and `DeepMergeIntoFunctionUtils` → `DeepMergeIntoUtils`
+(type-only, and `@prisma/config` ships prebuilt `dist`, so no consumer of ours
+compiles against them), and `deepmergeInto` no longer leak-mutating its inputs
+(not used here). The `deepmerge` named export keeps its signature, which is the
+entire surface `@prisma/config` touches. Checked by execution against the
+installed 8.0.1: the advisory PoC returns a cyclic result instead of throwing, a
+config-shaped merge is unchanged, and `pnpm prisma validate` prints *"Loaded
+Prisma config from prisma.config.ts"* — i.e. the merger path itself ran.
+
+**Revisit at the Prisma 8 upgrade.** Every published `@prisma/config` still pins
+7.1.5 — `latest` (7.9.1) and `7.10.0-dev.58` alike — so there is nothing to wait
+for on the 7.x line. But `prisma@8.0.0-rc.3` does not list `@prisma/config` as a
+dependency at all, so the whole edge may vanish rather than be repinned. Re-run
+the [check at the top of this file](#how-to-tell-whether-an-override-still-does-anything)
+after that upgrade: if `deepmerge-ts` has left the tree, the guard test will say
+so, and this entry, its `SECURITY_FLOORS` line and its `PINNED_DEPENDENTS` line
+should be deleted together.
+
+**`PINNED_DEPENDENTS` is why "left the tree" is not the only exit condition.**
+`scripts/pnpm-overrides.test.ts` asserts that `@prisma/config` is still the only
+thing consuming `deepmerge-ts`. Without it, the dangerous case is silent rather
+than loud: Prisma drops the dependency, some unrelated package picks
+`deepmerge-ts` up, and this override goes on forcing a major past *that*
+package's declared range — with every version-based assertion here still green,
+because the package is still present and still above the floor. This is the one
+override where that matters, since it is the only one not already inside a range
+its dependent permits, and it is the direction the file's own
+["what neither this check nor the guard test can see"](#how-to-tell-whether-an-override-still-does-anything)
+note calls out as the blind spot. A red test there is not a lockfile glitch to
+paper over — it means the justification written above no longer describes
+reality.
+
 ## Floors that currently look redundant
 
 Run the [check above](#how-to-tell-whether-an-override-still-does-anything) and

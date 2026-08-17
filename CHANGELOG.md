@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.42.2.0] - 2026-08-17
+
+**Maintenance and a security fix. Nothing changes for anyone using the site.**
+
+A high-severity advisory was published against `deepmerge-ts`, a small library
+the Prisma command-line tool uses when it reads this project's configuration
+file. Nobody could have exploited it here: the only data that library is ever
+handed is our own config file, and nothing arriving from the outside world
+reaches it. But the fix exists only in a new major version, and the package that
+depends on it asks for the vulnerable version by exact number, so there is no
+update to wait for. The version is forced here instead.
+
+That makes it the first pin in this project that overrules what a dependency
+asked for, rather than picking among versions it already accepts — which is
+worth more care than the other eight, not less. The same command-line tool runs
+on every install and every deploy, so a wrong answer would not surface as a
+stale advisory; it would stop the site from being deployable at all. The
+replacement was checked by running the tool rather than by reading a changelog.
+
+Separately, the checks on the main branch had been failing since two releases
+ago, because an automated dependency update moved the code formatter to a new
+version without updating the version its own config file records. One line.
+
+### Added
+
+- A check that the forced pin is still acting on the package it was written for.
+  Every existing check asks whether the installed version is acceptable; none
+  asked whether the same package was still the one asking for it. Those are the
+  same question only while a pin stays inside a range its dependency already
+  permits. This one does not, so if the dependency ever stops pulling that
+  library and something unrelated starts, the pin would go on forcing a major
+  version onto a package nobody had looked at, with every other check still
+  green.
+
+### Fixed
+
+- The advisory above (CVE-2026-40345, GHSA-ggr8-5vv4-36mx). The project's own
+  security gate had been failing on it, so the branch was already red.
+- The version recorded in the formatter's config file now matches the formatter
+  actually installed, which is what the guard for it has always required.
+
 ## [0.42.1.0] - 2026-08-10
 
 **Maintenance. Nothing changes for anyone using the site.**
