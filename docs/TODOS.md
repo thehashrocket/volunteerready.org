@@ -734,7 +734,8 @@ see: lowering `fast-uri` from `^3.1.5` to `^3.0.1` leaves 3.1.5 installed and
 satisfying its own range, so every other check stays green while the guarantee
 is gone.
 
-Three overrides carry that entry — `fast-uri`, `postcss`, `brace-expansion`.
+Four overrides carry that entry — `fast-uri`, `postcss`, `brace-expansion`, and
+`deepmerge-ts` (added with the override itself in v0.42.2.0).
 **Four do not: `@babel/core`, `@opentelemetry/core`, `ws`, `uuid`.** They
 predate the rule in the doc's "Adding an override" section. They are still
 guarded in the two ways every override is (the tree must contain the package,
