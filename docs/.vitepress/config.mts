@@ -69,6 +69,7 @@ export default defineConfig({
         items: [
           { text: "Dependency Overrides", link: "/dependency-overrides" },
           { text: "Post-deploy Checks", link: "/post-deploy-checks" },
+          { text: "Branch Protection", link: "/branch-protection" },
         ],
       },
     ],
