@@ -11,7 +11,46 @@ export { _resetAdminEmailsCacheForTests };
 // Generic helper
 // ---------------------------------------------------------------------------
 
-async function sendAdminAlert(subject: string, html: string): Promise<void> {
+/**
+ * `sendEmail` never throws — it returns `false` on a Resend error or a
+ * bounce-suppressed address (see its own docstring). Discarding that boolean
+ * is the exact defect class already fixed once in this repo for
+ * `sendRosterAddedEmail`/`sendBackgroundCheckEmail`. An admin alert has no
+ * caller to report back to, so the loud half has to happen right here — in
+ * ONE place, shared by every alert function below, so a new caller inherits
+ * it by construction rather than needing its own copy. Split out from
+ * `sendAdminAlert` when `sendImpersonationStartAlert`'s own recipient-
+ * filtering logic (excluding the acting admin) meant it couldn't just call
+ * that function directly, and had — until a red-team review caught it —
+ * silently NOT inherited this fix as a result.
+ */
+async function sendToRecipients(
+	recipients: string[],
+	subject: string,
+	html: string,
+	opts?: { isCritical?: boolean },
+): Promise<void> {
+	const results = await Promise.all(
+		recipients.map(async (email) => ({
+			email,
+			sent: await sendEmail(email, subject, html, opts),
+		})),
+	);
+	for (const { email, sent } of results) {
+		if (!sent) {
+			console.error(
+				`[adminAlerts] Failed to send "${subject}" to ${email} — sendEmail returned false (Resend error or bounce-suppressed).`,
+			);
+		}
+	}
+}
+
+/** Resolves every platform admin and sends to all of them via `sendToRecipients`. */
+async function sendAdminAlert(
+	subject: string,
+	html: string,
+	opts?: { isCritical?: boolean },
+): Promise<void> {
 	let recipients: string[];
 	try {
 		recipients = await getAdminEmails();
@@ -25,7 +64,7 @@ async function sendAdminAlert(subject: string, html: string): Promise<void> {
 		return;
 	}
 
-	await Promise.all(recipients.map((email) => sendEmail(email, subject, html)));
+	await sendToRecipients(recipients, subject, html, opts);
 }
 
 // ---------------------------------------------------------------------------
@@ -146,9 +185,34 @@ export async function sendImpersonationStartAlert(
 		<p style="color: #666; font-size: 12px; margin-top: 16px;">If this was not authorized, revoke the admin's sessions immediately at <code>/app/admin/platform/users/${escapeHtml(input.adminUserId)}</code>.</p>
 	`;
 
-	await Promise.all(
-		filtered.map((email) =>
-			sendEmail(email, subject, html, { isCritical: true }),
-		),
-	);
+	await sendToRecipients(filtered, subject, html, { isCritical: true });
+}
+
+/**
+ * The `advisory-scan-heartbeat` cron's own dispatch to GitHub failed — this is
+ * NOT a business-logic email, it's "the thing that keeps the security-
+ * advisories scan running while `main` is idle just broke." `isCritical:
+ * true` for the same reason `sendImpersonationStartAlert` uses it: this is a
+ * security-relevant notice, not a candidate for bounce-suppression.
+ *
+ * `withCronAuth` already writes a `CronJobRun` row with `status: 'FAILURE'`
+ * on the thrown error this pairs with, but nobody proactively watches that
+ * table — this is the loud half, matching the repo's own rule (see
+ * docs/TODOS.md's `sendEmail`-returns-false entries) that a fire-and-forget
+ * failure must not just log somewhere nobody is looking.
+ */
+export async function sendAdvisoryDispatchFailureAlert(
+	details: string,
+): Promise<void> {
+	const subject = '[Security] advisory-scan-heartbeat failed to dispatch';
+	const html = `
+		<p>The weekly Vercel cron that keeps the <code>security-advisories-scheduled.yml</code>
+		workflow running (in case GitHub's own <code>schedule:</code> trigger
+		auto-disables from repo inactivity) failed to dispatch it via GitHub's API.</p>
+		<table style="border-collapse: collapse; margin: 16px 0;">
+			<tr><td style="padding: 4px 8px;"><strong>Details:</strong></td><td style="padding: 4px 8px;">${escapeHtml(details)}</td></tr>
+		</table>
+		<p style="color: #666; font-size: 12px; margin-top: 16px;">See docs/branch-protection.md and .github/workflows/security-advisories-scheduled.yml for context. Check whether GITHUB_ADVISORY_DISPATCH_TOKEN has expired.</p>
+	`;
+	await sendAdminAlert(subject, html, { isCritical: true });
 }

@@ -36,6 +36,9 @@ jobs:
   # Its own job rather than a step inside `static`, so a lint failure and an
   # unpatched critical stay readable separately on the PR's check list.
   advisories:
+    # This exact string is matched by branch protection's required-status-checks
+    # list (see docs/branch-protection.md) — renaming it needs a matching branch
+    # protection update, or every PR gets permanently stuck as "expected, waiting".
     name: Security advisories
     runs-on: ubuntu-latest
     steps:
@@ -60,6 +63,8 @@ jobs:
   # Static checks need no database, so they fail fast and in parallel with the
   # slower suite below rather than gating it.
   static:
+    # See the branch-protection comment on the `advisories` job above — same
+    # rule applies here (docs/branch-protection.md).
     name: Lint + typecheck
     runs-on: ubuntu-latest
     steps:
@@ -122,6 +127,7 @@ jobs:
       - run: pnpm docs:build
 
   test:
+    # See the branch-protection comment on the `advisories` job above.
     name: Tests (unit, scripts, integration)
     runs-on: ubuntu-latest
 
@@ -207,6 +213,7 @@ jobs:
   # ordering, it runs in parallel instead of behind three test suites, and a
   # build break stays readable on the PR check list next to a test failure.
   build:
+    # See the branch-protection comment on the `advisories` job above.
     name: Build (deploy path)
     runs-on: ubuntu-latest
 
@@ -306,6 +313,7 @@ jobs:
   # Its own job, in parallel with the others, so a browser failure stays
   # readable on the PR check list next to a lint or a build break.
   e2e:
+    # See the branch-protection comment on the `advisories` job above.
     name: E2E (Playwright)
     runs-on: ubuntu-latest
     # Locally the suite is ~37s at full parallelism, but `playwright.config.ts`

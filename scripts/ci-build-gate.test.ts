@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { jobBlock } from './ci-gate-test-utils';
 
 /**
  * CI runs the deploy path, and every property that makes that gate work is
@@ -51,34 +52,8 @@ function readRepoText(relPath: string): string {
 	return readFileSync(path.join(REPO_ROOT, relPath), 'utf8');
 }
 
-/**
- * Slice one job out of the workflow. Jobs sit at exactly two spaces of
- * indentation, so the next line matching that shape ends the block.
- *
- * Scoping matters: `pnpm prisma migrate deploy` also appears in the `test` job,
- * so a whole-file `toContain` would pass with the build job's own migrate step
- * deleted — which is exactly what a first, unscoped draft of this file did.
- *
- * Returns `''` rather than throwing when the job is missing. That is
- * load-bearing: this runs in the `describe` body, i.e. at COLLECTION time, so a
- * throw takes the whole file out of the run — and deleting the `build` job made
- * the suite report "8 files, 208 passed" with every assertion here silently
- * gone. An empty block makes each `it` fail on its own terms instead. Found by
- * mutation-testing this file, not by reading it.
- */
-function jobBlock(workflow: string, jobName: string): string {
-	const lines = workflow.split('\n');
-	const start = lines.indexOf(`  ${jobName}:`);
-	if (start === -1) return '';
-
-	// `[^#\s]` excludes comments: this workflow documents its jobs in 2-space
-	// comment blocks, and one ending in a colon would otherwise read as the next
-	// job and truncate the slice.
-	const rest = lines.slice(start + 1);
-	const relativeEnd = rest.findIndex((line) => /^ {2}[^#\s].*:\s*$/.test(line));
-	const end = relativeEnd === -1 ? lines.length : start + 1 + relativeEnd;
-	return lines.slice(start, end).join('\n');
-}
+// `jobBlock` moved to `./ci-gate-test-utils` (shared with `e2e-ci-gate.test.ts`
+// and `advisories-gate.test.ts`) — see that file's docstring for behavior.
 
 describe('CI build gate', () => {
 	const workflow = readRepoText('.github/workflows/ci.yml');

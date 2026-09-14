@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.0.0] - 2026-09-14
+
+**Security-process hardening. Nothing changes for anyone using the site.**
+
+`main` had carried two critical, unauthenticated Next.js vulnerabilities
+unpatched for a month, because the automated check that watches for exactly
+that kind of thing had quietly stopped working — and nothing on the pull
+request checklist looked any different from a normal, passing run. A green
+check and "the check didn't actually run" are supposed to be distinguishable;
+they weren't.
+
+Three separate ways that check could go dark, each closed: the check itself
+now says so loudly, in a place a reviewer actually sees, when it can't
+produce a real result instead of quietly passing; a new automated guard
+watches the check's own configuration so it can't be silenced by a stray
+setting without anyone noticing; and because the original month-long gap
+happened while nobody was merging anything at all, the check now also runs
+on its own schedule, independent of whether a pull request exists to trigger
+it — with a second, independent trigger that can revive that schedule if
+GitHub's own automation ever turns it off from inactivity. The repository
+also now requires this and the other release checks to actually pass before
+anything can merge, including for the one person who can normally overrule
+that.
+
+Separately: an internal alert function used for security notices (a new
+admin flagged if a background job breaks, and an existing one for
+impersonation activity) was discarding whether the email it sent actually
+went out — a failed send looked identical to a delivered one. Both now log
+loudly when a security notice fails to send.
+
+### Added
+
+- The security-advisory check now runs on a weekly schedule in addition to
+  every pull request, so an idle `main` branch still gets checked for new
+  vulnerabilities.
+- Required status checks on `main`, enforced for every merge including by
+  repository admins.
+
+### Fixed
+
+- The security-advisory check could silently stop enforcing anything, with
+  no visible difference from a normal pass. It now surfaces that state
+  loudly, and a new automated guard watches the check's own configuration
+  for accidental silencing.
+- An admin security-alert email (impersonation activity, and a new one for
+  the scheduled advisory check itself) could fail to send without anyone
+  finding out. Failed sends are now logged.
+
 ## [0.42.3.0] - 2026-09-14
 
 **Maintenance and a bug fix. Nothing changes for anyone using the site.**

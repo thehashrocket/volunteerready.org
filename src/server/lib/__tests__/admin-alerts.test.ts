@@ -26,6 +26,7 @@ vi.mock('@/server/lib/admin-recipients', () => ({
 
 import {
 	_resetAdminEmailsCacheForTests,
+	sendAdvisoryDispatchFailureAlert,
 	sendImpersonationStartAlert,
 	sendNewCompanyAlert,
 	sendNewOrgAlert,
@@ -107,6 +108,27 @@ describe('sendNewUserAlert', () => {
 			sendNewUserAlert({ id: 'u1', email: null, name: null }),
 		).resolves.toBeUndefined();
 		expect(mockSendEmail).not.toHaveBeenCalled();
+	});
+
+	it('logs loudly when sendEmail returns false, via the shared sendAdminAlert fix', async () => {
+		// Pins that the boolean-check fix applied to the shared helper (for
+		// sendAdvisoryDispatchFailureAlert) applies uniformly to every caller
+		// that goes through it, not just the one it was written for — caught
+		// as a gap by red-team review.
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+		mockSendEmail.mockResolvedValue(false);
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		await sendNewUserAlert({
+			id: 'u1',
+			email: 'jane@example.com',
+			name: 'Jane',
+		});
+
+		expect(errorSpy).toHaveBeenCalledWith(
+			expect.stringContaining('admin@example.com'),
+		);
+		errorSpy.mockRestore();
 	});
 });
 
@@ -316,5 +338,112 @@ describe('sendImpersonationStartAlert', () => {
 		await sendImpersonationStartAlert(baseInput);
 
 		expect(mockSendEmail.mock.calls[0][1]).toContain('admin@example.com');
+	});
+
+	it('logs loudly when sendEmail returns false, rather than swallowing it', async () => {
+		// This alert used to call sendEmail directly instead of going through
+		// the shared sendAdminAlert/sendToRecipients helper, so it did NOT
+		// inherit the boolean-check fix applied there — caught by red-team
+		// review as a regression risk on the most security-sensitive alert in
+		// this file (the only detection mechanism for unauthorized
+		// impersonation). Now routed through sendToRecipients like every other
+		// alert here.
+		mockGetAdminEmails.mockResolvedValue(['ops@example.com']);
+		mockSendEmail.mockResolvedValue(false);
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		await sendImpersonationStartAlert(baseInput);
+
+		expect(errorSpy).toHaveBeenCalledWith(
+			expect.stringContaining('ops@example.com'),
+		);
+		errorSpy.mockRestore();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// sendAdvisoryDispatchFailureAlert
+// ---------------------------------------------------------------------------
+
+describe('sendAdvisoryDispatchFailureAlert', () => {
+	// The route (`src/app/api/cron/advisory-scan-heartbeat/route.ts`) mocks
+	// this whole module, so its own tests never exercise this function's real
+	// body — only that the route CALLS it. These are the direct tests of what
+	// it actually does: goes through the shared `sendAdminAlert` helper (so it
+	// inherits the empty-recipients and getAdminEmails-rejects behavior), and
+	// — the one property worth pinning on its own — forwards `isCritical: true`
+	// through to `sendEmail`, the same way `sendImpersonationStartAlert` does,
+	// since this is a security-relevant notice and not a bounce-suppression
+	// candidate (see the function's own docstring).
+
+	it('sends to all admin recipients', async () => {
+		mockGetAdminEmails.mockResolvedValue([
+			'admin@example.com',
+			'ops@example.com',
+		]);
+
+		await sendAdvisoryDispatchFailureAlert('GitHub API returned 401');
+
+		expect(mockSendEmail).toHaveBeenCalledTimes(2);
+	});
+
+	it('subject names the failing cron', async () => {
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+
+		await sendAdvisoryDispatchFailureAlert('GitHub API returned 401');
+
+		expect(mockSendEmail.mock.calls[0][1]).toContain('advisory-scan-heartbeat');
+	});
+
+	it('html contains the details verbatim', async () => {
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+
+		await sendAdvisoryDispatchFailureAlert('GitHub API returned 401: nope');
+
+		const html = mockSendEmail.mock.calls[0][2] as string;
+		expect(html).toContain('GitHub API returned 401: nope');
+	});
+
+	it('sends with isCritical: true', async () => {
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+
+		await sendAdvisoryDispatchFailureAlert('token missing');
+
+		expect(mockSendEmail.mock.calls[0][3]).toEqual({ isCritical: true });
+	});
+
+	it('does not send when no recipients', async () => {
+		mockGetAdminEmails.mockResolvedValue([]);
+
+		await sendAdvisoryDispatchFailureAlert('token missing');
+
+		expect(mockSendEmail).not.toHaveBeenCalled();
+	});
+
+	it('does not throw when getAdminEmails rejects', async () => {
+		mockGetAdminEmails.mockRejectedValue(new Error('DB down'));
+
+		await expect(
+			sendAdvisoryDispatchFailureAlert('token missing'),
+		).resolves.toBeUndefined();
+		expect(mockSendEmail).not.toHaveBeenCalled();
+	});
+
+	it('logs loudly when sendEmail returns false, rather than swallowing it', async () => {
+		// sendEmail() never throws — it returns `false` on a Resend error or a
+		// bounce-suppressed address. This is the alert meant to warn that the
+		// advisory-scan heartbeat itself is broken; if a failed send here goes
+		// unnoticed, the escalation path silently fails the same way the thing
+		// it's warning about did.
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+		mockSendEmail.mockResolvedValue(false);
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		await sendAdvisoryDispatchFailureAlert('GitHub API returned 401');
+
+		expect(errorSpy).toHaveBeenCalledWith(
+			expect.stringContaining('admin@example.com'),
+		);
+		errorSpy.mockRestore();
 	});
 });
