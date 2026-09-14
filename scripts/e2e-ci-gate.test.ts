@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { jobBlock, stripYamlComments } from './ci-gate-test-utils';
 
 /**
  * CI runs the Playwright suite, and — exactly as with the `build` job — every
@@ -36,53 +37,9 @@ function readRepoText(relPath: string): string {
 	return readFileSync(path.join(REPO_ROOT, relPath), 'utf8');
 }
 
-/**
- * Slice one job out of the workflow. Jobs sit at exactly two spaces of
- * indentation, so the next line matching that shape ends the block.
- *
- * Scoping is load-bearing for the same reason it is in `ci-build-gate.test.ts`:
- * `pnpm prisma migrate deploy` and the postgres service block appear in three
- * jobs, so a whole-file `toContain` would pass with this job's own steps
- * deleted.
- *
- * Returns `''` rather than throwing when the job is missing — this runs in the
- * `describe` body, i.e. at COLLECTION time, and a throw would take the whole
- * file out of the run and report the deletion as a smaller, greener suite.
- */
-function jobBlock(workflow: string, jobName: string): string {
-	const lines = workflow.split('\n');
-	const start = lines.indexOf(`  ${jobName}:`);
-	if (start === -1) return '';
-
-	// `[^#\s]` excludes comments: this workflow documents its jobs in 2-space
-	// comment blocks, and one ending in a colon would otherwise read as the next
-	// job and truncate the slice.
-	const rest = lines.slice(start + 1);
-	const relativeEnd = rest.findIndex((line) => /^ {2}[^#\s].*:\s*$/.test(line));
-	const end = relativeEnd === -1 ? lines.length : start + 1 + relativeEnd;
-	return lines.slice(start, end).join('\n');
-}
-
-/**
- * Drop WHOLE-LINE `#` comments.
- *
- * Needed because this workflow explains itself at length, and prose naturally
- * names the very things these assertions forbid — the first draft of the
- * localhost check below went red against a comment saying the guard needs no
- * `E2E_ALLOW_REMOTE_DB`, which is the same false positive
- * `error-disclosure.guard.test.ts` and `plan-features.guard.test.ts` both had
- * to learn.
- *
- * Whole-line only, deliberately: a trailing-`#` strip would corrupt any quoted
- * value containing one — a password in a connection string, a `--health-cmd` —
- * and YAML gives no cheap way to tell a comment from a `#` inside quotes.
- */
-function stripYamlComments(yaml: string): string {
-	return yaml
-		.split('\n')
-		.filter((line) => !/^\s*#/.test(line))
-		.join('\n');
-}
+// `jobBlock` and `stripYamlComments` moved to `./ci-gate-test-utils` (shared
+// with `ci-build-gate.test.ts` and `advisories-gate.test.ts`) — see that
+// file's docstring for behavior and the mutation-testing history behind it.
 
 describe('CI e2e gate', () => {
 	const workflow = readRepoText('.github/workflows/ci.yml');
