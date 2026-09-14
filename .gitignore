@@ -74,3 +74,4 @@ storybook-static/
 
 # Debug logs
 debug-storybook.log
+.claude/skills/gstack/

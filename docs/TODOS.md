@@ -6246,3 +6246,65 @@ itself as T35 and T36 rather than deferred here.
   loading, error and not-found states. **Trigger:** the first time a coordinator
   asks to send someone a link to a volunteer. **Depends on:** T27.
   **Effort:** M.
+
+---
+
+## Opened by the Vitest CVE remediation review (2026-09-14)
+
+Two open Dependabot alerts (#128, #132), both tracing to GHSA-82fw-gwwq-j7x9
+(Vitest path traversal / arbitrary file read via `@vitest/mocker` redirect
+mock, medium, dev-scope only, fixed in 4.1.11). `/plan-eng-review` walked
+through remediation and, with a Codex outside-voice pass, decided to decouple
+the fix (patch `vitest` in place, `4.1.10` → `4.1.11`, zero `package.json`
+change) from a since-deferred major migration — see the next item.
+
+- **[P3] Migrate to Vitest 5.0.0** — shipped 11 days before this review
+  (2026-09-03). Worth doing deliberately rather than under CVE pressure, since
+  4.1.11 already closes both alerts with zero behavior change. **Risk surface,
+  corrected by a Codex adversarial pass after this review's own first-draft
+  analysis undercounted it:** (1) Vitest 5 auto-calls `vi.clearAllMocks()`
+  before every test (was opt-in) — the review's first check
+  (`mockImplementationOnce`/`mockReturnValueOnce` usage) tests the wrong thing,
+  since `clearAllMocks()` preserves queued `*Once()` implementations; what
+  actually breaks is a test asserting on calls made during module
+  initialization, `beforeAll`, or a prior test, which grep cannot find. (2) The
+  affected surface is wider than `vi.mock()` files — bare `vi.fn()`/`vi.spyOn()`
+  usage outside `vi.mock()` is affected too, and per-mock lifecycle management
+  (e.g. `theme-toggle.test.tsx:23`'s `.mockClear()`) means the "137 safe / 32
+  risky" file-level split this review drafted is not a valid partition — it
+  needs re-deriving properly, not reused as-is. (3) `tsconfig.json:33` excludes
+  test files and Vitest configs from the app `typecheck`, so `pnpm typecheck`
+  passing does NOT establish the migration surface's type compatibility —
+  whoever does this needs a typecheck path that actually covers test files.
+  (4) Also removes `test.sequential`/`describe.sequential` and renumbers
+  `VITEST_WORKER_ID`/`VITEST_POOL_ID` from 0- to 1-indexed (both grepped as
+  unused pre-migration — re-verify against the post-bump tree, don't trust the
+  pre-bump grep). (5) Requires Vite ≥6.4.0 and Node ≥22.12.0 (both already
+  satisfied), but Vitest actually resolves against **Vite 8.1.0** in this
+  lockfile via `@storybook/react-vite`'s peer resolution (the pre-existing
+  `PARTIALLY_BOUND` escape documented in `docs/dependency-overrides.md`), not
+  the `^7.3.5` the top-level override declares — verify against the resolved
+  graph, not the declared range, and check whether bumping vitest changes what
+  Storybook/VitePress resolve too. **Fix:** full audit of the corrected risk
+  surface above, migrate all three configs (`vitest.config.mts`,
+  `vitest.scripts.config.ts`, `vitest.integration.config.mts`), verify with
+  `pnpm lint && pnpm typecheck && pnpm test && pnpm test:scripts && pnpm
+  test:integration && pnpm build` plus the e2e CI job — note `pnpm build` isn't
+  a harmless compiler check here, since `scripts/vercel-build.sh` unconditionally
+  seeds/migrates whatever `DATABASE_URL` is set, so run it against a scoped
+  throwaway database, not casually. **Effort:** M.
+
+- **[P3] `scripts/check-advisories.ts` gates high/critical only, not medium**
+  — a medium-severity advisory (like the one this section opened on) can sit
+  open indefinitely with the CI `Security advisories` job staying green the
+  whole time; nothing forces triage. Deliberately left as an open question
+  rather than reflexively tightened: lowering the threshold could also start
+  failing CI on advisories with no available patched version yet, which is a
+  different problem (see `docs/dependency-overrides.md`'s `SECURITY_FLOORS`
+  pattern for how that's currently handled for `pnpm.overrides` entries) and
+  would need its own design pass, not a one-line severity change. **Fix:**
+  decide whether medium should block CI, or whether the current split
+  (high/critical = blocking, medium = manual triage) is the intended policy —
+  and if the former, work out how to avoid gating on advisories with no fix
+  available. **Effort:** S (the decision) + M (if a design is needed for the
+  no-fix-available case).
