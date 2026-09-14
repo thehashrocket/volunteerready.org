@@ -31,5 +31,8 @@ export default defineConfig({
 		// `fileParallelism: false` is the supported replacement and makes the
 		// serialization hold by construction rather than by luck.
 		fileParallelism: false,
+		// See vitest.config.mts — decouples the Vitest 5 bump from adopting
+		// its new clear-mocks-before-every-test default.
+		clearMocks: false,
 	},
 });
