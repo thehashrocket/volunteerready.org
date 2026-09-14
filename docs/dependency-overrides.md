@@ -62,9 +62,12 @@ appears; one is not enough to design against.
 
 ## The overrides
 
-### `fast-uri` — `^3.1.5`
+### `fast-uri` — `^3.1.6`
 
-Alerts #97, #98, #118 (**high**). Closed in [#189](https://github.com/thehashrocket/volunteerready.org/pull/189).
+Alerts #97, #98, #118 (**high**). Closed in [#189](https://github.com/thehashrocket/volunteerready.org/pull/189)
+(then `^3.1.5`); raised to `^3.1.6` for alerts #122, #123, #125, #126 (**high**)
+— host confusion / SSRF via percent-encoding and IPv6 normalization bugs, all
+fixed in 3.1.6.
 
 Needed an override of its own rather than riding along with the Prisma upgrade,
 because it arrives by **two independent paths** — `@prisma/streams-local` and
@@ -229,6 +232,33 @@ its dependent permits, and it is the direction the file's own
 note calls out as the blind spot. A red test there is not a lockfile glitch to
 paper over — it means the justification written above no longer describes
 reality.
+
+### `mysql2` — `^3.22.0`
+
+Alert #121 (**high**) — GHSA-3f6p-5ww8-9rcr, auth-plugin downgrade to
+`mysql_clear_password` leaks a client's plaintext credentials to a malicious
+or compromised MySQL server. Fixed in 3.22.0.
+
+**Same shape as `deepmerge-ts`: an exact pin, not a range.** The `prisma` CLI
+(devDependency, not `@prisma/client`) declares `"mysql2": "3.15.3"` verbatim,
+so nothing in the tree can resolve the fix on its own — an override is the
+only mechanism available, and it forces a version past what the dependent
+asked for. `PINNED_DEPENDENTS.mysql2 = ['prisma']` in
+`scripts/pnpm-overrides.test.ts` pins that fact the same way it pins
+`deepmerge-ts`'s: if `mysql2` is ever pulled in by a different consumer, the
+override keeps forcing a version *that* consumer never asked for and this
+entry needs re-justifying, not silent continuation.
+
+**Not reachable.** `mysql2` is the driver Prisma's engine would use for a
+`provider = "mysql"` datasource; `prisma/schema.prisma` declares
+`provider = "postgresql"` and this app has never had a MySQL datasource, so
+the driver is never asked to open a connection and the auth-downgrade path
+(which requires speaking the MySQL wire protocol to a server) never runs.
+Dependabot reports it because `prisma` ships the driver unconditionally
+regardless of which datasource a consumer actually configures — the same
+"declared as a dependency, never exercised" shape as the `sharp` entry under
+[Ignored advisories](#ignored-advisories) below, except here a patched version
+is available and cheap, so it is fixed rather than added to the ignore list.
 
 ## Floors that currently look redundant
 

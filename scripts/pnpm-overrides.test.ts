@@ -382,7 +382,10 @@ describe('pnpm.overrides', () => {
 	 * own fix. A real API-backed gate is a separate, larger piece of work.
 	 */
 	const SECURITY_FLOORS: Record<string, { minimum: string; alerts: string }> = {
-		'fast-uri': { minimum: '3.1.5', alerts: '#97, #98, #118' },
+		'fast-uri': {
+			minimum: '3.1.6',
+			alerts: '#97, #98, #118, #122, #123, #125, #126',
+		},
 		postcss: { minimum: '8.5.23', alerts: '#113, #117' },
 		'brace-expansion': { minimum: '5.0.9', alerts: '#115, #116' },
 		// The only floor that crosses a MAJOR its dependent did not ask for:
@@ -391,6 +394,11 @@ describe('pnpm.overrides', () => {
 		// and is still vulnerable). So a range change back into 7.x reads as
 		// "matching what Prisma declared" while silently reopening the advisory.
 		'deepmerge-ts': { minimum: '8.0.0', alerts: '#120' },
+		// Also an exact pin, not a range: the `prisma` CLI declares
+		// `mysql2: "3.15.3"` verbatim. Not reachable (this app is Postgres-only,
+		// see docs/dependency-overrides.md), but the fix is a cheap minor bump
+		// so it's fixed rather than ignored.
+		mysql2: { minimum: '3.22.0', alerts: '#121' },
 	};
 
 	it.each(Object.entries(SECURITY_FLOORS))(
@@ -433,6 +441,7 @@ describe('pnpm.overrides', () => {
 	 */
 	const PINNED_DEPENDENTS: Record<string, string[]> = {
 		'deepmerge-ts': ['@prisma/config'],
+		mysql2: ['prisma'],
 	};
 
 	it.each(Object.entries(PINNED_DEPENDENTS))(
