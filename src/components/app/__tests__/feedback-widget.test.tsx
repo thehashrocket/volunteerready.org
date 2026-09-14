@@ -117,16 +117,16 @@ describe('FeedbackWidget', () => {
 
 	it('shows mood-aware success message after submit', async () => {
 		const { trpc } = await import('@/lib/trpc/client');
-		vi.mocked(trpc.feedback.submit.useMutation).mockImplementation(
-			(opts: { onSuccess?: () => void } = {}) => {
-				return {
-					mutate: vi.fn(() => {
-						opts.onSuccess?.();
-					}),
-					isPending: false,
-				} as ReturnType<typeof trpc.feedback.submit.useMutation>;
-			},
-		);
+		vi.mocked(trpc.feedback.submit.useMutation).mockImplementation(((
+			opts: { onSuccess?: () => void } = {},
+		) => {
+			return {
+				mutate: vi.fn(() => {
+					opts.onSuccess?.();
+				}),
+				isPending: false,
+			};
+		}) as unknown as typeof trpc.feedback.submit.useMutation);
 
 		const user = userEvent.setup();
 		render(<FeedbackWidget />);
@@ -149,16 +149,16 @@ describe('FeedbackWidget', () => {
 		vi.useFakeTimers({ shouldAdvanceTime: true });
 
 		const { trpc } = await import('@/lib/trpc/client');
-		vi.mocked(trpc.feedback.submit.useMutation).mockImplementation(
-			(opts: { onSuccess?: () => void } = {}) => {
-				return {
-					mutate: vi.fn(() => {
-						opts.onSuccess?.();
-					}),
-					isPending: false,
-				} as ReturnType<typeof trpc.feedback.submit.useMutation>;
-			},
-		);
+		vi.mocked(trpc.feedback.submit.useMutation).mockImplementation(((
+			opts: { onSuccess?: () => void } = {},
+		) => {
+			return {
+				mutate: vi.fn(() => {
+					opts.onSuccess?.();
+				}),
+				isPending: false,
+			};
+		}) as unknown as typeof trpc.feedback.submit.useMutation);
 
 		const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 		render(<FeedbackWidget />);

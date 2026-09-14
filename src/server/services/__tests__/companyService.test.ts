@@ -82,7 +82,7 @@ vi.mock('resend', () => ({
 	}),
 }));
 
-const mockSendNewCompanyAlert = vi.fn(async () => undefined);
+const mockSendNewCompanyAlert = vi.fn(async (..._args: unknown[]) => undefined);
 vi.mock('@/server/lib/admin-alerts', () => ({
 	sendNewCompanyAlert: (...args: unknown[]) => mockSendNewCompanyAlert(...args),
 }));

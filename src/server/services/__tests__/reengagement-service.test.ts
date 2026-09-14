@@ -4,10 +4,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockFindInactiveMembers = vi.fn(async () => []);
-const mockMarkReengagementSent = vi.fn(async () => {});
-const mockFindManyOpps = vi.fn(async () => []);
-const mockFindFirstCronJobRun = vi.fn(async () => null);
+const mockFindInactiveMembers = vi.fn(
+	async (..._args: unknown[]): Promise<ReturnType<typeof makeMember>[]> => [],
+);
+const mockMarkReengagementSent = vi.fn(async (..._args: unknown[]) => {});
+const mockFindManyOpps = vi.fn(
+	async (..._args: unknown[]): Promise<{ title: string }[]> => [],
+);
+const mockFindFirstCronJobRun = vi.fn(
+	async (..._args: unknown[]): Promise<{ resultSummary: unknown } | null> =>
+		null,
+);
 
 vi.mock('@/server/repositories/reengagement-repo', () => ({
 	findInactiveMembers: (...args: unknown[]) => mockFindInactiveMembers(...args),
@@ -26,7 +33,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
-const mockSendEmail = vi.fn(async () => true);
+const mockSendEmail = vi.fn(async (..._args: unknown[]) => true);
 vi.mock('@/server/lib/email', () => ({
 	sendEmail: (...args: unknown[]) => mockSendEmail(...args),
 }));

@@ -16,7 +16,7 @@ const {
 	mockGetImpersonationContext: vi.fn(),
 	mockListCompaniesForUser: vi.fn(),
 	mockListMembershipOrgIds: vi.fn(async () => ['org-1']),
-	mockIsFeatureEnabled: vi.fn(async () => false),
+	mockIsFeatureEnabled: vi.fn(async (..._args: unknown[]) => false),
 	mockRedirect: vi.fn((url: string) => {
 		throw new Error(`NEXT_REDIRECT:${url}`);
 	}),

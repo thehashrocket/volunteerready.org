@@ -27,7 +27,9 @@ const mocks = vi.hoisted(() => ({
 	leaveMutate: vi.fn(),
 	leavePending: false,
 	onSuccess: null as (() => void | Promise<void>) | null,
-	onError: null as ((e: { message: string }) => void) | null,
+	onError: null as
+		| ((e: { message: string; data?: { code?: string } }) => void)
+		| null,
 	invalidate: vi.fn(),
 	toastSuccess: vi.fn(),
 	toastError: vi.fn(),
@@ -59,7 +61,7 @@ vi.mock('@/lib/trpc/client', () => ({
 			leaveOrgRoster: {
 				useMutation: (opts: {
 					onSuccess: () => void | Promise<void>;
-					onError: (e: { message: string }) => void;
+					onError: (e: { message: string; data?: { code?: string } }) => void;
 				}) => {
 					mocks.onSuccess = opts.onSuccess;
 					mocks.onError = opts.onError;

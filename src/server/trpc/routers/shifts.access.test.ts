@@ -113,6 +113,7 @@ vi.mock('@/server/trpc/rate-limit-middleware', () => ({
 	rateLimitByUser: () => (opts: { next: () => unknown }) => opts.next(),
 }));
 
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
 import { t } from '@/server/trpc/init';
 import { shiftsRouter } from './shifts';
 
@@ -122,19 +123,14 @@ const ACTOR_ID = 'user-actor';
 const SHIFT_ID = 'shift-target';
 
 function caller() {
-	return callerFactory({
-		session: { user: { id: ACTOR_ID } },
-		realSession: null,
-		realUserId: ACTOR_ID,
-		impersonation: null,
-		orgId: CTX_ORG_ID,
-		role: 'STAFF',
-		companyId: null,
-		companyRole: null,
-		prisma: {} as never,
-		sessionToken: null,
-		ip: null,
-	} as Parameters<typeof callerFactory>[0]);
+	return callerFactory(
+		createMockTrpcContext({
+			session: { user: { id: ACTOR_ID } } as never,
+			realUserId: ACTOR_ID,
+			orgId: CTX_ORG_ID,
+			role: 'STAFF',
+		}),
+	);
 }
 
 beforeEach(() => {
@@ -453,19 +449,14 @@ describe('assign procedures are gated by the roster flag', () => {
 		);
 
 		mocks.assignVolunteerToShift.mockClear();
-		const impersonated = callerFactory({
-			session: { user: { id: 'target-user' } },
-			realSession: null,
-			realUserId: 'real-admin',
-			impersonation: null,
-			orgId: CTX_ORG_ID,
-			role: 'STAFF',
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: null,
-		} as Parameters<typeof callerFactory>[0]);
+		const impersonated = callerFactory(
+			createMockTrpcContext({
+				session: { user: { id: 'target-user' } } as never,
+				realUserId: 'real-admin',
+				orgId: CTX_ORG_ID,
+				role: 'STAFF',
+			}),
+		);
 
 		await impersonated.assignVolunteer({
 			shiftId: SHIFT_ID,

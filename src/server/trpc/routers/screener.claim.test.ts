@@ -44,6 +44,7 @@ vi.mock('@/server/services/my-applications', () => ({
 	listMyApplications: mocks.listMyApplications,
 }));
 
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
 import { t } from '@/server/trpc/init';
 import { screenerRouter } from './screener';
 
@@ -52,21 +53,14 @@ const ACTOR_ID = 'user-actor';
 const SESSION_EMAIL = 'victim@example.test';
 
 function caller(user: { id?: string; email?: string | null } = {}) {
-	return callerFactory({
-		session: {
-			user: { id: ACTOR_ID, email: SESSION_EMAIL, ...user },
-		},
-		realSession: null,
-		realUserId: ACTOR_ID,
-		impersonation: null,
-		orgId: null,
-		role: null,
-		companyId: null,
-		companyRole: null,
-		prisma: {} as never,
-		sessionToken: null,
-		ip: null,
-	} as Parameters<typeof callerFactory>[0]);
+	return callerFactory(
+		createMockTrpcContext({
+			session: {
+				user: { id: ACTOR_ID, email: SESSION_EMAIL, ...user },
+			} as never,
+			realUserId: ACTOR_ID,
+		}),
+	);
 }
 
 beforeEach(() => {

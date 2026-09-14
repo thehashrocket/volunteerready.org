@@ -197,11 +197,15 @@ describe('assignVolunteerToShift', () => {
 
 	it('the block refusal is indistinguishable from a roster miss', async () => {
 		mocks.findOrgVolunteerBlock.mockResolvedValue({ id: 'block-1' });
-		const blockedError = await assign().catch((e: { message: string }) => e);
+		const blockedError = (await assign().catch(
+			(e: { message: string }) => e,
+		)) as { message: string };
 
 		mocks.findOrgVolunteerBlock.mockResolvedValue(null);
 		mocks.findOrgVolunteerById.mockResolvedValue(null);
-		const missingError = await assign().catch((e: { message: string }) => e);
+		const missingError = (await assign().catch(
+			(e: { message: string }) => e,
+		)) as { message: string };
 
 		// Staff learn only that this person is not theirs to schedule — the same
 		// answer the sibling guards give, for the same reason.

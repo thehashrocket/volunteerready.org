@@ -1,3 +1,4 @@
+import type { Dirent } from 'node:fs';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -139,7 +140,7 @@ function stripComments(source: string): string {
 function walk(dir: string): string[] {
 	const abs = path.join(ROOT, dir);
 	const out: string[] = [];
-	let entries: ReturnType<typeof readdirSync>;
+	let entries: Dirent<string>[];
 	try {
 		entries = readdirSync(abs, { withFileTypes: true });
 	} catch {

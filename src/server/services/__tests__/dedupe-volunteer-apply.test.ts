@@ -106,6 +106,7 @@ vi.mock('@/server/repositories/publicApplyRepo', () => ({
 const PrismaClientKnownRequestError = MockPrismaClientKnownRequestError;
 
 import type { ApplicationStatus } from '@/prisma/generated/client';
+import type { ScreenerResponse } from '@/server/domain/volunteer-screening';
 import { sendEmail } from '@/server/lib/email';
 import { prisma } from '@/server/repositories/prisma';
 import {
@@ -135,12 +136,14 @@ const mockPrisma = prisma as unknown as {
 const basePayload = {
 	submittedByEmail: 'test@example.com',
 	profile: {
-		firstName: 'Jane',
-		lastName: 'Doe',
+		name: 'Jane Doe',
+		email: 'test@example.com',
 		phone: '555-0100',
-		zip: '60601',
+		county: 'Cook',
+		availability: 'Weekends',
+		experienceLevel: 'Beginner',
 	},
-	responses: [] as [],
+	responses: [] as ScreenerResponse[],
 };
 
 beforeEach(() => {
@@ -187,6 +190,9 @@ describe('submitVolunteerApplication dedup guard', () => {
 			opportunityId: 'opp-2',
 		});
 
+		if (!('duplicate' in result)) {
+			throw new Error('expected a duplicate response');
+		}
 		expect(result.status).toBe('APPROVED');
 		expect(result.duplicate).toBe(true);
 	});

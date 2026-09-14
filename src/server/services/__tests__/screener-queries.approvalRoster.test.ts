@@ -62,7 +62,7 @@ import { updateOrgApplicationStatus } from '@/server/services/screener-queries';
 const LINKED = {
 	id: 'app-1',
 	orgId: 'org-1',
-	submittedByUserId: 'user-1',
+	submittedByUserId: 'user-1' as string | null,
 	submittedByEmail: 'bob@example.test',
 	opportunityId: 'opp-1',
 };

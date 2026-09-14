@@ -126,7 +126,7 @@ describe('ensureReferenceData', () => {
 	});
 
 	it('deduplicates concurrent calls via shared promise', async () => {
-		let resolveCheck: () => void;
+		let resolveCheck: () => void = () => {};
 		const checkPromise = new Promise<boolean>((r) => {
 			resolveCheck = () => r(true);
 		});

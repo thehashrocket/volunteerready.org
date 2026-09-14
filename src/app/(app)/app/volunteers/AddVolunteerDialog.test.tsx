@@ -8,7 +8,9 @@ const mocks = vi.hoisted(() => ({
 	mutate: vi.fn(),
 	toastSuccess: vi.fn(),
 	onSuccess: null as ((r: unknown) => void) | null,
-	onError: null as ((e: { message: string }) => void) | null,
+	onError: null as
+		| ((e: { message: string; data?: { code?: string } | null }) => void)
+		| null,
 	isPending: false,
 	mediaQueryState: { isDesktop: true },
 	mediaQueryCalls: [] as string[],

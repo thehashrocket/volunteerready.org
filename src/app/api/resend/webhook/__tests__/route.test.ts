@@ -234,7 +234,7 @@ describe('Resend webhook handler', () => {
 		function postRaw(raw: Buffer, signature: string): Request {
 			return new Request('http://localhost/api/resend/webhook', {
 				method: 'POST',
-				body: raw,
+				body: new Uint8Array(raw),
 				headers: { 'svix-signature': signature },
 			});
 		}

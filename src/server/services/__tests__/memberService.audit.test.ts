@@ -312,7 +312,7 @@ describe('memberService: actor-resolution edge cases', () => {
 		// `userId` filter — the refusal does not depend on how the database happens
 		// to treat an empty string.
 		await expect(
-			inviteMember('org-1', 'test@example.com', 'STAFF', 'http://x', null),
+			inviteMember('org-1', 'test@example.com', 'STAFF', 'http://x', ''),
 		).rejects.toThrow('You are not a member of this organization.');
 		expect(findMember).not.toHaveBeenCalled();
 	});

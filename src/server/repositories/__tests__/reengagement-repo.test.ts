@@ -4,9 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockFindMany = vi.fn(async () => []);
-const mockUpdate = vi.fn(async () => ({}));
-const mockFindUnique = vi.fn(async () => null);
+const mockFindMany = vi.fn(async (..._args: unknown[]) => []);
+const mockUpdate = vi.fn(async (..._args: unknown[]) => ({}));
+const mockFindUnique = vi.fn(
+	async (..._args: unknown[]): Promise<{ id: string } | null> => null,
+);
 
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {

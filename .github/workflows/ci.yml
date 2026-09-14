@@ -94,6 +94,17 @@ jobs:
 
       - run: pnpm typecheck
 
+      # `pnpm typecheck` alone does not cover test files: tsconfig.json
+      # excludes `**/*.test.ts(x)` and `vitest*.config.*` so the app compiles
+      # fast, and that hid 191 real diagnostics across 39 files for as long
+      # as the exclusion existed (mocked tRPC responses with excess
+      # properties, stale test fixtures drifted from their domain types, a
+      # vitest.config.mts option that no longer exists in this Vitest
+      # version). tsconfig.tests.json extends the base config without the
+      # test excludes; this is the gate that keeps that debt from
+      # reaccumulating.
+      - run: pnpm typecheck:tests
+
       # The docs site is not deployed, so this gates CORRECTNESS, not a release.
       # It exists because nothing checked it before: a stray `{{` in any doc
       # failed the build outright and nobody noticed for months.

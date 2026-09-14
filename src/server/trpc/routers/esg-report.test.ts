@@ -22,6 +22,7 @@ vi.mock('@/server/services/employerReportService', () => ({
 	generateESGReport: mockGenerateESGReport,
 }));
 
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
 import { t } from '@/server/trpc/init';
 import { esgReportRouter } from './esg-report';
 
@@ -31,19 +32,12 @@ const ACTOR_ID = 'target-1';
 const ADMIN_ID = 'admin-1';
 
 function makeCtx(overrides: { userId: string; realUserId: string | null }) {
-	return callerFactory({
-		session: { user: { id: overrides.userId } },
-		realSession: null,
-		realUserId: overrides.realUserId,
-		impersonation: null,
-		orgId: null,
-		role: null,
-		companyId: null,
-		companyRole: null,
-		prisma: {} as never,
-		sessionToken: null,
-		ip: null,
-	} as Parameters<typeof callerFactory>[0]);
+	return callerFactory(
+		createMockTrpcContext({
+			session: { user: { id: overrides.userId } } as never,
+			realUserId: overrides.realUserId,
+		}),
+	);
 }
 
 beforeEach(() => {

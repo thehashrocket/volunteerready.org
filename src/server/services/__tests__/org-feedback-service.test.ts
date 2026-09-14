@@ -4,8 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockFindManyOrgs = vi.fn(async () => []);
-const mockCreateFeedback = vi.fn(async () => ({}));
+const mockFindManyOrgs = vi.fn(
+	async (..._args: unknown[]): Promise<ReturnType<typeof makeOrg>[]> => [],
+);
+const mockCreateFeedback = vi.fn(async (..._args: unknown[]) => ({}));
 
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {
@@ -18,7 +20,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
-const mockSendEmail = vi.fn(async () => true);
+const mockSendEmail = vi.fn(async (..._args: unknown[]) => true);
 vi.mock('@/server/lib/email', () => ({
 	sendEmail: (...args: unknown[]) => mockSendEmail(...args),
 }));

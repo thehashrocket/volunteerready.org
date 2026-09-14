@@ -100,7 +100,7 @@ const CREDENTIAL_TYPES = [
 async function seedCredential(
 	userId: string,
 	orgId: string,
-	status: 'PENDING' | 'VERIFIED' | 'REJECTED' = 'VERIFIED',
+	status: 'PENDING' | 'VERIFIED' | 'REVOKED' = 'VERIFIED',
 ) {
 	const type =
 		CREDENTIAL_TYPES[credentialCounter % CREDENTIAL_TYPES.length] ??

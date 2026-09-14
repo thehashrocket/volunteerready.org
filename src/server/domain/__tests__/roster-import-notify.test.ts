@@ -201,6 +201,7 @@ describe('notifyOnlyExitCode', () => {
 		INELIGIBLE_OUTCOME: 0,
 		NOT_COMMITTED: 0,
 		MALFORMED_AUDIT_ROW: 0,
+		REFUSED_BY_VOLUNTEER: 0,
 		...over,
 	});
 

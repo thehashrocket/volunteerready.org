@@ -56,6 +56,7 @@ vi.mock('@/server/services/staffVolunteerService', () => ({
 	getVolunteerDetail: mocks.getVolunteerDetail,
 }));
 
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
 import { t } from '@/server/trpc/init';
 import { volunteersRouter } from './volunteers';
 
@@ -65,19 +66,14 @@ const ACTOR_ID = 'user-actor';
 const REAL_ADMIN_ID = 'user-platform-admin';
 
 function caller(overrides: { realUserId: string | null }) {
-	return callerFactory({
-		session: { user: { id: ACTOR_ID } },
-		realSession: null,
-		realUserId: overrides.realUserId,
-		impersonation: null,
-		orgId: ORG_ID,
-		role: 'STAFF',
-		companyId: null,
-		companyRole: null,
-		prisma: {} as never,
-		sessionToken: null,
-		ip: null,
-	} as Parameters<typeof callerFactory>[0]);
+	return callerFactory(
+		createMockTrpcContext({
+			session: { user: { id: ACTOR_ID } } as never,
+			realUserId: overrides.realUserId,
+			orgId: ORG_ID,
+			role: 'STAFF',
+		}),
+	);
 }
 
 beforeEach(() => {
