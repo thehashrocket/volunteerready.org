@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.42.3.0] - 2026-09-14
+
+**Maintenance and a bug fix. Nothing changes for anyone using the site.**
+
+The test framework moved from Vitest 4 to Vitest 5, deliberately rather than
+under pressure — the CVE that made this urgent was already closed by a same-day
+patch release, so the major-version move itself got its own pass. Vitest 5
+changes a default (mocks now clear themselves before every test, which used to
+be opt-in); this repo pins the old behavior explicitly for now rather than
+accepting a change that would silently alter what hundreds of existing tests
+verify. Adopting the new default is its own future step.
+
+A new check now catches something that had been invisible for as long as it
+existed: the test suite's own files were excluded from the project's type
+checker, so a test could hold a stale assertion — checking a field or a value
+shape that production code had already moved past — and nothing would ever
+say so. Closing that gap surfaced 191 real mismatches across 39 files, mostly
+mock helpers whose types had drifted from what they actually mock, plus a few
+genuinely stale test fixtures.
+
+### Added
+
+- A type check that runs over test files too, not just application code, so a
+  test can no longer silently drift from the code it's meant to verify.
+
+### Fixed
+
+- Credential share-link expiry emails: the cron job that warns a volunteer
+  their share link is about to expire was marking the notice as sent even
+  when the email failed to go out. It now only marks a notice sent once the
+  send actually succeeds, so a failed one gets retried instead of silently
+  disappearing.
+
 ## [0.42.2.0] - 2026-08-17
 
 **Maintenance and a security fix. Nothing changes for anyone using the site.**
