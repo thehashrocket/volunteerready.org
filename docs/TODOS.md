@@ -6356,3 +6356,133 @@ real gaps the previous pass missed; what actually shipped:
   and if the former, work out how to avoid gating on advisories with no fix
   available. **Effort:** S (the decision) + M (if a design is needed for the
   no-fix-available case).
+
+## Opened by the Sep 14 engineering retro (2026-09-14)
+
+### ~~[P2] The `Security advisories` CI gate can silently stop running, and nothing says so~~ ✅ Complete
+
+**Completed:** v0.43.0.0 (2026-09-14)
+
+#232 (2026-09-14) found `main` had been carrying two CRITICAL unauthenticated
+Next.js RCEs (GHSA-p293-qw3h-jr36, GHSA-2xp9-vwfh-vxw4) unpatched since the
+last successful CI run on 2026-08-17. The advisories themselves weren't the
+root cause — a `pnpm.overrides` lockfile bug silently blocked the `Security
+advisories` job on every PR merged in that four-week window (fixed separately
+on `dependabot/npm_and_yarn/security-updates-217f3864fb`), and nothing
+distinguished "the gate ran and passed" from "the gate didn't run at all."
+Both states look identical from the PR checks list: a green (or absent)
+`Security advisories` row. Nobody noticed until someone happened to run
+`pnpm tsx scripts/check-advisories.ts` locally and got 9 fixable findings on a
+"clean" branch.
+
+Shipped wider than originally scoped, because the literal fix (a config-level
+gate test) turned out not to be the failure that actually happened — an
+outside-model review caught that the incident was the script's own deliberate
+fail-open path degrading to a buried `::warning`, and that the literal
+4-week window had ZERO PR/push activity, meaning a PR-triggered gate does
+nothing about the actual incident regardless of how well-guarded its config
+is. Landed:
+
+- `scripts/advisories-gate.test.ts` — the originally-scoped config guard
+  (mutation-tested, matching `ci-build-gate`/`lint-gate`/`e2e-ci-gate`/
+  `node-version-gate`), plus `scripts/ci-gate-test-utils.ts` extracting the
+  shared `jobBlock`/`stripYamlComments` helpers those files duplicated.
+- `buildFailOpenReport()`/`writeStepSummary()` in `scripts/check-
+  advisories.ts` — a degraded run now writes to `$GITHUB_STEP_SUMMARY`,
+  one click from the Checks tab instead of buried in a job log.
+- `.github/workflows/security-advisories-scheduled.yml` — a weekly scan
+  independent of PR/push activity, so an idle `main` still gets checked.
+- `src/app/api/cron/advisory-scan-heartbeat/` — a Vercel cron that checks
+  whether GitHub has auto-disabled the scheduled workflow (its own 60-day
+  repo-inactivity policy) and re-enables it before dispatching. The first
+  version of this only dispatched and never checked state, which three
+  independent adversarial review passes (2x Codex, 1x Claude) caught as a
+  fake self-heal — `workflow_dispatch` alone does not revive a disabled
+  workflow.
+- `docs/branch-protection.md` — this repo had NO branch protection at all;
+  now requires all 5 CI checks including for admins (`enforce_admins: true`
+  — a solo-repo `false` here was the first draft's own mistake, since the
+  admin is the only person who ever merges).
+- Incidentally fixed: `sendAdminAlert()`/`sendImpersonationStartAlert()` in
+  `src/server/lib/admin-alerts.ts` discarded `sendEmail()`'s boolean return,
+  so a failed security-alert send looked identical to a delivered one —
+  the same defect class already fixed once for `sendRosterAddedEmail`/
+  `sendBackgroundCheckEmail`, recurred in a sibling nobody had audited.
+
+See `docs/branch-protection.md`'s "Known limitations" section for the
+scheduled-scan follow-up below; the other two follow-ups are new here.
+
+### [P3] Duplicated GitHub Actions setup steps between `ci.yml`'s `advisories` job and `security-advisories-scheduled.yml`
+
+Both files run the identical 5-step sequence (checkout, `pnpm/action-setup`,
+`actions/setup-node`, `pnpm install --frozen-lockfile --ignore-scripts`,
+`pnpm tsx scripts/check-advisories.ts`) copy-pasted verbatim. Flagged
+independently by the maintainability and simplification specialists during
+the v0.43.0.0 review. A future change to one (a new install flag, a Node
+setup option) has to be manually mirrored into the other or the two gates
+silently diverge.
+
+**Not a silent-divergence risk for the property this repo actually cares
+about**: `scripts/advisories-gate.test.ts`'s "CI advisories scheduled scan"
+describe block already asserts both files run the identical check step, in
+the identical order, with no `if:`/`continue-on-error:` — so ENFORCEMENT
+divergence is caught by a test either way. Only the boilerplate SETUP steps
+can drift unnoticed.
+
+**Fix:** extract the shared step sequence into a reusable workflow
+(`on: workflow_call`) or composite action; have both `ci.yml`'s `advisories`
+job and `security-advisories-scheduled.yml` invoke it via `uses:`. Needs
+re-verification that `advisories-gate.test.ts`'s `jobBlock()`/text-matching
+assertions still work against a `uses:` step rather than inline `run:`
+steps — they may need to shift to asserting against the shared workflow file
+instead. **Effort:** S. **Depends on:** None.
+
+### [P3] Scheduled security-advisories scan has a weaker backstop for its own fail-open path than the PR-triggered gate does
+
+`scripts/check-advisories.ts`'s fail-open policy (exit 0 with a loud
+warning/summary when `pnpm audit` can't produce a usable report) was
+designed for the PR-gate context, where a human reviewer might open the
+Checks tab. `security-advisories-scheduled.yml` inherits the identical
+policy with no human in the loop — and GitHub's own scheduled-workflow-
+failure notification email only fires on an actual FAILURE conclusion, not
+on a "passed with a warning" exit 0. So a persistently broken audit tool
+(not a one-time registry hiccup — an actually-stuck dependency, a lockfile
+issue that recurs) would report green every week indefinitely, with zero
+signal to anyone. That reproduces the ORIGINAL incident this whole release
+exists to fix, just on a weekly clock instead of a one-time gap. Raised by
+an adversarial Codex review pass during the v0.43.0.0 ship, deliberately
+NOT fixed then — see `docs/branch-protection.md`'s "Known limitations".
+
+**Fix:** give scheduled/unattended invocations of `check-advisories.ts` a
+stricter failure policy than PR-triggered ones — e.g. fail closed (exit 1)
+on ANY audit-tool failure when `GITHUB_EVENT_NAME` is `schedule` or
+`workflow_dispatch`, since there's no "block every PR" cost to worry about
+in that context, only a "silently miss a scan" cost. Needs its own design
+pass: this changes the one function every sibling gate test depends on
+staying trigger-agnostic, and needs to distinguish "genuinely nothing to
+report" from "could not tell" reliably enough to avoid recreating the
+original problem in the other direction (spurious scheduled-run failures
+nobody acts on). **Effort:** M (design) + S (implementation).
+**Depends on:** None.
+
+### [P3] `sendAdminAlert()`'s own failure mode is unmonitored
+
+`sendAdminAlert()` (`src/server/lib/admin-alerts.ts`) silently no-ops with
+only a `console.warn`/`console.error` if `getAdminEmails()` throws or
+resolves to zero recipients. Pre-existing, not introduced by v0.43.0.0, but
+now load-bearing for a security control: if the admin-recipient
+configuration ever breaks, EVERY admin security alert in the app —
+impersonation-start, new-user/org/company signup, and the new
+`advisory-scan-heartbeat` watchdog this release adds — degrades to a log
+line nobody watches, with no secondary channel. Raised by the Claude
+adversarial subagent during the v0.43.0.0 review.
+
+**Fix:** needs its own design pass, not a one-line change — a monitor
+watching whether `getAdminEmails()` resolves to at least one recipient has
+the same "who watches the watchmen" problem this whole release exists to
+close, so the answer probably isn't another `console.error`. Candidates:
+a periodic check whose OWN failure surfaces through a channel independent
+of `getAdminEmails()` (e.g. a dead-man's-switch pattern, or piggybacking on
+Vercel's own cron-failure notifications rather than this app's admin-email
+path). **Effort:** M (design) + S-M (implementation, depending on design).
+**Depends on:** None.
