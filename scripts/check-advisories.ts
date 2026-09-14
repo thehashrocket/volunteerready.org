@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { appendFileSync } from 'node:fs';
 import { promisify } from 'node:util';
 
 /**
@@ -128,12 +129,69 @@ function annotate(level: 'warning' | 'error' | 'notice', message: string) {
 	}
 }
 
+/**
+ * Everything `failOpen()` needs to say, computed once and written twice: a
+ * one-line `::warning` annotation (buried one click deep in the job's own
+ * log/annotations view) and a bolder `$GITHUB_STEP_SUMMARY` entry (one click
+ * from the run's Summary tab). A `::warning` alone renders as a plain green
+ * check in the PR's top-level list — this is not sufficient on its own,
+ * which is the whole reason this function exists as something separate from
+ * `annotate()`.
+ *
+ * Pure by design — no `process.env`, no I/O — so the CI-run-only fail-open
+ * path (previously untested; see `check-advisories.test.ts`'s docstring on
+ * why) is directly testable.
+ */
+export function buildFailOpenReport(reason: string): {
+	warningLine: string;
+	summaryMarkdown: string;
+} {
+	return {
+		warningLine: `Advisory gate DID NOT RUN: ${reason}. This is not a pass — the check was skipped.`,
+		summaryMarkdown: `## ⚠️ Security advisories gate did not run
+
+**This is not a pass.** \`pnpm audit\` could not produce a usable report
+(\`${reason}\`), so no advisories were checked on this PR. The gate exited 0
+so a registry hiccup doesn't block every PR — but that means a **genuine**
+break here (a lockfile bug, a tool bug) looks identical to "nothing to
+report" unless someone reads this summary.
+
+Run \`pnpm tsx scripts/check-advisories.ts\` locally to see what actually
+happened.
+`,
+	};
+}
+
+/**
+ * Appends to the file named by `$GITHUB_STEP_SUMMARY` (GitHub sets this in
+ * every job; appending is the documented contract). A silent no-op when the
+ * env var is unset (e.g. running locally) — `annotate()`'s own console
+ * output already covers that case, much more visibly than a file nobody is
+ * looking at.
+ *
+ * The write itself must NEVER throw. This is a best-effort side channel
+ * whose entire point is to make the non-blocking fail-open path MORE
+ * visible, not to give it a new way to crash instead of exiting 0. A
+ * permissions error, a full disk, or an unusual runner degrades this back
+ * to exactly today's behavior (the `::warning` annotation alone), never to
+ * a nonzero exit.
+ */
+export function writeStepSummary(markdown: string): void {
+	const path = process.env.GITHUB_STEP_SUMMARY;
+	if (!path) return;
+
+	try {
+		appendFileSync(path, markdown);
+	} catch {
+		// Swallowed deliberately — see the docstring above.
+	}
+}
+
 /** Fail-open: say so loudly, then exit 0. */
 function failOpen(reason: string): never {
-	annotate(
-		'warning',
-		`Advisory gate DID NOT RUN: ${reason}. This is not a pass — the check was skipped.`,
-	);
+	const { warningLine, summaryMarkdown } = buildFailOpenReport(reason);
+	annotate('warning', warningLine);
+	writeStepSummary(summaryMarkdown);
 	process.exit(0);
 }
 
