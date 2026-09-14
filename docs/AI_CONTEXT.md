@@ -476,6 +476,9 @@ pnpm format               # Biome format
 pnpm typecheck            # tsc --noEmit — NOT a substitute for a build. It invokes the compiler as
                           #   a program, so it passes on TypeScript 7 whether or not `next build` can
                           #   load the compiler API. CI gates both; that gap broke a deploy once.
+pnpm typecheck:tests      # tsc --noEmit --project tsconfig.tests.json — covers *.test.ts(x) and
+                          #   vitest*.config.*, excluded from pnpm typecheck to keep it fast. Added
+                          #   v0.42.3.0 after the exclusion hid 191 real diagnostics across 39 files.
 pnpm test                 # Vitest (run once)
 pnpm test:watch           # Vitest (watch mode)
 pnpm test:scripts         # Vitest for scripts/**/*.test.ts (separate config, excluded from pnpm test)
