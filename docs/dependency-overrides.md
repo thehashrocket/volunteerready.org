@@ -290,22 +290,27 @@ once because of it.
 
 ## Partially bound
 
-`@babel/core` and `vite` each have a **second** copy installed that their
-override does not cover: `@babel/core@8.0.1` and `vite@8.1.0`, both physically
-present under `node_modules/.pnpm/`. They arrive as peer-dependency resolutions
-(`next@…(@babel/core@8.0.1)`, `@storybook/react-vite@…(vite@8.1.0…)`) rather
-than ordinary dependency edges, and `@storybook/react-vite` accepts
+`vite` has a **second** copy installed that its override does not cover:
+`vite@8.1.0`, physically present under `node_modules/.pnpm/`. It arrives as a
+peer-dependency resolution (`@storybook/react-vite@…(vite@8.1.0…)`) rather
+than an ordinary dependency edge, and `@storybook/react-vite` accepts
 `^5 || ^6 || ^7 || ^8`.
 
 **This is known and was accepted deliberately, not an oversight.** #124 pinned
-each package inside its current major rather than using an open `>=` precisely
-to avoid dragging the whole build onto Babel 8 / Vite 8 for no security gain,
-and it verified at the time that the lingering 8.x peer copies are themselves
-**above** the patched threshold. So the tree is safe; the override text simply
-describes less than the whole picture.
+it inside its current major rather than using an open `>=` precisely to avoid
+dragging the whole build onto Vite 8 for no security gain, and it verified at
+the time that the lingering 8.x peer copy is itself **above** the patched
+threshold. So the tree is safe; the override text simply describes less than
+the whole picture.
 
-They are budgeted in `PARTIALLY_BOUND` in `scripts/pnpm-overrides.test.ts`, so
-a **new** escape under either package still fails the build.
+It is budgeted in `PARTIALLY_BOUND` in `scripts/pnpm-overrides.test.ts`, so a
+**new** escape under this package still fails the build.
+
+`@babel/core` carried the same entry (`8.0.1`) until a routine dependency-bump
+relock resolved that peer edge onto the same `7.29.7` copy the override
+already pins, per the guard test's own instruction ("now binds cleanly —
+delete it from PARTIALLY_BOUND"). It was removed from the budget accordingly;
+see the git history of `scripts/pnpm-overrides.test.ts` for when.
 
 **Do not "fix" this by widening the ranges to `^8`.** That would abandon the
 deliberate within-major policy above. The open question is only whether moving
