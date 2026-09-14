@@ -66,13 +66,13 @@ function setupMocks({
 	mutate = vi.fn(),
 	isPending = false,
 	isError = false,
-	error = null as { message: string } | null,
+	error = null as { message: string; data?: { code?: string } } | null,
 }: {
 	application?: ReturnType<typeof makeApplication> | null;
 	mutate?: ReturnType<typeof vi.fn>;
 	isPending?: boolean;
 	isError?: boolean;
-	error?: { message: string } | null;
+	error?: { message: string; data?: { code?: string } } | null;
 } = {}) {
 	mockUseParams.mockReturnValue({ id: 'app-1' });
 	mockUseRouter.mockReturnValue({ refresh: vi.fn() });

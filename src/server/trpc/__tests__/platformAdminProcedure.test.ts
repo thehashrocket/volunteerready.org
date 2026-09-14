@@ -20,6 +20,8 @@ vi.mock('@/server/domain/platform-admin', () => ({
 	isPlatformAdmin: mockIsPlatformAdmin,
 }));
 
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
+import type { Context } from '@/server/trpc/init';
 import {
 	createTRPCRouter,
 	platformAdminProcedure,
@@ -37,21 +39,8 @@ const testRouter = createTRPCRouter({
 
 const callerFactory = t.createCallerFactory(testRouter);
 
-function makeCtx(overrides: Partial<Parameters<typeof callerFactory>[0]>) {
-	return callerFactory({
-		session: null,
-		realSession: null,
-		realUserId: null,
-		impersonation: null,
-		orgId: null,
-		role: null,
-		companyId: null,
-		companyRole: null,
-		prisma: {} as never,
-		sessionToken: null,
-		ip: null,
-		...overrides,
-	} as Parameters<typeof callerFactory>[0]);
+function makeCtx(overrides: Partial<Context>) {
+	return callerFactory(createMockTrpcContext(overrides));
 }
 
 describe('platformAdminProcedure', () => {

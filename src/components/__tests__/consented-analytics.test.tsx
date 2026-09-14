@@ -36,12 +36,12 @@ describe('ConsentedAnalytics', () => {
 		// gtag is normally defined by the inline init script; stub it so we can
 		// assert the Consent Mode update calls fired by the component.
 		gtag = vi.fn();
-		(window as Record<string, unknown>).gtag = gtag;
+		(window as unknown as Record<string, unknown>).gtag = gtag;
 	});
 
 	afterEach(() => {
 		vi.restoreAllMocks();
-		delete (window as Record<string, unknown>).gtag;
+		delete (window as unknown as Record<string, unknown>).gtag;
 	});
 
 	it('always renders the gtag script (for Google detection)', () => {

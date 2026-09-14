@@ -4,13 +4,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockFindManyCronJobRun = vi.fn(async () => null);
-const mockFindManyPref = vi.fn(async () => []);
-const mockFindManyNotification = vi.fn(async () => []);
-const mockFindManyNotifPref = vi.fn(async () => []);
-const mockUpdatePref = vi.fn(async () => ({}));
-const mockUpdateManyNotification = vi.fn(async () => ({ count: 0 }));
-const mockFindManyOrgs = vi.fn(async () => [{ timezone: null }]);
+const mockFindManyCronJobRun = vi.fn(
+	async (..._args: unknown[]): Promise<{ resultSummary: unknown } | null> =>
+		null,
+);
+const mockFindManyPref = vi.fn(
+	async (..._args: unknown[]): Promise<ReturnType<typeof makePref>[]> => [],
+);
+const mockFindManyNotification = vi.fn(
+	async (
+		..._args: unknown[]
+	): Promise<ReturnType<typeof makeNotification>[]> => [],
+);
+const mockFindManyNotifPref = vi.fn(
+	async (..._args: unknown[]): Promise<{ type: string }[]> => [],
+);
+const mockUpdatePref = vi.fn(async (..._args: unknown[]) => ({}));
+const mockUpdateManyNotification = vi.fn(async (..._args: unknown[]) => ({
+	count: 0,
+}));
+const mockFindManyOrgs = vi.fn(
+	async (..._args: unknown[]): Promise<{ timezone: string | null }[]> => [
+		{ timezone: null },
+	],
+);
 
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {
@@ -35,13 +52,15 @@ vi.mock('@/server/repositories/prisma', () => ({
 }));
 
 // Mock timezone module — default: all timezones match
-const mockGetTimezonesMatchingHour = vi.fn((tzs: (string | null)[]) => tzs);
+const mockGetTimezonesMatchingHour = vi.fn(
+	(tzs: (string | null)[], _targetHour: number) => tzs,
+);
 vi.mock('@/server/lib/timezone', () => ({
 	getTimezonesMatchingHour: (...args: unknown[]) =>
 		mockGetTimezonesMatchingHour(...(args as [(string | null)[], number])),
 }));
 
-const mockSendEmail = vi.fn(async () => true);
+const mockSendEmail = vi.fn(async (..._args: unknown[]) => true);
 vi.mock('@/server/lib/email', () => ({
 	sendEmail: (...args: unknown[]) => mockSendEmail(...args),
 }));
@@ -197,7 +216,9 @@ describe('sendDigestEmails', () => {
 		await sendDigestEmails();
 
 		// Notification query should NOT have a type filter
-		const notifCall = mockFindManyNotification.mock.calls[0][0];
+		const notifCall = mockFindManyNotification.mock.calls[0][0] as {
+			where: { type?: unknown };
+		};
 		expect(notifCall.where.type).toBeUndefined();
 	});
 
@@ -277,7 +298,9 @@ describe('sendDigestEmails', () => {
 		expect(result.digestsSent).toBe(0);
 		expect(result.usersProcessed).toBe(0);
 		// Verify the organization filter was applied to the query
-		const prefCall = mockFindManyPref.mock.calls[0][0];
+		const prefCall = mockFindManyPref.mock.calls[0][0] as {
+			where: { organization?: unknown };
+		};
 		expect(prefCall.where.organization).toBeDefined();
 	});
 });

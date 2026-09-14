@@ -25,6 +25,7 @@ vi.mock('@/server/auth', () => ({
 // ---------------------------------------------------------------------------
 
 import * as rateLimitLib from '@/server/lib/rate-limit';
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
 import { createTRPCRouter, publicProcedure, t } from '@/server/trpc/init';
 import {
 	rateLimitByIp,
@@ -89,16 +90,12 @@ describe('rateLimitByOrg', () => {
 		vi.mocked(rateLimitLib.checkRateLimit).mockResolvedValueOnce(
 			SUCCESS_RESULT,
 		);
-		const caller = callerFactory({
-			session: { user: { id: 'u1' } } as never,
-			orgId: 'org-1',
-			role: null,
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: null,
-		});
+		const caller = callerFactory(
+			createMockTrpcContext({
+				session: { user: { id: 'u1' } } as never,
+				orgId: 'org-1',
+			}),
+		);
 
 		await expect(caller.orgEndpoint()).resolves.toBe('ok-org');
 		expect(rateLimitLib.checkRateLimit).toHaveBeenCalledWith(
@@ -111,16 +108,12 @@ describe('rateLimitByOrg', () => {
 		vi.mocked(rateLimitLib.checkRateLimit).mockResolvedValueOnce(
 			BLOCKED_RESULT,
 		);
-		const caller = callerFactory({
-			session: { user: { id: 'u1' } } as never,
-			orgId: 'org-1',
-			role: null,
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: null,
-		});
+		const caller = callerFactory(
+			createMockTrpcContext({
+				session: { user: { id: 'u1' } } as never,
+				orgId: 'org-1',
+			}),
+		);
 
 		await expect(caller.orgEndpoint()).rejects.toMatchObject({
 			code: 'TOO_MANY_REQUESTS',
@@ -128,16 +121,11 @@ describe('rateLimitByOrg', () => {
 	});
 
 	it('throws INTERNAL_SERVER_ERROR when orgId is missing', async () => {
-		const caller = callerFactory({
-			session: { user: { id: 'u1' } } as never,
-			orgId: null,
-			role: null,
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: null,
-		});
+		const caller = callerFactory(
+			createMockTrpcContext({
+				session: { user: { id: 'u1' } } as never,
+			}),
+		);
 
 		await expect(caller.orgEndpoint()).rejects.toMatchObject({
 			code: 'INTERNAL_SERVER_ERROR',
@@ -157,16 +145,11 @@ describe('rateLimitByUser', () => {
 		vi.mocked(rateLimitLib.checkRateLimit).mockResolvedValueOnce(
 			SUCCESS_RESULT,
 		);
-		const caller = callerFactory({
-			session: { user: { id: 'user-42' } } as never,
-			orgId: null,
-			role: null,
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: null,
-		});
+		const caller = callerFactory(
+			createMockTrpcContext({
+				session: { user: { id: 'user-42' } } as never,
+			}),
+		);
 
 		await expect(caller.userEndpoint()).resolves.toBe('ok-user');
 		expect(rateLimitLib.checkRateLimit).toHaveBeenCalledWith(
@@ -179,16 +162,11 @@ describe('rateLimitByUser', () => {
 		vi.mocked(rateLimitLib.checkRateLimit).mockResolvedValueOnce(
 			BLOCKED_RESULT,
 		);
-		const caller = callerFactory({
-			session: { user: { id: 'user-42' } } as never,
-			orgId: null,
-			role: null,
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: null,
-		});
+		const caller = callerFactory(
+			createMockTrpcContext({
+				session: { user: { id: 'user-42' } } as never,
+			}),
+		);
 
 		await expect(caller.userEndpoint()).rejects.toMatchObject({
 			code: 'TOO_MANY_REQUESTS',
@@ -196,16 +174,7 @@ describe('rateLimitByUser', () => {
 	});
 
 	it('throws INTERNAL_SERVER_ERROR when userId is missing', async () => {
-		const caller = callerFactory({
-			session: null,
-			orgId: null,
-			role: null,
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: null,
-		});
+		const caller = callerFactory(createMockTrpcContext());
 
 		await expect(caller.userEndpoint()).rejects.toMatchObject({
 			code: 'INTERNAL_SERVER_ERROR',
@@ -225,16 +194,7 @@ describe('rateLimitByIp', () => {
 		vi.mocked(rateLimitLib.checkRateLimit).mockResolvedValueOnce(
 			SUCCESS_RESULT,
 		);
-		const caller = callerFactory({
-			session: null,
-			orgId: null,
-			role: null,
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: '1.2.3.4',
-		});
+		const caller = callerFactory(createMockTrpcContext({ ip: '1.2.3.4' }));
 
 		await expect(caller.ipEndpoint()).resolves.toBe('ok-ip');
 		expect(rateLimitLib.checkRateLimit).toHaveBeenCalledWith(
@@ -247,16 +207,7 @@ describe('rateLimitByIp', () => {
 		vi.mocked(rateLimitLib.checkRateLimit).mockResolvedValueOnce(
 			BLOCKED_RESULT,
 		);
-		const caller = callerFactory({
-			session: null,
-			orgId: null,
-			role: null,
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: '1.2.3.4',
-		});
+		const caller = callerFactory(createMockTrpcContext({ ip: '1.2.3.4' }));
 
 		await expect(caller.ipEndpoint()).rejects.toMatchObject({
 			code: 'TOO_MANY_REQUESTS',
@@ -267,16 +218,7 @@ describe('rateLimitByIp', () => {
 		vi.mocked(rateLimitLib.checkRateLimit).mockResolvedValueOnce(
 			SUCCESS_RESULT,
 		);
-		const caller = callerFactory({
-			session: null,
-			orgId: null,
-			role: null,
-			companyId: null,
-			companyRole: null,
-			prisma: {} as never,
-			sessionToken: null,
-			ip: null,
-		});
+		const caller = callerFactory(createMockTrpcContext());
 
 		await expect(caller.ipEndpoint()).resolves.toBe('ok-ip');
 		expect(rateLimitLib.checkRateLimit).toHaveBeenCalledWith(

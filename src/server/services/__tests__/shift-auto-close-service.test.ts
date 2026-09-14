@@ -4,7 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockFindMany = vi.fn(async () => []);
+const mockFindMany = vi.fn(
+	async (
+		..._args: unknown[]
+	): Promise<{ id: string; orgId: string; title: string }[]> => [],
+);
 
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {
@@ -14,7 +18,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
-const mockCompleteShift = vi.fn(async () => ({}));
+const mockCompleteShift = vi.fn(async (..._args: unknown[]) => ({}));
 vi.mock('@/server/services/shiftService', () => ({
 	completeShift: (...args: unknown[]) => mockCompleteShift(...args),
 }));

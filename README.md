@@ -363,6 +363,9 @@ pnpm screenshots    # Regenerate marketing screenshots in public/marketing/ (nee
 pnpm typecheck      # tsc --noEmit — NOT a substitute for a build. It invokes the compiler as a
                     #   program, so it passes on TypeScript 7 whether or not `next build` can load
                     #   the compiler API. CI gates both; that gap broke a deploy on a green run.
+pnpm typecheck:tests # tsc --noEmit --project tsconfig.tests.json — covers *.test.ts(x) and the
+                    #   vitest*.config.* files, which the base tsconfig excludes so `pnpm typecheck`
+                    #   stays fast. CI runs both; they check disjoint file sets.
 pnpm check          # Same scope as pnpm lint, plus --write (applies safe fixes). Run by the pre-commit hook,
                     #   which refuses the commit if it had to fix an already-staged file — git commits the
                     #   index, not the working tree, so the fix would not otherwise reach your commit.

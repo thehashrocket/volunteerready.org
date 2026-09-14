@@ -50,6 +50,8 @@ vi.mock('@/server/services/volunteerProfileService', () => ({
 	saveVolunteerProfile: vi.fn(),
 }));
 
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
+import type { Context } from '@/server/trpc/init';
 import { t } from '@/server/trpc/init';
 import { profileRouter } from './profile';
 
@@ -60,21 +62,14 @@ const VOLUNTEER = 'user-volunteer';
  * A plain volunteer: no org, no staff role, no company. Exactly the caller
  * `rosterProcedure` would reject, and exactly the person this feature is for.
  */
-function volunteerCaller(over: Record<string, unknown> = {}) {
-	return callerFactory({
-		session: { user: { id: VOLUNTEER } },
-		realSession: null,
-		realUserId: VOLUNTEER,
-		impersonation: null,
-		orgId: null,
-		role: null,
-		companyId: null,
-		companyRole: null,
-		prisma: {} as never,
-		sessionToken: null,
-		ip: null,
-		...over,
-	} as Parameters<typeof callerFactory>[0]);
+function volunteerCaller(over: Partial<Context> = {}) {
+	return callerFactory(
+		createMockTrpcContext({
+			session: { user: { id: VOLUNTEER } } as never,
+			realUserId: VOLUNTEER,
+			...over,
+		}),
+	);
 }
 
 beforeEach(() => {

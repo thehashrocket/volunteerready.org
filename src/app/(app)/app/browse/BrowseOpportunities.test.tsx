@@ -11,7 +11,14 @@ vi.mock('next-auth/react', () => ({
 	useSession: () => ({ data: null, status: 'unauthenticated' }),
 }));
 
-const mockUseQuery = vi.fn(() => ({ data: undefined, isLoading: false }));
+const mockUseQuery = vi.fn(
+	(
+		..._args: unknown[]
+	): { data: Record<string, unknown> | undefined; isLoading: boolean } => ({
+		data: undefined,
+		isLoading: false,
+	}),
+);
 vi.mock('@/lib/trpc/client', () => ({
 	trpc: {
 		screener: {

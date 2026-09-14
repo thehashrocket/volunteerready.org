@@ -41,6 +41,7 @@ vi.mock('@/server/services/volunteerCredentialService', () => ({
 	getVolunteerCredentialsInOrg: mocks.getVolunteerCredentialsInOrg,
 }));
 
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
 import { t } from '@/server/trpc/init';
 import { credentialsRouter } from './credentials';
 
@@ -49,19 +50,14 @@ const CTX_ORG_ID = 'org-from-context';
 const ACTOR_ID = 'user-actor';
 
 function caller() {
-	return callerFactory({
-		session: { user: { id: ACTOR_ID } },
-		realSession: null,
-		realUserId: ACTOR_ID,
-		impersonation: null,
-		orgId: CTX_ORG_ID,
-		role: 'STAFF',
-		companyId: null,
-		companyRole: null,
-		prisma: {} as never,
-		sessionToken: null,
-		ip: null,
-	} as Parameters<typeof callerFactory>[0]);
+	return callerFactory(
+		createMockTrpcContext({
+			session: { user: { id: ACTOR_ID } } as never,
+			realUserId: ACTOR_ID,
+			orgId: CTX_ORG_ID,
+			role: 'STAFF',
+		}),
+	);
 }
 
 beforeEach(() => {

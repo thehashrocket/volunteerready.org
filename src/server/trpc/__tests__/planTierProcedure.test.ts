@@ -31,6 +31,7 @@ vi.mock('@/server/auth', () => ({
 // ---------------------------------------------------------------------------
 
 import * as orgRepo from '@/server/repositories/orgRepo';
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
 import { createTRPCRouter, planTierProcedure, t } from '@/server/trpc/init';
 
 // ---------------------------------------------------------------------------
@@ -49,15 +50,12 @@ const callerFactory = t.createCallerFactory(testRouter);
  * bypassing the normal NextAuth session flow.
  */
 function makeCaller(orgId: string | null): ReturnType<typeof callerFactory> {
-	return callerFactory({
-		session: { user: { id: 'user-1' } } as never,
-		orgId,
-		role: null,
-		companyId: null,
-		companyRole: null,
-		prisma: {} as never,
-		sessionToken: null,
-	});
+	return callerFactory(
+		createMockTrpcContext({
+			session: { user: { id: 'user-1' } } as never,
+			orgId,
+		}),
+	);
 }
 
 describe('planTierProcedure', () => {

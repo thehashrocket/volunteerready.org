@@ -68,7 +68,7 @@ function makeClaimable(overrides: Record<string, unknown> = {}) {
 type ClaimState = {
 	isPending?: boolean;
 	isError?: boolean;
-	error?: { message: string } | null;
+	error?: { message: string; data?: { code?: string } } | null;
 };
 
 function setup({

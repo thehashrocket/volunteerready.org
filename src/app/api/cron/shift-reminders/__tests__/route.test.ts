@@ -43,7 +43,6 @@ describe('GET /api/cron/shift-reminders', () => {
 	it('returns 200 with counts on valid auth', async () => {
 		vi.mocked(shiftReminderService.sendShiftReminders).mockResolvedValueOnce({
 			remindersSent: 12,
-			skipped: 3,
 		});
 
 		const res = await GET(makeRequest('Bearer test-secret'));
@@ -53,7 +52,6 @@ describe('GET /api/cron/shift-reminders', () => {
 		expect(body).toEqual({
 			ok: true,
 			remindersSent: 12,
-			skipped: 3,
 		});
 	});
 

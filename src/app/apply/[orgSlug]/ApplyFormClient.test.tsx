@@ -6,18 +6,42 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockUseSession = vi.fn(() => ({
-	data: { user: { id: 'user-1', email: 'test@example.com' } },
-	status: 'authenticated',
-}));
+const mockUseSession = vi.fn(
+	(
+		..._args: unknown[]
+	): {
+		data: { user: { id: string; email: string } } | null;
+		status: string;
+	} => ({
+		data: { user: { id: 'user-1', email: 'test@example.com' } },
+		status: 'authenticated',
+	}),
+);
 
 vi.mock('next-auth/react', () => ({
 	useSession: (...args: unknown[]) => mockUseSession(...args),
 }));
 
-const mockDedupQuery = vi.fn(() => ({ data: null, isLoading: false }));
-const mockAnonDedupQuery = vi.fn(() => ({ data: null, isLoading: false }));
-const mockSubmitMutation = vi.fn(() => ({
+const mockDedupQuery = vi.fn(
+	(
+		..._args: unknown[]
+	): {
+		data: { id: string; submittedAt: string } | null;
+		isLoading: boolean;
+	} => ({
+		data: null,
+		isLoading: false,
+	}),
+);
+const mockAnonDedupQuery = vi.fn(
+	(
+		..._args: unknown[]
+	): { data: { exists: boolean } | null; isLoading: boolean } => ({
+		data: null,
+		isLoading: false,
+	}),
+);
+const mockSubmitMutation = vi.fn((..._args: unknown[]) => ({
 	mutate: vi.fn(),
 	isPending: false,
 }));

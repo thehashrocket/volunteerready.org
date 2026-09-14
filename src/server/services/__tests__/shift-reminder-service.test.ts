@@ -4,9 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockFindManySignups = vi.fn(async () => []);
-const mockUpdateSignup = vi.fn(async () => ({}));
-const mockFindManyOrgs = vi.fn(async () => []);
+const mockFindManySignups = vi.fn(
+	async (..._args: unknown[]): Promise<ReturnType<typeof makeSignup>[]> => [],
+);
+const mockUpdateSignup = vi.fn(async (..._args: unknown[]) => ({}));
+const mockFindManyOrgs = vi.fn(
+	async (..._args: unknown[]): Promise<{ timezone: string | null }[]> => [],
+);
 
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {
@@ -20,7 +24,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
-const mockSendEmail = vi.fn(async () => true);
+const mockSendEmail = vi.fn(async (..._args: unknown[]) => true);
 vi.mock('@/server/lib/email', () => ({
 	sendEmail: (...args: unknown[]) => mockSendEmail(...args),
 }));
@@ -30,7 +34,9 @@ vi.mock('@/server/lib/html', () => ({
 }));
 
 // Mock timezone module to control which timezones match
-const mockGetTimezonesMatchingHour = vi.fn((tzs: (string | null)[]) => tzs);
+const mockGetTimezonesMatchingHour = vi.fn(
+	(tzs: (string | null)[], _targetHour: number) => tzs,
+);
 vi.mock('@/server/lib/timezone', () => ({
 	getTimezonesMatchingHour: (...args: unknown[]) =>
 		mockGetTimezonesMatchingHour(...(args as [(string | null)[], number])),
@@ -94,7 +100,10 @@ describe('sendShiftReminders', () => {
 		await sendShiftReminders();
 
 		// The findMany call should include an organization filter
-		const findManyCall = mockFindManySignups.mock.calls[0][0];
+		const findManyCall = mockFindManySignups.mock.calls[0][0] as {
+			where: { shift: { organization?: unknown } };
+			take: number;
+		};
 		expect(findManyCall.where.shift.organization).toBeDefined();
 	});
 
@@ -103,7 +112,10 @@ describe('sendShiftReminders', () => {
 
 		await sendShiftReminders();
 
-		const findManyCall = mockFindManySignups.mock.calls[0][0];
+		const findManyCall = mockFindManySignups.mock.calls[0][0] as {
+			where: { shift: { organization?: unknown } };
+			take: number;
+		};
 		expect(findManyCall.take).toBe(500);
 	});
 

@@ -52,7 +52,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
-const mockSendNewOrgAlert = vi.fn(async () => undefined);
+const mockSendNewOrgAlert = vi.fn(async (..._args: unknown[]) => undefined);
 vi.mock('@/server/lib/admin-alerts', () => ({
 	sendNewOrgAlert: (...args: unknown[]) => mockSendNewOrgAlert(...args),
 }));

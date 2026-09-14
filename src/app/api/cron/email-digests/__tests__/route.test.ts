@@ -44,7 +44,7 @@ describe('GET /api/cron/email-digests', () => {
 	it('returns 200 with counts on valid auth', async () => {
 		vi.mocked(digestService.sendDigestEmails).mockResolvedValueOnce({
 			digestsSent: 5,
-			notificationsIncluded: 23,
+			usersProcessed: 23,
 			nextCursor: 'abc123',
 		});
 
@@ -55,7 +55,7 @@ describe('GET /api/cron/email-digests', () => {
 		expect(body).toEqual({
 			ok: true,
 			digestsSent: 5,
-			notificationsIncluded: 23,
+			usersProcessed: 23,
 			nextCursor: 'abc123',
 		});
 	});

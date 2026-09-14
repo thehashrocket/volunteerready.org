@@ -15,5 +15,8 @@ export default defineConfig({
 		include: ['scripts/**/*.test.ts', 'prisma/scripts/**/*.test.ts'],
 		environment: 'node',
 		globals: true,
+		// See vitest.config.mts — decouples the Vitest 5 bump from adopting
+		// its new clear-mocks-before-every-test default.
+		clearMocks: false,
 	},
 });

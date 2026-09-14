@@ -6258,41 +6258,89 @@ through remediation and, with a Codex outside-voice pass, decided to decouple
 the fix (patch `vitest` in place, `4.1.10` → `4.1.11`, zero `package.json`
 change) from a since-deferred major migration — see the next item.
 
-- **[P3] Migrate to Vitest 5.0.0** — shipped 11 days before this review
-  (2026-09-03). Worth doing deliberately rather than under CVE pressure, since
-  4.1.11 already closes both alerts with zero behavior change. **Risk surface,
-  corrected by a Codex adversarial pass after this review's own first-draft
-  analysis undercounted it:** (1) Vitest 5 auto-calls `vi.clearAllMocks()`
-  before every test (was opt-in) — the review's first check
-  (`mockImplementationOnce`/`mockReturnValueOnce` usage) tests the wrong thing,
-  since `clearAllMocks()` preserves queued `*Once()` implementations; what
-  actually breaks is a test asserting on calls made during module
-  initialization, `beforeAll`, or a prior test, which grep cannot find. (2) The
-  affected surface is wider than `vi.mock()` files — bare `vi.fn()`/`vi.spyOn()`
-  usage outside `vi.mock()` is affected too, and per-mock lifecycle management
-  (e.g. `theme-toggle.test.tsx:23`'s `.mockClear()`) means the "137 safe / 32
-  risky" file-level split this review drafted is not a valid partition — it
-  needs re-deriving properly, not reused as-is. (3) `tsconfig.json:33` excludes
-  test files and Vitest configs from the app `typecheck`, so `pnpm typecheck`
-  passing does NOT establish the migration surface's type compatibility —
-  whoever does this needs a typecheck path that actually covers test files.
-  (4) Also removes `test.sequential`/`describe.sequential` and renumbers
-  `VITEST_WORKER_ID`/`VITEST_POOL_ID` from 0- to 1-indexed (both grepped as
-  unused pre-migration — re-verify against the post-bump tree, don't trust the
-  pre-bump grep). (5) Requires Vite ≥6.4.0 and Node ≥22.12.0 (both already
-  satisfied), but Vitest actually resolves against **Vite 8.1.0** in this
-  lockfile via `@storybook/react-vite`'s peer resolution (the pre-existing
-  `PARTIALLY_BOUND` escape documented in `docs/dependency-overrides.md`), not
-  the `^7.3.5` the top-level override declares — verify against the resolved
-  graph, not the declared range, and check whether bumping vitest changes what
-  Storybook/VitePress resolve too. **Fix:** full audit of the corrected risk
-  surface above, migrate all three configs (`vitest.config.mts`,
-  `vitest.scripts.config.ts`, `vitest.integration.config.mts`), verify with
-  `pnpm lint && pnpm typecheck && pnpm test && pnpm test:scripts && pnpm
-  test:integration && pnpm build` plus the e2e CI job — note `pnpm build` isn't
-  a harmless compiler check here, since `scripts/vercel-build.sh` unconditionally
-  seeds/migrates whatever `DATABASE_URL` is set, so run it against a scoped
-  throwaway database, not casually. **Effort:** M.
+**Status: DONE (2026-09-14).** `vitest` is `^5.0.0` with `clearMocks: false`
+set in all three configs (`vitest.config.mts`, `vitest.scripts.config.ts`,
+`vitest.integration.config.mts`), decoupling the version bump from the new
+`clearAllMocks()`-before-every-test default — see the follow-up TODO below,
+which tracks adopting that default as its own deliberate step. Two review
+passes plus two Codex adversarial passes on the plan (same day) each found
+real gaps the previous pass missed; what actually shipped:
+
+- **`pnpm typecheck:tests`** (`tsconfig.tests.json`, extends the base config
+  without the test/vitest-config excludes) landed first, wired into CI
+  (`.github/workflows/ci.yml`). It surfaced 191 real diagnostics across 39
+  files — not the ~30-minute config exercise first estimated, confirmed by
+  actually running it before believing the estimate. Two dominant root
+  causes covered most of them: `vi.fn(async () => X)` mocks invoked via
+  `(...args) => mockFn(...args)` inside `vi.mock()` factories (inferred as
+  zero-arg, ~33 occurrences across five service test files — fixed by typing
+  the mock as variadic), and hand-built partial tRPC context literals missing
+  `realSession`/`realUserId`/`impersonation` (~20 occurrences across nearly
+  every router `.access.test.ts` — extracted into
+  `createMockTrpcContext()` in `src/server/trpc/__tests__/trpc-context-helpers.ts`,
+  matching this repo's own extract-after-3-copies convention). The remaining
+  diagnostics were real, individual fixture drift the exclusion had been
+  hiding — a `VolunteerProfile` test fixture using fields (`firstName`/
+  `lastName`) the domain type dropped years ago, a `CredentialStatus` test
+  value (`'REJECTED'`) that was never a real enum member, two cron
+  route tests asserting a service return shape (`notificationsIncluded`,
+  `skipped`) the service no longer returns, and `vitest.config.mts`'s own
+  `environmentMatchGlobs` — confirmed absent from the installed Vitest's
+  types entirely and functionally redundant (every consuming `.tsx` file
+  already carries its own `@vitest-environment jsdom` pragma) — removed.
+- **`vitest` already resolved against `vite@8.1.0` before this bump**,
+  confirmed directly in `pnpm-lock.yaml` under 4.1.11, via
+  `@storybook/react-vite`'s peer resolution past the `^7.3.5` top-level
+  override — the pre-existing, already-accepted `PARTIALLY_BOUND` escape in
+  `docs/dependency-overrides.md:322-337`. Verified unchanged post-bump: the
+  lockfile still resolves only `vite@7.3.6` and `vite@8.1.0`, nothing new.
+- **`test.sequential`/`describe.sequential` and `VITEST_WORKER_ID`/
+  `VITEST_POOL_ID`**: confirmed zero usage pre- and post-bump.
+- **Verified**, in order: `pnpm lint && pnpm typecheck && pnpm typecheck:tests`
+  green; `pnpm test` (2858 tests), `pnpm test:scripts` (342), `pnpm
+  test:integration` (239) all passing — identical counts to the pre-bump
+  baseline; the production build path matching CI's actual sequence
+  (`pnpm prisma migrate deploy` → `NODE_ENV=production pnpm seed` → `pnpm
+  next build`, **not** bare `pnpm build`, which only runs that sequence when
+  `VERCEL_ENV=production` is set) against a local scoped database, clean;
+  `pnpm docs:build` and `pnpm build-storybook` (the two other consumers of
+  the shared vite/babel dependency graph, unexercised by anything else here)
+  both clean.
+- **Not run this session: the e2e CI job.** Playwright, not Vitest, so it's
+  lower marginal risk from this specific bump, but it wasn't exercised —
+  worth a real CI run before calling this fully closed.
+- **A live near-miss worth recording**: verifying the production build path
+  requires `NODE_ENV=production`, and this repo's `.env.production.local`
+  outranks `.env.local` in dotenvx's load order — precisely the trap already
+  named in this project's own memory
+  (`local-prod-build-hits-production-db.md`). The first attempt at this step
+  ran `NODE_ENV=production pnpm seed` against the real production Neon
+  database before that was caught; `seedProduction()` is idempotent
+  (upsert-only) and the output showed it found existing data and changed
+  nothing, so no harm resulted, but the fix (stash `.env.production.local` /
+  `.env.production` aside before any local `NODE_ENV=production` command,
+  restore after) should be the default move next time, not a recovery.
+
+- **[P3] Adopt Vitest 5's `clearAllMocks()`-before-every-test default** —
+  deliberately deferred out of the Vitest 5.0.0 migration above via
+  `clearMocks: false` in all three configs, so the version bump doesn't also
+  have to absorb a mock-lifecycle semantics change across 177 files using bare
+  `vi.fn()`/`vi.spyOn()` (zero existing `clearMocks`/`resetMocks`/
+  `restoreMocks` config in the repo today). **The risk this TODO exists to
+  name:** no mechanical check — not a static file audit, not a full
+  suite-green run — can catch a test whose assertions silently verify less
+  than they claim once mocks stop leaking state across tests within a file. A
+  test relying on a prior test's mock call count (via module-init, `beforeAll`,
+  or cross-test leakage) can still pass green under the new default while
+  testing something other than what it says it tests. **Fix:** flip
+  `clearMocks: true` (or remove the explicit `false`) in each config one at a
+  time — starting with `vitest.scripts.config.ts` (smallest suite, lowest
+  blast radius) — and after each, manually spot-check the highest-stakes files
+  for correct mock call-count assertions rather than trusting green alone:
+  background-check consent/disclosure tests and `OrgVolunteerBlock`
+  roster-block tests are the ones where a false-pass would be costliest.
+  **Depends on:** the Vitest 5.0.0 migration above — done as of 2026-09-14, so
+  this is unblocked. **Effort:** M.
 
 - **[P3] `scripts/check-advisories.ts` gates high/critical only, not medium**
   — a medium-severity advisory (like the one this section opened on) can sit

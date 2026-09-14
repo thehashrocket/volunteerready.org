@@ -35,25 +35,14 @@ vi.mock('@/server/services/volunteer-screening', () => ({
 }));
 
 import { normalizeEmail } from '@/server/domain/org-volunteer';
+import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
 import { t } from '@/server/trpc/init';
 import { screenerRouter } from './screener';
 
 const callerFactory = t.createCallerFactory(screenerRouter);
 
 function caller() {
-	return callerFactory({
-		session: null,
-		realSession: null,
-		realUserId: null,
-		impersonation: null,
-		orgId: null,
-		role: null,
-		companyId: null,
-		companyRole: null,
-		prisma: {} as never,
-		sessionToken: null,
-		ip: '203.0.113.1',
-	} as Parameters<typeof callerFactory>[0]);
+	return callerFactory(createMockTrpcContext({ ip: '203.0.113.1' }));
 }
 
 function submitInput(submittedByEmail: string) {
