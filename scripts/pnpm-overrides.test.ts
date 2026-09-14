@@ -305,26 +305,30 @@ describe('pnpm.overrides', () => {
 	 * the per-file counts in `error-disclosure.guard.test.ts`, and for the same
 	 * reason — a blanket exemption would hide the next instance.
 	 *
-	 * Both are PRE-EXISTING. Verified physically present under
+	 * `vite` is PRE-EXISTING. Verified physically present under
 	 * `node_modules/.pnpm/` with real contents, so this is not a stale lockfile
-	 * record — the override genuinely does not cover them. Both arrive as peer
-	 * dependency resolutions (`next@16.2.12(@babel/core@8.0.1)`,
-	 * `@storybook/react-vite@...(vite@8.1.0...)`) rather than as ordinary
-	 * dependency edges; `@storybook/react-vite` accepts `^5 || ^6 || ^7 || ^8`
-	 * and pnpm took 8.
+	 * record — the override genuinely does not cover it. It arrives as a peer
+	 * dependency resolution (`@storybook/react-vite@...(vite@8.1.0...)`) rather
+	 * than as an ordinary dependency edge; `@storybook/react-vite` accepts
+	 * `^5 || ^6 || ^7 || ^8` and pnpm took 8.
 	 *
 	 * THIS WAS A DELIBERATE CHOICE, not an oversight — a correction to how it
-	 * was first written up here. PR #124 pinned each package inside its current
-	 * major precisely to avoid dragging the build onto Babel 8 / Vite 8 for no
-	 * security benefit, and verified at the time that the lingering 8.x peer
-	 * copies are themselves ABOVE the patched threshold. The tree is safe; the
-	 * override text just describes less than the whole picture.
+	 * was first written up here. PR #124 pinned it inside its current major
+	 * precisely to avoid dragging the build onto Vite 8 for no security
+	 * benefit, and verified at the time that the lingering 8.x peer copy is
+	 * itself ABOVE the patched threshold. The tree is safe; the override text
+	 * just describes less than the whole picture.
+	 *
+	 * `@babel/core` carried the same entry (`8.0.1`, via
+	 * `next@16.2.12(@babel/core@8.0.1)`) until a lockfile relock during a
+	 * routine dependency bump resolved the peer edge onto the same 7.29.7 copy
+	 * the override already pins — it now binds cleanly, so it was removed here
+	 * per the instruction below.
 	 *
 	 * Do NOT "fix" this by widening the ranges to `^8` — that abandons the
 	 * within-major policy. See docs/dependency-overrides.md § Partially bound.
 	 */
 	const PARTIALLY_BOUND: Record<string, string[]> = {
-		'@babel/core': ['8.0.1'],
 		vite: ['8.1.0'],
 	};
 
