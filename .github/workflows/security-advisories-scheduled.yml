@@ -1,0 +1,63 @@
+name: Security advisories (scheduled)
+
+# The PR-triggered `advisories` job in ci.yml only runs on `pull_request`/
+# `push` — it does nothing while `main` is idle. That is not hypothetical:
+# `main` sat with zero merges for four weeks (2026-08-17 to 2026-09-14) while
+# two CRITICAL unauthenticated Next.js RCEs went unpatched, because nothing
+# triggered CI at all in that window. This workflow is the backstop: it runs
+# the same advisory check on a schedule, independent of PR/push activity.
+#
+# `workflow_dispatch` is ALSO wired in, deliberately, for a reason that has
+# nothing to do with manual convenience: GitHub auto-disables a `schedule:`
+# workflow after 60 days with no repository activity, and a same-repo
+# scheduled workflow cannot watch for its own disablement — if the repo is
+# genuinely idle that long, every scheduled workflow in it (including a
+# would-be watchdog) is disabled at the same time. The fix is an external
+# trigger: `src/app/api/cron/advisory-scan-heartbeat/` is a Vercel cron
+# (immune to GitHub's inactivity policy, since it runs on Vercel's own
+# scheduler) that checks whether GitHub has auto-disabled THIS workflow and
+# calls its `enable` endpoint before dispatching — `workflow_dispatch` alone
+# does NOT revive a workflow disabled for inactivity, since the disable
+# applies to the whole workflow, every trigger included. See that route's
+# own docstring for how three separate adversarial review passes caught the
+# first version only alerting about the disabled state, never fixing it.
+#
+# Kept as its own workflow file, not a second trigger on ci.yml's `advisories`
+# job, so that job stays exactly as guarded by `scripts/advisories-gate.test.ts`
+# (no `if:`, no schedule branching) — this file is free to carry its own
+# triggers without touching that guard.
+
+on:
+  schedule:
+    # Mondays, 13:00 UTC.
+    - cron: "0 13 * * 1"
+  workflow_dispatch: {}
+
+# Unlike ci.yml's `advisories` job (gated by human PR review before it ever
+# runs, hence no permissions block there — see that job's own comment), this
+# workflow is independently triggerable on a schedule and via workflow_dispatch
+# from anyone holding the PAT. The job needs zero token permissions (it only
+# shells `pnpm audit` against the public registry), so shrink the default
+# GITHUB_TOKEN down explicitly as defense-in-depth — costs one block.
+permissions:
+  contents: read
+
+jobs:
+  advisories:
+    name: Security advisories (scheduled)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - run: pnpm tsx scripts/check-advisories.ts
