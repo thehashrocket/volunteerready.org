@@ -10,7 +10,7 @@ vi.mock('../repositories/prisma', () => ({
 }));
 
 vi.mock('../lib/email', () => ({
-	sendEmail: vi.fn(async () => {}),
+	sendEmail: vi.fn(async () => true),
 }));
 
 import { sendEmail } from '../lib/email';
@@ -105,7 +105,7 @@ describe('notifyExpiringShareTokens', () => {
 		] as never);
 		vi.mocked(sendEmail)
 			.mockRejectedValueOnce(new Error('SMTP failure'))
-			.mockResolvedValueOnce(undefined);
+			.mockResolvedValueOnce(true);
 
 		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 		const result = await notifyExpiringShareTokens();
@@ -115,6 +115,26 @@ describe('notifyExpiringShareTokens', () => {
 			expect.stringContaining('Failed to notify'),
 			expect.any(Error),
 		);
+		errorSpy.mockRestore();
+	});
+
+	it('does not stamp notifiedAt when sendEmail resolves false', async () => {
+		// `sendEmail` returns false rather than throwing for a Resend error or a
+		// bounce-suppressed address — the rejects test above does not cover this,
+		// and one does not imply the other. Without reading the boolean, a lost
+		// send would still stamp `notifiedAt`, so the token would never be
+		// retried on a later cron run.
+		vi.mocked(prisma.credentialShareToken.findMany).mockResolvedValueOnce([
+			makeToken(),
+		] as never);
+		vi.mocked(sendEmail).mockResolvedValueOnce(false);
+
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const result = await notifyExpiringShareTokens();
+
+		expect(result.tokensNotified).toBe(0);
+		expect(prisma.credentialShareToken.update).not.toHaveBeenCalled();
+		expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('NOT SENT'));
 		errorSpy.mockRestore();
 	});
 

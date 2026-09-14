@@ -58,7 +58,14 @@ export async function notifyExpiringShareTokens(): Promise<{
 				(token.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
 			);
 
-			await sendEmail(
+			// `sendEmail` returns FALSE rather than throwing — for a Resend error and
+			// for a bounce-suppressed address — so a bare `await` here can't tell a
+			// lost send from a delivered one, and the `notifiedAt` stamp below would
+			// have marked it "sent" either way. Read the boolean and skip the stamp
+			// on failure: `notifiedAt` stays null, so the token is picked up again
+			// by the `notifiedAt: null` filter on the next cron run instead of being
+			// silently and permanently marked notified.
+			const sent = await sendEmail(
 				email,
 				`Your share link expires in ${daysLeft} days`,
 				`
@@ -73,6 +80,13 @@ export async function notifyExpiringShareTokens(): Promise<{
 				</p>
 				`,
 			);
+
+			if (!sent) {
+				console.error(
+					`[cron] Share token expiry notice NOT SENT for token ${token.id}: send failed or address suppressed`,
+				);
+				continue;
+			}
 
 			await prisma.credentialShareToken.update({
 				where: { id: token.id },
