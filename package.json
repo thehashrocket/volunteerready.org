@@ -107,7 +107,7 @@
 		"@types/pg": "^8.23.1",
 		"@types/react": "^19.3.0",
 		"@types/react-dom": "^19.3.0",
-		"dotenv": "^17.4.2",
+		"dotenv": "^18.0.0",
 		"jsdom": "^30.0.1",
 		"prisma": "^7.10.0",
 		"storybook": "^10.6.0",
