@@ -8,7 +8,7 @@ Agent orientation for the VolunteerReady codebase. Read these in order before wr
 2. **`docs/AI_CONTEXT.md`** — full project orientation: tech stack, patterns, conventions, key file paths.
 3. **`docs/ARCHITECTURE.md`** — layered system design and architectural intent.
 4. **`docs/DOMAIN.md`** — canonical domain model (entities, relationships, invariants).
-5. **`CLAUDE.md`** — complete project conventions, repo layout, locked-in stack decisions.
+5. **`CLAUDE.md`** — project conventions (short rules), repo layout, locked-in stack decisions. The long-form rationale behind each rule lives in `docs/conventions/`; CLAUDE.md says which file to read before touching a given area.
 
 ## The one rule that matters most
 
@@ -80,7 +80,7 @@ Two conventions that are easy to get wrong and are not obvious from the code:
   hydration.
 - Per-row pending state comes from `usePendingIds()`, never `mutation.variables`.
 
-Both are spelled out under "Responsive staff tables" in `CLAUDE.md`.
+Both are spelled out under "Responsive staff tables" in `docs/conventions/ui-patterns.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.2.0] - 2026-09-28
+
+**Claude Code loads the project instructions again. Nothing changes for anyone using the site.**
+
+`CLAUDE.md` had grown to 152k characters, past Claude Code's 150k limit, so
+every session opened with a size warning. It is now 42k.
+
+### Changed
+
+- `CLAUDE.md` keeps a short rule for every entry, with the "never do X" part
+  intact, and points to where the full story lives.
+- The long explanations (the incident histories, "shipped wrong first" notes
+  and verification details) moved word for word into ten topic files under
+  `docs/conventions/`: commands, testing, releases, access control, roster,
+  copy and disclosure, CI and deploy, errors and email, background checks and
+  credentials, and UI patterns. Nothing was deleted.
+- Fixed a few places where condensing had blurred a rule: the parallel-cleanup
+  rule applies to e2e specs, not the integration suite, and the data-access
+  rules (raw SQL, no Prisma in routers, writes through services) sit with the
+  layer rules again.
+
 ## [0.43.1.0] - 2026-09-28
 
 **Production deploys work again. Nothing changes for anyone using the site.**
