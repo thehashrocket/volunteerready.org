@@ -19,7 +19,7 @@
 > - **P3 #15 (PascalCase filenames) has widened, not closed** — `OrgSwitcher.tsx` and
 >   `CompanySwitcher.tsx` were both edited in v0.38.4.0 without renaming.
 >
-> For current UI rules read `CLAUDE.md` ("Responsive staff tables") and `DESIGN.md`.
+> For current UI rules read `docs/conventions/ui-patterns.md` ("Responsive staff tables") and `DESIGN.md`.
 
 ---
 

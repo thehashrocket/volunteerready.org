@@ -25,3 +25,7 @@ canonical.
 
 Per-feature design docs are in `docs/designs/`. They *are* built as pages here, just not
 listed in the sidebar; `CLAUDE.md` indexes them.
+
+The long-form rationale behind `CLAUDE.md`'s rules is in `docs/conventions/` (moved out to keep
+`CLAUDE.md` under Claude Code's size limit). Those pages are also built but not in the sidebar;
+`CLAUDE.md` indexes them.
