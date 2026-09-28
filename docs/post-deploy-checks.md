@@ -187,3 +187,47 @@ the narrower and usually better choice when you have the audit row to hand.
   `src/app/api/cron/expire-credentials/__tests__/route.test.ts`.
 - Every rail on the reset script, including the `--dry-run --yes` refusal —
   `scripts/reset-credential-expiry-notice.test.ts`.
+
+## Production migrations over the direct connection
+
+Shipped in v0.43.1.0. No local harness has Neon's PgBouncer pooler or
+Vercel's production environment variables, so both claims can only be checked
+against a real production deploy.
+
+### 1. `DATABASE_URL_UNPOOLED` is set for Production, and is the direct host
+
+The production build now refuses to start without it, so check before the
+first deploy of v0.43.1.0, not after it fails. In the Vercel dashboard
+(Project → Settings → Environment Variables), `DATABASE_URL_UNPOOLED` must be
+scoped to **Production** and its host must **not** contain `-pooler`. The Neon
+integration normally provisions it. If it is missing, the deploy fails at
+install (`prisma generate`) with `DATABASE_URL_UNPOOLED is not set`, which is
+the intended failure: the alternative is migrating through the pooler, which
+is what caused the P1002 outage.
+
+### 2. The deploy log shows migrations running and releasing the lock
+
+In the production build log, `Production build: running prisma migrate
+deploy...` is followed by `No pending migrations to apply.` (or the applied
+list) and the build continues to `next build`. A `migration lock busy (P1002),
+retrying` line on its own is fine: another production build was migrating at
+the same moment. Three of them followed by a failed build means a lock is
+held by something that is not a build. On the production database:
+
+```sql
+SELECT pid, application_name, state, backend_start
+FROM pg_locks JOIN pg_stat_activity USING (pid)
+WHERE locktype = 'advisory' AND objid = 72707369;
+```
+
+`72707369` is the lock id Prisma printed in the v0.43.0.0 failures. Terminate
+the holder (`SELECT pg_terminate_backend(<pid>);`) only once it is confirmed
+not to be a migration that is still running.
+
+### What is already covered automatically — do not re-check by hand
+
+Which URL the CLI picks, the refusal when `DATABASE_URL` and the direct URL
+name different databases, and the production refusal of a missing or pooled
+URL are all unit-tested in `scripts/cli-database-url.test.ts`. The retry loop
+was exercised against a stubbed `pnpm` while this shipped: it retries only
+`Error: P1002`, at most three times, and fails immediately on anything else.
