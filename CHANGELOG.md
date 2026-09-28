@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.1.0] - 2026-09-28
+
+**Production deploys work again. Nothing changes for anyone using the site.**
+
+Two dependency updates merged a few seconds apart, their two production
+builds tried to update the database at the same time, and every deploy after
+that failed. The update step was supposed to use a direct database connection
+but had been quietly going through the shared connection pool, which can leave
+the update lock stuck. It now uses the direct connection.
+
+### Fixed
+
+- Production deploys no longer fail with Prisma `P1002` (timed out waiting for
+  the migration lock). `prisma.config.ts` set `directUrl`, a field Prisma 7's
+  config no longer has, and a type cast hid the error, so `migrate deploy` ran
+  through Neon's PgBouncer pooler. That strands the session-level advisory
+  lock. The CLI now connects through `DATABASE_URL_UNPOOLED`
+  (`scripts/cli-database-url.ts`).
+- Two overlapping production builds now wait for each other: `vercel-build.sh`
+  retries `migrate deploy` up to three times on a lock timeout, and on nothing
+  else. The lock stays on.
+
+### Changed
+
+- The Prisma CLI refuses to run when `DATABASE_URL` and
+  `DATABASE_URL_UNPOOLED` name different databases (host, port, user, database
+  or schema, including a `?host=` override). Without that, a direct URL left in
+  `.env.local` would beat a `DATABASE_URL` typed in the shell, pointing
+  `migrate reset` or `db execute` at the file's database, which can be
+  production after a `vercel env pull`.
+- A production build now fails if `DATABASE_URL_UNPOOLED` is missing or is a
+  `-pooler` host, instead of silently falling back to the pooler. This runs
+  when the config loads, so it fails at `prisma generate` during install.
+
 ## [0.43.0.0] - 2026-09-14
 
 **Security-process hardening. Nothing changes for anyone using the site.**
