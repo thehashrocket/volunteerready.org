@@ -378,6 +378,9 @@ pnpm check          # Same scope as pnpm lint, plus --write (applies safe fixes)
 ```
 # Database
 DATABASE_URL
+# Direct (unpooled) connection for the Prisma CLI only. Must name the same
+# database as DATABASE_URL; required and non-pooler on production builds.
+DATABASE_URL_UNPOOLED
 
 # NextAuth
 NEXTAUTH_URL
