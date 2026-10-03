@@ -350,3 +350,74 @@ and the package's root entry, which is all the app imports, does not load
 `@vercel/oidc`. The new `@vercel/oidc` 4.0.0 major is reachable only through
 the `@vercel/functions/oidc` subpath, which nothing in `src/` or `scripts/`
 uses.
+
+## Stripe calls and webhooks after the `stripe` 23 upgrade
+
+Shipped in v0.43.6.0. `stripe` moved from 22.6.2 to 23.0.0, and `getStripe()`
+in `src/server/services/billingService.ts` now pins API version
+`2026-09-30.endive` (it was `2026-08-26.dahlia`). That pin sets the version of
+the calls the app makes to Stripe: creating customers, checkout sessions and
+billing portal sessions, and listing events for reconciliation. It does not set
+the version of the webhooks Stripe sends back. Tests mock the Stripe client or
+sign payloads offline, so nothing before deploy talks to Stripe.
+
+### 1. Checkout and the billing portal open in test mode
+
+On a deployment whose `STRIPE_SECRET_KEY` is a test-mode key (`sk_test_...`),
+sign in as an org OWNER and open `/app/billing`.
+
+1. Press `Upgrade to Starter` (or `Upgrade to Pro`). **Expect:** a redirect to
+   Stripe Checkout. Pay with a Stripe test card and confirm you land back on
+   `/app/billing` with the "Plan upgraded successfully!" toast.
+2. Press `Manage subscription`. **Expect:** the Stripe billing portal opens and
+   its return link brings you back to `/app/billing`.
+
+A "Failed to open checkout" or "Failed to open billing portal" toast means
+Stripe refused the call. Check the Vercel runtime logs or Sentry for the
+Stripe error, which names the parameter it rejected.
+
+### 2. A subscription webhook returns 200 and updates the plan tier
+
+Stripe sends each webhook at the API version set on the webhook endpoint in
+the Stripe dashboard, not at the version the SDK pins. Upgrading the SDK does
+not change what arrives, but the code now reads those payloads through the
+23.0.0 types, so confirm a real one still parses.
+
+1. In the Stripe dashboard, open the endpoint that points at
+   `/api/stripe/webhook` and **write down its API version** in the PR or the
+   deploy notes. A later change to that setting changes the payload shape, and
+   this check should be repeated then.
+2. After the first `customer.subscription.created`, `.updated` or `.deleted`
+   delivery following the deploy (step 1 produces one in test mode, if that
+   deployment has a test-mode endpoint), the endpoint's delivery log should
+   show a 200 response.
+3. Confirm it was recorded at the version you wrote down:
+
+```sql
+SELECT "stripeId", "type", "processedAt", "payload"->>'api_version' AS api_version
+FROM "StripeWebhookEvent"
+WHERE "type" LIKE 'customer.subscription.%' AND "processedAt" > '<deploy time>'
+ORDER BY "processedAt" DESC
+LIMIT 10;
+```
+
+4. **Expect:** the org's `/app/billing` badge shows the new plan, and an
+   `AuditLog` row with action `PLAN_UPDATED` (or `PLAN_DOWNGRADED` for a
+   deletion) carries that `stripeEventId` in its `metadata`.
+
+A 400 means the signature check failed: compare `STRIPE_WEBHOOK_SECRET` with
+the endpoint's signing secret. A 500 means processing threw; search the Vercel
+runtime logs for `[stripe-webhook] Unhandled error`. Stripe retries a 500, so
+the event is not lost, but the plan tier stays stale until it succeeds.
+
+### What is already covered automatically — do not re-check by hand
+
+`src/app/api/stripe/webhook/__tests__/route.signature.test.ts` runs the real
+route, the real billing service and the real `stripe` 23 library against
+payloads signed offline. It proves a correctly signed event is accepted and
+recorded, and that a tampered body, a wrong secret, a stale timestamp, a
+missing signature or an unset `STRIPE_WEBHOOK_SECRET` each get a 400 with
+nothing recorded. It makes no network call, so it cannot show that Stripe
+accepts the new API version or what version the endpoint sends.
+`route.test.ts` and `src/server/services/__tests__/billingService.test.ts`
+mock Stripe entirely.

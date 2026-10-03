@@ -45,6 +45,55 @@ defaults collect more, so each runtime now states what it sends.
   did under Sentry 10), and a P3 for cron monitors, which have never covered
   the App Router crons.
 
+## [0.43.6.0] - 2026-10-03
+
+**The Stripe library moves to version 23. Nothing changes for anyone using the site.**
+
+### Changed
+
+- `stripe` 22.6.2 to 23.0.0. Version 23 pins Stripe API version
+  `2026-09-30.endive`, so the billing service now sends its own calls
+  (customers, checkout, billing portal, event listing) at that version instead
+  of `2026-08-26.dahlia`. None of the 23.0.0 breaking changes reach the code:
+  checkout never sent `payment_method_types`, and webhook verification never
+  passed a tolerance, so the 5-minute replay window still applies.
+- A comment at the pin records that it covers outbound calls only. Stripe
+  sends webhooks at the API version set on the endpoint in the Stripe
+  dashboard, and lists past events at the version each was created with.
+
+### Added
+
+- A webhook test that runs the real route, the real billing service and the
+  real Stripe library against offline-signed payloads. Every earlier test
+  mocked the signature check away. It covers a valid event (accepted and
+  recorded), plus a tampered body, the wrong secret, a stale timestamp, a
+  missing signature and an unset `STRIPE_WEBHOOK_SECRET` (each refused with
+  400 and nothing recorded).
+
+## [0.43.5.0] - 2026-10-03
+
+**A security exception that no longer applied is gone. Nothing changes for anyone using the site.**
+
+The dependency audit had been told to skip one image-processing advisory
+because the fixed version was out of reach. The app has been on a fixed version
+for a while now, so the exception was only hiding the check.
+
+### Removed
+
+- The `pnpm audit` ignore for GHSA-f88m-g3jw-g9cj. `sharp` resolves to 0.35.5,
+  past the 0.35.0 fix, and both `pnpm audit` and the CI advisory gate pass
+  without it. No advisory is ignored now.
+
+### Changed
+
+- `docs/dependency-overrides.md`, the comments in
+  `scripts/next-config-images.test.ts` and the pull request template no longer
+  describe the advisory as dismissed. The image-config test keeps all five of
+  its checks: allowing remote image origins would still let `sharp` process
+  bytes we did not write, so a future image advisory could become reachable.
+- The pull request template pointed at a test file that does not exist. It now
+  names `scripts/next-config-images.test.ts`.
+
 ## [0.43.4.0] - 2026-10-03
 
 **Routine dependency updates. Nothing changes for anyone using the site.**
