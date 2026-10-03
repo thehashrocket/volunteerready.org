@@ -371,27 +371,33 @@ describe('pnpm.overrides', () => {
 
 	/**
 	 * Overrides that exist SPECIFICALLY to close a Dependabot advisory, with the
-	 * advisory's own first-patched version and alert number.
+	 * advisory's own first-patched version and Dependabot alert number (or GHSA
+	 * id, when `pnpm audit` surfaced the advisory before Dependabot did).
 	 *
 	 * The range check above cannot see this class of regression: lowering
-	 * `fast-uri` from `^3.1.5` back to `^3.0.1` leaves 3.1.5 installed and
-	 * satisfying its range, so every other assertion in this file stays green
-	 * while the floor that guarantees the fix is gone — verified by mutation.
-	 * The next lockfile churn is then free to resolve back to a vulnerable
-	 * version with nothing objecting.
+	 * `fast-uri` from `^3.1.8` back to `^3.1.6` leaves 3.1.8 installed and
+	 * satisfying its range, so the installed-version and range-binding checks
+	 * stay green while the floor that guarantees the fix is gone. The next
+	 * lockfile churn is then free to resolve back to a vulnerable version. So
+	 * each entry checks BOTH the override range's own lower bound and every
+	 * installed version against `minimum`.
 	 *
 	 * This is deliberately a small hand-maintained list, not a live advisory
-	 * feed: it records the reason these three overrides were written, which is
+	 * feed: it records the reason these overrides were written, which is
 	 * the thing that was missing when `@hono/node-server` was capped below its
 	 * own fix. A real API-backed gate is a separate, larger piece of work.
 	 */
 	const SECURITY_FLOORS: Record<string, { minimum: string; alerts: string }> = {
 		'fast-uri': {
-			minimum: '3.1.6',
-			alerts: '#97, #98, #118, #122, #123, #125, #126',
+			minimum: '3.1.8',
+			alerts: '#97, #98, #118, #122, #123, #125, #126, GHSA-hrr3-gc8f-f4qj',
 		},
 		postcss: { minimum: '8.5.23', alerts: '#113, #117' },
-		'brace-expansion': { minimum: '5.0.9', alerts: '#115, #116' },
+		'brace-expansion': {
+			minimum: '5.0.12',
+			alerts:
+				'#115, #116, GHSA-6j4f-fj2g-mc7p, GHSA-qhr7-859c-m2p7, GHSA-q2hr-2g5m-vwhr',
+		},
 		// The only floor that crosses a MAJOR its dependent did not ask for:
 		// `@prisma/config` pins `deepmerge-ts: "7.1.5"` exactly, and the fix for
 		// GHSA-ggr8-5vv4-36mx landed in 8.0.0 with no 7.x backport (7.1.6 exists
@@ -409,6 +415,19 @@ describe('pnpm.overrides', () => {
 		'%s stays at or above its advisory floor',
 		(name, { minimum, alerts }) => {
 			expect(overrides, `${name} override was removed`).toHaveProperty(name);
+
+			// The range's own lower bound — see the docblock above for why the
+			// installed-version loop below cannot catch a lowered range on its own.
+			// Only `^x.y.z`, `~x.y.z` and exact pins have a single readable floor.
+			expect(
+				overrides[name],
+				`${name} override must be ^x.y.z, ~x.y.z or an exact version for its floor to be checked`,
+			).toMatch(/^[~^]?\d+\.\d+\.\d+$/);
+			const rangeFloor = overrides[name].replace(/^[~^]/, '');
+			expect(
+				compareVersions(rangeFloor, minimum) >= 0,
+				`${name} override "${overrides[name]}" no longer guarantees the fix for ${alerts} (needs a floor >= ${minimum})`,
+			).toBe(true);
 
 			for (const version of installedVersions(name)) {
 				expect(

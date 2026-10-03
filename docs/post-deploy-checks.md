@@ -231,3 +231,33 @@ name different databases, and the production refusal of a missing or pooled
 URL are all unit-tested in `scripts/cli-database-url.test.ts`. The retry loop
 was exercised against a stubbed `pnpm` while this shipped: it retries only
 `Error: P1002`, at most three times, and fails immediately on anything else.
+
+## Sentry source maps after the `brace-expansion` raise
+
+Shipped in v0.43.3.0. The `brace-expansion` override moved from 5.0.9 to
+5.0.12, and that package sits under `@sentry/bundler-plugin-core` (through
+`glob` and `minimatch`), which finds the source map files to upload during
+`next build`. If the new version expands a file pattern differently, fewer
+files match and the build still passes. CI does not set `SENTRY_AUTH_TOKEN`,
+so no pull request check runs the upload.
+
+### 1. The production build log shows a normal upload
+
+In the build log of the first production deploy of v0.43.3.0, the Sentry
+plugin should report uploading source maps, with a file count close to the
+previous production deploy's. A `Didn't find any matching sources for debug
+ID upload` line means the patterns matched nothing. `next.config.ts` sets
+`silent: !process.env.CI`, so if the log has no Sentry lines at all, check
+the release's uploaded source maps in Sentry instead.
+
+### 2. A new production error shows original source
+
+Open the next production issue in Sentry. **Expect:** stack frames that name
+files under `src/`, not minified chunk names. Minified frames on a new release
+mean the upload missed files, even if the build log looked fine.
+
+### What is already covered automatically — do not re-check by hand
+
+The override's range and the installed version are pinned by
+`scripts/pnpm-overrides.test.ts`, and the CI `Security advisories` job runs
+`pnpm audit`. Neither runs the Sentry upload.
