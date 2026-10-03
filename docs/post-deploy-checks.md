@@ -261,3 +261,53 @@ mean the upload missed files, even if the build log looked fine.
 The override's range and the installed version are pinned by
 `scripts/pnpm-overrides.test.ts`, and the CI `Security advisories` job runs
 `pnpm audit`. Neither runs the Sentry upload.
+
+## Email sends after the v0.43.4.0 dependency bump
+
+Shipped in v0.43.4.0. Every email the app sends goes through `sendEmail()` in
+`src/server/lib/email.ts`, which calls Resend, and `resend` moved from 6.29.0
+to 6.32.0. CI sets no `RESEND_API_KEY` and tests must never drive
+`/api/auth/signin/email`, so no check before deploy makes a real send.
+
+`nodemailer` (10.0.12 to 10.0.14) is not on the send path. `src/server/auth.ts`
+gives `EmailProvider` its own `sendVerificationRequest`, so next-auth loads
+`nodemailer` but never calls it. next-auth 4.24.15 declares an optional
+`nodemailer` `^7.0.7` peer, and the app was already on 10.x before this release.
+
+### 1. A magic link arrives and signs you in
+
+Request a link at `/login` with an address you can read. **Expect:** the email
+arrives and the link signs you in. If it does not, search the Vercel runtime
+logs for `[sendEmail] Resend rejected the send` or `Failed to send magic link
+email`.
+
+### 2. New `SENT` rows still carry a Resend id
+
+```sql
+SELECT "createdAt", "subject", "resendId"
+FROM "EmailEvent"
+WHERE "eventType" = 'SENT' AND "createdAt" > '<deploy time>'
+ORDER BY "createdAt" DESC
+LIMIT 10;
+```
+
+**Expect:** a row for the step 1 email, and no null `resendId` on any row.
+`sendEmail` reads the id from `result.data.id`, so a null there means the
+client's response no longer has the shape the code reads. Compare against the
+Resend dashboard before trusting any count built on these rows.
+
+Also add one new volunteer from `/app/volunteers` and confirm the toast says
+"We let them know by email." That notice is sent inside `waitUntil` from
+`@vercel/functions` (3.9.9 to 3.9.11), as are the background-check disclosure
+email and the bulk CSV import job. A row for the magic link but none for this
+add points at `waitUntil`, not Resend.
+
+### What is already covered automatically — do not re-check by hand
+
+Unit tests mock both the Resend client and `waitUntil`, so they prove the
+callers, not the sends. Checked while this shipped: the `@vercel/functions`
+changelog lists only `@vercel/oidc` dependency updates for 3.9.10 and 3.9.11,
+and the package's root entry, which is all the app imports, does not load
+`@vercel/oidc`. The new `@vercel/oidc` 4.0.0 major is reachable only through
+the `@vercel/functions/oidc` subpath, which nothing in `src/` or `scripts/`
+uses.
