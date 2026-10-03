@@ -1,6 +1,6 @@
 {
 	"name": "volunteeermatch-app",
-	"version": "0.43.2.0",
+	"version": "0.43.3.0",
 	"private": true,
 	"engines": {
 		"node": "24.x"
@@ -123,13 +123,13 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"fast-uri": "^3.1.6",
+			"fast-uri": "^3.1.8",
 			"postcss": "^8.5.23",
 			"@babel/core": "^7.29.6",
 			"vite": "^7.3.5",
 			"esbuild": "^0.28.1",
 			"@opentelemetry/core": "^2.8.0",
-			"brace-expansion": "^5.0.9",
+			"brace-expansion": "^5.0.12",
 			"ws": "^8.21.0",
 			"uuid": "^11.1.1",
 			"deepmerge-ts": "^8.0.1",

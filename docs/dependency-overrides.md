@@ -62,12 +62,14 @@ appears; one is not enough to design against.
 
 ## The overrides
 
-### `fast-uri` — `^3.1.6`
+### `fast-uri` — `^3.1.8`
 
 Alerts #97, #98, #118 (**high**). Closed in [#189](https://github.com/thehashrocket/volunteerready.org/pull/189)
 (then `^3.1.5`); raised to `^3.1.6` for alerts #122, #123, #125, #126 (**high**)
 — host confusion / SSRF via percent-encoding and IPv6 normalization bugs, all
-fixed in 3.1.6.
+fixed in 3.1.6. Raised to `^3.1.8` for GHSA-hrr3-gc8f-f4qj (moderate,
+inconsistent host case normalization via percent-encoded octets), found by
+`pnpm audit` before GitHub raised a Dependabot alert for it.
 
 Needed an override of its own rather than riding along with the Prisma upgrade,
 because it arrives by **two independent paths** — `@prisma/streams-local` and
@@ -126,12 +128,15 @@ Alert #77. Closed in [#124](https://github.com/thehashrocket/volunteerready.org/
 in combination with a `@sentry/nextjs` bump to `^10.62.0` — the override alone
 would not have moved it, since the version comes in through Sentry's OTel stack.
 
-### `brace-expansion` — `^5.0.9`
+### `brace-expansion` — `^5.0.12`
 
 Introduced `^5.0.7` in [#151](https://github.com/thehashrocket/volunteerready.org/pull/151)
 (**high**, DoS via exponential-time `{}` expansion); raised to `^5.0.9` in
 [#189](https://github.com/thehashrocket/volunteerready.org/pull/189) for alerts
-#115 and #116. Reached via `minimatch` → `glob`, used by
+#115 and #116. Raised to `^5.0.12` for GHSA-6j4f-fj2g-mc7p and
+GHSA-qhr7-859c-m2p7 (**high**, stack exhaustion via recursive brace groups) and
+GHSA-q2hr-2g5m-vwhr (moderate, quadratic-time rewrite), found by `pnpm audit`
+before GitHub raised Dependabot alerts for them. Reached via `minimatch` → `glob`, used by
 `@storybook/react-vite` and `@sentry/bundler-plugin-core`.
 
 ### `ws` — `^8.21.0`
@@ -268,7 +273,7 @@ resolves identically with it deleted. **That is not a list of things to delete.*
 
 They resolve to patched versions only because a caret takes the newest match,
 and the ranges underneath them reach a long way down: `ajv` asks for `fast-uri:
-^3.0.1` against a 3.1.5 fix, `@babel/core` is requested as low as `^7.9.0`, and
+^3.0.1` against a 3.1.8 fix, `@babel/core` is requested as low as `^7.9.0`, and
 `postcss` as low as `^8.3.11`. Nothing in the tree *requires* a patched version;
 today's resolution is a coincidence of what happens to be newest, and the next
 lockfile churn is free to land elsewhere. The override is what converts that
@@ -284,9 +289,11 @@ The cost of keeping one is a line of JSON. **Dropping one is never silent** —
 mutation-verified: deleting ANY entry from `pnpm.overrides` turns
 `scripts/pnpm-overrides.test.ts` red, because the doc-sync check finds a
 `### \`name\`` section describing policy that is no longer in force, and the
-section-count self-check disagrees with the override count. The three carrying a
-`SECURITY_FLOORS` entry (`fast-uri`, `postcss`, `brace-expansion`) fail a third
-assertion on top.
+section-count self-check disagrees with the override count. The five carrying a
+`SECURITY_FLOORS` entry (`fast-uri`, `postcss`, `brace-expansion`,
+`deepmerge-ts`, `mysql2`) fail a third assertion on top, and that assertion also
+goes red if the override's range is *lowered* below the advisory floor while the
+lockfile still holds a patched copy.
 
 So the guard makes removal a **deliberate, multi-file act** — override, doc
 section, and the floor entry where one exists — rather than a one-line diff that
@@ -385,7 +392,10 @@ point delete this entry rather than carrying a dead ignore).
 2. Add a `### \`package-name\`` section here — the test matches on that heading.
 3. If it closes an advisory, add it to `SECURITY_FLOORS` in
    `scripts/pnpm-overrides.test.ts` with the advisory's first patched version,
-   so a later range change cannot silently drop below the fix.
+   so a later range change cannot silently drop below the fix. Write the
+   override as `^x.y.z`, `~x.y.z` or an exact version with a lower bound at or
+   above that floor: the test checks the range itself as well as the installed
+   versions, and refuses range forms it cannot read a floor from.
 
 ## Removing an override
 

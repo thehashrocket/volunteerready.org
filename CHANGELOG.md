@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.3.0] - 2026-10-03
+
+**Two dependency security updates. Nothing changes for anyone using the site.**
+
+`pnpm audit` flagged four advisories (two high, two moderate) in two packages
+we already pin, before GitHub had raised Dependabot alerts for them. The CI
+security gate would have failed the next pull request.
+
+### Fixed
+
+- `fast-uri` is held at 3.1.8 or later and `brace-expansion` at 5.0.12 or
+  later. Both arrive indirectly (form validation and the Sentry build plugin),
+  so the fix is a raised floor in `pnpm.overrides`, not a direct upgrade.
+  `pnpm audit` is clean again.
+
+### Changed
+
+- The override guard test now also fails when someone lowers a security
+  override's range while the lockfile still holds a patched copy, a case it
+  used to miss until a later reinstall pulled a vulnerable version back in.
+  Overrides with a security floor must be written as `^x.y.z`, `~x.y.z` or an
+  exact version, so the test can read the floor.
+- `docs/dependency-overrides.md` records both raises and the stricter guard,
+  and corrects two stale lines about the earlier floors.
+
 ## [0.43.2.0] - 2026-09-28
 
 **Claude Code loads the project instructions again. Nothing changes for anyone using the site.**

@@ -730,12 +730,13 @@ decide, M to actually migrate.
 (Opened v0.42.1.0, from the override audit.) `SECURITY_FLOORS` in
 `scripts/pnpm-overrides.test.ts` pins an override at or above its advisory's
 first patched version, which is the one property the other assertions cannot
-see: lowering `fast-uri` from `^3.1.5` to `^3.0.1` leaves 3.1.5 installed and
+see: lowering `fast-uri` from `^3.1.8` to `^3.1.6` leaves 3.1.8 installed and
 satisfying its own range, so every other check stays green while the guarantee
-is gone.
+is gone. Since v0.43.3.0 the floor entry checks the override range itself as
+well as the installed versions, so an entry now catches that lowering directly.
 
-Four overrides carry that entry — `fast-uri`, `postcss`, `brace-expansion`, and
-`deepmerge-ts` (added with the override itself in v0.42.2.0).
+Five overrides carry that entry — `fast-uri`, `postcss`, `brace-expansion`,
+`deepmerge-ts` (added with the override itself in v0.42.2.0), and `mysql2`.
 **Four do not: `@babel/core`, `@opentelemetry/core`, `ws`, `uuid`.** They
 predate the rule in the doc's "Adding an override" section. They are still
 guarded in the two ways every override is (the tree must contain the package,
