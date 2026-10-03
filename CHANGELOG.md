@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.4.0] - 2026-10-03
+
+**Routine dependency updates. Nothing changes for anyone using the site.**
+
+Sixteen packages move to their latest minor or patch release. The three
+pending major upgrades (`@sentry/nextjs` 11, `stripe` 23 and the Prisma 8
+release candidate) are left for their own changes.
+
+### Changed
+
+- App runtime: `next` 16.3.8, `@tanstack/react-query` 5.104.1,
+  `react-hook-form` 7.89.0, `lucide-react` 1.51.0, `pg` 8.23.1, `resend`
+  6.32.0, `nodemailer` 10.0.14 and `@vercel/functions` 3.9.11. That last one
+  brings `@vercel/oidc` 4.0.0 with it, a new major, which the app does not
+  call directly.
+- Tooling: Biome 2.5.15 (with the `biome.json` schema URL to match),
+  Storybook 10.6.1, Vitest 5.0.3, `dotenv` 18.0.5 and `@types/node` 26.6.4.
+- `docs/TODOS.md` records the unexplained image-loading hang one E2E run hit
+  on the previous release, with the steps to diagnose it if it happens again.
+
 ## [0.43.3.0] - 2026-10-03
 
 **Two dependency security updates. Nothing changes for anyone using the site.**
