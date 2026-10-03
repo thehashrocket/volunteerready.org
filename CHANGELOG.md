@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.7.0] - 2026-10-03
+
+**Error monitoring moves to Sentry 11. Nothing changes for anyone using the site.**
+
+`@sentry/nextjs` goes from 10 to 11. Sentry 11 removed the single privacy
+switch the app relied on and replaced it with per-category settings whose
+defaults collect more, so each runtime now states what it sends.
+
+### Changed
+
+- **`@sentry/nextjs` 10.74 → 11.4.** The config wrapper now comes from
+  `@sentry/nextjs/config`, and the `enableLogs` and `sendDefaultPii` options
+  (removed in 11) are gone. Spans are now streamed, Sentry 11's default.
+- **Server and edge error reports are narrower.** They carry no user details,
+  request or response bodies, database query data, queue arguments, local
+  variables or request cookies. IP-bearing and webhook signature headers are
+  filtered, and so are `email`, `code` and `state` query parameters.
+- **The edge runtime now scrubs error events** with the same `beforeSend` as the
+  Node server.
+- **The browser keeps its previous collection level**, now stated explicitly.
+
+### Removed
+
+- Three root-level Sentry files (`instrumentation.ts`,
+  `instrumentation.client.ts`, `sentry.client.config.ts`) that Next never
+  loaded. This closes the P3 TODO that recorded them as dead.
+- The `@opentelemetry/core` pnpm override. Sentry 11 no longer installs that
+  package.
+
+### Tests
+
+- `scripts/sentry-data-collection.test.ts` checks the options the server and
+  edge configs actually pass to `Sentry.init`, and that their `beforeSend`
+  scrubs credentials and cookies.
+
+### Docs
+
+- `docs/post-deploy-checks.md`: source-map upload, per-runtime delivery and
+  event contents after the upgrade.
+- `docs/TODOS.md`: a P2 for secrets in URLs that still reach Sentry (as they
+  did under Sentry 10), and a P3 for cron monitors, which have never covered
+  the App Router crons.
+
 ## [0.43.4.0] - 2026-10-03
 
 **Routine dependency updates. Nothing changes for anyone using the site.**
