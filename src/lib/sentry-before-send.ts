@@ -9,5 +9,11 @@ export function sentryBeforeSend(event: ErrorEvent): ErrorEvent {
 		delete event.request.headers['x-checkr-signature'];
 		delete event.request.headers['stripe-signature'];
 	}
+	// The request-data integration also parses the Cookie header into
+	// `request.cookies`, so deleting the header alone left the session token
+	// on the event.
+	if (event.request?.cookies) {
+		delete event.request.cookies;
+	}
 	return event;
 }

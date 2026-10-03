@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from '@sentry/nextjs';
+import { BROWSER_DATA_COLLECTION } from '@/lib/sentry-data-collection';
 
 Sentry.init({
 	dsn: 'https://fba2ea33a15f2a443b2aa02c3b899025@o4511061592834048.ingest.us.sentry.io/4511061594406912',
@@ -12,8 +13,6 @@ Sentry.init({
 
 	// Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
 	tracesSampleRate: 1,
-	// Enable logs to be sent to Sentry
-	enableLogs: true,
 
 	// Define how likely Replay events are sampled.
 	// This sets the sample rate to be 10%. You may want this to be 100% while
@@ -23,9 +22,9 @@ Sentry.init({
 	// Define how likely Replay events are sampled when an error occurs.
 	replaysOnErrorSampleRate: 1.0,
 
-	// Enable sending user PII (Personally Identifiable Information)
-	// https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-	sendDefaultPii: true,
+	// What the SDK collects (replaces v10's `sendDefaultPii: true`).
+	// See src/lib/sentry-data-collection.ts.
+	dataCollection: BROWSER_DATA_COLLECTION,
 
 	// Filter known browser extension and third-party noise.
 	// These patterns generate false-positive alerts that drown real errors.

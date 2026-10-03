@@ -262,6 +262,45 @@ The override's range and the installed version are pinned by
 `scripts/pnpm-overrides.test.ts`, and the CI `Security advisories` job runs
 `pnpm audit`. Neither runs the Sentry upload.
 
+## Sentry after the `@sentry/nextjs` 11 upgrade
+
+Shipped in v0.43.7.0. Sentry 11 replaced the upload tooling (`@sentry/cli` and
+`@sentry/bundler-plugin-core` gave way to `@sentry/bundler-plugins`, which
+loads the `sentry` CLI package in-process) and changed what each runtime
+collects. CI does not set `SENTRY_AUTH_TOKEN`, and no local harness sends to
+Sentry, so all four checks below need a production deploy.
+
+### 1. The production build log shows a normal upload
+
+Same check as the `brace-expansion` section above: the first production build
+of v0.43.7.0 should report a source-map upload with a file count close to the
+previous deploy's. A missing upload or a `Didn't find any matching sources`
+line means the new plugin is not uploading.
+
+### 2. A new production error shows original source
+
+**Expect:** stack frames naming files under `src/`, not minified chunk names.
+
+### 3. Server, edge and browser events all arrive
+
+Over the first day, Sentry should receive at least one event from each
+runtime. Browser events come through the `/monitoring` tunnel. A runtime
+going quiet that sent events before the upgrade means its init did not run.
+
+### 4. Server events carry no cookies or client IP
+
+Open any server or edge error event from the new release. **Expect:** no
+`request.cookies`, no `Cookie` or `Authorization` header, and IP-bearing
+headers such as `x-forwarded-for` shown as `[Filtered]`. Then open a trace and
+check the span volume against the Sentry quota: v11 streams spans, and the
+browser still samples every page view.
+
+### What is already covered automatically — do not re-check by hand
+
+`scripts/sentry-data-collection.test.ts` pins the server and edge
+`dataCollection` options and the `beforeSend` scrubbing as passed to
+`Sentry.init`. It cannot see what the SDK actually sends.
+
 ## Email sends after the v0.43.4.0 dependency bump
 
 Shipped in v0.43.4.0. Every email the app sends goes through `sendEmail()` in

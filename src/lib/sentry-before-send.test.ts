@@ -24,6 +24,22 @@ describe('sentryBeforeSend', () => {
 		expect(result.request?.headers?.['content-type']).toBe('application/json');
 	});
 
+	it('strips the parsed request cookies, not just the Cookie header', () => {
+		// The request-data integration parses the Cookie header into
+		// `request.cookies`; removing only the header left the session token on
+		// every server error event.
+		const event = {
+			request: {
+				headers: { cookie: 'next-auth.session-token=abc' },
+				cookies: { 'next-auth.session-token': 'abc' },
+			},
+		};
+		// biome-ignore lint/suspicious/noExplicitAny: test fixture — partial event object
+		const result = sentryBeforeSend(event as any);
+		expect(result.request?.cookies).toBeUndefined();
+		expect(result.request?.headers?.cookie).toBeUndefined();
+	});
+
 	it('handles event with no request headers gracefully', () => {
 		// biome-ignore lint/suspicious/noExplicitAny: test fixture — partial event object
 		expect(() => sentryBeforeSend({} as any)).not.toThrow();

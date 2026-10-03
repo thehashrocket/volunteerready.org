@@ -4,10 +4,15 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from '@sentry/nextjs';
+import { sentryBeforeSend } from './src/lib/sentry-before-send';
+import { SERVER_DATA_COLLECTION } from './src/lib/sentry-data-collection';
 
 Sentry.init({
 	dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 	tracesSampleRate: 0.1,
 	debug: false,
-	enableLogs: true,
+	dataCollection: SERVER_DATA_COLLECTION,
+	// Same scrubber as the Node server: strips Authorization, Cookie (header and
+	// parsed request.cookies) and webhook signature headers from error events.
+	beforeSend: sentryBeforeSend,
 });
