@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.6.0] - 2026-10-03
+
+**The Stripe library moves to version 23. Nothing changes for anyone using the site.**
+
+### Changed
+
+- `stripe` 22.6.2 to 23.0.0. Version 23 pins Stripe API version
+  `2026-09-30.endive`, so the billing service now sends its own calls
+  (customers, checkout, billing portal, event listing) at that version instead
+  of `2026-08-26.dahlia`. None of the 23.0.0 breaking changes reach the code:
+  checkout never sent `payment_method_types`, and webhook verification never
+  passed a tolerance, so the 5-minute replay window still applies.
+- A comment at the pin records that it covers outbound calls only. Stripe
+  sends webhooks at the API version set on the endpoint in the Stripe
+  dashboard, and lists past events at the version each was created with.
+
+### Added
+
+- A webhook test that runs the real route, the real billing service and the
+  real Stripe library against offline-signed payloads. Every earlier test
+  mocked the signature check away. It covers a valid event (accepted and
+  recorded), plus a tampered body, the wrong secret, a stale timestamp, a
+  missing signature and an unset `STRIPE_WEBHOOK_SECRET` (each refused with
+  400 and nothing recorded).
+
 ## [0.43.5.0] - 2026-10-03
 
 **A security exception that no longer applied is gone. Nothing changes for anyone using the site.**
