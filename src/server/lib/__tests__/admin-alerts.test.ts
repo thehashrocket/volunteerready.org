@@ -31,6 +31,7 @@ import {
 	sendNewCompanyAlert,
 	sendNewOrgAlert,
 	sendNewUserAlert,
+	sendUnknownStripePriceAlert,
 } from '@/server/lib/admin-alerts';
 
 // ---------------------------------------------------------------------------
@@ -445,5 +446,41 @@ describe('sendAdvisoryDispatchFailureAlert', () => {
 			expect.stringContaining('admin@example.com'),
 		);
 		errorSpy.mockRestore();
+	});
+});
+
+describe('sendUnknownStripePriceAlert', () => {
+	const input = {
+		priceId: 'price_123',
+		eventId: 'evt_1',
+		eventType: 'customer.subscription.updated',
+		customerId: 'cus_9',
+		priceEnvVars: ['STRIPE_PRICE_ID_STARTER', 'STRIPE_PRICE_ID_PRO'],
+	};
+
+	it('sends to all admin recipients, critical', async () => {
+		mockGetAdminEmails.mockResolvedValue([
+			'admin@example.com',
+			'ops@example.com',
+		]);
+
+		await sendUnknownStripePriceAlert(input);
+
+		expect(mockSendEmail).toHaveBeenCalledTimes(2);
+		expect(mockSendEmail.mock.calls[0][3]).toEqual({ isCritical: true });
+	});
+
+	it('names the price, the event and the env vars to check', async () => {
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+
+		await sendUnknownStripePriceAlert(input);
+
+		expect(mockSendEmail.mock.calls[0][1]).toContain('Stripe price');
+		const html = mockSendEmail.mock.calls[0][2] as string;
+		expect(html).toContain('price_123');
+		expect(html).toContain('evt_1');
+		expect(html).toContain('cus_9');
+		expect(html).toContain('STRIPE_PRICE_ID_STARTER');
+		expect(html).toContain('STRIPE_PRICE_ID_PRO');
 	});
 });

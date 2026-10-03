@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.9.0] - 2026-10-03
+
+**Billing problems that used to fail silently now tell someone. Nothing changes for anyone using the site.**
+
+Two follow-ups from the 0.43.8.0 billing fix.
+
+### Changed
+
+- **A Stripe price the app cannot map now alerts the platform admins.** This
+  is usually a missing or wrong `STRIPE_PRICE_ID_*` env var, or a customer on
+  an older price. The webhook still answers 500, so Stripe keeps retrying for
+  up to three days and the plan catches up on its own once the price maps. Now
+  an email names the price, the event and the Stripe customer, so someone
+  knows to fix it. It goes out for events under an hour old, so a retry days
+  later does not email again. Every delivery is also logged under
+  `[billing] unknown-stripe-price`, which stays visible if the email cannot
+  be sent.
+- **A webhook whose signature does not verify is now logged** (never the
+  request body). If every delivery fails, the log points at
+  `STRIPE_WEBHOOK_SECRET`. There is no email for this: anyone can send an
+  unsigned request to the endpoint.
+- The webhook route comment no longer claims Stripe skips retries on a 400;
+  it retries any non-2xx response.
+
+### Tests
+
+- The alert fires for a fresh unknown-price event and not for an old retry
+  or any other failure. The error is still rethrown, and the tagged log line
+  is written on every delivery. The alert names the price, event, customer
+  and env vars and is sent as critical. The signature warning never contains
+  the request body. Each was checked by reverting it and watching a test fail.
+
+### Docs
+
+- `docs/post-deploy-checks.md`: the webhook troubleshooting paragraph names
+  the new log lines and the alert email.
+- `docs/TODOS.md`: the two follow-ups are closed.
+
 ## [0.43.8.0] - 2026-10-03
 
 **Paid plans now always match what the organization is actually paying for in Stripe.**

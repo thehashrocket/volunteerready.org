@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import Stripe from 'stripe';
 import type { PlanTier, Prisma } from '@/prisma/generated/client';
 import { PLAN_TIER_RANK } from '@/server/domain/billing';
+import { sendUnknownStripePriceAlert } from '@/server/lib/admin-alerts';
 import { writeAuditLogTx } from '../repositories/auditRepo';
 import {
 	findCompanyByStripeCustomerId,
@@ -67,11 +68,24 @@ function getPriceIdForTier(tier: 'STARTER' | 'PRO'): string {
 	return id;
 }
 
+class UnknownStripePriceError extends Error {
+	constructor(readonly priceId: string) {
+		super(`Unknown Stripe price ID: ${priceId}`);
+	}
+}
+
 function mapPriceIdToTier(priceId: string): PlanTier {
 	const entry = Object.entries(PRICE_MAP).find(([, id]) => id === priceId);
-	if (!entry) throw new Error(`Unknown Stripe price ID: ${priceId}`);
+	if (!entry) throw new UnknownStripePriceError(priceId);
 	return entry[0] as PlanTier;
 }
+
+// Stripe retries a failed event for up to three days, sending the same event
+// again each time. Alert only while the event is fresh, so a retry days later
+// does not email again. This limits alerts per event, not per price: a wrong
+// STRIPE_PRICE_ID_* fails every fresh event on that tier, and each can be
+// delivered more than once in its first hour, so expect several emails.
+const UNKNOWN_PRICE_ALERT_WINDOW_SECONDS = 60 * 60;
 
 // ---------------------------------------------------------------------------
 // Resolve entity (org or company) by Stripe customer ID.
@@ -364,7 +378,36 @@ export async function handleStripeWebhookEvent(
 		STRIPE_WEBHOOK_SECRET,
 	);
 
-	await processStripeEvent(event);
+	try {
+		await processStripeEvent(event);
+	} catch (e) {
+		// Still thrown: the 500 makes Stripe retry, and the retry succeeds once
+		// the price mapping is fixed. The alert is what gets it fixed.
+		if (e instanceof UnknownStripePriceError) {
+			// Logged on every delivery, with a stable tag to search for, so the
+			// failure stays visible even if the alert email could not be sent.
+			console.error(
+				`[billing] unknown-stripe-price ${e.priceId} on event ${event.id}`,
+			);
+			if (
+				Date.now() / 1000 - event.created <
+				UNKNOWN_PRICE_ALERT_WINDOW_SECONDS
+			) {
+				const subject = event.data.object as { customer?: unknown };
+				await sendUnknownStripePriceAlert({
+					priceId: e.priceId,
+					eventId: event.id,
+					eventType: event.type,
+					customerId:
+						typeof subject.customer === 'string' ? subject.customer : null,
+					priceEnvVars: Object.keys(PRICE_MAP).map(
+						(tier) => `STRIPE_PRICE_ID_${tier}`,
+					),
+				});
+			}
+		}
+		throw e;
+	}
 }
 
 // ---------------------------------------------------------------------------
