@@ -134,11 +134,6 @@
 			"uuid": "^11.1.1",
 			"deepmerge-ts": "^8.0.1",
 			"mysql2": "^3.22.0"
-		},
-		"auditConfig": {
-			"ignoreGhsas": [
-				"GHSA-f88m-g3jw-g9cj"
-			]
 		}
 	}
 }
