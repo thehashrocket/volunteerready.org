@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import Stripe from 'stripe';
 import type { PlanTier, Prisma } from '@/prisma/generated/client';
+import { PLAN_TIER_RANK } from '@/server/domain/billing';
 import { writeAuditLogTx } from '../repositories/auditRepo';
 import {
 	findCompanyByStripeCustomerId,
@@ -8,7 +9,9 @@ import {
 	updateCompanyPlanTx,
 } from '../repositories/companyRepo';
 import {
+	claimOrgStripeCustomerId,
 	findOrgByStripeCustomerId,
+	findOrgStripeCustomerId,
 	findOrgWithOwnerEmail,
 	updateOrgPlanTx,
 } from '../repositories/orgRepo';
@@ -20,6 +23,7 @@ import {
 } from '../repositories/send-billing-emails';
 import {
 	isWebhookEventProcessed,
+	lockStripeCustomerTx,
 	markWebhookEventProcessedTx,
 } from '../repositories/webhookRepo';
 
@@ -76,12 +80,97 @@ function mapPriceIdToTier(priceId: string): PlanTier {
 
 async function resolveEntityByCustomerId(customerId: string) {
 	const org = await findOrgByStripeCustomerId(customerId);
-	if (org) return { type: 'org' as const, id: org.id };
+	if (org) return { type: 'org' as const, ...org };
 
 	const company = await findCompanyByStripeCustomerId(customerId);
-	if (company) return { type: 'company' as const, id: company.id };
+	if (company) return { type: 'company' as const, ...company };
 
 	return null;
+}
+
+// ---------------------------------------------------------------------------
+// Subscription state
+//
+// past_due keeps the paid tier: Stripe is still retrying the card, and its
+// retry schedule ends by moving the subscription to unpaid or canceled, which
+// drop the tier. That ending is a dashboard setting (Billing → Revenue
+// recovery → "If all retries fail"); set to leave the subscription past_due,
+// a card that never pays would keep the tier. See docs/post-deploy-checks.md.
+// incomplete, incomplete_expired, unpaid, paused and canceled grant nothing.
+// ---------------------------------------------------------------------------
+
+const ENTITLED_STATUSES: ReadonlySet<Stripe.Subscription.Status> = new Set([
+	'active',
+	'trialing',
+	'past_due',
+]);
+
+// Stripe calls made while a webhook or checkout waits fail fast, so a slow
+// Stripe API turns into a 500 that Stripe retries rather than a hung function.
+const FAIL_FAST: Stripe.RequestOptions = {
+	timeout: 10_000,
+	maxNetworkRetries: 1,
+};
+
+// A customer can hold more than one live subscription (one left over from an
+// earlier plan, or two checkouts that raced), so the tier is decided per
+// customer, never per event: Stripe does not guarantee event order, and
+// reconciliation replays newest first, so no single event's snapshot can be
+// trusted. Without a status filter Stripe lists every subscription except
+// canceled ones; any failure throws, the webhook answers 500 and Stripe
+// retries the event.
+async function listLiveSubscriptions(
+	customerId: string,
+): Promise<Stripe.Subscription[]> {
+	return getStripe()
+		.subscriptions.list({ customer: customerId, limit: 100 }, FAIL_FAST)
+		.autoPagingToArray({ limit: 1000 });
+}
+
+async function listEntitledSubscriptions(
+	customerId: string,
+): Promise<Stripe.Subscription[]> {
+	const subscriptions = await listLiveSubscriptions(customerId);
+	return subscriptions.filter((s) => ENTITLED_STATUSES.has(s.status));
+}
+
+// A new checkout is allowed only beside subscriptions that can never bill
+// again. Every other status blocks it, including an unpaid, paused or
+// incomplete one that grants nothing today: paying its open invoice turns it
+// active (an incomplete one within 23 hours), and the customer would be billed
+// twice. Listing the final statuses rather than the blocking ones means a
+// status Stripe adds later blocks checkout instead of slipping through.
+const FINAL_STATUSES: ReadonlySet<Stripe.Subscription.Status> = new Set([
+	'canceled',
+	'incomplete_expired',
+]);
+
+type Entitlement = {
+	tier: PlanTier;
+	subscription: Stripe.Subscription | null;
+};
+
+// The best paying subscription decides the tier: highest tier first, then the
+// newest. Returns null when a paying subscription has no price to map.
+function pickEntitlement(
+	subscriptions: Stripe.Subscription[],
+): Entitlement | null {
+	let best: Entitlement = { tier: 'FREE', subscription: null };
+	for (const subscription of subscriptions) {
+		const priceId = subscription.items.data[0]?.price.id;
+		if (!priceId) return null;
+		const tier = mapPriceIdToTier(priceId);
+		const rank = PLAN_TIER_RANK[tier] - PLAN_TIER_RANK[best.tier];
+		if (
+			rank > 0 ||
+			(rank === 0 &&
+				best.subscription !== null &&
+				subscription.created > best.subscription.created)
+		) {
+			best = { tier, subscription };
+		}
+	}
+	return best;
 }
 
 // Record a webhook event outside of a transaction (for cases where there's no
@@ -150,22 +239,83 @@ export async function createCheckoutSession(opts: {
 			email: opts.email,
 			metadata: { orgId: opts.orgId },
 		});
-		customerId = customer.id;
 
-		// Persist immediately so next checkout attempt reuses the customer
-		await prisma.organization.update({
-			where: { id: opts.orgId },
-			data: { stripeCustomerId: customerId },
-		});
+		// Two first checkouts can race here. Only one customer may be stored:
+		// a payment against the other would never be matched to this org.
+		if (await claimOrgStripeCustomerId(opts.orgId, customer.id)) {
+			customerId = customer.id;
+		} else {
+			await getStripe()
+				.customers.del(customer.id)
+				.catch((e: unknown) =>
+					console.error(
+						`[billing] Failed to delete duplicate Stripe customer ${customer.id}`,
+						e,
+					),
+				);
+			customerId = await findOrgStripeCustomerId(opts.orgId);
+			if (!customerId) {
+				throw new Error(
+					`Org ${opts.orgId} lost the Stripe customer claim but has none stored`,
+				);
+			}
+		}
 	}
+	const lockedCustomerId = customerId;
 
-	const session = await getStripe().checkout.sessions.create({
-		customer: customerId,
-		line_items: [{ price: getPriceIdForTier(opts.tier), quantity: 1 }],
-		mode: 'subscription',
-		success_url: opts.successUrl,
-		cancel_url: opts.cancelUrl,
-	});
+	// Expire, check and create under the customer's lock, so two checkouts for
+	// one org run one after the other: the second sees the first's session and
+	// expires it, and only one can ever be paid.
+	const session = await prisma.$transaction(
+		async (tx) => {
+			await lockStripeCustomerTx(tx, lockedCustomerId);
+
+			// Expire first, then check. An abandoned checkout stays open for 24
+			// hours and can still be paid, even in another tab while this runs. Once
+			// every open session is expired no new subscription can appear for this
+			// customer, so the check below sees anything paid until now. A session
+			// completed just before its expire either fails the expire (the checkout
+			// fails; the user retries) or has already left the open list, and its
+			// subscription is then in the list below.
+			const openSessions = await getStripe()
+				.checkout.sessions.list(
+					{ customer: lockedCustomerId, status: 'open', limit: 100 },
+					FAIL_FAST,
+				)
+				.autoPagingToArray({ limit: 1000 });
+			await Promise.all(
+				openSessions.map((s) =>
+					getStripe().checkout.sessions.expire(s.id, {}, FAIL_FAST),
+				),
+			);
+
+			// A second checkout would start a second subscription billed alongside
+			// the first. Paying orgs change plans in the billing portal, which swaps
+			// the price on the existing subscription. A subscription that is not
+			// paying (unpaid, paused, incomplete) cannot always be fixed from the
+			// portal, so the message also points to support.
+			const live = await listLiveSubscriptions(lockedCustomerId);
+			if (live.some((s) => !FINAL_STATUSES.has(s.status))) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message:
+						'This organization already has a subscription, or a payment for one is still pending. Use Manage subscription to change plans, or contact support.',
+				});
+			}
+
+			return getStripe().checkout.sessions.create(
+				{
+					customer: lockedCustomerId,
+					line_items: [{ price: getPriceIdForTier(opts.tier), quantity: 1 }],
+					mode: 'subscription',
+					success_url: opts.successUrl,
+					cancel_url: opts.cancelUrl,
+				},
+				FAIL_FAST,
+			);
+		},
+		{ timeout: 30_000 },
+	);
 
 	return { checkoutUrl: session.url };
 }
@@ -236,139 +386,108 @@ export async function processStripeEvent(
 
 	switch (event.type) {
 		case 'customer.subscription.created':
-		case 'customer.subscription.updated': {
-			const subscription = event.data.object as Stripe.Subscription;
-			const customerId = subscription.customer as string;
-			const priceId = subscription.items.data[0]?.price.id;
+		case 'customer.subscription.updated':
+		case 'customer.subscription.deleted':
+		case 'customer.subscription.paused':
+		case 'customer.subscription.resumed': {
+			const eventSubscription = event.data.object as Stripe.Subscription;
+			const customerId = eventSubscription.customer as string;
 
-			if (!priceId) {
+			const entity = await resolveEntityByCustomerId(customerId);
+			if (!entity) {
 				console.warn(
-					`[billing] No price ID on subscription ${subscription.id}`,
+					`[billing] Unknown Stripe customer ${customerId} — skipping`,
+				);
+				await recordEvent(event);
+				return { action: 'skipped_unknown_customer' };
+			}
+
+			// Lock, list and write in one transaction: see lockStripeCustomerTx.
+			// The timeout covers waiting for the lock plus this transaction's own
+			// Stripe call. Only a slow Stripe API behind a burst of events for one
+			// customer exceeds it; the webhook then answers 500 and Stripe retries.
+			const entitlement = await prisma.$transaction(
+				async (tx) => {
+					await lockStripeCustomerTx(tx, customerId);
+					const picked = pickEntitlement(
+						await listEntitledSubscriptions(customerId),
+					);
+					if (!picked) return null;
+
+					const planUpdate = {
+						planTier: picked.tier,
+						stripeSubscriptionId: picked.subscription?.id ?? null,
+					};
+					const auditAction = picked.subscription
+						? 'PLAN_UPDATED'
+						: 'PLAN_DOWNGRADED';
+					const metadata = {
+						planTier: picked.tier,
+						stripeEventId: event.id,
+						subscriptionStatus: picked.subscription?.status ?? 'none',
+					};
+
+					await markWebhookEventProcessedTx(tx, {
+						stripeId: event.id,
+						type: event.type,
+						payload: JSON.parse(JSON.stringify(event)) as Prisma.InputJsonValue,
+					});
+
+					if (entity.type === 'org') {
+						await updateOrgPlanTx(tx, entity.id, planUpdate);
+						await writeAuditLogTx(tx, {
+							orgId: entity.id,
+							action: auditAction,
+							entityType: 'Organization',
+							entityId: entity.id,
+							metadata,
+						});
+					} else {
+						await updateCompanyPlanTx(tx, entity.id, planUpdate);
+						await writeAuditLogTx(tx, {
+							companyId: entity.id,
+							action: auditAction,
+							entityType: 'CompanyAccount',
+							entityId: entity.id,
+							metadata,
+						});
+					}
+					return picked;
+				},
+				{ timeout: 30_000 },
+			);
+
+			if (!entitlement) {
+				console.warn(
+					`[billing] A paying subscription for customer ${customerId} has no price`,
 				);
 				await recordEvent(event);
 				return { action: 'skipped_no_price' };
 			}
-
-			const entity = await resolveEntityByCustomerId(customerId);
-			if (!entity) {
-				console.warn(
-					`[billing] Unknown Stripe customer ${customerId} — skipping`,
-				);
-				await recordEvent(event);
-				return { action: 'skipped_unknown_customer' };
-			}
-
-			const newTier = mapPriceIdToTier(priceId);
-
-			await prisma.$transaction(async (tx) => {
-				await markWebhookEventProcessedTx(tx, {
-					stripeId: event.id,
-					type: event.type,
-					payload: JSON.parse(JSON.stringify(event)) as Prisma.InputJsonValue,
-				});
-
-				if (entity.type === 'org') {
-					await updateOrgPlanTx(tx, entity.id, {
-						planTier: newTier,
-						stripeSubscriptionId: subscription.id,
-					});
-					await writeAuditLogTx(tx, {
-						orgId: entity.id,
-						action: 'PLAN_UPDATED',
-						entityType: 'Organization',
-						entityId: entity.id,
-						metadata: { planTier: newTier, stripeEventId: event.id },
-					});
-				} else {
-					await updateCompanyPlanTx(tx, entity.id, {
-						planTier: newTier,
-						stripeSubscriptionId: subscription.id,
-					});
-					await writeAuditLogTx(tx, {
-						companyId: entity.id,
-						action: 'PLAN_UPDATED',
-						entityType: 'CompanyAccount',
-						entityId: entity.id,
-						metadata: { planTier: newTier, stripeEventId: event.id },
-					});
-				}
-			});
-
-			if (!skipEmails && event.type === 'customer.subscription.created') {
-				await trySendBillingEmail(
-					entity,
-					(opts) => sendPlanUpgradeEmail({ ...opts, tier: newTier }),
-					'upgrade',
-				);
-			}
-			return { action: 'plan_updated' };
-		}
-
-		case 'customer.subscription.deleted': {
-			const subscription = event.data.object as Stripe.Subscription;
-			const customerId = subscription.customer as string;
-
-			const entity = await resolveEntityByCustomerId(customerId);
-			if (!entity) {
-				console.warn(
-					`[billing] Unknown Stripe customer ${customerId} — skipping`,
-				);
-				await recordEvent(event);
-				return { action: 'skipped_unknown_customer' };
-			}
-
-			const priceId = subscription.items.data[0]?.price.id;
-			let previousTier: PlanTier = 'STARTER';
-			if (priceId) {
-				try {
-					previousTier = mapPriceIdToTier(priceId);
-				} catch {
-					// Unknown price — fall back to STARTER for email display
-				}
-			}
-
-			await prisma.$transaction(async (tx) => {
-				await markWebhookEventProcessedTx(tx, {
-					stripeId: event.id,
-					type: event.type,
-					payload: JSON.parse(JSON.stringify(event)) as Prisma.InputJsonValue,
-				});
-
-				if (entity.type === 'org') {
-					await updateOrgPlanTx(tx, entity.id, {
-						planTier: 'FREE',
-						stripeSubscriptionId: null,
-					});
-					await writeAuditLogTx(tx, {
-						orgId: entity.id,
-						action: 'PLAN_DOWNGRADED',
-						entityType: 'Organization',
-						entityId: entity.id,
-						metadata: { planTier: 'FREE', stripeEventId: event.id },
-					});
-				} else {
-					await updateCompanyPlanTx(tx, entity.id, {
-						planTier: 'FREE',
-						stripeSubscriptionId: null,
-					});
-					await writeAuditLogTx(tx, {
-						companyId: entity.id,
-						action: 'PLAN_DOWNGRADED',
-						entityType: 'CompanyAccount',
-						entityId: entity.id,
-						metadata: { planTier: 'FREE', stripeEventId: event.id },
-					});
-				}
-			});
+			const newTier = entitlement.tier;
+			const entitled = entitlement.subscription !== null;
 
 			if (!skipEmails) {
-				await trySendBillingEmail(
-					entity,
-					(opts) => sendCancellationEmail({ ...opts, previousTier }),
-					'cancellation',
-				);
+				const previousTier = entity.planTier;
+				if (previousTier === 'FREE' && newTier !== 'FREE') {
+					await trySendBillingEmail(
+						entity,
+						(opts) => sendPlanUpgradeEmail({ ...opts, tier: newTier }),
+						'upgrade',
+					);
+				} else if (
+					event.type === 'customer.subscription.deleted' &&
+					previousTier !== 'FREE' &&
+					newTier === 'FREE'
+				) {
+					await trySendBillingEmail(
+						entity,
+						(opts) => sendCancellationEmail({ ...opts, previousTier }),
+						'cancellation',
+					);
+				}
 			}
-			return { action: 'plan_downgraded' };
+			return { action: entitled ? 'plan_updated' : 'plan_downgraded' };
 		}
 
 		case 'invoice.payment_failed': {

@@ -59,10 +59,10 @@ export function getPlanLimits(tier: PlanTier): PlanLimits {
 }
 
 // ---------------------------------------------------------------------------
-// Plan tier ordering — used by assertPlanAtLeast
+// Plan tier ordering — used by assertPlanAtLeast and billingService
 // ---------------------------------------------------------------------------
 
-const PLAN_TIER_RANK: Record<PlanTier, number> = {
+export const PLAN_TIER_RANK: Record<PlanTier, number> = {
 	FREE: 0,
 	STARTER: 1,
 	PRO: 2,

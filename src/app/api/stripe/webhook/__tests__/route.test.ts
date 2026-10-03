@@ -1,6 +1,5 @@
 import Stripe from 'stripe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Prisma } from '@/prisma/generated/client';
 
 // ---------------------------------------------------------------------------
 // Do NOT mock `stripe` here — the route handler only uses
@@ -23,6 +22,7 @@ vi.mock('next/headers', () => ({
 }));
 
 import * as billingService from '@/server/services/billingService';
+import { p2002Error } from '@/test/prisma-error-fixtures';
 import { POST } from '../route';
 
 /**
@@ -82,12 +82,8 @@ describe('POST /api/stripe/webhook', () => {
 	});
 
 	it('returns 200 { received: true, duplicate: true } for P2002 duplicate event', async () => {
-		const dupError = new Prisma.PrismaClientKnownRequestError(
-			'Unique constraint failed on the fields: (`stripeId`)',
-			{ code: 'P2002', clientVersion: '7.0.0' },
-		);
 		vi.mocked(billingService.handleStripeWebhookEvent).mockRejectedValueOnce(
-			dupError,
+			p2002Error('StripeWebhookEvent_stripeId_key'),
 		);
 
 		const req = new Request('http://localhost/', {
@@ -99,6 +95,22 @@ describe('POST /api/stripe/webhook', () => {
 		// Stripe receives 200 — we already processed this event; not an error.
 		expect(res.status).toBe(200);
 		expect(await res.json()).toEqual({ received: true, duplicate: true });
+	});
+
+	it('returns 500 for a unique violation on any other constraint, so Stripe retries', async () => {
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+		vi.mocked(billingService.handleStripeWebhookEvent).mockRejectedValueOnce(
+			p2002Error('Organization_stripeSubscriptionId_key'),
+		);
+
+		const res = await POST(
+			new Request('http://localhost/', { method: 'POST', body: 'raw-body' }),
+		);
+
+		expect(res.status).toBe(500);
+		consoleError.mockRestore();
 	});
 
 	// -------------------------------------------------------------------------

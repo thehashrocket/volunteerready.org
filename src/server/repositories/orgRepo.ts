@@ -88,8 +88,38 @@ export async function getOrgPlanTier(orgId: string): Promise<PlanTier> {
 export async function findOrgByStripeCustomerId(stripeCustomerId: string) {
 	return prisma.organization.findUnique({
 		where: { stripeCustomerId },
-		select: { id: true, planTier: true, stripeCustomerId: true },
+		select: {
+			id: true,
+			planTier: true,
+			stripeCustomerId: true,
+			stripeSubscriptionId: true,
+		},
 	});
+}
+
+/**
+ * Stores the org's Stripe customer only if it has none yet. Returns false when
+ * a concurrent checkout stored one first, so the caller can use that one.
+ */
+export async function claimOrgStripeCustomerId(
+	orgId: string,
+	stripeCustomerId: string,
+): Promise<boolean> {
+	const { count } = await prisma.organization.updateMany({
+		where: { id: orgId, stripeCustomerId: null },
+		data: { stripeCustomerId },
+	});
+	return count === 1;
+}
+
+export async function findOrgStripeCustomerId(
+	orgId: string,
+): Promise<string | null> {
+	const org = await prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { stripeCustomerId: true },
+	});
+	return org?.stripeCustomerId ?? null;
 }
 
 export async function findOrgWithOwnerEmail(orgId: string) {

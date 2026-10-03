@@ -37,7 +37,12 @@ export async function findCompanyBySlug(slug: string) {
 export async function findCompanyByStripeCustomerId(stripeCustomerId: string) {
 	return prisma.companyAccount.findUnique({
 		where: { stripeCustomerId },
-		select: { id: true, planTier: true, stripeCustomerId: true },
+		select: {
+			id: true,
+			planTier: true,
+			stripeCustomerId: true,
+			stripeSubscriptionId: true,
+		},
 	});
 }
 

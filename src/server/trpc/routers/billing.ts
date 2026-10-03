@@ -31,12 +31,14 @@ export const billingRouter = createTRPCRouter({
 				planTier: true,
 				trialEndsAt: true,
 				stripeCustomerId: true,
+				stripeSubscriptionId: true,
 			},
 		});
 		return {
 			planTier: org.planTier,
 			trialEndsAt: org.trialEndsAt,
 			hasStripeCustomer: org.stripeCustomerId !== null,
+			hasSubscription: org.stripeSubscriptionId !== null,
 		};
 	}),
 
