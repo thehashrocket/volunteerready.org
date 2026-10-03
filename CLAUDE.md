@@ -354,9 +354,9 @@ Available gstack skills:
 
 ## LLMs documentation
 
-- Prisma 7.9.1: <https://www.prisma.io/llms.txt>
-- Next.js 16.3.0: <https://nextjs.org/docs/llms-full.txt> (version-matched copies also ship at `node_modules/next/dist/docs/`, which is what `AGENTS.md`'s generated block points agents at)
-- React 19.2.8: <https://react.dev/reference/react>
+- Prisma 7.10.0: <https://www.prisma.io/llms.txt>
+- Next.js 16.3.8: <https://nextjs.org/docs/llms-full.txt> (version-matched copies also ship at `node_modules/next/dist/docs/`, which is what `AGENTS.md`'s generated block points agents at)
+- React 19.3.0: <https://react.dev/reference/react>
 - Shadcn UI: <https://ui.shadcn.com/llms.txt>
 
 ## Skill routing

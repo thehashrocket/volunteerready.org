@@ -5,6 +5,43 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the dependency-floor ship (2026-10-03, v0.43.3.0)
+
+### [P3] `/_next/image` requests on `/` hung once on a CI runner, cause unknown
+
+**What happened.** The first CI run of PR #246 failed two E2E tests in
+`e2e/public-pages.spec.ts`, both on `/`, on all three attempts:
+
+- `all marketing images on / render with natural size` (`image 1 on / never
+  loaded pixels`).
+- `/ issues zero /api/version requests` (`page.waitForLoadState: Test timeout
+  of 60000ms exceeded`).
+
+The Playwright trace shows why. `dashboard.png` (1080w, `priority`) returned
+200, but `screener.png`, `credentials.png` and `impact-report.png` (all 640w,
+through `/_next/image`) were requested and never answered: status `-1`, no
+response, and nothing in the `[WebServer]` log. The second test waits for
+`networkidle`, so it hung on the same three requests.
+
+**Why it was not the PR.** That PR changed only `fast-uri` and
+`brace-expansion`, and Next's image optimizer uses neither. A re-run of the
+same commit passed 76/76. Both tests passed locally against `pnpm dev`, and
+`main` had passed the same unchanged tests five days earlier.
+
+**Unconfirmed theory.** If the dev-mode optimizer shares one in-flight request
+per image URL, a single stuck request would make every later request for the
+same URL wait on it. That fits all three retries failing against one server
+while other pages' images loaded. It is not verified.
+
+**Next time it fails.** Download the `playwright-report` artifact, unzip the
+retry's `trace.zip`, and list `/_next/image` requests in `*.network` with
+`response.status == -1`. If the same three URLs hang again, the cause is the
+optimizer, not the test. Re-running the job is a workaround, not a fix.
+**Effort:** S to diagnose once it recurs | **Priority:** P3 | **Depends on:** a
+second occurrence
+
+---
+
 ## Opened by the credential-expiry-notice ship (2026-08-07, v0.42.0.0)
 
 The feature was scaffolded twice before and wired up neither time: the
