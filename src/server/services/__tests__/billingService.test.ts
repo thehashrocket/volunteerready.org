@@ -80,6 +80,10 @@ vi.mock('@/server/repositories/send-billing-emails', () => ({
 	sendCancellationEmail: vi.fn(async () => {}),
 }));
 
+vi.mock('@/server/lib/admin-alerts', () => ({
+	sendUnknownStripePriceAlert: vi.fn(async () => {}),
+}));
+
 vi.mock('@/server/repositories/prisma', () => ({
 	prisma: {
 		organization: {
@@ -98,6 +102,7 @@ vi.mock('@/server/repositories/prisma', () => ({
 	},
 }));
 
+import * as adminAlerts from '@/server/lib/admin-alerts';
 import * as auditRepo from '@/server/repositories/auditRepo';
 import * as companyRepo from '@/server/repositories/companyRepo';
 import * as orgRepo from '@/server/repositories/orgRepo';
@@ -1385,5 +1390,80 @@ describe('the per-customer lock spans the whole transaction', () => {
 			'subscriptions.list',
 			'sessions.create',
 		]);
+	});
+});
+
+describe('a webhook for a price the app does not know', () => {
+	const nowSeconds = () => Math.floor(Date.now() / 1000);
+	let errorSpy: ReturnType<typeof vi.spyOn>;
+
+	afterEach(() => {
+		errorSpy.mockRestore();
+	});
+
+	beforeEach(() => {
+		errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		vi.clearAllMocks();
+		resetSubscriptions();
+		process.env.STRIPE_PRICE_ID_STARTER = 'price_starter';
+		process.env.STRIPE_PRICE_ID_PRO = 'price_pro';
+		vi.mocked(orgRepo.findOrgByStripeCustomerId).mockResolvedValueOnce({
+			id: 'org-1',
+			planTier: 'FREE',
+			stripeCustomerId: 'cus_1',
+			stripeSubscriptionId: null,
+		});
+	});
+
+	function deliver(created: number) {
+		mockStripe.webhooks.constructEvent.mockReturnValueOnce({
+			...subscriptionEvent('evt_price', 'customer.subscription.updated'),
+			created,
+		});
+		return handleStripeWebhookEvent(Buffer.from(''), 'sig');
+	}
+
+	it('alerts the admins and still fails, so Stripe retries once it is fixed', async () => {
+		mockSubscriptions(stripeSub('sub_1', 'active', 'price_unknown'));
+
+		await expect(deliver(nowSeconds())).rejects.toThrow('price_unknown');
+
+		expect(adminAlerts.sendUnknownStripePriceAlert).toHaveBeenCalledWith({
+			priceId: 'price_unknown',
+			eventId: 'evt_price',
+			eventType: 'customer.subscription.updated',
+			customerId: 'cus_1',
+			priceEnvVars: ['STRIPE_PRICE_ID_STARTER', 'STRIPE_PRICE_ID_PRO'],
+		});
+		expect(errorSpy).toHaveBeenCalledWith(
+			expect.stringContaining('[billing] unknown-stripe-price price_unknown'),
+		);
+		expect(orgRepo.updateOrgPlanTx).not.toHaveBeenCalled();
+	});
+
+	it('does not alert again for a retry of an event over an hour old', async () => {
+		mockSubscriptions(stripeSub('sub_1', 'active', 'price_unknown'));
+
+		await expect(deliver(nowSeconds() - 2 * 60 * 60)).rejects.toThrow(
+			'price_unknown',
+		);
+
+		expect(adminAlerts.sendUnknownStripePriceAlert).not.toHaveBeenCalled();
+		// Still logged, so the failure is visible after the alert window.
+		expect(errorSpy).toHaveBeenCalledWith(
+			expect.stringContaining('[billing] unknown-stripe-price'),
+		);
+	});
+
+	it('does not alert for any other failure', async () => {
+		mockStripe.subscriptions.list.mockReturnValueOnce({
+			autoPagingToArray: async () => {
+				throw new Error('Stripe is down');
+			},
+		});
+
+		await expect(deliver(nowSeconds())).rejects.toThrow('Stripe is down');
+
+		expect(adminAlerts.sendUnknownStripePriceAlert).not.toHaveBeenCalled();
 	});
 });

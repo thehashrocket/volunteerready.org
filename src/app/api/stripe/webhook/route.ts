@@ -8,7 +8,10 @@ import { handleStripeWebhookEvent } from '@/server/services/billingService';
  * Stripe webhook handler.
  *
  * Three-way error routing:
- *   - Invalid signature  → 400 (Stripe does NOT retry 4xx)
+ *   - Invalid signature  → 400, logged without the payload. Stripe retries any
+ *     non-2xx for up to three days, so a rotated or mistyped
+ *     STRIPE_WEBHOOK_SECRET fails every delivery until the log is noticed.
+ *     No email alert: anyone can send an unsigned request here.
  *   - Duplicate event    → 200 (P2002 on the stripeId UNIQUE only — already processed)
  *   - Any other error    → 500 (Stripe retries until success)
  *
@@ -24,6 +27,9 @@ export async function POST(req: Request) {
 		return NextResponse.json({ received: true });
 	} catch (err) {
 		if (err instanceof Stripe.errors.StripeSignatureVerificationError) {
+			console.warn(
+				'[stripe-webhook] Rejected a request whose signature did not verify. If every delivery fails, check STRIPE_WEBHOOK_SECRET against the endpoint signing secret.',
+			);
 			return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
 		}
 

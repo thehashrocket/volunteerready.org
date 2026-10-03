@@ -216,3 +216,38 @@ export async function sendAdvisoryDispatchFailureAlert(
 	`;
 	await sendAdminAlert(subject, html, { isCritical: true });
 }
+
+/**
+ * A Stripe webhook names a price that `PRICE_MAP` in billingService.ts does not
+ * know, usually a `STRIPE_PRICE_ID_*` env var that is missing or points at a
+ * different price. The webhook keeps answering 500, so Stripe retries the
+ * event for up to three days and the plan catches up on its own once the
+ * mapping is fixed. Nothing else would tell anyone it needs fixing. Critical,
+ * like the other operational alerts, so bounce suppression cannot swallow it.
+ */
+export async function sendUnknownStripePriceAlert(input: {
+	priceId: string;
+	eventId: string;
+	eventType: string;
+	customerId: string | null;
+	/** The env vars that map prices to tiers, from billingService's PRICE_MAP. */
+	priceEnvVars: string[];
+}): Promise<void> {
+	const subject = '[Billing] Stripe price not recognised by the app';
+	const html = `
+		<p>A Stripe webhook refers to a price the app cannot map to a plan, so the
+		organization's or company's plan was not updated. Stripe will keep
+		retrying the event for up to three days.</p>
+		<table style="border-collapse: collapse; margin: 16px 0;">
+			<tr><td style="padding: 4px 8px;"><strong>Price:</strong></td><td style="padding: 4px 8px;">${escapeHtml(input.priceId)}</td></tr>
+			<tr><td style="padding: 4px 8px;"><strong>Event:</strong></td><td style="padding: 4px 8px;">${escapeHtml(input.eventId)} (${escapeHtml(input.eventType)})</td></tr>
+			<tr><td style="padding: 4px 8px;"><strong>Stripe customer:</strong></td><td style="padding: 4px 8px;">${escapeHtml(input.customerId ?? 'unknown')}</td></tr>
+		</table>
+		<p>If many customers are affected, check that ${input.priceEnvVars.map((v) => `<code>${escapeHtml(v)}</code>`).join(' and ')}
+		are set in this environment and match the prices in the Stripe dashboard.
+		If it is one customer, their subscription may be on an older price. Once
+		the price maps to a plan, the next retry applies it. After three days,
+		replay the event from the Stripe reconcile on /app/admin/health.</p>
+	`;
+	await sendAdminAlert(subject, html, { isCritical: true });
+}

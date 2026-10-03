@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Do NOT mock `stripe` here — the route handler only uses
@@ -66,6 +66,8 @@ describe('POST /api/stripe/webhook', () => {
 	});
 
 	it('returns 400 { error: "Invalid signature" } for bad Stripe signature', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		onTestFinished(() => warn.mockRestore());
 		vi.mocked(billingService.handleStripeWebhookEvent).mockRejectedValueOnce(
 			makeStripeSignatureError(),
 		);
@@ -76,9 +78,29 @@ describe('POST /api/stripe/webhook', () => {
 		});
 		const res = await POST(req);
 
-		// Stripe does NOT retry 4xx — return 400 to reject invalid requests.
 		expect(res.status).toBe(400);
 		expect(await res.json()).toEqual({ error: 'Invalid signature' });
+	});
+
+	it('logs a signature failure without the request body', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		onTestFinished(() => warn.mockRestore());
+		vi.mocked(billingService.handleStripeWebhookEvent).mockRejectedValueOnce(
+			makeStripeSignatureError(),
+		);
+
+		await POST(
+			new Request('http://localhost/', {
+				method: 'POST',
+				body: 'secret-payload-body',
+			}),
+		);
+
+		expect(warn).toHaveBeenCalledTimes(1);
+		const logged = JSON.stringify(warn.mock.calls[0]);
+		expect(logged).toContain('[stripe-webhook]');
+		expect(logged).toContain('signature');
+		expect(logged).not.toContain('secret-payload-body');
 	});
 
 	it('returns 200 { received: true, duplicate: true } for P2002 duplicate event', async () => {
