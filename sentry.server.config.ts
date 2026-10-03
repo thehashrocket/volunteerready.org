@@ -4,12 +4,13 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { sentryBeforeSend } from './src/lib/sentry-before-send';
+import { SERVER_DATA_COLLECTION } from './src/lib/sentry-data-collection';
 
 Sentry.init({
 	dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 	tracesSampleRate: 0.1,
 	debug: false,
-	enableLogs: true,
+	dataCollection: SERVER_DATA_COLLECTION,
 	// NO global `sampleRate` here, deliberately. A uniform 0.25 was tried and
 	// reverted: it applies per-EVENT across the whole Node client, so it discards
 	// three quarters of a signal that fires once a year exactly as readily as
@@ -26,7 +27,7 @@ Sentry.init({
 	// errors without discarding them, whereas Dedupe drops them outright — so two
 	// tenants hitting the same fault back to back became one event and every
 	// "N occurrences in M minutes" alert silently under-counted.
-	// beforeSend scrubs sensitive headers (Authorization, Cookie, webhook signatures)
-	// before events are sent to Sentry — prevents PII leakage from Checkr/Stripe webhooks
+	// beforeSend scrubs Authorization, Cookie (header and parsed request.cookies)
+	// and webhook signature headers from error events before they are sent.
 	beforeSend: sentryBeforeSend,
 });
