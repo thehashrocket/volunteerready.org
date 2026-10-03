@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.5.0] - 2026-10-03
+
+**A security exception that no longer applied is gone. Nothing changes for anyone using the site.**
+
+The dependency audit had been told to skip one image-processing advisory
+because the fixed version was out of reach. The app has been on a fixed version
+for a while now, so the exception was only hiding the check.
+
+### Removed
+
+- The `pnpm audit` ignore for GHSA-f88m-g3jw-g9cj. `sharp` resolves to 0.35.5,
+  past the 0.35.0 fix, and both `pnpm audit` and the CI advisory gate pass
+  without it. No advisory is ignored now.
+
+### Changed
+
+- `docs/dependency-overrides.md`, the comments in
+  `scripts/next-config-images.test.ts` and the pull request template no longer
+  describe the advisory as dismissed. The image-config test keeps all five of
+  its checks: allowing remote image origins would still let `sharp` process
+  bytes we did not write, so a future image advisory could become reachable.
+- The pull request template pointed at a test file that does not exist. It now
+  names `scripts/next-config-images.test.ts`.
+
 ## [0.43.4.0] - 2026-10-03
 
 **Routine dependency updates. Nothing changes for anyone using the site.**
