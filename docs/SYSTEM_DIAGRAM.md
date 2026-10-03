@@ -464,9 +464,11 @@ sequenceDiagram
 
     Note over ST: User completes payment
 
-    ST->>W: POST webhook (subscription.created)
-    W->>B: processWebhookEvent
-    B->>DB: Update org planTier
+    ST->>W: POST webhook (customer.subscription.*)
+    W->>B: processStripeEvent
+    B->>ST: GET /v1/subscriptions?customer=…
+    ST-->>B: Customer's live subscriptions
+    B->>DB: Update org planTier (best paying subscription)
     B->>DB: Write AuditLog + StripeWebhookEvent
     B->>P: Send billing lifecycle email (fire-and-forget)
     W-->>ST: 200 OK

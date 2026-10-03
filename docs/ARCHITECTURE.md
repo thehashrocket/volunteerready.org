@@ -159,7 +159,7 @@ Key services:
 - `orgAnalyticsService.ts` — org engagement dashboard (funnel, retention, fill rate, top volunteers)
 - `backgroundCheckService.ts` — provider-agnostic background check lifecycle (Checkr + Sterling), FCRA workflow, token encryption; shared `initiateProviderCheck` and `handleProviderWebhookEvent` with injected adapters
 - `credentialShareService.ts` — credential sharing: generate, claim, revoke, shareAllOnApply
-- `billingService.ts` — Stripe integration, plan management, billing lifecycle emails (upgrade, payment failed, cancellation)
+- `billingService.ts` — Stripe integration, plan management (per-customer tier from all of a customer's subscriptions; see "Stripe (Billing)" below), billing lifecycle emails (upgrade, payment failed, cancellation)
 - `credential-expiry-service.ts` — daily credential and share token expiry (Vercel Cron); takes `now` from the route so it and the notifier below cannot disagree about the clock
 - `credential-expiry-notice-service.ts` — warns an org's OWNER/ADMINs 30 days before a volunteer credential lapses (Vercel Cron, daily — the fourth branch of `expire-credentials`). One summary per org per recipient, in-app + email through `notify()`, gated on each person's own `CREDENTIAL_EXPIRY` preference. Capped by **org** rather than by credential, because the email enumerates a bundle and reads as complete — a credential-keyed cap silently truncates whichever org straddles it. Orgs with no OWNER/ADMIN and suspended orgs are excluded at the query, since a row that can never be stamped re-enters the priority queue nightly and eats the cap. `notifiedAt` and its audit row are written in one transaction, and only when nobody failed
 - `shift-auto-close-service.ts` — hourly auto-completion of expired shifts (atomic updateMany guard, per-record try/catch)
@@ -494,8 +494,10 @@ All auth-change events use `writeAuditLogTx` inside the same transaction as the 
 ## Stripe (Billing)
 
 - Checkout sessions and billing portal via tRPC
-- Webhook handler at `/api/stripe/webhook` (signature verification, idempotency via `StripeWebhookEvent`)
-- Plan tier updates on subscription events
+- Webhook handler at `/api/stripe/webhook` (signature verification, idempotency via `StripeWebhookEvent`). Only a unique violation on `StripeWebhookEvent_stripeId_key` is answered as a duplicate (200); any other error is a 500 so Stripe retries
+- Plan tier is decided per Stripe customer, never per event: every `customer.subscription.{created,updated,deleted,paused,resumed}` event lists the customer's subscriptions from Stripe, and the best paying one (`active`, `trialing`, `past_due`; highest tier, then newest) sets `planTier` and `stripeSubscriptionId`; none means FREE
+- Webhook plan writes and `createCheckoutSession` both run inside a transaction holding `lockStripeCustomerTx()` (`webhookRepo.ts`), a per-customer `pg_advisory_xact_lock`, so two writers for one customer apply one after the other
+- Checkout expires the customer's open Checkout Sessions, then refuses unless every subscription is `canceled` or `incomplete_expired`. A paying org changes plans in the Stripe billing portal, which swaps the price on its one subscription; `/app/billing` hides the upgrade buttons when `hasSubscription` is true. Dashboard settings this depends on: `docs/post-deploy-checks.md`
 
 ## Background Checks (Checkr + Sterling)
 

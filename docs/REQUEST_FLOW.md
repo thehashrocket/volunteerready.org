@@ -274,6 +274,24 @@ When a background check returns CONSIDER, staff may initiate the FCRA process.
 
 ---
 
+# Billing / Checkout Flow
+
+```
+billing.createCheckoutSession (org staff, /app/billing)
+    -> no Stripe customer yet: create one, store it only if none is stored
+       (conditional update); a request that loses the race deletes its own
+    -> in one transaction, under the same per-customer advisory lock as the
+       webhook:
+        -> expire the customer's open Checkout Sessions (first, so none can
+           be paid while the check below runs)
+        -> refuse unless every subscription is canceled or incomplete_expired
+           (anything else could still bill; plan changes go through the
+           Stripe billing portal)
+        -> create the new Checkout Session
+```
+
+---
+
 # Billing / Stripe Webhook Flow
 
 ```
@@ -281,9 +299,16 @@ Stripe POST /api/stripe/webhook
     -> Verify signature (constructEvent)
     -> Check idempotency (StripeWebhookEvent)
     -> Route by event type:
-        customer.subscription.created -> update org plan tier + send upgrade email
-        customer.subscription.updated -> update org plan tier (no email)
-        customer.subscription.deleted -> downgrade to FREE + send cancellation email
+        customer.subscription.{created,updated,deleted,paused,resumed}
+            -> in one transaction: take a per-customer advisory lock, so two
+               events for one customer apply one after the other
+            -> list the customer's subscriptions from Stripe (the event's own
+               snapshot is never trusted: Stripe does not guarantee order)
+            -> best paying one (active, trialing, past_due; highest tier, then
+               newest) sets the tier and stripeSubscriptionId; none -> FREE
+            -> upgrade email when FREE becomes paid; cancellation email only
+               when a .deleted event drops a paid tier
+            -> a Stripe failure answers 500 and Stripe retries the event
         invoice.payment_failed -> send payment failed email
     -> Write AuditLog
     -> Return 200

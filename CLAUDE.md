@@ -177,6 +177,7 @@ docs/
 - **`ctx.session.user.email` is NOT the effective user's address** under impersonation. Resolve from the id with `findEmailByUserId()`; don't add email parameters to identity-bound functions
 - Claimable-application decline (`declineApplicationForUser()`) is terminal, enforced in both the listing and the claim `where`
 - Unique-violation narrowing: `isUniqueViolationOn(err, constraint)` (`src/server/lib/prisma-errors.ts`) — Prisma 7 + PrismaPg doesn't populate `meta.target`. Fixture: `src/test/prisma-error-fixtures.ts`
+- **Stripe plan tier is per customer, not per event**: every plan write and checkout runs under `lockStripeCustomerTx()` (`webhookRepo.ts`); paying orgs switch plans in the billing portal, never a second checkout. Detail: `docs/ARCHITECTURE.md` "Stripe (Billing)"
 - Audit actor helpers: `effectiveUserId(ctx)` / `impersonatedBy(ctx)` (`src/server/trpc/audit-actor.ts`) — never stamp `ctx.realUserId` without comparing it to the effective user
 
 **Roster** (full rules: `docs/conventions/roster.md` — read before touching any roster, shift-assignment or leave path):

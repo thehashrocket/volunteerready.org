@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { Prisma } from '@/prisma/generated/client';
+import { isUniqueViolationOn } from '@/server/lib/prisma-errors';
 import { handleStripeWebhookEvent } from '@/server/services/billingService';
 
 /**
@@ -9,7 +9,7 @@ import { handleStripeWebhookEvent } from '@/server/services/billingService';
  *
  * Three-way error routing:
  *   - Invalid signature  → 400 (Stripe does NOT retry 4xx)
- *   - Duplicate event    → 200 (P2002 on stripeId UNIQUE — already processed)
+ *   - Duplicate event    → 200 (P2002 on the stripeId UNIQUE only — already processed)
  *   - Any other error    → 500 (Stripe retries until success)
  *
  * CRITICAL: rawBody must be read via arrayBuffer() BEFORE any json() call.
@@ -27,11 +27,10 @@ export async function POST(req: Request) {
 			return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
 		}
 
-		if (
-			err instanceof Prisma.PrismaClientKnownRequestError &&
-			err.code === 'P2002'
-		) {
-			// Duplicate event — already processed, not an error
+		// Only the event-id constraint means "already processed". A unique
+		// violation anywhere else in the transaction is a real failure: answer
+		// 500 so Stripe retries instead of dropping the event.
+		if (isUniqueViolationOn(err, 'StripeWebhookEvent_stripeId_key')) {
 			return NextResponse.json({ received: true, duplicate: true });
 		}
 

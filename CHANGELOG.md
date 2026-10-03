@@ -2,6 +2,68 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.8.0] - 2026-10-03
+
+**Paid plans now always match what the organization is actually paying for in Stripe.**
+
+Found while reviewing the `stripe` 23 upgrade (#249). The plan tier was taken
+from each webhook's own copy of the subscription, so the tier could end up
+wrong whenever Stripe events arrived out of order, a subscription stopped
+paying, or an organization held more than one subscription. Nobody was on a
+paid plan when this shipped, so no existing plan needed correcting.
+
+### Fixed
+
+- **The plan comes from every subscription the customer holds.** Each
+  subscription event lists the customer's subscriptions from Stripe and applies
+  the best paying one (active, trialing or past due; highest tier, then
+  newest). Anything else, including unpaid, paused and incomplete, means Free.
+  Event order no longer matters, for live webhooks or the admin reconcile tool.
+- **Paused and resumed subscriptions now change the plan.** Stripe's
+  `customer.subscription.paused` and `.resumed` events were previously ignored.
+- **Two events for one customer apply one after the other**, under a
+  per-customer database lock, so an older Stripe listing can never overwrite a
+  newer one.
+- **A paying organization can no longer start a second subscription.** The
+  billing page sends it to Manage subscription to change plans, and checkout
+  refuses while any subscription could still bill. Checkout also expires the
+  customer's other open checkout pages first, and runs under the same lock, so
+  two checkouts at once cannot both be paid.
+- **Two first checkouts at once store one Stripe customer**, not two; the
+  request that loses the race deletes the customer it created.
+- **Only a repeated event counts as a duplicate webhook.** Any other database
+  conflict now answers 500, so Stripe retries instead of dropping the event.
+
+### Changed
+
+- The upgrade email goes out whenever a Free organization reaches a paid tier,
+  from any subscription event, and the cancellation email only when a
+  cancellation actually drops a paid tier.
+- Stripe calls on the webhook and checkout paths time out after 10 seconds, so
+  a slow Stripe API turns into a retry rather than a hung request.
+
+### Tests
+
+- `billingService.test.ts` covers every subscription status, stale and
+  concurrent events, several subscriptions on one customer, paused and resumed
+  events, the checkout refusals (including an unknown future status), session
+  expiry and the lock ordering. Each fix was checked by reverting it and
+  watching a test fail.
+- Two integration tests run against Postgres: the first-checkout customer
+  claim, and the per-customer lock (a second transaction for the same customer
+  waits; another customer's does not).
+
+### Docs
+
+- `docs/post-deploy-checks.md`: the three Stripe dashboard settings this
+  depends on (portal plan switching and cancelling; the webhook endpoint
+  sending paused and resumed events; failed-payment retries ending in cancel or
+  unpaid), and test-mode checks for checkout, plan switching and cancellation.
+- `docs/ARCHITECTURE.md` and `CLAUDE.md` record the per-customer tier rule and
+  the `lockStripeCustomerTx()` lock.
+- `docs/REQUEST_FLOW.md` and `docs/SYSTEM_DIAGRAM.md` describe the new checkout
+  and webhook flows. `docs/TODOS.md` records four smaller follow-ups.
+
 ## [0.43.7.0] - 2026-10-03
 
 **Error monitoring moves to Sentry 11. Nothing changes for anyone using the site.**

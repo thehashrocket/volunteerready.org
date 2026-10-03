@@ -421,3 +421,71 @@ nothing recorded. It makes no network call, so it cannot show that Stripe
 accepts the new API version or what version the endpoint sends.
 `route.test.ts` and `src/server/services/__tests__/billingService.test.ts`
 mock Stripe entirely.
+
+
+## Plan tiers after the billing-correctness fix
+
+Shipped in v0.43.8.0. Every `customer.subscription.*` event for a known org or
+company now lists the customer's subscriptions from Stripe and applies the best
+paying one: `active`, `trialing` and `past_due` count, highest tier first, then
+newest; none means FREE. Paying orgs no longer see checkout buttons: they
+change plans in the Stripe billing portal, and checkout refuses an org that
+already pays. Tests mock Stripe, so the real list call, the portal and a real
+status sequence are only seen after deploy.
+
+### 1. Three Stripe dashboard settings this now depends on
+
+Check all three in **test and live mode**:
+
+1. **Billing → Customer portal → Subscriptions → "Customers can switch
+   plans"** is on, with the Starter and Pro prices listed, and **"Customers
+   can cancel subscriptions"** is on. Without switching, a paying org has no
+   way to change plans: the app no longer offers them a checkout. Without
+   cancelling, an org stuck on an unpaid subscription cannot clear it to
+   check out again.
+2. **Developers → Webhooks → the endpoint for `/api/stripe/webhook`** sends
+   `customer.subscription.paused` and `customer.subscription.resumed` as well
+   as `.created`, `.updated` and `.deleted`. Without them a pause keeps the paid
+   tier and a resume leaves the org on Free until some other subscription event
+   arrives (the admin reconcile on `/app/admin/health` replays them too).
+3. **Billing → Revenue recovery → "If all retries for a payment fail"** is set
+   to cancel the subscription or mark it unpaid, not to leave it past due.
+   `past_due` keeps the paid tier while Stripe retries the card; left past due
+   forever, a card that never pays would keep the plan forever.
+
+### 2. A test-mode checkout grants the plan once payment completes
+
+On a deployment with a test-mode `STRIPE_SECRET_KEY`, run the checkout in
+"Checkout and the billing portal open in test mode" above. **Expect:** the
+webhook deliveries return 200, the `/app/billing` badge shows the new plan, the
+upgrade buttons are gone and the page says to switch plans through Manage
+subscription. The latest `PLAN_UPDATED` `AuditLog` row for the org has
+`"subscriptionStatus": "active"` in its `metadata`. One upgrade email should
+arrive. Two would mean Stripe's `created` and `updated` deliveries were
+processed at the same moment, each seeing the org still on Free.
+
+### 3. Switching plans in the portal keeps one subscription
+
+Press `Manage subscription` and switch from Starter to Pro. **Expect:** the
+badge shows Pro, and the Stripe customer still has exactly one active
+subscription.
+
+### 4. A cancellation drops the plan and stays dropped
+
+Cancel that subscription immediately from the Stripe dashboard. **Expect:** the
+badge returns to Free and a `PLAN_DOWNGRADED` row has
+`"subscriptionStatus": "none"`. Then run the platform admin reconcile on
+`/app/admin/health` over the last hour. **Expect:** the badge is still Free.
+
+A 500 on these deliveries with a Stripe error in the logs means the list call
+failed; Stripe retries it, so the tier catches up once Stripe answers.
+
+### What is already covered automatically — do not re-check by hand
+
+`src/server/services/__tests__/billingService.test.ts` covers each status, a
+stale event after a cancellation, two live subscriptions (a cancelled one
+beside a paid one, a renewing lower tier beside a higher one, a same-tier
+tie), the refused second checkout and the concurrent first-checkout race,
+against a mocked Stripe. `orgStripeCustomerClaim.integration.test.ts` runs the
+customer claim against Postgres, and `stripeCustomerLock.integration.test.ts`
+shows two transactions for one customer never overlap.

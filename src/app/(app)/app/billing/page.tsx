@@ -63,9 +63,12 @@ export default function BillingPage() {
 	const currentTier = status?.planTier ?? 'FREE';
 	const trialActive = isWithinTrial(status?.trialEndsAt ?? null);
 
-	const UPGRADE_TIERS = (['STARTER', 'PRO'] as const).filter(
-		(t) => t !== currentTier,
-	);
+	// A paying org changes plans in the billing portal, which swaps the price
+	// on its subscription. Checkout here would start a second subscription.
+	const hasSubscription = status?.hasSubscription ?? false;
+	const UPGRADE_TIERS = hasSubscription
+		? []
+		: (['STARTER', 'PRO'] as const).filter((t) => t !== currentTier);
 
 	return (
 		<div className="max-w-2xl space-y-8">
@@ -91,6 +94,11 @@ export default function BillingPage() {
 						)}
 					</CardTitle>
 				</CardHeader>
+				{hasSubscription && (
+					<CardContent className="text-sm text-muted-foreground">
+						To switch plans, open Manage subscription.
+					</CardContent>
+				)}
 				{status?.hasStripeCustomer && (
 					<CardFooter>
 						<Button
