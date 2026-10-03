@@ -122,12 +122,6 @@ test encodes that; treating it as "any 0.x" was a real bug in an early draft.
 — `vite@5.4.21` depends on `esbuild@0.21.5`, which is below the `>=0.25.0` fix
 for GHSA-67mh-4wv8-2f99. Retiring it depends on vitepress 2, not on esbuild.
 
-### `@opentelemetry/core` — `^2.8.0`
-
-Alert #77. Closed in [#124](https://github.com/thehashrocket/volunteerready.org/pull/124),
-in combination with a `@sentry/nextjs` bump to `^10.62.0` — the override alone
-would not have moved it, since the version comes in through Sentry's OTel stack.
-
 ### `brace-expansion` — `^5.0.12`
 
 Introduced `^5.0.7` in [#151](https://github.com/thehashrocket/volunteerready.org/pull/151)
@@ -137,7 +131,8 @@ Introduced `^5.0.7` in [#151](https://github.com/thehashrocket/volunteerready.or
 GHSA-qhr7-859c-m2p7 (**high**, stack exhaustion via recursive brace groups) and
 GHSA-q2hr-2g5m-vwhr (moderate, quadratic-time rewrite), found by `pnpm audit`
 before GitHub raised Dependabot alerts for them. Reached via `minimatch` → `glob`, used by
-`@storybook/react-vite` and `@sentry/bundler-plugin-core`.
+`@storybook/react-vite` and `@sentry/bundler-plugins` (`@sentry/bundler-plugin-core`
+before the `@sentry/nextjs` 11 upgrade).
 
 ### `ws` — `^8.21.0`
 
@@ -304,13 +299,20 @@ override is retired when its **reason** expires (the package leaves the tree, or
 its dependents' declared ranges rise above the fix), never because a resolve
 came back unchanged.
 
-**Four overrides carry no `SECURITY_FLOORS` entry** — `@babel/core`,
-`@opentelemetry/core`, `ws`, `uuid` — because they predate the rule in
+**Three overrides carry no `SECURITY_FLOORS` entry** — `@babel/core`, `ws`,
+`uuid` — because they predate the rule in
 [Adding an override](#adding-an-override). They are still guarded in the two
 ways above; what they lack is the assertion that pins the *advisory's* first
 patched version, so a later range change could drop below the fix while staying
 green. Adding them needs each advisory's patched version looked up rather than
 guessed; tracked rather than done here.
+
+`@opentelemetry/core` (alert #77, closed in
+[#124](https://github.com/thehashrocket/volunteerready.org/pull/124)) was
+retired in the `@sentry/nextjs` 11 upgrade for the plainer of the two reasons:
+it left the tree. Sentry 11 no longer depends on `@opentelemetry/core` (it keeps
+only `@opentelemetry/api`), and Sentry was the only thing that installed it, and the guard's "still present in the
+dependency tree" check went red as designed.
 
 `@types/pg` was retired under exactly that rule — not because the tree came back
 unchanged, but because it was never a security floor and its stated reason had
