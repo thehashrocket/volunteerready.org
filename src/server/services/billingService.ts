@@ -34,7 +34,10 @@ function getStripe(): Stripe {
 	if (!_stripe) {
 		const key = process.env.STRIPE_SECRET_KEY;
 		if (!key) throw new Error('STRIPE_SECRET_KEY is not set');
-		_stripe = new Stripe(key, { apiVersion: '2026-08-26.dahlia' });
+		// Pins the shape of OUTBOUND calls only. Webhook payloads arrive at the
+		// API version set on the endpoint in the Stripe dashboard, and
+		// events.list returns each event at the version it was created with.
+		_stripe = new Stripe(key, { apiVersion: '2026-09-30.endive' });
 	}
 	return _stripe;
 }
