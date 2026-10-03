@@ -406,7 +406,11 @@ LIMIT 10;
    deletion) carries that `stripeEventId` in its `metadata`.
 
 A 400 means the signature check failed: compare `STRIPE_WEBHOOK_SECRET` with
-the endpoint's signing secret. A 500 means processing threw; search the Vercel
+the endpoint's signing secret. Each one logs `[stripe-webhook] Rejected a
+request whose signature did not verify`. A 500 from a price the app cannot map
+logs `[billing] unknown-stripe-price <price> on event <id>` on every delivery,
+and for events under an hour old the platform admins get a "[Billing] Stripe
+price not recognised by the app" email naming the price and the customer. A 500 means processing threw; search the Vercel
 runtime logs for `[stripe-webhook] Unhandled error`. Stripe retries a 500, so
 the event is not lost, but the plan tier stays stale until it succeeds.
 

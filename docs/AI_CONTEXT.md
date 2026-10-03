@@ -174,7 +174,7 @@ src/
 │   │   │                           it resolves with { data: null, error }), so read the result;
 │   │   │                           a try/catch alone is dead on the likeliest failure
 │   │   ├── html.ts               # escapeHtml() — shared XSS escape for server-rendered HTML (email + consent pages)
-│   │   ├── admin-alerts.ts       # sendNewUserAlert / sendNewOrgAlert / sendNewCompanyAlert / sendImpersonationStartAlert — fire-and-forget admin emails
+│   │   ├── admin-alerts.ts       # sendNewUserAlert / sendNewOrgAlert / sendNewCompanyAlert / sendImpersonationStartAlert / sendAdvisoryDispatchFailureAlert / sendUnknownStripePriceAlert — admin emails that never throw
 │   │   ├── admin-recipients.ts   # getAdminEmails() — resolves admin recipients from PLATFORM_ADMIN_ALERT_EMAIL env var or DB isPlatformAdmin flag; 5-min cache
 │   │   └── rate-limit.ts         # Upstash Redis rate limiting (lazy singleton, fail-open)
 │   └── domain/                   # Pure types + functions + tests

@@ -12,9 +12,12 @@ fixed in v0.43.8.0 (subscription status ignored, out-of-order events, duplicate
 customers on concurrent checkout). That fix's own review also closed a fourth:
 a paying org could start a second subscription from `/app/billing` (and two
 checkouts at once could start two). Its adversarial review closed a fifth: any
-unique violation in the webhook was answered as a duplicate. None of the four
-below grants or drops a plan wrongly, so they were left for their own changes. All are in
-`src/app/api/stripe/webhook/route.ts` or `src/server/services/billingService.ts`.
+unique violation in the webhook was answered as a duplicate. Neither of the two
+below grants or drops a plan wrongly, so they were left for their own changes.
+Two more (an unknown price ID retrying silently, and unlogged signature
+failures) were closed by the webhook-alerting follow-up: an unknown price now
+alerts the platform admins while Stripe keeps retrying, and a bad signature is
+logged.
 
 ### [P3] Unpaid, paused or incomplete orgs see upgrade buttons that always refuse
 
@@ -27,23 +30,6 @@ incomplete one. **Fix:** stamp the live non-paying subscription (id or status)
 in the webhook transaction and have `getBillingStatus` report the same
 predicate as checkout's `FINAL_STATUSES` check, with copy that says what to do
 for each status. **Effort:** S | **Priority:** P3 | **Depends on:** —
-
-### [P3] An unknown price ID makes Stripe retry the event for days
-
-`mapPriceIdToTier()` throws on a price that is not in `PRICE_MAP` (a price
-created in the dashboard, or a missing `STRIPE_PRICE_ID_*` env var). The
-webhook answers 500 and Stripe retries the same event for up to three days, and
-every retry fails the same way. **Fix:** record the event, log it loudly (an
-admin alert), and answer 200, so the event is kept for reconciliation once the
-mapping is fixed. **Effort:** S | **Priority:** P3 | **Depends on:** —
-
-### [P3] Signature failures are not logged, and the route comment is wrong
-
-`route.ts` returns 400 on `StripeSignatureVerificationError` without logging,
-so a rotated or mistyped `STRIPE_WEBHOOK_SECRET` shows up only in Stripe's
-delivery log. Its header comment also says Stripe does not retry 4xx; Stripe
-retries any non-2xx response. **Fix:** log a warning (no payload) on the 400
-and correct the comment. **Effort:** S | **Priority:** P3 | **Depends on:** —
 
 ### [P3] Reconciliation runs inside one request
 
