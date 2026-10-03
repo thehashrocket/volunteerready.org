@@ -63,10 +63,11 @@ strike through with a reason what you skipped.
       component.
 - [ ] **Marketing screenshots load** on `/`, `/how-it-works`, `/screening`,
       `/for/animal-shelters`, in both light and dark.
-- [ ] **If `images.remotePatterns` / `images.domains` was added**: re-open the
-      dismissed sharp alert and upgrade sharp to >= 0.35.0. The dismissal
+- [ ] **If `images.remotePatterns` / `images.domains` was added**: confirm
+      `pnpm audit` reports no open sharp/libvips advisory first, because sharp
+      then processes bytes we did not author. The "not reachable" argument
       rests on there being no remote origins — see
-      `src/lib/next-config-images.guard.test.ts`.
+      `scripts/next-config-images.test.ts`.
 
 ### Request bodies / webhooks (`next`, webhook routes, `src/proxy.ts`)
 
