@@ -5,6 +5,73 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the `@sentry/nextjs` 11 upgrade (2026-10-03)
+
+### [P2] Secret tokens in URLs reach Sentry from the browser, breadcrumbs, replays and server spans
+
+Found by the security review of the Sentry 11 upgrade. **Not caused by it**:
+Sentry 10 sent the same data. Deliberately left out of that PR so the fix gets
+its own review and tests.
+
+Several routes carry a live secret in the URL:
+
+- path segments: `/invite/<token>`, `/invite/company/<token>`,
+  `/credentials/claim/<token>`
+- query string: `/apply/status?token=...`
+
+Sentry records those URLs in places no current scrubber reaches:
+
+- **Browser error events.** `event.request.url` is the raw `location.href`. In
+  `@sentry/browser` 11, `httpContextIntegration` says outright that the URL is
+  not gated by `dataCollection`.
+- **Navigation breadcrumbs.** History breadcrumbs carry `from`/`to` unfiltered.
+- **Session replay.** Replay records `location.href`, and
+  `replaysOnErrorSampleRate` is 1.0 in `src/instrumentation-client.ts`.
+- **Server spans.** `url.full` keeps path segments. Key-based filtering cannot
+  see a token that is a path segment, and with streamed spans `beforeSend`
+  never sees a span.
+  Next's own request span also sets `http.target` to the raw `req.url`
+  (`next/dist/server/base-server.js`), path and query string included, and no
+  `dataCollection` setting touches it: the magic-link `email=`/`token=` and the
+  Checkr OAuth `code=`/`state=` reach Sentry there on sampled traces.
+
+Anyone with access to the Sentry project can read a still-valid invite or claim
+token.
+
+**Fix:**
+
+1. Add a browser `beforeSend` and a `beforeBreadcrumb` that redact those path
+   segments and `token=` in `event.request.url` and in breadcrumb
+   `data.from`/`data.to`.
+2. Scrub replay URLs, or exclude those routes from replay.
+3. Add a stream-mode `beforeSendSpan` on the server that rewrites `url.full`
+   and `http.target` for the same patterns and sensitive query keys.
+4. Test each path the way `scripts/sentry-data-collection.test.ts` tests the
+   init options, by capturing what each config passes.
+
+**Effort:** S-M | **Priority:** P2 | **Depends on:** the Sentry 11 upgrade
+landing
+
+
+### [P3] Sentry cron monitors have never covered the App Router crons
+
+`next.config.ts` sets `webpack.automaticVercelMonitors: true`, but that is the
+wrapper-based strategy, which only instruments Pages Router API routes. Every
+cron here is an App Router route handler under `src/app/api/cron/**`, so no
+check-ins are created, before or after the Sentry 11 upgrade (the config
+comment already says so). Sentry 11 adds
+`_experimental: { vercelCronsMonitoring: true }`, a span-based approach that
+covers the App Router. The production build runs Turbopack, which also
+ignores the neighbouring `webpack.treeshake.removeDebugLogging`, so the whole
+`webpack` block in `withSentryConfig` is currently dead.
+
+**Fix:** turn on the experimental option, delete the dead `webpack` block, and confirm in
+Sentry that one check-in arrives per schedule in `vercel.json`. It creates
+monitors in the Sentry account and only shows up in production, so add a
+`docs/post-deploy-checks.md` entry with it. **Effort:** S | **Priority:** P3 |
+**Depends on:** —
+---
+
 ## Opened by the dependency-floor ship (2026-10-03, v0.43.3.0)
 
 ### [P3] `/_next/image` requests on `/` hung once on a CI runner, cause unknown
@@ -762,7 +829,7 @@ that, there is nothing to fix.
 within-major policy while changing nothing about safety. **Effort:** S to
 decide, M to actually migrate.
 
-### [P3] Four overrides have no `SECURITY_FLOORS` entry
+### [P3] Three overrides have no `SECURITY_FLOORS` entry
 
 (Opened v0.42.1.0, from the override audit.) `SECURITY_FLOORS` in
 `scripts/pnpm-overrides.test.ts` pins an override at or above its advisory's
@@ -774,7 +841,8 @@ well as the installed versions, so an entry now catches that lowering directly.
 
 Five overrides carry that entry — `fast-uri`, `postcss`, `brace-expansion`,
 `deepmerge-ts` (added with the override itself in v0.42.2.0), and `mysql2`.
-**Four do not: `@babel/core`, `@opentelemetry/core`, `ws`, `uuid`.** They
+**Three do not: `@babel/core`, `ws`, `uuid`** (`@opentelemetry/core` left the
+tree with the `@sentry/nextjs` 11 upgrade and its override was retired). They
 predate the rule in the doc's "Adding an override" section. They are still
 guarded in the two ways every override is (the tree must contain the package,
 and the doc must carry a `### \`name\`` section, both directions enforced), so
@@ -782,9 +850,8 @@ this is a missing belt, not a missing brace.
 
 Doing it needs each advisory's first patched version looked up rather than
 guessed — a wrong floor is worse than none, because it reads as verified. The
-alert numbers are in `docs/dependency-overrides.md`; `ws` and
-`@opentelemetry/core` have no alert number recorded at all and would need the
-advisory found first. **Effort:** S | **Priority:** P3 | **Depends on:** —
+alert numbers are in `docs/dependency-overrides.md`; `ws` has no alert number
+recorded at all and would need the advisory found first. **Effort:** S | **Priority:** P3 | **Depends on:** —
 
 ### [P3] Two overrides are pinned by VitePress and cannot be retired yet
 
@@ -5555,13 +5622,16 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   only local production-build verification (`/ship`'s build gate runs
   blind). No further action on our side until upstream responds — recheck
   vercel/next.js#95741 periodically. **Effort:** — (upstream) | **Priority:** P1 | **Depends on:** vercel/next.js#95741.
-- **[P3] Orphaned root-level Sentry instrumentation files** — (found during
+- **[P3] ~~Orphaned root-level Sentry instrumentation files~~ — DONE (`@sentry/nextjs` 11 upgrade)** — (found during
   #136 investigation, 2026-07-13.) `instrumentation.ts`, `instrumentation.client.ts`,
   and `sentry.client.config.ts` at repo root are dead code, leftover from an
   earlier Sentry wizard run — superseded by `src/instrumentation.ts` and
   `src/instrumentation-client.ts`, which are the versions Next actually
   resolves under the project's `src/` layout. Safe to delete; confirmed via
   build testing that removing them changes nothing. **Effort:** S | **Priority:** P3 | **Depends on:** —
+  **Resolved:** deleted in the `@sentry/nextjs` 11 upgrade. Sentry 11 dropped
+  `sendDefaultPii`, so the dead client file's bare `Sentry.init` would have run
+  with every permissive `dataCollection` default had anyone revived it.
 - **[P3] `node:crypto` reachable from a client bundle** — (found during #136
   investigation, 2026-07-13, testing `next build --webpack` as a workaround.)
   `src/server/lib/checkin-token.ts` (uses Node's `crypto`) is reachable from
