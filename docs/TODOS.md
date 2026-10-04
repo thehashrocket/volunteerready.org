@@ -12,33 +12,18 @@ fixed in v0.43.8.0 (subscription status ignored, out-of-order events, duplicate
 customers on concurrent checkout). That fix's own review also closed a fourth:
 a paying org could start a second subscription from `/app/billing` (and two
 checkouts at once could start two). Its adversarial review closed a fifth: any
-unique violation in the webhook was answered as a duplicate. Neither of the two
-below grants or drops a plan wrongly, so they were left for their own changes.
+unique violation in the webhook was answered as a duplicate.
+
 Two more (an unknown price ID retrying silently, and unlogged signature
 failures) were closed by the webhook-alerting follow-up: an unknown price now
 alerts the platform admins while Stripe keeps retrying, and a bad signature is
 logged.
 
-### [P3] Unpaid, paused or incomplete orgs see upgrade buttons that always refuse
-
-An unpaid, paused or incomplete subscription leaves the org on FREE with no
-`stripeSubscriptionId`, so `/app/billing` shows the Starter/Pro checkout
-cards. Checkout refuses them (the subscription could still bill if its invoice
-is paid), with a message pointing to Manage subscription and to support. Safe,
-but a dead end: the portal cannot resume a paused subscription or list an
-incomplete one. **Fix:** stamp the live non-paying subscription (id or status)
-in the webhook transaction and have `getBillingStatus` report the same
-predicate as checkout's `FINAL_STATUSES` check, with copy that says what to do
-for each status. **Effort:** S | **Priority:** P3 | **Depends on:** —
-
-### [P3] Reconciliation runs inside one request
-
-`reconcileStripeEvents()` lists and replays every event in the window
-synchronously, sleeping 100 ms per event, inside the admin tRPC mutation. A
-720-hour window on a busy account outlasts the function timeout, and since
-v0.43.8.0 each subscription event also makes one Stripe call. **Fix:** cap the
-events per run and return a cursor, or move it to a background job.
-**Effort:** M | **Priority:** P3 | **Depends on:** —
+Both remaining items were closed by the billing P3 follow-up: `/app/billing`
+asks Stripe with checkout's own rule (`getOrgBillingStatus()`), so an unpaid,
+paused or incomplete subscription gets guidance instead of upgrade buttons, and
+the admin reconcile runs one batch of 50 events per click with a Continue
+cursor.
 
 ---
 

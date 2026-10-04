@@ -46,7 +46,14 @@ export default function AdminHealthPage() {
 	const bouncedEmails = trpc.admin.bouncedEmails.useQuery();
 
 	const [reconcileWindow, setReconcileWindow] = useState('24');
-	const reconcileMutation = trpc.admin.stripeReconcile.useMutation();
+	// The cursor of the last batch that succeeded, so a failed Continue can be
+	// retried from where it stopped rather than from the newest event.
+	const [reconcileCursor, setReconcileCursor] = useState<
+		{ startingAfter: string; since: number } | undefined
+	>();
+	const reconcileMutation = trpc.admin.stripeReconcile.useMutation({
+		onSuccess: (data) => setReconcileCursor(data.nextCursor ?? undefined),
+	});
 	const reEnableMutation = trpc.admin.reEnableBounce.useMutation({
 		onSuccess: () => bouncedEmails.refetch(),
 	});
@@ -213,7 +220,16 @@ export default function AdminHealthPage() {
 						<div className="flex items-center gap-4">
 							<Select
 								value={reconcileWindow}
-								onValueChange={setReconcileWindow}
+								// Locked while a batch runs: its result would otherwise land
+								// after the switch and bring the old window's cursor back.
+								disabled={reconcileMutation.isPending}
+								onValueChange={(value) => {
+									// A cursor belongs to the window it started in; a new window
+									// starts again from Reconcile Now.
+									setReconcileCursor(undefined);
+									reconcileMutation.reset();
+									setReconcileWindow(value);
+								}}
 							>
 								<SelectTrigger className="w-[160px]">
 									<SelectValue />
@@ -225,11 +241,12 @@ export default function AdminHealthPage() {
 								</SelectContent>
 							</Select>
 							<Button
-								onClick={() =>
+								onClick={() => {
+									setReconcileCursor(undefined);
 									reconcileMutation.mutate({
 										windowHours: Number(reconcileWindow),
-									})
-								}
+									});
+								}}
 								disabled={reconcileMutation.isPending}
 							>
 								{reconcileMutation.isPending ? (
@@ -250,7 +267,9 @@ export default function AdminHealthPage() {
 									{reconcileMutation.data.eventsReplayed === 0 &&
 									reconcileMutation.data.eventsFailed === 0 ? (
 										<p className="text-primary font-medium">
-											All events reconciled ✓
+											{reconcileMutation.data.nextCursor
+												? 'Nothing to replay in this batch'
+												: 'All events reconciled ✓'}
 										</p>
 									) : (
 										<p className="font-medium">
@@ -262,8 +281,28 @@ export default function AdminHealthPage() {
 									)}
 									<p className="text-sm text-muted-foreground mt-1">
 										{reconcileMutation.data.eventsChecked} events checked in
-										total
+										this batch
 									</p>
+									{reconcileMutation.data.nextCursor && (
+										<div className="mt-3 flex items-center gap-3">
+											<p className="text-sm">
+												More events remain in this window.
+											</p>
+											<Button
+												size="sm"
+												variant="outline"
+												onClick={() =>
+													reconcileMutation.mutate({
+														windowHours: Number(reconcileWindow),
+														cursor: reconcileCursor,
+													})
+												}
+												disabled={reconcileMutation.isPending}
+											>
+												Continue
+											</Button>
+										</div>
+									)}
 								</div>
 
 								{reconcileMutation.data.details.length > 0 && (
@@ -315,6 +354,22 @@ export default function AdminHealthPage() {
 								<p className="text-sm text-destructive">
 									Stripe API error — try again
 								</p>
+								{reconcileCursor && (
+									<Button
+										size="sm"
+										variant="outline"
+										className="mt-3"
+										onClick={() =>
+											reconcileMutation.mutate({
+												windowHours: Number(reconcileWindow),
+												cursor: reconcileCursor,
+											})
+										}
+										disabled={reconcileMutation.isPending}
+									>
+										Retry this batch
+									</Button>
+								)}
 							</div>
 						)}
 					</CardContent>
