@@ -494,7 +494,26 @@ Press `Manage subscription` and switch from Starter to Pro. **Expect:** the
 badge shows Pro, and the Stripe customer still has exactly one active
 subscription.
 
-### 4. A cancellation drops the plan and stays dropped
+### 4. The billing page asks Stripe and still loads
+
+`/app/billing` now asks Stripe which subscriptions could still bill, once per
+minute at most per tab, for an org with a Stripe customer. With the test-mode
+subscription from step 2 still active, open `/app/billing`. **Expect:** the
+page loads, says "To switch plans, open Manage subscription." and shows no
+Upgrade buttons, and the Vercel runtime logs have no
+`[billing] Could not list subscriptions` line. That line means the Stripe call
+failed and the page fell back to the stored subscription.
+
+The guidance for unpaid, paused, incomplete and past-due subscriptions is
+covered by `src/app/(app)/app/billing/page.test.tsx` (with the status query
+mocked), and the status each subscription maps to by `getOrgBillingStatus`'s
+tests in `billingService.test.ts` against a mocked Stripe.
+Reproducing those statuses for real needs a Stripe test clock (a customer
+created on a clock, a card such as `4000 0000 0000 0341` that fails renewals,
+and the clock advanced past renewal); the dashboard's "Pause payment
+collection" leaves the status `active`, so it does not show the paused copy.
+
+### 5. A cancellation drops the plan and stays dropped
 
 Cancel that subscription immediately from the Stripe dashboard. **Expect:** the
 badge returns to Free and a `PLAN_DOWNGRADED` row has

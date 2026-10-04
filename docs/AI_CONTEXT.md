@@ -307,7 +307,7 @@ All routers live in `src/server/trpc/routers/`. The combined app router is in `r
 | `volunteers` | list, count, getById, add, remove, restore — all `rosterProcedure` (`staffProcedure` + the roster feature flag for `ctx.orgId`). Every `volunteerId` input is an `OrgVolunteer.id`, never a `User.id`, and both reads withhold `userId` from the client — it is a cross-org correlation handle. `getById` (v0.38.3.0) backs the roster's row-click detail dialog; the roster row IS the org relationship, so it needs no `requireOrgVolunteerRelationship` |
 | `notifications` | list, unreadCount, markRead, markAllRead (protectedProcedure) |
 | `analytics` | getDashboard (staffProcedure, PRO-gated via `planTierProcedure('PRO')`) |
-| `billing` | createCheckoutSession, createBillingPortalSession, getBillingStatus |
+| `billing` | createCheckoutSession, createPortalSession, getBillingStatus (database only; `PlanGate`, background checks), getBillingPageStatus (asks Stripe; `/app/billing` only) |
 | `company` | create, listMyCompanies, switchCompany, getCurrent, linkNonprofit, unlinkNonprofit, listLinkedNonprofits, invite, acceptInvite — company-scoped procedures take `companyId` via `companyScopedProcedure(opts?)`, never session state |
 | `esgReport` | getSummary (`companyScopedProcedure({ minRole: 'ADMIN', minPlanTier: 'PRO' })`) |
 | `status` | public token-based status lookups |
