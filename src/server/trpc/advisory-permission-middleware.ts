@@ -100,6 +100,7 @@ const PROCEDURE_PERMISSION_MAP: Record<string, string> = {
 	// --- Billing (org) ---
 	'billing.createCheckoutSession': 'billing.createCheckoutSession',
 	'billing.getBillingStatus': 'billing.getBillingStatus',
+	'billing.getBillingPageStatus': 'billing.getBillingPageStatus',
 	'billing.createPortalSession': 'billing.createPortalSession',
 
 	// --- Bulk Import (admin) ---

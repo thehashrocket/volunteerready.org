@@ -11,6 +11,7 @@ import {
 } from '../repositories/companyRepo';
 import {
 	claimOrgStripeCustomerId,
+	findOrgBillingFields,
 	findOrgByStripeCustomerId,
 	findOrgStripeCustomerId,
 	findOrgWithOwnerEmail,
@@ -119,8 +120,10 @@ const ENTITLED_STATUSES: ReadonlySet<Stripe.Subscription.Status> = new Set([
 	'past_due',
 ]);
 
-// Stripe calls made while a webhook or checkout waits fail fast, so a slow
-// Stripe API turns into a 500 that Stripe retries rather than a hung function.
+// Stripe calls made while a webhook, checkout or the /app/billing page waits
+// fail fast: a slow Stripe API turns into a 500 that Stripe retries (webhook),
+// a retryable error (checkout), or the stored-subscription fallback (billing
+// page) rather than a hung function.
 const FAIL_FAST: Stripe.RequestOptions = {
 	timeout: 10_000,
 	maxNetworkRetries: 1,
@@ -158,6 +161,99 @@ const FINAL_STATUSES: ReadonlySet<Stripe.Subscription.Status> = new Set([
 	'canceled',
 	'incomplete_expired',
 ]);
+
+function couldStillBill(subscription: Stripe.Subscription): boolean {
+	return !FINAL_STATUSES.has(subscription.status);
+}
+
+// When an org has several subscriptions that could still bill, the billing
+// page explains the one that matters most: a paying one first, then the ones
+// that need action.
+const STATUS_PRIORITY: Stripe.Subscription.Status[] = [
+	'active',
+	'trialing',
+	'past_due',
+	'unpaid',
+	'paused',
+	'incomplete',
+];
+
+export type OrgBillingStatus = {
+	planTier: PlanTier;
+	trialEndsAt: Date | null;
+	hasStripeCustomer: boolean;
+	/** True when a subscription could still bill, so checkout would refuse. */
+	hasSubscription: boolean;
+	/** The status that subscription is in, or 'unknown' if Stripe could not be asked. */
+	subscriptionStatus: Stripe.Subscription.Status | 'unknown' | null;
+};
+
+/**
+ * The org's plan from the database alone, for the many components that only
+ * need the tier (PlanGate, background checks). No Stripe call: these render
+ * on ordinary pages and refetch on every focus. `hasSubscription` reflects the
+ * stored paying subscription only; /app/billing uses `getOrgBillingStatus`,
+ * which asks Stripe.
+ */
+export async function getOrgPlanStatus(
+	orgId: string,
+): Promise<Omit<OrgBillingStatus, 'subscriptionStatus'>> {
+	const org = await findOrgBillingFields(orgId);
+	return {
+		planTier: org.planTier,
+		trialEndsAt: org.trialEndsAt,
+		hasStripeCustomer: org.stripeCustomerId !== null,
+		hasSubscription: org.stripeSubscriptionId !== null,
+	};
+}
+
+/**
+ * What /app/billing shows. `hasSubscription` asks Stripe with the same rule
+ * checkout refuses on, so the page never offers an upgrade that checkout will
+ * refuse: an unpaid, paused or incomplete subscription leaves the org on FREE
+ * with no stored `stripeSubscriptionId`, yet still blocks a new checkout. If
+ * Stripe cannot be reached the page falls back to the stored subscription
+ * rather than failing to load.
+ */
+export async function getOrgBillingStatus(
+	orgId: string,
+): Promise<OrgBillingStatus> {
+	const org = await findOrgBillingFields(orgId);
+	const base = {
+		planTier: org.planTier,
+		trialEndsAt: org.trialEndsAt,
+		hasStripeCustomer: org.stripeCustomerId !== null,
+	};
+	if (!org.stripeCustomerId) {
+		return { ...base, hasSubscription: false, subscriptionStatus: null };
+	}
+
+	let live: Stripe.Subscription[];
+	try {
+		live = await listLiveSubscriptions(org.stripeCustomerId);
+	} catch (e) {
+		console.error(
+			`[billing] Could not list subscriptions for org ${orgId}; using the stored subscription`,
+			e,
+		);
+		const stored = org.stripeSubscriptionId !== null;
+		return {
+			...base,
+			hasSubscription: stored,
+			subscriptionStatus: stored ? 'unknown' : null,
+		};
+	}
+
+	const blocking = live.filter(couldStillBill);
+	if (blocking.length === 0) {
+		return { ...base, hasSubscription: false, subscriptionStatus: null };
+	}
+	const statuses = new Set(blocking.map((s) => s.status));
+	const status =
+		STATUS_PRIORITY.find((candidate) => statuses.has(candidate)) ??
+		blocking[0].status;
+	return { ...base, hasSubscription: true, subscriptionStatus: status };
+}
 
 type Entitlement = {
 	tier: PlanTier;
@@ -309,7 +405,7 @@ export async function createCheckoutSession(opts: {
 			// paying (unpaid, paused, incomplete) cannot always be fixed from the
 			// portal, so the message also points to support.
 			const live = await listLiveSubscriptions(lockedCustomerId);
-			if (live.some((s) => !FINAL_STATUSES.has(s.status))) {
+			if (live.some(couldStillBill)) {
 				throw new TRPCError({
 					code: 'BAD_REQUEST',
 					message:
@@ -563,8 +659,19 @@ export async function processStripeEvent(
 // Stripe reconciliation — admin-triggered, replays missed events
 // ---------------------------------------------------------------------------
 
+// One Stripe page of events per call. Each event can take a database check, a
+// replay with its own Stripe call, and a 100 ms pause, so a batch this size
+// finishes well inside the function time limit; the admin page offers
+// Continue until the window is done.
+const RECONCILE_BATCH_SIZE = 50;
+const RECONCILE_MAX_WINDOW_HOURS = 720;
+
+export type ReconcileCursor = { startingAfter: string; since: number };
+
 export async function reconcileStripeEvents(opts: {
 	windowHours: number;
+	/** From the previous call's `nextCursor`, to continue the same window. */
+	cursor?: ReconcileCursor;
 }): Promise<{
 	eventsChecked: number;
 	eventsReplayed: number;
@@ -576,10 +683,20 @@ export async function reconcileStripeEvents(opts: {
 		status: string;
 		timestamp: string;
 	}>;
+	/** Set when more events remain in the window; pass it back to continue. */
+	nextCursor: ReconcileCursor | null;
 }> {
 	const stripe = getStripe();
-	const since = Math.floor(
-		(Date.now() - opts.windowHours * 60 * 60 * 1000) / 1000,
+	// Keep the window's start fixed across batches, so continuing does not
+	// slide it forward, but never earlier than the 720-hour maximum the admin
+	// can pick: a hand-edited cursor cannot widen the window.
+	const earliest = Math.floor(
+		(Date.now() - RECONCILE_MAX_WINDOW_HOURS * 60 * 60 * 1000) / 1000,
+	);
+	const since = Math.max(
+		opts.cursor?.since ??
+			Math.floor((Date.now() - opts.windowHours * 60 * 60 * 1000) / 1000),
+		earliest,
 	);
 
 	let eventsChecked = 0;
@@ -593,72 +710,65 @@ export async function reconcileStripeEvents(opts: {
 		timestamp: string;
 	}> = [];
 
-	let hasMore = true;
-	let startingAfter: string | undefined;
-
-	while (hasMore) {
-		const listParams: Stripe.EventListParams = {
-			created: { gte: since },
-			limit: 100,
-		};
-		if (startingAfter) {
-			listParams.starting_after = startingAfter;
-		}
-
-		const events = await stripe.events.list(listParams);
-		eventsChecked += events.data.length;
-
-		for (const event of events.data) {
-			const isProcessed = await isWebhookEventProcessed(event.id);
-
-			if (isProcessed) {
-				alreadyProcessed++;
-				details.push({
-					eventId: event.id,
-					type: event.type,
-					status: 'already_processed',
-					timestamp: new Date(event.created * 1000).toISOString(),
-				});
-				continue;
-			}
-
-			try {
-				const result = await processStripeEvent(event, {
-					skipEmails: true,
-				});
-				eventsReplayed++;
-				details.push({
-					eventId: event.id,
-					type: event.type,
-					status: `replayed:${result.action}`,
-					timestamp: new Date(event.created * 1000).toISOString(),
-				});
-			} catch (e) {
-				eventsFailed++;
-				console.error(`[reconcile] Failed to replay event ${event.id}`, e);
-				details.push({
-					eventId: event.id,
-					type: event.type,
-					status: `failed:${e instanceof Error ? e.message : 'unknown'}`,
-					timestamp: new Date(event.created * 1000).toISOString(),
-				});
-			}
-
-			// Rate limit: ~10 req/sec (sleep 100ms between events)
-			await new Promise((resolve) => setTimeout(resolve, 100));
-		}
-
-		hasMore = events.has_more;
-		if (events.data.length > 0) {
-			startingAfter = events.data[events.data.length - 1]?.id;
-		}
+	const listParams: Stripe.EventListParams = {
+		created: { gte: since },
+		limit: RECONCILE_BATCH_SIZE,
+	};
+	if (opts.cursor) {
+		listParams.starting_after = opts.cursor.startingAfter;
 	}
 
+	const events = await stripe.events.list(listParams);
+	eventsChecked += events.data.length;
+
+	for (const event of events.data) {
+		const isProcessed = await isWebhookEventProcessed(event.id);
+
+		if (isProcessed) {
+			alreadyProcessed++;
+			details.push({
+				eventId: event.id,
+				type: event.type,
+				status: 'already_processed',
+				timestamp: new Date(event.created * 1000).toISOString(),
+			});
+			continue;
+		}
+
+		try {
+			const result = await processStripeEvent(event, {
+				skipEmails: true,
+			});
+			eventsReplayed++;
+			details.push({
+				eventId: event.id,
+				type: event.type,
+				status: `replayed:${result.action}`,
+				timestamp: new Date(event.created * 1000).toISOString(),
+			});
+		} catch (e) {
+			eventsFailed++;
+			console.error(`[reconcile] Failed to replay event ${event.id}`, e);
+			details.push({
+				eventId: event.id,
+				type: event.type,
+				status: `failed:${e instanceof Error ? e.message : 'unknown'}`,
+				timestamp: new Date(event.created * 1000).toISOString(),
+			});
+		}
+
+		// Rate limit: ~10 req/sec (sleep 100ms between events)
+		await new Promise((resolve) => setTimeout(resolve, 100));
+	}
+
+	const last = events.data[events.data.length - 1];
 	return {
 		eventsChecked,
 		eventsReplayed,
 		eventsFailed,
 		alreadyProcessed,
 		details,
+		nextCursor:
+			events.has_more && last ? { startingAfter: last.id, since } : null,
 	};
 }

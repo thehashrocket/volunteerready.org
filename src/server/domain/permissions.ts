@@ -125,6 +125,7 @@ export const PERMISSIONS = {
 	// --- Billing ---
 	'billing.createCheckoutSession': 'billing.createCheckoutSession',
 	'billing.getBillingStatus': 'billing.getBillingStatus',
+	'billing.getBillingPageStatus': 'billing.getBillingPageStatus',
 	'billing.createPortalSession': 'billing.createPortalSession',
 
 	// --- Bulk Import ---
@@ -179,6 +180,7 @@ const READONLY_PERMISSIONS: ReadonlySet<string> = new Set([
 	PERMISSIONS['onboarding.status'],
 	PERMISSIONS['onboarding.dismiss'],
 	PERMISSIONS['billing.getBillingStatus'],
+	PERMISSIONS['billing.getBillingPageStatus'],
 	PERMISSIONS['notifications.getPreferences'],
 	PERMISSIONS['notifications.updatePreference'],
 	PERMISSIONS['notifications.getDigestPreference'],

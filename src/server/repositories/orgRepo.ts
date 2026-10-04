@@ -112,6 +112,18 @@ export async function claimOrgStripeCustomerId(
 	return count === 1;
 }
 
+export async function findOrgBillingFields(orgId: string) {
+	return prisma.organization.findUniqueOrThrow({
+		where: { id: orgId },
+		select: {
+			planTier: true,
+			trialEndsAt: true,
+			stripeCustomerId: true,
+			stripeSubscriptionId: true,
+		},
+	});
+}
+
 export async function findOrgStripeCustomerId(
 	orgId: string,
 ): Promise<string | null> {

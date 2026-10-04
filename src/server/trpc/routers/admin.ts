@@ -56,11 +56,18 @@ export const adminRouter = createTRPCRouter({
 		.input(
 			z.object({
 				windowHours: z.number().min(1).max(720).default(24),
+				cursor: z
+					.object({
+						startingAfter: z.string().min(1),
+						since: z.number().int().nonnegative(),
+					})
+					.optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
 			return reconcileStripeEvents({
 				windowHours: input.windowHours,
+				cursor: input.cursor,
 			});
 		}),
 
