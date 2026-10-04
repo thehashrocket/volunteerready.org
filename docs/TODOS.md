@@ -44,51 +44,12 @@ events per run and return a cursor, or move it to a background job.
 
 ## Opened by the `@sentry/nextjs` 11 upgrade (2026-10-03)
 
-### [P2] Secret tokens in URLs reach Sentry from the browser, breadcrumbs, replays and server spans
-
-Found by the security review of the Sentry 11 upgrade. **Not caused by it**:
-Sentry 10 sent the same data. Deliberately left out of that PR so the fix gets
-its own review and tests.
-
-Several routes carry a live secret in the URL:
-
-- path segments: `/invite/<token>`, `/invite/company/<token>`,
-  `/credentials/claim/<token>`
-- query string: `/apply/status?token=...`
-
-Sentry records those URLs in places no current scrubber reaches:
-
-- **Browser error events.** `event.request.url` is the raw `location.href`. In
-  `@sentry/browser` 11, `httpContextIntegration` says outright that the URL is
-  not gated by `dataCollection`.
-- **Navigation breadcrumbs.** History breadcrumbs carry `from`/`to` unfiltered.
-- **Session replay.** Replay records `location.href`, and
-  `replaysOnErrorSampleRate` is 1.0 in `src/instrumentation-client.ts`.
-- **Server spans.** `url.full` keeps path segments. Key-based filtering cannot
-  see a token that is a path segment, and with streamed spans `beforeSend`
-  never sees a span.
-  Next's own request span also sets `http.target` to the raw `req.url`
-  (`next/dist/server/base-server.js`), path and query string included, and no
-  `dataCollection` setting touches it: the magic-link `email=`/`token=` and the
-  Checkr OAuth `code=`/`state=` reach Sentry there on sampled traces.
-
-Anyone with access to the Sentry project can read a still-valid invite or claim
-token.
-
-**Fix:**
-
-1. Add a browser `beforeSend` and a `beforeBreadcrumb` that redact those path
-   segments and `token=` in `event.request.url` and in breadcrumb
-   `data.from`/`data.to`.
-2. Scrub replay URLs, or exclude those routes from replay.
-3. Add a stream-mode `beforeSendSpan` on the server that rewrites `url.full`
-   and `http.target` for the same patterns and sensitive query keys.
-4. Test each path the way `scripts/sentry-data-collection.test.ts` tests the
-   init options, by capturing what each config passes.
-
-**Effort:** S-M | **Priority:** P2 | **Depends on:** the Sentry 11 upgrade
-landing
-
+Its P2, secret tokens in URLs reaching Sentry, was fixed in the follow-up:
+`src/lib/sentry-url-scrub.ts` masks token path segments and secret query
+values in error events (including `contexts.nextjs.request_path` and request
+headers), breadcrumbs, spans and replay; the router-state and route-matches
+headers are denied outright; and replay is not recorded on a page whose URL
+carries a secret.
 
 ### [P3] Sentry cron monitors have never covered the App Router crons
 
@@ -107,6 +68,7 @@ Sentry that one check-in arrives per schedule in `vercel.json`. It creates
 monitors in the Sentry account and only shows up in production, so add a
 `docs/post-deploy-checks.md` entry with it. **Effort:** S | **Priority:** P3 |
 **Depends on:** —
+
 ---
 
 ## Opened by the dependency-floor ship (2026-10-03, v0.43.3.0)
