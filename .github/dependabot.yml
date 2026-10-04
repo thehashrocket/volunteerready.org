@@ -58,11 +58,11 @@ updates:
     # MAJORS ARE DELIBERATELY UNGROUPED — they are not ignored.
     #
     # A group only collects the update-types it lists, so majors fall through
-    # and each gets its own PR. That is the intent: this repo has eight pending
-    # cross-major bumps (resend 4→6, stripe 20→22, typescript 5→7, jsdom 25→30,
-    # @types/node 20→26, lucide-react 0.x→1, @vercel/analytics 1→2,
-    # jest-dom 6→7) and each needs its own migration assessment. Grouping them
-    # would produce one unreviewable PR; ignoring them would hide all eight.
+    # and each gets its own PR. That is the intent: every cross-major bump needs
+    # its own migration assessment (breaking API changes, config changes,
+    # sometimes a security or privacy review, as Sentry 10→11 and Stripe 22→23
+    # did). Grouping them would produce one unreviewable PR; ignoring them would
+    # hide them.
 
   # NOTE: `github-actions` is deliberately NOT configured here. The workflows
   # pin actions by major tag (actions/checkout@v5), which already floats within
