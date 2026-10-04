@@ -92,17 +92,9 @@ export default withSentryConfig(nextConfig, {
 	// side errors will fail.
 	tunnelRoute: '/monitoring',
 
-	webpack: {
-		// Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-		// See the following for more information:
-		// https://docs.sentry.io/product/crons/
-		// https://vercel.com/docs/cron-jobs
-		automaticVercelMonitors: true,
-
-		// Tree-shaking options for reducing bundle size
-		treeshake: {
-			// Automatically tree-shake Sentry logger statements to reduce bundle size
-			removeDebugLogging: true,
-		},
-	},
+	// No automatic Vercel cron monitoring (`_experimental.vercelCronsMonitoring`,
+	// or the older `webpack.automaticVercelMonitors`, which does nothing under
+	// Turbopack anyway). Both start a check-in on anything carrying Vercel's
+	// user agent before the CRON_SECRET check, so a forged request could post
+	// a failed run. Check-ins are sent by `withCronAuth` after auth instead.
 });
