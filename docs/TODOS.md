@@ -51,23 +51,13 @@ headers), breadcrumbs, spans and replay; the router-state and route-matches
 headers are denied outright; and replay is not recorded on a page whose URL
 carries a secret.
 
-### [P3] Sentry cron monitors have never covered the App Router crons
-
-`next.config.ts` sets `webpack.automaticVercelMonitors: true`, but that is the
-wrapper-based strategy, which only instruments Pages Router API routes. Every
-cron here is an App Router route handler under `src/app/api/cron/**`, so no
-check-ins are created, before or after the Sentry 11 upgrade (the config
-comment already says so). Sentry 11 adds
-`_experimental: { vercelCronsMonitoring: true }`, a span-based approach that
-covers the App Router. The production build runs Turbopack, which also
-ignores the neighbouring `webpack.treeshake.removeDebugLogging`, so the whole
-`webpack` block in `withSentryConfig` is currently dead.
-
-**Fix:** turn on the experimental option, delete the dead `webpack` block, and confirm in
-Sentry that one check-in arrives per schedule in `vercel.json`. It creates
-monitors in the Sentry account and only shows up in production, so add a
-`docs/post-deploy-checks.md` entry with it. **Effort:** S | **Priority:** P3 |
-**Depends on:** —
+Its P3, Sentry cron monitors never covering the App Router crons, was closed
+by the cron-monitoring follow-up: `withCronAuth` sends a Sentry check-in for
+every run that passes the CRON_SECRET check (`Sentry.withMonitor`, schedule
+from `vercel.json`), and the dead `webpack` block is gone from
+`next.config.ts`. Sentry's automatic Vercel cron monitoring was rejected: it
+checks in before any app code runs, so a forged request could post a failed
+run, and it only fires for traced requests.
 
 ---
 

@@ -268,7 +268,7 @@ Shipped in v0.43.7.0. Sentry 11 replaced the upload tooling (`@sentry/cli` and
 `@sentry/bundler-plugin-core` gave way to `@sentry/bundler-plugins`, which
 loads the `sentry` CLI package in-process) and changed what each runtime
 collects. CI does not set `SENTRY_AUTH_TOKEN`, and no local harness sends to
-Sentry, so all five checks below need a production deploy.
+Sentry, so all six checks below need a production deploy.
 
 ### 1. The production build log shows a normal upload
 
@@ -311,6 +311,18 @@ For the server side, open any server error from a token route (or from
 request URL and the `next-url` header show `[Filtered]`, and
 `next-router-state-tree` / `x-now-route-matches` are `[Filtered]` or absent.
 A raw token anywhere means a path the scrubber does not cover.
+
+### 6. Every Vercel cron has a Sentry monitor with check-ins
+
+After the cron-monitoring follow-up ships, open **Crons** in Sentry. Each
+monitor is created by its job's first run after the deploy, so wait until
+every schedule in `vercel.json` has fired once (the weekly ones take up to a
+week). **Expect:** one monitor per job (8), named after the job
+(`shift-reminders`, `expire-credentials`, …), each with an `ok` check-in for
+every run Vercel's cron log shows. A missing monitor means that job's runs are
+not reaching `withCronAuth`'s check-in; an `error` check-in matches a
+`FAILURE` row in `CronJobRun`. Also check the monitor count against the
+Sentry plan's monitor allowance.
 
 ### What is already covered automatically — do not re-check by hand
 
