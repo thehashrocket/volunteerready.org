@@ -37,6 +37,8 @@ const REQUIRED_DENY = [
 	'-user',
 	'proxied',
 	'signature',
+	'router-state',
+	'route-matches',
 ];
 
 // Query strings additionally hide the magic-link `email=` and the OAuth
@@ -46,6 +48,7 @@ const REQUIRED_QUERY_DENY = [...REQUIRED_DENY, 'email', 'code', 'state'];
 type InitOptions = {
 	dataCollection?: Record<string, unknown>;
 	beforeSend?: (event: unknown, hint: unknown) => unknown;
+	beforeSendSpan?: (span: unknown) => unknown;
 };
 
 const captured: Record<string, InitOptions> = {};
@@ -138,6 +141,56 @@ describe.each(['sentry.server.config.ts', 'sentry.edge.config.ts'])(
 				'content-type': 'application/json',
 			});
 			expect(out.request.cookies).toBeUndefined();
+		});
+	},
+);
+
+describe.each(['sentry.server.config.ts', 'sentry.edge.config.ts'])(
+	'%s keeps URL secrets out of Sentry',
+	(name) => {
+		it('scrubs secret URLs from error events', () => {
+			const event = {
+				request: { url: 'https://x.test/invite/abc123?token=t' },
+				transaction: 'GET /credentials/claim/abc123',
+				// Set by captureRequestError from Next's raw req.url.
+				contexts: { nextjs: { request_path: '/apply/status?token=t' } },
+			};
+			const out = captured[name].beforeSend?.(event, {}) as typeof event;
+			expect(out.request.url).toBe(
+				'https://x.test/invite/[Filtered]?token=[Filtered]',
+			);
+			expect(out.transaction).toBe('GET /credentials/claim/[Filtered]');
+			expect(out.contexts.nextjs.request_path).toBe(
+				'/apply/status?token=[Filtered]',
+			);
+		});
+
+		it('keeps streamed spans, the mode beforeSendSpan was written for', () => {
+			// In 'static' mode spans are sent inside transaction events, which
+			// never reach beforeSendSpan, and nothing here scrubs them.
+			expect(
+				(captured[name] as { traceLifecycle?: string }).traceLifecycle ??
+					'stream',
+			).toBe('stream');
+		});
+
+		it('scrubs the name and attributes of every span', () => {
+			const beforeSendSpan = captured[name].beforeSendSpan;
+			expect(typeof beforeSendSpan, 'beforeSendSpan must be set').toBe(
+				'function',
+			);
+			const out = beforeSendSpan?.({
+				name: 'GET /invite/company/abc123',
+				attributes: {
+					'http.target': '/apply/status?token=abc',
+					'url.full': 'https://x.test/api/checkr/oauth/callback?code=c',
+				},
+			}) as { name: string; attributes: Record<string, string> };
+			expect(out.name).toBe('GET /invite/company/[Filtered]');
+			expect(out.attributes).toEqual({
+				'http.target': '/apply/status?token=[Filtered]',
+				'url.full': 'https://x.test/api/checkr/oauth/callback?code=[Filtered]',
+			});
 		});
 	},
 );

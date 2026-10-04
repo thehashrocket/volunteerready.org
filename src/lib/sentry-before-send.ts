@@ -1,4 +1,5 @@
 import type { ErrorEvent } from '@sentry/nextjs';
+import { scrubSentryEvent } from './sentry-url-scrub';
 
 export function sentryBeforeSend(event: ErrorEvent): ErrorEvent {
 	// Scrub sensitive headers to prevent PII leakage
@@ -15,5 +16,7 @@ export function sentryBeforeSend(event: ErrorEvent): ErrorEvent {
 	if (event.request?.cookies) {
 		delete event.request.cookies;
 	}
-	return event;
+	// Invite, claim and status tokens, OAuth codes and tRPC input travel in
+	// URLs; see sentry-url-scrub.ts.
+	return scrubSentryEvent(event);
 }

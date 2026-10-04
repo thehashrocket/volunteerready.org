@@ -4,12 +4,38 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { BROWSER_DATA_COLLECTION } from '@/lib/sentry-data-collection';
+import {
+	isSecretUrl,
+	scrubBreadcrumb,
+	scrubRecordingEvent,
+	scrubSentryEvent,
+	scrubSpan,
+} from '@/lib/sentry-url-scrub';
+
+// Replay's DOM recording stores `location.href` in a meta event that no hook
+// can rewrite, so a page whose URL carries a secret (an invite or claim
+// token, ?token=) is never recorded. See src/lib/sentry-url-scrub.ts.
+const onSecretUrl =
+	typeof window !== 'undefined' &&
+	isSecretUrl(window.location.pathname + window.location.search);
 
 Sentry.init({
 	dsn: 'https://fba2ea33a15f2a443b2aa02c3b899025@o4511061592834048.ingest.us.sentry.io/4511061594406912',
 
 	// Add optional integrations for additional features
-	integrations: [Sentry.replayIntegration()],
+	integrations: onSecretUrl
+		? []
+		: [
+				Sentry.replayIntegration({
+					beforeAddRecordingEvent: scrubRecordingEvent,
+				}),
+			],
+
+	// Every URL the SDK records goes through the same scrubber: error events,
+	// breadcrumbs and spans (pageload/navigation names, fetch URLs).
+	beforeSend: scrubSentryEvent,
+	beforeBreadcrumb: scrubBreadcrumb,
+	beforeSendSpan: scrubSpan,
 
 	// Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
 	tracesSampleRate: 1,
@@ -59,4 +85,16 @@ Sentry.init({
 	],
 });
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+// Replay events (which list visited URLs) skip beforeSend; an event processor
+// reaches them.
+Sentry.addEventProcessor(scrubSentryEvent);
+
+export function onRouterTransitionStart(
+	href: string,
+	navigationType: string,
+): void {
+	// Leaving for a secret URL inside the app: stop recording before the new
+	// page renders. A stopped replay stays stopped for this page load.
+	if (isSecretUrl(href)) void Sentry.getReplay()?.stop();
+	Sentry.captureRouterTransitionStart(href, navigationType);
+}

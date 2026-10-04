@@ -6,6 +6,7 @@
 import * as Sentry from '@sentry/nextjs';
 import { sentryBeforeSend } from './src/lib/sentry-before-send';
 import { SERVER_DATA_COLLECTION } from './src/lib/sentry-data-collection';
+import { scrubSpan } from './src/lib/sentry-url-scrub';
 
 Sentry.init({
 	dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -15,4 +16,8 @@ Sentry.init({
 	// Same scrubber as the Node server: strips Authorization, Cookie (header and
 	// parsed request.cookies) and webhook signature headers from error events.
 	beforeSend: sentryBeforeSend,
+	// Spans stream past beforeSend, and Next's request span carries the raw
+	// URL (path tokens, ?token=, OAuth codes, tRPC input) in its name and
+	// attributes. See src/lib/sentry-url-scrub.ts.
+	beforeSendSpan: scrubSpan,
 });

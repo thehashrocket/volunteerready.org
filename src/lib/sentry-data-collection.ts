@@ -11,9 +11,12 @@ type DataCollection = NonNullable<NodeOptions['dataCollection']>;
 // deleted. 'proxied' is ours, for Vercel's `x-vercel-proxied-for` client-IP
 // header, which none of v10's snippets match. 'signature' is ours too: Checkr and Stripe webhook signature headers
 // were scrubbed from error events by `sentryBeforeSend` but reached spans raw,
-// and with streamed spans `beforeSend` never sees a span at all. v11 also
-// always filters keys containing auth, token, session, cookie and the like,
-// whatever is set here.
+// and with streamed spans `beforeSend` never sees a span at all.
+// 'router-state' and 'route-matches' are ours as well: Next's
+// `next-router-state-tree` and Vercel's `x-now-route-matches` request headers
+// carry dynamic route params (an invite or claim token) in an encoded form no
+// URL pattern can match. v11 also always filters keys containing auth, token,
+// session, cookie and the like, whatever is set here.
 const DENY = [
 	'forwarded',
 	'-ip',
@@ -22,6 +25,8 @@ const DENY = [
 	'-user',
 	'proxied',
 	'signature',
+	'router-state',
+	'route-matches',
 ];
 
 // Query strings carry more than headers do: NextAuth's magic-link callback puts
@@ -29,8 +34,8 @@ const DENY = [
 // `state=`. Matching is a case-insensitive substring test, so this also masks
 // keys like `zipcode`; over-filtering a query key is the cheaper mistake.
 // It covers the URLs Sentry builds (error-event `request.url`/`query_string`,
-// span `url.full`/`url.query`), not the raw `http.target` attribute Next sets
-// on its own request span (tracked in docs/TODOS.md).
+// span `url.full`/`url.query`). Path-segment tokens, Next's raw `http.target`
+// and the other places a URL ends up are handled in src/lib/sentry-url-scrub.ts.
 const QUERY_DENY = [...DENY, 'email', 'code', 'state'];
 
 // Node server and edge: v10's `sendDefaultPii: false` behaviour, except that
