@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.12.0] - 2026-10-03
+
+**Sentry now alerts when a scheduled job fails or stops running. Nothing changes for anyone using the site.**
+
+The last P3 from the Sentry 11 upgrade: cron monitors had never covered the
+App Router crons.
+
+### Added
+
+- **A Sentry cron monitor for each of the 8 scheduled jobs.** `withCronAuth`,
+  the wrapper every cron route already uses, runs each job inside
+  `Sentry.withMonitor`: a check-in when the job starts and an ok or error
+  check-in when it ends. The schedule comes from `vercel.json`, so the monitor
+  and Vercel's scheduler always agree. Check-ins are sent only after the
+  CRON_SECRET check, so a request that fails it never reports to a monitor.
+  The closing check-in is flushed (about two seconds at most) before the job
+  responds, so a run is never lost to the function being suspended.
+
+### Changed
+
+- **Sentry's automatic Vercel cron monitoring stays off.** It starts a
+  check-in before any app code runs, on anything carrying Vercel's user agent,
+  and only for traced requests. The dead `webpack` block (including the old
+  `automaticVercelMonitors`, which Turbopack ignores) is gone from
+  `next.config.ts`.
+
+### Tests
+
+- `withCronAuth`: no check-in for a refused request; the monitor and its
+  vercel.json schedule for an authenticated one; a failing job reported as a
+  failure; a flush after every authenticated run; a failed flush never
+  changes the response. `scripts/cron-monitor-schedules.test.ts` checks every
+  cron route's job name against vercel.json. `scripts/next-config-sentry.test.ts`
+  keeps the automatic monitoring and the webpack block out.
+
+### Docs
+
+- `docs/post-deploy-checks.md`: a check that all 8 monitors appear with
+  check-ins after the deploy.
+- `docs/TODOS.md`: the cron P3 closed.
+
 ## [0.43.11.0] - 2026-10-03
 
 **The billing page tells an organization what to do when its subscription is stuck, and the Stripe reconcile tool can no longer time out.**

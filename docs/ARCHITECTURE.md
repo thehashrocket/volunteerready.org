@@ -225,6 +225,8 @@ Shared utilities and external service adapters.
 - `html.ts` — `escapeHtml()` shared XSS escape for all server-rendered HTML (email templates + consent pages)
 - `rate-limit.ts` — Upstash Redis rate limiting (lazy singleton, fail-open)
 - `digest-unsubscribe-token.ts` — HMAC-SHA256 signed unsubscribe tokens for the opportunity digest; `generate(userId)` / `verify(userId, token)` with timing-safe comparison
+- `cron-auth.ts` — `withCronAuth(jobName, handler)`, the wrapper every route under `src/app/api/cron/` uses: checks the `CRON_SECRET` Bearer token, records a `CronJobRun` row, and, after the auth check, runs the job inside `Sentry.withMonitor` (monitor slug = `jobName`), flushing Sentry before it responds
+- `cron-schedules.ts` — `cronScheduleFor(jobName)`, the job's crontab read from `vercel.json` at `/api/cron/<jobName>`; `scripts/cron-monitor-schedules.test.ts` fails when a cron route's job name has no matching `vercel.json` entry
 
 ---
 

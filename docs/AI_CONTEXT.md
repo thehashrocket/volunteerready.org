@@ -164,6 +164,9 @@ src/
 │   ├── lib/                      # Shared utilities and adapters
 │   │   ├── adapters/             # External service adapters (Checkr, etc.)
 │   │   ├── crypto.ts             # AES-256-GCM encryption for secrets at rest
+│   │   ├── cron-auth.ts          # withCronAuth(jobName, handler) — every cron route: CRON_SECRET check,
+│   │   │                           CronJobRun row, Sentry.withMonitor check-ins (after auth), Sentry.flush
+│   │   ├── cron-schedules.ts     # cronScheduleFor(jobName) — the monitor's crontab, read from vercel.json
 │   │   ├── tokens.ts             # Shared token generation + SHA-256 hashing
 │   │   ├── resend.ts             # Shared Resend email client (lazy singleton)
 │   │   ├── email-template.ts     # Branded email wrapper (VolunteerReady header/footer)
