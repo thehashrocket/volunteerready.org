@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.10.0] - 2026-10-03
+
+**Error monitoring no longer receives the private links people use to join, claim or check on things. Nothing changes for anyone using the site.**
+
+Invite links, credential-claim links, application-status links and a few
+sign-in and unsubscribe links carry a one-off token in their URL. Sentry
+recorded those URLs in several places, as Sentry 10 did before the 11 upgrade.
+This was the P2 left open by that upgrade.
+
+### Changed
+
+- **One scrubber for every URL Sentry records** (`src/lib/sentry-url-scrub.ts`).
+  It masks the token in `/invite/…`, `/invite/company/…` and
+  `/credentials/claim/…` paths, including percent-encoded copies inside
+  another URL. It also masks the values of `token`, `code`, `state`, `email`,
+  `callbackUrl` and tRPC `input` query parameters, including prefixed and
+  HTML-escaped forms. Stack-trace bundle paths are left alone, so source maps
+  keep working.
+- **Server and edge** error events have their request URL, query string,
+  headers, `contexts` (where Next puts the raw request path), extras, tags,
+  breadcrumbs and exception messages scrubbed. A new `beforeSendSpan` scrubs
+  every span's name and attributes. Two request headers that carry route
+  parameters in an encoded form are no longer collected.
+- **Browser** error events, breadcrumbs, spans and replay events go through the
+  same scrubber. Session replay is not recorded on a page whose URL carries a
+  token, and stops before an in-app navigation to one. A logged error object is
+  copied before its message is scrubbed, so the app's own error is never
+  changed.
+
+### Tests
+
+- `src/lib/sentry-url-scrub.test.ts` covers every pattern and event shape.
+  `src/instrumentation-client.test.ts` pins the browser config, including
+  replay staying off on token pages. `scripts/sentry-data-collection.test.ts`
+  pins the server and edge scrubbers and streamed spans. Each scrubber, pattern
+  and rule was checked by removing it and watching a test fail.
+
+### Docs
+
+- `docs/post-deploy-checks.md`: browser and server checks that a token page's
+  events show `[Filtered]` and have no replay.
+- `docs/TODOS.md`: the P2 is closed.
+
 ## [0.43.9.0] - 2026-10-03
 
 **Billing problems that used to fail silently now tell someone. Nothing changes for anyone using the site.**

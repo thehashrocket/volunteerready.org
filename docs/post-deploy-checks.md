@@ -268,7 +268,7 @@ Shipped in v0.43.7.0. Sentry 11 replaced the upload tooling (`@sentry/cli` and
 `@sentry/bundler-plugin-core` gave way to `@sentry/bundler-plugins`, which
 loads the `sentry` CLI package in-process) and changed what each runtime
 collects. CI does not set `SENTRY_AUTH_TOKEN`, and no local harness sends to
-Sentry, so all four checks below need a production deploy.
+Sentry, so all five checks below need a production deploy.
 
 ### 1. The production build log shows a normal upload
 
@@ -295,11 +295,31 @@ headers such as `x-forwarded-for` shown as `[Filtered]`. Then open a trace and
 check the span volume against the Sentry quota: v11 streams spans, and the
 browser still samples every page view.
 
+### 5. No secret token reaches Sentry from a URL
+
+After the URL-scrubbing follow-up ships, open a page whose URL carries a token
+(an expired invite link, `/invite/<anything>`, is enough) and trigger a
+browser error from the console: `setTimeout(() => { throw new Error('url scrub check') })`.
+**Expect:** the event's URL, breadcrumbs and transaction show
+`/invite/[Filtered]`, and no session replay exists for that page. Then search
+Sentry's traces for `/invite/` and `token=`: span names and `url.full`,
+`http.target` and `sentry.segment.name` attributes should show `[Filtered]`,
+never a token, and no `http.request.header.next-router-state-tree` value.
+
+For the server side, open any server error from a token route (or from
+`/apply/status?token=`). **Expect:** `contexts.nextjs.request_path`, the
+request URL and the `next-url` header show `[Filtered]`, and
+`next-router-state-tree` / `x-now-route-matches` are `[Filtered]` or absent.
+A raw token anywhere means a path the scrubber does not cover.
+
 ### What is already covered automatically — do not re-check by hand
 
 `scripts/sentry-data-collection.test.ts` pins the server and edge
-`dataCollection` options and the `beforeSend` scrubbing as passed to
-`Sentry.init`. It cannot see what the SDK actually sends.
+`dataCollection` options, the `beforeSend` scrubbing and the `beforeSendSpan`
+URL scrubbing as passed to `Sentry.init`; `src/instrumentation-client.test.ts`
+pins the browser's scrubbers and the no-replay-on-secret-URL rule;
+`src/lib/sentry-url-scrub.test.ts` covers the patterns. None of them can see
+what the SDK actually sends.
 
 ## Email sends after the v0.43.4.0 dependency bump
 

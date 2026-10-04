@@ -234,6 +234,7 @@ docs/
 - Cookie banner sets `--cookie-banner-height` CSS variable on `:root` for feedback pill positioning
 - PWA: `public/manifest.webmanifest`, `public/sw.js`, `src/components/sw-register.tsx`, `src/components/ios-install-prompt.tsx`
 - **The service worker caches build output only, via an ALLOWLIST** (`STATIC_PREFIXES` in `public/sw.js`). Cache name varies per build via `?v=` from `sw-register.tsx`; no `skipWaiting()`; `clients.claim()` stays; never re-add a network-first HTML branch. Asserted by `e2e/service-worker.spec.ts`. Read `docs/conventions/ui-patterns.md` before touching it
+- **Sentry URL scrubbing is a denylist** (`SECRET_PATHS`/`SECRET_QUERY_KEYS` in `src/lib/sentry-url-scrub.ts`): a new route with a secret in its path or query must be added there, with a case in `sentry-url-scrub.test.ts`
 - **Credential expiry notices**: `src/server/domain/credential-expiry.ts`, `credential-expiry-notice-service.ts`, `credential-expiry-repo.ts`, run from the `expire-credentials` cron. Idempotency is per expiry cycle; stamp only when nobody failed; `allSettled`, never `Promise.all`; cap by org. Read `docs/conventions/background-checks-and-credentials.md` first
 - Org health score: domain at `src/server/domain/org-health.ts`, widget at `src/components/app/org-health-widget.tsx`
 - Activity feed: `src/components/app/activity-feed.tsx` (uses `screener.getActivityFeed` tRPC query)
