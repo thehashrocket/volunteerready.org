@@ -330,8 +330,14 @@ Sentry plan's monitor allowance.
 `dataCollection` options, the `beforeSend` scrubbing and the `beforeSendSpan`
 URL scrubbing as passed to `Sentry.init`; `src/instrumentation-client.test.ts`
 pins the browser's scrubbers and the no-replay-on-secret-URL rule;
-`src/lib/sentry-url-scrub.test.ts` covers the patterns. None of them can see
-what the SDK actually sends.
+`src/lib/sentry-url-scrub.test.ts` covers the patterns. For check 6,
+`src/server/lib/cron-auth.test.ts` pins that a refused request sends no
+check-in and an authenticated one runs inside its monitor with the
+`vercel.json` schedule, `scripts/cron-monitor-schedules.test.ts` matches every
+cron route's job name to a `vercel.json` entry, and
+`scripts/next-config-sentry.test.ts` keeps automatic Vercel cron monitoring
+and the `webpack` block out of `next.config.ts`. None of them can see what the
+SDK actually sends.
 
 ## Email sends after the v0.43.4.0 dependency bump
 
