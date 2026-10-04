@@ -30,6 +30,7 @@ const mockStripe = vi.hoisted(() => ({
 	},
 	billingPortal: { sessions: { create: vi.fn() } },
 	webhooks: { constructEvent: vi.fn() },
+	events: { list: vi.fn() },
 }));
 
 // ---------------------------------------------------------------------------
@@ -56,6 +57,7 @@ vi.mock('@/server/repositories/orgRepo', () => ({
 	updateOrgPlanTx: vi.fn(async () => ({})),
 	claimOrgStripeCustomerId: vi.fn(async () => true),
 	findOrgStripeCustomerId: vi.fn(async () => null),
+	findOrgBillingFields: vi.fn(),
 }));
 
 vi.mock('@/server/repositories/companyRepo', () => ({
@@ -111,8 +113,11 @@ import * as billingEmails from '@/server/repositories/send-billing-emails';
 import * as webhookRepo from '@/server/repositories/webhookRepo';
 import {
 	createCheckoutSession,
+	getOrgBillingStatus,
+	getOrgPlanStatus,
 	handleStripeWebhookEvent,
 	processStripeEvent,
+	reconcileStripeEvents,
 } from '../billingService';
 
 // A subscription as `stripe.subscriptions.list` returns it: the customer's
@@ -1465,5 +1470,279 @@ describe('a webhook for a price the app does not know', () => {
 		await expect(deliver(nowSeconds())).rejects.toThrow('Stripe is down');
 
 		expect(adminAlerts.sendUnknownStripePriceAlert).not.toHaveBeenCalled();
+	});
+});
+
+describe('getOrgPlanStatus', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		resetSubscriptions();
+	});
+
+	it('reads the plan from the database without asking Stripe', async () => {
+		// PlanGate and other components refetch this on every focus; it must
+		// stay a database read.
+		vi.mocked(orgRepo.findOrgBillingFields).mockResolvedValueOnce({
+			planTier: 'PRO',
+			trialEndsAt: null,
+			stripeCustomerId: 'cus_1',
+			stripeSubscriptionId: 'sub_1',
+		});
+
+		const status = await getOrgPlanStatus('org-1');
+
+		expect(status).toEqual({
+			planTier: 'PRO',
+			trialEndsAt: null,
+			hasStripeCustomer: true,
+			hasSubscription: true,
+		});
+		expect(mockStripe.subscriptions.list).not.toHaveBeenCalled();
+	});
+});
+
+describe('getOrgBillingStatus', () => {
+	const fields = (
+		stripeCustomerId: string | null,
+		stripeSubscriptionId: string | null = null,
+	) => ({
+		planTier: 'FREE' as const,
+		trialEndsAt: null,
+		stripeCustomerId,
+		stripeSubscriptionId,
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		resetSubscriptions();
+	});
+
+	it('reports no subscription without asking Stripe when there is no customer', async () => {
+		vi.mocked(orgRepo.findOrgBillingFields).mockResolvedValueOnce(fields(null));
+
+		const status = await getOrgBillingStatus('org-1');
+
+		expect(status).toMatchObject({
+			hasStripeCustomer: false,
+			hasSubscription: false,
+			subscriptionStatus: null,
+		});
+		expect(mockStripe.subscriptions.list).not.toHaveBeenCalled();
+	});
+
+	// 'some_future_status' stands for a status Stripe adds later: checkout
+	// refuses it, so the page must report it too.
+	it.each([
+		'unpaid',
+		'paused',
+		'incomplete',
+		'past_due',
+		'active',
+		'some_future_status',
+	] as const)(
+		'reports a %s subscription as one that blocks checkout',
+		async (subscriptionStatus) => {
+			vi.mocked(orgRepo.findOrgBillingFields).mockResolvedValueOnce(
+				fields('cus_1'),
+			);
+			mockSubscriptions(
+				stripeSub('sub_1', subscriptionStatus as Stripe.Subscription.Status),
+			);
+
+			const status = await getOrgBillingStatus('org-1');
+
+			expect(status).toMatchObject({
+				hasStripeCustomer: true,
+				hasSubscription: true,
+				subscriptionStatus,
+			});
+		},
+	);
+
+	it('reports nothing when every subscription has ended', async () => {
+		vi.mocked(orgRepo.findOrgBillingFields).mockResolvedValueOnce(
+			fields('cus_1'),
+		);
+		mockSubscriptions(
+			stripeSub('sub_1', 'canceled'),
+			stripeSub('sub_2', 'incomplete_expired'),
+		);
+
+		const status = await getOrgBillingStatus('org-1');
+
+		expect(status).toMatchObject({
+			hasSubscription: false,
+			subscriptionStatus: null,
+		});
+	});
+
+	it('explains the paying subscription first when there are several', async () => {
+		vi.mocked(orgRepo.findOrgBillingFields).mockResolvedValueOnce(
+			fields('cus_1'),
+		);
+		mockSubscriptions(
+			stripeSub('sub_1', 'unpaid'),
+			stripeSub('sub_2', 'active'),
+		);
+
+		const status = await getOrgBillingStatus('org-1');
+
+		expect(status.subscriptionStatus).toBe('active');
+	});
+
+	it.each([
+		['sub_1', true, 'unknown'],
+		[null, false, null],
+	] as const)(
+		'falls back to the stored subscription (%s) when Stripe cannot be asked',
+		async (stored, hasSubscription, subscriptionStatus) => {
+			const consoleError = vi
+				.spyOn(console, 'error')
+				.mockImplementation(() => {});
+			vi.mocked(orgRepo.findOrgBillingFields).mockResolvedValueOnce(
+				fields('cus_1', stored),
+			);
+			mockStripe.subscriptions.list.mockReturnValueOnce({
+				autoPagingToArray: async () => {
+					throw new Error('Stripe is down');
+				},
+			});
+
+			const status = await getOrgBillingStatus('org-1');
+
+			expect(status).toMatchObject({ hasSubscription, subscriptionStatus });
+			consoleError.mockRestore();
+		},
+	);
+});
+
+describe('reconcileStripeEvents in batches', () => {
+	const event = (id: string) => ({
+		id,
+		type: 'customer.created',
+		created: 1_800_000_000,
+		data: { object: {} },
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		resetSubscriptions();
+		mockStripe.events.list.mockReset();
+	});
+
+	it('processes one batch and returns a cursor while more events remain', async () => {
+		mockStripe.events.list.mockResolvedValueOnce({
+			data: [event('evt_1'), event('evt_2')],
+			has_more: true,
+		});
+
+		const result = await reconcileStripeEvents({ windowHours: 24 });
+
+		const [params] = mockStripe.events.list.mock.calls[0];
+		expect(params).toMatchObject({ limit: 50 });
+		expect(params.starting_after).toBeUndefined();
+		expect(result.eventsChecked).toBe(2);
+		expect(result.eventsReplayed).toBe(2);
+		expect(result.nextCursor).toEqual({
+			startingAfter: 'evt_2',
+			since: params.created.gte,
+		});
+		expect(mockStripe.events.list).toHaveBeenCalledTimes(1);
+	});
+
+	it('continues from the cursor without moving the window start', async () => {
+		// Inside the window, so the 720-hour clamp leaves it alone.
+		const since = Math.floor(Date.now() / 1000) - 60 * 60;
+		mockStripe.events.list.mockResolvedValueOnce({
+			data: [event('evt_3')],
+			has_more: false,
+		});
+
+		const result = await reconcileStripeEvents({
+			windowHours: 24,
+			cursor: { startingAfter: 'evt_2', since },
+		});
+
+		expect(mockStripe.events.list).toHaveBeenCalledWith({
+			created: { gte: since },
+			limit: 50,
+			starting_after: 'evt_2',
+		});
+		expect(result.nextCursor).toBeNull();
+	});
+
+	it('counts a failed replay and carries on with the batch and its cursor', async () => {
+		const consoleError = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+		mockStripe.events.list.mockResolvedValueOnce({
+			data: [
+				{
+					id: 'evt_bad',
+					type: 'customer.subscription.updated',
+					created: 1_800_000_000,
+					data: { object: { id: 'sub_1', customer: 'cus_1' } },
+				},
+				event('evt_ok'),
+			],
+			has_more: true,
+		});
+		vi.mocked(orgRepo.findOrgByStripeCustomerId).mockResolvedValueOnce({
+			id: 'org-1',
+			planTier: 'FREE',
+			stripeCustomerId: 'cus_1',
+			stripeSubscriptionId: null,
+		});
+		mockStripe.subscriptions.list.mockReturnValueOnce({
+			autoPagingToArray: async () => {
+				throw new Error('Stripe is down');
+			},
+		});
+
+		const result = await reconcileStripeEvents({ windowHours: 24 });
+
+		expect(result.eventsFailed).toBe(1);
+		expect(result.eventsReplayed).toBe(1);
+		expect(result.details[0].status).toMatch(/^failed:/);
+		expect(result.nextCursor).toMatchObject({ startingAfter: 'evt_ok' });
+		consoleError.mockRestore();
+	});
+
+	it('ends the window when Stripe returns an empty page', async () => {
+		mockStripe.events.list.mockResolvedValueOnce({ data: [], has_more: true });
+
+		const result = await reconcileStripeEvents({ windowHours: 24 });
+
+		expect(result.eventsChecked).toBe(0);
+		expect(result.nextCursor).toBeNull();
+	});
+
+	it('never lets a cursor widen the window past 720 hours', async () => {
+		mockStripe.events.list.mockResolvedValueOnce({
+			data: [],
+			has_more: false,
+		});
+		const before = Math.floor(Date.now() / 1000) - 720 * 60 * 60;
+
+		await reconcileStripeEvents({
+			windowHours: 24,
+			cursor: { startingAfter: 'evt_2', since: 0 },
+		});
+
+		const [params] = mockStripe.events.list.mock.calls[0];
+		expect(params.created.gte).toBeGreaterThanOrEqual(before);
+	});
+
+	it('skips events already processed', async () => {
+		mockStripe.events.list.mockResolvedValueOnce({
+			data: [event('evt_done')],
+			has_more: false,
+		});
+		vi.mocked(webhookRepo.isWebhookEventProcessed).mockResolvedValueOnce(true);
+
+		const result = await reconcileStripeEvents({ windowHours: 24 });
+
+		expect(result.alreadyProcessed).toBe(1);
+		expect(result.eventsReplayed).toBe(0);
 	});
 });
