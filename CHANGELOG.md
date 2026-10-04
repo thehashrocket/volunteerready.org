@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.11.0] - 2026-10-03
+
+**The billing page tells an organization what to do when its subscription is stuck, and the Stripe reconcile tool can no longer time out.**
+
+Two follow-ups left open by the 0.43.8.0 billing fix.
+
+### Changed
+
+- **`/app/billing` asks Stripe which subscriptions could still bill**, using
+  the same rule checkout refuses on (`getOrgBillingStatus()`). An organization
+  whose subscription is unpaid, paused, incomplete or past due now sees a line
+  saying what to do, instead of Upgrade buttons that checkout would refuse. The
+  page shows a loading state and an error card rather than briefly offering
+  upgrades. It asks Stripe at most once a minute per tab, and falls back to the
+  stored subscription if Stripe cannot be reached. Only this page calls
+  Stripe: the plan gate and the background-checks page keep reading the plan
+  from the database (`billing.getBillingStatus`); the billing page has its own
+  `billing.getBillingPageStatus`. The billing router no longer queries the
+  database directly.
+- **The admin Stripe reconcile processes 50 events per click** and offers
+  Continue while events remain in the window. A failed batch can be retried
+  from where it stopped. The window start stays fixed across batches and never
+  reaches back more than 720 hours. The window cannot change while a batch is
+  running.
+
+### Tests
+
+- `getOrgBillingStatus` for each status, an unknown future status, the
+  paying-subscription-first rule and the Stripe-error fallback. Reconcile
+  batches, the cursor, a failed replay mid-batch, an empty page and the
+  720-hour limit. The router forwarding the cursor. The billing page's
+  guidance, loading and error states. Each was checked by reverting it and
+  watching a test fail.
+
+### Docs
+
+- `docs/post-deploy-checks.md`: a check that the billing page's Stripe call
+  works after deploy.
+- `docs/TODOS.md`: both follow-ups closed.
+
 ## [0.43.10.0] - 2026-10-03
 
 **Error monitoring no longer receives the private links people use to join, claim or check on things. Nothing changes for anyone using the site.**
