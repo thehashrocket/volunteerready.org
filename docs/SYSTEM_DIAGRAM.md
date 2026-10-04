@@ -48,12 +48,18 @@ flowchart TD
     S -.->|Hourly| U[/api/cron/email-digests]
     S -.->|Hourly| V[/api/cron/shift-reminders]
     S -.->|Daily 15:00 UTC| W[/api/cron/volunteer-reengagement]
-    S -.->|Hourly| X[/api/cron/shift-auto-close]
+    S -.->|Hourly :15| X[/api/cron/shift-auto-close]
+    S -.->|Daily 10:00 UTC| Y[/api/cron/org-feedback]
+    S -.->|Mondays 08:00 UTC| Z[/api/cron/opportunity-digest]
+    S -.->|Mondays 14:00 UTC| AA[/api/cron/advisory-scan-heartbeat]
     T --> F
     U --> F
     V --> F
     W --> F
     X --> F
+    Y --> F
+    Z --> F
+    AA -->|Re-enable + dispatch| AB[GitHub Actions: security-advisories-scheduled]
 ```
 
 ## Notes
