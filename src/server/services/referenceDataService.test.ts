@@ -1,4 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const sentry = vi.hoisted(() => ({ captureException: vi.fn() }));
+vi.mock('@sentry/nextjs', () => sentry);
 
 // Mock the repo module
 vi.mock('@/server/repositories/referenceDataRepo', () => ({
@@ -35,6 +38,11 @@ const mockSeedPlatformTemplateQuestions = vi.mocked(
 beforeEach(() => {
 	vi.clearAllMocks();
 	_resetForTesting();
+});
+
+// Console spies in these tests are restored, so later tests keep their output.
+afterEach(() => {
+	vi.restoreAllMocks();
 });
 
 describe('ensureReferenceData', () => {
@@ -80,7 +88,10 @@ describe('ensureReferenceData', () => {
 		mockIsCatalogSeeded.mockResolvedValue(true);
 		mockIsPlatformOrgSeeded.mockResolvedValue(true);
 		mockAreTemplateQuestionsSeeded.mockResolvedValue(false);
-		mockSeedPlatformTemplateQuestions.mockResolvedValue({ created: 6 });
+		mockSeedPlatformTemplateQuestions.mockResolvedValue({
+			created: 6,
+			repaired: 0,
+		});
 
 		await ensureReferenceData();
 
@@ -109,7 +120,10 @@ describe('ensureReferenceData', () => {
 		mockAreTemplateQuestionsSeeded.mockResolvedValue(false);
 		mockSeedCatalog.mockResolvedValue({ families: 13, skills: 62 });
 		mockSeedPlatformOrg.mockResolvedValue();
-		mockSeedPlatformTemplateQuestions.mockResolvedValue({ created: 6 });
+		mockSeedPlatformTemplateQuestions.mockResolvedValue({
+			created: 6,
+			repaired: 0,
+		});
 
 		await ensureReferenceData();
 
@@ -154,6 +168,10 @@ describe('ensureReferenceData', () => {
 
 		expect(errorSpy).toHaveBeenCalledTimes(1);
 		expect(errorSpy.mock.calls[0]?.[0]).toContain('Boot guard failed');
+		expect(sentry.captureException).toHaveBeenCalledWith(
+			new Error('DB down'),
+			expect.objectContaining({ tags: { boot_guard_step: 'checks' } }),
+		);
 
 		// Next call should retry since _seeded was not set
 		mockIsCatalogSeeded.mockResolvedValue(true);
@@ -200,5 +218,109 @@ describe('ensureReferenceData', () => {
 		expect(mockSeedPlatformOrg).toHaveBeenCalledTimes(1);
 
 		vi.restoreAllMocks();
+	});
+
+	// Value: protects=a failed skill-catalog seed still lets the template
+	// repair run, so signups get their questions; fails_when=the guard's steps
+	// share one try again; why_new=no test failed one step and checked the
+	// others; seam=none
+	it('repairs the templates even when the catalog seed fails, and retries', async () => {
+		const consoleErr = vi.spyOn(console, 'error').mockImplementation(() => {});
+		vi.spyOn(console, 'warn').mockImplementation(() => {});
+		mockIsCatalogSeeded.mockResolvedValue(false);
+		mockIsPlatformOrgSeeded.mockResolvedValue(true);
+		mockAreTemplateQuestionsSeeded.mockResolvedValue(false);
+		mockSeedCatalog.mockRejectedValueOnce(new Error('catalog version clash'));
+		mockSeedPlatformTemplateQuestions.mockResolvedValue({
+			created: 0,
+			repaired: 5,
+		});
+
+		await ensureReferenceData();
+
+		expect(mockSeedPlatformTemplateQuestions).toHaveBeenCalledTimes(1);
+		expect(sentry.captureException).toHaveBeenCalledTimes(1);
+		// Not marked done: the next request retries the failed step.
+		await ensureReferenceData();
+		expect(mockIsCatalogSeeded).toHaveBeenCalledTimes(2);
+		consoleErr.mockRestore();
+	});
+
+	// Value: protects=when several steps fail, Sentry gets the template
+	// failure that leaves signups without questions; fails_when=only the first
+	// failing step is reported; why_new=one report per interval hid it behind
+	// a failing catalog step; seam=none
+	it('reports the template failure when the catalog seed also fails', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		vi.spyOn(console, 'warn').mockImplementation(() => {});
+		mockIsCatalogSeeded.mockResolvedValue(false);
+		mockIsPlatformOrgSeeded.mockResolvedValue(true);
+		mockAreTemplateQuestionsSeeded.mockResolvedValue(false);
+		mockSeedCatalog.mockRejectedValueOnce(new Error('catalog'));
+		mockSeedPlatformTemplateQuestions.mockRejectedValueOnce(
+			new Error('templates'),
+		);
+
+		await ensureReferenceData();
+
+		expect(sentry.captureException).toHaveBeenCalledTimes(1);
+		expect(sentry.captureException).toHaveBeenCalledWith(
+			new Error('templates'),
+			{
+				tags: { boot_guard_step: 'template questions' },
+				extra: { failed_steps: ['skill catalog', 'template questions'] },
+			},
+		);
+	});
+
+	// Value: protects=Sentry reports why the platform org could not be seeded,
+	// not the template step's derived error; fails_when=the template step runs
+	// after a failed platform-org step; why_new=new step ordering; seam=none
+	it('skips the template step when the platform org could not be seeded', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		mockIsCatalogSeeded.mockResolvedValue(true);
+		mockIsPlatformOrgSeeded.mockResolvedValue(false);
+		mockAreTemplateQuestionsSeeded.mockResolvedValue(false);
+		mockSeedPlatformOrg.mockRejectedValueOnce(new Error('platform insert'));
+
+		await ensureReferenceData();
+
+		expect(mockSeedPlatformTemplateQuestions).not.toHaveBeenCalled();
+		expect(sentry.captureException).toHaveBeenCalledWith(
+			new Error('platform insert'),
+			expect.objectContaining({ tags: { boot_guard_step: 'platform org' } }),
+		);
+	});
+
+	it('reports a persistent failure to Sentry once per interval, not on every retry', async () => {
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		mockIsCatalogSeeded.mockRejectedValue(new Error('DB down'));
+
+		await ensureReferenceData();
+		await ensureReferenceData();
+		await ensureReferenceData();
+
+		expect(errorSpy).toHaveBeenCalledTimes(3);
+		expect(sentry.captureException).toHaveBeenCalledTimes(1);
+		errorSpy.mockRestore();
+	});
+
+	it('reports the failure again once the interval has passed', async () => {
+		vi.useFakeTimers();
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		mockIsCatalogSeeded.mockRejectedValue(new Error('DB down'));
+		try {
+			await ensureReferenceData();
+			vi.advanceTimersByTime(10 * 60_000 - 1);
+			await ensureReferenceData();
+			expect(sentry.captureException).toHaveBeenCalledTimes(1);
+
+			vi.advanceTimersByTime(1);
+			await ensureReferenceData();
+			expect(sentry.captureException).toHaveBeenCalledTimes(2);
+		} finally {
+			errorSpy.mockRestore();
+			vi.useRealTimers();
+		}
 	});
 });

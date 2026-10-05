@@ -258,6 +258,17 @@ export const DEFAULT_SCREENER_QUESTIONS: DefaultScreenerQuestion[] = [
 	},
 ];
 
+/**
+ * Keys of the default questions: the only platform questions the template
+ * repair (boot guard and deploy seed) ever marks as templates. They predate
+ * the `isTemplate` column; the catalog editor writes its own questions as
+ * templates directly, so nothing else on the platform org needs promoting, and
+ * a stray row there must not become every new org's question.
+ */
+export const DEFAULT_SCREENER_QUESTION_KEYS = DEFAULT_SCREENER_QUESTIONS.map(
+	(q) => q.key,
+);
+
 export function evaluateScreening(
 	questions: ScreenerQuestion[],
 	responses: ScreenerResponse[],

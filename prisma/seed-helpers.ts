@@ -33,7 +33,10 @@ import {
 	PLATFORM_ORG_SLUG,
 	SKILL_CATALOG,
 } from '../src/server/domain/reference-data.js';
-import { DEFAULT_SCREENER_QUESTIONS } from '../src/server/domain/volunteer-screening.js';
+import {
+	DEFAULT_SCREENER_QUESTION_KEYS,
+	DEFAULT_SCREENER_QUESTIONS,
+} from '../src/server/domain/volunteer-screening.js';
 
 const datasourceUrl = process.env.DATABASE_URL;
 if (!datasourceUrl) throw new Error('DATABASE_URL is not set');
@@ -243,8 +246,10 @@ export async function backfillDefaultQuestions() {
 
 /**
  * Seed the platform org's template screener questions (isTemplate=true).
- * Create-only: existing template rows are never overwritten — admin edits
- * via the platform admin catalog editor are preserved across re-runs.
+ * Never overwrites a question's content (prompt, type, config), so admin edits
+ * via the platform admin catalog editor are preserved across re-runs. The only
+ * write to an existing row is marking a default platform question as a
+ * template.
  */
 export async function seedPlatformTemplateQuestions() {
 	const platformOrg = await prisma.organization.findUnique({
@@ -256,6 +261,25 @@ export async function seedPlatformTemplateQuestions() {
 			`   platform org (slug="${PLATFORM_ORG_SLUG}") not found — run upsertOrg first`,
 		);
 		return;
+	}
+
+	// The default questions predate the `isTemplate` column and default to
+	// false; skipDuplicates below would otherwise skip them silently. Only the
+	// default keys are marked (see seedPlatformTemplateQuestions in
+	// src/server/repositories/referenceDataRepo.ts and
+	// DEFAULT_SCREENER_QUESTION_KEYS in src/server/domain/volunteer-screening.ts).
+	const repaired = await prisma.screenerQuestion.updateMany({
+		where: {
+			orgId: platformOrg.id,
+			isTemplate: false,
+			key: { in: DEFAULT_SCREENER_QUESTION_KEYS },
+		},
+		data: { isTemplate: true },
+	});
+	if (repaired.count > 0) {
+		console.log(
+			`   ${platformOrg.name}: marked ${repaired.count} existing questions as templates`,
+		);
 	}
 
 	const result = await prisma.screenerQuestion.createMany({

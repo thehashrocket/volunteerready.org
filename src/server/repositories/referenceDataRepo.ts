@@ -5,10 +5,23 @@ import {
 	PLATFORM_ORG_SLUG,
 	SKILL_CATALOG,
 } from '@/server/domain/reference-data';
-import { DEFAULT_SCREENER_QUESTIONS } from '@/server/domain/volunteer-screening';
+import {
+	DEFAULT_SCREENER_QUESTION_KEYS,
+	DEFAULT_SCREENER_QUESTIONS,
+} from '@/server/domain/volunteer-screening';
 import { prisma } from '@/server/repositories/prisma';
 
 const META_KEY = 'catalog_version';
+
+/**
+ * A template is a question on the platform org with `isTemplate` set. Every
+ * template reader matches both, so a stray flag on a tenant's row is never
+ * treated as a template.
+ */
+export const PLATFORM_TEMPLATE_WHERE = {
+	isTemplate: true,
+	organization: { slug: PLATFORM_ORG_SLUG },
+} satisfies Prisma.ScreenerQuestionWhereInput;
 
 /** Check whether the skill catalog has been seeded and is up-to-date. */
 export async function isCatalogSeeded(): Promise<boolean> {
@@ -33,12 +46,21 @@ export async function isPlatformOrgSeeded(): Promise<boolean> {
 	return org !== null;
 }
 
-/** Check whether the platform org has any template questions seeded. */
+/**
+ * Check whether the platform org's template questions are in place: every
+ * default key present as a template. A default that is unmarked, deleted, or
+ * newly added to DEFAULT_SCREENER_QUESTIONS still needs
+ * seedPlatformTemplateQuestions' repair. Keys are unique per org, so one count
+ * covers all three.
+ */
 export async function areTemplateQuestionsSeeded(): Promise<boolean> {
-	const count = await prisma.screenerQuestion.count({
-		where: { isTemplate: true },
+	const defaultTemplates = await prisma.screenerQuestion.count({
+		where: {
+			...PLATFORM_TEMPLATE_WHERE,
+			key: { in: DEFAULT_SCREENER_QUESTION_KEYS },
+		},
 	});
-	return count > 0;
+	return defaultTemplates === DEFAULT_SCREENER_QUESTION_KEYS.length;
 }
 
 /**
@@ -109,11 +131,21 @@ export async function seedPlatformOrg(): Promise<void> {
 
 /**
  * Seed DEFAULT_SCREENER_QUESTIONS into the platform org as template rows
- * (isTemplate=true). Create-only: existing template rows (matched by key)
- * are never overwritten — admin edits via the catalog editor are preserved.
+ * (isTemplate=true). Create-only: an existing row (matched on the
+ * `(orgId, key)` unique) is never overwritten, so admin edits via the catalog
+ * editor are preserved. `ON CONFLICT DO NOTHING` also means two cold starts
+ * seeding at once cannot collide.
+ *
+ * Signup copies the platform org's templates into each new org. The default
+ * questions there predate the `isTemplate` column, which defaulted them to
+ * false: that hid them from signup and made this seed's insert collide on
+ * every boot. So any unmarked default (and only a default: see
+ * DEFAULT_SCREENER_QUESTION_KEYS) is marked as a template here and reported as
+ * `repaired`.
  */
 export async function seedPlatformTemplateQuestions(): Promise<{
 	created: number;
+	repaired: number;
 }> {
 	const platformOrg = await prisma.organization.findUnique({
 		where: { slug: PLATFORM_ORG_SLUG },
@@ -125,30 +157,28 @@ export async function seedPlatformTemplateQuestions(): Promise<{
 		);
 	}
 
-	let created = 0;
-	await prisma.$transaction(async (tx) => {
-		for (const q of DEFAULT_SCREENER_QUESTIONS) {
-			const existing = await tx.screenerQuestion.findFirst({
-				where: { isTemplate: true, key: q.key },
-				select: { id: true },
-			});
-			if (existing) continue;
-
-			await tx.screenerQuestion.create({
-				data: {
-					orgId: platformOrg.id,
-					key: q.key,
-					prompt: q.prompt,
-					type: q.type,
-					order: q.order,
-					isActive: true,
-					isTemplate: true,
-					configJson: q.configJson as Prisma.InputJsonValue,
-				},
-			});
-			created++;
-		}
+	return prisma.$transaction(async (tx) => {
+		const repaired = await tx.screenerQuestion.updateMany({
+			where: {
+				orgId: platformOrg.id,
+				isTemplate: false,
+				key: { in: DEFAULT_SCREENER_QUESTION_KEYS },
+			},
+			data: { isTemplate: true },
+		});
+		const created = await tx.screenerQuestion.createMany({
+			data: DEFAULT_SCREENER_QUESTIONS.map((q) => ({
+				orgId: platformOrg.id,
+				key: q.key,
+				prompt: q.prompt,
+				type: q.type,
+				order: q.order,
+				isActive: true,
+				isTemplate: true,
+				configJson: q.configJson as Prisma.InputJsonValue,
+			})),
+			skipDuplicates: true,
+		});
+		return { created: created.count, repaired: repaired.count };
 	});
-
-	return { created };
 }

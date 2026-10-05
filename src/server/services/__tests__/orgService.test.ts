@@ -24,9 +24,19 @@ vi.mock('@/server/repositories/auditRepo', () => ({
 	writeAuditLogTx: vi.fn(async () => ({ id: 'audit-1' })),
 }));
 
+const mockSeedDefaultQuestions = vi.fn(async (..._args: unknown[]) => 5);
 vi.mock('@/server/repositories/screenerQuestionsRepo', () => ({
-	seedDefaultQuestions: vi.fn(async () => undefined),
+	seedDefaultQuestions: (...args: unknown[]) =>
+		mockSeedDefaultQuestions(...args),
 }));
+
+const mockEnsureReferenceData = vi.fn(async () => undefined);
+vi.mock('@/server/services/referenceDataService', () => ({
+	ensureReferenceData: () => mockEnsureReferenceData(),
+}));
+
+const sentry = vi.hoisted(() => ({ captureMessage: vi.fn() }));
+vi.mock('@sentry/nextjs', () => sentry);
 
 vi.mock('@/server/repositories/sessionRepo', () => ({
 	getSessionByToken: vi.fn(async () => null),
@@ -69,6 +79,10 @@ import { createOrg } from '../orgService';
 beforeEach(() => {
 	mockSendNewOrgAlert.mockReset();
 	mockSendNewOrgAlert.mockResolvedValue(undefined);
+	mockSeedDefaultQuestions.mockReset();
+	mockSeedDefaultQuestions.mockResolvedValue(5);
+	sentry.captureMessage.mockReset();
+	mockEnsureReferenceData.mockClear();
 });
 
 describe('createOrg', () => {
@@ -131,5 +145,44 @@ describe('createOrg', () => {
 
 		await Promise.resolve();
 		expect(mockSendNewOrgAlert).not.toHaveBeenCalled();
+	});
+
+	it('reports to Sentry when the new org got no screener questions', async () => {
+		mockSeedDefaultQuestions.mockResolvedValueOnce(0);
+
+		await createOrg({
+			name: 'Test Org',
+			userId: 'user-1',
+			sessionToken: 'tok-1',
+		});
+
+		expect(sentry.captureMessage).toHaveBeenCalledTimes(1);
+		expect(sentry.captureMessage).toHaveBeenCalledWith(
+			expect.stringContaining('no default screener questions'),
+			{ level: 'warning', extra: { orgId: 'org-1' } },
+		);
+	});
+
+	it('does not report when the new org got its screener questions', async () => {
+		await createOrg({
+			name: 'Test Org',
+			userId: 'user-1',
+			sessionToken: 'tok-1',
+		});
+
+		expect(sentry.captureMessage).not.toHaveBeenCalled();
+	});
+
+	it('runs the reference-data boot guard before copying the templates', async () => {
+		await createOrg({
+			name: 'Test Org',
+			userId: 'user-1',
+			sessionToken: 'tok-1',
+		});
+
+		expect(mockEnsureReferenceData).toHaveBeenCalledTimes(1);
+		const [guardOrder] = mockEnsureReferenceData.mock.invocationCallOrder;
+		const [seedOrder] = mockSeedDefaultQuestions.mock.invocationCallOrder;
+		expect(guardOrder).toBeLessThan(seedOrder);
 	});
 });
