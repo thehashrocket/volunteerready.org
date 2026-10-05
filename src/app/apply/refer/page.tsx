@@ -5,6 +5,7 @@ import { PublicHero } from '@/components/public-hero';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
+import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
 import { prisma } from '@/server/repositories/prisma';
 
 export const metadata: Metadata = {
@@ -20,7 +21,8 @@ export const metadata: Metadata = {
  * - Only the name is shown, not metrics or case study data
  */
 async function getReferringOrgName(slug: string | undefined) {
-	if (!slug) return null;
+	// The platform org holds signup templates; it never refers anyone.
+	if (!slug || slug === PLATFORM_ORG_SLUG) return null;
 	const org = await prisma.organization.findUnique({
 		where: { slug },
 		select: { name: true },
@@ -31,7 +33,7 @@ async function getReferringOrgName(slug: string | undefined) {
 		'@/server/repositories/orgRepo'
 	);
 	const currentSlug = await findCurrentSlugByHistory(slug);
-	if (!currentSlug) return null;
+	if (!currentSlug || currentSlug === PLATFORM_ORG_SLUG) return null;
 	const renamed = await prisma.organization.findUnique({
 		where: { slug: currentSlug },
 		select: { name: true },
