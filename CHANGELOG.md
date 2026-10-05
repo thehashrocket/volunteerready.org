@@ -2,6 +2,51 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.44.0.0] - 2026-10-05
+
+**Organization context, Checkr connect and the org feedback survey link were reworked. Most people will notice nothing; a Checkr connect left half-finished across the deploy needs starting again.**
+
+### Changed
+
+- **Your active organization always comes from your memberships.** The
+  request context, the signed-in session and server-rendered pages share one
+  rule (`resolveOrgContext`). A saved organization counts only while you
+  belong to it; otherwise your oldest membership is used. People who are not
+  on any organization's staff have no organization context, so organization
+  settings (including profile notification settings) are not available to
+  them.
+- **The server reads exactly the session cookie you signed in with**, and only
+  uses its session record when it belongs to you.
+- **Connecting Checkr needs an org admin, and finishing it in the same browser
+  session within 15 minutes.** A connect started before this release comes
+  back with "Security check failed" once; starting it again works.
+- **Org feedback survey links open through a short redirect** that keeps the
+  link's code out of the address bar, the page and analytics. Links keep
+  working after an organization renames its slug, each answer is capped at
+  2,000 characters, and your answers stay in the form if sending fails.
+
+### Fixed
+
+- The internal platform organization no longer appears on the referral page
+  or in social preview images, including through an old slug.
+- A signed-out return from Checkr goes to the login page instead of a missing
+  page.
+- A repeated `org` parameter on the survey page, or an unusual survey type,
+  shows the invalid-link page instead of an error.
+
+### Tests
+
+- Organization context from memberships in the request context, the session
+  callback and server pages; session-cookie selection for each `NEXTAUTH_URL`
+  shape; the Checkr connect state, role and sign-in redirect; the survey link,
+  cookie, page, action and length cap; platform-organization guards; an e2e of
+  the survey link, a reload and answers kept after a refusal.
+
+### Docs
+
+- `docs/post-deploy-checks.md`: sign in on production as an org owner right
+  after the deploy and confirm the dashboard, settings and billing load.
+
 ## [0.43.12.0] - 2026-10-03
 
 **Sentry now alerts when a scheduled job fails or stops running. Nothing changes for anyone using the site.**

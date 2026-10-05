@@ -5,6 +5,74 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the org-context ship (2026-10-05, v0.44.0.0)
+
+### [P1] Keep the database session token server-side
+**Priority:** P1
+Remove `sessionToken` from the NextAuth session callback's output
+(`src/server/auth.ts`); only server code needs it. Give server code one
+server-only helper that reads and verifies the cookie (`sessionCookieName()` /
+`readCookie()` in `src/server/lib/session-cookie.ts`, bound to the user as the
+callback does now). Callers to move: `createTRPCContext` (`ctx.sessionToken`,
+used by the org/company switchers and onboarding), and the Checkr OAuth
+callback, which since v0.44.0.0 reads `session.sessionToken` to verify its
+`state`.
+
+### [P2] Org feedback survey emails: recipients, cutoff and send result
+**Priority:** P2
+`sendOrgFeedbackEmails()` mails only `ADMIN` members, but `createOrg()` makes
+the creator an `OWNER`, so the survey has never gone out. Decided 2026-10-05:
+mail `OWNER` or `ADMIN`, and only orgs created after a cutoff (the deploy date
+of that fix), so existing orgs get no burst of emails. In the same change:
+read `sendEmail`'s boolean (a `false` today counts as sent and the
+`OrgFeedback` row stops any retry), narrow the duplicate check with
+`isUniqueViolationOn()` instead of matching the message, and skip suspended
+orgs (`findSurveyOrg()` refuses their links).
+
+### [P2] Notification settings for people without an org staff role
+**Priority:** P2
+Organization context now always comes from a membership, so someone who is
+not on any organization's staff gets FORBIDDEN from `notifications.*`
+(`orgProcedure`) and the profile's Notifications tab shows an error card.
+Decide whether volunteers need settings of their own (e.g. per-org rows listed
+through `listMyOrgRelationships()`), or hide the tab when `session.orgId` is
+null.
+
+### [P3] Role required for billing checkout and the billing portal
+**Priority:** P3
+`billing.createCheckoutSession` and `billing.createPortalSession` are
+`orgProcedure`, and `READONLY_PERMISSIONS` includes the portal, so any member
+can open them. Decide whether they should be `adminProcedure`, and record the
+decision in `permissions.ts` either way.
+
+### [P3] Checkr connect while impersonating
+**Priority:** P3
+A platform admin impersonating an org admin can complete a Checkr connect for
+that org (the token is stored on the org). Decide whether credential-binding
+writes are allowed under impersonation; if not, refuse in the callback when
+`isImpersonating`.
+
+### [P3] One resolver for company context
+**Priority:** P3
+`trpc/init.ts` and `auth.ts` still hand-roll company context (saved company
+if a member, else the first membership). Generalise `resolveOrgContext()` or
+add a sibling so both use one rule, as org context now does.
+
+### [P3] Test the impersonation path of `createTRPCContext`
+**Priority:** P3
+The org-context tests drive the real-session path only. Add a case with
+`resolveEffectiveUserId` impersonating and `user.findUnique` returning two
+memberships, asserting the oldest one is used (the Checkr callback relies on
+the same rule).
+
+### [P3] Survey links depend on `NEXTAUTH_SECRET`
+**Priority:** P3
+Survey tokens never expire and are keyed with `NEXTAUTH_SECRET`, so rotating
+that secret invalidates every outstanding survey link and in-progress survey.
+If rotation is ever planned, give the survey its own secret first.
+
+---
+
 ## Opened by the billing-correctness fix (2026-10-03, v0.43.8.0)
 
 Found by the review of the `stripe` 23 upgrade (#249) along with the three
@@ -3970,8 +4038,13 @@ security primitive is six chances to omit the length pre-check, and omitting it
 makes `timingSafeEqual` **throw** instead of returning false. Extract to
 `src/server/lib/crypto-compare.ts` and have all six call it.
 
-### [P2] Active-org resolution now exists in three places with different rules
+### [P2] ~~Active-org resolution now exists in three places with different rules~~ ✅ FIXED (2026-10-05, v0.44.0.0)
 **Priority:** P2
+
+**Completed:** v0.44.0.0 (2026-10-05). `resolveOrgContext()` in
+`domain/active-org.ts` is the one rule; `auth.ts`, `trpc/init.ts` and
+`resolveActiveOrgId()` all call it.
+
 `auth.ts` (session callback), `trpc/init.ts` (tRPC context) and the new pure
 `domain/active-org.ts` each decide "which org is this user acting as". The first
 two assign `currentOrgId` unconditionally; the new one additionally verifies the
@@ -5043,7 +5116,13 @@ background functions or a self-hosted worker.
 
 ## Concierge Activation Engine (Phase 12)
 
-### [P3] HMAC Survey Tokens for Feedback Form Authentication
+### [P3] ~~HMAC Survey Tokens for Feedback Form Authentication~~ ✅ FIXED (2026-10-05, v0.44.0.0)
+
+**Completed:** v0.44.0.0 (2026-10-05), with a different design from the one
+below: `src/server/lib/org-feedback-token.ts` binds org id + survey type under
+a label with `NEXTAUTH_SECRET`, with no expiry (the survey has no deadline).
+The email links to `/screening/feedback/start`, which moves the token into an
+httpOnly cookie for that org and type.
 
 **What:** Replace unauthenticated feedback survey with HMAC-signed tokens embedded in
 the email link, so responses are attributable without requiring login.
@@ -5107,7 +5186,11 @@ verification before org creation or after.
 
 ---
 
-### [P3] Feedback Form Server-Side Length Validation
+### [P3] ~~Feedback Form Server-Side Length Validation~~ ✅ FIXED (2026-10-05, v0.44.0.0)
+
+**Completed:** v0.44.0.0 (2026-10-05). `FEEDBACK_ANSWER_MAX_LENGTH` (2000) in
+`src/server/domain/org-feedback.ts`, enforced in `submitOrgFeedback()` after
+newline normalisation and as the textarea `maxLength`.
 
 **What:** Add max-length validation on the server side for feedback form responses
 (currently only client-side `maxLength` on `<Textarea>`).
@@ -5756,15 +5839,16 @@ heading; About/Security hero CTAs; stats-bar Fraunces numbers). Deferred:
   adversarial review rather than riding along with an unrelated UX fix.
 - **[P2] Checkr OAuth org-selection for multi-org impersonated targets** —
   (split off the item above via `/plan-eng-review`, 2026-07-20.)
-  `src/app/api/checkr/oauth/callback/route.ts:75-101` resolves the
+  `src/app/api/checkr/oauth/callback/route.ts` resolves the
   impersonated target's org via the same "oldest membership"
   `organizationMember.findFirst({ orderBy: { createdAt: 'asc' } })` heuristic,
   but here the guessed org feeds a CSRF `state` validation *and* a subsequent
   DB write (`connectCheckrAccount()` persists the Checkr access token onto
   that `Organization` row). An admin impersonating a target in 2+ orgs can
   never connect Checkr for any org but the target's oldest one. The OAuth
-  `state` param is set to `ctx.orgId` at URL-generation time
-  (`getCheckrOAuthUrl` tRPC procedure) using the identical heuristic, so the
+  `state` (signed for the browser session and org since v0.44.0.0, see
+  `checkr-oauth-state.ts`) carries `ctx.orgId` from `getCheckrOAuthUrl`, which
+  uses the identical heuristic, so the
   round-trip is internally consistent today (doesn't break, doesn't leak
   cross-tenant data) — it's just permanently pinned to one org. **Fix
   direction:** surface an explicit org selection at OAuth-initiation time
