@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
 	mockGetServerSession,
@@ -46,6 +46,7 @@ vi.mock('@/server/services/backgroundCheckService', () => ({
 	connectCheckrAccount: mockConnectCheckrAccount,
 }));
 
+import { createCheckrOAuthState } from '@/server/lib/checkr-oauth-state';
 import { GET } from '../route';
 
 const BASE_URL = 'http://localhost:3005';
@@ -54,6 +55,13 @@ const ADMIN_ID = 'admin-1';
 const TARGET_ID = 'target-1';
 const ADMIN_ORG_ID = 'org-admin';
 const TARGET_ORG_ID = 'org-target';
+const SESSION_TOKEN = 'browser-session-1';
+const SECRET = 'test-nextauth-secret';
+
+/** A state getCheckrOAuthUrl would have issued to this browser session. */
+function signed(orgId: string, sessionToken = SESSION_TOKEN, now?: number) {
+	return createCheckrOAuthState({ orgId, sessionToken, now }, SECRET);
+}
 
 function makeRequest(
 	params: Record<string, string>,
@@ -88,8 +96,23 @@ function impersonating(targetId: string) {
 	};
 }
 
+/** A signed-in session whose org context the session callback resolved. */
+function adminSession(role = 'ADMIN') {
+	return {
+		user: { id: ADMIN_ID },
+		sessionToken: SESSION_TOKEN,
+		orgId: ADMIN_ORG_ID,
+		role,
+	};
+}
+
 beforeEach(() => {
 	vi.clearAllMocks();
+	vi.stubEnv('NEXTAUTH_SECRET', SECRET);
+});
+
+afterEach(() => {
+	vi.unstubAllEnvs();
 });
 
 describe('GET /api/checkr/oauth/callback', () => {
@@ -105,50 +128,134 @@ describe('GET /api/checkr/oauth/callback', () => {
 		mockResolveEffectiveUserId.mockResolvedValueOnce(notImpersonating(null));
 
 		await expect(
-			GET(makeRequest({ code: 'abc', state: ADMIN_ORG_ID })),
-		).rejects.toThrow(
-			`NEXT_REDIRECT:/auth/signin?callbackUrl=${encodeURIComponent(BG_CHECKS_URL)}`,
-		);
+			GET(makeRequest({ code: 'abc', state: signed(ADMIN_ORG_ID) })),
+		).rejects.toThrow(/^NEXT_REDIRECT:\/login$/);
 		expect(mockConnectCheckrAccount).not.toHaveBeenCalled();
 	});
 
 	it('state-mismatch: redirects when state does not match the real user org (not impersonating)', async () => {
-		mockGetServerSession.mockResolvedValueOnce({ user: { id: ADMIN_ID } });
+		mockGetServerSession.mockResolvedValueOnce(adminSession());
 		mockResolveEffectiveUserId.mockResolvedValueOnce(
 			notImpersonating(ADMIN_ID),
 		);
-		mockSessionFindFirst.mockResolvedValueOnce({ currentOrgId: ADMIN_ORG_ID });
 
 		await expect(
-			GET(makeRequest({ code: 'abc', state: 'some-other-org' })),
+			GET(makeRequest({ code: 'abc', state: signed('some-other-org') })),
 		).rejects.toThrow(
 			`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_error=state_mismatch`,
 		);
-		expect(mockSessionFindFirst).toHaveBeenCalledWith({
-			where: { userId: ADMIN_ID },
-			orderBy: { expires: 'desc' },
-			select: { currentOrgId: true },
+		expect(mockConnectCheckrAccount).not.toHaveBeenCalled();
+	});
+
+	// Value: protects=the org a Checkr account binds to comes from a membership;
+	// fails_when=the callback reads the saved org from the DB session row instead
+	// of the resolved org context; why_new=existing tests mocked the DB row;
+	// seam=none
+	it('refuses when the session has no org context, whatever the state', async () => {
+		mockGetServerSession.mockResolvedValueOnce({
+			user: { id: ADMIN_ID },
+			orgId: null,
+			role: null,
 		});
+		mockResolveEffectiveUserId.mockResolvedValueOnce(
+			notImpersonating(ADMIN_ID),
+		);
+
+		await expect(
+			GET(makeRequest({ code: 'abc', state: signed('other-org') })),
+		).rejects.toThrow(
+			`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_error=state_mismatch`,
+		);
+		expect(mockConnectCheckrAccount).not.toHaveBeenCalled();
+		expect(mockSessionFindFirst).not.toHaveBeenCalled();
+	});
+
+	// Value: protects=a connect callback only completes in the browser session
+	// that started it; fails_when=the callback accepts a state it did not sign
+	// for this session (unsigned, another session's, or expired);
+	// why_new=state is now bound to the session; seam=none
+	it.each([
+		['an unsigned state', () => ADMIN_ORG_ID],
+		[
+			'a state signed for another session',
+			() => signed(ADMIN_ORG_ID, 'other-session'),
+		],
+		[
+			'an expired state',
+			() => signed(ADMIN_ORG_ID, SESSION_TOKEN, Date.now() - 16 * 60 * 1000),
+		],
+		[
+			'a tampered state',
+			() => signed(ADMIN_ORG_ID).replace(/.$/, (c) => (c === '0' ? '1' : '0')),
+		],
+	])('refuses %s', async (_label, state) => {
+		mockGetServerSession.mockResolvedValueOnce(adminSession());
+		mockResolveEffectiveUserId.mockResolvedValueOnce(
+			notImpersonating(ADMIN_ID),
+		);
+
+		await expect(
+			GET(makeRequest({ code: 'abc', state: state() })),
+		).rejects.toThrow(
+			`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_error=state_mismatch`,
+		);
+		expect(mockConnectCheckrAccount).not.toHaveBeenCalled();
+	});
+
+	// Value: protects=connecting Checkr needs ADMIN+, like getCheckrOAuthUrl;
+	// fails_when=the callback skips the role check; why_new=no test covered a
+	// member below ADMIN; seam=none
+	it.each(['READONLY', 'STAFF'])(
+		'refuses a %s member of the org',
+		async (role) => {
+			mockGetServerSession.mockResolvedValueOnce(adminSession(role));
+			mockResolveEffectiveUserId.mockResolvedValueOnce(
+				notImpersonating(ADMIN_ID),
+			);
+
+			await expect(
+				GET(makeRequest({ code: 'abc', state: signed(ADMIN_ORG_ID) })),
+			).rejects.toThrow(
+				`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_error=not_authorized`,
+			);
+			expect(mockConnectCheckrAccount).not.toHaveBeenCalled();
+		},
+	);
+
+	it('refuses an impersonated target whose membership is below ADMIN', async () => {
+		mockGetServerSession.mockResolvedValueOnce(adminSession());
+		mockResolveEffectiveUserId.mockResolvedValueOnce(impersonating(TARGET_ID));
+		mockOrganizationMemberFindFirst.mockResolvedValueOnce({
+			organizationId: TARGET_ORG_ID,
+			role: 'STAFF',
+		});
+
+		await expect(
+			GET(makeRequest({ code: 'abc', state: signed(TARGET_ORG_ID) })),
+		).rejects.toThrow(
+			`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_error=not_authorized`,
+		);
 		expect(mockConnectCheckrAccount).not.toHaveBeenCalled();
 	});
 
 	it('state-mismatch under impersonation: checks against the target user org, not the admin session org', async () => {
-		mockGetServerSession.mockResolvedValueOnce({ user: { id: ADMIN_ID } });
+		mockGetServerSession.mockResolvedValueOnce(adminSession());
 		mockResolveEffectiveUserId.mockResolvedValueOnce(impersonating(TARGET_ID));
 		mockOrganizationMemberFindFirst.mockResolvedValueOnce({
 			organizationId: TARGET_ORG_ID,
+			role: 'ADMIN',
 		});
 
 		// state matches the admin's org, not the target's — must still fail,
 		// since the fix resolves the target's org, not the real admin's.
 		await expect(
-			GET(makeRequest({ code: 'abc', state: ADMIN_ORG_ID })),
+			GET(makeRequest({ code: 'abc', state: signed(ADMIN_ORG_ID) })),
 		).rejects.toThrow(
 			`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_error=state_mismatch`,
 		);
 		expect(mockOrganizationMemberFindFirst).toHaveBeenCalledWith({
 			where: { userId: TARGET_ID },
-			select: { organizationId: true },
+			select: { organizationId: true, role: true },
 			orderBy: { createdAt: 'asc' },
 		});
 		expect(mockSessionFindFirst).not.toHaveBeenCalled();
@@ -156,15 +263,14 @@ describe('GET /api/checkr/oauth/callback', () => {
 
 	it('redirects with token_exchange_failed when the token exchange throws', async () => {
 		const consoleErr = vi.spyOn(console, 'error').mockImplementation(() => {});
-		mockGetServerSession.mockResolvedValueOnce({ user: { id: ADMIN_ID } });
+		mockGetServerSession.mockResolvedValueOnce(adminSession());
 		mockResolveEffectiveUserId.mockResolvedValueOnce(
 			notImpersonating(ADMIN_ID),
 		);
-		mockSessionFindFirst.mockResolvedValueOnce({ currentOrgId: ADMIN_ORG_ID });
 		mockConnectCheckrAccount.mockRejectedValueOnce(new Error('checkr 500'));
 
 		await expect(
-			GET(makeRequest({ code: 'abc', state: ADMIN_ORG_ID })),
+			GET(makeRequest({ code: 'abc', state: signed(ADMIN_ORG_ID) })),
 		).rejects.toThrow(
 			`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_error=token_exchange_failed`,
 		);
@@ -172,15 +278,14 @@ describe('GET /api/checkr/oauth/callback', () => {
 	});
 
 	it('success path (not impersonating): connects the account and redirects with checkr_connected=true', async () => {
-		mockGetServerSession.mockResolvedValueOnce({ user: { id: ADMIN_ID } });
+		mockGetServerSession.mockResolvedValueOnce(adminSession());
 		mockResolveEffectiveUserId.mockResolvedValueOnce(
 			notImpersonating(ADMIN_ID),
 		);
-		mockSessionFindFirst.mockResolvedValueOnce({ currentOrgId: ADMIN_ORG_ID });
 		mockConnectCheckrAccount.mockResolvedValueOnce(undefined);
 
 		await expect(
-			GET(makeRequest({ code: 'abc', state: ADMIN_ORG_ID })),
+			GET(makeRequest({ code: 'abc', state: signed(ADMIN_ORG_ID) })),
 		).rejects.toThrow(`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_connected=true`);
 		expect(mockConnectCheckrAccount).toHaveBeenCalledWith(
 			ADMIN_ORG_ID,
@@ -191,15 +296,16 @@ describe('GET /api/checkr/oauth/callback', () => {
 	});
 
 	it('success path under impersonation: connects the target org using the target user id and tags impersonatedBy', async () => {
-		mockGetServerSession.mockResolvedValueOnce({ user: { id: ADMIN_ID } });
+		mockGetServerSession.mockResolvedValueOnce(adminSession());
 		mockResolveEffectiveUserId.mockResolvedValueOnce(impersonating(TARGET_ID));
 		mockOrganizationMemberFindFirst.mockResolvedValueOnce({
 			organizationId: TARGET_ORG_ID,
+			role: 'ADMIN',
 		});
 		mockConnectCheckrAccount.mockResolvedValueOnce(undefined);
 
 		await expect(
-			GET(makeRequest({ code: 'abc', state: TARGET_ORG_ID })),
+			GET(makeRequest({ code: 'abc', state: signed(TARGET_ORG_ID) })),
 		).rejects.toThrow(`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_connected=true`);
 		expect(mockConnectCheckrAccount).toHaveBeenCalledWith(
 			TARGET_ORG_ID,
@@ -210,17 +316,49 @@ describe('GET /api/checkr/oauth/callback', () => {
 	});
 
 	it('passes the parsed impersonation cookie value to resolveEffectiveUserId', async () => {
-		mockGetServerSession.mockResolvedValueOnce({ user: { id: ADMIN_ID } });
+		mockGetServerSession.mockResolvedValueOnce(adminSession());
 		mockResolveEffectiveUserId.mockResolvedValueOnce(
 			notImpersonating(ADMIN_ID),
 		);
-		mockSessionFindFirst.mockResolvedValueOnce({ currentOrgId: ADMIN_ORG_ID });
 		mockConnectCheckrAccount.mockResolvedValueOnce(undefined);
 
 		await expect(
-			GET(makeRequest({ code: 'abc', state: ADMIN_ORG_ID }, 'sess-1')),
+			GET(makeRequest({ code: 'abc', state: signed(ADMIN_ORG_ID) }, 'sess-1')),
 		).rejects.toThrow(`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_connected=true`);
 
 		expect(mockResolveEffectiveUserId).toHaveBeenCalledWith(ADMIN_ID, 'sess-1');
+	});
+
+	it('refuses when the session exposes no token of its own', async () => {
+		mockGetServerSession.mockResolvedValueOnce({
+			...adminSession(),
+			sessionToken: null,
+		});
+		mockResolveEffectiveUserId.mockResolvedValueOnce(
+			notImpersonating(ADMIN_ID),
+		);
+
+		await expect(
+			GET(makeRequest({ code: 'abc', state: signed(ADMIN_ORG_ID) })),
+		).rejects.toThrow(
+			`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_error=state_mismatch`,
+		);
+		expect(mockConnectCheckrAccount).not.toHaveBeenCalled();
+	});
+
+	it('fails closed with an error redirect when the state cannot be verified', async () => {
+		const consoleErr = vi.spyOn(console, 'error').mockImplementation(() => {});
+		mockGetServerSession.mockResolvedValueOnce(adminSession());
+		mockResolveEffectiveUserId.mockResolvedValueOnce(
+			notImpersonating(ADMIN_ID),
+		);
+		const state = signed(ADMIN_ORG_ID);
+		vi.stubEnv('NEXTAUTH_SECRET', '');
+
+		await expect(GET(makeRequest({ code: 'abc', state }))).rejects.toThrow(
+			`NEXT_REDIRECT:${BG_CHECKS_URL}?checkr_error=state_mismatch`,
+		);
+		expect(mockConnectCheckrAccount).not.toHaveBeenCalled();
+		consoleErr.mockRestore();
 	});
 });

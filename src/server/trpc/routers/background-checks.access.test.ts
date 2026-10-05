@@ -10,7 +10,7 @@
  *
  * Mirrors profile.access.test.ts / credentials.access.test.ts.
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
 	initiateBackgroundCheck: vi.fn(),
@@ -47,6 +47,7 @@ vi.mock('@/server/services/backgroundCheckService', () => ({
 	sendPreAdverseNotice: vi.fn(),
 }));
 
+import { verifyCheckrOAuthState } from '@/server/lib/checkr-oauth-state';
 import { createMockTrpcContext } from '@/server/trpc/__tests__/trpc-context-helpers';
 import { t } from '@/server/trpc/init';
 import { backgroundChecksRouter } from './background-checks';
@@ -124,5 +125,51 @@ describe('backgroundChecks.initiate org scoping', () => {
 		).rejects.toThrow();
 
 		expect(mocks.initiateBackgroundCheck).not.toHaveBeenCalled();
+	});
+});
+
+// Value: protects=the Checkr connect URL carries a state the callback accepts
+// only for this browser session and org; fails_when=the router signs the bare
+// org id, another org, or no session token; why_new=the callback tests sign
+// their own state, so the router was never exercised; seam=none
+describe('getCheckrOAuthUrl', () => {
+	function adminCaller(sessionToken: string | null) {
+		return callerFactory(
+			createMockTrpcContext({
+				session: { user: { id: ACTOR_ID } } as never,
+				realUserId: ACTOR_ID,
+				orgId: CTX_ORG_ID,
+				role: 'ADMIN',
+				sessionToken,
+			}),
+		);
+	}
+
+	beforeEach(() => {
+		vi.stubEnv('NEXTAUTH_SECRET', 'test-nextauth-secret');
+		vi.stubEnv('CHECKR_CLIENT_ID', 'test-client');
+		vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://volunteerready.org');
+	});
+
+	afterEach(() => {
+		vi.unstubAllEnvs();
+	});
+
+	it('signs the state for this session and org', async () => {
+		const { url } = await adminCaller('browser-session-1').getCheckrOAuthUrl();
+
+		const state = new URL(url).searchParams.get('state') ?? '';
+		expect(
+			verifyCheckrOAuthState({ state, sessionToken: 'browser-session-1' }),
+		).toBe(CTX_ORG_ID);
+		expect(
+			verifyCheckrOAuthState({ state, sessionToken: 'another-session' }),
+		).toBeNull();
+	});
+
+	it('refuses without a session to bind the state to', async () => {
+		await expect(adminCaller(null).getCheckrOAuthUrl()).rejects.toMatchObject({
+			code: 'UNAUTHORIZED',
+		});
 	});
 });

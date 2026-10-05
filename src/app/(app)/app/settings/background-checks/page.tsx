@@ -1148,6 +1148,7 @@ export default function CredentialsPage() {
 				authorization_denied: 'Checkr authorization was denied.',
 				missing_params: 'Checkr OAuth callback missing required parameters.',
 				state_mismatch: 'Security check failed. Please try connecting again.',
+				not_authorized: 'Only org admins can connect a Checkr account.',
 				token_exchange_failed: 'Failed to connect Checkr. Please try again.',
 			};
 			toast.error(

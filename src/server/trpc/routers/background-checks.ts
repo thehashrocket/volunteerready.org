@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { checkrAdapter } from '@/server/lib/adapters/background-check/checkr';
+import { createCheckrOAuthState } from '@/server/lib/checkr-oauth-state';
 import {
 	cancelBackgroundCheck,
 	connectSterlingAccount,
@@ -174,9 +175,14 @@ export const backgroundChecksRouter = createTRPCRouter({
 
 	/** Returns the Checkr Partner OAuth authorization URL. Admin+ only. */
 	getCheckrOAuthUrl: adminProcedure.query(({ ctx }) => {
-		// Use orgId as state for CSRF — validated in the callback route
-		const url = checkrAdapter.getOAuthUrl(ctx.orgId);
-		return { url };
+		// `state` binds this browser session and org; the callback route
+		// verifies it (checkr-oauth-state.ts).
+		if (!ctx.sessionToken) throw new TRPCError({ code: 'UNAUTHORIZED' });
+		const state = createCheckrOAuthState({
+			orgId: ctx.orgId,
+			sessionToken: ctx.sessionToken,
+		});
+		return { url: checkrAdapter.getOAuthUrl(state) };
 	}),
 
 	/** Returns whether this org has connected their Checkr account. Staff+. */
