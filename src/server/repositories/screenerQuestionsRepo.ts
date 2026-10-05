@@ -5,6 +5,7 @@ import type {
 } from '@/prisma/generated/client';
 import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
 import { prisma } from '@/server/repositories/prisma';
+import { PLATFORM_TEMPLATE_WHERE } from '@/server/repositories/referenceDataRepo';
 
 export async function listQuestions(
 	orgId: string,
@@ -138,8 +139,10 @@ export async function deleteQuestion(orgId: string, id: string) {
  * a template removes it from new-org onboarding). Copied rows are always
  * created with isActive=true.
  *
- * If no active templates exist (fresh install before boot guard ran, or all
- * deactivated), we log a warning and create the org with no default questions.
+ * Returns the number of questions copied. Zero means no platform org or no
+ * active templates (fresh install before the boot guard ran, or all
+ * deactivated); the caller reports it, and the org is created with no default
+ * questions.
  *
  * Accepts an optional transaction client so it can run inside createOrg's
  * transaction.
@@ -158,28 +161,28 @@ export async function seedDefaultQuestions(
 		select: { id: true },
 	});
 	if (platformOrg && platformOrg.id === orgId) {
-		return;
+		return 0;
 	}
 
-	const templates = await db.screenerQuestion.findMany({
-		where: { isTemplate: true, isActive: true },
-		orderBy: { order: 'asc' },
-		select: {
-			key: true,
-			prompt: true,
-			type: true,
-			order: true,
-			configJson: true,
-		},
-	});
-
-	if (templates.length === 0) {
-		console.warn(
-			`[seedDefaultQuestions] No active template questions found for org ${orgId}. ` +
-				'Boot guard may not have run yet, or all templates were deactivated. ' +
-				'Org will be created with no default screener questions.',
-		);
-	}
+	// Scoped to the platform org: a template flag anywhere else must never be
+	// copied into a new org. No platform org means no templates.
+	const templates = platformOrg
+		? await db.screenerQuestion.findMany({
+				where: {
+					...PLATFORM_TEMPLATE_WHERE,
+					orgId: platformOrg.id,
+					isActive: true,
+				},
+				orderBy: { order: 'asc' },
+				select: {
+					key: true,
+					prompt: true,
+					type: true,
+					order: true,
+					configJson: true,
+				},
+			})
+		: [];
 
 	for (const t of templates) {
 		await db.screenerQuestion.create({
@@ -194,6 +197,7 @@ export async function seedDefaultQuestions(
 			},
 		});
 	}
+	return templates.length;
 }
 
 export async function questionHasAnswers(questionId: string): Promise<boolean> {

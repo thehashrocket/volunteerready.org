@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { BASE_URL } from '@/lib/constants';
 import { LOCATIONS } from '@/lib/locations';
 import { getSitemapPages } from '@/lib/public-pages';
+import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
 import { prisma } from '@/server/repositories/prisma';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -13,7 +14,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	}));
 
 	// Dynamic routes: org-specific public pages
+	// The platform org has no public pages (its apply and listing are not-found).
 	const orgs = await prisma.organization.findMany({
+		where: { slug: { not: PLATFORM_ORG_SLUG } },
 		select: { slug: true, updatedAt: true, consentToPublicize: true },
 	});
 

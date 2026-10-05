@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@/prisma/generated/client';
 import { prisma } from '@/server/repositories/prisma';
+import { PLATFORM_TEMPLATE_WHERE } from '@/server/repositories/referenceDataRepo';
 
 type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 
@@ -128,20 +129,20 @@ export async function updateSkillTx(
 
 export async function listTemplateQuestions() {
 	return prisma.screenerQuestion.findMany({
-		where: { isTemplate: true },
+		where: PLATFORM_TEMPLATE_WHERE,
 		orderBy: { order: 'asc' },
 	});
 }
 
 export async function getTemplateQuestionById(id: string) {
 	return prisma.screenerQuestion.findFirst({
-		where: { id, isTemplate: true },
+		where: { id, ...PLATFORM_TEMPLATE_WHERE },
 	});
 }
 
 export async function getTemplateQuestionByKey(key: string) {
 	return prisma.screenerQuestion.findFirst({
-		where: { isTemplate: true, key },
+		where: { key, ...PLATFORM_TEMPLATE_WHERE },
 	});
 }
 

@@ -1,4 +1,5 @@
 import type { PlanTier, Prisma, PrismaClient } from '@/prisma/generated/client';
+import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
 import { prisma } from './prisma';
 
 type TxClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
@@ -201,6 +202,10 @@ export async function getOrgProfile(orgId: string) {
  * the org is suspended.
  */
 export async function findCurrentSlugByHistory(oldSlug: string) {
+	// The platform slug never redirects: its public pages are not-found, and a
+	// stale history row must not send platform traffic into another org.
+	if (oldSlug === PLATFORM_ORG_SLUG) return null;
+
 	const row = await prisma.orgSlugHistory.findFirst({
 		where: { oldSlug },
 		orderBy: { createdAt: 'desc' },
@@ -217,4 +222,20 @@ export async function slugExistsInHistory(slug: string) {
 		select: { id: true },
 	});
 	return row !== null;
+}
+
+/**
+ * The org an application may be submitted to, or null when it does not exist
+ * or is the platform org. The platform org holds the signup templates and has
+ * no members, so nothing public may read from or submit to it.
+ */
+export async function findOrgAcceptingApplications(
+	orgId: string,
+): Promise<{ marketplaceVisible: boolean } | null> {
+	const org = await prisma.organization.findUnique({
+		where: { id: orgId },
+		select: { slug: true, marketplaceVisible: true },
+	});
+	if (!org || org.slug === PLATFORM_ORG_SLUG) return null;
+	return { marketplaceVisible: org.marketplaceVisible };
 }

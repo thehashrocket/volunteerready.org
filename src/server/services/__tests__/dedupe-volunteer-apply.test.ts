@@ -130,6 +130,9 @@ const mockPrisma = prisma as unknown as {
 	volunteerApplication: {
 		findFirst: ReturnType<typeof vi.fn>;
 	};
+	organization: {
+		findUnique: ReturnType<typeof vi.fn>;
+	};
 	$transaction: ReturnType<typeof vi.fn>;
 };
 
@@ -148,6 +151,11 @@ const basePayload = {
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	// The org the application is for exists and is not the platform org.
+	mockPrisma.organization.findUnique.mockResolvedValue({
+		slug: 'org-1',
+		marketplaceVisible: false,
+	});
 });
 
 describe('submitVolunteerApplication dedup guard', () => {

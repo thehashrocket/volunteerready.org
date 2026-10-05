@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { TRPCError } from '@trpc/server';
 import { findUniqueSlug, generateSlug } from '@/lib/slug';
 import { Prisma } from '@/prisma/generated/client';
@@ -17,6 +18,7 @@ import {
 import { prisma } from '../repositories/prisma';
 import { seedDefaultQuestions } from '../repositories/screenerQuestionsRepo';
 import { getSessionByToken } from '../repositories/sessionRepo';
+import { ensureReferenceData } from './referenceDataService';
 
 /**
  * Switch org for the *current session*.
@@ -73,6 +75,16 @@ export async function createOrg(opts: {
 		});
 	}
 
+	// Signup copies the platform org's templates, so it retries the boot guard
+	// if this instance's cold-start run failed. Once the guard has succeeded on
+	// an instance it returns instantly and checks nothing again; later template
+	// problems surface through the zero-questions warning below. While the guard
+	// keeps failing this adds its retry to each signup: deliberately uncapped,
+	// because a retry cut short creates the org with no questions.
+	// It runs before the slug is chosen, so the slug check stays next to the
+	// insert that claims it.
+	await ensureReferenceData();
+
 	const slug = await findUniqueSlug(base, async (candidate) => {
 		// Reserved slugs (status, refer, …) collide with static /apply routes —
 		// treat them as taken so an org named "Status" gets "status-xxxx".
@@ -85,6 +97,7 @@ export async function createOrg(opts: {
 	});
 
 	let org: { id: string; name: string; slug: string };
+	let copiedQuestions = 0;
 	try {
 		org = await prisma.$transaction(async (tx) => {
 			// Create org + owner membership
@@ -121,7 +134,7 @@ export async function createOrg(opts: {
 			}
 
 			// Seed default screener questions
-			await seedDefaultQuestions(newOrg.id, tx);
+			copiedQuestions = await seedDefaultQuestions(newOrg.id, tx);
 
 			// Audit — committed atomically with the create
 			await writeAuditLogTx(tx, {
@@ -146,6 +159,15 @@ export async function createOrg(opts: {
 			});
 		}
 		throw e;
+	}
+
+	// An org created with no screener questions is how missing templates went
+	// unnoticed for months after v0.22.0.0, so it is reported, not just logged.
+	if (copiedQuestions === 0) {
+		Sentry.captureMessage(
+			'[orgService] New org created with no default screener questions: the platform org is missing or has no active templates',
+			{ level: 'warning', extra: { orgId: org.id } },
+		);
 	}
 
 	sendNewOrgAlert(org).catch((err) =>
