@@ -248,7 +248,7 @@ docs/
 - Screening landing page: `src/app/(public)/screening/page.tsx` with `SwitchCostCalculator` at `src/components/switch-cost-calculator.tsx`
 - Referral prompt: `src/components/app/referral-prompt.tsx` (shows after first background check, localStorage dismissal)
 - Referral landing page: `src/app/apply/refer/page.tsx` — `/apply/refer?from=[orgSlug]` with referrer badge
-- Org feedback survey: `src/app/(public)/screening/feedback/` (public form, day-7 and day-30 questions)
+- Org feedback survey: `src/app/(public)/screening/feedback/` (public form, day-7 and day-30 questions). Questions, limits and cookie name in `src/server/domain/org-feedback.ts`; link check + save in `findSurveyOrg`/`submitOrgFeedback` (`org-feedback-service.ts`). The emailed link goes to `/screening/feedback/start`, which moves its HMAC token (`src/server/lib/org-feedback-token.ts`, org + type) into an httpOnly cookie and redirects to the token-free URL
 - Org feedback cron: `src/app/api/cron/org-feedback/route.ts` (daily 10:00 UTC), service at `src/server/services/org-feedback-service.ts`
 - Impact report: `src/app/(app)/app/impact-report/page.tsx` (baseline vs platform usage metrics)
 - Onboarding baseline: `src/app/(app)/app/settings/onboarding/page.tsx` (volunteer count, hours/week, current process)

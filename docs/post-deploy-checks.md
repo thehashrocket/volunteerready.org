@@ -550,3 +550,48 @@ tie), the refused second checkout and the concurrent first-checkout race,
 against a mocked Stripe. `orgStripeCustomerClaim.integration.test.ts` runs the
 customer claim against Postgres, and `stripeCustomerLock.integration.test.ts`
 shows two transactions for one customer never overlap.
+
+## Session cookie and org context
+
+Shipped in v0.44.0.0. Server code now reads exactly the session cookie NextAuth
+signs in with (`sessionCookieName()` in `src/server/lib/session-cookie.ts`):
+`__Secure-next-auth.session-token` when `NEXTAUTH_URL` is https, the plain
+`next-auth.session-token` otherwise. Every local and CI run, e2e included, is
+plain http, so only unit tests have exercised the https choice.
+
+### 1. Staff keep their org after signing in on production
+
+Right after the deploy, sign in on https://volunteerready.org as an org owner
+and open `/app`, `/app/settings` and `/app/billing`.
+
+**Expect:** the dashboard shows the org's stat cards, settings shows the org
+profile form, and billing shows the plan. **If** they are signed in but every
+org page is empty or refuses (FORBIDDEN), the server is reading the other
+cookie: roll back, then compare `NEXTAUTH_URL` in the Vercel production
+environment with the rule in `sessionCookieName()`.
+
+### 2. A Checkr connect started before the deploy fails once
+
+The connect flow's `state` changed format in this release. A connect begun on
+the old build and finished on the new one comes back with
+`?checkr_error=state_mismatch` ("Security check failed. Please try connecting
+again."). **Expect:** starting the connect again succeeds. Nothing to fix; this
+entry exists so a support report is not mistaken for a bug.
+
+### 3. A survey link opens the survey on https
+
+The survey email links to `/screening/feedback/start`, which sets a
+`Secure` cookie on https. A link cannot be signed locally with the
+production secret, so check the first real send: the
+recipient lands on `/screening/feedback?org=…&type=…` (no `token` in the
+address bar) and the form loads. **If** it shows "Invalid feedback link", the
+cookie was not stored; check the response of the `/start` request for a
+`set-cookie` header.
+
+### What is already covered automatically — do not re-check by hand
+
+`src/server/lib/session-cookie.test.ts` pins the cookie name for each
+`NEXTAUTH_URL` shape and Next's cookie parsing; `org-context-membership.test.ts`
+and `auth-session-org.test.ts` cover org context from the session row of the
+signed-in user; `e2e/feedback-survey-link.spec.ts` runs the survey link, a
+reload and the answer refill against the dev server.
