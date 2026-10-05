@@ -123,6 +123,8 @@ Key files:
 - `user-feedback.ts` — feedback mood/status enums, validation (max 2000 chars), rate limit constants, Zod schemas, volunteer-friendly status labels
 - `reference-data.ts` — `SKILL_CATALOG` constant (13 families, 62 skills), `CATALOG_VERSION`, `PLATFORM_ORG_SLUG`; imported by both `referenceDataService` and `prisma/seed-helpers.ts`
 - `error-disclosure.ts` — the ONE allowlist of tRPC error codes whose message may cross the wire: `CLIENT_SAFE_ERROR_CODES`, `isClientSafeErrorCode()` (fails closed on a missing or unknown code) and `GENERIC_ERROR_MESSAGE`. Read by three consumers — the `errorFormatter` in `trpc/init.ts`, `safeErrorMessage()` in `components/app/query-error-card.tsx`, and `trpc/error-reporting.ts` — so the server-side and client-side halves cannot drift. It sits in `domain/` rather than beside the component for the same reason `escapeCsvField` was collapsed into `csv.ts`: a second hand-kept copy is where one of them stops being maintained
+- `active-org.ts` — `resolveOrgContext()`, the one org-context rule: the session's saved `currentOrgId` while the user is a member of that org, otherwise their oldest membership. Used by the NextAuth session callback (`auth.ts`) and `createTRPCContext`; `resolveActiveOrgId()` applies it for Server Components
+- `org-feedback.ts` — the day-7 / day-30 org feedback survey: questions, answer length limit, per-survey token cookie name and the survey / `/screening/feedback/start` link paths, shared by the survey form and `org-feedback-service.ts`
 
 ---
 
@@ -225,6 +227,9 @@ Shared utilities and external service adapters.
 - `html.ts` — `escapeHtml()` shared XSS escape for all server-rendered HTML (email templates + consent pages)
 - `rate-limit.ts` — Upstash Redis rate limiting (lazy singleton, fail-open)
 - `digest-unsubscribe-token.ts` — HMAC-SHA256 signed unsubscribe tokens for the opportunity digest; `generate(userId)` / `verify(userId, token)` with timing-safe comparison
+- `org-feedback-token.ts` — HMAC-SHA256 token carried by the org feedback survey link, bound to the org id and survey type
+- `session-cookie.ts` — `sessionCookieName()` (the NextAuth session cookie this deployment signs in with: `__Secure-next-auth.session-token` on https, `next-auth.session-token` otherwise) and `readCookie()`. Server code that needs the session token reads it through these
+- `checkr-oauth-state.ts` — creates and verifies the `state` of the Checkr connect flow: signed for the browser session and org that started it, valid for 15 minutes (`STATE_TTL_MS`)
 - `cron-auth.ts` — `withCronAuth(jobName, handler)`, the wrapper every route under `src/app/api/cron/` uses: checks the `CRON_SECRET` Bearer token, records a `CronJobRun` row, and, after the auth check, runs the job inside `Sentry.withMonitor` (monitor slug = `jobName`), flushing Sentry before it responds
 - `cron-schedules.ts` — `cronScheduleFor(jobName)`, the job's crontab read from `vercel.json` at `/api/cron/<jobName>`; `scripts/cron-monitor-schedules.test.ts` fails when a cron route's job name has no matching `vercel.json` entry
 

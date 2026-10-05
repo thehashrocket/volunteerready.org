@@ -1,6 +1,92 @@
 import type { OrgFeedbackType } from '@/prisma/generated/client';
+import {
+	FEEDBACK_ANSWER_MAX_LENGTH,
+	INVALID_SURVEY_LINK_ERROR,
+	normaliseAnswer,
+	SURVEY_QUESTIONS,
+	surveyStartPath,
+} from '@/server/domain/org-feedback';
 import { sendEmail } from '@/server/lib/email';
+import {
+	generateOrgFeedbackTokenFromEnv,
+	isWellFormedOrgFeedbackToken,
+	validateOrgFeedbackTokenFromEnv,
+} from '@/server/lib/org-feedback-token';
+import {
+	findSurveyOrgBySlug,
+	upsertOrgFeedbackResponses,
+} from '@/server/repositories/orgFeedbackRepo';
+import { findCurrentSlugByHistory } from '@/server/repositories/orgRepo';
 import { prisma } from '@/server/repositories/prisma';
+
+/**
+ * The org a survey token is for, or null when it is not a link we sent.
+ * Follows slug history, so a link still works after the org renames its slug.
+ * Suspended orgs get no survey on either path.
+ */
+export async function findSurveyOrg(link: {
+	orgSlug: string;
+	type: OrgFeedbackType;
+	token: string;
+}): Promise<{ id: string } | null> {
+	if (!isWellFormedOrgFeedbackToken(link.token)) return null;
+
+	let org = await findSurveyOrgBySlug(link.orgSlug);
+	if (!org) {
+		const currentSlug = await findCurrentSlugByHistory(link.orgSlug);
+		org = currentSlug ? await findSurveyOrgBySlug(currentSlug) : null;
+	}
+	if (
+		!org ||
+		org.suspendedAt ||
+		!validateOrgFeedbackTokenFromEnv(org.id, link.type, link.token)
+	) {
+		return null;
+	}
+	return { id: org.id };
+}
+
+/** Saves survey answers sent with a valid survey token. */
+export async function submitOrgFeedback(input: {
+	orgSlug: string;
+	type: OrgFeedbackType;
+	token: string;
+	answers: (key: string) => unknown;
+}): Promise<{ success: true } | { error: string }> {
+	const org = await findSurveyOrg(input);
+	if (!org) return { error: INVALID_SURVEY_LINK_ERROR };
+
+	const responses: Record<string, string> = {};
+	for (const { key } of SURVEY_QUESTIONS[input.type]) {
+		const raw = input.answers(key);
+		if (typeof raw !== 'string') continue;
+		const value = normaliseAnswer(raw);
+		if (!value) continue;
+		if (value.length > FEEDBACK_ANSWER_MAX_LENGTH) {
+			return {
+				error: `Please keep each answer under ${FEEDBACK_ANSWER_MAX_LENGTH.toLocaleString('en-US')} characters.`,
+			};
+		}
+		responses[key] = value;
+	}
+
+	if (Object.keys(responses).length === 0) {
+		return { error: 'Please answer at least one question.' };
+	}
+
+	try {
+		await upsertOrgFeedbackResponses(org.id, input.type, responses);
+	} catch (err) {
+		console.error('[feedback] Failed to save feedback', {
+			orgId: org.id,
+			type: input.type,
+			error: err instanceof Error ? err.message : String(err),
+		});
+		return { error: 'Something went wrong. Please try again.' };
+	}
+
+	return { success: true };
+}
 
 const FEEDBACK_WINDOWS: { type: OrgFeedbackType; daysAfterCreation: number }[] =
 	[
@@ -51,6 +137,10 @@ export async function sendOrgFeedbackEmails() {
 			}
 
 			try {
+				// Mint the link token before recording the send: a failure here must
+				// not leave a row that stops the next run from retrying.
+				const token = generateOrgFeedbackTokenFromEnv(org.id, window.type);
+
 				// Create OrgFeedback record first (idempotency)
 				await prisma.orgFeedback.create({
 					data: {
@@ -59,7 +149,7 @@ export async function sendOrgFeedbackEmails() {
 					},
 				});
 
-				const surveyUrl = `${process.env.NEXTAUTH_URL ?? 'https://volunteerready.org'}/screening/feedback?org=${org.slug}&type=${window.type}`;
+				const surveyUrl = `${process.env.NEXTAUTH_URL ?? 'https://volunteerready.org'}${surveyStartPath(org.slug, window.type, token)}`;
 				const subject =
 					window.type === 'DAY_7'
 						? `${org.name} — How's your first week going?`

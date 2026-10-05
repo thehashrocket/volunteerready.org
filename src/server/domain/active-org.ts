@@ -1,7 +1,7 @@
 /**
  * Resolve the org a Server Component should act as.
  *
- * tRPC does this in `createTRPCContext` (`trpc/init.ts:77-150`), but Server
+ * tRPC does this in `createTRPCContext`, but Server
  * Components have no tRPC context, and `app/(app)/app/layout.tsx` deliberately
  * only ever counted memberships — it never had an orgId to hand anything.
  * Anything doing per-org work during SSR (feature flags, route guards) needs
@@ -13,14 +13,8 @@
  *   2. otherwise the oldest membership
  *   3. otherwise null
  *
- * Step 1 is deliberately STRICTER than the two existing resolvers. Both
- * `createTRPCContext` and the NextAuth session callback assign `currentOrgId`
- * unconditionally and only derive `role` from the membership match, so a user
- * removed from their current org still resolves to that org there. Here they
- * fall through to their oldest membership instead. That divergence is
- * intentional — this value gates a feature flag and a route, and honouring a
- * membership the user no longer holds is the wrong default for an access
- * decision — but it IS a divergence, so do not assume parity.
+ * `createTRPCContext` and the NextAuth session callback apply the same rule
+ * through `resolveOrgContext` below.
  *
  * IMPERSONATION: `session.orgId` belongs to the REAL admin, not the person
  * being impersonated, so it must be ignored entirely in that case and the
@@ -35,12 +29,40 @@ export function resolveActiveOrgId(input: {
 	isImpersonating: boolean;
 }): string | null {
 	const { membershipOrgIds, sessionOrgId, isImpersonating } = input;
+	return resolveOrgContext({
+		currentOrgId: isImpersonating ? null : sessionOrgId,
+		memberships: membershipOrgIds.map((organizationId) => ({
+			organizationId,
+			role: null,
+		})),
+	}).orgId;
+}
 
-	if (!isImpersonating && sessionOrgId) {
-		// Only honour it if the membership still exists — a user removed from an
-		// org keeps a stale orgId on their session until it refreshes.
-		if (membershipOrgIds.includes(sessionOrgId)) return sessionOrgId;
-	}
-
-	return membershipOrgIds[0] ?? null;
+/**
+ * Resolve the org context (org and role) for a session from its saved
+ * `currentOrgId` and the user's memberships. Used by both `createTRPCContext`
+ * and the NextAuth session callback so the two cannot disagree.
+ *
+ * The saved org counts only while the user is a member of it. Anything else
+ * (a stale selection, or an org the session never had a membership for) falls
+ * back to the oldest membership, so an org context always comes with a role.
+ * `currentOrgId` is returned healed, so the org switcher marks the org
+ * actually in use.
+ */
+export function resolveOrgContext<R>(input: {
+	currentOrgId: string | null;
+	/** Oldest first. */
+	memberships: ReadonlyArray<{ organizationId: string; role: R }>;
+}): { currentOrgId: string | null; orgId: string | null; role: R | null } {
+	const { currentOrgId, memberships } = input;
+	const match = currentOrgId
+		? memberships.find((m) => m.organizationId === currentOrgId)
+		: undefined;
+	const chosen = match ?? memberships[0];
+	if (!chosen) return { currentOrgId: null, orgId: null, role: null };
+	return {
+		currentOrgId: chosen.organizationId,
+		orgId: chosen.organizationId,
+		role: chosen.role,
+	};
 }

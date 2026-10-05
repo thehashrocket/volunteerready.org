@@ -1,15 +1,17 @@
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import type { NextAuthOptions, Session } from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
 import { buildMagicLinkEmail } from '@/lib/email/auth';
 import type { CompanyMemberRole, Role } from '@/prisma/generated/client';
+import { resolveOrgContext } from '@/server/domain/active-org';
 import { normalizeMagicLinkIdentifier } from '@/server/domain/magic-link-identifier';
 import { sendNewUserAlert } from '@/server/lib/admin-alerts';
 import { sendEmail } from '@/server/lib/email';
 import { isEnabled } from '@/server/lib/env-flags';
 import { getFromEmail } from '@/server/lib/resend';
+import { sessionCookieName } from '@/server/lib/session-cookie';
 import { prisma } from '@/server/repositories/prisma';
 import { wasUserCreatedWithin } from '@/server/repositories/userAccountStateRepo';
 import { claimAccountOnSignIn } from '@/server/services/accountClaimService';
@@ -241,21 +243,18 @@ export const authOptions: NextAuthOptions = {
 
 			// NextAuth v4 database sessions do NOT pass sessionToken to this callback.
 			// Fall back to reading it from the request cookie via next/headers.
+			// Read the one cookie NextAuth authenticated with (sessionCookieName).
 			let rawSessionToken: string | null = s.sessionToken ?? null;
 			if (!rawSessionToken) {
 				try {
-					const cookieStore = await cookies();
+					const proto = (await headers()).get('x-forwarded-proto');
 					rawSessionToken =
-						cookieStore.get('next-auth.session-token')?.value ??
-						cookieStore.get('__Secure-next-auth.session-token')?.value ??
-						null;
+						(await cookies()).get(sessionCookieName(proto))?.value ?? null;
 				} catch {
 					// cookies() throws outside request context (e.g. during build)
 					rawSessionToken = null;
 				}
 			}
-			s.sessionToken = rawSessionToken;
-
 			let currentOrgId: string | null = null;
 			let orgId: string | null = null;
 			let role: Role | null = null;
@@ -263,10 +262,13 @@ export const authOptions: NextAuthOptions = {
 			let companyId: string | null = null;
 			let companyRole: CompanyMemberRole | null = null;
 
-			if (rawSessionToken) {
+			// Only a session row that belongs to the signed-in user counts: a
+			// cookie naming any other session gives no org context and no token.
+			let ownSessionToken: string | null = null;
+			if (rawSessionToken && user?.id) {
 				// Single query: session → currentOrgId/currentCompanyId + user → memberships.
-				const dbSession = await prisma.session.findUnique({
-					where: { sessionToken: rawSessionToken },
+				const dbSession = await prisma.session.findFirst({
+					where: { sessionToken: rawSessionToken, userId: user.id },
 					select: {
 						currentOrgId: true,
 						currentCompanyId: true,
@@ -285,21 +287,14 @@ export const authOptions: NextAuthOptions = {
 					},
 				});
 
-				// Resolve org context
-				currentOrgId = dbSession?.currentOrgId ?? null;
-				const memberships = dbSession?.user?.memberships ?? [];
+				if (dbSession) ownSessionToken = rawSessionToken;
 
-				if (currentOrgId) {
-					const match = memberships.find(
-						(m) => m.organizationId === currentOrgId,
-					);
-					orgId = currentOrgId;
-					role = match?.role ?? null;
-				} else {
-					// No explicit org selected — fall back to first membership
-					orgId = memberships[0]?.organizationId ?? null;
-					role = memberships[0]?.role ?? null;
-				}
+				// Resolve org context: a saved org counts only while the user is a
+				// member of it (see resolveOrgContext).
+				({ currentOrgId, orgId, role } = resolveOrgContext({
+					currentOrgId: dbSession?.currentOrgId ?? null,
+					memberships: dbSession?.user?.memberships ?? [],
+				}));
 
 				// Resolve company context
 				currentCompanyId = dbSession?.currentCompanyId ?? null;
@@ -330,6 +325,7 @@ export const authOptions: NextAuthOptions = {
 				}
 			}
 
+			s.sessionToken = ownSessionToken;
 			s.currentOrgId = currentOrgId;
 			s.orgId = orgId;
 			s.role = role;

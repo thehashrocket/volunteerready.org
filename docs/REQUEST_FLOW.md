@@ -74,7 +74,7 @@ Expected flow:
 Client
     -> tRPC Procedure
         -> Resolve session
-        -> Resolve orgId (from Session.currentOrgId)
+        -> Resolve orgId (Session.currentOrgId when the user is a member of it, else oldest membership: resolveOrgContext)
         -> Verify OrganizationMember (via middleware)
             -> Continue to Service
 ```

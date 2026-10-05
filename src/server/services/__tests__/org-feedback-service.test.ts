@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -29,7 +29,10 @@ vi.mock('@/server/lib/email-template', () => ({
 	buildEmailHtml: (content: string) => `<html>${content}</html>`,
 }));
 
+import { validateOrgFeedbackToken } from '@/server/lib/org-feedback-token';
 import { sendOrgFeedbackEmails } from '../org-feedback-service';
+
+const SECRET = 'test-nextauth-secret';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -58,6 +61,57 @@ function makeOrg(
 describe('sendOrgFeedbackEmails', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.stubEnv('NEXTAUTH_SECRET', SECRET);
+	});
+
+	afterEach(() => {
+		vi.unstubAllEnvs();
+	});
+
+	// Value: protects=a send that cannot mint its link leaves no row behind, so
+	// the next run retries it; fails_when=the token is minted after the
+	// OrgFeedback row is created; why_new=no test covered a failed mint;
+	// seam=none
+	it('records nothing when the survey link cannot be signed', async () => {
+		vi.stubEnv('NEXTAUTH_SECRET', '');
+		mockFindManyOrgs
+			.mockResolvedValueOnce([makeOrg()])
+			.mockResolvedValueOnce([]);
+
+		const result = await sendOrgFeedbackEmails();
+
+		expect(result).toEqual({ sent: 0, skipped: 0, failed: 1 });
+		expect(mockCreateFeedback).not.toHaveBeenCalled();
+		expect(mockSendEmail).not.toHaveBeenCalled();
+	});
+
+	// Value: protects=the emailed survey link carries a token the action accepts;
+	// fails_when=the link drops the token or signs the wrong org or type;
+	// why_new=existing tests only checked subject and questions; seam=none
+	it('links the survey with a token that only this org and survey type accept', async () => {
+		mockFindManyOrgs
+			.mockResolvedValueOnce([makeOrg({ id: 'org-9', slug: 'riverside' })])
+			.mockResolvedValueOnce([]);
+
+		await sendOrgFeedbackEmails();
+
+		const html = String(mockSendEmail.mock.calls[0]?.[2]);
+		const link =
+			html.match(/\/screening\/feedback\/start\?[^"'\s<]+/)?.[0] ?? '';
+		const params = new URLSearchParams(
+			link.split('?')[1]?.replaceAll('&amp;', '&'),
+		);
+		const token = params.get('token') ?? '';
+		expect(params.get('org')).toBe('riverside');
+		expect(validateOrgFeedbackToken(SECRET, 'org-9', 'DAY_7', token)).toBe(
+			true,
+		);
+		expect(validateOrgFeedbackToken(SECRET, 'org-9', 'DAY_30', token)).toBe(
+			false,
+		);
+		expect(validateOrgFeedbackToken(SECRET, 'other-org', 'DAY_7', token)).toBe(
+			false,
+		);
 	});
 
 	it('sends feedback emails for eligible orgs and returns counts', async () => {

@@ -3,16 +3,20 @@
  *
  * Flow:
  *   1. Org admin clicks "Connect Checkr" in the UI
- *   2. Browser redirects to https://partners.checkr.com/authorize/{client_id}?state={orgId}
+ *   2. Browser redirects to https://partners.checkr.com/authorize/{client_id}?state={signed state}
  *   3. Org staff authenticates with Checkr
- *   4. Checkr redirects here: GET /api/checkr/oauth/callback?code=...&state={orgId}
+ *   4. Checkr redirects here: GET /api/checkr/oauth/callback?code=...&state={signed state}
  *   5. This route exchanges the code for an access_token + account_id
  *   6. Persists checkrAccessToken + checkrAccountId on the Organization
  *   7. Redirects back to /app/settings/background-checks with success or error query param
  *
  * SECURITY:
- *   - The `state` param is the orgId. We validate that the current session's
- *     orgId matches `state` to prevent CSRF / cross-org token injection.
+ *   - `state` is signed for the browser session that started the flow and the
+ *     org it was started for (checkr-oauth-state.ts). The callback refuses a
+ *     state it did not issue to this session, or one that has expired.
+ *   - The org comes from a membership (the session's resolved org context, or
+ *     the impersonated user's oldest membership), and connecting needs ADMIN+,
+ *     the same as `getCheckrOAuthUrl` (adminProcedure).
  *   - The access token is stored in the database (server-side only).
  *   - This route requires an active authenticated session with org context.
  */
@@ -20,8 +24,11 @@
 import { redirect } from 'next/navigation';
 import type { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
+import type { Role } from '@/prisma/generated/client';
 import { authOptions } from '@/server/auth';
 import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
+import { roleRank } from '@/server/domain/permissions';
+import { verifyCheckrOAuthState } from '@/server/lib/checkr-oauth-state';
 import { resolveEffectiveUserId } from '@/server/lib/impersonation-context';
 import { connectCheckrAccount } from '@/server/services/backgroundCheckService';
 
@@ -30,7 +37,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
 	const { searchParams } = new URL(req.url);
 	const code = searchParams.get('code');
-	const state = searchParams.get('state'); // orgId passed as state for CSRF check
+	const state = searchParams.get('state'); // signed by getCheckrOAuthUrl
 	const error = searchParams.get('error');
 
 	const backgroundChecksUrl = '/app/settings/background-checks';
@@ -57,41 +64,56 @@ export async function GET(req: NextRequest) {
 		impersonatedBy,
 	} = await resolveEffectiveUserId(realUserId, cookieValue);
 	if (!userId) {
-		redirect(
-			`/auth/signin?callbackUrl=${encodeURIComponent(backgroundChecksUrl)}`,
-		);
+		// The OAuth code cannot be reused, so the user restarts the connect.
+		redirect('/login');
 	}
 
-	// CSRF check: state must match the effective user's orgId.
-	// (The tRPC getCheckrOAuthUrl procedure embeds orgId as state)
-	// We look up the org from DB via the service layer via prisma directly here
-	// since this is a Next.js route handler (not tRPC)
-	const { prisma } = await import('@/server/repositories/prisma');
+	// CSRF check: the state must have been issued to this browser session, and
+	// for the org this user acts in.
+	// The session callback exposes only a token whose session row belongs to
+	// the signed-in user; it is the token getCheckrOAuthUrl signed with.
+	const sessionToken =
+		(session as { sessionToken?: string | null } | null)?.sessionToken ?? null;
+	let stateOrgId: string | null = null;
+	try {
+		stateOrgId = sessionToken
+			? verifyCheckrOAuthState({ state, sessionToken })
+			: null;
+	} catch (err) {
+		// Only a missing NEXTAUTH_SECRET throws here; fail closed.
+		console.error('[checkr-oauth] Could not verify state', err);
+	}
 
 	let sessionOrgId: string | null;
+	let role: Role | null;
 	if (isImpersonating) {
 		// No session token for the target user under impersonation — resolve
 		// their first org membership directly, same as app/layout.tsx.
+		const { prisma } = await import('@/server/repositories/prisma');
 		const firstMembership = await prisma.organizationMember.findFirst({
 			where: { userId },
-			select: { organizationId: true },
+			select: { organizationId: true, role: true },
 			orderBy: { createdAt: 'asc' },
 		});
 		sessionOrgId = firstMembership?.organizationId ?? null;
+		role = firstMembership?.role ?? null;
 	} else {
-		const dbSession = await prisma.session.findFirst({
-			where: { userId },
-			orderBy: { expires: 'desc' },
-			select: { currentOrgId: true },
-		});
-		sessionOrgId = dbSession?.currentOrgId ?? null;
+		// The session callback resolves this request's org context from the
+		// user's memberships (resolveOrgContext), with the matching role.
+		const ext = session as { orgId?: string | null; role?: Role | null };
+		sessionOrgId = ext.orgId ?? null;
+		role = ext.role ?? null;
 	}
 
-	if (!sessionOrgId || sessionOrgId !== state) {
+	if (!sessionOrgId || !stateOrgId || sessionOrgId !== stateOrgId) {
 		console.error(
-			`[checkr-oauth] State mismatch: expected orgId=${sessionOrgId} got state=${state}`,
+			`[checkr-oauth] State mismatch: expected orgId=${sessionOrgId} got state for orgId=${stateOrgId}`,
 		);
 		redirect(`${backgroundChecksUrl}?checkr_error=state_mismatch`);
+	}
+
+	if (!role || roleRank[role] < roleRank.ADMIN) {
+		redirect(`${backgroundChecksUrl}?checkr_error=not_authorized`);
 	}
 
 	// The success redirect must live OUTSIDE the try: next/navigation's

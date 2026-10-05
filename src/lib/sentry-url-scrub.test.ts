@@ -26,6 +26,10 @@ describe('scrubSecrets', () => {
 	it.each([
 		['/apply/status?token=abc', `/apply/status?token=${F}`],
 		[
+			'/screening/feedback/start?org=riverside&type=DAY_7&token=abc',
+			`/screening/feedback/start?org=riverside&type=DAY_7&token=${F}`,
+		],
+		[
 			'/api/unsubscribe/digest?userId=u1&token=abc',
 			`/api/unsubscribe/digest?userId=u1&token=${F}`,
 		],
@@ -78,6 +82,7 @@ describe('isSecretUrl', () => {
 		'/invite/company/abc',
 		'/credentials/claim/abc',
 		'https://x.test/apply/status?token=abc',
+		'/screening/feedback/start?org=riverside&type=DAY_7&token=abc',
 		'/login?callbackUrl=%2Finvite%2Fabc',
 		'/api/checkr/oauth/callback?code=abc&state=org',
 		'/verify?email=a%40b.c',

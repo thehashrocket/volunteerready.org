@@ -27,6 +27,7 @@ vi.mock('node:fs', () => ({
 
 import { NextRequest } from 'next/server';
 import { getOgPageMeta } from '@/lib/public-pages';
+import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
 import { prisma } from '@/server/repositories/prisma';
 import { GET } from '../[type]/[slug]/route';
 
@@ -89,5 +90,31 @@ describe('OG Image Route', () => {
 			const res = await GET(...makeRequest('page', slug));
 			expect(res).not.toBeInstanceOf(Response);
 		}
+	});
+
+	// Value: protects=the internal platform org gets no public OG image;
+	// fails_when=the platform slug guard is removed; why_new=no test covered
+	// the platform slug; seam=none
+	it('returns 404 for the platform org without looking it up', async () => {
+		for (const type of ['apply', 'opportunities', 'stories']) {
+			const res = await GET(...makeRequest(type, PLATFORM_ORG_SLUG));
+			expect((res as Response).status).toBe(404);
+		}
+		// Refused before any lookup, so the org's name is never read.
+		expect(prisma.organization.findUnique).not.toHaveBeenCalled();
+	});
+
+	it('returns 404 when an old slug now belongs to the platform org', async () => {
+		const { findCurrentSlugByHistory } = await import(
+			'@/server/repositories/orgRepo'
+		);
+		vi.mocked(findCurrentSlugByHistory).mockResolvedValueOnce(
+			PLATFORM_ORG_SLUG,
+		);
+
+		const res = await GET(...makeRequest('apply', 'old-slug'));
+
+		expect((res as Response).status).toBe(404);
+		expect(prisma.organization.findUnique).toHaveBeenCalledTimes(1);
 	});
 });

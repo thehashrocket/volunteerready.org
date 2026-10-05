@@ -98,10 +98,6 @@ const ALLOWED: Record<string, { matches: number; why: string }> = {
 		matches: 1,
 		why: 'raw fetch() to /api/platform-admin/impersonation/start, which applies its own allowlist server-side before returning a message',
 	},
-	'app/(public)/screening/feedback/actions.ts': {
-		matches: 1,
-		why: 'server action return value consumed for logging, never rendered',
-	},
 	'components/app/query-error-card.tsx': {
 		matches: 1,
 		why: 'the implementation of the allowlist itself — `safeErrorMessage` reads `error?.message` in order to decide whether to return it',

@@ -4,6 +4,7 @@ import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
 import { getLocation } from '@/lib/locations';
 import { getOgPageMeta } from '@/lib/public-pages';
+import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
 import { prisma } from '@/server/repositories/prisma';
 
 export const runtime = 'nodejs';
@@ -88,6 +89,10 @@ export async function GET(
 			return new Response('Unknown location', { status: 404 });
 		}
 	} else {
+		// The platform org holds signup templates and has no public pages.
+		if (slug === PLATFORM_ORG_SLUG) {
+			return new Response('Unknown organization', { status: 404 });
+		}
 		let org = await prisma.organization.findUnique({
 			where: { slug },
 			select: { name: true },
@@ -99,7 +104,7 @@ export async function GET(
 				'@/server/repositories/orgRepo'
 			);
 			const currentSlug = await findCurrentSlugByHistory(slug);
-			if (currentSlug) {
+			if (currentSlug && currentSlug !== PLATFORM_ORG_SLUG) {
 				org = await prisma.organization.findUnique({
 					where: { slug: currentSlug },
 					select: { name: true },

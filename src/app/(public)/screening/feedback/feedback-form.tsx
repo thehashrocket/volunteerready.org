@@ -1,47 +1,32 @@
 'use client';
 
 import { CheckCircle2 } from 'lucide-react';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { submitFeedback } from './actions';
+import {
+	FEEDBACK_ANSWER_MAX_LENGTH,
+	type OrgFeedbackSurveyType,
+	SURVEY_QUESTIONS,
+} from '@/server/domain/org-feedback';
+import { type FeedbackFormState, submitFeedback } from './actions';
 
 type Props = {
 	orgSlug: string;
-	feedbackType: 'DAY_7' | 'DAY_30';
+	feedbackType: OrgFeedbackSurveyType;
 };
 
-const DAY_7_QUESTIONS = [
-	{ key: 'working_well', label: "What's working well?" },
-	{ key: 'confusing_or_broken', label: "What's confusing or broken?" },
-	{ key: 'expected_missing', label: "Anything you expected that's missing?" },
-];
-
-const DAY_30_QUESTIONS = [
-	...DAY_7_QUESTIONS,
-	{
-		key: 'would_pay',
-		label: 'Would you pay $29/mo to keep using this? (Yes / Maybe / No)',
-	},
-	{
-		key: 'consent_to_publicize',
-		label: "Can we use your org's name and a quote on our website? (Yes / No)",
-	},
-];
-
 export function FeedbackForm({ orgSlug, feedbackType }: Props) {
-	const questions =
-		feedbackType === 'DAY_7' ? DAY_7_QUESTIONS : DAY_30_QUESTIONS;
-
-	type FeedbackState = { success?: boolean; error?: string };
+	const questions = SURVEY_QUESTIONS[feedbackType];
 
 	const [state, formAction, isPending] = useActionState<
-		FeedbackState,
+		FeedbackFormState,
 		FormData
-	>(async (_prev, formData) => {
-		return submitFeedback(formData);
-	}, {});
+	>(async (_prev, formData) => submitFeedback(formData), {});
+	// React resets a form after its action runs; refill what the user typed
+	// when the action returned an error. A new key per attempt applies it.
+	const [attempt, setAttempt] = useState(0);
 
 	if (state.success) {
 		return (
@@ -61,7 +46,12 @@ export function FeedbackForm({ orgSlug, feedbackType }: Props) {
 	}
 
 	return (
-		<form action={formAction}>
+		<form
+			action={(formData) => {
+				setAttempt((n) => n + 1);
+				formAction(formData);
+			}}
+		>
 			<input type="hidden" name="orgSlug" value={orgSlug} />
 			<input type="hidden" name="type" value={feedbackType} />
 
@@ -75,9 +65,12 @@ export function FeedbackForm({ orgSlug, feedbackType }: Props) {
 							{q.label}
 						</label>
 						<Textarea
+							key={`${q.key}-${attempt}`}
 							id={q.key}
 							name={q.key}
+							defaultValue={state.answers?.[q.key] ?? ''}
 							rows={3}
+							maxLength={FEEDBACK_ANSWER_MAX_LENGTH}
 							className="resize-none"
 							placeholder="Type your answer..."
 						/>
