@@ -18,6 +18,8 @@ export const RESERVED_ORG_SLUGS: ReadonlySet<string> = new Set([
 	'app',
 	'apply',
 	'new',
+	// The platform org's slug: its questions are every new org's templates.
+	'platform',
 ]);
 
 export const ORG_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;

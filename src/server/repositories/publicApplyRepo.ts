@@ -1,3 +1,4 @@
+import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
 import type {
 	PublicOrgSummary,
 	PublicQuestionType,
@@ -20,6 +21,11 @@ export async function getPublicFormByOrgSlug(orgSlug: string): Promise<{
 	org: PublicOrgSummary | null;
 	questions: PublicScreenerQuestion[];
 }> {
+	// The platform org holds signup templates, not a public apply form.
+	if (orgSlug === PLATFORM_ORG_SLUG) {
+		return { org: null, questions: [] };
+	}
+
 	const org = await prisma.organization.findUnique({
 		where: { slug: orgSlug },
 		select: { id: true, name: true, slug: true, showPoweredBy: true },

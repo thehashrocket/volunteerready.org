@@ -3,6 +3,7 @@ import {
 	OpportunityStatus,
 	type Prisma,
 } from '@/prisma/generated/client';
+import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
 import { prisma } from '@/server/repositories/prisma';
 
 const requirementSelect = {
@@ -49,6 +50,9 @@ export async function getPublishedOpportunityById(
 }
 
 export async function listPublishedOpportunities(orgSlug: string) {
+	// The platform org has no public listing (see getPublicFormByOrgSlug).
+	if (orgSlug === PLATFORM_ORG_SLUG) return null;
+
 	const org = await prisma.organization.findUnique({
 		where: { slug: orgSlug },
 		select: { id: true, name: true, slug: true },

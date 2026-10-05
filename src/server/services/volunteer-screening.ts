@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import {
 	ApplicationSource,
 	ApplicationStatus,
@@ -14,6 +15,7 @@ import {
 	validateResponses,
 } from '@/server/domain/volunteer-screening';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
+import { findOrgAcceptingApplications } from '@/server/repositories/orgRepo';
 import { prisma } from '@/server/repositories/prisma';
 import {
 	findMemberByUserAndOrg,
@@ -90,6 +92,16 @@ export async function submitVolunteerApplication(
 	orgId: string,
 	payload: SubmitVolunteerApplicationPayload,
 ) {
+	// An unknown org, or the platform org (it holds signup templates and has no
+	// members, so no staff member could ever read the application).
+	const org = await findOrgAcceptingApplications(orgId);
+	if (!org) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Organization not found.',
+		});
+	}
+
 	const questionRecords = await getActiveQuestions(orgId);
 	const questions = questionRecords.map(mapQuestion);
 
@@ -122,11 +134,7 @@ export async function submitVolunteerApplication(
 	// Validate source: downgrade MARKETPLACE to DIRECT if org is not marketplace-visible
 	let validatedSource: ApplicationSource = ApplicationSource.DIRECT;
 	if (payload.source === ApplicationSource.MARKETPLACE) {
-		const org = await prisma.organization.findUnique({
-			where: { id: orgId },
-			select: { marketplaceVisible: true },
-		});
-		validatedSource = org?.marketplaceVisible
+		validatedSource = org.marketplaceVisible
 			? ApplicationSource.MARKETPLACE
 			: ApplicationSource.DIRECT;
 	} else if (payload.source) {

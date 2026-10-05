@@ -92,11 +92,31 @@ function setupTransactionMock(appId = 'app-1') {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Value: protects=an application to an org that does not exist is refused as
+// NOT_FOUND before anything is written; fails_when=the org check only refuses
+// the platform org and an unknown id reaches the insert (a foreign-key 500);
+// why_new=only the platform case was tested; seam=none
+describe('submitVolunteerApplication — unknown org', () => {
+	it('refuses an org id that does not exist, writing nothing', async () => {
+		vi.clearAllMocks();
+		mockPrisma.organization.findUnique.mockResolvedValue(null);
+		const txCreate = setupTransactionMock();
+
+		await expect(
+			submitVolunteerApplication('no-such-org', {
+				...BASE_PAYLOAD,
+			} as Parameters<typeof submitVolunteerApplication>[1]),
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+		expect(txCreate).not.toHaveBeenCalled();
+	});
+});
+
 describe('submitVolunteerApplication — source tracking', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		// Default org: marketplace-visible = true
 		mockPrisma.organization.findUnique.mockResolvedValue({
+			slug: 'org-1',
 			marketplaceVisible: true,
 			firstApplicationReceivedAt: null,
 			name: 'Test Org',
@@ -108,6 +128,7 @@ describe('submitVolunteerApplication — source tracking', () => {
 	it('stores MARKETPLACE when source=MARKETPLACE and org is marketplace-visible', async () => {
 		const txCreate = setupTransactionMock();
 		mockPrisma.organization.findUnique.mockResolvedValue({
+			slug: 'org-1',
 			marketplaceVisible: true,
 		});
 
@@ -131,14 +152,15 @@ describe('submitVolunteerApplication — source tracking', () => {
 			source: 'DIRECT' as const,
 		} as Parameters<typeof submitVolunteerApplication>[1]);
 
-		// DIRECT → no marketplaceVisible lookup (source validation is skipped)
+		// One lookup reads marketplaceVisible per submission, whatever the
+		// source: the org check at the top, reused for the source downgrade.
 		const marketplaceCalls =
 			mockPrisma.organization.findUnique.mock.calls.filter(
 				(call) =>
 					(call[0] as { select?: { marketplaceVisible?: boolean } })?.select
 						?.marketplaceVisible !== undefined,
 			);
-		expect(marketplaceCalls).toHaveLength(0);
+		expect(marketplaceCalls).toHaveLength(1);
 		expect(txCreate).toHaveBeenCalledWith(
 			expect.objectContaining({
 				data: expect.objectContaining({ source: 'DIRECT' }),
@@ -149,6 +171,7 @@ describe('submitVolunteerApplication — source tracking', () => {
 	it('downgrades MARKETPLACE to DIRECT when org is not marketplace-visible', async () => {
 		const txCreate = setupTransactionMock();
 		mockPrisma.organization.findUnique.mockResolvedValue({
+			slug: 'org-1',
 			marketplaceVisible: false,
 		});
 
@@ -172,14 +195,15 @@ describe('submitVolunteerApplication — source tracking', () => {
 			source: undefined,
 		} as Parameters<typeof submitVolunteerApplication>[1]);
 
-		// No source → no marketplaceVisible lookup needed
+		// One lookup reads marketplaceVisible per submission, whatever the
+		// source: the org check at the top, reused for the source downgrade.
 		const marketplaceCalls =
 			mockPrisma.organization.findUnique.mock.calls.filter(
 				(call) =>
 					(call[0] as { select?: { marketplaceVisible?: boolean } })?.select
 						?.marketplaceVisible !== undefined,
 			);
-		expect(marketplaceCalls).toHaveLength(0);
+		expect(marketplaceCalls).toHaveLength(1);
 		expect(txCreate).toHaveBeenCalledWith(
 			expect.objectContaining({
 				data: expect.objectContaining({ source: 'DIRECT' }),
@@ -215,6 +239,7 @@ describe('submitVolunteerApplication — lifting an org block', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockPrisma.organization.findUnique.mockResolvedValue({
+			slug: 'org-1',
 			marketplaceVisible: true,
 			firstApplicationReceivedAt: null,
 			name: 'Test Org',
