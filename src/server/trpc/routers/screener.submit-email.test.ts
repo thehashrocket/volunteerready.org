@@ -110,3 +110,22 @@ describe('screener.submit — submittedByEmail canonicalization', () => {
 		},
 	);
 });
+
+describe('screener.submit — session org', () => {
+	// Value: protects=submit does not write the session; fails_when=submit
+	// updates a session row; why_new=no test asserted it; seam=none
+	it('never changes the session’s active org', async () => {
+		const sessionUpdate = vi.fn();
+		const ctx = createMockTrpcContext({
+			ip: '203.0.113.1',
+			sessionToken: 'tok-1',
+			orgId: null,
+			session: { user: { id: 'user-1' } } as never,
+			prisma: { session: { update: sessionUpdate } } as never,
+		});
+
+		await callerFactory(ctx).submit(submitInput('vol@example.org'));
+
+		expect(sessionUpdate).not.toHaveBeenCalled();
+	});
+});

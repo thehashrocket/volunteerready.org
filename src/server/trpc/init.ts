@@ -9,6 +9,7 @@ import type {
 	Role,
 } from '@/prisma/generated/client';
 import { authOptions } from '@/server/auth';
+import { resolveOrgContext } from '@/server/domain/active-org';
 import { assertPlanAtLeast } from '@/server/domain/billing';
 import {
 	GENERIC_ERROR_MESSAGE,
@@ -18,6 +19,7 @@ import type { EffectiveUser } from '@/server/domain/impersonation';
 import { IMPERSONATION_COOKIE } from '@/server/domain/impersonation';
 import { roleRank } from '@/server/domain/permissions';
 import { resolveEffectiveUserId } from '@/server/lib/impersonation-context';
+import { readCookie, sessionCookieName } from '@/server/lib/session-cookie';
 import { getOrgPlanTier } from '@/server/repositories/orgRepo';
 import { prisma } from '@/server/repositories/prisma';
 import {
@@ -41,10 +43,20 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 	// callback, so orgId/role/companyId/companyRole may be null after the
 	// callback runs. Fall back to reading the token from the cookie header and
 	// resolving org/company context directly here.
-	const sessionToken =
-		ext?.sessionToken ?? getSessionTokenFromHeaders(_opts.req);
-
 	const realUserId = realSession?.user?.id ?? null;
+
+	// The session callback only exposes a token whose session belongs to the
+	// signed-in user. When it could not read one, check the cookie the same way.
+	let sessionToken: string | null = ext?.sessionToken ?? null;
+	const headerToken =
+		sessionToken || !realUserId ? null : getSessionTokenFromHeaders(_opts.req);
+	if (headerToken && realUserId) {
+		const own = await prisma.session.findFirst({
+			where: { sessionToken: headerToken, userId: realUserId },
+			select: { id: true },
+		});
+		sessionToken = own ? headerToken : null;
+	}
 	const impersonationCookie = getImpersonationCookieFromHeaders(_opts.req);
 
 	// Resolve impersonation — if the admin is acting as another user, all
@@ -93,8 +105,8 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 		// user — resolve their default org/company directly.
 		const dbSessionPromise =
 			sessionToken && !isImpersonating
-				? prisma.session.findUnique({
-						where: { sessionToken },
+				? prisma.session.findFirst({
+						where: { sessionToken, userId: realUserId ?? '' },
 						select: {
 							currentOrgId: true,
 							currentCompanyId: true,
@@ -146,14 +158,8 @@ export async function createTRPCContext(_opts: FetchCreateContextFnOptions) {
 			(resolved as { currentOrgId?: string | null } | null)?.currentOrgId ??
 			null;
 
-		if (currentOrgId) {
-			const match = memberships.find((m) => m.organizationId === currentOrgId);
-			orgId = currentOrgId;
-			role = match?.role ?? null;
-		} else {
-			orgId = memberships[0]?.organizationId ?? null;
-			role = memberships[0]?.role ?? null;
-		}
+		// A saved org counts only while the user is a member of it.
+		({ orgId, role } = resolveOrgContext({ currentOrgId, memberships }));
 
 		const companyMemberships =
 			(
@@ -458,23 +464,12 @@ export const platformAdminProcedure = protectedProcedure.use(
 	},
 );
 
-function getSessionTokenFromHeaders(req: Request) {
-	const cookie = req.headers.get('cookie');
-	if (!cookie) {
-		return null;
-	}
-
-	const pairs = cookie.split(';').map((part) => part.trim());
-	const entry = pairs.find(
-		(pair) =>
-			pair.startsWith('next-auth.session-token=') ||
-			pair.startsWith('__Secure-next-auth.session-token='),
-	);
-	if (!entry) {
-		return null;
-	}
-
-	return decodeURIComponent(entry.split('=').slice(1).join('='));
+/** The session cookie NextAuth authenticated this request with. */
+function getSessionTokenFromHeaders(req: Request): string | null {
+	const proto =
+		req.headers.get('x-forwarded-proto') ??
+		new URL(req.url).protocol.replace(':', '');
+	return readCookie(req.headers.get('cookie'), sessionCookieName(proto));
 }
 
 function getImpersonationCookieFromHeaders(req: Request) {

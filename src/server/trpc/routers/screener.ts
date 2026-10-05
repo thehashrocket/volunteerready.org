@@ -142,13 +142,6 @@ export const screenerRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			if (ctx.sessionToken && !ctx.orgId) {
-				await ctx.prisma.session.update({
-					where: { sessionToken: ctx.sessionToken },
-					data: { currentOrgId: input.orgId },
-				});
-			}
-
 			const result = await submitVolunteerApplication(input.orgId, {
 				submittedByEmail: input.submittedByEmail,
 				submittedByUserId: ctx.session?.user?.id ?? null,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveActiveOrgId } from './active-org';
+import { resolveActiveOrgId, resolveOrgContext } from './active-org';
 
 describe('resolveActiveOrgId', () => {
 	it('honours the session org when the membership still exists', () => {
@@ -88,5 +88,43 @@ describe('staff_created_volunteers flag registration', () => {
 		expect(
 			getFlagDefinition(STAFF_CREATED_VOLUNTEERS_FLAG)?.defaultEnabled,
 		).toBe(false);
+	});
+});
+
+describe('resolveOrgContext', () => {
+	const memberships = [
+		{ organizationId: 'org-a', role: 'STAFF' },
+		{ organizationId: 'org-b', role: 'OWNER' },
+	];
+
+	it('keeps the saved org and its role when the user is a member', () => {
+		expect(resolveOrgContext({ currentOrgId: 'org-b', memberships })).toEqual({
+			currentOrgId: 'org-b',
+			orgId: 'org-b',
+			role: 'OWNER',
+		});
+	});
+
+	// Value: protects=org context always comes from a membership;
+	// fails_when=a saved currentOrgId is honoured without a membership;
+	// why_new=the existing tests cover resolveActiveOrgId only; seam=none
+	it('ignores a saved org the user is not a member of', () => {
+		expect(
+			resolveOrgContext({ currentOrgId: 'other-org', memberships }),
+		).toEqual({ currentOrgId: 'org-a', orgId: 'org-a', role: 'STAFF' });
+	});
+
+	it('gives a user with no memberships no org at all', () => {
+		expect(
+			resolveOrgContext({ currentOrgId: 'other-org', memberships: [] }),
+		).toEqual({ currentOrgId: null, orgId: null, role: null });
+	});
+
+	it('falls back to the oldest membership when nothing is saved', () => {
+		expect(resolveOrgContext({ currentOrgId: null, memberships })).toEqual({
+			currentOrgId: 'org-a',
+			orgId: 'org-a',
+			role: 'STAFF',
+		});
 	});
 });
