@@ -99,7 +99,7 @@ Rules:
 
 - Rows persist indefinitely; current-slug lookups win over history, so a re-claimed slug takes precedence.
 - History rows block slug re-registration by new orgs and renames by other orgs (anti-squatting).
-- Slug renames are rate-limited to 3 per 24h per org; reserved slugs (`status`, `refer`, `admin`, `api`, `app`, `apply`, `new`) are rejected (see `RESERVED_ORG_SLUGS` in `src/server/domain/org-profile.ts`).
+- Slug renames are rate-limited to 3 per 24h per org; reserved slugs (`status`, `refer`, `admin`, `api`, `app`, `apply`, `new`, and `platform`, the platform org's slug that holds the signup templates) are rejected (see `RESERVED_ORG_SLUGS` in `src/server/domain/org-profile.ts`).
 - Cascades on organization delete.
 
 ---
@@ -266,10 +266,14 @@ Questions support:
 - Review rules — matched answer flags for manual review (REVIEW)
 - Rule operators: equals, includes, lt, lte, gt, gte
 
-Questions are organization-specific. New orgs are seeded with 5 default questions
-(age verification, background check consent, availability, prior experience, motivation)
-via `seedDefaultQuestions()` in `screenerQuestionsRepo.ts`. The defaults are defined in
-`DEFAULT_SCREENER_QUESTIONS` in `volunteer-screening.ts`.
+Questions are organization-specific. A new org gets a copy of the platform org's
+active template questions (`isTemplate` rows on the `platform` org) via
+`seedDefaultQuestions()` in `screenerQuestionsRepo.ts`. Those templates start as the
+5 defaults in `DEFAULT_SCREENER_QUESTIONS` (`volunteer-screening.ts`: age verification,
+background check consent, availability, prior experience, motivation), which the boot
+guard and the deploy seed create and repair; platform admins edit them in the catalog
+editor. The deploy seed's backfill (`backfillDefaultQuestions`) also adds any of the 5
+defaults an org is missing, from the constant, on every deploy.
 
 ---
 

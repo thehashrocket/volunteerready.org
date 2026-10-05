@@ -131,7 +131,7 @@ REQUEST ──▶ tRPC matching.getSkillCatalog
 | 1 | Boot guard call site | Service layer (not router) | Layer boundary rules: routers are thin |
 | 2 | Boot guard scope | Both skill catalog + tenure badge entry points | `_seeded` flag makes second call free |
 | 3 | Concurrent cold-start race | Promise lock (`_seedingPromise`) | Prevents wasted DB writes |
-| 4 | Seeding logic DRY | Single canonical function in `referenceDataRepo.ts` | `seed-helpers.ts` imports from it |
+| 4 | Seeding logic DRY | Canonical function in `referenceDataRepo.ts`; the deploy seed keeps a parallel copy in `prisma/seed-helpers.ts` (it cannot import the app's Prisma client). Both mark only `DEFAULT_SCREENER_QUESTION_KEYS` | Unifying them is a follow-up in `docs/TODOS.md` |
 | 5 | Version tracking | `ReferenceDataMeta` key-value row in DB | Explicit version comparison on boot |
 | 6 | Dev startup warning | `src/instrumentation.ts` (Next.js startup hook) | Framework-blessed location |
 | 7-9 | Test gaps | Added concurrent dedup, version mismatch, error handling tests | 11 total test cases |
@@ -170,3 +170,18 @@ REQUEST ──▶ tRPC matching.getSkillCatalog
 - **CROSS-MODEL:** Strong overlap — both Claude and Codex flagged layer boundary violation, concurrency, and version persistence. Codex uniquely flagged public-path attack surface.
 - **UNRESOLVED:** 0
 - **VERDICT:** CEO + ENG CLEARED — ready to implement
+
+## Platform template repair (v0.45.0.0)
+
+The platform org's default questions predated the `isTemplate` column, so from
+v0.22.0.0 production had no template rows: signups got no questions and the
+boot guard's insert collided on `ScreenerQuestion (orgId, key)` on every cold
+start. `areTemplateQuestionsSeeded()` now requires every key in
+`DEFAULT_SCREENER_QUESTION_KEYS` to be present as a template on the platform org
+(an unmarked, deleted or newly added default all fail it), and `seedPlatformTemplateQuestions()`
+marks the default keys as templates before inserting any that are missing
+(`skipDuplicates`). The migration `20261004120000_mark_platform_questions_as_templates`
+and the deploy seed apply the same repair. Each boot-guard step runs on its own,
+so a failed catalog seed does not block the template repair, and failures are
+reported to Sentry at most once per 10 minutes per instance.
+

@@ -150,7 +150,7 @@ docs/
 - Every table gets createdAt, updatedAt, and if relevant deletedAt. Soft delete now saves you.
 - Zod schemas live next to domain models and get imported on both sides. No duplicating.
 - screening domain lives in `src/server/domain/volunteer-screening.ts`
-- Default screener questions: `DEFAULT_SCREENER_QUESTIONS` in `volunteer-screening.ts`, seeded on org creation via `seedDefaultQuestions()` in `screenerQuestionsRepo.ts`
+- Default screener questions: signup copies the platform org's active template questions via `seedDefaultQuestions()` in `screenerQuestionsRepo.ts`. `DEFAULT_SCREENER_QUESTIONS` in `volunteer-screening.ts` seeds and repairs those templates (boot guard + deploy seed), and the deploy seed's `backfillDefaultQuestions` (also `pnpm backfill:default-questions`) copies it straight into any org missing a default
 - RBAC permissions: `src/server/domain/permissions.ts` (constants, `hasPermission()`, role maps)
 - **The ADMIN tier is OWNER-granted only, via TWO doors** (invite + role change), both through `assertMayGrantRole()` in `memberService.ts`. Acting role is resolved from the DB, never a parameter. Any new role-assigning path must use it. `removeOrgMember` not re-checking the caller is an open P2, not precedent
 - Platform admin: `src/server/domain/platform-admin.ts` (`isPlatformAdmin()` with DB + env-var fallback)

@@ -595,3 +595,71 @@ cookie was not stored; check the response of the `/start` request for a
 and `auth-session-org.test.ts` cover org context from the session row of the
 signed-in user; `e2e/feedback-survey-link.spec.ts` runs the survey link, a
 reload and the answer refill against the dev server.
+
+## Screener templates after the platform-question repair
+
+Shipped in v0.45.0.0. From v0.22.0.0 the platform org's 5 default questions were not marked as
+templates, so production had none: every new org was created with no screener
+questions until the next deploy's seed backfilled the hard-coded defaults, and
+the reference-data boot guard failed on every cold start with a
+unique-constraint error on `ScreenerQuestion (orgId, key)`. The fix is a
+migration plus a repair in the boot guard and the deploy seed. All of it
+depends on production data, so check it after the first production deploy.
+
+### 1. The platform org's default questions are all templates
+
+Read-only, against production. Only the 5 default keys count: the repair marks
+nothing else, and a question added in the catalog editor is written as a
+template directly.
+
+```sql
+SELECT
+  count(*) FILTER (WHERE q."isTemplate")                  AS default_templates,
+  count(*) FILTER (WHERE q."isTemplate" AND q."isActive") AS active_templates,
+  count(*) FILTER (WHERE NOT q."isTemplate")              AS default_unmarked
+FROM "ScreenerQuestion" q
+JOIN "Organization" o ON o.id = q."orgId"
+WHERE o.slug = 'platform'
+  AND q.key IN ('age-18-plus', 'background-check-consent', 'availability',
+                'prior-experience', 'why-volunteer');
+```
+
+**Expect:** `default_templates` is 5, `active_templates` is 5 and
+`default_unmarked` is 0. The deploy log should show the migration
+`20261004120000_mark_platform_questions_as_templates` applied. The repair only
+sets `isTemplate`: if `active_templates` is below 5, or a prompt differs from
+`DEFAULT_SCREENER_QUESTIONS`, new orgs get fewer or older questions, so look
+over the 5 rows once.
+
+After this deploy the platform admin catalog editor lists these 5 default
+questions for the first time (they were invisible while unmarked). Deactivating
+one there only lasts until the next deploy: the deploy seed's backfill re-adds
+any of the 5 defaults an org is missing, from the hard-coded list.
+
+### 2. The boot guard stops failing
+
+Search the Vercel runtime logs from after the deploy for `Boot guard failed`.
+**Expect:** none. Before the fix, every cold start logged it with
+`ScreenerQuestion_orgId_key_key`. A failure now also reaches Sentry as an
+exception, throttled to once per 10 minutes per instance; a report sent from a
+cold start can be lost before it flushes, so the runtime logs are the reliable
+signal.
+
+### 3. The next new org gets its questions
+
+The signal is Sentry: an org created with no questions now raises a warning,
+"New org created with no default screener questions", naming the org.
+**Expect:** none after the next signup. Counting the new org's
+`ScreenerQuestion` rows also works (one per active template, 5 by default),
+but only before the next deploy: every production build's seed backfills the
+default questions into any org missing them, which would hide a broken signup.
+
+### What is already covered automatically — do not re-check by hand
+
+`src/server/repositories/platformTemplateQuestions.integration.test.ts`
+recreates the pre-fix state against Postgres. It checks that the migration,
+the boot guard's seed and the deploy seed each repair it, that signup and the
+catalog editor read only the platform org's templates, and that the boot
+guard's check stays false while any default platform question is unmarked.
+`orgService.test.ts` and `referenceDataService.test.ts` check the two Sentry
+reports. None of them can see production's data.
