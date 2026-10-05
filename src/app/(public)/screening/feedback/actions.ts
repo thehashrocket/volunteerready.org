@@ -1,68 +1,46 @@
 'use server';
 
-import { prisma } from '@/server/repositories/prisma';
+import { cookies } from 'next/headers';
+import {
+	INVALID_SURVEY_LINK_ERROR,
+	parseOrgFeedbackType,
+	SURVEY_QUESTIONS,
+	surveyTokenCookie,
+} from '@/server/domain/org-feedback';
+import { submitOrgFeedback } from '@/server/services/org-feedback-service';
 
-export async function submitFeedback(formData: FormData) {
-	const orgSlug = formData.get('orgSlug') as string;
-	const type = formData.get('type') as string;
+export type FeedbackFormState = {
+	success?: boolean;
+	error?: string;
+	/** What the user typed, returned with an error so the form can refill. */
+	answers?: Record<string, string>;
+};
 
-	if (!orgSlug || !type || !['DAY_7', 'DAY_30'].includes(type)) {
+export async function submitFeedback(
+	formData: FormData,
+): Promise<FeedbackFormState> {
+	const orgSlug = formData.get('orgSlug');
+	const type = parseOrgFeedbackType(formData.get('type'));
+
+	if (typeof orgSlug !== 'string' || !orgSlug || !type) {
 		return { error: 'Invalid submission.' };
 	}
 
-	const org = await prisma.organization.findUnique({
-		where: { slug: orgSlug },
-		select: { id: true },
-	});
-	if (!org) {
-		return { error: 'Organization not found.' };
-	}
-
-	const feedbackType = type as 'DAY_7' | 'DAY_30';
-
-	// Build responses object from form fields
-	const responses: Record<string, string> = {};
-	const questionKeys = [
-		'working_well',
-		'confusing_or_broken',
-		'expected_missing',
-	];
-	if (feedbackType === 'DAY_30') {
-		questionKeys.push('would_pay', 'consent_to_publicize');
-	}
-
-	for (const key of questionKeys) {
+	const answers: Record<string, string> = {};
+	for (const { key } of SURVEY_QUESTIONS[type]) {
 		const value = formData.get(key);
-		if (typeof value === 'string' && value.trim()) {
-			responses[key] = value.trim();
-		}
+		if (typeof value === 'string') answers[key] = value;
 	}
 
-	if (Object.keys(responses).length === 0) {
-		return { error: 'Please answer at least one question.' };
-	}
+	const token = (await cookies()).get(surveyTokenCookie(orgSlug, type))?.value;
+	const result = token
+		? await submitOrgFeedback({
+				orgSlug,
+				type,
+				token,
+				answers: (key) => answers[key],
+			})
+		: { error: INVALID_SURVEY_LINK_ERROR };
 
-	// Upsert: update the existing OrgFeedback with responses
-	try {
-		await prisma.orgFeedback.upsert({
-			where: {
-				orgId_type: { orgId: org.id, type: feedbackType },
-			},
-			update: { responses },
-			create: {
-				orgId: org.id,
-				type: feedbackType,
-				responses,
-			},
-		});
-	} catch (err) {
-		console.error('[feedback] Failed to save feedback', {
-			orgSlug,
-			type: feedbackType,
-			error: err instanceof Error ? err.message : String(err),
-		});
-		return { error: 'Something went wrong. Please try again.' };
-	}
-
-	return { success: true };
+	return 'error' in result ? { error: result.error, answers } : result;
 }
