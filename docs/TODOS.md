@@ -5,6 +5,75 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the platform-template ship (2026-10-05, v0.45.0.0)
+
+### [P2] Give questions to orgs created while the templates were missing
+**Priority:** P2
+From v0.22.0.0 to v0.45.0.0 signup copied no questions. Every deploy's
+`backfillDefaultQuestions` has been adding the 5 defaults to those orgs
+since, so check production for orgs that still have none (or fewer than the
+defaults) before deciding whether a one-off backfill is needed. Decided in the
+v0.45.0.0 ship: a TODO, not part of that PR.
+
+### [P2] The deploy backfill re-adds the default questions every deploy
+**Priority:** P2
+`backfillDefaultQuestions` (`prisma/seed-helpers.ts`, run by `pnpm seed` on
+every production deploy) inserts the 5 hard-coded `DEFAULT_SCREENER_QUESTIONS`,
+active, into every non-platform org missing one of those keys. So a default a
+platform admin deactivates in the catalog editor, or a default question a
+tenant deleted, comes back after the next deploy. Fix direction: backfill only
+orgs with no questions, copying the platform org's active templates rather
+than the constant. Documented in `docs/post-deploy-checks.md`.
+
+### [P3] One repair for the platform templates
+**Priority:** P3
+`prisma/seed-helpers.ts` keeps its own copy of
+`referenceDataRepo.seedPlatformTemplateQuestions()` because it cannot import
+the app's Prisma client; both use `DEFAULT_SCREENER_QUESTION_KEYS`. Share the
+where clause and data (a client parameter or a pure builder), and make the
+deploy-seed repair one transaction like the boot guard's.
+
+### [P3] One public guard for the platform org
+**Priority:** P3
+The platform org is refused on apply, opportunities, slug history, sitemap,
+referral, OG images and submissions, each with its own check. It is not yet
+excluded from stories and testimonials (a platform admin can set
+`consentToPublicize` on it), from `screener.checkAnonymousApplication`
+(a public read by raw `orgId`), or explicitly from org discovery. Put the
+rule in one place every public read uses.
+
+### [P3] Boot guard: isolate the readiness checks too
+**Priority:** P3
+`ensureReferenceData()` runs its three readiness checks in one `Promise.all`,
+so one failed check skips every repair on that call. The seed steps are
+already isolated; isolate the checks the same way (treat a failed check as
+"not ready").
+
+### [P3] Sentry reports from the boot guard and signup
+**Priority:** P3
+Boot-guard failures are reported throttled per instance with no fingerprint,
+and the reporting time is stamped before the event flushes, so a report sent
+at cold start can be lost. The signup "no default screener questions" warning
+also fires when every template has been deactivated on purpose, and carries no
+cause. Add fingerprints, flush on the boot path, and tell "no templates" apart
+from "all deactivated".
+
+### [P3] Renaming a default question key
+**Priority:** P3
+Template keys are immutable in the catalog editor. If a release renames a key
+in `DEFAULT_SCREENER_QUESTIONS`, the boot guard and deploy seed add the new
+key, the old template stays active, and every new org gets both. A rename
+needs a migration that retires the old row.
+
+### [P3] Suspended orgs still accept applications
+**Priority:** P3
+`findOrgAcceptingApplications()` (`orgRepo.ts`) and `getPublicFormByOrgSlug()`
+refuse the platform org and unknown ids, not suspended orgs. Decide whether a
+suspended org's public form and submissions should close, then apply it in
+both.
+
+---
+
 ## Opened by the org-context ship (2026-10-05, v0.44.0.0)
 
 ### [P1] Keep the database session token server-side
@@ -4417,11 +4486,14 @@ Key design choices:
   `isTemplate: false` so platform-org admins cannot edit templates via
   non-catalog routes (bypassing audit).
 - **Create-only boot-guard semantics** — `seedCatalog()` +
-  `seedPlatformTemplateQuestions()` use `findUnique`/`create` patterns (no
-  upserts that overwrite). Admin edits survive version bumps.
+  `seedPlatformTemplateQuestions()` never overwrite content. Admin edits
+  survive version bumps. Since v0.45.0.0 the one write to existing rows is
+  marking the platform org's default keys `isTemplate = true`
+  (`updateMany`, then `createMany` with `skipDuplicates`).
 - **`seedDefaultQuestions()` reads from DB templates**, not the TS constant.
-  The constant (`DEFAULT_SCREENER_QUESTIONS`) is only used by the boot guard
-  to seed first-time templates.
+  The constant (`DEFAULT_SCREENER_QUESTIONS`) seeds and repairs the templates
+  (boot guard and deploy seed); the deploy seed's `backfillDefaultQuestions`
+  also copies it into any org missing a default.
 - **No retro-push** — editing a template never mutates any existing org's
   screener. Templates apply only when a new org is created.
 

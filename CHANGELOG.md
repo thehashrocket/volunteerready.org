@@ -2,6 +2,60 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.45.0.0] - 2026-10-05
+
+**New organizations start with the default screening questions again, and the platform org's startup check stops failing on every cold start.**
+
+From v0.22.0.0 the platform org's 5 default screener questions predated the
+`isTemplate` column and were never marked as templates. Signup copies the
+templates, so new orgs got no questions until the next deploy's backfill, and
+the reference-data boot guard collided on `ScreenerQuestion (orgId, key)` on
+every cold start.
+
+### Fixed
+
+- **The default questions are templates again.** Migration
+  `20261004120000_mark_platform_questions_as_templates` marks the 5 default
+  keys on the platform org. The boot guard and the deploy seed apply the same
+  repair, marking existing default rows before creating any that are missing,
+  so neither collides with the old rows.
+- **The boot guard knows when the templates are incomplete.** It reports
+  healthy only when every default key is a template on the platform org, so a
+  missing or unmarked default is repaired. Each of its steps runs on its own:
+  a failed skill-catalog seed no longer stops the template repair. Failures
+  reach Sentry (at most once per 10 minutes per instance, the template step
+  first, tagged with the step).
+- **Signup warns when it copies nothing.** `createOrg` runs the boot guard
+  before choosing the slug and sends a Sentry warning naming the org if no
+  questions were copied.
+- **Template readers only read the platform org's templates.** Signup and the
+  platform catalog editor no longer pick up an `isTemplate` flag on another
+  org's row.
+- **The platform org stays internal.** `platform` is a reserved slug, and the
+  platform org has no public apply form, listing, slug-history redirect or
+  sitemap entry. Applications to it, or to an org id that does not exist, are
+  refused as not found (an unknown id used to fail with a server error).
+
+### Changed
+
+- The platform admin catalog editor now lists the 5 default questions (they
+  were hidden while unmarked).
+
+### Tests
+
+- An integration suite recreates the pre-template state against Postgres and
+  checks the migration, the boot guard and the deploy seed each repair it,
+  including a deleted default; the template readers stay on the platform org;
+  and the platform org is refused on every public path. It refuses any
+  non-local database and restores the dev database's platform questions even
+  after a killed run.
+
+### Docs
+
+- `docs/post-deploy-checks.md`: count the active default templates on
+  production, watch the runtime logs for `Boot guard failed`, and check the
+  next signup.
+
 ## [0.44.0.0] - 2026-10-05
 
 **Organization context, Checkr connect and the org feedback survey link were reworked. Most people will notice nothing; a Checkr connect left half-finished across the deploy needs starting again.**
