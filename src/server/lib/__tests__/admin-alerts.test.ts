@@ -24,9 +24,11 @@ vi.mock('@/server/lib/admin-recipients', () => ({
 // Imports — after vi.mock()
 // ---------------------------------------------------------------------------
 
+import { SCAN_MAX_AGE_HOURS } from '@/server/domain/advisory-scan-result';
 import {
 	_resetAdminEmailsCacheForTests,
 	sendAdvisoryDispatchFailureAlert,
+	sendAdvisoryScanResultAlert,
 	sendImpersonationStartAlert,
 	sendNewCompanyAlert,
 	sendNewOrgAlert,
@@ -446,6 +448,115 @@ describe('sendAdvisoryDispatchFailureAlert', () => {
 			expect.stringContaining('admin@example.com'),
 		);
 		errorSpy.mockRestore();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// sendAdvisoryScanResultAlert
+// ---------------------------------------------------------------------------
+
+describe('sendAdvisoryScanResultAlert', () => {
+	// The heartbeat route mocks this module, so these are the only tests of
+	// the real body: one subject per problem (an inbox rule or a skim has to
+	// tell "found an advisory" from "stopped scanning"), the run link, and
+	// isCritical so bounce suppression cannot swallow a security notice.
+	const RUN_URL =
+		'https://github.com/thehashrocket/volunteerready.org/actions/runs/42';
+
+	it.each([
+		['failed', 'failed'],
+		['missing', 'never completed'],
+		['stale', 'stopped running'],
+		['disabled', 'is disabled'],
+	] as const)('subject for %s says "%s"', async (problem, phrase) => {
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+
+		await sendAdvisoryScanResultAlert({
+			problem,
+			details: 'd',
+			runUrl: RUN_URL,
+		});
+
+		const subject = mockSendEmail.mock.calls[0][1] as string;
+		expect(subject).toContain('[Security]');
+		expect(subject).toContain(phrase);
+	});
+
+	it('html contains the details and links the run', async () => {
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+
+		await sendAdvisoryScanResultAlert({
+			problem: 'failed',
+			details: 'ended with conclusion "failure"',
+			runUrl: RUN_URL,
+		});
+
+		const html = mockSendEmail.mock.calls[0][2] as string;
+		expect(html).toContain('ended with conclusion "failure"');
+		expect(html).toContain(`href="${RUN_URL}"`);
+	});
+
+	// The stale run passed and the disabled workflow never ran: neither email
+	// may claim a run failed.
+	it.each([
+		['failed', 'did not pass'],
+		['stale', `more than ${SCAN_MAX_AGE_HOURS} hours old`],
+		['missing', 'no completed run'],
+		['disabled', 'disabled the workflow'],
+	] as const)('lead sentence for %s says "%s"', async (problem, phrase) => {
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+
+		await sendAdvisoryScanResultAlert({ problem, details: 'd', runUrl: null });
+
+		const html = mockSendEmail.mock.calls[0][2] as string;
+		expect(html).toContain(phrase);
+		if (problem !== 'failed') expect(html).not.toContain('did not pass');
+	});
+
+	// The next step differs per problem: only a failed scan has advisories
+	// to look up; the others need the workflow itself looked at.
+	it.each([
+		['failed', 'check-advisories.ts'],
+		['missing', 'check that it exists'],
+		['stale', 'runs stopped'],
+		['disabled', 're-enable the workflow'],
+	] as const)('next step for %s says "%s"', async (problem, phrase) => {
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+
+		await sendAdvisoryScanResultAlert({ problem, details: 'd', runUrl: null });
+
+		const html = mockSendEmail.mock.calls[0][2] as string;
+		expect(html).toContain(phrase);
+		if (problem !== 'failed') expect(html).not.toContain('check-advisories');
+	});
+
+	it('omits the run row when there is no run', async () => {
+		mockGetAdminEmails.mockResolvedValue(['admin@example.com']);
+
+		await sendAdvisoryScanResultAlert({
+			problem: 'missing',
+			details: 'no completed run',
+			runUrl: null,
+		});
+
+		const html = mockSendEmail.mock.calls[0][2] as string;
+		expect(html).not.toContain('<strong>Run:</strong>');
+	});
+
+	it('sends to all admin recipients with isCritical: true', async () => {
+		mockGetAdminEmails.mockResolvedValue([
+			'admin@example.com',
+			'ops@example.com',
+		]);
+
+		await sendAdvisoryScanResultAlert({
+			problem: 'stale',
+			details: 'd',
+			runUrl: RUN_URL,
+		});
+
+		expect(mockSendEmail).toHaveBeenCalledTimes(2);
+		expect(mockSendEmail.mock.calls[0][3]).toEqual({ isCritical: true });
 	});
 });
 

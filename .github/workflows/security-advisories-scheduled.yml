@@ -29,8 +29,12 @@ name: Security advisories (scheduled)
 
 on:
   schedule:
-    # Mondays, 13:00 UTC.
-    - cron: "0 13 * * 1"
+    # Daily, 13:00 UTC. Weekly let a newly published advisory sit unseen for
+    # up to 7 days; the heartbeat (vercel.json, 14:00 UTC daily) reads each
+    # run's result and alerts on a failed, missing or stale scan. "Stale" is
+    # SCAN_MAX_AGE_HOURS (48) in src/server/domain/advisory-scan-result.ts:
+    # make this weekly again and every heartbeat reports a stale scan.
+    - cron: "0 13 * * *"
   workflow_dispatch: {}
 
 # Unlike ci.yml's `advisories` job (gated by human PR review before it ever
