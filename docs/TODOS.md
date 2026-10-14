@@ -6631,8 +6631,8 @@ is. Landed:
 - `buildFailOpenReport()`/`writeStepSummary()` in `scripts/check-
   advisories.ts` — a degraded run now writes to `$GITHUB_STEP_SUMMARY`,
   one click from the Checks tab instead of buried in a job log.
-- `.github/workflows/security-advisories-scheduled.yml` — a weekly scan
-  independent of PR/push activity, so an idle `main` still gets checked.
+- `.github/workflows/security-advisories-scheduled.yml` — a scan (weekly
+  until v0.45.1.0, daily since) independent of PR/push activity, so an idle `main` still gets checked.
 - `src/app/api/cron/advisory-scan-heartbeat/` — a Vercel cron that checks
   whether GitHub has auto-disabled the scheduled workflow (its own 60-day
   repo-inactivity policy) and re-enables it before dispatching. The first
@@ -6688,11 +6688,14 @@ policy with no human in the loop — and GitHub's own scheduled-workflow-
 failure notification email only fires on an actual FAILURE conclusion, not
 on a "passed with a warning" exit 0. So a persistently broken audit tool
 (not a one-time registry hiccup — an actually-stuck dependency, a lockfile
-issue that recurs) would report green every week indefinitely, with zero
+issue that recurs) would report green every day indefinitely, with zero
 signal to anyone. That reproduces the ORIGINAL incident this whole release
-exists to fix, just on a weekly clock instead of a one-time gap. Raised by
+exists to fix, just on a daily clock instead of a one-time gap. Raised by
 an adversarial Codex review pass during the v0.43.0.0 ship, deliberately
 NOT fixed then — see `docs/branch-protection.md`'s "Known limitations".
+Still open after v0.45.1.0: the heartbeat now alerts on a failed, cancelled,
+missing or stale scheduled run, but a fail-open run concludes `success`, so
+it passes that check too. The fix below is still the only way to see it.
 
 **Fix:** give scheduled/unattended invocations of `check-advisories.ts` a
 stricter failure policy than PR-triggered ones — e.g. fail closed (exit 1)

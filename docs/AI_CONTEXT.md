@@ -111,8 +111,9 @@ src/
 │   │   ├── cron/shift-auto-close/ # Hourly Vercel Cron — auto-completes expired shifts (TOCTOU-safe)
 │   │   ├── cron/org-feedback/     # Daily Vercel Cron — day-7 / day-30 org feedback survey emails
 │   │   ├── cron/opportunity-digest/ # Weekly (Mon) Vercel Cron — opportunity digest from hearted interests
-│   │   ├── cron/advisory-scan-heartbeat/ # Weekly (Mon) Vercel Cron — keeps the scheduled
-│   │   │                            #   security-advisories workflow enabled and dispatched
+│   │   ├── cron/advisory-scan-heartbeat/ # Daily Vercel Cron — keeps the scheduled
+│   │   │                            #   security-advisories workflow enabled and dispatched,
+│   │   │                            #   and alerts when its last scan failed or went stale
 │   │   └── ...                   # stripe webhook, checkr webhook, etc.
 │   ├── apply/[orgSlug]/          # Public volunteer application form
 │   ├── apply/status/             # Email-based status lookup
