@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.45.0.1] - 2026-10-13
+
+**Two dependency security updates. Nothing changes for anyone using the site.**
+
+`pnpm audit` flagged two high-severity advisories in packages we pull in
+indirectly, before GitHub had raised Dependabot alerts for them. `main`'s CI
+security gate would have failed on its next run.
+
+### Fixed
+
+- `vue` and its `@vue/*` packages move to 3.5.44 (they arrive as an optional
+  peer of Vercel Analytics) and `source-map-js` to 1.2.2 (via the Sentry build
+  plugin's webpack and postcss). Both are inside their parents' declared
+  ranges, so the fix is a lockfile update with no new `pnpm.overrides` entry.
+  `pnpm audit` and the advisory gate are clean again.
+- A few other indirect packages moved a patch version along the same path
+  (`postcss` 8.5.30 for that webpack copy, `acorn`, `watchpack`, browserslist
+  data). The docs site's VitePress still pins `@vue/shared` 3.5.41 next to
+  3.5.44; that copy is not affected by either advisory.
+
 ## [0.45.0.0] - 2026-10-05
 
 **New organizations start with the default screening questions again, and the platform org's startup check stops failing on every cold start.**
