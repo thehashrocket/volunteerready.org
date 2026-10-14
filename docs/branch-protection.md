@@ -110,17 +110,33 @@ scheduled scan in `security-advisories-scheduled.yml` plus the
 `advisory-scan-heartbeat` Vercel cron (`src/app/api/cron/advisory-scan-heartbeat/`),
 which checks whether GitHub has auto-disabled the workflow for 60 days of
 repo inactivity and re-enables it before dispatching, rather than merely
-alerting that it's disabled.
+alerting that it's disabled. Both run daily (v0.45.1.0; weekly before). The
+heartbeat also reads the latest completed scan on `main` and, when it failed,
+ended without a verdict (any other non-success conclusion: cancelled, timed
+out, skipped, `startup_failure` and the rest, reported separately as "did not
+finish", never as a possible open advisory; a `startup_failure` fails the same
+way on re-run, so the fix is the workflow file), is missing or is more
+than 48 hours old, sends a `[Security]`
+admin alert (`sendAdvisoryScanResultAlert()`) and fails its own cron run so
+the Sentry monitor reports it too, on every run until a scan passes. A
+workflow disabled by hand (`disabled_manually`) is never re-enabled or
+dispatched; it gets one daily "is disabled" alert and a failed cron run
+instead, so a forgotten pause is never silent. Before
+that, a scan that FOUND an advisory reported only through GitHub's own
+workflow-failure email: the 2026-10-12 run named two open advisories and
+nobody read it, and the 2026-10-05 run was cancelled before any step ran
+with no signal at all.
 
 **The scheduled scan inherits the SAME fail-open policy, but has a weaker
 backstop for it than a PR does.** A PR has a human looking at it who might
 open the Summary tab; a scheduled run has nobody. GitHub's own
 scheduled-workflow-failure notification email only fires on an actual
 FAILURE conclusion — a fail-open exit 0 is a "success" as far as that
-notification is concerned. So a persistently broken `pnpm audit` (not a
+notification is concerned, and as far as the heartbeat's result check is
+concerned too, since it reads the same run conclusion. So a persistently broken `pnpm audit` (not a
 one-time registry hiccup, an actually-stuck tool) would report green every
-week indefinitely, with zero signal to anyone — reproducing the original
-incident on a weekly clock instead of a one-time gap. Raised by an
+day indefinitely, with zero signal to anyone — reproducing the original
+incident on a daily clock instead of a one-time gap. Raised by an
 adversarial review pass and deliberately NOT fixed here: giving scheduled
 runs different failure semantics than PR runs is a real design change to
 `check-advisories.ts`'s trigger-agnostic gate, not a mechanical fix. Tracked
