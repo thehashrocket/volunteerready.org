@@ -122,10 +122,11 @@ describe('CI advisories scheduled scan', () => {
 		expect(scheduled).not.toMatch(/continue-on-error:/);
 	});
 
-	// The heartbeat reports a scan older than SCAN_MAX_AGE_HOURS as stale and
-	// fails its cron run. That threshold only holds while both the scan and
-	// the heartbeat (which dispatches one more scan) run every day: revert
-	// either to weekly and CI stays green while every heartbeat alerts.
+	// Both stay daily, for different reasons. The heartbeat's daily dispatch
+	// is what keeps a main run under SCAN_MAX_AGE_HOURS and checks it every
+	// day; weekly, a red scan would wait up to a week for its alert. The
+	// scan's own daily cron is the one that still runs on a day the heartbeat
+	// cannot dispatch. Either reverted to weekly passes every other check.
 	it('runs the scan and its heartbeat daily, inside the stale threshold', () => {
 		const isDaily = (cron: string) => {
 			const fields = cron.trim().split(/\s+/);

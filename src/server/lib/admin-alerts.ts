@@ -240,6 +240,12 @@ const SCAN_PROBLEM_COPY: Record<
 		action:
 			'Run <code>pnpm tsx scripts/check-advisories.ts</code> locally to see which advisories are open, then upgrade or override the affected packages.',
 	},
+	inconclusive: {
+		subject: '[Security] Scheduled advisory scan did not finish',
+		lead: 'Its latest run on <code>main</code> ended without a verdict (cancelled, timed out, skipped or failed to start), so the dependencies were not checked.',
+		action:
+			'Open the run from the GitHub Actions tab. A cancelled or timed-out run can be re-run there. A <code>startup_failure</code> conclusion (see Details) means GitHub rejected the workflow file or an action it uses, so a re-run fails the same way: fix the workflow on <code>main</code> instead.',
+	},
 	missing: {
 		subject: '[Security] Scheduled advisory scan has never completed',
 		lead: 'It has no completed run on <code>main</code>, so the production dependencies have not been scanned.',
@@ -262,7 +268,8 @@ const SCAN_PROBLEM_COPY: Record<
 
 /**
  * The heartbeat found a problem with the scheduled advisory scan: the last
- * run failed, is missing or is stale (`assessLastScan()`), or a human has
+ * run failed, ended without a verdict, is missing or is stale
+ * (`assessLastScan()`), or a human has
  * disabled the workflow (`disabled`, set by the heartbeat). Without this, a scan that found a fixable
  * advisory reported only through GitHub's own workflow-failure email, which
  * went unread for the 2026-10-12 run. Sent on every heartbeat while the scan

@@ -41,7 +41,7 @@ import { withCronAuth } from '@/server/lib/cron-auth';
  * Starting the scan was never the whole job: the 2026-10-12 run found two
  * open advisories and reported them only through GitHub's own failure email,
  * which nobody read, and the 2026-10-05 run was cancelled before any step ran
- * with no signal at all. A failed, missing or stale scan now sends an admin
+ * with no signal at all. A failed, inconclusive, missing or stale scan now sends an admin
  * alert and fails this cron run (Sentry monitor + CronJobRun FAILURE), on
  * every daily run until a scan passes. A workflow a human disabled is never
  * re-enabled or dispatched; it gets one daily "disabled" alert instead.
@@ -181,7 +181,7 @@ export const GET = withCronAuth('advisory-scan-heartbeat', async () => {
 			runUrl: null,
 		});
 		throw new Error(
-			'advisory-scan-heartbeat: the scan workflow is disabled manually',
+			'advisory-scan-heartbeat: last scan disabled: the scan workflow is disabled manually',
 		);
 	}
 
@@ -234,7 +234,7 @@ export const GET = withCronAuth('advisory-scan-heartbeat', async () => {
 	if (!lastScan) {
 		const message =
 			readError instanceof Error ? readError.message : String(readError);
-		throw new Error(`${message}${reEnabledNote}`);
+		throw new Error(`${message}${reEnabledNote}`, { cause: readError });
 	}
 	if (!lastScan.ok) {
 		throw new Error(

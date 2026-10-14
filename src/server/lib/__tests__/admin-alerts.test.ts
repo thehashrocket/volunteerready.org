@@ -465,6 +465,7 @@ describe('sendAdvisoryScanResultAlert', () => {
 
 	it.each([
 		['failed', 'failed'],
+		['inconclusive', 'did not finish'],
 		['missing', 'never completed'],
 		['stale', 'stopped running'],
 		['disabled', 'is disabled'],
@@ -500,6 +501,7 @@ describe('sendAdvisoryScanResultAlert', () => {
 	// may claim a run failed.
 	it.each([
 		['failed', 'did not pass'],
+		['inconclusive', 'without a verdict'],
 		['stale', `more than ${SCAN_MAX_AGE_HOURS} hours old`],
 		['missing', 'no completed run'],
 		['disabled', 'disabled the workflow'],
@@ -517,6 +519,7 @@ describe('sendAdvisoryScanResultAlert', () => {
 	// to look up; the others need the workflow itself looked at.
 	it.each([
 		['failed', 'check-advisories.ts'],
+		['inconclusive', 'fix the workflow on'],
 		['missing', 'check that it exists'],
 		['stale', 'runs stopped'],
 		['disabled', 're-enable the workflow'],
