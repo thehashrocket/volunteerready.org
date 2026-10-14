@@ -16,8 +16,8 @@ VolunteerReady is a **multi-tenant SaaS platform** that helps nonprofit organiza
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 16 (App Router), React 19 |
-| Language | TypeScript 5.9 (strict mode) |
-| Database | PostgreSQL via Prisma 7.7 |
+| Language | TypeScript 7 (strict mode) |
+| Database | PostgreSQL via Prisma 7.10 |
 | API | tRPC v11 (superjson serialization) |
 | Auth | NextAuth 4 with database sessions (Google OAuth + email magic links via Resend) |
 | Validation | Zod 4 (shared schemas between client and server) |

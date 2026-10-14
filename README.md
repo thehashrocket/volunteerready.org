@@ -276,7 +276,7 @@ Used to enable or disable experimental or premium functionality.
 
 - Next.js 16 (App Router)
 - React 19
-- TypeScript 5.9
+- TypeScript 7
 - Prisma 7 ORM
 - PostgreSQL
 - NextAuth (Auth.js)
