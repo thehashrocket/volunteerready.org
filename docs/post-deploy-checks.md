@@ -663,3 +663,73 @@ catalog editor read only the platform org's templates, and that the boot
 guard's check stays false while any default platform question is unmarked.
 `orgService.test.ts` and `referenceDataService.test.ts` check the two Sentry
 reports. None of them can see production's data.
+
+## Advisory scan result alerts
+
+Shipped in v0.45.1.0. The scheduled advisory scan and the
+`advisory-scan-heartbeat` cron both run daily, and the heartbeat now reads the
+latest completed scan through the GitHub API with
+`GITHUB_ADVISORY_DISPATCH_TOKEN`. A failed, inconclusive (any other
+non-success conclusion: cancelled, timed out, skipped, `startup_failure` and
+the rest), missing or stale (more than 48 hours old) scan sends a `[Security]` admin email and fails the cron
+run, and so does a workflow someone disabled by hand (one daily "is disabled"
+email; the heartbeat never re-enables it). The token, the live run data and the email send only exist in
+production, so check them after the first deploy.
+
+### 0. Run a scan on main right after merging
+
+Merging never runs `security-advisories-scheduled.yml` (its only triggers are
+`schedule:` and `workflow_dispatch`), so until it next runs, its newest
+completed run predates everything merged since. Left alone, the first
+heartbeat judges that old run: a red one sends a "scan failed" alert for a
+problem already fixed, and one more than 48 hours old sends a misleading
+"stopped running" alert. Before the next 14:00 UTC heartbeat, run
+`gh workflow run security-advisories-scheduled.yml --ref main` and wait for
+it to finish green (`gh run list --workflow security-advisories-scheduled.yml
+--limit 1`).
+
+### 1. The first heartbeat reads a run
+
+After the first 14:00 UTC run, open the `advisory-scan-heartbeat` rows in
+`CronJobRun` (or the job's Sentry monitor). **Expect:** a `SUCCESS` row whose
+`resultSummary` has `lastScan.runUrl` pointing at a real Actions run on
+`main`. A `FAILURE` row whose `error` starts `advisory-scan-heartbeat: reading
+the last scan result` means the runs read failed (a fresh scan was still
+dispatched): check that the token is still valid and has `actions` access to
+this repository.
+
+If step 0 was skipped, the first row may instead be a `FAILURE` starting
+`advisory-scan-heartbeat: last scan failed` (or `last scan inconclusive` for a
+cancelled, timed-out, skipped or `startup_failure` run, or `last scan stale`),
+judging a run from before the merge, such as the 2026-10-12 run that predates the
+vue/source-map-js lockfile fix. Run step 0 and the next heartbeat clears it.
+Step 0 does not clear a `startup_failure`: GitHub rejected the workflow file
+or an action it uses, so every new run fails the same way until the workflow
+on `main` is fixed.
+A failure while main really has an open advisory is the feature working.
+
+### 2. A red scan reaches a person
+
+When a heartbeat reports a failed scan, **expect** an email with subject
+`[Security] Scheduled advisory scan failed` at every address
+`getAdminEmails()` resolves (or `PLATFORM_ADMIN_ALERT_EMAIL`), linking the
+run, and an `error` check-in on the Sentry monitor for the same run. If the
+`CronJobRun` row is `FAILURE` but no email arrived, look for
+`[adminAlerts] Failed to send` in the function logs: `sendEmail` returned
+`false`.
+
+A red scan fails the heartbeat's Sentry check-in on purpose, every day it
+stays red. After a long red streak (weeks), Sentry may treat the monitor as
+broken and notify about or mute it. Once a scan is green again, check the
+`advisory-scan-heartbeat` monitor in Sentry **Crons** is active and unmuted:
+the same monitor is what tells you the heartbeat runs at all.
+
+### What is already covered automatically — do not re-check by hand
+
+`src/server/domain/advisory-scan-result.test.ts` covers every verdict
+(failed for `failure`, inconclusive for every other non-success conclusion,
+missing, stale, the 48-hour edge).
+`src/app/api/cron/advisory-scan-heartbeat/__tests__/route.test.ts` covers the
+call order (state, enable, runs, dispatch), the alert being sent even when the
+dispatch fails, and the FAILURE row. `admin-alerts.test.ts` covers the subjects
+and `isCritical`. None of them can see GitHub's live data or a real send.
