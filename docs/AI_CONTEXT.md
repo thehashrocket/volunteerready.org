@@ -113,7 +113,9 @@ src/
 │   │   ├── cron/opportunity-digest/ # Weekly (Mon) Vercel Cron — opportunity digest from hearted interests
 │   │   ├── cron/advisory-scan-heartbeat/ # Daily Vercel Cron — keeps the scheduled
 │   │   │                            #   security-advisories workflow enabled and dispatched,
-│   │   │                            #   and alerts when its last scan failed or went stale
+│   │   │                            #   and alerts when its last scan on main failed, was
+│   │   │                            #   inconclusive, is missing or stale (>48h), or the
+│   │   │                            #   workflow was disabled by hand
 │   │   └── ...                   # stripe webhook, checkr webhook, etc.
 │   ├── apply/[orgSlug]/          # Public volunteer application form
 │   ├── apply/status/             # Email-based status lookup
@@ -182,7 +184,7 @@ src/
 │   │   │                           it resolves with { data: null, error }), so read the result;
 │   │   │                           a try/catch alone is dead on the likeliest failure
 │   │   ├── html.ts               # escapeHtml() — shared XSS escape for server-rendered HTML (email + consent pages)
-│   │   ├── admin-alerts.ts       # sendNewUserAlert / sendNewOrgAlert / sendNewCompanyAlert / sendImpersonationStartAlert / sendAdvisoryDispatchFailureAlert / sendUnknownStripePriceAlert — admin emails that never throw
+│   │   ├── admin-alerts.ts       # sendNewUserAlert / sendNewOrgAlert / sendNewCompanyAlert / sendImpersonationStartAlert / sendAdvisoryDispatchFailureAlert / sendAdvisoryScanResultAlert / sendUnknownStripePriceAlert — admin emails that never throw
 │   │   ├── admin-recipients.ts   # getAdminEmails() — resolves admin recipients from PLATFORM_ADMIN_ALERT_EMAIL env var or DB isPlatformAdmin flag; 5-min cache
 │   │   └── rate-limit.ts         # Upstash Redis rate limiting (lazy singleton, fail-open)
 │   └── domain/                   # Pure types + functions + tests

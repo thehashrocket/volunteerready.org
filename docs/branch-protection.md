@@ -111,8 +111,12 @@ scheduled scan in `security-advisories-scheduled.yml` plus the
 which checks whether GitHub has auto-disabled the workflow for 60 days of
 repo inactivity and re-enables it before dispatching, rather than merely
 alerting that it's disabled. Both run daily (v0.45.1.0; weekly before). The
-heartbeat also reads the latest completed scan and, when it failed, was
-cancelled, is missing or is more than 48 hours old, sends a `[Security]`
+heartbeat also reads the latest completed scan on `main` and, when it failed,
+ended without a verdict (any other non-success conclusion: cancelled, timed
+out, skipped, `startup_failure` and the rest, reported separately as "did not
+finish", never as a possible open advisory; a `startup_failure` fails the same
+way on re-run, so the fix is the workflow file), is missing or is more
+than 48 hours old, sends a `[Security]`
 admin alert (`sendAdvisoryScanResultAlert()`) and fails its own cron run so
 the Sentry monitor reports it too, on every run until a scan passes. A
 workflow disabled by hand (`disabled_manually`) is never re-enabled or

@@ -6693,9 +6693,10 @@ signal to anyone. That reproduces the ORIGINAL incident this whole release
 exists to fix, just on a daily clock instead of a one-time gap. Raised by
 an adversarial Codex review pass during the v0.43.0.0 ship, deliberately
 NOT fixed then — see `docs/branch-protection.md`'s "Known limitations".
-Still open after v0.45.1.0: the heartbeat now alerts on a failed, cancelled,
-missing or stale scheduled run, but a fail-open run concludes `success`, so
-it passes that check too. The fix below is still the only way to see it.
+Still open after v0.45.1.0: the heartbeat now alerts on a failed,
+inconclusive, missing or stale scheduled run, or a manually disabled
+workflow, but a fail-open run concludes `success`, so it passes that check
+too. The fix below is still the only way to see it.
 
 **Fix:** give scheduled/unattended invocations of `check-advisories.ts` a
 stricter failure policy than PR-triggered ones — e.g. fail closed (exit 1)
@@ -6708,6 +6709,73 @@ report" from "could not tell" reliably enough to avoid recreating the
 original problem in the other direction (spurious scheduled-run failures
 nobody acts on). **Effort:** M (design) + S (implementation).
 **Depends on:** None.
+
+### [P2] `/app/admin/health` cannot see a daily cron failing
+
+`admin.cronHealth` (`src/server/trpc/routers/admin.ts`) reads the newest 50
+`CronJobRun` rows across ALL jobs and flags a job at 3 consecutive failures.
+The three hourly crons (`shift-reminders`, `email-digests`,
+`shift-auto-close`) write about 72 rows a day, so a daily or weekly job
+(`advisory-scan-heartbeat`, `expire-credentials`, the digests) shows up in
+that window at most once and can never reach the threshold. Pre-existing;
+found while shipping v0.45.1.0, whose docs used to claim the page would flag
+a red advisory scan. Until fixed, daily jobs rely on their Sentry cron
+monitors and alert emails.
+
+**Fix:** query the latest N runs per `jobName` (e.g. a per-job
+`findMany({ where: { jobName }, take: 3 })` over the jobs in `vercel.json`,
+or one window query partitioned by job) and keep the 3-in-a-row rule.
+**Effort:** S | **Priority:** P2 | **Depends on:** —
+
+### [P2] Advisory heartbeat: a failed setup step reads as "an advisory may be open"
+
+(Accepted as a follow-up when shipping v0.45.1.0; Codex's structured review
+rated it P1.) `assessLastScan()` maps conclusion `failure` to `failed`, whose
+email says a fixable advisory may be open. But checkout, `setup-node`,
+`pnpm/action-setup` or `pnpm install --frozen-lockfile` failing also
+concludes `failure`, with nothing scanned (a lockfile/overrides drift, an
+Actions outage, exhausted Actions minutes). The email links the run, so the
+failed step is one click away, but its wording points the reader at
+dependencies.
+
+**Fix:** for a `failure`, fetch `GET /actions/runs/{id}/jobs` and check
+whether the failing step is the `check-advisories.ts` step (give it a stable
+`name:`/`id:` in the workflow). If not, report `inconclusive` (or a new
+`setup-failed` problem). Pin it with a route test. **Effort:** M |
+**Priority:** P2 | **Depends on:** —
+
+### [P3] Advisory heartbeat: smaller hardening left from the v0.45.1.0 reviews
+
+Each was raised in review and accepted as a follow-up rather than another
+review loop:
+
+- **Alert send has no timeout before the dispatch.** The result email is
+  sent before the day's scan is dispatched (so a dispatch failure cannot
+  swallow it), but neither `getAdminEmails()` nor the Resend send is
+  time-bounded. A stalled DB or Resend delays the dispatch until the
+  platform kills the function. Bound the send (e.g. `Promise.race` with a
+  timeout) and export an explicit `maxDuration` on the route, as
+  `expire-credentials/route.ts` does.
+- **Run ordering.** `runs?per_page=1` is ordered by creation, not
+  completion. When the 13:00 scheduled run and the 14:00 dispatch overlap,
+  `[0]` may not be the newest *completed* verdict. Fetch a few and pick the
+  greatest `updated_at`. Relatedly, a re-run in progress hides the newest
+  result, and `run_started_at` would describe scan time better than
+  `updated_at`.
+- **A tag named `main`.** `branch=main` matches a run's `head_branch`, which
+  is the tag name for a tag-dispatched run, so someone with push access
+  could fake a green verdict. Dispatch with `refs/heads/main` (confirm the
+  API accepts it) and check `run.event` and `head_repository.full_name`.
+- **Unexpected workflow states** (`deleted`, `disabled_fork`) fall through
+  to a dispatch 404 that reads as a token problem. Alert on any state other
+  than `active`/`disabled_inactivity` like `disabled`.
+- **Tests pin the FAILURE prefix only for `disabled`.** Add
+  `error: stringMatching(/^advisory-scan-heartbeat: last scan <problem>: /)`
+  for failed, inconclusive, missing and stale in `route.test.ts`, since
+  `docs/conventions/ci-and-deploy.md` documents that prefix as the triage
+  signal.
+
+**Effort:** S each | **Priority:** P3 | **Depends on:** —
 
 ### [P3] `sendAdminAlert()`'s own failure mode is unmonitored
 

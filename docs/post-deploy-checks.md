@@ -669,8 +669,9 @@ reports. None of them can see production's data.
 Shipped in v0.45.1.0. The scheduled advisory scan and the
 `advisory-scan-heartbeat` cron both run daily, and the heartbeat now reads the
 latest completed scan through the GitHub API with
-`GITHUB_ADVISORY_DISPATCH_TOKEN`. A failed, cancelled, missing or stale (more
-than 48 hours old) scan sends a `[Security]` admin email and fails the cron
+`GITHUB_ADVISORY_DISPATCH_TOKEN`. A failed, inconclusive (any other
+non-success conclusion: cancelled, timed out, skipped, `startup_failure` and
+the rest), missing or stale (more than 48 hours old) scan sends a `[Security]` admin email and fails the cron
 run, and so does a workflow someone disabled by hand (one daily "is disabled"
 email; the heartbeat never re-enables it). The token, the live run data and the email send only exist in
 production, so check them after the first deploy.
@@ -698,9 +699,13 @@ dispatched): check that the token is still valid and has `actions` access to
 this repository.
 
 If step 0 was skipped, the first row may instead be a `FAILURE` starting
-`advisory-scan-heartbeat: last scan failed` (or `last scan stale`), judging a
-run from before the merge, such as the 2026-10-12 run that predates the
+`advisory-scan-heartbeat: last scan failed` (or `last scan inconclusive` for a
+cancelled, timed-out, skipped or `startup_failure` run, or `last scan stale`),
+judging a run from before the merge, such as the 2026-10-12 run that predates the
 vue/source-map-js lockfile fix. Run step 0 and the next heartbeat clears it.
+Step 0 does not clear a `startup_failure`: GitHub rejected the workflow file
+or an action it uses, so every new run fails the same way until the workflow
+on `main` is fixed.
 A failure while main really has an open advisory is the feature working.
 
 ### 2. A red scan reaches a person
@@ -722,7 +727,8 @@ the same monitor is what tells you the heartbeat runs at all.
 ### What is already covered automatically — do not re-check by hand
 
 `src/server/domain/advisory-scan-result.test.ts` covers every verdict
-(failed for each non-success conclusion, missing, stale, the 48-hour edge).
+(failed for `failure`, inconclusive for every other non-success conclusion,
+missing, stale, the 48-hour edge).
 `src/app/api/cron/advisory-scan-heartbeat/__tests__/route.test.ts` covers the
 call order (state, enable, runs, dispatch), the alert being sent even when the
 dispatch fails, and the FAILURE row. `admin-alerts.test.ts` covers the subjects
