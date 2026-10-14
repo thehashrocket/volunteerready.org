@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.45.1.0] - 2026-10-14
+
+**The daily dependency scan now tells a platform admin when it finds something, stops running, or is switched off.**
+
+The scheduled `pnpm audit` scan found two open advisories on 2026-10-12 and
+reported them only through GitHub's own workflow-failure email, which nobody
+read. The run on 2026-10-05 was cancelled before any step ran and reported
+nothing at all. The scan already had a heartbeat cron, but it only checked
+that the scan could be started, never how it ended.
+
+### Added
+
+- **Result alerts.** Each day the `advisory-scan-heartbeat` cron reads the
+  latest completed scan on `main` before starting a new one. It sends a
+  `[Security]` email to the platform admins when that scan:
+  - **failed** (the check found an advisory, or a setup step failed),
+  - **did not finish** (cancelled, timed out, skipped or failed to start),
+  - **never completed**,
+  - **stopped running** (the last run is more than 48 hours old), or
+  - was **disabled** by hand in GitHub.
+
+  Each email has its own subject, a link to the run and the right next
+  step. The cron still starts a fresh scan, then records the run as failed,
+  so the Sentry cron monitor reports it too. The email repeats every day
+  until a scan passes.
+- An unreadable GitHub response (an error, non-JSON, or an unexpected shape)
+  is reported as a heartbeat fault, and the day's scan is still started.
+
+### Changed
+
+- The scan and its heartbeat now run **daily** (13:00 and 14:00 UTC) instead
+  of weekly. `scripts/advisories-gate.test.ts` keeps both daily.
+- A workflow someone disabled by hand is never re-enabled or started. It
+  gets one daily "is disabled" email instead of two misleading ones.
+- The heartbeat-fault email's subject changed from
+  `[Security] advisory-scan-heartbeat failed to dispatch` to
+  `[Security] advisory-scan-heartbeat failed`, because it now covers every
+  GitHub call the heartbeat makes. Update any inbox filter that matched the
+  old subject.
+
+### Fixed
+
+- `docs/conventions/ci-and-deploy.md` no longer says `/app/admin/health`
+  flags a heartbeat that fails three days running. That page reads only the
+  newest 50 cron runs across all jobs, so it cannot see a daily job's
+  streak. The fix is tracked in `docs/TODOS.md`.
+
 ## [0.45.0.1] - 2026-10-13
 
 **Two dependency security updates. Nothing changes for anyone using the site.**

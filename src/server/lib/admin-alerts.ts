@@ -1,3 +1,8 @@
+import {
+	SCAN_MAX_AGE_HOURS,
+	type ScanFailure,
+	type ScanProblem,
+} from '@/server/domain/advisory-scan-result';
 import { sendEmail } from '@/server/lib/email';
 import { escapeHtml } from '@/server/lib/html';
 import {
@@ -189,7 +194,9 @@ export async function sendImpersonationStartAlert(
 }
 
 /**
- * The `advisory-scan-heartbeat` cron's own dispatch to GitHub failed — this is
+ * The `advisory-scan-heartbeat` cron itself failed: its token is missing, or
+ * a GitHub API call (state check, enable, reading the last scan, dispatch)
+ * failed or returned something unreadable. `details` names which. This is
  * NOT a business-logic email, it's "the thing that keeps the security-
  * advisories scan running while `main` is idle just broke." `isCritical:
  * true` for the same reason `sendImpersonationStartAlert` uses it: this is a
@@ -204,15 +211,88 @@ export async function sendImpersonationStartAlert(
 export async function sendAdvisoryDispatchFailureAlert(
 	details: string,
 ): Promise<void> {
-	const subject = '[Security] advisory-scan-heartbeat failed to dispatch';
+	const subject = '[Security] advisory-scan-heartbeat failed';
 	const html = `
-		<p>The weekly Vercel cron that keeps the <code>security-advisories-scheduled.yml</code>
+		<p>The daily Vercel cron that keeps the <code>security-advisories-scheduled.yml</code>
 		workflow running (in case GitHub's own <code>schedule:</code> trigger
-		auto-disables from repo inactivity) failed to dispatch it via GitHub's API.</p>
+		auto-disables from repo inactivity) and checks its results could not
+		finish: its token is missing, or a GitHub API call failed or returned
+		something it could not read. The details below name which.</p>
 		<table style="border-collapse: collapse; margin: 16px 0;">
 			<tr><td style="padding: 4px 8px;"><strong>Details:</strong></td><td style="padding: 4px 8px;">${escapeHtml(details)}</td></tr>
 		</table>
-		<p style="color: #666; font-size: 12px; margin-top: 16px;">See docs/branch-protection.md and .github/workflows/security-advisories-scheduled.yml for context. Check whether GITHUB_ADVISORY_DISPATCH_TOKEN has expired.</p>
+		<p style="color: #666; font-size: 12px; margin-top: 16px;">See docs/branch-protection.md and .github/workflows/security-advisories-scheduled.yml for context. Check whether GITHUB_ADVISORY_DISPATCH_TOKEN is set in Vercel and has not expired.</p>
+	`;
+	await sendAdminAlert(subject, html, { isCritical: true });
+}
+
+/**
+ * One subject and lead sentence per problem: a skim or an inbox rule has to
+ * tell "found an advisory" from "stopped scanning" from "switched off".
+ */
+const SCAN_PROBLEM_COPY: Record<
+	ScanProblem,
+	{ subject: string; lead: string; action: string }
+> = {
+	failed: {
+		subject: '[Security] Scheduled advisory scan failed',
+		lead: 'Its latest run on <code>main</code> did not pass, so a fixable high or critical advisory may be open.',
+		action:
+			'Run <code>pnpm tsx scripts/check-advisories.ts</code> locally to see which advisories are open, then upgrade or override the affected packages.',
+	},
+	inconclusive: {
+		subject: '[Security] Scheduled advisory scan did not finish',
+		lead: 'Its latest run on <code>main</code> ended without a verdict (cancelled, timed out, skipped or failed to start), so the dependencies were not checked.',
+		action:
+			'Open the run from the GitHub Actions tab. A cancelled or timed-out run can be re-run there. A <code>startup_failure</code> conclusion (see Details) means GitHub rejected the workflow file or an action it uses, so a re-run fails the same way: fix the workflow on <code>main</code> instead.',
+	},
+	missing: {
+		subject: '[Security] Scheduled advisory scan has never completed',
+		lead: 'It has no completed run on <code>main</code>, so the production dependencies have not been scanned.',
+		action:
+			'Open the workflow in the GitHub Actions tab and check that it exists on <code>main</code> and that its runs start.',
+	},
+	stale: {
+		subject: '[Security] Scheduled advisory scan has stopped running',
+		lead: `Its latest run passed, but that run is more than ${SCAN_MAX_AGE_HOURS} hours old, so new advisories are not being checked.`,
+		action:
+			'Open the workflow in the GitHub Actions tab and check why its daily runs stopped (queued, cancelled or never started).',
+	},
+	disabled: {
+		subject: '[Security] Scheduled advisory scan is disabled',
+		lead: 'Someone disabled the workflow in GitHub, so no scans run until it is re-enabled. The heartbeat does not override that.',
+		action:
+			'If the pause is over, re-enable the workflow in the GitHub Actions tab. The next heartbeat dispatches a scan.',
+	},
+};
+
+/**
+ * The heartbeat found a problem with the scheduled advisory scan: the last
+ * run failed, ended without a verdict, is missing or is stale
+ * (`assessLastScan()`), or a human has
+ * disabled the workflow (`disabled`, set by the heartbeat). Without this, a scan that found a fixable
+ * advisory reported only through GitHub's own workflow-failure email, which
+ * went unread for the 2026-10-12 run. Sent on every heartbeat while the scan
+ * stays red: an unfixed high-severity advisory is worth a daily reminder.
+ * Critical, so bounce suppression cannot swallow it.
+ */
+export async function sendAdvisoryScanResultAlert(
+	input: Omit<ScanFailure, 'ok'>,
+): Promise<void> {
+	const runLink = input.runUrl
+		? `<tr><td style="padding: 4px 8px;"><strong>Run:</strong></td><td style="padding: 4px 8px;"><a href="${escapeHtml(input.runUrl)}">${escapeHtml(input.runUrl)}</a></td></tr>`
+		: '';
+	const { subject, lead, action } = SCAN_PROBLEM_COPY[input.problem];
+	const html = `
+		<p>The <code>security-advisories-scheduled.yml</code> workflow runs
+		<code>pnpm audit</code> against the production dependencies every day.
+		${lead}</p>
+		<table style="border-collapse: collapse; margin: 16px 0;">
+			<tr><td style="padding: 4px 8px;"><strong>Details:</strong></td><td style="padding: 4px 8px;">${escapeHtml(input.details)}</td></tr>
+			${runLink}
+		</table>
+		<p>${action}</p>
+		<p style="color: #666; font-size: 12px; margin-top: 16px;">This repeats on every daily heartbeat until it is resolved. See docs/branch-protection.md.</p>
 	`;
 	await sendAdminAlert(subject, html, { isCritical: true });
 }

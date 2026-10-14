@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { SCAN_MAX_AGE_HOURS } from '../src/server/domain/advisory-scan-result';
 import { jobBlock, stripYamlComments } from './ci-gate-test-utils';
 
 /**
@@ -119,5 +120,34 @@ describe('CI advisories scheduled scan', () => {
 	it('keeps the scheduled job unconditional and blocking too', () => {
 		expect(scheduled).not.toMatch(/^\s*if:/m);
 		expect(scheduled).not.toMatch(/continue-on-error:/);
+	});
+
+	// Both stay daily, for different reasons. The heartbeat's daily dispatch
+	// is what keeps a main run under SCAN_MAX_AGE_HOURS and checks it every
+	// day; weekly, a red scan would wait up to a week for its alert. The
+	// scan's own daily cron is the one that still runs on a day the heartbeat
+	// cannot dispatch. Either reverted to weekly passes every other check.
+	it('runs the scan and its heartbeat daily, inside the stale threshold', () => {
+		const isDaily = (cron: string) => {
+			const fields = cron.trim().split(/\s+/);
+			return fields.length === 5 && fields.slice(2).every((f) => f === '*');
+		};
+
+		const scanCrons = [
+			...scheduled.matchAll(/^\s*-\s*cron:\s*['"]([^'"]+)['"]\s*$/gm),
+		].map((m) => m[1]);
+		expect(scanCrons.length).toBeGreaterThan(0);
+		for (const cron of scanCrons) expect(isDaily(cron)).toBe(true);
+
+		const vercel = JSON.parse(readRepoText('vercel.json')) as {
+			crons: { path: string; schedule: string }[];
+		};
+		const heartbeat = vercel.crons.find(
+			(c) => c.path === '/api/cron/advisory-scan-heartbeat',
+		);
+		expect(heartbeat).toBeDefined();
+		expect(isDaily(heartbeat?.schedule ?? '')).toBe(true);
+
+		expect(SCAN_MAX_AGE_HOURS).toBeGreaterThanOrEqual(24);
 	});
 });

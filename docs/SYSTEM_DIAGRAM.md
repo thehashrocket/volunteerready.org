@@ -51,7 +51,7 @@ flowchart TD
     S -.->|Hourly :15| X[/api/cron/shift-auto-close]
     S -.->|Daily 10:00 UTC| Y[/api/cron/org-feedback]
     S -.->|Mondays 08:00 UTC| Z[/api/cron/opportunity-digest]
-    S -.->|Mondays 14:00 UTC| AA[/api/cron/advisory-scan-heartbeat]
+    S -.->|Daily 14:00 UTC| AA[/api/cron/advisory-scan-heartbeat]
     T --> F
     U --> F
     V --> F
