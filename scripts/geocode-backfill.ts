@@ -10,6 +10,7 @@ import {
 	PrismaClient,
 } from '../src/prisma/generated/client';
 import { geocodeLocation } from '../src/server/lib/geocode';
+import { pinVerifyFullSslMode } from '../src/server/lib/pg-connection-string';
 
 const datasourceUrl = process.env.DATABASE_URL;
 if (!datasourceUrl) {
@@ -18,7 +19,9 @@ if (!datasourceUrl) {
 }
 
 const prisma = new PrismaClient({
-	adapter: new PrismaPg(new Pool({ connectionString: datasourceUrl })),
+	adapter: new PrismaPg(
+		new Pool({ connectionString: pinVerifyFullSslMode(datasourceUrl) }),
+	),
 });
 
 const SLEEP_MS = 500;
