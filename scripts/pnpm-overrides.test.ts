@@ -325,12 +325,16 @@ describe('pnpm.overrides', () => {
 	 * the override already pins — it now binds cleanly, so it was removed here
 	 * per the instruction below.
 	 *
+	 * `vite` carried `8.1.0` the same way until GHSA-587h-7wmj-h5pm (fixed in
+	 * 7.3.7 / 8.1.6) put that peer copy below its patched threshold. A direct
+	 * `vite` devDependency now gives every peer edge a 7.x copy to resolve to,
+	 * so it binds cleanly and was removed here too. The budget is empty, but
+	 * the mechanism stays so a future escape fails loudly.
+	 *
 	 * Do NOT "fix" this by widening the ranges to `^8` — that abandons the
 	 * within-major policy. See docs/dependency-overrides.md § Partially bound.
 	 */
-	const PARTIALLY_BOUND: Record<string, string[]> = {
-		vite: ['8.1.0'],
-	};
+	const PARTIALLY_BOUND: Record<string, string[]> = {};
 
 	it.each(Object.entries(overrides))(
 		'%s resolves to a version satisfying its own range (%s)',
