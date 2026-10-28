@@ -23,6 +23,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '../src/prisma/generated/client';
 import { reEncrypt } from '../src/server/lib/crypto';
+import { pinVerifyFullSslMode } from '../src/server/lib/pg-connection-string';
 
 const datasourceUrl = process.env.DATABASE_URL;
 if (!datasourceUrl) {
@@ -30,7 +31,9 @@ if (!datasourceUrl) {
 }
 
 const prisma = new PrismaClient({
-	adapter: new PrismaPg(new Pool({ connectionString: datasourceUrl })),
+	adapter: new PrismaPg(
+		new Pool({ connectionString: pinVerifyFullSslMode(datasourceUrl) }),
+	),
 });
 
 async function reEncryptField(
