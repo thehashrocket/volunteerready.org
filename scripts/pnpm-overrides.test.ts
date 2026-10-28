@@ -3,7 +3,9 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * Guards `pnpm.overrides` in package.json against the two ways it rots.
+ * Guards `overrides` in pnpm-workspace.yaml against the ways it rots.
+ * (They lived under `pnpm.overrides` in package.json until the pnpm 12
+ * upgrade; pnpm 11+ ignores that key.)
  *
  * An override is a standing instruction to resolve some transitive package at a
  * version other than the one its parent asked for. Nothing in the toolchain
@@ -49,15 +51,84 @@ const pkg = JSON.parse(
 	readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
 ) as {
 	dependencies?: Record<string, string>;
-	pnpm?: {
-		overrides?: Record<string, string>;
-		auditConfig?: { ignoreGhsas?: string[] };
-	};
+	packageManager?: string;
+	pnpm?: unknown;
 };
 
-const overrides = pkg.pnpm?.overrides ?? {};
+/**
+ * pnpm 11+ reads settings ONLY from `pnpm-workspace.yaml`. The `pnpm` key in
+ * package.json is ignored without a warning, which is how Dependabot (pnpm 11)
+ * produced #269/#270: lockfiles resolved as if no override existed, with
+ * vite 5.4.21, esbuild 0.21.5 and zod 4.1.11 back in the tree.
+ */
+const workspaceYaml = readFileSync(
+	path.join(repoRoot, 'pnpm-workspace.yaml'),
+	'utf8',
+);
+
+/**
+ * The `key: value` pairs nested directly under a top-level `section:` of a
+ * simple YAML document, with quotes stripped. Hand-rolled for the same reason
+ * as `installedVersions` below: `yaml` is not a top-level dependency, and both
+ * files this reads (pnpm-workspace.yaml and the lockfile header) only ever
+ * hold flat string maps at indent 2. Comment lines and blank lines are
+ * skipped; the section ends at the next line that is not indented.
+ */
+function yamlMap(section: string, source: string): Record<string, string> {
+	const out: Record<string, string> = {};
+	let inSection = false;
+	for (const line of source.split('\n')) {
+		if (/^\s*(#|$)/.test(line)) continue;
+		if (!line.startsWith(' ')) {
+			inSection = line.replace(/\s+#.*$/, '').trim() === `${section}:`;
+			continue;
+		}
+		if (!inSection) continue;
+		const m = /^ {2}('?)([^'\s:]+)\1:\s*(.+?)\s*$/.exec(line);
+		if (m) out[m[2]] = m[3].replace(/^'(.*)'$/, '$1');
+	}
+	return out;
+}
+
+/** Items of a list nested at `parent:` → `  child:` → `    - item`. */
+function yamlNestedList(
+	parent: string,
+	child: string,
+	source: string,
+): string[] {
+	const out: string[] = [];
+	let inParent = false;
+	let inChild = false;
+	for (const line of source.split('\n')) {
+		if (/^\s*(#|$)/.test(line)) continue;
+		if (!line.startsWith(' ')) {
+			inParent = line.trim() === `${parent}:`;
+			inChild = false;
+			continue;
+		}
+		if (!inParent) continue;
+		if (/^ {2}\S/.test(line)) {
+			inChild = line.trim() === `${child}:`;
+			continue;
+		}
+		const item = /^ {4}-\s*'?([^'\s]+)'?/.exec(line);
+		if (inChild && item) out.push(item[1]);
+	}
+	return out;
+}
+
+const overrides = yamlMap('overrides', workspaceYaml);
 
 const lockfile = readFileSync(path.join(repoRoot, 'pnpm-lock.yaml'), 'utf8');
+
+/**
+ * pnpm 11+ writes a multi-document lockfile: a first document locking pnpm
+ * itself (`packageManagerDependencies`), then the project's. `overrides:`
+ * lives in the project document, the only one with a `settings:` block.
+ * Falls back to the whole file for a single-document (pnpm <= 10) lockfile.
+ */
+const projectLockDocument =
+	lockfile.split(/^---$/m).find((doc) => /^settings:$/m.test(doc)) ?? lockfile;
 
 /**
  * Every version of `name` present in the lockfile's `packages:` section.
@@ -89,10 +160,11 @@ function installedVersions(name: string, source: string = lockfile): string[] {
  * version acceptable", and none answers "is it still the same package asking".
  * For an override that sits INSIDE a range its dependents already permit, that
  * gap is harmless: a new consumer inherits a version it would have accepted
- * anyway. `deepmerge-ts` is the one entry that does NOT — it forces a major
- * past `@prisma/config`'s exact `7.1.5` pin — so if Prisma stops pulling it and
- * something unrelated starts, the override silently forces an unasked-for major
- * on a package nobody evaluated, and every other test here stays green.
+ * anyway. `deepmerge-ts` was the entry that did NOT (it forced a major past
+ * `@prisma/config`'s exact `7.1.5` pin, until Prisma 7.10.1 pinned 8.0.2
+ * itself): had Prisma stopped pulling it and something unrelated started, the
+ * override would have forced an unasked-for major on a package nobody
+ * evaluated, with every other test here still green.
  *
  * Snapshot headers sit at indent 2 (`  '@scope/name@1.2.3':` or `  name@1.2.3:`),
  * the block kind at indent 4 (`    dependencies:`), and the edges themselves at
@@ -200,10 +272,77 @@ function satisfies(version: string, range: string): boolean {
 	return vMaj === rMaj && vMin === rMin && vPat === rPat;
 }
 
-describe('pnpm.overrides', () => {
+describe('pnpm overrides', () => {
 	it('declares at least one override (the guard is not scanning an empty set)', () => {
 		// Without this, deleting the whole block turns every test below green.
 		expect(Object.keys(overrides).length).toBeGreaterThan(0);
+	});
+
+	// -------------------------------------------------------------------------
+	// Config location and lockfile sync.
+	//
+	// #269/#270 (Dependabot, 2026-10-28) shipped lockfiles with NO overrides at
+	// all. The installed-version checks below would have caught the result, but
+	// only by listing every escaped version; these three name the cause.
+	// -------------------------------------------------------------------------
+	describe('where pnpm reads them', () => {
+		it('package.json has no "pnpm" key (pnpm 11+ silently ignores it)', () => {
+			expect(
+				pkg.pnpm,
+				'Settings under package.json "pnpm" are invisible to pnpm 11+ (including ' +
+					"Dependabot's). Move them to pnpm-workspace.yaml.",
+			).toBeUndefined();
+		});
+
+		it('pins an exact pnpm version in packageManager', () => {
+			// Vercel, Corepack, pnpm/action-setup and Dependabot all read this. Without
+			// it each one guesses, and they guessed differently: Vercel picked pnpm 10
+			// "based on project creation date" while Dependabot ran 11.
+			expect(pkg.packageManager).toMatch(/^pnpm@\d+\.\d+\.\d+$/);
+		});
+
+		it("the lockfile's overrides match pnpm-workspace.yaml exactly", () => {
+			// A frozen install fails on a mismatch, but only at install time, on
+			// whichever machine gets there first (Vercel, last time). This fails at
+			// the PR, with the diff in the message.
+			expect(
+				yamlMap('overrides', projectLockDocument),
+				'pnpm-lock.yaml was generated with different overrides than ' +
+					'pnpm-workspace.yaml declares. Run `pnpm install` with the pinned ' +
+					'pnpm and commit the lockfile; if a bot produced it, close the PR.',
+			).toEqual(overrides);
+		});
+
+		it('yamlMap reads the shapes it is used on (self-check)', () => {
+			// Synthetic source, so a parser that returned {} would not pass by
+			// comparing two empty maps above.
+			const fixture = [
+				'# comment',
+				'allowBuilds:',
+				'  esbuild: false',
+				'overrides:',
+				'  fast-uri: ^3.1.8',
+				"  '@babel/core': '^7.29.6'",
+				'  # inner comment',
+				'',
+				'  zod: ^4.6.6',
+				'importers:',
+				'  .:',
+			].join('\n');
+			expect(yamlMap('overrides', fixture)).toEqual({
+				'fast-uri': '^3.1.8',
+				'@babel/core': '^7.29.6',
+				zod: '^4.6.6',
+			});
+			expect(yamlMap('absent', fixture)).toEqual({});
+			expect(
+				yamlNestedList(
+					'auditConfig',
+					'ignoreGhsas',
+					"auditConfig:\n  ignoreGhsas:\n    - GHSA-aaaa-bbbb-cccc\n    - 'GHSA-dddd-eeee-ffff'\nother: 1\n",
+				),
+			).toEqual(['GHSA-aaaa-bbbb-cccc', 'GHSA-dddd-eeee-ffff']);
+		});
 	});
 
 	it.each(Object.keys(overrides))(
@@ -262,11 +401,12 @@ describe('pnpm.overrides', () => {
 			).toEqual([]);
 		});
 
-		// Same rule for ignored advisories. `pnpm.auditConfig.ignoreGhsas` is the
+		// Same rule for ignored advisories. `auditConfig.ignoreGhsas` in
+		// pnpm-workspace.yaml is the
 		// list the CI gate deliberately does not fail on, so each entry is a
 		// standing decision not to act on a real advisory — the one place a
 		// written reason matters most.
-		const ignored: string[] = pkg.pnpm?.auditConfig?.ignoreGhsas ?? [];
+		const ignored = yamlNestedList('auditConfig', 'ignoreGhsas', workspaceYaml);
 
 		it.each(ignored)('documents ignored advisory %s', (ghsa) => {
 			expect(
@@ -393,8 +533,9 @@ describe('pnpm.overrides', () => {
 	 */
 	const SECURITY_FLOORS: Record<string, { minimum: string; alerts: string }> = {
 		'fast-uri': {
-			minimum: '3.1.8',
-			alerts: '#97, #98, #118, #122, #123, #125, #126, GHSA-hrr3-gc8f-f4qj',
+			minimum: '3.1.9',
+			alerts:
+				'#97, #98, #118, #122, #123, #125, #126, GHSA-hrr3-gc8f-f4qj, GHSA-w74x-v6f9-j3xg, GHSA-wjr9-j795-jxcr, GHSA-xhq7-xmqj-769h, GHSA-333x-w4r6-6crp',
 		},
 		postcss: { minimum: '8.5.23', alerts: '#113, #117' },
 		'brace-expansion': {
@@ -402,17 +543,6 @@ describe('pnpm.overrides', () => {
 			alerts:
 				'#115, #116, GHSA-6j4f-fj2g-mc7p, GHSA-qhr7-859c-m2p7, GHSA-q2hr-2g5m-vwhr',
 		},
-		// The only floor that crosses a MAJOR its dependent did not ask for:
-		// `@prisma/config` pins `deepmerge-ts: "7.1.5"` exactly, and the fix for
-		// GHSA-ggr8-5vv4-36mx landed in 8.0.0 with no 7.x backport (7.1.6 exists
-		// and is still vulnerable). So a range change back into 7.x reads as
-		// "matching what Prisma declared" while silently reopening the advisory.
-		'deepmerge-ts': { minimum: '8.0.0', alerts: '#120' },
-		// Also an exact pin, not a range: the `prisma` CLI declares
-		// `mysql2: "3.15.3"` verbatim. Not reachable (this app is Postgres-only,
-		// see docs/dependency-overrides.md), but the fix is a cheap minor bump
-		// so it's fixed rather than ignored.
-		mysql2: { minimum: '3.22.0', alerts: '#121' },
 	};
 
 	it.each(Object.entries(SECURITY_FLOORS))(
@@ -443,6 +573,40 @@ describe('pnpm.overrides', () => {
 	);
 
 	/**
+	 * Advisory floors that UPSTREAM now holds, so the override was retired.
+	 *
+	 * Each of these was an override until the dependent that pulled the package
+	 * started declaring a patched version itself (Prisma 7.10.1 pins
+	 * `deepmerge-ts: "8.0.2"` and `mysql2: "3.24.4"`; next-auth 4.24.15 declares
+	 * `uuid: ^11.1.1`). That is the retirement rule in
+	 * docs/dependency-overrides.md: the reason expired, not "the resolve came
+	 * back unchanged".
+	 *
+	 * Retiring the override hands the floor to someone else's package.json, so
+	 * this keeps the floor itself under test. If an upstream release ever drops
+	 * back below the fix, this goes red and the override comes back. A package
+	 * that leaves the tree entirely passes (nothing installed, nothing below).
+	 */
+	const RETIRED_FLOORS: Record<string, { minimum: string; alerts: string }> = {
+		'deepmerge-ts': { minimum: '8.0.0', alerts: '#120 (GHSA-ggr8-5vv4-36mx)' },
+		mysql2: { minimum: '3.22.0', alerts: '#121 (GHSA-3f6p-5ww8-9rcr)' },
+		uuid: { minimum: '11.1.1', alerts: '#74 (GHSA-w5hq-g745-h8pq)' },
+	};
+
+	it.each(Object.entries(RETIRED_FLOORS))(
+		'%s (override retired) still resolves at or above its advisory floor',
+		(name, { minimum, alerts }) => {
+			for (const version of installedVersions(name)) {
+				expect(
+					compareVersions(version, minimum) >= 0,
+					`${name}@${version} is below the fix for ${alerts} (needs >= ${minimum}). ` +
+						'Upstream stopped holding this floor; restore the override.',
+				).toBe(true);
+			}
+		},
+	);
+
+	/**
 	 * Overrides that force a version their dependent did NOT ask for, pinned to
 	 * the dependent they were evaluated against.
 	 *
@@ -451,8 +615,9 @@ describe('pnpm.overrides', () => {
 	 * an override that widens within a permitted range, nobody needs to: a new
 	 * consumer inherits something it would have accepted anyway.
 	 *
-	 * `deepmerge-ts` is the exception. `@prisma/config` pins it to exactly
-	 * `7.1.5`, so `^8.0.1` is a major forced past a hard pin, justified ONLY by
+	 * `deepmerge-ts` was the exception until Prisma 7.10.1 (history, kept as
+	 * the worked example). `@prisma/config` pinned it to exactly
+	 * `7.1.5`, so `^8.0.1` was a major forced past a hard pin, justified ONLY by
 	 * having read @prisma/config's single call site (c12's `merger`) and
 	 * confirmed v8's breaking changes miss it. That justification is about ONE
 	 * consumer. If Prisma stops pulling `deepmerge-ts` (prisma@8.0.0-rc.3 drops
@@ -466,12 +631,15 @@ describe('pnpm.overrides', () => {
 	 * docs/dependency-overrides.md no longer describes reality, and the entry
 	 * needs re-justifying against its new dependent or deleting.
 	 */
-	const PINNED_DEPENDENTS: Record<string, string[]> = {
-		'deepmerge-ts': ['@prisma/config'],
-		mysql2: ['prisma'],
-	};
+	// Empty since the pnpm 12 upgrade: both entries (deepmerge-ts, mysql2) were
+	// retired once Prisma 7.10.1 started pinning patched versions itself. Kept,
+	// with dependentsOf() and its self-check, for the next override that has to
+	// force a version past an exact pin.
+	const PINNED_DEPENDENTS: Record<string, string[]> = {};
 
-	it.each(Object.entries(PINNED_DEPENDENTS))(
+	it
+		.skipIf(Object.keys(PINNED_DEPENDENTS).length === 0)
+		.each(Object.entries(PINNED_DEPENDENTS))(
 		'%s is still consumed only by the dependent it was evaluated against',
 		(name, expected) => {
 			expect(overrides, `${name} override was removed`).toHaveProperty(name);

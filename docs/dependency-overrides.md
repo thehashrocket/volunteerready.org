@@ -1,8 +1,25 @@
 # Dependency overrides
 
-Every entry in `pnpm.overrides` (`package.json`) must have a section here.
-`scripts/pnpm-overrides.test.ts` fails if one does not, so this file cannot
-drift out of sync with the thing it documents.
+Every entry under `overrides:` in `pnpm-workspace.yaml` must have a section
+here. `scripts/pnpm-overrides.test.ts` fails if one does not, so this file
+cannot drift out of sync with the thing it documents.
+
+## Where they live, and why that moved
+
+Until the pnpm 12 upgrade these were `pnpm.overrides` in `package.json`. pnpm
+11 stopped reading that key and says nothing about it, so any pnpm ≥ 11
+resolves the tree as if no override existed. Dependabot runs pnpm 11, and on
+2026-10-28 it opened #269 and #270 with lockfiles that had no `overrides:`
+block at all: vite 5.4.21, esbuild 0.21.5 and zod 4.1.11 were back in the tree,
+and mysql2 / deepmerge-ts were back on their vulnerable pins. Vercel's frozen
+install refused both (`ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`), which is the only
+reason neither shipped.
+
+Now the overrides live in `pnpm-workspace.yaml`, where every pnpm from 9 to 12
+reads them, `packageManager` pins the exact pnpm, and the guard test fails if
+`package.json` grows a `pnpm` key again or if the lockfile's `overrides:` block
+differs from the workspace file. That last check names the cause at the PR
+instead of leaving it to whichever install runs first.
 
 ## Why this file exists
 
@@ -31,11 +48,14 @@ history of the ones that did not.
 Not by reading it. The check is empirical and takes about a minute:
 
 ```sh
-cp package.json /tmp/pkg.bak.json && cp pnpm-lock.yaml /tmp/lock.bak.yaml
-node -e "const p=require('./package.json');delete p.pnpm.overrides;require('fs').writeFileSync('package.json',JSON.stringify(p,null,'\t')+'\n')"
+cp pnpm-workspace.yaml /tmp/ws.bak.yaml && cp pnpm-lock.yaml /tmp/lock.bak.yaml
+sed -i.tmp '/^overrides:/,$d' pnpm-workspace.yaml && rm -f pnpm-workspace.yaml.tmp
 rm -f pnpm-lock.yaml && pnpm install --lockfile-only --ignore-scripts && pnpm audit
-cp /tmp/pkg.bak.json package.json && cp /tmp/lock.bak.yaml pnpm-lock.yaml
+cp /tmp/ws.bak.yaml pnpm-workspace.yaml && cp /tmp/lock.bak.yaml pnpm-lock.yaml
 ```
+
+(`overrides:` is the last block in the file, so deleting from it to the end
+removes exactly that block.)
 
 **Deleting the lockfile is the load-bearing step.** `pnpm install --lockfile-only`
 keeps any already-locked version that still satisfies the declared ranges, so
@@ -63,14 +83,18 @@ appears; one is not enough to design against.
 
 ## The overrides
 
-### `fast-uri` — `^3.1.8`
+### `fast-uri` — `^3.1.9`
 
 Alerts #97, #98, #118 (**high**). Closed in [#189](https://github.com/thehashrocket/volunteerready.org/pull/189)
 (then `^3.1.5`); raised to `^3.1.6` for alerts #122, #123, #125, #126 (**high**)
 — host confusion / SSRF via percent-encoding and IPv6 normalization bugs, all
 fixed in 3.1.6. Raised to `^3.1.8` for GHSA-hrr3-gc8f-f4qj (moderate,
 inconsistent host case normalization via percent-encoded octets), found by
-`pnpm audit` before GitHub raised a Dependabot alert for it.
+`pnpm audit` before GitHub raised a Dependabot alert for it. Raised to `^3.1.9`
+in the pnpm 12 upgrade for GHSA-w74x-v6f9-j3xg and GHSA-wjr9-j795-jxcr
+(moderate) and GHSA-xhq7-xmqj-769h and GHSA-333x-w4r6-6crp (low), all fixed in
+3.1.9, found by `pnpm audit` during the override review: the `^3.1.8` floor was
+holding the lockfile at 3.1.8 while a fresh resolve picked 3.1.9.
 
 Needed an override of its own rather than riding along with the Prisma upgrade,
 because it arrives by **two independent paths** — `@prisma/streams-local` and
@@ -152,133 +176,14 @@ before the `@sentry/nextjs` 11 upgrade).
 [#151](https://github.com/thehashrocket/volunteerready.org/pull/151). Reached
 via `jsdom` (vitest) and `storybook`; dev and build tooling only.
 
-### `uuid` — `^11.1.1`
-
-Alert #74 (medium) — missing buffer bounds check in `v3`/`v5`/`v6` when a `buf`
-argument is supplied. Closed in [#151](https://github.com/thehashrocket/volunteerready.org/pull/151).
-
-Reached via `next-auth` → `@next-auth/prisma-adapter`. It was originally
-proposed for dismissal as not-affected — next-auth's only call site
-(`jwt/index.ts`) uses `uuid.v4()` with no arguments, and the vulnerable path
-requires an explicit `buf` on `v3`/`v5`/`v6` — but the 8→11 bump turned out to
-be safe (the `v4()` named export is unchanged from v8 through v11), so it was
-fixed rather than dismissed.
-
-### `deepmerge-ts` — `^8.0.1`
-
-Alert #120 (**high**, CVSS 4.0 = 8.2) — GHSA-ggr8-5vv4-36mx / CVE-2026-40345,
-stack exhaustion (`RangeError`) when `deepmerge()` is handed two objects that
-self-reference through the same key path. First patched in **8.0.0**; 7.1.6
-exists but is *not* a backport, so the fix is only reachable across a major.
-
-**This is the one override that violates its dependent's declared range**, and
-that is the whole reason it needs reading before it is changed.
-`@prisma/config@7.9.1` declares `"deepmerge-ts": "7.1.5"` — an exact pin, not a
-range — so nothing in the tree can resolve the fix on its own and there is no
-Prisma release to wait for (7.9.1 is latest; `@prisma/config@latest` still
-carries the same pin). An override is the only mechanism available, and it is
-forcing a major past what the parent asked for. Every other entry in this file
-sits inside a range its dependents already permit.
-
-**Two different reachability questions, and they have opposite answers. Do not
-collapse them into one — the first draft of this section did, and it read as
-"this code never runs here", which is false.**
-
-1. **Can an attacker reach the vulnerability? No.** `@prisma/config` imports
-   `deepmerge` in exactly one place — as c12's `merger` when loading
-   `prisma.config.ts` (`dist/index.js`, `loadConfigTsOrJs`) — and the only object
-   graph it ever merges is our own config file. Nothing attacker-controlled
-   reaches it, which is why this is a floor rather than an incident. The
-   deployed app does not load it at all: it runs in the **Prisma CLI**, not in
-   `@prisma/client`. Dependabot reports scope `runtime` only because `prisma` is
-   an *optional peer* of the `@prisma/client` production dependency.
-2. **Can this OVERRIDE break us? Yes, badly, and on the most important path we
-   have.** The Prisma CLI runs on every install (`postinstall` → `prisma
-   generate`) and on every deploy (`scripts/vercel-build.sh` → `prisma migrate
-   deploy`), and each of those loads `prisma.config.ts` through this package. So
-   the blast radius of getting the override wrong is not "a stale advisory" — it
-   is **every install and every deploy failing**. That asymmetry is the whole
-   reason this entry is verified by execution below rather than by reading a
-   changelog, and the reason the guard test pins the *consumer* and not just the
-   version.
-
-**The `^` is deliberate, and CI is what catches a bad 8.x.** Like every other
-entry here it is a caret, not an exact pin: pinning `8.0.1` would freeze us off
-future patches to the security fix itself. The cost is that a lockfile refresh
-can float to a later 8.x that nothing here has evaluated. That is caught at the
-PR, not in production — `pnpm prisma migrate deploy` runs in three CI jobs
-(`.github/workflows/ci.yml` test, build and e2e) and `prisma generate` runs in
-every full install, so a release that breaks `@prisma/config` fails the build
-before it can be merged.
-
-**The major bump was verified, not assumed.** v8's four breaking changes are:
-Maps now deep-merge (config objects contain none), `DeepMergeMetaMetaData` →
-`DeepMergeMergeInfo` and `DeepMergeIntoFunctionUtils` → `DeepMergeIntoUtils`
-(type-only, and `@prisma/config` ships prebuilt `dist`, so no consumer of ours
-compiles against them), and `deepmergeInto` no longer leak-mutating its inputs
-(not used here). The `deepmerge` named export keeps its signature, which is the
-entire surface `@prisma/config` touches. Checked by execution against the
-installed 8.0.1: the advisory PoC returns a cyclic result instead of throwing, a
-config-shaped merge is unchanged, and `pnpm prisma validate` prints *"Loaded
-Prisma config from prisma.config.ts"* — i.e. the merger path itself ran.
-
-**Revisit at the Prisma 8 upgrade.** Every published `@prisma/config` still pins
-7.1.5 — `latest` (7.9.1) and `7.10.0-dev.58` alike — so there is nothing to wait
-for on the 7.x line. But `prisma@8.0.0-rc.3` does not list `@prisma/config` as a
-dependency at all, so the whole edge may vanish rather than be repinned. Re-run
-the [check at the top of this file](#how-to-tell-whether-an-override-still-does-anything)
-after that upgrade: if `deepmerge-ts` has left the tree, the guard test will say
-so, and this entry, its `SECURITY_FLOORS` line and its `PINNED_DEPENDENTS` line
-should be deleted together.
-
-**`PINNED_DEPENDENTS` is why "left the tree" is not the only exit condition.**
-`scripts/pnpm-overrides.test.ts` asserts that `@prisma/config` is still the only
-thing consuming `deepmerge-ts`. Without it, the dangerous case is silent rather
-than loud: Prisma drops the dependency, some unrelated package picks
-`deepmerge-ts` up, and this override goes on forcing a major past *that*
-package's declared range — with every version-based assertion here still green,
-because the package is still present and still above the floor. This is the one
-override where that matters, since it is the only one not already inside a range
-its dependent permits, and it is the direction the file's own
-["what neither this check nor the guard test can see"](#how-to-tell-whether-an-override-still-does-anything)
-note calls out as the blind spot. A red test there is not a lockfile glitch to
-paper over — it means the justification written above no longer describes
-reality.
-
-### `mysql2` — `^3.22.0`
-
-Alert #121 (**high**) — GHSA-3f6p-5ww8-9rcr, auth-plugin downgrade to
-`mysql_clear_password` leaks a client's plaintext credentials to a malicious
-or compromised MySQL server. Fixed in 3.22.0.
-
-**Same shape as `deepmerge-ts`: an exact pin, not a range.** The `prisma` CLI
-(devDependency, not `@prisma/client`) declares `"mysql2": "3.15.3"` verbatim,
-so nothing in the tree can resolve the fix on its own — an override is the
-only mechanism available, and it forces a version past what the dependent
-asked for. `PINNED_DEPENDENTS.mysql2 = ['prisma']` in
-`scripts/pnpm-overrides.test.ts` pins that fact the same way it pins
-`deepmerge-ts`'s: if `mysql2` is ever pulled in by a different consumer, the
-override keeps forcing a version *that* consumer never asked for and this
-entry needs re-justifying, not silent continuation.
-
-**Not reachable.** `mysql2` is the driver Prisma's engine would use for a
-`provider = "mysql"` datasource; `prisma/schema.prisma` declares
-`provider = "postgresql"` and this app has never had a MySQL datasource, so
-the driver is never asked to open a connection and the auth-downgrade path
-(which requires speaking the MySQL wire protocol to a server) never runs.
-Dependabot reports it because `prisma` ships the driver unconditionally
-regardless of which datasource a consumer actually configures — the same
-"declared as a dependency, never exercised" shape as the `sharp` advisory that
-used to sit under [Ignored advisories](#ignored-advisories) below, except here a
-patched version was available and cheap, so it was fixed rather than ignored.
-
 ### `zod` — `^4.6.6`
 
 GHSA-mrhx-c7xc-m3w5 (**high**) — memory exhaustion while validating oversized
 constrained collections. Fixed in 4.6.6. Found by the scheduled advisory scan.
 
 The app's own `zod` dependency was simply bumped (`^4.6.7`); the override
-exists for the copy it cannot reach. **Same shape as `mysql2`: an exact pin.**
+exists for the copy it cannot reach. **An exact pin, not a range** (the shape
+`mysql2` and `deepmerge-ts` had before they were retired).
 `@vercel/cli-config` (via `@vercel/functions` → `@vercel/oidc`) declares
 `"zod": "4.1.11"` verbatim, still true in its latest release (0.3.4), so
 nothing can resolve the fix without forcing it. Forcing 4.1.11 → 4.6.x stays
@@ -288,6 +193,39 @@ inside the major. Re-check whether this override is still needed when
 **Reachability is low.** That copy validates Vercel's own config and OIDC
 token shapes, not request input. It is fixed rather than ignored because a
 patched version exists and costs nothing.
+
+## Retired in the pnpm 12 upgrade
+
+Three overrides came out on 2026-10-28, each because its **reason expired**:
+the dependent that pulled the package started declaring a patched version
+itself. A from-scratch resolve with no overrides at all (method above, under
+pnpm 12.16.1) confirmed each one lands at or above its fix without help.
+
+- **`deepmerge-ts`** (was `^8.0.1`; alert #120, GHSA-ggr8-5vv4-36mx, fixed in
+  8.0.0). `@prisma/config@7.10.1` now pins `"deepmerge-ts": "8.0.2"` exactly,
+  where 7.9.1 pinned the vulnerable 7.1.5. This was the one override that forced
+  a major past its dependent's declared range, which is why it was guarded by
+  `PINNED_DEPENDENTS`; that list is now empty.
+- **`mysql2`** (was `^3.22.0`; alert #121, GHSA-3f6p-5ww8-9rcr, fixed in
+  3.22.0). `prisma@7.10.1` now pins `"mysql2": "3.24.4"`, where it used to pin
+  3.15.3. Never reachable here (Postgres only) in any case.
+- **`uuid`** (was `^11.1.1`; alert #74, GHSA-w5hq-g745-h8pq, fixed in 11.1.1).
+  `next-auth@4.24.15`, its only consumer, now declares `uuid: ^11.1.1` itself.
+
+Retiring an override hands its floor to someone else's `package.json`, so the
+floor stays under test: `RETIRED_FLOORS` in `scripts/pnpm-overrides.test.ts`
+fails if any installed copy drops below the fix. If one goes red, an upstream
+release has regressed the pin; put the override (and its section here) back.
+
+**Checked and kept**, with the dependents' declared ranges as of this audit:
+`vite` / `esbuild` (vitepress 1.6.4 is still the latest stable and still asks
+for vite `^5.4.14`; without the override the tree gets vite 5.4.21 and esbuild
+0.21.5), `zod` (`@vercel/cli-config@0.3.4`, still latest, still pins 4.1.11),
+`postcss` (`vite` declares `^8.5.6`, `vitepress` `^8`), `fast-uri` (`ajv`
+declares `^3.0.1`), `brace-expansion` (`minimatch` declares `^5.0.8` against a
+5.0.12 fix), `ws` (`storybook` declares `^8.21.1` but `@vercel/functions`
+declares `>=8`), `@babel/core` (dependents declare as low as `^7.0.0`). All of
+those are the "looks redundant, isn't" case described next.
 
 ## Floors that currently look redundant
 
@@ -310,12 +248,12 @@ judged by reading the version string** — which is why removal needs the adviso
 history in this file, not just a clean diff.
 
 The cost of keeping one is a line of JSON. **Dropping one is never silent** —
-mutation-verified: deleting ANY entry from `pnpm.overrides` turns
+mutation-verified: deleting ANY entry from `overrides` turns
 `scripts/pnpm-overrides.test.ts` red, because the doc-sync check finds a
 `### \`name\`` section describing policy that is no longer in force, and the
-section-count self-check disagrees with the override count. The five carrying a
-`SECURITY_FLOORS` entry (`fast-uri`, `postcss`, `brace-expansion`,
-`deepmerge-ts`, `mysql2`) fail a third assertion on top, and that assertion also
+section-count self-check disagrees with the override count. The three carrying a
+`SECURITY_FLOORS` entry (`fast-uri`, `postcss`, `brace-expansion`) fail a third
+assertion on top, and that assertion also
 goes red if the override's range is *lowered* below the advisory floor while the
 lockfile still holds a patched copy.
 
@@ -328,8 +266,8 @@ override is retired when its **reason** expires (the package leaves the tree, or
 its dependents' declared ranges rise above the fix), never because a resolve
 came back unchanged.
 
-**Three overrides carry no `SECURITY_FLOORS` entry** — `@babel/core`, `ws`,
-`uuid` — because they predate the rule in
+**Two security overrides carry no `SECURITY_FLOORS` entry** — `@babel/core`
+and `ws` — because they predate the rule in
 [Adding an override](#adding-an-override). They are still guarded in the two
 ways above; what they lack is the assertion that pins the *advisory's* first
 patched version, so a later range change could drop below the fix while staying
@@ -380,7 +318,7 @@ separate decision on its own merits.
 
 ## Ignored advisories
 
-`pnpm.auditConfig.ignoreGhsas` in `package.json` is where an advisory goes when
+`auditConfig.ignoreGhsas` in `pnpm-workspace.yaml` is where an advisory goes when
 the CI gate (`scripts/check-advisories.ts`) should deliberately not fail on it.
 The key is absent while the list is empty. Every entry needs a
 `### \`GHSA-…\`` section here; the guard test enforces it in both directions.
@@ -399,7 +337,9 @@ advisory.
 
 ## Adding an override
 
-1. Add it to `pnpm.overrides` in `package.json`.
+1. Add it under `overrides:` in `pnpm-workspace.yaml` (never under a `pnpm`
+   key in `package.json`: pnpm 11+ ignores that), then run `pnpm install` and
+   commit the lockfile.
 2. Add a `### \`package-name\`` section here — the test matches on that heading.
 3. If it closes an advisory, add it to `SECURITY_FLOORS` in
    `scripts/pnpm-overrides.test.ts` with the advisory's first patched version,

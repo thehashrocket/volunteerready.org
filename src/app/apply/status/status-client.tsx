@@ -10,17 +10,6 @@ import { Label } from '@/components/ui/label';
 import { trpc } from '@/lib/trpc/client';
 
 export default function StatusClient({ token }: { token: string | null }) {
-	const [email, setEmail] = useState('');
-
-	const request = trpc.status.requestLink.useMutation({
-		onSuccess: () => {
-			toast.success('If we found a match, we emailed you a secure link.');
-		},
-		onError: (err) => {
-			toast.error(safeErrorMessage(err) ?? 'Could not send link');
-		},
-	});
-
 	const statusQ = trpc.status.getByToken.useQuery(
 		{ token: token ?? '' },
 		{ enabled: Boolean(token) },
@@ -119,38 +108,56 @@ export default function StatusClient({ token }: { token: string | null }) {
 	}
 
 	return <RequestForm />;
+}
 
-	function RequestForm() {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>Email me a status link</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="email">Email</Label>
-						<Input
-							id="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="you@example.com"
-							autoComplete="email"
-						/>
-					</div>
+/**
+ * Module scope on purpose. It used to be declared inside StatusClient, which
+ * made it a new component type on every render: React remounted it on each
+ * keystroke and the email input lost focus after one character. Biome 2.6's
+ * noComponentHookFactories caught it. It owns its state because nothing else
+ * in StatusClient reads the email or the mutation.
+ */
+function RequestForm() {
+	const [email, setEmail] = useState('');
 
-					<Button
-						onClick={() => request.mutate({ email })}
-						disabled={request.isPending || email.length < 3}
-					>
-						{request.isPending ? 'Sending…' : 'Send link'}
-					</Button>
+	const request = trpc.status.requestLink.useMutation({
+		onSuccess: () => {
+			toast.success('If we found a match, we emailed you a secure link.');
+		},
+		onError: (err) => {
+			toast.error(safeErrorMessage(err) ?? 'Could not send link');
+		},
+	});
 
-					<p className="text-xs text-muted-foreground">
-						We’ll send a one-time link (expires in 30 minutes). If you didn’t
-						apply, you can ignore it.
-					</p>
-				</CardContent>
-			</Card>
-		);
-	}
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Email me a status link</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				<div className="space-y-2">
+					<Label htmlFor="email">Email</Label>
+					<Input
+						id="email"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						placeholder="you@example.com"
+						autoComplete="email"
+					/>
+				</div>
+
+				<Button
+					onClick={() => request.mutate({ email })}
+					disabled={request.isPending || email.length < 3}
+				>
+					{request.isPending ? 'Sending…' : 'Send link'}
+				</Button>
+
+				<p className="text-xs text-muted-foreground">
+					We’ll send a one-time link (expires in 30 minutes). If you didn’t
+					apply, you can ignore it.
+				</p>
+			</CardContent>
+		</Card>
+	);
 }

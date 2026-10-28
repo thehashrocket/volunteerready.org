@@ -26,7 +26,7 @@ VolunteerReady is a **multi-tenant SaaS platform** that helps nonprofit organiza
 | Linting/Formatting | Biome (no ESLint, no Prettier) |
 | Testing | Vitest (unit/component), Playwright (e2e) |
 | Docs site | VitePress |
-| Package manager | pnpm |
+| Package manager | pnpm 12 (exact version pinned in `packageManager`; settings in `pnpm-workspace.yaml`, never under a `pnpm` key in package.json) |
 
 ---
 

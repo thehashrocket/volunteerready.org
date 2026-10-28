@@ -320,7 +320,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/designs/privacy-terms-compliance.md` — Privacy/terms page design doc (required sections, third-party table, cookie banner). The live version history is the `versionHistory` array in `src/app/(public)/privacy/page.tsx`, not this doc
 - `docs/TODOS.md` - todos for the current project
 - `docs/post-deploy-checks.md` — claims that cannot be tested before they ship, and how to check each after a deploy. Add an entry when behaviour depends on production data volume, a third-party send, or Vercel routing/caching
-- `docs/dependency-overrides.md` — why each `pnpm.overrides` pin exists and when it can be removed
+- `docs/dependency-overrides.md` — why each pnpm override (`pnpm-workspace.yaml`) exists and when it can be removed
 - `docs/branch-protection.md` — required status checks on `main` (the exact workflow `name:` strings, matched against `ci.yml`), why `enforce_admins: true` is load-bearing in a solo-maintainer repo, and the `Security advisories` gate's known fail-open limitations (v0.43.0.0)
 
 ## gstack

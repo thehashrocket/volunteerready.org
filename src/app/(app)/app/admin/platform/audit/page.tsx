@@ -1,5 +1,6 @@
 'use client';
 
+import type { inferRouterOutputs } from '@trpc/server';
 import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -18,8 +19,12 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { trpc } from '@/lib/trpc/client';
+import type { AppRouter } from '@/server/trpc/root';
 
 const ALL = '__all__';
+
+type AuditRow =
+	inferRouterOutputs<AppRouter>['platformAdmin']['audit']['query']['rows'][number];
 
 export default function PlatformAuditPage() {
 	const [action, setAction] = useState<string>(ALL);
@@ -31,11 +36,7 @@ export default function PlatformAuditPage() {
 	const [dateTo, setDateTo] = useState('');
 	const [impersonatedOnly, setImpersonatedOnly] = useState(false);
 	const [cursor, setCursor] = useState<string | null>(null);
-	const [rows, setRows] = useState<
-		Array<
-			NonNullable<ReturnType<typeof useQueryResult>['data']>['rows'][number]
-		>
-	>([]);
+	const [rows, setRows] = useState<AuditRow[]>([]);
 	const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
 	const options = trpc.platformAdmin.audit.options.useQuery();
@@ -57,10 +58,6 @@ export default function PlatformAuditPage() {
 			// Reset accumulator on new filter combo — key via filters hash below.
 		},
 	);
-
-	function useQueryResult() {
-		return query;
-	}
 
 	// Accumulate rows on "Load more"
 	const allRows = cursor === null ? (query.data?.rows ?? []) : rows;

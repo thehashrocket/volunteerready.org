@@ -12,6 +12,7 @@
  */
 
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mockRequestLink, mockGetByToken } = vi.hoisted(() => ({
@@ -76,5 +77,28 @@ describe('StatusClient link-issue state', () => {
 		expect(
 			screen.getByRole('button', { name: /send link/i }),
 		).toBeInTheDocument();
+	});
+});
+
+describe('StatusClient request form', () => {
+	it('keeps focus in the email field while typing', async () => {
+		// RequestForm used to be declared inside StatusClient, so every keystroke
+		// re-rendered the parent, minted a new component type, and React swapped
+		// in a fresh <input>: focus dropped after the first character. The
+		// element-identity check is what fails on that version; the value check
+		// alone passes, because the email state lived in the parent.
+		const user = userEvent.setup();
+		mockGetByToken.mockReturnValue({ data: undefined, isLoading: false });
+		mockRequestLink.mockReturnValue({ mutate: vi.fn(), isPending: false });
+
+		render(<StatusClient token={null} />);
+
+		const input = screen.getByLabelText('Email');
+		await user.click(input);
+		await user.keyboard('me@example.org');
+
+		expect(screen.getByLabelText('Email')).toBe(input);
+		expect(input).toHaveFocus();
+		expect(input).toHaveValue('me@example.org');
 	});
 });
