@@ -23,7 +23,8 @@ tree entirely in v0.41.5.0.
 ## How to read the "binds" column
 
 "Binds" means every installed copy of the package satisfies the override range.
-Two entries do not fully bind — see [Partially bound](#partially-bound).
+Every entry currently binds — see [Partially bound](#partially-bound) for the
+history of the ones that did not.
 
 ## How to tell whether an override still does anything
 
@@ -91,10 +92,21 @@ Alert #92. Closed in [#124](https://github.com/thehashrocket/volunteerready.org/
 Pinned **within the current major on purpose**. An open `>=` floated to Babel 8
 for no added security benefit — see [Partially bound](#partially-bound).
 
-### `vite` — `^7.3.5`
+### `vite` — `^7.3.7`
 
 Alerts #37, #38, #39 (**high**), #47, #80, #81, #93, #94 (**high**) — the
 largest single group. Closed in [#124](https://github.com/thehashrocket/volunteerready.org/pull/124).
+Raised to `^7.3.7` for GHSA-587h-7wmj-h5pm (**high**, `launch-editor`
+existence-check bypass on Windows; fixed in 7.3.7 / 8.1.6), found by the
+scheduled advisory scan.
+
+`vite` is also a **direct devDependency** (`^7.3.7`). The override alone did
+not reach peer-dependency resolutions: `@storybook/react-vite` and `vitest`
+both accept `^8`, and pnpm kept resolving their `vite` peer to a separate
+`vite@8.1.0`, which this advisory hits. With a direct 7.x copy in the root,
+every peer edge resolves to it, so the tree has exactly one vite and the
+override binds. Both peers accept 7 (`vitest@5`: `^6.4.0 || ^7.0.0 || ^8.0.0`).
+Remove the devDependency only together with a decision to move to Vite 8.
 
 Pinned within the current major on purpose; an open range floated to Vite 8.
 Reached through `vitepress` and `@storybook/react-vite`, i.e. docs and
@@ -260,6 +272,23 @@ regardless of which datasource a consumer actually configures — the same
 used to sit under [Ignored advisories](#ignored-advisories) below, except here a
 patched version was available and cheap, so it was fixed rather than ignored.
 
+### `zod` — `^4.6.6`
+
+GHSA-mrhx-c7xc-m3w5 (**high**) — memory exhaustion while validating oversized
+constrained collections. Fixed in 4.6.6. Found by the scheduled advisory scan.
+
+The app's own `zod` dependency was simply bumped (`^4.6.7`); the override
+exists for the copy it cannot reach. **Same shape as `mysql2`: an exact pin.**
+`@vercel/cli-config` (via `@vercel/functions` → `@vercel/oidc`) declares
+`"zod": "4.1.11"` verbatim, still true in its latest release (0.3.4), so
+nothing can resolve the fix without forcing it. Forcing 4.1.11 → 4.6.x stays
+inside the major. Re-check whether this override is still needed when
+`@vercel/cli-config` widens its range.
+
+**Reachability is low.** That copy validates Vercel's own config and OIDC
+token shapes, not request input. It is fixed rather than ignored because a
+patched version exists and costs nothing.
+
 ## Floors that currently look redundant
 
 Run the [check above](#how-to-tell-whether-an-override-still-does-anything) and
@@ -329,31 +358,25 @@ once because of it.
 
 ## Partially bound
 
-`vite` has a **second** copy installed that its override does not cover:
-`vite@8.1.0`, physically present under `node_modules/.pnpm/`. It arrives as a
-peer-dependency resolution (`@storybook/react-vite@…(vite@8.1.0…)`) rather
-than an ordinary dependency edge, and `@storybook/react-vite` accepts
-`^5 || ^6 || ^7 || ^8`.
+Nothing is partially bound right now; `PARTIALLY_BOUND` in
+`scripts/pnpm-overrides.test.ts` is empty but kept, so a **new** escape under
+any override still fails the build.
 
-**This is known and was accepted deliberately, not an oversight.** #124 pinned
-it inside its current major rather than using an open `>=` precisely to avoid
-dragging the whole build onto Vite 8 for no security gain, and it verified at
-the time that the lingering 8.x peer copy is itself **above** the patched
-threshold. So the tree is safe; the override text simply describes less than
-the whole picture.
+History, so the next escape is recognisable:
 
-It is budgeted in `PARTIALLY_BOUND` in `scripts/pnpm-overrides.test.ts`, so a
-**new** escape under this package still fails the build.
+- `@babel/core` carried `8.0.1` (a peer resolution through `next`) until a
+  routine relock resolved that peer edge onto the same `7.29.7` copy the
+  override already pins.
+- `vite` carried `8.1.0`, a peer resolution through `@storybook/react-vite`
+  and `vitest`, which accept `^5 || ^6 || ^7 || ^8`. #124 accepted it
+  deliberately while that copy was itself above every patched threshold.
+  GHSA-587h-7wmj-h5pm (fixed in 8.1.6) ended that, and the fix was a direct
+  `vite` devDependency, so peers resolve to the single 7.x copy (see the `vite`
+  entry above).
 
-`@babel/core` carried the same entry (`8.0.1`) until a routine dependency-bump
-relock resolved that peer edge onto the same `7.29.7` copy the override
-already pins, per the guard test's own instruction ("now binds cleanly —
-delete it from PARTIALLY_BOUND"). It was removed from the budget accordingly;
-see the git history of `scripts/pnpm-overrides.test.ts` for when.
-
-**Do not "fix" this by widening the ranges to `^8`.** That would abandon the
-deliberate within-major policy above. The open question is only whether moving
-to Babel 8 / Vite 8 wholesale is now desirable on its own merits.
+**Do not "fix" a future escape by widening a range to the next major.** That
+abandons the within-major policy. Moving to Babel 8 / Vite 8 wholesale is a
+separate decision on its own merits.
 
 ## Ignored advisories
 
