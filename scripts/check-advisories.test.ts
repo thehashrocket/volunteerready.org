@@ -156,7 +156,7 @@ describe('decideAdvisoryGate', () => {
 	});
 
 	it('an ignored GHSA never reaches this function at all', () => {
-		// `pnpm.auditConfig.ignoreGhsas` is applied by pnpm before the report is
+		// `auditConfig.ignoreGhsas` (pnpm-workspace.yaml) is applied by pnpm before the report is
 		// produced — verified by running it: with sharp's GHSA listed, `pnpm
 		// audit --json` reports `advisories: {}`, not a populated `muted` array.
 		// So this function needs no ignore handling of its own, and adding any

@@ -950,10 +950,11 @@ satisfying its own range, so every other check stays green while the guarantee
 is gone. Since v0.43.3.0 the floor entry checks the override range itself as
 well as the installed versions, so an entry now catches that lowering directly.
 
-Five overrides carry that entry — `fast-uri`, `postcss`, `brace-expansion`,
-`deepmerge-ts` (added with the override itself in v0.42.2.0), and `mysql2`.
-**Three do not: `@babel/core`, `ws`, `uuid`** (`@opentelemetry/core` left the
-tree with the `@sentry/nextjs` 11 upgrade and its override was retired). They
+Three overrides carry that entry — `fast-uri`, `postcss`, `brace-expansion`.
+**Two do not: `@babel/core`, `ws`** (`@opentelemetry/core` left the tree with
+the `@sentry/nextjs` 11 upgrade; `deepmerge-ts`, `mysql2` and `uuid` were
+retired in the pnpm 12 upgrade once upstream pinned patched versions, and
+their floors moved to `RETIRED_FLOORS`). They
 predate the rule in the doc's "Adding an override" section. They are still
 guarded in the two ways every override is (the tree must contain the package,
 and the doc must carry a `### \`name\`` section, both directions enforced), so

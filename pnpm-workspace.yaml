@@ -1,0 +1,49 @@
+# pnpm settings. pnpm 11+ reads them ONLY from this file.
+#
+# They used to live under a "pnpm" key in package.json. pnpm 11 stopped
+# reading that key and does not warn about it, so any pnpm >= 11 that touched
+# this repo resolved the tree as if the overrides did not exist. Dependabot runs
+# pnpm 11, which is how #269/#270 arrived with every security override gone and
+# vite 5.4.21 / esbuild 0.21.5 / zod 4.1.11 back in the tree. Vercel's frozen
+# install refused them, which is the only reason they never shipped.
+# scripts/pnpm-overrides.test.ts now fails if package.json grows a "pnpm" key
+# again, or if the lockfile's overrides drift from this file.
+
+# Dependency build scripts. pnpm 10 skipped these silently; pnpm 11+ needs an
+# explicit decision. All false = same behaviour as before the upgrade:
+# esbuild ships its binary as an optional dependency, and the Prisma CLI
+# downloads its engines on demand during `prisma generate` (root postinstall).
+allowBuilds:
+  '@prisma/engines': false
+  esbuild: false
+  prisma: false
+
+# minimumReleaseAge is left at pnpm's default (1 day): a version is not
+# resolved until it has been public for 24h, which is the supply-chain window
+# most malicious publishes are caught in.
+#
+# These five are exempt because #268 deliberately required storybook ^10.6.5
+# to close an advisory, and 10.6.5 was under a day old when this file was
+# written. Each entry names one exact version, so it stops mattering once that
+# version ages past the cutoff (2026-10-29). Delete them on the next storybook
+# bump. pnpm adds entries here by itself when a direct dependency is too new;
+# review each one rather than accepting it silently.
+minimumReleaseAgeExclude:
+  - '@storybook/builder-vite@10.6.5'
+  - '@storybook/react-dom-shim@10.6.5'
+  - '@storybook/react-vite@10.6.5'
+  - '@storybook/react@10.6.5'
+  - storybook@10.6.5
+
+# Every entry needs a "### `name`" section in docs/dependency-overrides.md
+# (enforced by scripts/pnpm-overrides.test.ts). Read that file before changing
+# or removing one.
+overrides:
+  fast-uri: ^3.1.9
+  postcss: ^8.5.23
+  '@babel/core': ^7.29.6
+  vite: ^7.3.7
+  esbuild: ^0.28.1
+  brace-expansion: ^5.0.12
+  ws: ^8.21.0
+  zod: ^4.6.6

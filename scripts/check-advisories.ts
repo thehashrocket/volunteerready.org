@@ -25,8 +25,8 @@ import { promisify } from 'node:util';
  * therefore also works on fork PRs where secrets are unavailable.
  *
  * The trade-off is deliberate: `pnpm audit` cannot see alerts dismissed in
- * GitHub's UI. Dismissals move into `pnpm.auditConfig.ignoreGhsas` in
- * package.json instead — which is better for this purpose, because an in-repo
+ * GitHub's UI. Dismissals move into `auditConfig.ignoreGhsas` in
+ * pnpm-workspace.yaml instead — which is better for this purpose, because an in-repo
  * ignore is version-controlled, diffed, and argued about in review, whereas a
  * UI dismissal is invisible to everyone who was not looking at the alerts tab.
  * `scripts/pnpm-overrides.test.ts` requires a written reason for each one.
@@ -259,8 +259,8 @@ async function main(): Promise<void> {
 	);
 	console.error(
 		'\nEach of these has a published fix. Upgrade the package, or — if it is\n' +
-			'genuinely not reachable — add its GHSA to pnpm.auditConfig.ignoreGhsas\n' +
-			'in package.json AND record why in docs/dependency-overrides.md.\n',
+			'genuinely not reachable — add its GHSA to auditConfig.ignoreGhsas\n' +
+			'in pnpm-workspace.yaml AND record why in docs/dependency-overrides.md.\n',
 	);
 	process.exit(1);
 }
