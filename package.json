@@ -45,7 +45,7 @@
 		"check:stranded-unclaimed": "tsx scripts/check-stranded-unclaimed.ts"
 	},
 	"dependencies": {
-		"@hookform/resolvers": "^5.9.1",
+		"@hookform/resolvers": "^6.0.2",
 		"@next-auth/prisma-adapter": "^1.0.7",
 		"@prisma/adapter-pg": "^7.10.1",
 		"@prisma/client": "^7.10.1",
