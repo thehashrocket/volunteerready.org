@@ -116,35 +116,42 @@ Alert #92. Closed in [#124](https://github.com/thehashrocket/volunteerready.org/
 Pinned **within the current major on purpose**. An open `>=` floated to Babel 8
 for no added security benefit — see [Partially bound](#partially-bound).
 
-### `vite` — `^7.3.7`
+### `vite` — `^8.3.5`
 
 Alerts #37, #38, #39 (**high**), #47, #80, #81, #93, #94 (**high**) — the
 largest single group. Closed in [#124](https://github.com/thehashrocket/volunteerready.org/pull/124).
 Raised to `^7.3.7` for GHSA-587h-7wmj-h5pm (**high**, `launch-editor`
 existence-check bypass on Windows; fixed in 7.3.7 / 8.1.6), found by the
-scheduled advisory scan.
+scheduled advisory scan. Moved to **Vite 8** (`^8.3.5`) in
+[#276](https://github.com/thehashrocket/volunteerready.org/pull/276), a
+deliberate major upgrade rather than a security bump.
 
-`vite` is also a **direct devDependency** (`^7.3.7`). The override alone did
-not reach peer-dependency resolutions: `@storybook/react-vite` and `vitest`
-both accept `^8`, and pnpm kept resolving their `vite` peer to a separate
-`vite@8.1.0`, which this advisory hits. With a direct 7.x copy in the root,
-every peer edge resolves to it, so the tree has exactly one vite and the
-override binds. Both peers accept 7 (`vitest@5`: `^6.4.0 || ^7.0.0 || ^8.0.0`).
-Remove the devDependency only together with a decision to move to Vite 8.
+`vite` is also a **direct devDependency**, kept at the same range as the
+override. The override alone did not reach peer-dependency resolutions:
+`@storybook/react-vite` and `vitest` resolved their `vite` peer to a separate
+copy. With a direct copy in the root, every peer edge resolves to it, so the
+tree has exactly one vite and the override binds. **Change the override and the
+devDependency together** — Dependabot bumps only `package.json`, and a
+devDependency above the override is a no-op that leaves the lockfile untouched
+(that is what #276 looked like before it was finished). Both peers accept 8
+(`vitest@5`: `^6.4.0 || ^7.0.0 || ^8.0.0`; `@storybook/react-vite@10`:
+`^5 || ^6 || ^7 || ^8`).
 
-Pinned within the current major on purpose; an open range floated to Vite 8.
-Reached through `vitepress` and `@storybook/react-vite`, i.e. docs and
-build tooling, never the application bundle.
+Pinned within the current major on purpose. Reached through `vitepress` and
+`@storybook/react-vite`, i.e. docs and build tooling, never the application
+bundle.
 
-**`vitepress` is the binding constraint, and it cannot currently be upgraded
-past it.** `vitepress@1.6.4` depends on `vite: ^5.4.14`, so with this override
-removed the docs toolchain resolves **vite 5.4.21** and drags **esbuild 0.21.5**
-down with it — this override is what forces vitepress onto vite 7 instead. And
-1.6.4 **is** the latest stable: vitepress 2 exists only as `2.0.0-alpha.19` on
-the `next` tag. So this entry and `esbuild` below are effectively **permanent
-until vitepress 2 ships**, rather than workarounds awaiting a routine bump.
-Re-check both the day vitepress 2 goes stable; there is nothing to do before
-then.
+**`vitepress` is the binding constraint.** `vitepress@1.6.4` depends on
+`vite: ^5.4.14`, so with this override removed the docs toolchain resolves
+**vite 5.4.21** and drags **esbuild 0.21.5** down with it. This override forces
+vitepress onto Vite 8 instead, outside its declared range. That was verified
+when it landed: `pnpm docs:build` succeeds (it logs a `transformWithEsbuild`
+deprecation warning from vitepress, harmless), as do `pnpm build-storybook`
+and the unit suites. 1.6.4 **is** still the latest stable: vitepress 2 exists
+only as `2.0.0-alpha.21` on the `next` tag. So this entry and `esbuild` below
+are effectively **permanent until vitepress 2 ships**. If a future Vite minor
+breaks `docs:build`, vitepress is the first suspect. Re-check both the day
+vitepress 2 goes stable.
 
 ### `esbuild` — `^0.28.1`
 
