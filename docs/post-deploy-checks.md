@@ -396,7 +396,12 @@ in `src/server/services/billingService.ts` now pins API version
 `2026-09-30.endive` (it was `2026-08-26.dahlia`). That pin sets the version of
 the calls the app makes to Stripe: creating customers, checkout sessions and
 billing portal sessions, and listing events for reconciliation. It does not set
-the version of the webhooks Stripe sends back. Tests mock the Stripe client or
+the version of the webhooks Stripe sends back.
+
+`stripe` 23.1.0 moved the pin to `2026-10-28.endive`, a monthly release in
+the same `endive` family (additive only). Re-run check 1 below after the deploy
+that carries it; check 2 is unaffected because webhook payloads follow the
+endpoint's version. Tests mock the Stripe client or
 sign payloads offline, so nothing before deploy talks to Stripe.
 
 ### 1. Checkout and the billing portal open in test mode
