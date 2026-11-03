@@ -467,12 +467,15 @@ describe('pnpm overrides', () => {
 	 *
 	 * `vite` carried `8.1.0` the same way until GHSA-587h-7wmj-h5pm (fixed in
 	 * 7.3.7 / 8.1.6) put that peer copy below its patched threshold. A direct
-	 * `vite` devDependency now gives every peer edge a 7.x copy to resolve to,
-	 * so it binds cleanly and was removed here too. The budget is empty, but
-	 * the mechanism stays so a future escape fails loudly.
+	 * `vite` devDependency now gives every peer edge a copy in the override's
+	 * major to resolve to, so it binds cleanly and was removed here too. (Vite
+	 * has since moved to 8 deliberately, in #276; override and devDependency
+	 * move together.) The budget is empty, but the mechanism stays so a future
+	 * escape fails loudly.
 	 *
-	 * Do NOT "fix" this by widening the ranges to `^8` — that abandons the
-	 * within-major policy. See docs/dependency-overrides.md § Partially bound.
+	 * Do NOT "fix" an escape by widening an override across a major — that
+	 * abandons the within-major policy; a major move is its own decision. See
+	 * docs/dependency-overrides.md § Partially bound.
 	 */
 	const PARTIALLY_BOUND: Record<string, string[]> = {};
 
@@ -542,6 +545,11 @@ describe('pnpm overrides', () => {
 			minimum: '5.0.12',
 			alerts:
 				'#115, #116, GHSA-6j4f-fj2g-mc7p, GHSA-qhr7-859c-m2p7, GHSA-q2hr-2g5m-vwhr',
+		},
+		// glob ^14.0.3 also carries minimatch ^11.0.2 (GHSA-g3hv-75wg-m249, #156).
+		glob: {
+			minimum: '14.0.2',
+			alerts: '#155, #156, GHSA-3g3m-2fjr-6pw4, GHSA-g3hv-75wg-m249',
 		},
 	};
 
