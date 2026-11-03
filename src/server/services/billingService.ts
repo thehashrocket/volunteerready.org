@@ -43,7 +43,7 @@ function getStripe(): Stripe {
 		// Pins the shape of OUTBOUND calls only. Webhook payloads arrive at the
 		// API version set on the endpoint in the Stripe dashboard, and
 		// events.list returns each event at the version it was created with.
-		_stripe = new Stripe(key, { apiVersion: '2026-09-30.endive' });
+		_stripe = new Stripe(key, { apiVersion: '2026-10-28.endive' });
 	}
 	return _stripe;
 }
