@@ -201,6 +201,36 @@ inside the major. Re-check whether this override is still needed when
 token shapes, not request input. It is fixed rather than ignored because a
 patched version exists and costs nothing.
 
+### `glob` — `^14.0.3`
+
+Alerts #155 (GHSA-3g3m-2fjr-6pw4, **medium**, `AbortSignal` cancellation
+bypass, fixed in 14.0.2) and #156 (GHSA-g3hv-75wg-m249, **medium**, `minimatch`
+ReDoS via glob-part amplification, fixed in minimatch 11.0.1). One override
+closes both: glob 14 depends on minimatch 11, and `^14.0.3` requires
+`minimatch ^11.0.2`. `minimatch` itself is deliberately **not** overridden — it
+is only reached through `glob`, and forcing it would push minimatch 11 onto any
+future package that asks for an older major.
+
+**This crosses a major**, which is why it is an override rather than an
+upgrade: both consumers still declare `glob ^13` at their latest releases —
+`@sentry/bundler-plugins` (via `@sentry/nextjs`, sourcemap upload at build time)
+and `@joshwooding/vite-plugin-react-docgen-typescript` (via
+`@storybook/react-vite`). Build tooling only; glob never reaches the
+application bundle.
+
+Glob 14's breaking changes are in the low-level `Pattern`/`GlobWalker` API and
+in how an `ignore` pattern starting with `/` is anchored. Both consumers call
+only the top-level `glob()` / `globSync()` with `absolute`, `nodir`, `cwd`,
+`root` and `ignore`. Sentry's default sourcemap `ignore` list is absolute
+paths, and without a `root` option a leading `/` still means the filesystem
+root on Linux, so nothing changes. Checked when this landed by running glob
+13.0.6 and 14.0.3 side by side on Sentry's actual asset/ignore patterns (from
+`@sentry/nextjs` `getBuildPluginOptions`) and on the docgen include/exclude
+set against this repo: identical results for every case.
+
+Remove it when both consumers declare `glob ^14`. If a Sentry release starts
+passing `root` alongside absolute `ignore` patterns, re-check before then.
+
 ## Retired in the pnpm 12 upgrade
 
 Three overrides came out on 2026-10-28, each because its **reason expired**:
