@@ -20,6 +20,7 @@ import type {
 import { prisma } from '@/server/repositories/prisma';
 import {
 	getApplicationFunnel,
+	getAttendedVolunteerSeconds,
 	getAvgFillRate,
 	getRetentionStats,
 	getTopVolunteers,
@@ -620,5 +621,76 @@ describe('getTopVolunteers', () => {
 
 		expect(result).toHaveLength(1);
 		expect(result[0].userId).toBe(u1.id);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// getAttendedVolunteerSeconds
+// ---------------------------------------------------------------------------
+
+describe('getAttendedVolunteerSeconds', () => {
+	it('returns 0 for an org with no attended shifts', async () => {
+		const org = await seedOrg('hours-empty');
+
+		expect(await getAttendedVolunteerSeconds(org.id)).toBe(0);
+	});
+
+	it('sums shift duration once per attending volunteer', async () => {
+		const org = await seedOrg('hours-sum');
+		const u1 = await seedUser('hours-sum-u1');
+		const u2 = await seedUser('hours-sum-u2');
+
+		const threeHour = await seedShift(org.id, {
+			startTime: new Date('2026-01-10T09:00:00Z'),
+			endTime: new Date('2026-01-10T12:00:00Z'),
+		});
+		const ninetyMin = await seedShift(org.id, {
+			startTime: new Date('2026-01-11T09:00:00Z'),
+			endTime: new Date('2026-01-11T10:30:00Z'),
+		});
+
+		// Two volunteers on the 3h shift, one on the 90m shift: 7.5h.
+		await seedSignup(threeHour.id, u1.id, { status: 'ATTENDED' });
+		await seedSignup(threeHour.id, u2.id, { status: 'ATTENDED' });
+		await seedSignup(ninetyMin.id, u1.id, { status: 'ATTENDED' });
+
+		expect(await getAttendedVolunteerSeconds(org.id)).toBe(7.5 * 3600);
+	});
+
+	it('ignores signups that were not ATTENDED', async () => {
+		const org = await seedOrg('hours-status');
+		const u1 = await seedUser('hours-status-u1');
+		const u2 = await seedUser('hours-status-u2');
+		const u3 = await seedUser('hours-status-u3');
+		const shift = await seedShift(org.id, {
+			startTime: new Date('2026-01-10T09:00:00Z'),
+			endTime: new Date('2026-01-10T11:00:00Z'),
+		});
+
+		await seedSignup(shift.id, u1.id, { status: 'ATTENDED' });
+		await seedSignup(shift.id, u2.id, { status: 'CONFIRMED' });
+		await seedSignup(shift.id, u3.id, { status: 'NO_SHOW' });
+
+		expect(await getAttendedVolunteerSeconds(org.id)).toBe(2 * 3600);
+	});
+
+	it('isolates hours to the specified org', async () => {
+		const org1 = await seedOrg('hours-iso-1');
+		const org2 = await seedOrg('hours-iso-2');
+		const user = await seedUser('hours-iso-u1');
+		const shift1 = await seedShift(org1.id, {
+			startTime: new Date('2026-01-10T09:00:00Z'),
+			endTime: new Date('2026-01-10T11:00:00Z'),
+		});
+		const shift2 = await seedShift(org2.id, {
+			startTime: new Date('2026-01-10T13:00:00Z'),
+			endTime: new Date('2026-01-10T17:00:00Z'),
+		});
+
+		await seedSignup(shift1.id, user.id, { status: 'ATTENDED' });
+		await seedSignup(shift2.id, user.id, { status: 'ATTENDED' });
+
+		expect(await getAttendedVolunteerSeconds(org1.id)).toBe(2 * 3600);
+		expect(await getAttendedVolunteerSeconds(org2.id)).toBe(4 * 3600);
 	});
 });

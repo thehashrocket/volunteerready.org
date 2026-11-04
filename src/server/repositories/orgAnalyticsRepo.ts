@@ -223,6 +223,33 @@ export async function getTopVolunteers(
 }
 
 /**
+ * Lifetime volunteer time for this org, in SECONDS: the summed duration of
+ * every shift with an ATTENDED signup, counted once per attending volunteer
+ * (a 3-hour shift with four attendees is 12 volunteer-hours).
+ *
+ * No date window on purpose — the impact report is a lifetime figure — and no
+ * filter on the shift's own status: attendance is what makes the time count,
+ * the same predicate `getTopVolunteers` and `attendedShiftWhere()` use.
+ *
+ * Seconds, not hours, so rounding happens once in the domain
+ * (`hoursFromSeconds`) rather than here.
+ */
+export async function getAttendedVolunteerSeconds(
+	orgId: string,
+): Promise<number> {
+	const rows = await prisma.$queryRaw<{ total_seconds: number | null }[]>`
+		SELECT
+			SUM(EXTRACT(EPOCH FROM (sh."endTime" - sh."startTime")))::float8
+				AS total_seconds
+		FROM "ShiftSignup" ss
+		JOIN "Shift" sh ON sh.id = ss."shiftId"
+		WHERE sh."orgId" = ${orgId}
+		  AND ss.status = 'ATTENDED'
+	`;
+	return Number(rows[0]?.total_seconds ?? 0);
+}
+
+/**
  * Check-in analytics: method breakdown (QR vs manual vs geo) and
  * busiest check-in hours. Uses AuditLog metadata to determine method.
  * Pre-QR entries default to 'manual' via COALESCE.

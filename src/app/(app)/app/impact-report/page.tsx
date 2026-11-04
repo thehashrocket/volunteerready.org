@@ -20,7 +20,7 @@ function StatRow({
 			<span className="text-sm text-muted-foreground">{label}</span>
 			<div className="text-right">
 				<span className="text-lg font-bold tabular-nums text-foreground">
-					{value}
+					{value.toLocaleString('en-US')}
 				</span>
 				{baseline != null && baseline > 0 && (
 					<span className="ml-2 text-xs text-muted-foreground">
@@ -138,6 +138,11 @@ export default function ImpactReportPage() {
 						</h3>
 					</div>
 
+					{/* First on purpose: hours served is the figure funders ask for. */}
+					<StatRow
+						label="Volunteer hours served"
+						value={data.summary.volunteerHours}
+					/>
 					<StatRow
 						label="Applications submitted"
 						value={data.summary.applicationsSubmitted}

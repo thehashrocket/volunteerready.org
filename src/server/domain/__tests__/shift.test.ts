@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	computeShiftCapacity,
+	hoursFromSeconds,
 	type ShiftData,
 	type SignupRecord,
 	shiftDurationHours,
@@ -437,5 +438,33 @@ describe('sumAttendedHours', () => {
 			twentyMinutes.map((r) => shiftDurationHours(r.startTime, r.endTime)),
 		).toEqual([0.3, 0.3, 0.3]);
 		expect(sumAttendedHours(twentyMinutes)).toBe(1);
+	});
+});
+
+describe('hoursFromSeconds', () => {
+	it('returns 0 for no attended time', () => {
+		expect(hoursFromSeconds(0)).toBe(0);
+	});
+
+	it('converts seconds to hours, rounded to one decimal', () => {
+		expect(hoursFromSeconds(3 * 3600)).toBe(3);
+		expect(hoursFromSeconds(90 * 60)).toBe(1.5);
+		// 1h 20m = 1.333… → 1.3
+		expect(hoursFromSeconds(80 * 60)).toBe(1.3);
+	});
+
+	it('rounds once from the total, matching sumAttendedHours', () => {
+		// Three 20-minute shifts: 1.0h in total, though each rounds to 0.3h.
+		const shifts = [0, 1, 2].map((d) => ({
+			startTime: new Date(Date.UTC(2026, 0, 1 + d, 9, 0)),
+			endTime: new Date(Date.UTC(2026, 0, 1 + d, 9, 20)),
+		}));
+		expect(hoursFromSeconds(3 * 20 * 60)).toBe(sumAttendedHours(shifts));
+		expect(hoursFromSeconds(3 * 20 * 60)).toBe(1);
+	});
+
+	it('treats negative or non-finite input as no time', () => {
+		expect(hoursFromSeconds(-60)).toBe(0);
+		expect(hoursFromSeconds(Number.NaN)).toBe(0);
 	});
 });

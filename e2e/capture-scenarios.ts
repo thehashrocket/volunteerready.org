@@ -129,10 +129,10 @@ export const CAPTURE_SCENARIOS: CaptureScenario[] = [
 		actor: CAPTURE_ACTORS.orgAdmin,
 		path: '/app/impact-report',
 		// Also the framing anchor (capture.spec.ts centers it): centering a
-		// mid-list row keeps the whole Platform Usage card in frame now that
-		// the seeded baseline card sits above it. The homepage pins its
-		// annotation markers to this composition.
-		waitForText: 'Shifts created',
+		// mid-list row keeps the whole Platform Usage card — volunteer hours
+		// on top — in frame below the seeded baseline card. The homepage pins
+		// its annotation markers to this composition.
+		waitForText: 'Background checks completed',
 		variants: ['light', 'dark'],
 	},
 	{
