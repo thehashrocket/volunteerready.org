@@ -14,7 +14,6 @@ import { Eyebrow } from '@/components/eyebrow';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
-import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
 import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
@@ -55,7 +54,7 @@ const features = [
 	{
 		icon: Award,
 		heading: 'Issue portable credentials',
-		body: 'Grant verified badges for background checks, orientation, training, and ID verification. Credentials travel with volunteers across every organization on the platform.',
+		body: 'Grant verified badges for background checks, orientation, training, and ID verification. Expiration dates flag re-screening before coverage lapses.',
 	},
 	{
 		icon: Users,
@@ -144,11 +143,11 @@ export default async function ForNonprofitsPage() {
 						<Button asChild size="lg" className="rounded-full px-8">
 							<TrackedLink
 								href={FOUNDER_BOOKING_URL}
-								eventLabel="See it in action"
+								eventLabel="Book a setup call (hero)"
 								eventPage="for-nonprofits"
 							>
 								<Building2 className="h-4 w-4" />
-								See It In Action — Free Setup
+								Book a setup call
 							</TrackedLink>
 						</Button>
 						<Button
@@ -180,7 +179,6 @@ export default async function ForNonprofitsPage() {
 			/>
 
 			{/* ── Platform stats ── */}
-			<PlatformStatsBar />
 
 			{/* ── Pain acknowledgment ── */}
 			<section className="bg-muted px-4 py-14 md:py-20">
@@ -360,10 +358,10 @@ export default async function ForNonprofitsPage() {
 						>
 							<TrackedLink
 								href={FOUNDER_BOOKING_URL}
-								eventLabel="See it in action (bottom CTA)"
+								eventLabel="Book a setup call (bottom CTA)"
 								eventPage="for-nonprofits"
 							>
-								See It In Action — Free Setup
+								Book a setup call
 							</TrackedLink>
 						</Button>
 						<Button

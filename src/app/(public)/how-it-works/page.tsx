@@ -13,11 +13,11 @@ import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
 export const metadata: Metadata = {
 	title: 'How It Works — VolunteerReady',
 	description:
-		'See how VolunteerReady works for volunteers, nonprofits, and corporate CSR programs. From sign-up to verified service record.',
+		'See how nonprofits use VolunteerReady to schedule shifts, check volunteers in, screen applicants, and keep funder-ready records — plus how it works for volunteers and employers.',
 	openGraph: {
 		title: 'How It Works — VolunteerReady',
 		description:
-			'See how VolunteerReady works for volunteers, nonprofits, and corporate CSR programs.',
+			'From first shift to funder report: how VolunteerReady works for nonprofits.',
 		images: [{ url: '/api/og/page/how-it-works', width: 1200, height: 630 }],
 	},
 };
@@ -51,7 +51,7 @@ const volunteerSteps = [
 		number: '01',
 		label: 'Create your profile',
 		detail:
-			'Sign up and add your skills, interests, and availability. Your skills are what our matching engine scores opportunities against.',
+			'Sign up and add your skills, interests, and availability. Organizations see what you can help with.',
 	},
 	{
 		number: '02',
@@ -84,31 +84,31 @@ const nonprofitSteps = [
 		number: '01',
 		label: 'Set up your organization',
 		detail:
-			'Create your profile in minutes. Add your mission, location, and team members with role-based access.',
+			'One setup call with the founder. Add your team with role-based access and the roles your program needs filled.',
 	},
 	{
 		number: '02',
-		label: 'Post opportunities',
+		label: 'Screen and background check',
 		detail:
-			'Define roles with location, schedule, capacity, and required skills. Publish when ready — close when spots fill.',
+			'Build custom questionnaires with auto-pass/fail rules. Run FCRA-compliant Checkr & Sterling background checks when a role requires it.',
 	},
 	{
 		number: '03',
-		label: 'Screen and background check',
-		detail:
-			'Build custom questionnaires with auto-pass/fail rules. Run FCRA-compliant Checkr & Sterling background checks when needed.',
-	},
-	{
-		number: '04',
 		label: 'Review and approve',
 		detail:
 			'Applications arrive pre-sorted. Approve, reject, or flag for review — with screening results already calculated.',
 	},
 	{
-		number: '05',
-		label: 'Schedule, attend, credential',
+		number: '04',
+		label: 'Schedule and check in',
 		detail:
-			'Create shifts, manage sign-ups, track attendance, and issue portable credentials to your most trusted volunteers.',
+			'Create shifts, let volunteers sign up, and check them in at the door. Attendance becomes recorded hours.',
+	},
+	{
+		number: '05',
+		label: 'Report',
+		detail:
+			'Applications, screenings, shifts, and credentials are already counted, and attended shifts roll up into volunteer hours. Pull the numbers when a funder, insurer, or auditor asks.',
 	},
 ];
 
@@ -211,14 +211,14 @@ const faqs = [
 			'Organizations issue five: Background Check Cleared, Training Complete, ID Verified, Reference Check Complete, and Orientation Complete. Each tracks the date issued and can be revoked if circumstances change. The platform also issues tenure badges automatically at one, three, and five years of service.',
 	},
 	{
-		question: 'How does the matching engine work?',
-		answer:
-			'It compares the skills on a volunteer profile against the skills an opportunity requires, then ranks opportunities by how completely they match. Coordinators see the same score against each applicant. Matching is included on every plan, Free included — it is not a paid upgrade.',
-	},
-	{
 		question: 'How do corporate ESG reports work?',
 		answer:
 			'Companies on the Pro company plan see a dashboard of employee volunteering — employees active, shifts completed and hours served for a date range you pick, broken out by nonprofit partner, plus a point-in-time count of verified credentials. Export the same figures to CSV or PDF for sustainability filings.',
+	},
+	{
+		question: 'How does the matching engine work?',
+		answer:
+			'It compares the skills on a volunteer profile against the skills an opportunity requires, then ranks opportunities by how completely they match. Coordinators see the same score against each applicant. Matching is included on every plan, Free included — it is not a paid upgrade.',
 	},
 ];
 
@@ -236,20 +236,20 @@ export default function HowItWorksPage() {
 				eyebrow="How it works"
 				heading={
 					<>
-						Simple by design.{' '}
+						From first shift{' '}
 						<em className="italic text-primary" style={{ fontWeight: 500 }}>
-							Powerful under the hood.
+							to funder report.
 						</em>
 					</>
 				}
-				description="Whether you're a volunteer, a nonprofit, or a corporate CSR program — the path forward is clear. Here's exactly how VolunteerReady works."
+				description="Here's how a nonprofit runs its volunteer program on VolunteerReady — and what it looks like from the volunteer's and employer's side of the same record."
 				side={{
 					label: 'Three journeys, one system',
 					note: (
 						<>
-							Volunteers, nonprofits, and employers each have{' '}
+							Nonprofits, volunteers, and employers each have{' '}
 							<em className="italic">their own front door</em> — and the same
-							shared source of truth underneath.
+							record underneath.
 						</>
 					),
 				}}
@@ -258,34 +258,6 @@ export default function HowItWorksPage() {
 			{/* ── Three audience journeys ── */}
 			<section className="mx-auto w-full max-w-5xl px-4 py-20">
 				<div className="grid gap-16 lg:grid-cols-3">
-					{/* Volunteers */}
-					<div>
-						<div className="mb-6 flex items-center gap-3 border-b border-border pb-4">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success/15">
-								<Heart className="h-5 w-5 text-success-foreground" />
-							</div>
-							<h2 className="font-display text-2xl font-semibold text-foreground">
-								Volunteers
-							</h2>
-						</div>
-						<StepTimeline
-							steps={volunteerSteps}
-							accentClass="bg-success/20 text-success-foreground"
-						/>
-						<div className="mt-8">
-							<Button asChild className="rounded-full px-6">
-								<TrackedLink
-									href="/login?callbackUrl=/app/my-applications"
-									eventLabel="Start volunteering"
-									eventPage="how-it-works"
-								>
-									<Heart className="h-4 w-4" />
-									Start volunteering
-								</TrackedLink>
-							</Button>
-						</div>
-					</div>
-
 					{/* Nonprofits */}
 					<div>
 						<div className="mb-6 flex items-center gap-3 border-b border-border pb-4">
@@ -301,7 +273,7 @@ export default function HowItWorksPage() {
 							accentClass="bg-primary/10 text-primary"
 						/>
 						<div className="mt-8">
-							<Button asChild variant="outline" className="rounded-full px-6">
+							<Button asChild className="rounded-full px-6">
 								<TrackedLink
 									href="/login?callbackUrl=/app/onboarding"
 									eventLabel="Set up org"
@@ -309,6 +281,34 @@ export default function HowItWorksPage() {
 								>
 									<Building2 className="h-4 w-4" />
 									Set up your organization
+								</TrackedLink>
+							</Button>
+						</div>
+					</div>
+
+					{/* Volunteers */}
+					<div>
+						<div className="mb-6 flex items-center gap-3 border-b border-border pb-4">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success/15">
+								<Heart className="h-5 w-5 text-success-foreground" />
+							</div>
+							<h2 className="font-display text-2xl font-semibold text-foreground">
+								Volunteers
+							</h2>
+						</div>
+						<StepTimeline
+							steps={volunteerSteps}
+							accentClass="bg-success/20 text-success-foreground"
+						/>
+						<div className="mt-8">
+							<Button asChild variant="outline" className="rounded-full px-6">
+								<TrackedLink
+									href="/login?callbackUrl=/app/my-applications"
+									eventLabel="Start volunteering"
+									eventPage="how-it-works"
+								>
+									<Heart className="h-4 w-4" />
+									Start volunteering
 								</TrackedLink>
 							</Button>
 						</div>

@@ -90,6 +90,23 @@ async function seedDev() {
 		'Riverside Animal Shelter',
 	);
 
+	// Helping Hands is the marketing-screenshot subject for the impact report
+	// (e2e/capture-scenarios.ts). A just-created org renders "0 days on
+	// VolunteerReady" and a "no baseline" nag, so give it a history.
+	// volunteerCount is left out on purpose: the report prints it beside
+	// "Volunteers onboarded" as "(baseline: N)", and a seed baseline larger
+	// than the seeded roster makes the demo org look like it shrank.
+	await prisma.organization.update({
+		where: { id: helpingHands.id },
+		data: {
+			createdAt: daysAgo(180),
+			onboardingBaseline: {
+				hoursPerWeek: 6,
+				currentProcess: 'Paper sign-in sheets and a shared spreadsheet',
+			},
+		},
+	});
+
 	// =========================================================================
 	// 2. Feature flags
 	// =========================================================================
@@ -991,7 +1008,7 @@ async function seedDev() {
 
 	await createApplicationIfNotExists({
 		orgId: helpingHands.id,
-		submittedByEmail: 'underage-applicant@example.com',
+		submittedByEmail: 'sam.whitfield@example.com',
 		status: 'REJECTED',
 		screeningStatus: 'FAIL',
 		screeningReasons: [
@@ -1408,6 +1425,27 @@ async function seedDev() {
 	await upsertCredential(vol5.id, helpingHands.id, 'ID_VERIFIED', 'VERIFIED', {
 		issuedAt: daysAgo(28),
 	});
+
+	// Completed background checks behind Alex's and Olivia's BACKGROUND_CHECK
+	// credentials, so the impact report doesn't read "Background checks
+	// completed: 0". Keyed on externalId for idempotent re-seeds. Consent
+	// attestation is left null on purpose (see the schema docstring).
+	for (const [userId, externalId, ago] of [
+		[vol1.id, 'seed-bgc-helping-hands-alex', 61],
+		[vol5.id, 'seed-bgc-helping-hands-olivia', 31],
+	] as const) {
+		await prisma.backgroundCheckRequest.upsert({
+			where: { externalId },
+			update: {},
+			create: {
+				orgId: helpingHands.id,
+				userId,
+				externalId,
+				status: 'COMPLETE',
+				createdAt: daysAgo(ago),
+			},
+		});
+	}
 
 	// Maya — verified at Green City Parks
 	await upsertCredential(

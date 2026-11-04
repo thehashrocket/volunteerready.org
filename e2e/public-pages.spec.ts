@@ -115,16 +115,16 @@ test.describe('Homepage editorial sections', () => {
 		// wrong array) would still pass the generic h1 smoke test — assert
 		// the actual content renders.
 		await expect(
-			page.getByRole('heading', { name: 'Background checks, built in' }),
+			page.getByRole('heading', { name: 'Funder-ready reports' }),
 		).toBeVisible();
 		await expect(
-			page.getByRole('heading', { name: 'Portable credentials' }),
+			page.getByRole('heading', { name: 'Shifts, check-ins, and hours' }),
+		).toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: 'Screening and background checks' }),
 		).toBeVisible();
 		await expect(
 			page.getByRole('heading', { name: 'Founder-led setup' }),
-		).toBeVisible();
-		await expect(
-			page.getByRole('heading', { name: 'Real-time platform data' }),
 		).toBeVisible();
 	});
 });
@@ -149,7 +149,7 @@ const MARKETING_IMG_SELECTOR =
 	'img[src*="marketing"]:visible, img[srcset*="marketing"]:visible';
 
 const SCREENSHOT_PAGES = [
-	{ path: '/', minImages: 4 }, // hero dashboard + 3 annotated pillar rows
+	{ path: '/', minImages: 3 }, // hero queue + 2 annotated pillar rows (hours pillar is a checklist)
 	{ path: '/for/nonprofits', minImages: 1 },
 	{ path: '/for/volunteers', minImages: 1 },
 	{ path: '/for/employers', minImages: 1 },

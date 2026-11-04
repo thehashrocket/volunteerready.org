@@ -1,5 +1,3 @@
-import { PlatformStatsBar } from '@/components/platform-stats-bar';
-
 type LocalProofProps = {
 	nonprofitCount: number;
 	nonprofitCountSource: string;
@@ -43,7 +41,6 @@ export function LocalProofSection({
 						)}
 					</div>
 				</div>
-				<PlatformStatsBar />
 			</div>
 		</section>
 	);

@@ -1,4 +1,4 @@
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, Check } from 'lucide-react';
 import type { Metadata } from 'next';
 import {
 	AnnotatedScreenshot,
@@ -8,7 +8,6 @@ import { CTABanner } from '@/components/cta-banner';
 import { EditorialList } from '@/components/editorial-list';
 import { Eyebrow } from '@/components/eyebrow';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
-import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
 import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
@@ -18,110 +17,121 @@ import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
 
 export const revalidate = 3600;
 
+const META_TITLE =
+	'VolunteerReady — Volunteer Hours, Screening & Funder Reports for Nonprofits';
+const META_DESCRIPTION =
+	'Schedule shifts, check volunteers in, screen applicants, run background checks, and keep the numbers your funders, insurers, and auditors ask for — in one place.';
+
 export const metadata: Metadata = {
-	title: 'VolunteerReady — Trusted Infrastructure for Volunteer Engagement',
-	description:
-		'Screen, credential, match, and schedule volunteers with the platform that nonprofits, corporations, and volunteers trust.',
+	title: META_TITLE,
+	description: META_DESCRIPTION,
 	openGraph: {
-		title: 'VolunteerReady — Trusted Infrastructure for Volunteer Engagement',
-		description:
-			'Screen, credential, match, and schedule volunteers with the platform that nonprofits, corporations, and volunteers trust.',
+		title: META_TITLE,
+		description: META_DESCRIPTION,
 		images: ['/api/og/page/home'],
 	},
 };
 
-interface Pillar {
-	heading: string;
-	body: string;
+interface PillarScreenshot {
 	src: string;
 	darkSrc?: string;
 	alt: string;
 	annotations: ScreenshotAnnotation[];
 }
 
+interface Pillar {
+	heading: string;
+	body: string;
+	/** A pillar renders its screenshot when it has one, its checklist otherwise. */
+	screenshot?: PillarScreenshot;
+	checklist?: string[];
+}
+
 // Marker coordinates are percentages of the 1280×720 capture frame — see the
 // coordinate diagram in annotated-screenshot.tsx. Recapture via
 // `pnpm screenshots` before adjusting (e2e/capture-scenarios.ts).
+//
+// Order is deliberate: reporting first, day-to-day management second,
+// screening third. The site sells running a volunteer program, not finding
+// volunteers — keep matching and portable credentials out of the lead.
 const pillars: Pillar[] = [
 	{
-		heading: 'Background checks, built in',
-		body: 'Checkr and Sterling run inside the platform with full FCRA compliance. Most checks return same-day, and results are tied to the volunteer record automatically.',
-		src: MARKETING_SCREENSHOTS.screener.src,
-		darkSrc: MARKETING_SCREENSHOTS.screener.darkSrc,
-		alt: 'VolunteerReady screener admin showing volunteer application questions, including background-check consent',
-		annotations: [
-			{
-				x: 23.5,
-				y: 60,
-				label:
-					'Background-check consent is part of the application itself — compliance starts at the first click, not after.',
-			},
-			{
-				x: 84.3,
-				y: 43,
-				label:
-					'Questions toggle on and off as requirements change — the defaults ship ready for volunteer roles.',
-			},
-			{
-				x: 85.0,
-				y: 30.6,
-				label:
-					'Role-specific questions get added here, without rebuilding a form.',
-			},
-		],
-	},
-	{
-		heading: 'Portable credentials',
-		body: 'Verified badges follow volunteers between organizations. Less re-screening, faster activation, fewer applicants lost to paperwork.',
-		src: MARKETING_SCREENSHOTS.credentials.src,
-		darkSrc: MARKETING_SCREENSHOTS.credentials.darkSrc,
-		alt: 'VolunteerReady credential wallet showing verified background check, orientation, and training credentials',
-		annotations: [
-			{
-				x: 36,
-				y: 50,
-				label:
-					'Verified credentials — background checks, orientation, training — pinned to the volunteer record.',
-			},
-			{
-				x: 78.8,
-				y: 32.2,
-				label:
-					'One shareable volunteer card replaces re-sending paperwork to every new organization.',
-			},
-			{
-				x: 48.5,
-				y: 94.4,
-				label: 'Expiration dates flag re-screening before coverage lapses.',
-			},
-		],
-	},
-	{
 		heading: 'Funder-ready reports',
-		body: 'Hours, headcount, and credential status stay export-ready. When a funder, insurer, or auditor asks, the data is already organized.',
-		src: MARKETING_SCREENSHOTS.impactReport.src,
-		darkSrc: MARKETING_SCREENSHOTS.impactReport.darkSrc,
-		alt: 'VolunteerReady impact report showing applications, approvals, shifts, and credentials counted automatically',
-		annotations: [
-			{
-				x: 58.6,
-				y: 44,
-				label:
-					'Applications, approvals, and screenings are tallied as they happen — not compiled at report time.',
-			},
-			{
-				x: 58.6,
-				y: 73.3,
-				label:
-					'Shift and credential history accumulates into the numbers funders actually ask for.',
-			},
-			{
-				x: 59,
-				y: 23.8,
-				label:
-					'The report covers your whole history on the platform — no spreadsheet archaeology before a deadline.',
-			},
+		body: 'Applications, approvals, screenings, shifts, and credentials are counted as they happen. When a funder, insurer, or auditor asks, the numbers already exist — no spreadsheet archaeology the week a report is due.',
+		screenshot: {
+			src: MARKETING_SCREENSHOTS.impactReport.src,
+			darkSrc: MARKETING_SCREENSHOTS.impactReport.darkSrc,
+			alt: 'VolunteerReady impact report showing applications, approvals, background checks, volunteers onboarded, shifts, and credentials counted automatically',
+			annotations: [
+				{
+					x: 62,
+					y: 18.5,
+					label:
+						'Your starting point is recorded at onboarding, so the report shows before and after.',
+				},
+				{
+					x: 58.6,
+					y: 61,
+					label:
+						'Applications, approvals, and background checks are tallied as they happen — not compiled at report time.',
+				},
+				{
+					x: 58.6,
+					y: 75.7,
+					label:
+						'Shift and credential history accumulates into the numbers funders actually ask for.',
+				},
+			],
+		},
+	},
+	{
+		heading: 'Shifts, check-ins, and hours',
+		body: 'Create shifts, let volunteers sign up, and check them in at the door. Attendance becomes recorded hours on each volunteer’s record, so the clipboard sign-in sheet can retire.',
+		checklist: [
+			'Shift scheduling with capacity limits',
+			'Volunteers sign themselves up',
+			'QR check-in at the door',
+			'Attendance recorded as volunteer hours',
+			'Reusable shift templates (Starter plan)',
 		],
+	},
+	{
+		heading: 'Screening and background checks',
+		body: 'Custom screening questions with consent built into the application. Checkr and Sterling background checks run inside the platform with FCRA workflows, and credential expiration dates flag re-screening before coverage lapses.',
+		screenshot: {
+			src: MARKETING_SCREENSHOTS.screener.src,
+			darkSrc: MARKETING_SCREENSHOTS.screener.darkSrc,
+			alt: 'VolunteerReady screener admin showing volunteer application questions, including background-check consent',
+			annotations: [
+				{
+					x: 23.5,
+					y: 60,
+					label:
+						'Background-check consent is part of the application itself — compliance starts at the first click, not after.',
+				},
+				{
+					x: 84.3,
+					y: 43,
+					label:
+						'Questions toggle on and off as requirements change — the defaults ship ready for volunteer roles.',
+				},
+			],
+		},
+	},
+];
+
+const painPoints = [
+	{
+		heading: 'Clearances in a spreadsheet',
+		body: 'Your grant requires background checks, and the only record of who’s cleared is a tab someone last updated in March.',
+	},
+	{
+		heading: 'Hours on a clipboard',
+		body: 'Paper sign-in sheets, a shared inbox, and a group text are your volunteer management system. Totaling them is a weekend project.',
+	},
+	{
+		heading: 'A report due Friday',
+		body: 'The funder wants hours, headcount, and screening status. You know the work happened. Proving it is the hard part.',
 	},
 ];
 
@@ -131,28 +141,46 @@ const differentiators = [
 		body: 'Our founder personally onboards every organization. No ticket queue, no chatbot — a real conversation about what you need.',
 	},
 	{
-		heading: 'Grant-ready by default',
-		body: 'Volunteer hours, headcount, and credential status are always documented and exportable. No more compiling data from paper sign-in sheets the week before a funder report is due.',
+		heading: 'Records as you go',
+		body: 'Hours, headcount, and screening status are captured as part of the daily workflow, so reporting is a lookup instead of a project.',
 	},
 	{
-		heading: 'Real-time platform data',
-		body: 'Live stats from real organizations, not vanity numbers. Every metric you see on this site comes from production data.',
+		heading: 'Built by volunteers',
+		body: 'We’ve spent decades volunteering at food banks and animal rescues. VolunteerReady is built around what coordinators actually deal with.',
 	},
 ];
+
+function PillarChecklist({ items }: { items: string[] }) {
+	return (
+		<ul className="space-y-3 rounded-lg border border-border/40 bg-muted p-6 shadow-sm sm:p-8">
+			{items.map((item) => (
+				<li
+					key={item}
+					className="flex items-start gap-3 text-base text-foreground"
+				>
+					<span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+						<Check className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+					</span>
+					{item}
+				</li>
+			))}
+		</ul>
+	);
+}
 
 export default async function Home() {
 	return (
 		<div className="flex flex-col">
 			<JsonLdBreadcrumb items={[{ label: 'Home', href: '/' }]} />
 			<PublicHero
-				eyebrow="VolunteerReady"
+				eyebrow="For volunteer coordinators"
 				heading={
 					<>
-						The platform where credentials{' '}
-						<em className="italic text-primary">travel with you.</em>
+						Your next funder report,{' '}
+						<em className="italic text-primary">already done.</em>
 					</>
 				}
-				description="If your grant requires it, your funder expects it, or your insurer mandates it — VolunteerReady makes volunteer compliance easier. Screen volunteers, run background checks, track credentials, and document hours for funder reporting, all in one place."
+				description="If your grant requires it, your funder expects it, or your insurer mandates it, VolunteerReady keeps the record as you go. Schedule shifts, check volunteers in, screen and background-check applicants, and pull the numbers when someone asks."
 				actions={
 					<>
 						<Button asChild size="lg" className="rounded-full px-8">
@@ -187,57 +215,84 @@ export default async function Home() {
 					label: 'What makes it work',
 					note: (
 						<>
-							Background checks, credential records, and hour logs stay{' '}
-							<em className="italic">always export-ready</em>. When a funder
-							asks, the data is already organized.
+							Every check-in, screening, and credential is recorded when it
+							happens, so a report is{' '}
+							<em className="italic">a lookup, not a project</em>.
 						</>
 					),
 				}}
 			/>
 
 			<ScreenshotSection
-				src={MARKETING_SCREENSHOTS.dashboard.src}
-				alt="VolunteerReady dashboard showing published opportunities, application counts by status, and organization setup progress"
-				caption="The dashboard coordinators open every morning."
+				src={MARKETING_SCREENSHOTS.applicationsQueue.src}
+				alt="VolunteerReady applications queue showing each applicant's status, screening result, and flags"
+				caption="Every application, screening result, and flag in one queue. (Sample data.)"
 				priority
 			/>
 
-			<PlatformStatsBar />
+			<section className="bg-muted px-4 py-16">
+				<div className="mx-auto max-w-[1040px]">
+					<Eyebrow tone="primary" className="mb-3">
+						Sound familiar?
+					</Eyebrow>
+					<h2 className="font-display mb-10 max-w-2xl text-[32px] font-bold leading-tight text-foreground [text-wrap:balance]">
+						The work happened. Proving it shouldn’t take a weekend.
+					</h2>
+					<div className="grid gap-8 md:grid-cols-3">
+						{painPoints.map((point) => (
+							<div
+								key={point.heading}
+								className="border-l-2 border-accent pl-5"
+							>
+								<h3 className="font-display mb-2 text-xl font-bold text-foreground">
+									{point.heading}
+								</h3>
+								<p className="text-base leading-relaxed text-muted-foreground">
+									{point.body}
+								</p>
+							</div>
+						))}
+					</div>
+				</div>
+			</section>
 
-			<section className="bg-background px-4 py-20">
+			<section className="bg-background px-4 py-24">
 				<div className="mx-auto max-w-[1040px]">
 					<h2 className="font-display mb-3 text-[32px] font-bold leading-tight text-foreground [text-wrap:balance]">
 						What it does, day to day
 					</h2>
-					<p className="mb-12 max-w-2xl text-muted-foreground">
-						Three things every volunteer coordinator needs to stop worrying
-						about — and the funder reports that follow from them.
+					<p className="mb-12 max-w-2xl text-base text-muted-foreground">
+						Run the program, and the reporting takes care of itself.
 					</p>
 					<div className="space-y-16 md:space-y-20">
 						{pillars.map((pillar, index) => (
 							<div
 								key={pillar.heading}
-								className="grid grid-cols-1 gap-8 md:grid-cols-[5fr_7fr] md:items-center md:gap-12"
+								className="grid grid-cols-1 gap-8 md:grid-cols-[5fr_7fr] md:items-start md:gap-12"
 							>
 								<div className={index % 2 === 1 ? 'md:order-2' : undefined}>
 									<div className="border-l-2 border-accent pl-6">
 										<h3 className="font-display mb-2 text-2xl font-bold text-foreground [text-wrap:balance]">
 											{pillar.heading}
 										</h3>
-										<p className="text-sm leading-relaxed text-muted-foreground">
+										<p className="text-base leading-relaxed text-muted-foreground">
 											{pillar.body}
 										</p>
 									</div>
 								</div>
 								<div className={index % 2 === 1 ? 'md:order-1' : undefined}>
-									<AnnotatedScreenshot
-										src={pillar.src}
-										darkSrc={pillar.darkSrc}
-										alt={pillar.alt}
-										annotations={pillar.annotations}
-										frameClassName="bg-muted rounded-lg border border-border/40 shadow-sm"
-										sizes="(max-width: 768px) 100vw, 600px"
-									/>
+									{pillar.screenshot ? (
+										<AnnotatedScreenshot
+											src={pillar.screenshot.src}
+											darkSrc={pillar.screenshot.darkSrc}
+											alt={pillar.screenshot.alt}
+											annotations={pillar.screenshot.annotations}
+											frameClassName="bg-muted rounded-lg border border-border/40 shadow-sm"
+											sizes="(max-width: 768px) 100vw, 600px"
+										/>
+									) : pillar.checklist ? (
+										<PillarChecklist items={pillar.checklist} />
+									) : null}
 								</div>
 							</div>
 						))}
@@ -252,7 +307,8 @@ export default async function Home() {
 							How we&rsquo;re different
 						</Eyebrow>
 						<h2 className="font-display text-[32px] font-bold leading-tight text-foreground [text-wrap:balance]">
-							Three things you won&rsquo;t find in the rest of the category.
+							Small-nonprofit software, built by people who&rsquo;ve stood at
+							the sign-in table.
 						</h2>
 					</div>
 					<EditorialList items={differentiators} />
@@ -262,7 +318,7 @@ export default async function Home() {
 			<CTABanner
 				icon={CalendarClock}
 				heading="Set up your org in one call"
-				description="Coordinators get a guided walkthrough — pricing, screening, scheduling, all explained. No demo loop, no sales pitch."
+				description="Coordinators get a guided walkthrough — scheduling, check-ins, screening, and reporting, all explained. No demo loop, no sales pitch."
 				actions={
 					<>
 						<Button

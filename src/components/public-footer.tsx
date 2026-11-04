@@ -8,13 +8,6 @@ const footerLinks = [
 		links: getFooterPages('Platform'),
 	},
 	{
-		heading: 'For Volunteers',
-		links: [
-			{ label: 'Why VolunteerReady', href: '/for/volunteers' },
-			{ label: 'Sign in', href: '/login' },
-		],
-	},
-	{
 		heading: 'For Nonprofits',
 		links: [
 			{ label: 'Why VolunteerReady', href: '/for/nonprofits' },
@@ -22,6 +15,14 @@ const footerLinks = [
 				label: 'Set up your organization',
 				href: '/login?callbackUrl=/app/onboarding',
 			},
+		],
+	},
+	{
+		heading: 'For Volunteers',
+		links: [
+			...getFooterPages('Volunteers'),
+			{ label: 'Why VolunteerReady', href: '/for/volunteers' },
+			{ label: 'Sign in', href: '/login' },
 		],
 	},
 	{
@@ -54,7 +55,8 @@ export function PublicFooter() {
 							</span>
 						</Link>
 						<p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-							Connecting volunteers with the missions that need them most.
+							Volunteer hours, screening, and funder reports for small
+							nonprofits.
 						</p>
 					</div>
 

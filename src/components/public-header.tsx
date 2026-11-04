@@ -16,6 +16,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { getNavPages } from '@/lib/public-pages';
 import { trpc } from '@/lib/trpc/client';
 import { TRPCProvider } from '@/lib/trpc/provider';
@@ -95,7 +96,7 @@ function PublicHeaderInner() {
 							key={link.href}
 							href={link.href}
 							className={cn(
-								'px-1.5 py-3 text-sm transition-colors hover:text-foreground',
+								'whitespace-nowrap px-1.5 py-3 text-sm transition-colors hover:text-foreground',
 								pathname === link.href
 									? 'font-medium text-foreground'
 									: 'text-muted-foreground',
@@ -159,12 +160,22 @@ function PublicHeaderInner() {
 					)}
 
 					{!isLoading && !isAuthenticated && (
-						<Link
-							href="/login"
-							className="py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-						>
-							Sign in
-						</Link>
+						<>
+							<Link
+								href="/login"
+								className="whitespace-nowrap py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+							>
+								Sign in
+							</Link>
+							<a
+								href={FOUNDER_BOOKING_URL}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="hidden min-h-[44px] items-center whitespace-nowrap rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:inline-flex"
+							>
+								Book a setup call
+							</a>
+						</>
 					)}
 				</nav>
 
@@ -252,13 +263,24 @@ function PublicHeaderInner() {
 							)}
 
 							{!isLoading && !isAuthenticated && (
-								<Link
-									href="/login"
-									onClick={() => setOpen(false)}
-									className="rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
-								>
-									Sign in
-								</Link>
+								<>
+									<Link
+										href="/login"
+										onClick={() => setOpen(false)}
+										className="rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+									>
+										Sign in
+									</Link>
+									<a
+										href={FOUNDER_BOOKING_URL}
+										target="_blank"
+										rel="noopener noreferrer"
+										onClick={() => setOpen(false)}
+										className="mt-2 inline-flex min-h-[44px] items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+									>
+										Book a setup call
+									</a>
+								</>
 							)}
 						</nav>
 					</div>
