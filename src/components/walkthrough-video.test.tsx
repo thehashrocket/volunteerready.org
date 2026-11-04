@@ -4,6 +4,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { WalkthroughVideo } from './walkthrough-video';
 
+const analytics = vi.hoisted(() => ({ trackEvent: vi.fn() }));
+vi.mock('@/lib/analytics', () => analytics);
+
 const PROPS = {
 	src: '/marketing/walkthrough.mp4',
 	poster: '/marketing/walkthrough-poster.jpg',
@@ -53,5 +56,16 @@ describe('WalkthroughVideo', () => {
 		expect(screen.getByText('Read the transcript')).toBeTruthy();
 		expect(screen.getByText('First line.')).toBeTruthy();
 		expect(screen.getByText('Second line.')).toBeTruthy();
+	});
+
+	it('records a walkthrough_play event when played', () => {
+		analytics.trackEvent.mockClear();
+		render(<WalkthroughVideo {...PROPS} />);
+
+		fireEvent.click(screen.getByRole('button', { name: /Play the 1-minute/ }));
+
+		expect(analytics.trackEvent).toHaveBeenCalledWith('walkthrough_play', {
+			page_path: window.location.pathname,
+		});
 	});
 });

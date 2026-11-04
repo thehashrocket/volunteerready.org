@@ -26,11 +26,11 @@ describe('Eyebrow', () => {
 		expect(screen.getByText('Term tag').tagName).toBe('DT');
 	});
 
-	it('applies the primary/70 color for tone="primary"', () => {
+	it('applies the primary/80 color for tone="primary"', () => {
 		render(<Eyebrow tone="primary">Primary tone</Eyebrow>);
 
 		expect(screen.getByText('Primary tone').className).toMatch(
-			/text-primary\/70/,
+			/text-primary\/80/,
 		);
 	});
 
@@ -69,6 +69,6 @@ describe('Eyebrow', () => {
 
 		const el = screen.getByText('On dark background');
 		expect(el.className).toMatch(/text-primary-foreground\/60/);
-		expect(el.className).not.toMatch(/text-primary\/70/);
+		expect(el.className).not.toMatch(/text-primary\/80/);
 	});
 });

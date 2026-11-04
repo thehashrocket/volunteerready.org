@@ -12,24 +12,28 @@ import {
 	scrubSpan,
 } from '@/lib/sentry-url-scrub';
 
+function currentUrlIsSecret(): boolean {
+	return (
+		typeof window !== 'undefined' &&
+		isSecretUrl(window.location.pathname + window.location.search)
+	);
+}
+
 // Replay's DOM recording stores `location.href` in a meta event that no hook
 // can rewrite, so a page whose URL carries a secret (an invite or claim
 // token, ?token=) is never recorded. See src/lib/sentry-url-scrub.ts.
-const onSecretUrl =
-	typeof window !== 'undefined' &&
-	isSecretUrl(window.location.pathname + window.location.search);
+// Once true for a page load it stays true: leaving for a secret URL in-app
+// also sets it (onRouterTransitionStart), so a replay that has not finished
+// loading yet can never start afterwards.
+let replayBlocked = currentUrlIsSecret();
 
 Sentry.init({
 	dsn: 'https://fba2ea33a15f2a443b2aa02c3b899025@o4511061592834048.ingest.us.sentry.io/4511061594406912',
 
-	// Add optional integrations for additional features
-	integrations: onSecretUrl
-		? []
-		: [
-				Sentry.replayIntegration({
-					beforeAddRecordingEvent: scrubRecordingEvent,
-				}),
-			],
+	// Replay is NOT in the first-load bundle: it was ~120 KB of the largest
+	// client chunk, paid by every visitor (mobile Lighthouse TBT). It loads as
+	// a separate chunk once the page is idle, see loadReplayWhenIdle() below.
+	integrations: [],
 
 	// Every URL the SDK records goes through the same scrubber: error events,
 	// breadcrumbs and spans (pageload/navigation names, fetch URLs).
@@ -89,12 +93,59 @@ Sentry.init({
 // reaches them.
 Sentry.addEventProcessor(scrubSentryEvent);
 
+// Held here rather than read back with Sentry.getReplay(): referencing any
+// export of @sentry/replay through @sentry/nextjs pulls the whole module
+// (rrweb included) back into the main bundle, which is what this avoids.
+type StoppableReplay = { stop: () => Promise<void> | void };
+let activeReplay: StoppableReplay | undefined;
+
+/**
+ * Loads Session Replay after the page is idle instead of shipping it in the
+ * main bundle. A dynamic import makes it its own chunk on our origin: Sentry's
+ * CDN (lazyLoadIntegration) is on common blocklists and would silently mean no
+ * replay for those visitors, where /monitoring already tunnels their events.
+ * The secret-URL rule is checked again when the chunk arrives, because the
+ * visitor may have navigated in-app while it was downloading.
+ */
+export async function loadReplay(): Promise<void> {
+	if (replayBlocked) return;
+	try {
+		const { replayIntegration } = await import('@sentry/replay');
+		if (replayBlocked || currentUrlIsSecret()) return;
+		const replay = replayIntegration({
+			beforeAddRecordingEvent: scrubRecordingEvent,
+		});
+		Sentry.addIntegration(replay);
+		activeReplay = replay;
+	} catch {
+		// Chunk failed to load (offline, deploy mid-session): no replay only.
+	}
+}
+
+function loadReplayWhenIdle(): void {
+	if (typeof window === 'undefined' || replayBlocked) return;
+	const schedule = () => {
+		if ('requestIdleCallback' in window) {
+			window.requestIdleCallback(() => void loadReplay(), { timeout: 5000 });
+		} else {
+			setTimeout(() => void loadReplay(), 2000);
+		}
+	};
+	if (document.readyState === 'complete') schedule();
+	else window.addEventListener('load', schedule, { once: true });
+}
+
+loadReplayWhenIdle();
+
 export function onRouterTransitionStart(
 	href: string,
 	navigationType: string,
 ): void {
 	// Leaving for a secret URL inside the app: stop recording before the new
 	// page renders. A stopped replay stays stopped for this page load.
-	if (isSecretUrl(href)) void Sentry.getReplay()?.stop();
+	if (isSecretUrl(href)) {
+		replayBlocked = true;
+		void activeReplay?.stop();
+	}
 	Sentry.captureRouterTransitionStart(href, navigationType);
 }

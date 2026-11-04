@@ -119,7 +119,7 @@ export function CookieConsentBanner() {
 						    flags exactly this. */}
 						<a
 							href="/privacy#cookies-tracking"
-							className="text-primary hover:underline"
+							className="text-primary underline underline-offset-2 hover:no-underline"
 						>
 							Read our cookie policy
 						</a>
