@@ -314,6 +314,19 @@ export function sumAttendedHours(
 	return roundHours(totalMs / MS_PER_HOUR);
 }
 
+/**
+ * Total attended hours from a duration summed in the database, in seconds.
+ *
+ * For aggregates too large to pull row by row (an org's lifetime total), the
+ * repository sums `endTime - startTime` in SQL and hands back seconds; this
+ * applies the same single rounding `sumAttendedHours` does, so the impact
+ * report and the per-volunteer totals round by one rule.
+ */
+export function hoursFromSeconds(totalSeconds: number): number {
+	if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) return 0;
+	return roundHours(totalSeconds / 3600);
+}
+
 // ---- Shift Templates ------------------------------------------------------
 
 export const DAY_OF_WEEK_LABELS = [

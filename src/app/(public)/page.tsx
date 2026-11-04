@@ -57,17 +57,17 @@ interface Pillar {
 const pillars: Pillar[] = [
 	{
 		heading: 'Funder-ready reports',
-		body: 'Applications, approvals, screenings, shifts, and credentials are counted as they happen. When a funder, insurer, or auditor asks, the numbers already exist — no spreadsheet archaeology the week a report is due.',
+		body: 'Volunteer hours, applications, background checks, shifts, and credentials are counted as they happen. When a funder, insurer, or auditor asks, the numbers already exist — no spreadsheet archaeology the week a report is due.',
 		screenshot: {
 			src: MARKETING_SCREENSHOTS.impactReport.src,
 			darkSrc: MARKETING_SCREENSHOTS.impactReport.darkSrc,
-			alt: 'VolunteerReady impact report showing applications, approvals, background checks, volunteers onboarded, shifts, and credentials counted automatically',
+			alt: 'VolunteerReady impact report showing volunteer hours served, applications, approvals, background checks, volunteers onboarded, shifts, and credentials counted automatically',
 			annotations: [
 				{
-					x: 62,
-					y: 18.5,
+					x: 58.6,
+					y: 38.9,
 					label:
-						'Your starting point is recorded at onboarding, so the report shows before and after.',
+						'Volunteer hours roll up from shift check-ins — the first number most funders ask for.',
 				},
 				{
 					x: 58.6,

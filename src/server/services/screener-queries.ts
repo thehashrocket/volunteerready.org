@@ -1,7 +1,9 @@
 import type { ApplicationStatus } from '@/prisma/generated/client';
+import { hoursFromSeconds } from '@/server/domain/shift';
 import { sendEmail } from '@/server/lib/email';
 import { writeAuditLogTx } from '@/server/repositories/auditRepo';
 import { countOpportunitiesByStatus } from '@/server/repositories/opportunityRepo';
+import { getAttendedVolunteerSeconds } from '@/server/repositories/orgAnalyticsRepo';
 import { countOrgVolunteers } from '@/server/repositories/orgVolunteerRepo';
 import { prisma } from '@/server/repositories/prisma';
 import { getPublicFormByOrgSlug } from '@/server/repositories/publicApplyRepo';
@@ -508,6 +510,7 @@ async function getOrgLifetimeSummary(orgId: string) {
 		credentialsIssued,
 		applicationsSubmitted,
 		applicationsApproved,
+		attendedSeconds,
 	] = await Promise.all([
 		prisma.volunteerApplication.count({
 			where: { orgId, status: 'APPROVED' },
@@ -523,6 +526,7 @@ async function getOrgLifetimeSummary(orgId: string) {
 		prisma.volunteerApplication.count({
 			where: { orgId, status: 'APPROVED' },
 		}),
+		getAttendedVolunteerSeconds(orgId),
 	]);
 
 	return {
@@ -532,5 +536,6 @@ async function getOrgLifetimeSummary(orgId: string) {
 		credentialsIssued,
 		applicationsSubmitted,
 		applicationsApproved,
+		volunteerHours: hoursFromSeconds(attendedSeconds),
 	};
 }
