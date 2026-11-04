@@ -2,7 +2,11 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { CAPTURE_ACTORS, CAPTURE_SCENARIOS } from '../../e2e/capture-scenarios';
-import { CAPTURE_FRAME, MARKETING_SCREENSHOTS } from './marketing-screenshots';
+import {
+	CAPTURE_FRAME,
+	MARKETING_SCREENSHOTS,
+	WALKTHROUGH_VIDEO,
+} from './marketing-screenshots';
 
 // ScreenshotSection silently hides itself when an image 404s, so a missing or
 // renamed asset would vanish from the marketing pages without failing any
@@ -92,6 +96,22 @@ describe('capture scenario manifest', () => {
 		for (const scenario of CAPTURE_SCENARIOS) {
 			expect(scenario.waitForText.trim().length).toBeGreaterThan(0);
 			expect(scenario.path.startsWith('/')).toBe(true);
+		}
+	});
+});
+
+describe('walkthrough video assets', () => {
+	it.each([
+		['video', WALKTHROUGH_VIDEO.src],
+		['poster', WALKTHROUGH_VIDEO.poster],
+	])('%s exists on disk', (_label, src) => {
+		expect(existsSync(path.join(process.cwd(), 'public', src))).toBe(true);
+	});
+
+	it('has one transcript line per caption beat', () => {
+		expect(WALKTHROUGH_VIDEO.transcript.length).toBeGreaterThan(0);
+		for (const line of WALKTHROUGH_VIDEO.transcript) {
+			expect(line.trim().length).toBeGreaterThan(0);
 		}
 	});
 });

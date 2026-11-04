@@ -9,11 +9,14 @@ import { EditorialList } from '@/components/editorial-list';
 import { Eyebrow } from '@/components/eyebrow';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
 import { PublicHero } from '@/components/public-hero';
-import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
 import { Button } from '@/components/ui/button';
+import { WalkthroughVideo } from '@/components/walkthrough-video';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
-import { MARKETING_SCREENSHOTS } from '@/lib/marketing-screenshots';
+import {
+	MARKETING_SCREENSHOTS,
+	WALKTHROUGH_VIDEO,
+} from '@/lib/marketing-screenshots';
 
 export const revalidate = 3600;
 
@@ -202,11 +205,11 @@ export default async function Home() {
 							className="rounded-full px-8"
 						>
 							<TrackedLink
-								href="/how-it-works"
-								eventLabel="See how it works (hero)"
+								href="#walkthrough"
+								eventLabel="Watch walkthrough (hero)"
 								eventPage="homepage"
 							>
-								See how it works
+								Watch the 1-minute demo
 							</TrackedLink>
 						</Button>
 					</>
@@ -223,12 +226,16 @@ export default async function Home() {
 				}}
 			/>
 
-			<ScreenshotSection
-				src={MARKETING_SCREENSHOTS.applicationsQueue.src}
-				alt="VolunteerReady applications queue showing each applicant's status, screening result, and flags"
-				caption="Every application, screening result, and flag in one queue. (Sample data.)"
-				priority
-			/>
+			<section id="walkthrough" className="scroll-mt-20 px-4 py-14 md:py-20">
+				<WalkthroughVideo
+					src={WALKTHROUGH_VIDEO.src}
+					poster={WALKTHROUGH_VIDEO.poster}
+					durationLabel={WALKTHROUGH_VIDEO.durationLabel}
+					transcript={WALKTHROUGH_VIDEO.transcript}
+					caption="One volunteer, from application to the hours report. (Sample data.)"
+					className="mx-auto max-w-5xl"
+				/>
+			</section>
 
 			<section className="bg-muted px-4 py-16">
 				<div className="mx-auto max-w-[1040px]">

@@ -149,7 +149,7 @@ const MARKETING_IMG_SELECTOR =
 	'img[src*="marketing"]:visible, img[srcset*="marketing"]:visible';
 
 const SCREENSHOT_PAGES = [
-	{ path: '/', minImages: 3 }, // hero queue + 2 annotated pillar rows (hours pillar is a checklist)
+	{ path: '/', minImages: 3 }, // walkthrough poster + 2 annotated pillar rows (hours pillar is a checklist)
 	{ path: '/for/nonprofits', minImages: 1 },
 	{ path: '/for/volunteers', minImages: 1 },
 	{ path: '/for/employers', minImages: 1 },
@@ -267,7 +267,7 @@ test.describe('Homepage pillar annotations', () => {
 		await page.setViewportSize({ width: 375, height: 812 });
 		await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-		const firstPillarImage = page.locator(MARKETING_IMG_SELECTOR).nth(1); // 0 = hero applications-queue shot
+		const firstPillarImage = page.locator(MARKETING_IMG_SELECTOR).nth(1); // 0 = walkthrough video poster
 		await firstPillarImage.scrollIntoViewIfNeeded();
 		await expect(firstPillarImage).toBeVisible();
 
