@@ -134,7 +134,7 @@ src/
 │   ├── org/                      # Organization management components
 │   ├── my-applications/          # Volunteer application tracking
 │   ├── opportunities/            # Opportunity display components
-│   ├── public-header.tsx         # Marketing site header with nav
+│   ├── public-header/            # Marketing header: shell.tsx (no auth code), account.tsx (signed-in, lazy)
 │   ├── public-footer.tsx         # Marketing site footer
 │   ├── public-hero.tsx           # Shared hero section (eyebrow, heading, CTA)
 │   ├── cta-banner.tsx            # Full-width CTA banner

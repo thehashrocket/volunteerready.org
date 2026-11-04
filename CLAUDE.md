@@ -232,6 +232,7 @@ docs/
 - Feedback admin notice: `src/components/app/feedback-admin-notice.tsx` (dashboard "N new" banner for platform admins)
 - My Feedback page: `src/app/(app)/app/my-feedback/page.tsx` (user-facing feedback history with volunteer-friendly status labels)
 - Cookie banner sets `--cookie-banner-height` CSS variable on `:root` for feedback pill positioning
+- **Public header** (`src/components/public-header/`): `index.tsx` + `shell.tsx` ship to every visitor and must not import next-auth, tRPC or the dropdown (a test enforces it); signed-in UI lives in `account.tsx`, loaded via `next/dynamic` only once `/api/auth/session` returns a user
 - PWA: `public/manifest.webmanifest`, `public/sw.js`, `src/components/sw-register.tsx`, `src/components/ios-install-prompt.tsx`
 - **The service worker caches build output only, via an ALLOWLIST** (`STATIC_PREFIXES` in `public/sw.js`). Cache name varies per build via `?v=` from `sw-register.tsx`; no `skipWaiting()`; `clients.claim()` stays; never re-add a network-first HTML branch. Asserted by `e2e/service-worker.spec.ts`. Read `docs/conventions/ui-patterns.md` before touching it
 - **Sentry URL scrubbing is a denylist** (`SECRET_PATHS`/`SECRET_QUERY_KEYS` in `src/lib/sentry-url-scrub.ts`): a new route with a secret in its path or query must be added there, with a case in `sentry-url-scrub.test.ts`
