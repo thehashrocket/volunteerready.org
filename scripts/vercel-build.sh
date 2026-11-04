@@ -4,6 +4,19 @@
 # race conditions when preview and production deployments run concurrently.
 set -e
 
+# Generate the Prisma client FIRST, before anything that imports it.
+#
+# `postinstall` also runs `prisma generate`, but only when the install step
+# actually installs. When Vercel restores node_modules from its build cache and
+# the lockfile is unchanged, pnpm reports "Already up to date", skips lifecycle
+# scripts, and the client (generated into src/prisma/generated, which the cache
+# does not hold) never exists. The production preflight below imports it, so
+# every production deploy without a dependency change failed with
+# "Cannot find module '../src/prisma/generated/client'" (2026-11-03, #279 and
+# #280). Dependency-bump deploys passed only because they reinstalled.
+# Pinned by scripts/vercel-build-order.test.ts.
+pnpm prisma generate
+
 if [ "$VERCEL_ENV" = "production" ]; then
   # Preflight BEFORE migrate deploy.
   #
@@ -40,6 +53,5 @@ else
   echo "Preview/development build: skipping prisma migrate deploy (schema already applied)"
 fi
 
-pnpm prisma generate
 pnpm seed
 pnpm next build
