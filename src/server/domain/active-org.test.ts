@@ -81,13 +81,16 @@ describe('staff_created_volunteers flag registration', () => {
 		expect(isKnownFlag(STAFF_CREATED_VOLUNTEERS_FLAG)).toBe(true);
 	});
 
-	it('defaults to OFF so it never ships enabled by accident', async () => {
+	it('defaults to ON: without it a new org cannot put anyone on a shift', async () => {
+		// Flipped deliberately. With the flag off, staff had no way to assign a
+		// volunteer to a shift, so attendance (and the hours report) stayed at
+		// zero for every new org. Orgs turn it off from Settings instead.
 		const { getFlagDefinition, STAFF_CREATED_VOLUNTEERS_FLAG } = await import(
 			'./feature-flags'
 		);
 		expect(
 			getFlagDefinition(STAFF_CREATED_VOLUNTEERS_FLAG)?.defaultEnabled,
-		).toBe(false);
+		).toBe(true);
 	});
 });
 

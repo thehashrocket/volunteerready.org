@@ -1,11 +1,13 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { orgProfileUpdateSchema } from '@/server/domain/org-profile';
+import { setOrgVolunteerRoster } from '@/server/services/featureFlagService';
 import { updateMarketplaceSettings } from '@/server/services/orgMarketplaceService';
 import {
 	switchOrgForSession,
 	updateOrgProfile,
 } from '@/server/services/orgService';
+import { effectiveUserId, impersonatedBy } from '@/server/trpc/audit-actor';
 import {
 	adminProcedure,
 	createTRPCRouter,
@@ -153,6 +155,24 @@ export const orgRouter = createTRPCRouter({
 						? ctx.realUserId
 						: null,
 			});
+		}),
+
+	/**
+	 * Turn the volunteer roster (add volunteers, assign them to shifts) on or
+	 * off for the active org. OWNER/ADMIN only; on by default.
+	 */
+	setVolunteerRoster: adminProcedure
+		.input(z.object({ enabled: z.boolean() }))
+		.mutation(async ({ ctx, input }) => {
+			const actorId = effectiveUserId(ctx);
+			if (!actorId) throw new TRPCError({ code: 'UNAUTHORIZED' });
+			await setOrgVolunteerRoster({
+				orgId: ctx.orgId,
+				enabled: input.enabled,
+				actorId,
+				impersonatedBy: impersonatedBy(ctx),
+			});
+			return { enabled: input.enabled };
 		}),
 
 	/** Update org marketplace visibility and profile fields (staff only). */

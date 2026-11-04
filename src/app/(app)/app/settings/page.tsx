@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { OrgProfileForm } from '@/components/app/org-profile-form';
+import { VolunteerRosterToggle } from '@/components/app/volunteer-roster-toggle';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { Role } from '@/prisma/generated/client';
@@ -13,6 +14,7 @@ import {
 	getFirstOrgForUser,
 	getOrgProfile,
 } from '@/server/repositories/orgRepo';
+import { isRosterEnabledForOrg } from '@/server/services/featureFlagService';
 
 export const metadata: Metadata = {
 	title: 'Organization settings',
@@ -83,6 +85,7 @@ export default async function OrganizationSettingsPage() {
 	}
 
 	const canEdit = role === 'OWNER' || role === 'ADMIN';
+	const rosterEnabled = await isRosterEnabledForOrg(org.id);
 
 	return (
 		<div className="space-y-6">
@@ -105,6 +108,19 @@ export default async function OrganizationSettingsPage() {
 						key={org.id}
 						initialName={org.name}
 						initialSlug={org.slug}
+						canEdit={canEdit}
+					/>
+				</CardContent>
+			</Card>
+
+			<Card>
+				<CardHeader>
+					<h2 className="text-base font-semibold">Volunteers and shifts</h2>
+				</CardHeader>
+				<CardContent>
+					<VolunteerRosterToggle
+						key={org.id}
+						initialEnabled={rosterEnabled}
 						canEdit={canEdit}
 					/>
 				</CardContent>

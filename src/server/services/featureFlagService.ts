@@ -111,14 +111,19 @@ export async function isFeatureEnabled(
 /**
  * Is the volunteer roster enabled for THIS org id?
  *
- * The predicate has six callers now and they do not share a shape: a tRPC
- * middleware (`rosterProcedure`), two Server Components (the app shell's nav
- * gate in `app/(app)/app/layout.tsx` and `resolveVolunteerRosterFlag`), a raw
+ * The predicate has seven callers now and they do not share a shape: a tRPC
+ * middleware (`rosterProcedure`), three Server Components (the app shell's nav
+ * gate in `app/(app)/app/layout.tsx`, `resolveVolunteerRosterFlag`, and the
+ * settings page, which reads it to seed the org's own on/off switch), a raw
  * Route Handler (the roster CSV export), and the two onboarding surfaces, which
  * hide the roster milestone rather than showing a step that links to a route
  * the org would be redirected out of.
  *
- * One definition rather than six copies of `isFeatureEnabled(orgId, FLAG)`,
+ * On by default (see the registry); an org's override row turns it off. The
+ * volunteer self-signup list (`shifts.claimable`) deliberately does NOT read
+ * it: volunteers can pick open shifts whether or not staff use the roster.
+ *
+ * One definition rather than seven copies of `isFeatureEnabled(orgId, FLAG)`,
  * because grepping `rosterProcedure` does NOT enumerate every roster surface —
  * two profile procedures are deliberately ungated, the export is not a
  * procedure, and the onboarding checks are reads rather than guards. When the
@@ -131,4 +136,31 @@ export async function isFeatureEnabled(
  */
 export function isRosterEnabledForOrg(orgId: string): Promise<boolean> {
 	return isFeatureEnabled(orgId, STAFF_CREATED_VOLUNTEERS_FLAG);
+}
+
+/**
+ * An org's own staff turning the volunteer roster (add volunteers, assign them
+ * to shifts) on or off from Settings. Goes through `setFeatureFlag`, so it
+ * writes the same override row and FEATURE_FLAG_SET audit entry a platform
+ * admin's toggle does; the reason records that the org chose it.
+ *
+ * Turning it off hides the staff roster surfaces only. Roster rows are still
+ * minted on approval, volunteers can still pick open shifts and leave a roster
+ * (see the flag's registry comment), and nothing is deleted.
+ */
+export async function setOrgVolunteerRoster(args: {
+	orgId: string;
+	enabled: boolean;
+	actorId: string;
+	impersonatedBy?: string | null;
+}) {
+	return setFeatureFlag({
+		orgId: args.orgId,
+		key: STAFF_CREATED_VOLUNTEERS_FLAG,
+		enabled: args.enabled,
+		actorId: args.actorId,
+		reason: args.impersonatedBy
+			? `Changed in organization settings (impersonated by ${args.impersonatedBy})`
+			: 'Changed in organization settings',
+	});
 }

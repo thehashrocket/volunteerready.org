@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { GeoCheckin } from '@/components/app/geo-checkin';
 import { InstallPrompt } from '@/components/app/install-prompt';
+import { OpenShifts } from '@/components/app/open-shifts';
 import { QrCheckinCode } from '@/components/app/qr-checkin-code';
 import { safeErrorMessage } from '@/components/app/query-error-card';
 import { EmptyState } from '@/components/empty-state';
@@ -53,7 +54,7 @@ export default function MyShiftsPage() {
 		<div className="space-y-6">
 			<PageHeader
 				title="My Shifts"
-				description="Your upcoming volunteer shift signups."
+				description="Your upcoming shifts, and open shifts you can pick up."
 			/>
 
 			<InstallPrompt />
@@ -70,10 +71,10 @@ export default function MyShiftsPage() {
 				<EmptyState
 					icon={Search}
 					title="No upcoming shifts"
-					description="Browse opportunities to find shifts to sign up for."
+					description="Pick one from the open shifts below, or browse opportunities to apply somewhere new."
 					action={
 						<Button asChild>
-							<Link href="/app/browse-opportunities">Browse Opportunities</Link>
+							<Link href="/app/browse">Browse Opportunities</Link>
 						</Button>
 					}
 				/>
@@ -161,6 +162,7 @@ export default function MyShiftsPage() {
 					))}
 				</div>
 			)}
+			<OpenShifts />
 		</div>
 	);
 }

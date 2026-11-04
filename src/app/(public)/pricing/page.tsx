@@ -77,7 +77,7 @@ export const pricingFaqs = [
 	{
 		question: 'Is there really a free tier?',
 		answer:
-			'Yes. The Free plan covers the whole day-to-day workflow — custom screening forms, shift scheduling and attendance, skill-based matching, and portable credentials. No credit card, no volunteer cap, no seat cap. The volunteer roster and its CSV export are included too, and are rolling out organization by organization — ask us to switch yours on.',
+			'Yes. The Free plan covers the whole day-to-day workflow — custom screening forms, shift scheduling and attendance, skill-based matching, and portable credentials. No credit card, no volunteer cap, no seat cap. The volunteer roster and its CSV export are included too.',
 	},
 	{
 		question: 'Can I change plans later?',
@@ -97,7 +97,7 @@ export const pricingFaqs = [
 	{
 		question: 'Can I get my data out?',
 		answer:
-			'Yes, and never as an upgrade lever. Your volunteer roster exports to CSV on every plan including Free — name, email, phone, status, how they joined, and shifts attended. The roster is rolling out organization by organization, so ask us to enable yours if you do not see it yet; the export is free the moment it is on, and always will be. The one export behind a paid plan is the corporate ESG report, which belongs to a company sponsor account rather than a nonprofit organization — see corporate pricing below.',
+			'Yes, and never as an upgrade lever. Your volunteer roster exports to CSV on every plan including Free — name, email, phone, status, how they joined, and shifts attended. The export is free on every plan, and always will be. The one export behind a paid plan is the corporate ESG report, which belongs to a company sponsor account rather than a nonprofit organization — see corporate pricing below.',
 	},
 	{
 		question: 'Are there limits on volunteers, opportunities, or team members?',

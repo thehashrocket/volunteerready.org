@@ -82,6 +82,57 @@ export async function listUpcomingShiftsForOrg(orgId: string, limit = 10) {
 	});
 }
 
+/**
+ * Upcoming shifts a volunteer can claim: every OPEN or FULL shift that has not
+ * started, at an org where `userId` has a LIVE roster row (approval puts an
+ * applicant on the roster) and no block, and that is not suspended.
+ *
+ * The roster row is the authorization: a volunteer never learns about an org's
+ * schedule before that org has approved them. The block filter is belt and
+ * braces — leaving soft-deletes the roster row in the same transaction that
+ * writes the block — so a race between the two can't list a revoked org.
+ *
+ * `signups` carries only the caller's own row (for "you're signed up"), and the
+ * seat count is an aggregate; no other volunteer is identifiable from this.
+ */
+export async function listClaimableShiftsForUser(
+	userId: string,
+	now: Date,
+	take = 50,
+) {
+	return prisma.shift.findMany({
+		where: {
+			status: { in: ['OPEN', 'FULL'] },
+			startTime: { gt: now },
+			organization: {
+				suspendedAt: null,
+				orgVolunteers: { some: { userId, deletedAt: null } },
+				orgVolunteerBlocks: { none: { userId } },
+			},
+		},
+		select: {
+			id: true,
+			title: true,
+			startTime: true,
+			endTime: true,
+			location: true,
+			isRemote: true,
+			capacity: true,
+			status: true,
+			organization: { select: { id: true, name: true } },
+			opportunity: { select: { title: true } },
+			_count: { select: { signups: { where: { status: 'CONFIRMED' } } } },
+			// Any live row of the caller's (a CANCELLED one can be signed up again).
+			signups: {
+				where: { userId, status: { not: 'CANCELLED' } },
+				select: { status: true },
+			},
+		},
+		orderBy: { startTime: 'asc' },
+		take,
+	});
+}
+
 // ---------------------------------------------------------------------------
 // Writes (transactional)
 // ---------------------------------------------------------------------------

@@ -71,6 +71,7 @@ export const PERMISSIONS = {
 	'shifts.getCheckinStats': 'shifts.getCheckinStats',
 	'shifts.getWaitlist': 'shifts.getWaitlist',
 	'shifts.myUpcoming': 'shifts.myUpcoming', // protected (own data)
+	'shifts.claimable': 'shifts.claimable', // protected (own data)
 	'shifts.signup': 'shifts.signup', // protected (own data)
 	'shifts.cancelSignup': 'shifts.cancelSignup', // protected (own data)
 	'shifts.myUpcomingWithWaitlist': 'shifts.myUpcomingWithWaitlist', // protected (own data)
@@ -140,6 +141,7 @@ export const PERMISSIONS = {
 	'org.getCurrentOrg': 'org.getCurrentOrg',
 	'org.updateQrColor': 'org.updateQrColor',
 	'org.updateTimezone': 'org.updateTimezone',
+	'org.setVolunteerRoster': 'org.setVolunteerRoster',
 
 	// --- Notifications ---
 	'notifications.getPreferences': 'notifications.getPreferences',
@@ -242,6 +244,7 @@ const STAFF_PERMISSIONS: ReadonlySet<string> = new Set([
 const ADMIN_PERMISSIONS: ReadonlySet<string> = new Set([
 	...STAFF_PERMISSIONS,
 	// Admin-level
+	PERMISSIONS['org.setVolunteerRoster'],
 	PERMISSIONS['screener.list'],
 	PERMISSIONS['screener.detail'],
 	PERMISSIONS['screener.updateStatus'],
