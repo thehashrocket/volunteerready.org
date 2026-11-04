@@ -1,21 +1,10 @@
 import { PLATFORM_ORG_SLUG } from '@/server/domain/reference-data';
-import type {
-	PublicOrgSummary,
-	PublicQuestionType,
-	PublicScreenerQuestion,
+import {
+	type PublicOrgSummary,
+	type PublicScreenerQuestion,
+	toPublicQuestionType,
 } from '@/server/domain/screener/publicForm';
 import { prisma } from '@/server/repositories/prisma';
-
-const mapQuestionType = (type: string): PublicQuestionType => {
-	switch (type) {
-		case 'BOOLEAN':
-			return 'YES_NO';
-		case 'SINGLE_CHOICE':
-			return 'SINGLE_SELECT';
-		default:
-			return 'TEXT';
-	}
-};
 
 export async function getPublicFormByOrgSlug(orgSlug: string): Promise<{
 	org: PublicOrgSummary | null;
@@ -58,7 +47,7 @@ export async function getPublicFormByOrgSlug(orgSlug: string): Promise<{
 			id: question.id,
 			key: question.key,
 			prompt: question.prompt,
-			type: mapQuestionType(String(question.type)),
+			type: toPublicQuestionType(String(question.type)),
 			order: question.order,
 			configJson: {
 				options: Array.isArray(config.options)
