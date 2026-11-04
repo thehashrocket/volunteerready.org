@@ -30,9 +30,9 @@ let replayBlocked = currentUrlIsSecret();
 Sentry.init({
 	dsn: 'https://fba2ea33a15f2a443b2aa02c3b899025@o4511061592834048.ingest.us.sentry.io/4511061594406912',
 
-	// Replay is NOT bundled: it is most of the largest client chunk, and every
-	// visitor paid for it on first load (mobile Lighthouse TBT). It is fetched
-	// from Sentry's CDN once the page is idle, see loadReplayWhenIdle() below.
+	// Replay is NOT in the first-load bundle: it was ~120 KB of the largest
+	// client chunk, paid by every visitor (mobile Lighthouse TBT). It loads as
+	// a separate chunk once the page is idle, see loadReplayWhenIdle() below.
 	integrations: [],
 
 	// Every URL the SDK records goes through the same scrubber: error events,
@@ -93,31 +93,32 @@ Sentry.init({
 // reaches them.
 Sentry.addEventProcessor(scrubSentryEvent);
 
-/**
- * Loads Session Replay after the page is idle instead of shipping it in the
- * main bundle. The secret-URL rule is checked again when the script arrives,
- * because the visitor may have navigated in-app while it was downloading.
- * Replay is best-effort: a blocked CDN request only means no recording.
- */
-// Held here rather than read back with Sentry.getReplay(): importing that
-// helper pulls the whole @sentry/replay module (rrweb included) back into the
-// main bundle, which is the thing lazy loading exists to avoid.
+// Held here rather than read back with Sentry.getReplay(): referencing any
+// export of @sentry/replay through @sentry/nextjs pulls the whole module
+// (rrweb included) back into the main bundle, which is what this avoids.
 type StoppableReplay = { stop: () => Promise<void> | void };
 let activeReplay: StoppableReplay | undefined;
 
+/**
+ * Loads Session Replay after the page is idle instead of shipping it in the
+ * main bundle. A dynamic import makes it its own chunk on our origin: Sentry's
+ * CDN (lazyLoadIntegration) is on common blocklists and would silently mean no
+ * replay for those visitors, where /monitoring already tunnels their events.
+ * The secret-URL rule is checked again when the chunk arrives, because the
+ * visitor may have navigated in-app while it was downloading.
+ */
 export async function loadReplay(): Promise<void> {
 	if (replayBlocked) return;
 	try {
-		const replayIntegration =
-			await Sentry.lazyLoadIntegration('replayIntegration');
+		const { replayIntegration } = await import('@sentry/replay');
 		if (replayBlocked || currentUrlIsSecret()) return;
 		const replay = replayIntegration({
 			beforeAddRecordingEvent: scrubRecordingEvent,
 		});
 		Sentry.addIntegration(replay);
-		activeReplay = replay as unknown as StoppableReplay;
+		activeReplay = replay;
 	} catch {
-		// Ad blockers and offline visitors: no replay, nothing else affected.
+		// Chunk failed to load (offline, deploy mid-session): no replay only.
 	}
 }
 

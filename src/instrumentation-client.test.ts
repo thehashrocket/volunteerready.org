@@ -9,17 +9,28 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const sentry = vi.hoisted(() => ({
 	init: vi.fn(),
-	lazyLoadIntegration: vi.fn(),
 	addIntegration: vi.fn(),
 	addEventProcessor: vi.fn(),
 	captureRouterTransitionStart: vi.fn(),
 }));
 vi.mock('@sentry/nextjs', () => sentry);
 
-const replayIntegration = vi.fn((options: unknown) => ({
-	name: 'Replay',
-	options,
-	stop: vi.fn(async () => {}),
+const replayModule = vi.hoisted(() => ({ loadFails: false }));
+
+const replayIntegration = vi.hoisted(() =>
+	vi.fn((options: unknown) => ({
+		name: 'Replay',
+		options,
+		stop: vi.fn(async () => {}),
+	})),
+);
+// vi.resetModules() does not re-run mock factories, so failure is toggled
+// through a getter that the module's destructuring import reads each time.
+vi.mock('@sentry/replay', () => ({
+	get replayIntegration() {
+		if (replayModule.loadFails) throw new Error('chunk failed');
+		return replayIntegration;
+	},
 }));
 
 type ReplayIntegration = {
@@ -41,8 +52,7 @@ async function loadAt(path: string) {
 	// that from firing in the middle of an unrelated test.
 	vi.useFakeTimers();
 	sentry.init.mockClear();
-	sentry.lazyLoadIntegration.mockReset();
-	sentry.lazyLoadIntegration.mockResolvedValue(replayIntegration);
+	replayModule.loadFails = false;
 	sentry.addIntegration.mockClear();
 	sentry.addEventProcessor.mockClear();
 	replayIntegration.mockClear();
@@ -65,15 +75,13 @@ describe('browser Sentry config', () => {
 		expect(options.integrations).toEqual([]);
 	});
 
-	it('loads replay from the CDN once the page is idle', async () => {
+	it('loads replay as a separate chunk once the page is idle', async () => {
 		await loadAt('/app/volunteers');
-		expect(sentry.lazyLoadIntegration).not.toHaveBeenCalled();
+		expect(replayIntegration).not.toHaveBeenCalled();
 
 		await vi.runAllTimersAsync();
 
-		expect(sentry.lazyLoadIntegration).toHaveBeenCalledWith(
-			'replayIntegration',
-		);
+		expect(replayIntegration).toHaveBeenCalledTimes(1);
 		expect(sentry.addIntegration).toHaveBeenCalledTimes(1);
 	});
 
@@ -104,30 +112,23 @@ describe('browser Sentry config', () => {
 		await vi.runAllTimersAsync();
 
 		expect(options.integrations).toEqual([]);
-		expect(sentry.lazyLoadIntegration).not.toHaveBeenCalled();
+		expect(replayIntegration).not.toHaveBeenCalled();
 		expect(sentry.addIntegration).not.toHaveBeenCalled();
 	});
 
 	it('never starts replay if the visitor reached a secret URL while it downloaded', async () => {
 		const { mod } = await loadAt('/app');
-		let finish: (fn: typeof replayIntegration) => void = () => {};
-		sentry.lazyLoadIntegration.mockReturnValue(
-			new Promise((resolve) => {
-				finish = resolve;
-			}),
-		);
-
+		// The import is always async, so this navigation lands mid-download.
 		const loading = mod.loadReplay();
 		mod.onRouterTransitionStart('/invite/abc123', 'push');
-		finish(replayIntegration);
 		await loading;
 
 		expect(sentry.addIntegration).not.toHaveBeenCalled();
 	});
 
-	it('keeps working when the replay script is blocked', async () => {
+	it('keeps working when the replay chunk fails to load', async () => {
 		const { mod } = await loadAt('/app');
-		sentry.lazyLoadIntegration.mockRejectedValue(new Error('blocked'));
+		replayModule.loadFails = true;
 
 		await expect(mod.loadReplay()).resolves.toBeUndefined();
 		expect(sentry.addIntegration).not.toHaveBeenCalled();
@@ -199,10 +200,21 @@ describe('browser Sentry config', () => {
 		);
 	});
 
+	it('pins @sentry/replay to the same range as @sentry/nextjs', () => {
+		// The lazily imported replay must match the SDK it plugs into; a bump of
+		// one without the other ships two mismatched Sentry versions.
+		const pkg = JSON.parse(
+			readFileSync(resolve(__dirname, '../package.json'), 'utf8'),
+		) as { dependencies: Record<string, string> };
+		expect(pkg.dependencies['@sentry/replay']).toBe(
+			pkg.dependencies['@sentry/nextjs'],
+		);
+	});
+
 	it('never references a bundled replay export', () => {
 		// Sentry.getReplay / Sentry.replayIntegration live in @sentry/replay,
 		// one module with rrweb inside: touching either puts ~60 KB+ of replay
-		// back into the first-load bundle that lazyLoadIntegration removed.
+		// back into the first-load bundle that the dynamic import removed.
 		const source = readFileSync(
 			resolve(__dirname, 'instrumentation-client.ts'),
 			'utf8',
