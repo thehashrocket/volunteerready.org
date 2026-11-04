@@ -30,7 +30,16 @@ const nextConfig: NextConfig = {
 	// which is exactly how the dependabot PR came up green and still broke the
 	// deploy. Build-time checking is unchanged in strictness, and got faster
 	// (9.1s -> 0.4s on this repo).
-	experimental: { useTypeScriptCli: true },
+	experimental: {
+		useTypeScriptCli: true,
+		// Puts the CSS in a <style> tag instead of a render-blocking <link>.
+		// Mobile Lighthouse showed the hero text (the LCP element) waiting
+		// ~2.5s behind an 18 KB stylesheet. Tailwind keeps the CSS small, and
+		// nearly every visitor to the marketing pages is a first-time one, so
+		// giving up separate CSS caching is the right trade. Global and
+		// production-only; prerendered client navigations still use <link>.
+		inlineCss: true,
+	},
 	headers: async () => [
 		{
 			source: '/sw.js',
