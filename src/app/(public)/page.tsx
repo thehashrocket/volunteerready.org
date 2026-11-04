@@ -209,7 +209,7 @@ export default async function Home() {
 								eventLabel="Watch walkthrough (hero)"
 								eventPage="homepage"
 							>
-								Watch the 1-minute demo
+								Watch the 40-second demo
 							</TrackedLink>
 						</Button>
 					</>

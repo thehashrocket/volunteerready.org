@@ -8,9 +8,9 @@ const analytics = vi.hoisted(() => ({ trackEvent: vi.fn() }));
 vi.mock('@/lib/analytics', () => analytics);
 
 const PROPS = {
-	src: '/marketing/walkthrough.mp4',
-	poster: '/marketing/walkthrough-poster.jpg',
-	durationLabel: '1-minute',
+	src: '/marketing/walkthrough-v2.mp4',
+	poster: '/marketing/walkthrough-v2-poster.jpg',
+	durationLabel: '40-second',
 	transcript: ['First line.', 'Second line.'],
 } as const;
 
@@ -25,7 +25,7 @@ describe('WalkthroughVideo', () => {
 
 		expect(
 			screen.getByRole('button', {
-				name: 'Play the 1-minute VolunteerReady walkthrough',
+				name: 'Play the 40-second VolunteerReady walkthrough',
 			}),
 		).toBeTruthy();
 		// The video must not be mounted before play: keeps the file off the
@@ -36,7 +36,7 @@ describe('WalkthroughVideo', () => {
 	it('mounts the video with controls and starts it on click', () => {
 		const { container } = render(<WalkthroughVideo {...PROPS} />);
 
-		fireEvent.click(screen.getByRole('button', { name: /Play the 1-minute/ }));
+		fireEvent.click(screen.getByRole('button', { name: /Play the 40-second/ }));
 
 		const video = container.querySelector('video');
 		expect(video).not.toBeNull();
@@ -44,7 +44,7 @@ describe('WalkthroughVideo', () => {
 		expect(video?.hasAttribute('controls')).toBe(true);
 		expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
 		expect(
-			screen.queryByRole('button', { name: /Play the 1-minute/ }),
+			screen.queryByRole('button', { name: /Play the 40-second/ }),
 		).toBeNull();
 	});
 
@@ -62,7 +62,7 @@ describe('WalkthroughVideo', () => {
 		analytics.trackEvent.mockClear();
 		render(<WalkthroughVideo {...PROPS} />);
 
-		fireEvent.click(screen.getByRole('button', { name: /Play the 1-minute/ }));
+		fireEvent.click(screen.getByRole('button', { name: /Play the 40-second/ }));
 
 		expect(analytics.trackEvent).toHaveBeenCalledWith('walkthrough_play', {
 			page_path: window.location.pathname,
