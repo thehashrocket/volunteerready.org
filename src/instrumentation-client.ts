@@ -99,15 +99,23 @@ Sentry.addEventProcessor(scrubSentryEvent);
  * because the visitor may have navigated in-app while it was downloading.
  * Replay is best-effort: a blocked CDN request only means no recording.
  */
+// Held here rather than read back with Sentry.getReplay(): importing that
+// helper pulls the whole @sentry/replay module (rrweb included) back into the
+// main bundle, which is the thing lazy loading exists to avoid.
+type StoppableReplay = { stop: () => Promise<void> | void };
+let activeReplay: StoppableReplay | undefined;
+
 export async function loadReplay(): Promise<void> {
 	if (replayBlocked) return;
 	try {
 		const replayIntegration =
 			await Sentry.lazyLoadIntegration('replayIntegration');
 		if (replayBlocked || currentUrlIsSecret()) return;
-		Sentry.addIntegration(
-			replayIntegration({ beforeAddRecordingEvent: scrubRecordingEvent }),
-		);
+		const replay = replayIntegration({
+			beforeAddRecordingEvent: scrubRecordingEvent,
+		});
+		Sentry.addIntegration(replay);
+		activeReplay = replay as unknown as StoppableReplay;
 	} catch {
 		// Ad blockers and offline visitors: no replay, nothing else affected.
 	}
@@ -136,7 +144,7 @@ export function onRouterTransitionStart(
 	// page renders. A stopped replay stays stopped for this page load.
 	if (isSecretUrl(href)) {
 		replayBlocked = true;
-		void Sentry.getReplay()?.stop();
+		void activeReplay?.stop();
 	}
 	Sentry.captureRouterTransitionStart(href, navigationType);
 }

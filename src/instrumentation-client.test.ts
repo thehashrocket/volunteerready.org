@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // The browser config is a side-effect module: it calls Sentry.init on import.
@@ -10,7 +12,6 @@ const sentry = vi.hoisted(() => ({
 	lazyLoadIntegration: vi.fn(),
 	addIntegration: vi.fn(),
 	addEventProcessor: vi.fn(),
-	getReplay: vi.fn(),
 	captureRouterTransitionStart: vi.fn(),
 }));
 vi.mock('@sentry/nextjs', () => sentry);
@@ -18,6 +19,7 @@ vi.mock('@sentry/nextjs', () => sentry);
 const replayIntegration = vi.fn((options: unknown) => ({
 	name: 'Replay',
 	options,
+	stop: vi.fn(async () => {}),
 }));
 
 type ReplayIntegration = {
@@ -114,7 +116,6 @@ describe('browser Sentry config', () => {
 				finish = resolve;
 			}),
 		);
-		sentry.getReplay.mockReturnValue(undefined);
 
 		const loading = mod.loadReplay();
 		mod.onRouterTransitionStart('/invite/abc123', 'push');
@@ -182,24 +183,36 @@ describe('browser Sentry config', () => {
 
 	it('stops replay before an in-app navigation to a secret URL', async () => {
 		const { mod } = await loadAt('/app');
-		const stop = vi.fn(async () => {});
-		sentry.getReplay.mockReturnValue({ stop });
+		await mod.loadReplay();
+		const replay = sentry.addIntegration.mock.calls[0][0] as {
+			stop: ReturnType<typeof vi.fn>;
+		};
 
 		mod.onRouterTransitionStart('/app/volunteers', 'push');
-		expect(stop).not.toHaveBeenCalled();
+		expect(replay.stop).not.toHaveBeenCalled();
 
 		mod.onRouterTransitionStart('/invite/abc123', 'push');
-		expect(stop).toHaveBeenCalledTimes(1);
+		expect(replay.stop).toHaveBeenCalledTimes(1);
 		expect(sentry.captureRouterTransitionStart).toHaveBeenCalledWith(
 			'/invite/abc123',
 			'push',
 		);
 	});
 
+	it('never references a bundled replay export', () => {
+		// Sentry.getReplay / Sentry.replayIntegration live in @sentry/replay,
+		// one module with rrweb inside: touching either puts ~60 KB+ of replay
+		// back into the first-load bundle that lazyLoadIntegration removed.
+		const source = readFileSync(
+			resolve(__dirname, 'instrumentation-client.ts'),
+			'utf8',
+		).replace(/\/\/.*$/gm, '');
+		expect(source).not.toMatch(/Sentry\.(getReplay|replayIntegration)\b/);
+	});
+
 	it('still navigates when replay never started', async () => {
 		// The common case: a page loaded at a token URL never starts replay.
 		const { mod } = await loadAt('/invite/abc123');
-		sentry.getReplay.mockReturnValue(undefined);
 
 		expect(() =>
 			mod.onRouterTransitionStart('/credentials/claim/x', 'push'),
