@@ -624,6 +624,79 @@ function QuestionField({
 			);
 		}
 
+		case 'NUMBER': {
+			return (
+				<div className="space-y-2">
+					<Label htmlFor={question.key}>{question.prompt}</Label>
+					<Input
+						id={question.key}
+						type="number"
+						inputMode="decimal"
+						step="any"
+						className="max-w-40"
+						{...register(path)}
+					/>
+					{error ? <p className="text-sm text-destructive">{error}</p> : null}
+				</div>
+			);
+		}
+
+		case 'MULTI_SELECT': {
+			const options: string[] = Array.isArray(cfg.options) ? cfg.options : [];
+			const legendId = `legend-${question.key}`;
+			return (
+				<fieldset className="space-y-2">
+					<legend id={legendId} className="text-sm font-medium leading-none">
+						{question.prompt}
+					</legend>
+					<p className="text-sm text-muted-foreground">
+						Select all that apply.
+					</p>
+					<Controller
+						control={form.control}
+						name={path}
+						render={({ field }) => {
+							const selected: string[] = Array.isArray(field.value)
+								? field.value
+								: [];
+							return (
+								<div className="space-y-2">
+									{options.map((opt, i) => {
+										const id = `${question.key}-${i}`;
+										return (
+											<div
+												key={opt}
+												className="flex items-center gap-2 text-sm"
+											>
+												<Checkbox
+													id={id}
+													checked={selected.includes(opt)}
+													onChange={(e) =>
+														field.onChange(
+															e.currentTarget.checked
+																? [...selected, opt]
+																: selected.filter((v) => v !== opt),
+														)
+													}
+												/>
+												<Label
+													htmlFor={id}
+													className="cursor-pointer font-normal"
+												>
+													{opt}
+												</Label>
+											</div>
+										);
+									})}
+								</div>
+							);
+						}}
+					/>
+					{error ? <p className="text-sm text-destructive">{error}</p> : null}
+				</fieldset>
+			);
+		}
+
 		default: {
 			return (
 				<div className="space-y-2">
