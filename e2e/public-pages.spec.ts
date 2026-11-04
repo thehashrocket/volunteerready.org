@@ -247,14 +247,17 @@ test.describe('Homepage pillar annotations', () => {
 	test('markers and legends render for each pillar', async ({ page }) => {
 		await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-		// 3 pillars × 3 annotations: numbered markers on the image (aria-hidden)
-		// and a matching HTML legend list. Dark-variant legends also exist in
-		// the DOM (hidden via CSS in light mode) — scope to :visible so this
-		// asserts what a light-mode user actually sees.
+		// Two annotated pillars (funder reports: 3 annotations, screening: 2);
+		// the shifts pillar is a checklist (<ul>), so it has no legend.
+		// Numbered markers sit on the image (aria-hidden) with a matching HTML
+		// legend list. Dark-variant legends also exist in the DOM (hidden via
+		// CSS in light mode) — scope to :visible so this asserts what a
+		// light-mode user actually sees.
+		const expectedAnnotations = [3, 2];
 		const legends = page.locator('main ol:visible');
-		await expect(legends).toHaveCount(3);
-		for (let i = 0; i < 3; i++) {
-			await expect(legends.nth(i).locator('li')).toHaveCount(3);
+		await expect(legends).toHaveCount(expectedAnnotations.length);
+		for (const [i, count] of expectedAnnotations.entries()) {
+			await expect(legends.nth(i).locator('li')).toHaveCount(count);
 		}
 	});
 
@@ -264,7 +267,7 @@ test.describe('Homepage pillar annotations', () => {
 		await page.setViewportSize({ width: 375, height: 812 });
 		await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-		const firstPillarImage = page.locator(MARKETING_IMG_SELECTOR).nth(1); // 0 = hero dashboard shot
+		const firstPillarImage = page.locator(MARKETING_IMG_SELECTOR).nth(1); // 0 = hero applications-queue shot
 		await firstPillarImage.scrollIntoViewIfNeeded();
 		await expect(firstPillarImage).toBeVisible();
 
