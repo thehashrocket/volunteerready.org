@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 interface WalkthroughVideoProps {
 	src: string;
 	poster: string;
-	/** e.g. "1-minute" — read out in the play button's accessible name. */
+	/** e.g. "40-second" — read out in the play button's accessible name. */
 	durationLabel: string;
 	transcript: readonly string[];
 	/** One line under the video, above the transcript toggle. */
@@ -22,7 +22,7 @@ interface WalkthroughVideoProps {
  *
  * The poster is a plain `next/image` with `priority` (it replaces the homepage
  * hero screenshot, so it is the LCP candidate), and the `<video>` element is
- * not mounted until someone presses play. That keeps the ~3.4 MB file off the
+ * not mounted until someone presses play. That keeps the ~1.9 MB file off the
  * critical path entirely: `preload="none"` alone still lets some browsers fetch
  * metadata on page load.
  *

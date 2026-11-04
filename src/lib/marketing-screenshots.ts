@@ -65,28 +65,31 @@ export const MARKETING_SCREENSHOTS = {
 export type MarketingScreenshotKey = keyof typeof MARKETING_SCREENSHOTS;
 
 /**
- * The homepage walkthrough video (71s, captioned, no audio) and its poster.
- * Kept out of MARKETING_SCREENSHOTS on purpose: it is not produced by the
- * capture pipeline and is not pinned to CAPTURE_FRAME. The YouTube copy
- * (https://youtu.be/AHcNT5faLl0) is for email; the site self-hosts this file so
- * nothing third-party loads before cookie consent and the player never ends on
- * someone else's suggested videos.
+ * The homepage walkthrough video (40s, on-screen titles, no audio) and its
+ * poster. Kept out of MARKETING_SCREENSHOTS on purpose: it is not produced by
+ * the capture pipeline and is not pinned to CAPTURE_FRAME. It follows one
+ * sample volunteer from application to the hours report, built with
+ * HyperFrames from `.walkthrough/capture-states.ts` captures. The site
+ * self-hosts it so nothing third-party loads before cookie consent and the
+ * player never ends on someone else's suggested videos.
  *
- * When the UI it shows changes, re-record it and replace both files together.
+ * The filename carries a version so a replacement never serves a cached copy
+ * of the old cut. When the UI it shows changes, re-render it, bump the
+ * version, and replace both files and the transcript together.
  */
 export const WALKTHROUGH_VIDEO = {
-	src: '/marketing/walkthrough.mp4',
-	poster: '/marketing/walkthrough-poster.jpg',
-	durationLabel: '1-minute',
-	/** Burned-in captions, in order — also rendered as a text transcript. */
+	src: '/marketing/walkthrough-v2.mp4',
+	poster: '/marketing/walkthrough-v2-poster.jpg',
+	durationLabel: '40-second',
+	/** The on-screen titles, in order, also rendered as a text transcript. */
 	transcript: [
-		'When a funder asks how many hours volunteers gave you last year, this is the page you want to open. Here’s how the number gets there.',
-		'It starts with a link on your website. Volunteers apply with your screening questions.',
-		'When they submit, nothing lands in a shared inbox. It lands here: every applicant, their answers, and their screening result in one queue.',
-		'Open one, read the answers, and approve. The volunteer gets an email automatically.',
-		'Post your shifts. Approved volunteers claim the open slots, so you’re not chasing anyone by text.',
-		'Volunteers see their upcoming shifts, and check in at the door with a QR code. That check-in is the record: attendance and hours.',
-		'Every check-in adds to this report: hours served, applications, background checks, shifts. It’s on every plan, including the free one.',
-		'VolunteerReady is new. I’ll set it up with you myself.',
+		'Where does this number come from? (Volunteer hours served on the impact report: 18.)',
+		'Maya applies from your website.',
+		'It lands in one queue, already screened.',
+		'Approve. She gets the email automatically.',
+		'Put her on Saturday’s food sort.',
+		'She shows up. One tap logs her hours.',
+		'Every shift adds up, ready for your funder. (Volunteer hours served: 21, +3 hours.)',
+		'VolunteerReady. Your next funder report, already done. Book a setup call.',
 	],
 } as const;
