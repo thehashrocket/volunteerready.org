@@ -12,24 +12,28 @@ import {
 	scrubSpan,
 } from '@/lib/sentry-url-scrub';
 
+function currentUrlIsSecret(): boolean {
+	return (
+		typeof window !== 'undefined' &&
+		isSecretUrl(window.location.pathname + window.location.search)
+	);
+}
+
 // Replay's DOM recording stores `location.href` in a meta event that no hook
 // can rewrite, so a page whose URL carries a secret (an invite or claim
 // token, ?token=) is never recorded. See src/lib/sentry-url-scrub.ts.
-const onSecretUrl =
-	typeof window !== 'undefined' &&
-	isSecretUrl(window.location.pathname + window.location.search);
+// Once true for a page load it stays true: leaving for a secret URL in-app
+// also sets it (onRouterTransitionStart), so a replay that has not finished
+// loading yet can never start afterwards.
+let replayBlocked = currentUrlIsSecret();
 
 Sentry.init({
 	dsn: 'https://fba2ea33a15f2a443b2aa02c3b899025@o4511061592834048.ingest.us.sentry.io/4511061594406912',
 
-	// Add optional integrations for additional features
-	integrations: onSecretUrl
-		? []
-		: [
-				Sentry.replayIntegration({
-					beforeAddRecordingEvent: scrubRecordingEvent,
-				}),
-			],
+	// Replay is NOT bundled: it is most of the largest client chunk, and every
+	// visitor paid for it on first load (mobile Lighthouse TBT). It is fetched
+	// from Sentry's CDN once the page is idle, see loadReplayWhenIdle() below.
+	integrations: [],
 
 	// Every URL the SDK records goes through the same scrubber: error events,
 	// breadcrumbs and spans (pageload/navigation names, fetch URLs).
@@ -89,12 +93,50 @@ Sentry.init({
 // reaches them.
 Sentry.addEventProcessor(scrubSentryEvent);
 
+/**
+ * Loads Session Replay after the page is idle instead of shipping it in the
+ * main bundle. The secret-URL rule is checked again when the script arrives,
+ * because the visitor may have navigated in-app while it was downloading.
+ * Replay is best-effort: a blocked CDN request only means no recording.
+ */
+export async function loadReplay(): Promise<void> {
+	if (replayBlocked) return;
+	try {
+		const replayIntegration =
+			await Sentry.lazyLoadIntegration('replayIntegration');
+		if (replayBlocked || currentUrlIsSecret()) return;
+		Sentry.addIntegration(
+			replayIntegration({ beforeAddRecordingEvent: scrubRecordingEvent }),
+		);
+	} catch {
+		// Ad blockers and offline visitors: no replay, nothing else affected.
+	}
+}
+
+function loadReplayWhenIdle(): void {
+	if (typeof window === 'undefined' || replayBlocked) return;
+	const schedule = () => {
+		if ('requestIdleCallback' in window) {
+			window.requestIdleCallback(() => void loadReplay(), { timeout: 5000 });
+		} else {
+			setTimeout(() => void loadReplay(), 2000);
+		}
+	};
+	if (document.readyState === 'complete') schedule();
+	else window.addEventListener('load', schedule, { once: true });
+}
+
+loadReplayWhenIdle();
+
 export function onRouterTransitionStart(
 	href: string,
 	navigationType: string,
 ): void {
 	// Leaving for a secret URL inside the app: stop recording before the new
 	// page renders. A stopped replay stays stopped for this page load.
-	if (isSecretUrl(href)) void Sentry.getReplay()?.stop();
+	if (isSecretUrl(href)) {
+		replayBlocked = true;
+		void Sentry.getReplay()?.stop();
+	}
 	Sentry.captureRouterTransitionStart(href, navigationType);
 }

@@ -3,6 +3,7 @@
 import { Play } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { trackEvent } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 
 interface WalkthroughVideoProps {
@@ -67,7 +68,12 @@ export function WalkthroughVideo({
 				) : (
 					<button
 						type="button"
-						onClick={() => setPlaying(true)}
+						onClick={() => {
+							trackEvent('walkthrough_play', {
+								page_path: window.location.pathname,
+							});
+							setPlaying(true);
+						}}
 						aria-label={`Play the ${durationLabel} VolunteerReady walkthrough`}
 						className="group relative block aspect-video w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
 					>

@@ -41,7 +41,8 @@
   - Border: `#E8E6E1`
   - Text Primary: `#141311`
   - Text Secondary: `#3D3B38`
-  - Text Muted: `#6B6864` (was `#787571`, which measured 4.4:1 and failed AA for body text)
+  - Text Muted: `#625F5B` (5.1:1 on Surface Strong, 6.1:1 on the page). Was `#6B6864`, which passed on the page but measured 4.4:1 on `bg-muted` sections; before that `#787571` (4.4:1 on the page)
+  - Primary-tone eyebrows use `primary` at 80% opacity (5.7:1 on Surface Strong); 70% measured 4.4:1
 - **Semantic:**
   - Success: `#2D7A4F`
   - Warning: `#B8860B`

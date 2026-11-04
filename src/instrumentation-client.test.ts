@@ -7,18 +7,26 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const sentry = vi.hoisted(() => ({
 	init: vi.fn(),
-	replayIntegration: vi.fn((options: unknown) => ({ name: 'Replay', options })),
+	lazyLoadIntegration: vi.fn(),
+	addIntegration: vi.fn(),
 	addEventProcessor: vi.fn(),
 	getReplay: vi.fn(),
 	captureRouterTransitionStart: vi.fn(),
 }));
 vi.mock('@sentry/nextjs', () => sentry);
 
+const replayIntegration = vi.fn((options: unknown) => ({
+	name: 'Replay',
+	options,
+}));
+
+type ReplayIntegration = {
+	name: string;
+	options: { beforeAddRecordingEvent: (e: unknown) => unknown };
+};
+
 type InitOptions = {
-	integrations: Array<{
-		name: string;
-		options: { beforeAddRecordingEvent: (e: unknown) => unknown };
-	}>;
+	integrations: unknown[];
 	beforeSend: (event: unknown) => unknown;
 	beforeBreadcrumb: (breadcrumb: unknown) => unknown;
 	beforeSendSpan: (span: unknown) => unknown;
@@ -27,9 +35,15 @@ type InitOptions = {
 async function loadAt(path: string) {
 	window.history.replaceState({}, '', path);
 	vi.resetModules();
+	// The module schedules the replay download on import; fake timers keep
+	// that from firing in the middle of an unrelated test.
+	vi.useFakeTimers();
 	sentry.init.mockClear();
-	sentry.replayIntegration.mockClear();
+	sentry.lazyLoadIntegration.mockReset();
+	sentry.lazyLoadIntegration.mockResolvedValue(replayIntegration);
+	sentry.addIntegration.mockClear();
 	sentry.addEventProcessor.mockClear();
+	replayIntegration.mockClear();
 	const mod = await import('./instrumentation-client');
 	return {
 		mod,
@@ -38,15 +52,35 @@ async function loadAt(path: string) {
 }
 
 afterEach(() => {
+	vi.useRealTimers();
 	window.history.replaceState({}, '', '/');
 });
 
 describe('browser Sentry config', () => {
-	it('records replay on an ordinary page, scrubbing its custom events', async () => {
+	it('does not bundle replay: init starts with no integrations', async () => {
 		const { options } = await loadAt('/app/volunteers');
 
-		expect(options.integrations).toHaveLength(1);
-		const scrub = options.integrations[0].options.beforeAddRecordingEvent;
+		expect(options.integrations).toEqual([]);
+	});
+
+	it('loads replay from the CDN once the page is idle', async () => {
+		await loadAt('/app/volunteers');
+		expect(sentry.lazyLoadIntegration).not.toHaveBeenCalled();
+
+		await vi.runAllTimersAsync();
+
+		expect(sentry.lazyLoadIntegration).toHaveBeenCalledWith(
+			'replayIntegration',
+		);
+		expect(sentry.addIntegration).toHaveBeenCalledTimes(1);
+	});
+
+	it('records replay on an ordinary page, scrubbing its custom events', async () => {
+		const { mod } = await loadAt('/app/volunteers');
+		await mod.loadReplay();
+
+		const added = sentry.addIntegration.mock.calls[0][0] as ReplayIntegration;
+		const scrub = added.options.beforeAddRecordingEvent;
 		expect(
 			scrub({
 				type: 5,
@@ -63,10 +97,39 @@ describe('browser Sentry config', () => {
 		'/credentials/claim/abc123',
 		'/apply/status?token=t',
 	])('does not record replay when the page URL is %s', async (path) => {
-		const { options } = await loadAt(path);
+		const { mod, options } = await loadAt(path);
+		await mod.loadReplay();
+		await vi.runAllTimersAsync();
 
 		expect(options.integrations).toEqual([]);
-		expect(sentry.replayIntegration).not.toHaveBeenCalled();
+		expect(sentry.lazyLoadIntegration).not.toHaveBeenCalled();
+		expect(sentry.addIntegration).not.toHaveBeenCalled();
+	});
+
+	it('never starts replay if the visitor reached a secret URL while it downloaded', async () => {
+		const { mod } = await loadAt('/app');
+		let finish: (fn: typeof replayIntegration) => void = () => {};
+		sentry.lazyLoadIntegration.mockReturnValue(
+			new Promise((resolve) => {
+				finish = resolve;
+			}),
+		);
+		sentry.getReplay.mockReturnValue(undefined);
+
+		const loading = mod.loadReplay();
+		mod.onRouterTransitionStart('/invite/abc123', 'push');
+		finish(replayIntegration);
+		await loading;
+
+		expect(sentry.addIntegration).not.toHaveBeenCalled();
+	});
+
+	it('keeps working when the replay script is blocked', async () => {
+		const { mod } = await loadAt('/app');
+		sentry.lazyLoadIntegration.mockRejectedValue(new Error('blocked'));
+
+		await expect(mod.loadReplay()).resolves.toBeUndefined();
+		expect(sentry.addIntegration).not.toHaveBeenCalled();
 	});
 
 	it('scrubs error events, breadcrumbs and spans', async () => {

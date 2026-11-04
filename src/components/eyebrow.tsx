@@ -7,7 +7,8 @@ const eyebrowVariants = cva(
 	{
 		variants: {
 			tone: {
-				primary: 'text-primary/70',
+				// 80%, not 70%: 70% failed AA (4.4:1) on bg-muted sections.
+				primary: 'text-primary/80',
 				muted: 'text-muted-foreground',
 			},
 		},
