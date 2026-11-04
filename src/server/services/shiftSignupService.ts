@@ -21,7 +21,10 @@ import {
 	findMemberByUserAndOrg,
 	touchMemberActivity,
 } from '@/server/repositories/reengagement-repo';
-import { getShiftById } from '@/server/repositories/shiftRepo';
+import {
+	getShiftById,
+	listClaimableShiftsForUser,
+} from '@/server/repositories/shiftRepo';
 import {
 	createSignup,
 	createWaitlistEntry,
@@ -68,6 +71,41 @@ export async function getMyUpcomingShiftsWithWaitlist(
 	limit?: number,
 ) {
 	return getUpcomingSignupsForUserIncludingWaitlist(userId, limit);
+}
+
+/**
+ * Open shifts a volunteer can pick from, across every org that has approved
+ * them (has them on its roster). This is the self-serve half of scheduling:
+ * staff can still assign people, but a volunteer no longer has to wait to be.
+ *
+ * `myStatus` is the caller's own signup on that shift, if any, so the list can
+ * say "You're signed up" instead of offering the button twice. `seatsLeft` is
+ * derived from the aggregate; no other volunteer is named.
+ */
+export async function listClaimableShifts(userId: string, now = new Date()) {
+	const rows = await listClaimableShiftsForUser(userId, now);
+	return rows.map((s) => {
+		const confirmed = s._count.signups;
+		return {
+			id: s.id,
+			title: s.title,
+			startTime: s.startTime,
+			endTime: s.endTime,
+			location: s.location,
+			isRemote: s.isRemote,
+			capacity: s.capacity,
+			seatsLeft: Math.max(0, s.capacity - confirmed),
+			isFull: s.status === 'FULL' || confirmed >= s.capacity,
+			orgName: s.organization.name,
+			opportunityTitle: s.opportunity?.title ?? null,
+			myStatus: (s.signups[0]?.status ?? null) as
+				| 'CONFIRMED'
+				| 'WAITLISTED'
+				| 'ATTENDED'
+				| 'NO_SHOW'
+				| null,
+		};
+	});
 }
 
 /** SECURITY: org-scoped for the same reason as `getShiftSignups`. */
@@ -174,6 +212,22 @@ export async function signUpForShift(
 	const shift = await getShiftById(shiftId);
 	if (!shift) throw shiftNotFound();
 
+	// The caller's own row on this shift, if any. `createSignup` only creates
+	// and `@@unique([shiftId, userId])` holds for every status, so signing back
+	// up after cancelling (or from the waitlist) used to reach the unique index
+	// as a 500 — unreachable while no volunteer UI called this, and the first
+	// thing a volunteer does with an "Open shifts" list. Same resolution as
+	// `assignVolunteerToShift`: CANCELLED and WAITLISTED are revived on the same
+	// row; ATTENDED and NO_SHOW are already a record and are refused. Telling the
+	// caller about their own row discloses nothing they do not already know.
+	const existing = await getSignupByShiftAndUser(shiftId, userId);
+	if (existing?.status === 'ATTENDED' || existing?.status === 'NO_SHOW') {
+		throw new TRPCError({
+			code: 'CONFLICT',
+			message: 'You are already recorded on this shift.',
+		});
+	}
+
 	const signups = await getSignupsByShift(shiftId);
 	const userShiftSignups = await getConfirmedShiftsForUser(userId);
 
@@ -220,7 +274,9 @@ export async function signUpForShift(
 
 	return prisma
 		.$transaction(async (tx) => {
-			const signup = await createSignup(tx, { shiftId, userId, notes });
+			const signup = existing
+				? await updateSignupStatus(tx, shiftId, userId, 'CONFIRMED')
+				: await createSignup(tx, { shiftId, userId, notes });
 
 			// Volunteering for one of an org's shifts is affirmative re-engagement,
 			// so it lifts any block on that org. Only reachable on the SELF-signup

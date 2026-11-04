@@ -30,6 +30,7 @@ import {
 	getShiftWaitlist,
 	joinWaitlist,
 	leaveWaitlist,
+	listClaimableShifts,
 	markAttendance,
 	signUpForShift,
 } from '@/server/services/shiftSignupService';
@@ -251,6 +252,14 @@ export const shiftsRouter = createTRPCRouter({
 	/** Get my upcoming shift signups (cross-org). */
 	myUpcoming: protectedProcedure.query(({ ctx }) =>
 		getMyUpcomingShifts(requireUserId(ctx.session)),
+	),
+
+	/**
+	 * Upcoming shifts I can sign up for: every org that has me on its roster
+	 * (approval puts an applicant there). Cross-org, like `myUpcoming`.
+	 */
+	claimable: protectedProcedure.query(({ ctx }) =>
+		listClaimableShifts(requireUserId(ctx.session)),
 	),
 
 	/** Sign up for a shift. */

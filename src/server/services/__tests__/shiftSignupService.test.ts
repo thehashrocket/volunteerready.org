@@ -600,3 +600,63 @@ describe('markAttendance', () => {
 		await expect(mark()).rejects.toThrow('No signup found');
 	});
 });
+
+describe('signUpForShift — signing up again (volunteer self-serve)', () => {
+	beforeEach(() => {
+		mocks.getShiftById.mockResolvedValue(makeShift());
+	});
+
+	it('creates a signup when the volunteer has no row on the shift', async () => {
+		await signUpForShift(SHIFT, VOLUNTEER_USER);
+		expect(mocks.createSignup).toHaveBeenCalledWith(expect.anything(), {
+			shiftId: SHIFT,
+			userId: VOLUNTEER_USER,
+			notes: undefined,
+		});
+		expect(mocks.updateSignupStatus).not.toHaveBeenCalled();
+	});
+
+	it.each(['CANCELLED', 'WAITLISTED'])(
+		'revives a %s row instead of hitting the unique index',
+		async (status) => {
+			mocks.getSignupByShiftAndUser.mockResolvedValue(
+				makeSignup(VOLUNTEER_USER, status),
+			);
+			await signUpForShift(SHIFT, VOLUNTEER_USER);
+			expect(mocks.createSignup).not.toHaveBeenCalled();
+			expect(mocks.updateSignupStatus).toHaveBeenCalledWith(
+				expect.anything(),
+				SHIFT,
+				VOLUNTEER_USER,
+				'CONFIRMED',
+			);
+		},
+	);
+
+	it.each(['ATTENDED', 'NO_SHOW'])(
+		'refuses a %s row: attendance is already a record',
+		async (status) => {
+			mocks.getSignupByShiftAndUser.mockResolvedValue(
+				makeSignup(VOLUNTEER_USER, status),
+			);
+			await expect(signUpForShift(SHIFT, VOLUNTEER_USER)).rejects.toMatchObject(
+				{
+					code: 'CONFLICT',
+				},
+			);
+			expect(mocks.createSignup).not.toHaveBeenCalled();
+			expect(mocks.updateSignupStatus).not.toHaveBeenCalled();
+		},
+	);
+
+	it('still refuses a full shift for a revived row', async () => {
+		mocks.getSignupByShiftAndUser.mockResolvedValue(
+			makeSignup(VOLUNTEER_USER, 'CANCELLED'),
+		);
+		mocks.getShiftById.mockResolvedValue(makeShift({ status: 'FULL' }));
+		await expect(signUpForShift(SHIFT, VOLUNTEER_USER)).rejects.toMatchObject({
+			code: 'CONFLICT',
+		});
+		expect(mocks.updateSignupStatus).not.toHaveBeenCalled();
+	});
+});

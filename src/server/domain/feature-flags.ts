@@ -42,11 +42,17 @@ export const FEATURE_FLAG_REGISTRY: readonly FeatureFlagDefinition[] = [
 		// approval (so the roster is already warm when the flag flips) or the
 		// volunteer's own "leave this roster" control (the rows exist either way,
 		// so the exit must too).
+		//
+		// ON by default since v0.4x: it is also what lets staff put anyone on a
+		// shift at all, so with it off a new org could never record attendance
+		// and its hours report stayed at zero. Orgs turn it off themselves from
+		// Settings (org.setVolunteerRoster), which writes the same override row
+		// a platform admin's toggle does.
 		key: 'staff_created_volunteers',
 		label: 'Staff-created volunteers',
 		description:
 			'Let staff add volunteers to a roster and schedule them without the volunteer signing up first.',
-		defaultEnabled: false,
+		defaultEnabled: true,
 	},
 ] as const;
 

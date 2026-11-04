@@ -6,7 +6,9 @@ const {
 	mockGetFirstOrgForUser,
 	mockGetOrgProfile,
 	mockRedirect,
+	mockIsRosterEnabled,
 } = vi.hoisted(() => ({
+	mockIsRosterEnabled: vi.fn(async () => true),
 	mockGetServerSession: vi.fn(),
 	mockGetImpersonationContext: vi.fn(),
 	mockGetFirstOrgForUser: vi.fn(),
@@ -39,6 +41,14 @@ vi.mock('@/server/repositories/orgRepo', () => ({
 
 vi.mock('@/components/app/org-profile-form', () => ({
 	OrgProfileForm: () => null,
+}));
+
+vi.mock('@/components/app/volunteer-roster-toggle', () => ({
+	VolunteerRosterToggle: () => null,
+}));
+
+vi.mock('@/server/services/featureFlagService', () => ({
+	isRosterEnabledForOrg: mockIsRosterEnabled,
 }));
 
 import OrganizationSettingsPage from '../page';
@@ -123,6 +133,9 @@ describe('OrganizationSettingsPage — impersonation fail-closed', () => {
 
 		expect(mockGetFirstOrgForUser).toHaveBeenCalledWith(TARGET_ID);
 		expect(mockGetOrgProfile).toHaveBeenCalledWith('target-org');
+		// The roster switch is seeded from the org the page shows, not the
+		// admin's own — a save would otherwise flip a different org's setting.
+		expect(mockIsRosterEnabled).toHaveBeenCalledWith('target-org');
 		expect(result).toBeTruthy();
 	});
 

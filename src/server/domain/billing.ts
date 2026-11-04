@@ -144,7 +144,6 @@ export const PLAN_FEATURES: readonly PlanFeature[] = [
 	{
 		label: 'Volunteer roster CSV export',
 		requiredTier: 'FREE',
-		note: 'Volunteer roster is rolling out; enabled per organization.',
 	},
 	{ label: 'Audit logging', requiredTier: 'FREE' },
 	{ label: 'Role-based access control', requiredTier: 'FREE' },
