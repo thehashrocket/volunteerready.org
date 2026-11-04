@@ -128,7 +128,11 @@ export const CAPTURE_SCENARIOS: CaptureScenario[] = [
 		key: 'impactReport',
 		actor: CAPTURE_ACTORS.orgAdmin,
 		path: '/app/impact-report',
-		waitForText: 'days on VolunteerReady',
+		// Also the framing anchor (capture.spec.ts centers it): centering a
+		// mid-list row keeps the whole Platform Usage card in frame now that
+		// the seeded baseline card sits above it. The homepage pins its
+		// annotation markers to this composition.
+		waitForText: 'Shifts created',
 		variants: ['light', 'dark'],
 	},
 	{

@@ -3,6 +3,8 @@ export type PublicPage = {
 	href: string;
 	label: string;
 	nav?: boolean;
+	/** Position in the header nav (ascending). Pages without one sort last. */
+	navOrder?: number;
 	footerSection?: string;
 	sitemap?: {
 		changeFrequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
@@ -21,7 +23,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		label: 'Home',
 		sitemap: { changeFrequency: 'daily', priority: 1.0 },
 		og: {
-			heading: 'Trusted Infrastructure for Volunteer Engagement',
+			heading: 'Volunteer Hours, Screening & Funder Reports',
 			subheading: 'VolunteerReady',
 		},
 	},
@@ -30,6 +32,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		href: '/about',
 		label: 'About',
 		nav: true,
+		navOrder: 4,
 		footerSection: 'Platform',
 		sitemap: { changeFrequency: 'monthly', priority: 0.7 },
 		og: {
@@ -42,10 +45,11 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		href: '/how-it-works',
 		label: 'How It Works',
 		nav: true,
+		navOrder: 1,
 		footerSection: 'Platform',
 		sitemap: { changeFrequency: 'monthly', priority: 0.8 },
 		og: {
-			heading: 'From Sign-Up to Verified Service Record',
+			heading: 'From First Shift to Funder Report',
 			subheading: 'How It Works',
 		},
 	},
@@ -63,7 +67,6 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		slug: 'for-volunteers',
 		href: '/for/volunteers',
 		label: 'For Volunteers',
-		nav: true,
 		sitemap: { changeFrequency: 'monthly', priority: 0.8 },
 		og: {
 			heading: 'Find Opportunities. Earn Portable Credentials.',
@@ -75,9 +78,10 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		href: '/for/nonprofits',
 		label: 'For Nonprofits',
 		nav: true,
+		navOrder: 2,
 		sitemap: { changeFrequency: 'monthly', priority: 0.8 },
 		og: {
-			heading: 'Screen, Credential, and Manage Volunteers',
+			heading: 'Hours, Screening & Funder Reports for Nonprofits',
 			subheading: 'For Nonprofits',
 		},
 	},
@@ -85,7 +89,6 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		slug: 'for-employers',
 		href: '/for/employers',
 		label: 'For Employers',
-		nav: true,
 		sitemap: { changeFrequency: 'monthly', priority: 0.7 },
 		og: {
 			heading: 'Track Employee Volunteering & ESG Impact',
@@ -106,7 +109,6 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		slug: 'stories',
 		href: '/stories',
 		label: 'Stories',
-		footerSection: 'Platform',
 		sitemap: { changeFrequency: 'weekly', priority: 0.6 },
 		og: {
 			heading: 'Real Impact from Real Nonprofits',
@@ -118,6 +120,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		href: '/pricing',
 		label: 'Pricing',
 		nav: true,
+		navOrder: 3,
 		footerSection: 'Platform',
 		sitemap: { changeFrequency: 'monthly', priority: 0.7 },
 		og: {
@@ -139,7 +142,6 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		slug: 'opportunities',
 		href: '/opportunities',
 		label: 'Opportunities',
-		nav: true,
 		footerSection: 'Volunteers',
 		sitemap: { changeFrequency: 'daily', priority: 0.9 },
 		og: {
@@ -162,8 +164,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		slug: 'map',
 		href: '/map',
 		label: 'Map',
-		nav: true,
-		footerSection: 'Platform',
+		footerSection: 'Volunteers',
 		sitemap: { changeFrequency: 'daily', priority: 0.8 },
 		og: {
 			heading: 'Find Volunteer Opportunities Near You',
@@ -174,8 +175,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
 		slug: 'search',
 		href: '/search',
 		label: 'Search',
-		nav: true,
-		footerSection: 'Platform',
+		footerSection: 'Volunteers',
 		sitemap: { changeFrequency: 'monthly', priority: 0.5 },
 		og: {
 			heading: 'Search Volunteer Opportunities & Resources',
@@ -218,10 +218,13 @@ export const PUBLIC_PAGES: PublicPage[] = [
 ];
 
 export function getNavPages(): { label: string; href: string }[] {
-	return PUBLIC_PAGES.filter((p) => p.nav).map(({ label, href }) => ({
-		label,
-		href,
-	}));
+	return PUBLIC_PAGES.filter((p) => p.nav)
+		.sort(
+			(a, b) =>
+				(a.navOrder ?? Number.POSITIVE_INFINITY) -
+				(b.navOrder ?? Number.POSITIVE_INFINITY),
+		)
+		.map(({ label, href }) => ({ label, href }));
 }
 
 export function getFooterPages(

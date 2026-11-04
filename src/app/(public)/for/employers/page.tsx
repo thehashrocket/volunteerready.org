@@ -11,7 +11,6 @@ import { CTABanner } from '@/components/cta-banner';
 import { FadeInOnScroll } from '@/components/fade-in-on-scroll';
 import { FaqSection } from '@/components/faq-section';
 import { JsonLdBreadcrumb } from '@/components/json-ld-breadcrumb';
-import { PlatformStatsBar } from '@/components/platform-stats-bar';
 import { PublicHero } from '@/components/public-hero';
 import { ScreenshotSection } from '@/components/screenshot-section';
 import { TrackedLink } from '@/components/tracked-link';
@@ -164,7 +163,6 @@ export default async function ForEmployersPage() {
 			/>
 
 			{/* ── Platform stats ── */}
-			<PlatformStatsBar />
 
 			{/* ── Features ── */}
 			<FadeInOnScroll>

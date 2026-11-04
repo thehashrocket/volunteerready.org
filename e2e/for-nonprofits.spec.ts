@@ -14,7 +14,7 @@ test.describe('/for/nonprofits V2 editorial', () => {
 
 	test('hero has both primary and secondary CTAs', async ({ page }) => {
 		const primary = page
-			.getByRole('link', { name: /See It In Action — Free Setup/i })
+			.getByRole('link', { name: /Book a setup call/i })
 			.first();
 		await expect(primary).toBeVisible();
 

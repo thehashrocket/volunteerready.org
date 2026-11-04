@@ -49,9 +49,25 @@ describe('getNavPages()', () => {
 		}
 	});
 
-	it('includes search', () => {
-		const navPages = getNavPages();
-		expect(navPages.some((p) => p.href === '/search')).toBe(true);
+	it('leads with the nonprofit buyer path, in order', () => {
+		expect(getNavPages().map((p) => p.href)).toEqual([
+			'/how-it-works',
+			'/for/nonprofits',
+			'/pricing',
+			'/about',
+		]);
+	});
+
+	it('keeps volunteer-marketplace pages out of the header', () => {
+		const hrefs = getNavPages().map((p) => p.href);
+		for (const href of [
+			'/opportunities',
+			'/map',
+			'/search',
+			'/for/volunteers',
+		]) {
+			expect(hrefs).not.toContain(href);
+		}
 	});
 });
 

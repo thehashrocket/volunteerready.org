@@ -137,7 +137,7 @@ export default function PricingPage() {
 						<em className="italic text-primary">No surprises.</em>
 					</>
 				}
-				description="Everything nonprofits need to recruit, screen, and manage volunteers. Start free. Upgrade when the grant requires it."
+				description="Scheduling, check-ins, screening, and the records your funders ask for. Start free. Upgrade when the grant requires it."
 				side={{
 					label: 'No hidden fees',
 					note: (

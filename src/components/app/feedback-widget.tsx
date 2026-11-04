@@ -267,6 +267,7 @@ export function FeedbackWidget() {
 			<button
 				ref={pillRef}
 				type="button"
+				data-feedback-widget
 				onClick={() => setOpen(true)}
 				className="fixed right-4 z-40 flex h-11 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg transition-all duration-150 hover:scale-[1.02] hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
 				style={{

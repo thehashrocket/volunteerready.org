@@ -156,8 +156,12 @@ test.describe('marketing screenshot capture', () => {
 				// releases. The component is deleted; do not re-add a selector
 				// here to make a prompt "go away" without first checking whether
 				// it is telling the truth.
+				// The beta feedback pill is real product UI, but it floats over
+				// whatever is in the bottom-right of every capture and reads as
+				// clutter on a marketing page. Hide it here, not in the product.
 				await page.addStyleTag({
-					content: 'nextjs-portal{display:none!important}',
+					content:
+						'nextjs-portal,[data-feedback-widget]{display:none!important}',
 				});
 				await page.waitForTimeout(400);
 

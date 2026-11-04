@@ -41,7 +41,7 @@
   - Border: `#E8E6E1`
   - Text Primary: `#141311`
   - Text Secondary: `#3D3B38`
-  - Text Muted: `#787571`
+  - Text Muted: `#6B6864` (was `#787571`, which measured 4.4:1 and failed AA for body text)
 - **Semantic:**
   - Success: `#2D7A4F`
   - Warning: `#B8860B`
@@ -57,7 +57,7 @@
   - Border: `#2A2927`
   - Text Primary: `#E8E6E1`
   - Text Secondary: `#B5B1AB`
-  - Text Muted: `#787571`
+  - Text Muted: `#928E89` (was `#787571`, which measured 4.1:1 on `#111110`)
   - Primary: `#3D8B5F` (lightened for dark backgrounds)
   - Primary Hover: `#4DA672`
   - Success: `#3D8B5F`

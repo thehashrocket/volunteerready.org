@@ -133,12 +133,6 @@ export const PLAN_FEATURES: readonly PlanFeature[] = [
 	{ label: 'Shift scheduling & attendance', requiredTier: 'FREE' },
 	{ label: 'Portable volunteer credentials', requiredTier: 'FREE' },
 	/**
-	 * Ungated on purpose. `routers/matching.ts` uses `protectedProcedure` /
-	 * `staffProcedure` with no tier check, so selling this as a Starter feature
-	 * (which the old table did) described a refusal that never happens.
-	 */
-	{ label: 'Skill-based volunteer matching', requiredTier: 'FREE' },
-	/**
 	 * FREE deliberately — see the header of `domain/roster-export.ts`. An org
 	 * that cannot get its roster back out has not chosen to stay.
 	 *
@@ -154,6 +148,12 @@ export const PLAN_FEATURES: readonly PlanFeature[] = [
 	},
 	{ label: 'Audit logging', requiredTier: 'FREE' },
 	{ label: 'Role-based access control', requiredTier: 'FREE' },
+	/**
+	 * Ungated on purpose. `routers/matching.ts` uses `protectedProcedure` /
+	 * `staffProcedure` with no tier check, so selling this as a Starter feature
+	 * (which the old table did) described a refusal that never happens.
+	 */
+	{ label: 'Skill-based volunteer matching', requiredTier: 'FREE' },
 	{
 		label: 'Reusable shift templates',
 		requiredTier: 'STARTER',
