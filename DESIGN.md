@@ -203,7 +203,7 @@
   token (`ui/button.tsx:8` is the reference). Never `outline: none` without a replacement.
   ⚠️ **Aspiration, not a description.** The older `ring-2 … ring-offset-2` shape is still the
   MAJORITY in the tree — 18 call sites against 6 for `ring-[3px]`, including
-  `ui/checkbox.tsx`, `ui/input.tsx`, `ui/select.tsx` and `public-header.tsx`. Both give a
+  `ui/checkbox.tsx`, `ui/input.tsx`, `ui/select.tsx` and `public-header/account.tsx`. Both give a
   visible focus ring, so this is a consistency debt, not an a11y bug. Use the token form for
   new and touched code; do not read this line as a claim the app is uniform.
 - **Active/pressed:** subtle darken or scale to 0.98.

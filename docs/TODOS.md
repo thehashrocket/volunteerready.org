@@ -1570,7 +1570,7 @@ instead. **If the docs site is ever published, fix with a symlink or a VitePress
 `DESIGN.md` states the focus contract as the `--ring` token at `ring-[3px]`
 (`ui/button.tsx:8`), but the older `ring-2 … ring-offset-2` shape is the **majority**
 in the tree: 18 call sites against 6, including `ui/checkbox.tsx`, `ui/input.tsx`,
-`ui/select.tsx` and `public-header.tsx`. Both render a visible focus ring, so this is
+`ui/select.tsx` and `public-header/account.tsx`. Both render a visible focus ring, so this is
 consistency debt, not an a11y defect. The doc now says so out loud rather than
 implying uniformity. Converging them is a mechanical sweep whenever someone wants it.
 Related: the disabled state is a genuine two-way split (`pointer-events-none` on
