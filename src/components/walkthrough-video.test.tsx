@@ -4,7 +4,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { WalkthroughVideo } from './walkthrough-video';
 
-const analytics = vi.hoisted(() => ({ trackEvent: vi.fn() }));
+const analytics = vi.hoisted(() => ({
+	trackEvent: vi.fn(),
+	trackAnonymousEvent: vi.fn(),
+}));
 vi.mock('@/lib/analytics', () => analytics);
 
 const PROPS = {
@@ -60,6 +63,7 @@ describe('WalkthroughVideo', () => {
 
 	it('records a walkthrough_play event when played', () => {
 		analytics.trackEvent.mockClear();
+		analytics.trackAnonymousEvent.mockClear();
 		render(<WalkthroughVideo {...PROPS} />);
 
 		fireEvent.click(screen.getByRole('button', { name: /Play the 40-second/ }));
@@ -67,5 +71,11 @@ describe('WalkthroughVideo', () => {
 		expect(analytics.trackEvent).toHaveBeenCalledWith('walkthrough_play', {
 			page_path: window.location.pathname,
 		});
+		// The cookieless copy is the one that counts visitors who never answer
+		// the cookie banner, i.e. most people arriving from an email.
+		expect(analytics.trackAnonymousEvent).toHaveBeenCalledWith(
+			'walkthrough_play',
+			{ page_path: window.location.pathname },
+		);
 	});
 });

@@ -2,7 +2,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FOUNDER_BOOKING_URL } from '@/lib/constants';
 import { COOKIE_CONSENT_STORAGE_KEY } from '@/lib/cookie-consent';
-import { trackBookingLinkClick, trackEvent } from '../analytics';
+import {
+	trackAnonymousEvent,
+	trackBookingLinkClick,
+	trackEvent,
+} from '../analytics';
+
+const vercel = vi.hoisted(() => ({ track: vi.fn() }));
+vi.mock('@vercel/analytics', () => vercel);
 
 describe('trackEvent', () => {
 	const gtagMock = vi.fn();
@@ -101,8 +108,41 @@ describe('trackBookingLinkClick', () => {
 		});
 	});
 
+	it('counts the click in cookieless analytics even without consent', () => {
+		localStorage.clear();
+		clickInside(FOUNDER_BOOKING_URL);
+		expect(gtagMock).not.toHaveBeenCalled();
+		expect(vercel.track).toHaveBeenCalledWith('book_setup_call', {
+			page_path: window.location.pathname,
+		});
+	});
+
 	it('ignores other links', () => {
 		clickInside('/pricing');
 		expect(gtagMock).not.toHaveBeenCalled();
+		expect(vercel.track).not.toHaveBeenCalled();
+	});
+});
+
+describe('trackAnonymousEvent', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		localStorage.clear();
+	});
+
+	it('sends to Vercel Analytics regardless of consent', () => {
+		trackAnonymousEvent('walkthrough_play', { page_path: '/' });
+		expect(vercel.track).toHaveBeenCalledWith('walkthrough_play', {
+			page_path: '/',
+		});
+	});
+
+	it('never throws if the analytics client does', () => {
+		vercel.track.mockImplementationOnce(() => {
+			throw new Error('blocked');
+		});
+		expect(() =>
+			trackAnonymousEvent('walkthrough_play', { page_path: '/' }),
+		).not.toThrow();
 	});
 });

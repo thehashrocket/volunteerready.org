@@ -73,7 +73,12 @@ export const thirdPartyServices = [
 	{
 		service: 'Vercel Analytics',
 		purpose: 'Usage analytics',
-		data: 'Anonymous page views',
+		data: 'Anonymous page views and two product events, no cookies',
+	},
+	{
+		service: 'Google Analytics',
+		purpose: 'Usage analytics (only with your consent)',
+		data: 'Page views and device type, via cookies',
 	},
 	{
 		service: 'Upstash Redis',
@@ -83,6 +88,12 @@ export const thirdPartyServices = [
 ];
 
 export const versionHistory = [
+	{
+		date: 'November 8, 2026',
+		version: '1.3',
+		changes:
+			'Vercel Analytics, which uses no cookies and no personal identifiers, now counts anonymous page views for every visitor; disclosed Google Analytics, which only sets cookies and collects data with your consent',
+	},
 	{
 		date: 'July 29, 2026',
 		version: '1.2',
@@ -258,7 +269,8 @@ export default function PrivacyPage() {
 							</li>
 							<li>
 								Analyze anonymous usage patterns to improve the product (via
-								Vercel Analytics, only with your consent)
+								Vercel Analytics, which uses no cookies, and Google Analytics,
+								only with your consent)
 							</li>
 							<li>Enforce rate limits to prevent abuse</li>
 						</ul>
@@ -507,11 +519,18 @@ export default function PrivacyPage() {
 								<strong className="text-foreground">
 									Analytics cookies (opt-in):
 								</strong>{' '}
-								Vercel Analytics collects anonymous page view data to help us
-								improve the platform. These are only enabled with your consent
-								via our cookie banner.
+								Google Analytics measures how the site is used. Its script loads
+								on every page, but it sets no cookies and collects no analytics
+								until you allow analytics in our cookie banner.
 							</li>
 						</ul>
+						<p>
+							Separately, Vercel Analytics counts anonymous page views and two
+							product events (playing the walkthrough video and clicking to book
+							a setup call) for every visitor. It sets no cookies, stores no
+							personal identifiers, and cannot recognize you across visits or
+							sites, so it does not depend on your cookie choice.
+						</p>
 						<p>
 							We do not use advertising cookies or tracking pixels. You can
 							change your cookie preferences at any time using the cookie
@@ -721,7 +740,7 @@ export default function PrivacyPage() {
 			{/* ── Effective date ── */}
 			<div className="border-t border-border/40 px-4 py-8">
 				<p className="mx-auto max-w-3xl text-xs text-muted-foreground">
-					This privacy policy is effective as of July 29, 2026 (Version 1.2).
+					This privacy policy is effective as of November 8, 2026 (Version 1.3).
 				</p>
 			</div>
 		</article>
