@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { BackgroundCheckProvider } from '@/prisma/generated/client';
 import { thirdPartyServices, versionHistory } from './page';
@@ -76,5 +78,34 @@ describe('privacy policy — version history', () => {
 
 		const sorted = [...times].sort((a, b) => b - a);
 		expect(times).toEqual(sorted);
+	});
+});
+
+describe('privacy policy — analytics disclosure', () => {
+	// Google Analytics loaded on every page for months while the policy named
+	// only Vercel Analytics. Read what the analytics component actually loads,
+	// so adding a tracker there without a disclosure row goes red here.
+	const source = readFileSync(
+		path.join(process.cwd(), 'src/components/consented-analytics.tsx'),
+		'utf8',
+	);
+	const LOADED: Array<[marker: string, service: string]> = [
+		['googletagmanager.com', 'Google Analytics'],
+		['@vercel/analytics', 'Vercel Analytics'],
+	];
+
+	it.each(LOADED)(
+		'%s is loaded, so %s must be disclosed',
+		(marker, service) => {
+			expect(source).toContain(marker);
+			expect(thirdPartyServices.map((s) => s.service)).toContain(service);
+		},
+	);
+
+	it('says Vercel Analytics runs without cookies, since it is no longer consent-gated', () => {
+		const row = thirdPartyServices.find(
+			(s) => s.service === 'Vercel Analytics',
+		);
+		expect(row?.data).toMatch(/no cookies/i);
 	});
 });

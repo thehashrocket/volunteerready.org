@@ -87,30 +87,46 @@ describe('ConsentedAnalytics', () => {
 		});
 	});
 
-	it('renders scripts but not Vercel Analytics when consent is false', () => {
+	// Vercel Analytics is cookieless and disclosed as running for everyone
+	// (/privacy section 6). It used to be consent-gated, which hid almost every
+	// visitor arriving from an outreach email: they never touch the banner.
+	it('renders Vercel Analytics with no stored consent at all', () => {
+		const { getByTestId } = render(<ConsentedAnalytics />);
+		expect(getByTestId('vercel-analytics')).toBeDefined();
+	});
+
+	it('renders Vercel Analytics but keeps GA denied when consent is false', () => {
 		localStorage.setItem(
 			COOKIE_CONSENT_STORAGE_KEY,
 			JSON.stringify({ essential: true, analytics: false }),
 		);
 
-		const { getByTestId, queryByTestId } = render(<ConsentedAnalytics />);
-		expect(getByTestId('gtag-init')).toBeDefined();
-		expect(queryByTestId('vercel-analytics')).toBeNull();
+		const { getByTestId } = render(<ConsentedAnalytics />);
+		expect(getByTestId('vercel-analytics')).toBeDefined();
+		expect(gtag).toHaveBeenCalledWith('consent', 'update', {
+			analytics_storage: 'denied',
+		});
+		expect(gtag).not.toHaveBeenCalledWith('consent', 'update', {
+			analytics_storage: 'granted',
+		});
 	});
 
-	it('renders scripts but not Vercel Analytics when stored JSON is invalid', () => {
+	it('keeps GA denied when stored JSON is invalid', () => {
 		localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, '{bad json');
 
-		const { getByTestId, queryByTestId } = render(<ConsentedAnalytics />);
+		const { getByTestId } = render(<ConsentedAnalytics />);
 		expect(getByTestId('gtag-init')).toBeDefined();
-		expect(queryByTestId('vercel-analytics')).toBeNull();
+		expect(gtag).not.toHaveBeenCalledWith('consent', 'update', {
+			analytics_storage: 'granted',
+		});
 	});
 
 	it('responds to cookie-consent-changed events', () => {
-		const { getByTestId, queryByTestId } = render(<ConsentedAnalytics />);
-		// Script always present, but Vercel Analytics not yet
+		const { getByTestId } = render(<ConsentedAnalytics />);
 		expect(getByTestId('gtag-init')).toBeDefined();
-		expect(queryByTestId('vercel-analytics')).toBeNull();
+		expect(gtag).not.toHaveBeenCalledWith('consent', 'update', {
+			analytics_storage: 'granted',
+		});
 
 		// Grant consent via localStorage + event
 		localStorage.setItem(
@@ -123,7 +139,6 @@ describe('ConsentedAnalytics', () => {
 		});
 
 		expect(getByTestId('gtag-init')).toBeDefined();
-		expect(getByTestId('vercel-analytics')).toBeDefined();
 		expect(gtag).toHaveBeenCalledWith('consent', 'update', {
 			analytics_storage: 'granted',
 		});

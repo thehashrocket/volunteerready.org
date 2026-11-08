@@ -80,7 +80,12 @@ export function ConsentedAnalytics() {
 					gtag('config', '${GA_MEASUREMENT_ID}');
 				`}
 			</Script>
-			{enabled && <Analytics />}
+			{/* Vercel Analytics sets no cookies and stores no personal identifiers,
+			    so it runs for every visitor (disclosed in /privacy, section 6).
+			    Google Analytics above stays consent-gated. Gating this one too
+			    hid nearly every visitor from an outreach email, since most never
+			    touch the cookie banner. */}
+			<Analytics />
 		</>
 	);
 }

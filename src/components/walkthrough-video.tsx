@@ -3,7 +3,7 @@
 import { Play } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { trackEvent } from '@/lib/analytics';
+import { trackAnonymousEvent, trackEvent } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 
 interface WalkthroughVideoProps {
@@ -69,9 +69,9 @@ export function WalkthroughVideo({
 					<button
 						type="button"
 						onClick={() => {
-							trackEvent('walkthrough_play', {
-								page_path: window.location.pathname,
-							});
+							const params = { page_path: window.location.pathname };
+							trackEvent('walkthrough_play', params);
+							trackAnonymousEvent('walkthrough_play', params);
 							setPlaying(true);
 						}}
 						aria-label={`Play the ${durationLabel} VolunteerReady walkthrough`}
