@@ -93,6 +93,19 @@ export function isSecretUrl(url: string): boolean {
 	return onSecretPath || SECRET_PAGE_QUERY.test(url);
 }
 
+/**
+ * The patterns behind `isSecretUrl` and `scrubSecrets`, as plain data for the
+ * inline Google Analytics init script, which runs before any bundle loads and
+ * so cannot import this module. One source of truth: a pattern added above
+ * reaches that script too.
+ */
+export const SECRET_URL_RULES = {
+	paths: SECRET_PATHS.map((p) => [p.source, p.flags]),
+	pageQuery: [SECRET_PAGE_QUERY.source, SECRET_PAGE_QUERY.flags],
+	query: [SECRET_QUERY.source, SECRET_QUERY.flags],
+	filtered: FILTERED,
+};
+
 const MAX_DEPTH = 20;
 
 function isPlainObject(value: object): value is Record<string, unknown> {

@@ -5,6 +5,64 @@ Each item includes enough context for a future engineer to pick it up cold.
 
 ---
 
+## Opened by the analytics-consent ship (2026-11-12, v0.45.2.0)
+
+### [P2] Referrer-Policy on the token pages
+**Priority:** P2
+Vercel Analytics' `beforeSend` (`dropSecretUrls` in
+`src/components/consented-analytics.tsx`) sees only `event.url`; the
+insights script sends `document.referrer` separately and nothing masks it.
+No `Referrer-Policy` is set, so same-origin navigations keep the full URL.
+Path: on `/invite/<token>`, `signIn()` loads
+`/login?callbackUrl=%2Finvite%2F<token>`; the next full load is a safe page,
+whose page view is sent with that URL as its referrer. GA masks it (`vrScrub`);
+Vercel may not. Fix: `Referrer-Policy: strict-origin` (or `same-origin` with
+the path stripped) on `/invite/**`, `/credentials/claim/**`, `/apply/status`
+and `/login`, in `next.config.ts` headers. Check what Vercel's script does
+with a same-origin referrer first.
+
+### [P3] Guard test: no in-app navigation into a token page
+**Priority:** P3
+GA's own history page views (enhanced measurement) fire on client-side
+navigation with the raw URL, before any React effect can intervene. The
+v0.45.2.0 secret-URL check runs on full page loads only. Today nothing in the
+app navigates in-app to `/invite/…`, `/credentials/claim/…` or
+`/apply/status?token=` (they open from email; the two server `redirect()`s in
+`src/app/invite/company/[token]/page.tsx` are full loads). A source-scanning
+test (like `error-disclosure.guard.test.ts`) that fails on a `<Link href>`,
+`router.push`/`replace` or client `redirect` to those paths would keep it
+that way. Turning off history page views in GA admin is the alternative, but
+it stops GA counting all in-app navigation.
+
+### [P3] Secret query values nested in an encoded `callbackUrl`
+**Priority:** P3
+`isSecretUrl` matches encoded invite/claim PATHS but only unencoded
+`token`/`code`/`email` keys, so `/login?callbackUrl=%2Fapply%2Fstatus%3Ftoken%3D…`
+passes and GA's `page_location` carries it unmasked (Vercel Analytics masks it
+via `scrubSecrets`). Nothing builds that URL today. Do not "fix" it by setting
+`page_location` in `gtag('config')`: that value sticks for every later in-app
+page view. Widen `SECRET_PAGE_QUERY` to the encoded form instead, with a case
+in `sentry-url-scrub.test.ts`.
+
+### [P3] Route hook re-runs on pathname only
+**Priority:** P3
+The hook that configures GA after a token page keys on `usePathname()`, so a
+secret-to-safe change of the search string alone (e.g. stripping `?token=` with
+`router.replace` on the same path) never configures GA for that page. Nothing
+does that today; it under-counts, it does not leak. Avoid `useSearchParams` in
+the root layout (it opts pages out of static rendering).
+
+### [P3] Withdrawing analytics consent has no UI
+**Priority:** P3
+The cookie banner is the only place consent is written, and it never reappears
+once a choice is stored, so the revoke paths in `consented-analytics.tsx` are
+unreachable. No `ga-disable-*` flag is set on revoke either (`CLAUDE.md` says
+so as of v0.45.2.0). The privacy page (`src/app/(public)/privacy/page.tsx`)
+also tells visitors they can change cookie preferences "at any time using the
+cookie settings in the banner", which is not true today. Add a "Cookie
+settings" link (footer or privacy page) that reopens the banner, set
+`window['ga-disable-G-…']` on revoke, and keep the privacy sentence true.
+
 ## Opened by the platform-template ship (2026-10-05, v0.45.0.0)
 
 ### [P2] Give questions to orgs created while the templates were missing
