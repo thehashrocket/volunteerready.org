@@ -738,3 +738,54 @@ missing, stale, the 48-hour edge).
 call order (state, enable, runs, dispatch), the alert being sent even when the
 dispatch fails, and the FAILURE row. `admin-alerts.test.ts` covers the subjects
 and `isCritical`. None of them can see GitHub's live data or a real send.
+
+## Analytics consent and token pages
+
+Shipped in v0.45.2.0. Every claim below depends on what Google's and
+Vercel's scripts actually send, which no local harness reaches: the unit tests
+stub `gtag`, and a local run would send hits to the production GA property.
+
+### 1. GA4 counts visitors who accepted cookies
+
+In a private window, open `https://www.volunteerready.org/`, click
+**Accept All**, then open DevTools → Network and filter on `g/collect`.
+
+**Expect:** after the click, a `page_view` hit whose `gcs` parameter is
+`G111` (analytics granted) for the page you accepted on, then `G111` hits for
+each later page. Reload: the first `page_view` is already `G111`. Before
+v0.45.2.0 every `page_view` was `G100` (denied), which GA4 leaves out of its
+reports. Within a few minutes GA4 **Realtime** shows the visit, and the data
+stream stops saying "No data received".
+
+**Then:** in a fresh private window, click **Decline All** (or ignore the banner).
+The hits stay `G100`. That is correct and expected: those visitors are not
+reported by GA. Vercel Analytics counts them.
+
+### 2. A token page sends nothing to either tool
+
+Open a real invite or claim link from a test email (or any
+`/credentials/claim/<anything>` URL) with Network filtered on
+`g/collect|/insights|script.js`.
+
+**Expect:** no `g/collect` request and no Vercel Analytics event on that page.
+Navigate in-app to a normal page (e.g. the dashboard): GA starts counting there,
+and the hit's `dr` (referrer) parameter, if present, shows `[Filtered]` in
+place of the token.
+
+**Known gap, not a failure of this check:** Vercel Analytics' script sends the
+referrer separately, and its `beforeSend` cannot change it. A page loaded
+after `/login?callbackUrl=%2Finvite%2F<token>` can still pass that URL to
+Vercel as its referrer until a `Referrer-Policy` header ships (P2 in
+`docs/TODOS.md`). Check the Vercel Analytics **Referrers** panel for
+`volunteerready.org/login` entries to see whether it records same-origin
+referrers at all.
+
+### What is already covered automatically — do not re-check by hand
+
+`src/components/__tests__/consented-analytics.test.tsx` runs the real inline
+init script: the consent default follows the stored choice, `ad_*` stays
+denied, the default is queued before `config`, GA is not configured on token
+URLs, a secret referrer is masked, the inline rules equal `isSecretUrl` and
+`scrubSecrets`, Accept resends one `page_view` per page (also with storage
+blocked), and Vercel's `beforeSend` drops token pages. None of them can see
+what gtag.js or Vercel's script finally sends.
