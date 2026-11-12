@@ -60,4 +60,4 @@ export const RELEASE_SEVERITY: ReleaseSeverity = 'silent';
  *
  * MUST be updated in the same commit that bumps `VERSION`.
  */
-export const RELEASE_SEVERITY_DECIDED_FOR = '0.45.1.0';
+export const RELEASE_SEVERITY_DECIDED_FOR = '0.45.2.0';

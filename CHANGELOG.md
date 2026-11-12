@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.45.2.0] - 2026-11-12
+
+**Google Analytics counts visitors who accept cookies again.**
+
+Google Analytics reported "no data received". Every page view went out
+before the visitor's cookie choice was applied, as a consent-denied ping
+that Google leaves out of its reports, so even visitors who had accepted
+analytics cookies were never counted.
+
+### Fixed
+
+- A visitor who accepted analytics cookies on an earlier visit is counted
+  from their first page view.
+- A visitor who clicks Accept is counted for the page they accepted on.
+  That page is counted once, even if they change their choice and accept
+  again.
+- Accept works in browsers that block storage, such as Safari private mode.
+  The choice applies for the rest of that page.
+
+### Changed
+
+- Pages opened from one-time invite, credential-claim and status links are
+  not recorded by Google Analytics or Vercel Analytics. Google Analytics
+  starts counting on the next page of the visit. Other page addresses and
+  referrers are masked with the same rules as error reporting.
+
 ## [0.45.1.0] - 2026-10-14
 
 **The daily dependency scan now tells a platform admin when it finds something, stops running, or is switched off.**
