@@ -750,9 +750,12 @@ stub `gtag`, and a local run would send hits to the production GA property.
 In a private window, open `https://www.volunteerready.org/`, click
 **Accept All**, then open DevTools → Network and filter on `g/collect`.
 
-**Expect:** after the click, a `page_view` hit whose `gcs` parameter is
-`G111` (analytics granted) for the page you accepted on, then `G111` hits for
-each later page. Reload: the first `page_view` is already `G111`. Before
+**Expect:** after the click, a hit whose `gcs` parameter is `G101` for the
+page you accepted on, then `G101` hits for each later page. Reload: the first
+`page_view` is already `G101`. (`gcs=G1` + ad storage + analytics storage:
+`G101` is ads denied, analytics granted. Ads stay denied by design, so `G111`
+would be a bug. The resent `page_view` may carry its event name in the POST
+body, not the URL.) Verified in production on 2026-11-12. Before
 v0.45.2.0 every `page_view` was `G100` (denied), which GA4 leaves out of its
 reports. Within a few minutes GA4 **Realtime** shows the visit, and the data
 stream stops saying "No data received".
