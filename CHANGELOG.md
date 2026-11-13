@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.45.2.1] - 2026-11-12
+
+**The About page links to the founder's own site.**
+
+### Added
+
+- Jason's founder card on the About page links to jasonshultz.com, below his
+  bio.
+
 ## [0.45.2.0] - 2026-11-12
 
 **Google Analytics counts visitors who accept cookies again.**
