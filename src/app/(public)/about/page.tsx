@@ -355,6 +355,12 @@ export default function AboutPage() {
 											because connecting volunteers with organizations shouldn't
 											be hard.
 										</p>
+										<a
+											href="https://www.jasonshultz.com"
+											className="mt-1 inline-flex min-h-[44px] items-center rounded-sm text-sm font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
+										>
+											jasonshultz.com
+										</a>
 									</div>
 								</CardContent>
 							</Card>
