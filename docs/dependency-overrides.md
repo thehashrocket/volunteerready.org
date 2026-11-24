@@ -231,6 +231,19 @@ set against this repo: identical results for every case.
 Remove it when both consumers declare `glob ^14`. If a Sentry release starts
 passing `root` alongside absolute `ignore` patterns, re-check before then.
 
+### `effect` — `^3.22.1`
+
+GHSA-7589-6fvf-x4pw (**high**, ReDoS in `Schema.TemplateLiteral`'s compiled
+regex, fixed in 3.22.1). The only consumer is `@prisma/config`, which pins
+`"effect": "3.20.0"` exactly up to and including 7.10.1 (the latest release when
+this landed), so no upgrade reaches the fix. Prisma uses `effect` to load and
+validate `prisma.config.ts` from the CLI; this repo never builds a
+`TemplateLiteral` schema from untrusted input, so the advisory is very unlikely
+to be reachable. The override is still cheaper than an ignore entry: 3.20 → 3.22
+is a minor bump within the same major.
+
+Remove it when `@prisma/config` pins `effect` 3.22.1 or later.
+
 ## Retired in the pnpm 12 upgrade
 
 Three overrides came out on 2026-10-28, each because its **reason expired**:
