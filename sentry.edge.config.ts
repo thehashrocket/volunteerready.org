@@ -6,10 +6,11 @@
 import * as Sentry from '@sentry/nextjs';
 import { sentryBeforeSend } from './src/lib/sentry-before-send';
 import { SERVER_DATA_COLLECTION } from './src/lib/sentry-data-collection';
+import { SENTRY_DSN } from './src/lib/sentry-dsn';
 import { scrubSpan } from './src/lib/sentry-url-scrub';
 
 Sentry.init({
-	dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+	dsn: SENTRY_DSN,
 	tracesSampleRate: 0.1,
 	debug: false,
 	dataCollection: SERVER_DATA_COLLECTION,
