@@ -48,3 +48,4 @@ overrides:
   ws: ^8.21.0
   zod: ^4.6.6
   glob: ^14.0.3
+  effect: ^3.22.1
