@@ -4,6 +4,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { BROWSER_DATA_COLLECTION } from '@/lib/sentry-data-collection';
+import { SENTRY_DSN } from '@/lib/sentry-dsn';
 import {
 	isSecretUrl,
 	scrubBreadcrumb,
@@ -28,7 +29,7 @@ function currentUrlIsSecret(): boolean {
 let replayBlocked = currentUrlIsSecret();
 
 Sentry.init({
-	dsn: 'https://fba2ea33a15f2a443b2aa02c3b899025@o4511061592834048.ingest.us.sentry.io/4511061594406912',
+	dsn: SENTRY_DSN,
 
 	// Replay is NOT in the first-load bundle: it was ~120 KB of the largest
 	// client chunk, paid by every visitor (mobile Lighthouse TBT). It loads as
