@@ -398,8 +398,9 @@ the calls the app makes to Stripe: creating customers, checkout sessions and
 billing portal sessions, and listing events for reconciliation. It does not set
 the version of the webhooks Stripe sends back.
 
-`stripe` 23.1.0 moved the pin to `2026-10-28.endive`, a monthly release in
-the same `endive` family (additive only). Re-run check 1 below after the deploy
+`stripe` 23.1.0 moved the pin to `2026-10-28.endive`, and 23.2.0 to
+`2026-11-18.endive`: monthly releases in the same `endive` family (additive
+only). Re-run check 1 below after the deploy
 that carries it; check 2 is unaffected because webhook payloads follow the
 endpoint's version. Tests mock the Stripe client or
 sign payloads offline, so nothing before deploy talks to Stripe.
